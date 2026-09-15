@@ -49,7 +49,7 @@ class Dialog(Gtk.Dialog):
         Gtk.Dialog.do_key_press_event(self, event)
         return Gdk.EVENT_PROPAGATE
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
         self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
@@ -102,7 +102,7 @@ TYPES = {
 class MultipleMessage(Dialog):
     """Subclass of Dialog to display messages and let the user respond or ignore."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise MultipleMessage."""
         super().__init__(*args, **kwargs)
 

@@ -170,7 +170,7 @@ class PageControls(Dialog):
     def document(self, newval):
         self._document = newval
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
 

@@ -65,7 +65,7 @@ class Page:
     id = None
     _stored_bytes = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Initialise Page."""
         if ("image_object" not in kwargs and "filename" not in kwargs) or (
             "image_object" in kwargs and "filename" in kwargs
@@ -132,7 +132,7 @@ class Page:
         return img_byte_arr.getvalue()
 
     @classmethod
-    def from_bytes(cls, blob, **kwargs):
+    def from_bytes(cls, blob, **kwargs) -> "Page":
         """Create a page from bytes."""
         page = Page(image_object=Image.open(io.BytesIO(blob)))
         page._stored_bytes = blob

@@ -94,10 +94,14 @@ select = ["ALL"]
 ignore = [
     "D203",    # incompatible with `no-blank-line-before-class` (D211)
     "D213",    # incompatible with `multi-line-summary-first-line` (D212)
-    "ANN",     # type annotations: would require typing the whole codebase
+    "ANN001",  # type annotations: would require typing the whole codebase
+    "ANN002",  # (argument types and public/private return types). Only the
+    "ANN003",  # mechanical ANN204/ANN205/ANN206 (special/static/class method
+    "ANN201",  # return types) are enforced.
+    "ANN202",
     "SLF001",  # private member access: legitimately used across dialog/GTK code
     "E501",    # line length: formatted by ruff
-    "COM812",  # trailing commas: incompatible with some D* rules
+    "COM812",  # trailing commas: ruff documents this as a formatter conflict (unsupported combo)
     "CPY001",  # copyright headers: not required by this project
     "TD",      # TODO metadata requirements: not adopted as a convention
     "T201",    # print: legitimate in scripts

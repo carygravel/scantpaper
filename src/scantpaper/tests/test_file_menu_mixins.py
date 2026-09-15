@@ -24,7 +24,7 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 class MockSlist:
     """A mock class simulating a simple list for testing purposes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize mock slist."""
         self.data = [[0, 0, "uuid1"], [0, 0, "uuid2"], [0, 0, "uuid3"]]
         self.row_changed_signal = "row-changed"
@@ -95,7 +95,7 @@ class MockWindows:
         """Return the size of the window."""
         return (100, 100)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """Mock boolean."""
         return True
 
@@ -108,7 +108,7 @@ class MockWindows:
 class MockApp(unittest.mock.Mock, FileMenuMixins):
     """A mock application class."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Initialise MockWindows."""
         super().__init__(**kwargs)
         self.slist = MockSlist()

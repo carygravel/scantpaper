@@ -43,7 +43,7 @@ class TextLayerControls(Gtk.Box):
         "delete-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise the text layer control with navigation and editing buttons."""
         super().__init__(*args, **kwargs)
         textview = Gtk.TextView()

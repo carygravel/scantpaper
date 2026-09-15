@@ -24,7 +24,7 @@ from gi.repository import (  # noqa: E402
 class MockOptions:
     """A mock scan options collection."""
 
-    def __init__(self, options):
+    def __init__(self, options) -> None:
         """Initialise MockOptions."""
         self.options = options
         self.options_dict = {o.name: o for o in options}
@@ -41,7 +41,7 @@ class MockOptions:
 class MockOption:
     """A mock scan option."""
 
-    def __init__(self, name):
+    def __init__(self, name) -> None:
         """Initialise MockOptions."""
         self.name = name
         self.type = enums.TYPE_INT

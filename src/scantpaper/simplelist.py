@@ -1,5 +1,6 @@
 """A simple interface to Gtk's complex MVC list widget."""
 
+from collections.abc import Iterator
 from warnings import warn
 
 import gi
@@ -61,7 +62,7 @@ column_types = {
 class SimpleList(Gtk.TreeView):
     """A simple interface to Gtk's complex MVC list widget."""
 
-    def __init__(self, **columns):
+    def __init__(self, **columns) -> None:
         """Create a SimpleList from keyword arguments mapping column names to types."""
         super().__init__()
         if len(columns.keys()) < 1:
@@ -152,7 +153,7 @@ class SimpleList(Gtk.TreeView):
         )
         renderer.column = i
 
-    def __iter__(self, *args, **kwargs):
+    def __iter__(self, *args, **kwargs) -> Iterator:
         """Iterate over the rows of the list model."""
         return iter(self.get_model(), *args, **kwargs)
 
@@ -256,12 +257,12 @@ class SimpleList(Gtk.TreeView):
         return list(self.get_model()[index])
 
     @classmethod
-    def add_column_type(cls, **kwargs):
+    def add_column_type(cls, **kwargs) -> None:
         """Add column type."""
         column_types.update(kwargs)
 
     @classmethod
-    def get_column_types(cls):
+    def get_column_types(cls) -> dict:
         """Return column types."""
         return column_types
 
@@ -269,29 +270,29 @@ class SimpleList(Gtk.TreeView):
 class TiedRow(list):
     """TiedRow is the lowest-level tie, allowing you to treat a row as an array of column data."""
 
-    def __init__(self, model, itr):
+    def __init__(self, model, itr) -> None:
         """Store a reference to the TreeModel and tree iterator for this row."""
         super().__init__()
         self.model = model
         self.iter = itr
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> object:
         """Return the column data at *index*."""
         return self.model[self.iter][index]
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, index, value) -> None:
         """Set the item at the given index."""
         self.model[self.iter][index] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of items."""
         return self.model.get_n_columns()
 
-    def __contains__(self, index):
+    def __contains__(self, index) -> bool:
         """Check if the index is within range."""
         return index < self.model.get_n_columns()
 
-    def __delitem__(self, _index):
+    def __delitem__(self, _index) -> None:
         """Raise NotImplementedError — fixed-size row."""
         msg = "delete called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
@@ -325,12 +326,12 @@ class TiedRow(list):
 class TiedList(list):
     """TiedList is an array in which each element is a row in the liststore."""
 
-    def __init__(self, model):
+    def __init__(self, model) -> None:
         """Init attributes."""
         super().__init__()
         self.model = model
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> object:
         """Return the item at the given index."""
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
@@ -338,7 +339,7 @@ class TiedList(list):
             raise IndexError(msg)
         return TiedRow(self.model, itr)
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, index, value) -> None:
         """Set the item at the given index."""
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
@@ -346,15 +347,15 @@ class TiedList(list):
             raise IndexError(msg)
         self.model[itr] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of items."""
         return len(self.model)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return a string representation."""
         return str([list(x) for x in self.model])
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """Compare equality with another instance."""
         return [list(x) for x in self.model] == other
 
@@ -364,7 +365,7 @@ class TiedList(list):
         """Append."""
         self.model.append(values)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """Iterate over the rows."""
         return iter(self.model)
 
@@ -389,7 +390,7 @@ class TiedList(list):
         model.remove(itr)
         return ret
 
-    def __delitem__(self, index):
+    def __delitem__(self, index) -> None:
         """Raise NotImplementedError — fixed-size row."""
         model = self.model
         itr = model.iter_nth_child(None, index)

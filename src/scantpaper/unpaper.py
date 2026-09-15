@@ -21,7 +21,7 @@ class Unpaper:
 
     _version = None
 
-    def __init__(self, default=None):
+    def __init__(self, default=None) -> None:
         """Initialise unpaper options from the defaults dict."""
         self.default = default if default is not None else {}
 

@@ -41,7 +41,7 @@ def flatten_tree(oldbox, newtree):
 class Bboxtree:
     """Read and write the bounding box trees from HOCR files."""
 
-    def __init__(self, json_string=None):
+    def __init__(self, json_string=None) -> None:
         """Initialise Bboxtree."""
         self.bbox_tree = []
         if json_string is not None:
@@ -340,7 +340,7 @@ class Bboxtree:
 class HOCRParser(HTMLParser):
     """parser for HOCR string."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise HOCRParser."""
         super().__init__(*args, **kwargs)
         self.boxes = []
@@ -516,7 +516,7 @@ def _escape_text(txt):
 class PDFTextParser(HTMLParser):
     """parser for HTML string for PDF text layer."""
 
-    def __init__(self, resolution, image_size, *args, **kwargs):
+    def __init__(self, resolution, image_size, *args, **kwargs) -> None:
         """Initialise PDFTextParser."""
         super().__init__(*args, **kwargs)
         self.boxes = []

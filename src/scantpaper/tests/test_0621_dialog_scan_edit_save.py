@@ -18,7 +18,7 @@ from scantpaper.scanner.profile import Profile
 class Sane:
     """Mock Sane object."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise Sane."""
         self.options = [
             (
@@ -48,7 +48,7 @@ class TestScan(Scan):
 
     __test__ = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise TestScan."""
         self.thread = MagicMock()
         self.thread.device_handle = MagicMock()

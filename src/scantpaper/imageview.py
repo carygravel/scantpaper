@@ -27,7 +27,7 @@ class Tool:
 
     dragging = False
 
-    def __init__(self, view):
+    def __init__(self, view) -> None:
         """Initialise Tool."""
         self._view = view
         self.drag_start = {"x": None, "y": None}
@@ -341,7 +341,7 @@ class Selector(Tool):
 class SelectorDragger(Tool):
     """Select with LMB, drag with MMB."""
 
-    def __init__(self, view):
+    def __init__(self, view) -> None:
         """Initialise SelectorDragger."""
         super().__init__(view)
         self._selector = Selector(view)
@@ -663,7 +663,7 @@ class ImageView(Gtk.DrawingArea):
             GLib.source_remove(self._scroll_timeout)
             self._scroll_timeout = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
 

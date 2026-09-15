@@ -33,7 +33,7 @@ class CancelledError(RuntimeError):
 class Importhread(BaseThread):
     """subclass basethread for document."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise CancelledError."""
         BaseThread.__init__(self)
         self.lock = threading.Lock()

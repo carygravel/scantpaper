@@ -9,7 +9,7 @@ from gi.repository import Gtk  # noqa: E402
 class EntryCompletion(Gtk.Entry):
     """Subclass Gtk.Entry to add completion suggestions."""
 
-    def __init__(self, text=None, suggestions=None):
+    def __init__(self, text=None, suggestions=None) -> None:
         """Initialise Gtk."""
         super().__init__()
         completion = Gtk.EntryCompletion()

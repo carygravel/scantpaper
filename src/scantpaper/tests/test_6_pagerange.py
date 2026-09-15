@@ -6,7 +6,7 @@ from scantpaper.pagerange import PageRange
 class SignalCatch:
     """catch signal."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise SignalCatch."""
         self.signal_emitted = False
 

@@ -30,7 +30,7 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 class MockSaveThread(SaveThread):
     """Mock subclass of SaveThread for testing."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise MockSaveThread."""
         super().__init__()
         self.responses = MagicMock()
@@ -210,7 +210,7 @@ def test_save_pdf_hocr_error_fallback(mock_thread_instance, mock_page_instance):
     class _EmptyError(Exception):
         """exception with empty str() like ocrmypdf errors."""
 
-        def __str__(self):
+        def __str__(self) -> str:
             return ""
 
     with (

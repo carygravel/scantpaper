@@ -34,7 +34,7 @@ class MockOption:
 
     def __init__(
         self, name, otype, unit=enums.UNIT_NONE, cap=0, constraint=None, desc=""
-    ):
+    ) -> None:
         """Initialise MockOption."""
         self.name = name
         self.title = name
@@ -49,7 +49,7 @@ class MockOption:
 class MockOptions:
     """A mock scan options collection."""
 
-    def __init__(self, options):
+    def __init__(self, options) -> None:
         """Initialise MockOptions with a list of MockOption objects."""
         self.options = options
         self.options_dict = {o.name: o for o in options}
@@ -81,7 +81,7 @@ class MockOptions:
 class MockDevice:
     """A mock scan device."""
 
-    def __init__(self, name, model="model", vendor="vendor"):
+    def __init__(self, name, model="model", vendor="vendor") -> None:
         """Initialise MockDevice with name, model, and vendor."""
         self.name = name
         self.model = model
@@ -92,7 +92,7 @@ class MockDevice:
 class MockScan(Scan):
     """A mock Scan class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise MockScan with mocked widgets."""
         super().__init__()
 

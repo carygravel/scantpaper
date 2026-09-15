@@ -8,7 +8,7 @@ SAFETY_TIMEOUT = 2000  # ms - safety-net for GLib.MainLoop
 class _MainLoopWrapper:
     """Wraps GLib.MainLoop to fail if the safety timeout fires."""
 
-    def __init__(self, loop):
+    def __init__(self, loop) -> None:
         self._loop = loop
         self._timed_out = False
         self._quit_before_run = False
@@ -36,7 +36,7 @@ class _MainLoopWrapper:
             self._quit_before_run = True
         self._loop.quit()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> object:
         return getattr(self._loop, name)
 
 

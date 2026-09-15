@@ -108,7 +108,7 @@ class Crop(Dialog):
         self._update_sb_range("height")
         self._page_height = newval
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise ."""
         kwargs["title"] = _("Crop")
         kwargs["hide_on_delete"] = True

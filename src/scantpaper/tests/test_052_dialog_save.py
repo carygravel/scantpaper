@@ -17,7 +17,7 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
-    def now(cls, tz=None):
+    def now(cls, tz=None) -> datetime:
         """Now."""
         return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 
@@ -301,7 +301,7 @@ def test_edit_date_button(mocker):
     class CapturedDialog(original_dialog):
         """capture dialog instances."""
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             captured_dialogs.append(self)
 
@@ -316,14 +316,14 @@ def test_edit_date_button(mocker):
     class CapturedCalendar(original_calendar):
         """capture calendar instances."""
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             captured_calendar.append(self)
 
     class CapturedButton(original_button):
         """capture button instances."""
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             captured_button.append(self)
 

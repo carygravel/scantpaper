@@ -29,7 +29,7 @@ class FakeBrscan5Device:
     backend's buffer. Flatbed mode refills the glass on every ``start()``.
     """
 
-    def __init__(self, frames=None, *, refill=False):
+    def __init__(self, frames=None, *, refill=False) -> None:
         """Initialise FeederEmptyError."""
         self.buffered = list(frames) if frames is not None else []
         self.refill = refill
@@ -98,7 +98,7 @@ class CancelRaisesDevice(FakeBrscan5Device):
 class MockDevice:
     """Custom mock device class to avoid MagicMock hasattr issues and ensure structure."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize mock device with options and dev mock."""
         self.opt = {}
         self.dev = MagicMock()

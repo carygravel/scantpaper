@@ -35,7 +35,7 @@ class PreferencesDialog(Dialog):
     }
     settings = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise PreferencesDialog."""
         kwargs["title"] = _("Preferences")
         kwargs["hide_on_delete"] = True

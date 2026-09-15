@@ -9,7 +9,7 @@ from scantpaper.simplelist import SimpleList
 class PaperList(SimpleList):
     """A list of paper sizes."""
 
-    def __init__(self, formats):
+    def __init__(self, formats) -> None:
         """Initialise PaperList."""
         columns = {
             _("Name"): "text",

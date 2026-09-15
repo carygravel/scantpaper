@@ -63,7 +63,7 @@ def test_error_callback_crash(mocker):
     class MockApp(SessionMixins):
         """Mock App."""
 
-        def __init__(self):
+        def __init__(self) -> None:
             self.slist = mocker.Mock()
             self.post_process_progress = mocker.Mock()
             self.settings = {"message": {}}

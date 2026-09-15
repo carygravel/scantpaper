@@ -404,7 +404,7 @@ class Scan(PageControls):
 
     combobp = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise ."""
         profiles = {}
         if "profiles" in kwargs:

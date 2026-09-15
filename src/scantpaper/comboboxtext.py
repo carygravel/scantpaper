@@ -29,7 +29,7 @@ class ComboBoxText(Gtk.ComboBoxText):
         blurb="Column of text to be displayed",
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise ComboBoxText."""
         data = None
         if "data" in kwargs:

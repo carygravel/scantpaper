@@ -43,7 +43,7 @@ from gi.repository import (  # noqa: E402
 class Application(Gtk.Application):
     """Application class."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise Application."""
         self.args = kwargs.pop("cmdline", None) or []
         super().__init__(

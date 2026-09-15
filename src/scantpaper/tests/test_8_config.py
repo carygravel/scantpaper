@@ -32,7 +32,7 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
-    def now(cls, tz=None):
+    def now(cls, tz=None) -> datetime:
         """Now."""
         return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 

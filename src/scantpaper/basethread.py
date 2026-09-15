@@ -40,7 +40,7 @@ class Request:
 
     def __init__(
         self, process_name, process_args, return_queue, *args, notify_cb=None, **kwargs
-    ):
+    ) -> None:
         """Initialise a request with a name, args, and return queue."""
         super().__init__(*args, **kwargs)
         self.process = process_name
@@ -97,7 +97,7 @@ class BaseThread(threading.Thread):
     # Every live thread, so tests can quit any that are not explicitly stopped.
     LiveThreads = weakref.WeakSet()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise the daemon thread with request/response queues and a notify pipe."""
         super().__init__(*args, **kwargs)
         self.daemon = True
@@ -123,7 +123,7 @@ class BaseThread(threading.Thread):
             self.after[callback] = set()
 
     @staticmethod
-    def _cleanup_thread(requests_queue):
+    def _cleanup_thread(requests_queue) -> None:
         """Cleanup function that does not hold a reference to self."""
         try:
             # We don't need a response queue for finalization
@@ -174,7 +174,7 @@ class BaseThread(threading.Thread):
         return self.send("quit")
 
     @classmethod
-    def quit_all_live_threads(cls):
+    def quit_all_live_threads(cls) -> None:
         """Send a quit request to every live thread (used for test teardown)."""
         for thread in list(cls.LiveThreads):
             if thread.is_alive():

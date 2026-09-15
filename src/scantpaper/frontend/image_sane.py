@@ -100,7 +100,7 @@ class SaneThread(BaseThread):
             _sane_initialized[0] = False
 
     @classmethod
-    def do_get_devices(cls, _request):
+    def do_get_devices(cls, _request) -> list:
         """Get devices."""
         return [
             SimpleNamespace(name=x[0], vendor=x[1], model=x[2], label=x[3])

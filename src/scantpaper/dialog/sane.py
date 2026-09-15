@@ -35,7 +35,7 @@ class SaneScanDialog(Scan):
         "despite scanning from flatbed.",
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise SaneScanDialog."""
         super().__init__(*args, **kwargs)
         self.thread = SaneThread()

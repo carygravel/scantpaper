@@ -31,7 +31,7 @@ class Options(GObject.Object):
     Glib.ParamSpec object in Scantpaper.Dialog.Scan.
     """
 
-    def __init__(self, options):
+    def __init__(self, options) -> None:
         """Initialise the options hash and geometry from a SANE options list."""
         GObject.Object.__init__(self)
         self.hash = {}
@@ -69,7 +69,7 @@ class Options(GObject.Object):
 
         self.parse_geometry()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return a string representation of the options array."""
         return f"Options({self.array})"
 

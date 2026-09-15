@@ -157,7 +157,7 @@ def _version_tuple(version):
 class ConfigDict(dict):
     """A dict that carries warnings raised while loading the configuration."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise ConfigDict."""
         super().__init__(*args, **kwargs)
         self.load_warnings = []

@@ -187,7 +187,7 @@ def button_press_callback(bbox, _target, event, edit_callback):
 class Rectangle(Gdk.Rectangle):
     """Helper class so that we can parse arguments when initialising."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Initialise Rectangle."""
         super().__init__()
         for key in ["x", "y", "width", "height"]:
@@ -197,7 +197,7 @@ class Rectangle(Gdk.Rectangle):
             setattr(self, key, kwargs[key])
 
     @classmethod
-    def from_bbox(cls, x1, y1, x2, y2):
+    def from_bbox(cls, x1, y1, x2, y2) -> "Rectangle":
         """Create Rectangle from hocr bbox coords."""
         return Rectangle(x=x1, y=y1, width=abs(x2 - x1), height=abs(y2 - y1))
 
@@ -205,7 +205,7 @@ class Rectangle(Gdk.Rectangle):
 class Bbox:
     """Bounding box with text, rectangle, and hierarchy info for OCR display."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Initialise Rectangle."""
         self.parent = None
         self.children = []
@@ -433,7 +433,7 @@ class Bbox:
 class _CanvasRoot:
     """Root container for the Bbox tree."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.children = []
 
     def get_child(self, i):
@@ -464,7 +464,7 @@ class Canvas(Gtk.DrawingArea):
         ),
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise Canvas."""
         super().__init__(*args, **kwargs)
 
@@ -1175,7 +1175,7 @@ class Canvas(Gtk.DrawingArea):
 class ListIter:
     """an interator to allow us to index around a linear list."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise ListIter."""
         self.list = []
         self.index = EMPTY_LIST
@@ -1283,7 +1283,7 @@ class ListIter:
 class TreeIter:
     """Class allowing us to iterate around the tree of bounding boxes."""
 
-    def __init__(self, bbox):
+    def __init__(self, bbox) -> None:
         """Initialise TreeIter."""
         if not isinstance(bbox, Bbox):
             msg = "bbox is not a Bbox object"

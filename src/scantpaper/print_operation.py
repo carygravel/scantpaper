@@ -12,7 +12,7 @@ from gi.repository import (  # noqa: E402
 class PrintOperation(Gtk.PrintOperation):
     """print dialog."""
 
-    def __init__(self, *_args, **kwargs):
+    def __init__(self, *_args, **kwargs) -> None:
         """Initialise PrintOperation."""
         super().__init__()
         if kwargs["settings"] is not None:

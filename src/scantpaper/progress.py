@@ -24,7 +24,7 @@ class Progress(Gtk.Box):
         "clicked": (GObject.SignalFlags.RUN_FIRST, None, ())
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise Progress."""
         super().__init__(*args, **kwargs)
         self.cancel_callback = None

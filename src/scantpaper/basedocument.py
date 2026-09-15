@@ -36,7 +36,7 @@ class BaseDocument(SimpleList):
     jobs_completed = 0
     jobs_total = 0
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         """Initialise BaseDocument."""
         columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page ID": "hint"}
         super().__init__(**columns)

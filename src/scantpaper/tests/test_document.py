@@ -9,7 +9,7 @@ from scantpaper.document import Document, _extract_metadata
 class MockResponse:
     """A mock response class."""
 
-    def __init__(self, info):
+    def __init__(self, info) -> None:
         """Initialize mock response."""
         self.info = info
 
@@ -17,7 +17,7 @@ class MockResponse:
 class MockThread:
     """A mock thread class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize mock thread."""
         self.get_file_info = unittest.mock.Mock()
         self.import_file = unittest.mock.Mock()

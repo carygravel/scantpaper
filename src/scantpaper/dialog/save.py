@@ -335,7 +335,7 @@ class Save(Dialog):
         type=str, default=None, nick="PDF user password", blurb="PDF user password"
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
         box = self.get_content_area()
