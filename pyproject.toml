@@ -117,10 +117,10 @@ ignore = [
 task-tags = ["TODO", "FIXME"]
 
 [tool.ruff.lint.per-file-ignores]
-# Whitespace rules rewrite blank-line indentation inside the hOCR string
-# literals this test compares byte-for-byte against saved output; fixing
-# them corrupts the expected fixtures.
-"src/scantpaper/tests/test_151_save_text.py" = ["W291", "W293"]
+# The blank-line whitespace rule rewrites indentation inside the hOCR string
+# literal this test compares byte-for-byte against saved output; fixing it
+# corrupts the expected fixture.
+"src/scantpaper/tests/test_151_save_text.py" = ["W293"]
 # Tests assert on internal state, generate temporary files, and invoke PATH
 # binaries (without a shell); these are intentional test-suite patterns. The
 # literal values in test assertions (magic-value comparisons) are likewise
