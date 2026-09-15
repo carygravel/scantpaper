@@ -276,7 +276,7 @@ def test_4(sane_scan_dialog, mainloop_with_timeout, set_device_wait_reload):
         callbacks += 1
 
     dialog.connect("removed-profile", removed_profile_cb)
-    dialog._remove_profile("my profile")
+    dialog.remove_profile("my profile")
     assert callbacks == 4, "all callbacks executed"
 
 

@@ -39,7 +39,7 @@ def mock_thread(mocker):
 
     mock_inst.running_pids = {}
     mock_inst.lock = threading.Lock()
-    mock_inst._dir = "/tmp"
+    mock_inst.dir = "/tmp"
     mock_inst._con = MagicMock()
 
     # Mock DocThread.send to avoid blocking on queues

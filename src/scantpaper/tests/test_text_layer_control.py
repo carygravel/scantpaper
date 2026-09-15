@@ -90,7 +90,7 @@ def test_text_layer_add_and_ok_buttons(mocker):
     window.slist.thread.set_text = MagicMock()
 
     window._ocr_text_hbox = MagicMock()
-    window._ocr_text_hbox._textbuffer.get_text.return_value = "some text"
+    window._ocr_text_hbox.textbuffer.get_text.return_value = "some text"
 
     window._current_ocr_bbox = MagicMock()
     window.view = MagicMock()

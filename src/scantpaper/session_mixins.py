@@ -478,7 +478,7 @@ class SessionMixins:
         edit_hbox.pack_start(self._ann_hbox, expand=True, fill=True, padding=0)
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text(_("Annotations"))
-        self._ann_hbox._textbuffer = ann_textview.get_buffer()
+        self._ann_hbox.textbuffer = ann_textview.get_buffer()
         ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
         ann_obutton.set_tooltip_text(_("Accept corrections"))
         ann_obutton.connect("clicked", self._ann_text_ok)
@@ -503,9 +503,9 @@ class SessionMixins:
 
     def _ocr_text_button_clicked(self, _widget):
         old_text = self._current_ocr_bbox.text
-        text = self._ocr_text_hbox._textbuffer.get_text(
-            self._ocr_text_hbox._textbuffer.get_start_iter(),
-            self._ocr_text_hbox._textbuffer.get_end_iter(),
+        text = self._ocr_text_hbox.textbuffer.get_text(
+            self._ocr_text_hbox.textbuffer.get_start_iter(),
+            self._ocr_text_hbox.textbuffer.get_end_iter(),
             include_hidden_chars=False,
         )
         self._current_ocr_bbox.update_box(text, self.view.get_selection())
@@ -517,9 +517,9 @@ class SessionMixins:
 
     def _ocr_text_copy(self, _widget):
         self._current_ocr_bbox = self.t_canvas.add_box(
-            text=self._ocr_text_hbox._textbuffer.get_text(
-                self._ocr_text_hbox._textbuffer.get_start_iter(),
-                self._ocr_text_hbox._textbuffer.get_end_iter(),
+            text=self._ocr_text_hbox.textbuffer.get_text(
+                self._ocr_text_hbox.textbuffer.get_start_iter(),
+                self._ocr_text_hbox.textbuffer.get_end_iter(),
                 include_hidden_chars=False,
             ),
             bbox=self.view.get_selection(),
@@ -530,9 +530,9 @@ class SessionMixins:
         self._edit_ocr_text(self._current_ocr_bbox)
 
     def _ocr_text_add(self, _widget):
-        text = self._ocr_text_hbox._textbuffer.get_text(
-            self._ocr_text_hbox._textbuffer.get_start_iter(),
-            self._ocr_text_hbox._textbuffer.get_end_iter(),
+        text = self._ocr_text_hbox.textbuffer.get_text(
+            self._ocr_text_hbox.textbuffer.get_start_iter(),
+            self._ocr_text_hbox.textbuffer.get_end_iter(),
             include_hidden_chars=False,
         )
         if text is None or text == EMPTY:
@@ -572,9 +572,9 @@ class SessionMixins:
         self._edit_ocr_text(self.t_canvas.get_current_bbox())
 
     def _ann_text_ok(self, _widget):
-        text = self._ann_hbox._textbuffer.get_text(
-            self._ann_hbox._textbuffer.get_start_iter(),
-            self._ann_hbox._textbuffer.get_end_iter(),
+        text = self._ann_hbox.textbuffer.get_text(
+            self._ann_hbox.textbuffer.get_start_iter(),
+            self._ann_hbox.textbuffer.get_end_iter(),
             include_hidden_chars=False,
         )
         logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
@@ -583,9 +583,9 @@ class SessionMixins:
         self._edit_annotation(self._current_ann_bbox)
 
     def _ann_text_new(self, _widget):
-        text = self._ann_hbox._textbuffer.get_text(
-            self._ann_hbox._textbuffer.get_start_iter(),
-            self._ann_hbox._textbuffer.get_end_iter(),
+        text = self._ann_hbox.textbuffer.get_text(
+            self._ann_hbox.textbuffer.get_start_iter(),
+            self._ann_hbox.textbuffer.get_end_iter(),
             include_hidden_chars=False,
         )
         if text is None or text == EMPTY:
@@ -638,7 +638,7 @@ class SessionMixins:
             return
 
         self._current_ocr_bbox = bbox
-        self._ocr_text_hbox._textbuffer.set_text(bbox.text)
+        self._ocr_text_hbox.textbuffer.set_text(bbox.text)
         self._ocr_text_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.setzoom_is_fit(zoom_to_fit=False)
@@ -650,7 +650,7 @@ class SessionMixins:
     def _edit_annotation(self, bbox, _target=None):
         """Edit annotation."""
         self._current_ann_bbox = bbox
-        self._ann_hbox._textbuffer.set_text(bbox.text)
+        self._ann_hbox.textbuffer.set_text(bbox.text)
         self._ann_hbox.show_all()
         self.view.set_selection(bbox.bbox)
         self.view.setzoom_is_fit(zoom_to_fit=False)

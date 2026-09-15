@@ -1227,7 +1227,7 @@ def test_save_as(temp_db, mocker):
 def test_init_no_dir_db():
     """Test __init__ falls back to temp dir when no dir or db given."""
     thread = DocThread()
-    assert thread._dir is not None
+    assert thread.dir is not None
     assert thread._db is not None
     thread.quit()
 

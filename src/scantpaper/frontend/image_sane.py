@@ -173,10 +173,11 @@ class SaneThread(BaseThread):
 
         # binary AND to find if we have to reload options:
         if info & enums.INFO_RELOAD_OPTIONS:
-            if hasattr(self.device_handle, "__load_option_dict"):
-                self.device_handle.__load_option_dict()
-            elif hasattr(self.device_handle, "_SaneDev__load_option_dict"):
-                self.device_handle._SaneDev__load_option_dict()
+            reload_options = getattr(
+                self.device_handle, "__load_option_dict", None
+            ) or getattr(self.device_handle, "_SaneDev__load_option_dict", None)
+            if reload_options is not None:
+                reload_options()
 
         logger.info(
             f"sane_set_option {opt.index} ({opt.name})"

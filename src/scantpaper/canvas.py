@@ -179,7 +179,7 @@ def button_press_callback(bbox, _target, event, edit_callback):
     if event.button == 1:
         canvas = bbox.canvas
         if canvas:
-            canvas._dragging = False
+            canvas.dragging = False
         edit_callback(bbox, _target)
         bbox.emit("clicked")
 
@@ -211,7 +211,7 @@ class Bbox:
         self.children = []
         self._callbacks = {}
         self._text_widget = None
-        self._pango_layout = None
+        self.pango_layout = None
 
         self.text = kwargs.get("text", EMPTY)
         self.bbox = kwargs.get("bbox")
@@ -487,7 +487,7 @@ class Canvas(Gtk.DrawingArea):
         self._current_index = "position"
         self.position_index = None
         self.confidence_index = None
-        self._dragging = False
+        self.dragging = False
         self._drag_start = {}
         self._pixbuf_size = None
         self._color_lookup_table = None
@@ -780,10 +780,10 @@ class Canvas(Gtk.DrawingArea):
             rotation, _x0, _y0 = bbox.transformation
             angle = -(bbox.textangle + rotation) % _360_DEGREES
 
-            layout = bbox._pango_layout
+            layout = bbox.pango_layout
             if layout is None:
                 layout = self._create_pango_layout(ctx, bbox)
-                bbox._pango_layout = layout
+                bbox.pango_layout = layout
 
             if layout is not None:
                 ink_extents = layout.get_pixel_extents()[0]
@@ -1092,7 +1092,7 @@ class Canvas(Gtk.DrawingArea):
         if event.button == Gdk.BUTTON_MIDDLE:
             _screen, x, y = self._device.get_position()
             self._drag_start = {"x": x, "y": y}
-            self._dragging = True
+            self.dragging = True
             win = self.get_window()
             win.set_cursor(
                 Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grabbing")
@@ -1111,13 +1111,13 @@ class Canvas(Gtk.DrawingArea):
 
     def _button_released(self, _widget, event):
         if event.button == Gdk.BUTTON_MIDDLE:
-            self._dragging = False
+            self.dragging = False
             win = self.get_window()
             win.set_cursor(None)
         return True
 
     def _motion(self, _widget, _event):
-        if not self._dragging:
+        if not self.dragging:
             return False
         offset = self.get_offset()
         zoom = self.zoom

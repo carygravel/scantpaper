@@ -462,11 +462,11 @@ def test_drain_cancelled_requests_notifies_queued_jobs(mocker):
     assert request.uuid not in thread.callbacks, "registry entry removed"
 
 
-def test_cleanup_thread_exception_caught(mocker):
-    """Test _cleanup_thread catches exceptions from queue.put during interpreter shutdown."""
+def testcleanup_thread_exception_caught(mocker):
+    """Test cleanup_thread catches exceptions from queue.put during interpreter shutdown."""
     mock_queue = mocker.Mock()
     mock_queue.put.side_effect = Exception("queue closed")
-    BaseThread._cleanup_thread(mock_queue)
+    BaseThread.cleanup_thread(mock_queue)
     mock_queue.put.assert_called_once()
 
 

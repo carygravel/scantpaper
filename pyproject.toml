@@ -105,7 +105,6 @@ ignore = [
     "ANN003",  # mechanical ANN204/ANN205/ANN206 (special/static/class method
     "ANN201",  # return types) are enforced.
     "ANN202",
-    "SLF001",  # private member access: legitimately used across dialog/GTK code
     "E501",    # line length: formatted by ruff
     "COM812",  # trailing commas: ruff documents this as a formatter conflict (unsupported combo)
     "CPY001",  # copyright headers: not required by this project
@@ -123,7 +122,8 @@ ignore = [
 # literal values in test assertions (magic-value comparisons) are likewise
 # deliberate expectations rather than magic numbers. Many test functions
 # take numerous pytest fixtures as arguments (PLR0913/PLR0917), which is the
-# idiomatic way to inject them.
+# idiomatic way to inject them. Tests also assert on private widget state
+# (SLF001) to verify behaviour white-box.
 "src/scantpaper/tests/**" = [
     "S101",
     "S105",
@@ -133,6 +133,7 @@ ignore = [
     "PLR0913",
     "PLR0917",
     "PLR2004",
+    "SLF001",
 ]
 # src/conftest.py is test infrastructure: it resolves binaries (e.g. fc-match)
 # via PATH and dumps a debugging artifact to /tmp. It also prints diagnostic

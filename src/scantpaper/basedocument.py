@@ -44,7 +44,7 @@ class BaseDocument(SimpleList):
         self.thread.register_callback("display", "after", "data")
         self.thread.register_callback("updated_page", "after", "data")
         self._finalizer = weakref.finalize(
-            self, self.thread._cleanup_thread, self.thread.requests
+            self, self.thread.cleanup_thread, self.thread.requests
         )
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
@@ -56,7 +56,7 @@ class BaseDocument(SimpleList):
         for key, val in kwargs.items():
             setattr(self, key, val)
         if not self.dir:
-            self.dir = self.thread._dir
+            self.dir = self.thread.dir
         if isinstance(self.dir, str):
             self.dir = pathlib.Path(self.dir)
 

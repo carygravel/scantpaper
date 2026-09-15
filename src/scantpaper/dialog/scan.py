@@ -467,9 +467,7 @@ class Scan(PageControls):
         dbutton.set_image(icon)
         dbutton.connect(
             "clicked",
-            lambda _x: (
-                ref() and ref()._remove_profile(ref().combobsp.get_active_text())
-            ),
+            lambda _x: ref() and ref().remove_profile(ref().combobsp.get_active_text()),
         )
         hboxsp.pack_start(dbutton, expand=False, fill=False, padding=0)
 
@@ -1174,7 +1172,7 @@ class Scan(PageControls):
             self._profile = name
             self.emit("changed-profile", name)
 
-    def _remove_profile(self, name):
+    def remove_profile(self, name):
         """Remove the profile. If it is active, deselect it first."""
         if (name is not None) and name in self.profiles:
             self.combobsp.remove_item_by_text(name)

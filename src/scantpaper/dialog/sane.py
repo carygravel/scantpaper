@@ -40,7 +40,7 @@ class SaneScanDialog(Scan):
         super().__init__(*args, **kwargs)
         self.thread = SaneThread()
         self._finalizer = weakref.finalize(
-            self, self.thread._cleanup_thread, self.thread.requests
+            self, self.thread.cleanup_thread, self.thread.requests
         )
         self.thread.start()
         self.geometry_boxes = None

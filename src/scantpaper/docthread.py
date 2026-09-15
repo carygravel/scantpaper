@@ -62,19 +62,19 @@ class DocThread(SaveThread):
     widtht = THUMBNAIL
     _action_id = 0
     _db = None
-    _dir = None
+    dir = None
 
     def __init__(self, *args, **kwargs) -> None:
         """Initialise DocThread."""
-        for key in ["dir", "db"]:
+        for key, attr in [("dir", "dir"), ("db", "_db")]:
             if key in kwargs:
-                setattr(self, "_" + key, kwargs.pop(key))
+                setattr(self, attr, kwargs.pop(key))
         super().__init__(*args, **kwargs)
-        self._dir, self._db = self._set_paths(self._dir, self._db)
+        self.dir, self._db = self._set_paths(self.dir, self._db)
         self.db_files = [
             self._db,
-            self._dir / pathlib.Path(self._db.name + "-wal"),
-            self._dir / pathlib.Path(self._db.name + "-shm"),
+            self.dir / pathlib.Path(self._db.name + "-wal"),
+            self.dir / pathlib.Path(self._db.name + "-shm"),
         ]
         self._con = {}
         self._cur = {}
@@ -812,7 +812,7 @@ class DocThread(SaveThread):
 
     def _bytes_to_pixbuf(self, blob):
         """Given a stream of bytes, return the equivalent pixbuf."""
-        with tempfile.NamedTemporaryFile(dir=self._dir, suffix=".png") as temp:
+        with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as temp:
             temp.write(blob)
             temp.flush()
             return GdkPixbuf.Pixbuf.new_from_file(temp.name)

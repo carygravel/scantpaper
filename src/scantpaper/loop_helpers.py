@@ -13,7 +13,7 @@ class _MainLoopWrapper:
         self._timed_out = False
         self._quit_before_run = False
 
-    def _on_timeout(self):
+    def on_timeout(self):
         self._timed_out = True
         self._loop.quit()
 
@@ -44,5 +44,5 @@ def safe_mainloop(timeout=SAFETY_TIMEOUT):
     """Return a MainLoop wrapper that fails if the safety timeout fires."""
     loop = GLib.MainLoop()
     wrapper = _MainLoopWrapper(loop)
-    GLib.timeout_add(timeout, wrapper._on_timeout)
+    GLib.timeout_add(timeout, wrapper.on_timeout)
     return wrapper

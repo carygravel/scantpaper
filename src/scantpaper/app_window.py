@@ -294,10 +294,14 @@ class ApplicationWindow(
 
         logger.info("Python version %s", sys.version_info)
         logger.info("GLib VERSION_MIN_REQUIRED %s", GLib.VERSION_MIN_REQUIRED)
-        logger.info("GLib._version %s", GLib._version)
+        logger.info(
+            "GLib built %s.%s.%s",
+            GLib.MAJOR_VERSION,
+            GLib.MINOR_VERSION,
+            GLib.MICRO_VERSION,
+        )
         logger.info("gi.__version__ %s", gi.__version__)
         logger.info("gi.version_info %s", gi.version_info)
-        logger.info("Gtk._version %s", Gtk._version)
         logger.info(
             "Built for GTK %s.%s.%s",
             Gtk.MAJOR_VERSION,

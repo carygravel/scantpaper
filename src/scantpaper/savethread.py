@@ -132,7 +132,7 @@ class SaveThread(Importhread):
         # Call ocrmypdf with our custom progress plugin
         # The savethread module provides get_progressbar_class hook
         try:
-            ocrmypdf.api._hocr_to_ocr_pdf(
+            ocrmypdf.api._hocr_to_ocr_pdf(  # noqa: SLF001 - no public API for the hOCR->PDF step alone
                 outdir,
                 filename,
                 optimize=0,

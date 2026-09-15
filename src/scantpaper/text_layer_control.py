@@ -48,7 +48,7 @@ class TextLayerControls(Gtk.Box):
         super().__init__(*args, **kwargs)
         textview = Gtk.TextView()
         textview.set_tooltip_text(_("Text layer"))
-        self._textbuffer = textview.get_buffer()
+        self.textbuffer = textview.get_buffer()
 
         fbutton = self._make_icon_button(
             "go-first", _("Go to least confident text"), "go-to-first"

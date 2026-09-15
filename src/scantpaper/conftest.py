@@ -444,7 +444,7 @@ def mainloop_with_timeout(request):
     def anonymous():
         loop = GLib.MainLoop()
         wrapper = _MainLoopWrapper(loop)
-        GLib.timeout_add(request.config.timeout, wrapper._on_timeout)
+        GLib.timeout_add(request.config.timeout, wrapper.on_timeout)
         return wrapper
 
     return anonymous

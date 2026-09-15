@@ -173,7 +173,7 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
             ("tl-y", 10),
         ],
     ), "applied 2nd profile without affecting 1st"
-    dialog._remove_profile("profile 1")
+    dialog.remove_profile("profile 1")
     assert dialog.profiles["profile 2"] == Profile(
         backend=[("tl-x", 20), ("tl-y", 20)]
     ), "remove_profile()"

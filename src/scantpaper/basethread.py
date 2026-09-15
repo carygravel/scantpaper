@@ -112,7 +112,7 @@ class BaseThread(threading.Thread):
         self._notify_r, self._notify_w = os.pipe()
         os.set_blocking(self._notify_r, False)
         os.set_blocking(self._notify_w, False)
-        self._finalizer = weakref.finalize(self, self._cleanup_thread, self.requests)
+        self._finalizer = weakref.finalize(self, self.cleanup_thread, self.requests)
         self.LiveThreads.add(self)
         self._io_watch_id = GLib.io_add_watch(
             self._notify_r, GLib.PRIORITY_DEFAULT, GLib.IO_IN, self._on_readable
@@ -123,7 +123,7 @@ class BaseThread(threading.Thread):
             self.after[callback] = set()
 
     @staticmethod
-    def _cleanup_thread(requests_queue) -> None:
+    def cleanup_thread(requests_queue) -> None:
         """Cleanup function that does not hold a reference to self."""
         try:
             # We don't need a response queue for finalization

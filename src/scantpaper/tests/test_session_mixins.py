@@ -687,7 +687,7 @@ def test_ocr_text_operations(mocker, mock_session_window):
     """Test OCR text operations: add, copy, delete."""
     mock_session_window.slist.thread._take_snapshot = mocker.Mock()
     mock_session_window._ocr_text_hbox = mocker.Mock()
-    mock_session_window._ocr_text_hbox._textbuffer.get_text.return_value = "new text"
+    mock_session_window._ocr_text_hbox.textbuffer.get_text.return_value = "new text"
 
     mock_session_window._current_page = mocker.Mock()
     mock_session_window._current_page.text_layer = "existing_layer"
@@ -739,7 +739,7 @@ def test_ocr_text_operations(mocker, mock_session_window):
 def test_annotation_operations(mocker, mock_session_window):
     """Test annotation operations: ok, new, delete."""
     mock_session_window._ann_hbox = mocker.Mock()
-    mock_session_window._ann_hbox._textbuffer.get_text.return_value = "ann text"
+    mock_session_window._ann_hbox.textbuffer.get_text.return_value = "ann text"
     mock_session_window._current_page = mocker.Mock()
     mock_session_window._current_page.__getitem__ = lambda _self, _key: 100
     mock_session_window._current_ann_bbox = mocker.Mock()
@@ -809,7 +809,7 @@ def test_edit_ocr_text(mocker, mock_session_window):
     # Case bbox is set
     mock_session_window._edit_ocr_text(mock_bbox)
 
-    mock_session_window._ocr_text_hbox._textbuffer.set_text.assert_called_with(
+    mock_session_window._ocr_text_hbox.textbuffer.set_text.assert_called_with(
         "some text"
     )
     mock_session_window.view.set_selection.assert_called_with("bbox_rect")
@@ -827,7 +827,7 @@ def test_edit_annotation(mocker, mock_session_window):
 
     mock_session_window._edit_annotation(mock_bbox)
 
-    mock_session_window._ann_hbox._textbuffer.set_text.assert_called_with("some text")
+    mock_session_window._ann_hbox.textbuffer.set_text.assert_called_with("some text")
     mock_session_window.view.set_selection.assert_called_with("bbox_rect")
     mock_session_window.a_canvas.set_index_by_bbox.assert_called_with(mock_bbox)
 
@@ -910,7 +910,7 @@ def test_ann_text_new_no_layer(mocker, mock_session_window):
     """Test _ann_text_new with no existing text layer and empty text."""
     mock_session_window._ann_hbox = mocker.Mock()
     # Line 643 coverage: text is EMPTY
-    mock_session_window._ann_hbox._textbuffer.get_text.return_value = EMPTY
+    mock_session_window._ann_hbox.textbuffer.get_text.return_value = EMPTY
 
     # Mock _current_page so it doesn't have text_layer (Lines 655-674 coverage)
     # and supports dict access
@@ -958,7 +958,7 @@ def test_ocr_text_add_no_layer(mocker, mock_session_window):
     """Test _ocr_text_add with no existing text layer and empty text."""
     mock_session_window._ocr_text_hbox = mocker.Mock()
     # Line 587 coverage: text is EMPTY
-    mock_session_window._ocr_text_hbox._textbuffer.get_text.return_value = EMPTY
+    mock_session_window._ocr_text_hbox.textbuffer.get_text.return_value = EMPTY
 
     # Mock _current_page so it doesn't have text_layer (Lines 599-618 coverage)
     # and supports dict access

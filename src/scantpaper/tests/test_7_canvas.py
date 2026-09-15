@@ -1111,7 +1111,7 @@ def test_canvas_event_handlers(mocker):
 
     with patch("gi.repository.Gdk.Cursor.new_from_name") as mock_cursor_new:
         canvas_obj._button_pressed(None, event)
-        assert canvas_obj._dragging
+        assert canvas_obj.dragging
         assert canvas_obj._drag_start == {"x": 100, "y": 100}
         mock_cursor_new.assert_called()
 
@@ -1125,7 +1125,7 @@ def test_canvas_event_handlers(mocker):
 
     # _button_released
     canvas_obj._button_released(None, event)
-    assert not canvas_obj._dragging
+    assert not canvas_obj.dragging
 
 
 def test_bbox_update_box_empty_text():
@@ -1912,7 +1912,7 @@ def test_canvas_no_stack_overflow(rose_pnm):
 def test_canvas_motion_no_dragging():
     """Test _motion returns False when not dragging (line 678)."""
     canvas = Canvas()
-    canvas._dragging = False
+    canvas.dragging = False
     assert canvas._motion(None, None) is False
 
 
@@ -2492,7 +2492,7 @@ def test_draw_bbox_more_branches(mocker):
         layout.set_text(bbox.text, -1)
         return layout
 
-    page._pango_layout = make_layout(ctx, page)
+    page.pango_layout = make_layout(ctx, page)
     canvas._draw_scene(ctx)
 
     word = canvas.add_box(
@@ -2512,7 +2512,7 @@ def test_draw_bbox_more_branches(mocker):
     ink.width = 0
     ink.height = 10
     mock_layout.get_pixel_extents.return_value = (ink, MagicMock())
-    word._pango_layout = mock_layout
+    word.pango_layout = mock_layout
     del canvas._create_pango_layout
     canvas._draw_scene(ctx)
 

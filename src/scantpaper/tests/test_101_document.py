@@ -974,7 +974,7 @@ def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
 def test_import_files_encrypted():
     """Test import_files with encryption."""
     with patch("scantpaper.basedocument.DocThread") as mockdocthread:
-        mockdocthread.return_value._dir = "/tmp"
+        mockdocthread.return_value.dir = "/tmp"
         doc = Document()
         doc.thread = mockdocthread.return_value
 
@@ -1016,7 +1016,7 @@ def test_import_files_encrypted():
 def test_import_files_multiple_errors():
     """Test import_files with multiple files and errors."""
     with patch("scantpaper.basedocument.DocThread") as mockdocthread:
-        mockdocthread.return_value._dir = "/tmp"
+        mockdocthread.return_value.dir = "/tmp"
         doc = Document()
         doc.thread = mockdocthread.return_value
         doc.create_pidfile = MagicMock()
@@ -1081,7 +1081,7 @@ def _make_page_callback_side_effect():
 def test_post_process_chain():
     """Test post process chain."""
     with patch("scantpaper.basedocument.DocThread") as mockdocthread:
-        mockdocthread.return_value._dir = "/tmp"
+        mockdocthread.return_value.dir = "/tmp"
         doc = Document()
         doc.thread = mockdocthread.return_value
         doc.create_pidfile = MagicMock()
@@ -1151,7 +1151,7 @@ def test_post_process_chain():
 def test_split_page():
     """Test split_page."""
     with patch("scantpaper.basedocument.DocThread") as mockdocthread:
-        mockdocthread.return_value._dir = "/tmp"
+        mockdocthread.return_value.dir = "/tmp"
         doc = Document()
         doc.thread = mockdocthread.return_value
         doc.add_page = MagicMock()
