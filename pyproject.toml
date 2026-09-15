@@ -56,6 +56,12 @@ filterwarnings = [
     "ignore:.*found in sys.modules after import of package.*:RuntimeWarning",
 ]
 
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+
 [project.optional-dependencies]
 test = [
     "polib",
