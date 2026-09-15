@@ -1,6 +1,6 @@
 """scantpaper --- to aid the scan to PDF or DjVu process."""
 
-# TODO:
+# Roadmap and wishlist:
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
 # various improvements from StackOverflow

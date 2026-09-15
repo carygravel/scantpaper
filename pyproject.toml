@@ -108,9 +108,13 @@ ignore = [
     "E501",    # line length: formatted by ruff
     "COM812",  # trailing commas: ruff documents this as a formatter conflict (unsupported combo)
     "CPY001",  # copyright headers: not required by this project
-    "TD",      # TODO metadata requirements: not adopted as a convention
+    "TD002",   # TODO author tags: not adopted as a convention
+    "TD003",   # TODO issue links: not adopted as a convention
     "FIX002",  # TODO without issue ref: plain `# TODO:` notes are the project convention
 ]
+# The well-formedness TD rules are enforced (canonical tag, colon, description);
+# only the metadata conventions (author, issue link) are left unadopted.
+task-tags = ["TODO", "FIXME"]
 
 [tool.ruff.lint.per-file-ignores]
 # Whitespace rules rewrite blank-line indentation inside the hOCR string

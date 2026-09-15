@@ -1122,7 +1122,7 @@ class DocThread(SaveThread):
             logger.info("std dev: %s mean: %s", page.std_dev, page.mean)
             self.check_cancelled()
 
-            # TODO add any other useful image analysis here e.g. is the page mis-oriented?
+            # TODO: add any other useful image analysis here e.g. is the page mis-oriented?
             #  detect mis-orientation possible algorithm:
             #   blur or low-pass filter the image (so words look like ovals)
             #   look at few vertical narrow slices of the image and get the Standard Deviation
