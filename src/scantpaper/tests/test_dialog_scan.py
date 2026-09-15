@@ -885,9 +885,6 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
 
         # 5. Assert CLEAN state
         # The proper fix ensures that the stack is popped and cursor is reset.
-        print(f"setting_current_scan_options: {dialog.setting_current_scan_options}")
-        print(f"cursor: {dialog.cursor}")
-
         assert len(dialog.setting_current_scan_options) == 0, (
             "setting_current_scan_options should be empty (clean state)"
         )

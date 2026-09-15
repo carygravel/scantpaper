@@ -110,7 +110,6 @@ ignore = [
     "COM812",  # trailing commas: ruff documents this as a formatter conflict (unsupported combo)
     "CPY001",  # copyright headers: not required by this project
     "TD",      # TODO metadata requirements: not adopted as a convention
-    "T201",    # print: legitimate in scripts
     "FIX002",  # TODO without issue ref: plain `# TODO:` notes are the project convention
     "PLR0913", # too many arguments: existing APIs take many params (scan/request dicts)
     "PLR0917", # too many positional arguments: existing call sites pass many args
@@ -127,11 +126,14 @@ ignore = [
 # deliberate expectations rather than magic numbers.
 "src/scantpaper/tests/**" = ["S101", "S105", "S108", "S603", "S607", "PLR2004"]
 # src/conftest.py is test infrastructure: it resolves binaries (e.g. fc-match)
-# via PATH and dumps a debugging artifact to /tmp. Its deprecated
-# tempfile.mktemp uses (S306) are fixed in-code instead of suppressed.
-"src/scantpaper/conftest.py" = ["S108", "S607"]
+# via PATH and dumps a debugging artifact to /tmp. It also prints diagnostic
+# font/pixel information (T201) while creating the image fixtures. Its
+# deprecated tempfile.mktemp uses (S306) are fixed in-code instead of
+# suppressed.
+"src/scantpaper/conftest.py" = ["S108", "S607", "T201"]
 # dev/ is a scripts folder, not a Python package, so its scripts live in an
 # implicit namespace directory; the package itself is under src/. The dev
 # scripts also invoke translation tooling (intltool-extract, pygettext3) via
-# PATH without ever using a shell.
-"dev/**" = ["INP001", "S603", "S607"]
+# PATH without ever using a shell, and print their progress/errors directly
+# (T201) as one-shot developer CLI tools.
+"dev/**" = ["INP001", "S603", "S607", "T201"]

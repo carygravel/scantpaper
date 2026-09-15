@@ -266,9 +266,7 @@ class TestRotateControls:
         assert rotate_controls._side2.angle_cmbx.get_active_index() == 180
 
         # Case 4: Facing 0, Reverse 270
-        print("\n\nCase 4: Facing 0")
         rotate_controls.rotate_facing = 0
-        print("\nCase 4: Reverse 270")
         rotate_controls.rotate_reverse = 270
         assert rotate_controls._side1.side_cmbx.get_active_index() == "reverse"
         assert rotate_controls._side1.angle_cmbx.get_active_index() == 270
