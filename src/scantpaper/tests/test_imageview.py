@@ -515,7 +515,7 @@ def test_imageview_more_basics(rose_png):
     view.zoom_to_fit()
     assert view.getzoom_is_fit() is True
 
-    view.set_fitting(False)
+    view.set_fitting(value=False)
     assert view.getzoom_is_fit() is False
 
     # interpolation
@@ -1077,9 +1077,9 @@ def test_adaptive_filter():
     view.set_interpolation(cairo.FILTER_BEST)
     assert view._get_adaptive_filter() == cairo.FILTER_BEST
     # interacting: fast filtering overrides configured interpolation
-    view.set_interacting(True)
+    view.set_interacting(interacting=True)
     assert view._get_adaptive_filter() == cairo.FILTER_FAST
-    view.set_interacting(False)
+    view.set_interacting(interacting=False)
     assert view._get_adaptive_filter() == cairo.FILTER_BEST
 
 

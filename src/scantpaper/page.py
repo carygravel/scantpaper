@@ -1,5 +1,7 @@
 """Class of data and methods for handling page objects."""
 
+from __future__ import annotations
+
 import io
 import json
 import locale
@@ -65,7 +67,7 @@ class Page:
     id = None
     _stored_bytes = None
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: object) -> None:
         """Initialise Page."""
         if ("image_object" not in kwargs and "filename" not in kwargs) or (
             "image_object" in kwargs and "filename" in kwargs
@@ -105,7 +107,7 @@ class Page:
             self.uuid,
         )
 
-    def to_stored_bytes(self):
+    def to_stored_bytes(self) -> bytes:
         """Return the image as bytes for SQLite, choosing a compact PDF-compatible format."""
         if self.image_object.format in ("JPEG", "PNG") and self._stored_bytes:
             return self._stored_bytes
@@ -115,14 +117,14 @@ class Page:
             return self._to_png_bytes()
         return self._to_jpeg_bytes()
 
-    def _to_png_bytes(self):
+    def _to_png_bytes(self) -> bytes:
         """Return the image encoded as PNG bytes."""
         img_byte_arr = io.BytesIO()
         image = self.image_object
         image.save(img_byte_arr, format="PNG")
         return img_byte_arr.getvalue()
 
-    def _to_jpeg_bytes(self):
+    def _to_jpeg_bytes(self) -> bytes:
         """Return the image encoded as JPEG bytes at the storage quality."""
         img_byte_arr = io.BytesIO()
         image = self.image_object
@@ -132,7 +134,7 @@ class Page:
         return img_byte_arr.getvalue()
 
     @classmethod
-    def from_bytes(cls, blob, **kwargs) -> "Page":
+    def from_bytes(cls: type[Page], blob: bytes, **kwargs: object) -> Page:
         """Create a page from bytes."""
         page = Page(image_object=Image.open(io.BytesIO(blob)))
         page._stored_bytes = blob
@@ -151,36 +153,36 @@ class Page:
                 setattr(page, key, kwargs[key])
         return page
 
-    def import_hocr(self, hocr):
+    def import_hocr(self, hocr: str) -> None:
         """Import hocr."""
         bboxtree = Bboxtree()
         bboxtree.from_hocr(hocr)
         json_text = bboxtree.json()
         self.text_layer = None if json_text == "[]" else json_text
 
-    def export_hocr(self):
+    def export_hocr(self) -> str:
         """Export hocr."""
         return Bboxtree(self.text_layer).to_hocr()
 
-    def import_djvu_txt(self, djvu):
+    def import_djvu_txt(self, djvu: str) -> None:
         """Import djvu text."""
         tree = Bboxtree()
         tree.from_djvu_txt(djvu)
         self.text_layer = tree.json()
 
-    def export_djvu_txt(self):
+    def export_djvu_txt(self) -> str | None:
         """Export djvu text."""
         if self.text_layer is None:
             return None
         return Bboxtree(self.text_layer).to_djvu_txt()
 
-    def export_text(self):
+    def export_text(self) -> str:
         """Export simple text."""
         if self.text_layer is None:
             return ""
         return Bboxtree(self.text_layer).to_text()
 
-    def import_pdftotext(self, html):
+    def import_pdftotext(self, html: str) -> None:
         """Import text layer from PDF."""
         tree = Bboxtree()
         res = self.get_resolution()
@@ -189,26 +191,26 @@ class Page:
         json_text = tree.json()
         self.text_layer = None if json_text == "[]" else json_text
 
-    def import_annotations(self, hocr):
+    def import_annotations(self, hocr: str) -> None:
         """Import annotation layer from hocr."""
         bboxtree = Bboxtree()
         bboxtree.from_hocr(hocr)
         self.annotations = bboxtree.json()
 
-    def import_djvu_ann(self, ann):
+    def import_djvu_ann(self, ann: str) -> None:
         """Import annotation layer from djvu."""
         imagew, imageh = self.get_size()
         tree = Bboxtree()
         tree.from_djvu_ann(ann, imagew, imageh)
         self.annotations = tree.json()
 
-    def export_djvu_ann(self):
+    def export_djvu_ann(self) -> str | None:
         """Export annotation for djvu."""
         if self.annotations is None:
             return None
         return Bboxtree(self.annotations).to_djvu_ann()
 
-    def get_size(self):
+    def get_size(self) -> tuple[int, int]:
         """Get the image size."""
         if self.width is None or self.height is None:
             self.width = self.image_object.width
@@ -216,7 +218,9 @@ class Page:
 
         return self.width, self.height
 
-    def get_resolution(self, paper_sizes=None):
+    def get_resolution(
+        self, paper_sizes: dict[str, dict[str, float]] | None = None
+    ) -> tuple[float, float, str]:
         """Get the resolution."""
         if isinstance(self.resolution, (int, float)) or (
             isinstance(self.resolution, tuple) and self.resolution[0] is not None
@@ -276,7 +280,9 @@ class Page:
         self.resolution = (xresolution, yresolution, units)
         return self.resolution
 
-    def matching_paper_sizes(self, paper_sizes):
+    def matching_paper_sizes(
+        self, paper_sizes: dict[str, dict[str, float]] | None
+    ) -> dict[str, float]:
         """Given paper dimensions (mm) and paper sizes, return matching resolutions (ppi)."""
         matching = {}
         if paper_sizes is None:
@@ -297,7 +303,7 @@ class Page:
 
         return matching
 
-    def get_pixbuf(self):
+    def get_pixbuf(self) -> GdkPixbuf.Pixbuf | None:
         """Return a pixbuf of the image."""
         if self.image_object is None:
             logger.warning("Cannot get pixbuf from None")
@@ -316,7 +322,9 @@ class Page:
                 logger.warning("Caught error getting pixbuf: %s", exc)
         return pixbuf
 
-    def get_pixbuf_at_scale(self, max_width, max_height):
+    def get_pixbuf_at_scale(
+        self, max_width: int, max_height: int
+    ) -> GdkPixbuf.Pixbuf | None:
         """Logic taken from at_scale_size_prepared_cb() in.
 
         https://gitlab.gnome.org/GNOME/gdk-pixbuf/blob/2.40.0/gdk-pixbuf/gdk-pixbuf-io.c
@@ -369,13 +377,13 @@ class Page:
                 logger.warning("Caught error getting pixbuf: %s", exc)
         return pixbuf
 
-    def get_depth(self):
+    def get_depth(self) -> int:
         """Return image depth based on mode provided by PIL."""
         if self._depth is None:
             self._depth = MODE2DEPTH[self.image_object.mode]
         return self._depth
 
-    def _equalize_resolution(self):
+    def _equalize_resolution(self) -> tuple[float, Image.Image]:
         """c44 and cjb2 do not support different resolutions in the x and y directions, so resample."""
         xresolution, yresolution, units = self.get_resolution()
         width, height = self.width, self.height
@@ -389,7 +397,9 @@ class Page:
             )
         return xresolution, self.image_object
 
-    def write_image_for_pdf(self, filename, options):
+    def write_image_for_pdf(
+        self, filename: str, options: dict[str, object] | None
+    ) -> None:
         """Write the image as a file suitable for embedding in a PDF."""
         image = self.image_object
         opts = {}
@@ -425,7 +435,7 @@ class Page:
         xresolution, yresolution, _units = self.get_resolution()
         image.save(filename, dpi=(xresolution, yresolution))
 
-    def write_image_for_djvu(self, filename, options):
+    def write_image_for_djvu(self, filename: str, options: dict[str, object]) -> None:
         """Save the image as a DjVu file."""
         # Check the image depth to decide what sort of compression to use
 
@@ -462,7 +472,7 @@ class Page:
             self._add_txt_to_djvu(filename, options.get("dir"))
             self._add_ann_to_djvu(filename, options.get("dir"))
 
-    def _add_txt_to_djvu(self, djvu, dirname):
+    def _add_txt_to_djvu(self, djvu: str, dirname: str | None) -> None:
         if self.text_layer is not None:
             try:
                 txt = self.export_djvu_txt()
@@ -490,7 +500,7 @@ class Page:
                     cmd, check=True, shell=False
                 )
 
-    def _add_ann_to_djvu(self, djvu, dirname):
+    def _add_ann_to_djvu(self, djvu: str, dirname: str | None) -> None:
         """FIXME - refactor this together with _add_txt_to_djvu."""
         if self.annotations is not None:
             try:
@@ -519,7 +529,7 @@ class Page:
                     cmd, check=True, shell=False
                 )
 
-    def write_image_for_tiff(self, filename, options):
+    def write_image_for_tiff(self, filename: str, options: dict[str, object]) -> None:
         """Save the image as a TIFF file."""
         with tempfile.NamedTemporaryFile(
             dir=options.get("dir"), suffix=".tif"
@@ -555,7 +565,13 @@ class Page:
             )
 
 
-def _prepare_scale(image_width, image_height, res_ratio, max_width, max_height):
+def _prepare_scale(
+    image_width: int,
+    image_height: int,
+    res_ratio: float,
+    max_width: int,
+    max_height: int,
+) -> tuple[float, float] | tuple[None, None]:
     if image_width <= 0 or image_height <= 0 or max_width <= 0 or max_height <= 0:
         return None, None
 

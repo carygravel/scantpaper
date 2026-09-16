@@ -1,5 +1,7 @@
 """main document IO methods."""
 
+from __future__ import annotations
+
 import contextlib
 import datetime
 import logging
@@ -7,11 +9,19 @@ import re
 import sys
 from collections import defaultdict
 from functools import partial
+from typing import TYPE_CHECKING
 
 from scantpaper.basedocument import BaseDocument
 from scantpaper.bboxtree import unescape_utf8
 from scantpaper.const import EMPTY
 from scantpaper.i18n import _
+
+logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
+
+    from scantpaper.basethread import Response
 
 logger = logging.getLogger(__name__)
 
@@ -35,14 +45,16 @@ LAST_ELEMENT = -1
 class Document(BaseDocument):
     """More methods."""
 
-    def import_files(self, **options):
+    def import_files(self, **options: object) -> None:
         """Avoid race conditions by running get_file_info on all files before importing."""
         info = []
         options["passwords"] = []
         for i in range(len(options["paths"])):
             self._get_file_info_finished_callback1(i, info, options)
 
-    def _get_file_info_finished_callback1(self, i, infolist, options):
+    def _get_file_info_finished_callback1(
+        self, i: int, infolist: list[object], options: dict[str, object]
+    ) -> None:
         options = defaultdict(None, options)
         path = options["paths"][i]
 
@@ -50,7 +62,7 @@ class Document(BaseDocument):
         # so that it can be killed if necessary
         options["pidfile"] = self.create_pidfile(options)
 
-        def _select_next_finished_callback(response):
+        def _select_next_finished_callback(response: Response) -> None:
             if (
                 "encrypted" in response.info
                 and response.info["encrypted"]
@@ -78,7 +90,9 @@ class Document(BaseDocument):
             finished_callback=_select_next_finished_callback,
         )
 
-    def _get_file_info_finished_callback2_multiple_files(self, info, options):
+    def _get_file_info_finished_callback2_multiple_files(
+        self, info: list[dict[str, object]], options: dict[str, object]
+    ) -> None:
         for i in info:
             if i["format"] == "session file":
                 logger.error(
@@ -121,7 +135,7 @@ class Document(BaseDocument):
 
             if i == len(info) - 1:
 
-                def batch_finished_callback(response):
+                def batch_finished_callback(response: Response) -> None:
                     # Renumber once after the whole batch in case a concurrent
                     # action occurred mid-import; a single pass is negligible.
                     self.renumber()
@@ -131,7 +145,9 @@ class Document(BaseDocument):
 
             self.import_file(info=item, first_page=1, last_page=1, **options)
 
-    def _get_file_info_finished_callback2(self, info, options):
+    def _get_file_info_finished_callback2(
+        self, info: list[dict[str, object]], options: dict[str, object]
+    ) -> None:
         if len(info) > 1:
             self._get_file_info_finished_callback2_multiple_files(info, options)
 
@@ -151,8 +167,7 @@ class Document(BaseDocument):
 
             password = options["passwords"][0] if options.get("passwords") else None
             for key in ["paths", "passwords", "password_callback"]:
-                if key in options:
-                    del options[key]
+                options.pop(key, None)
             self.import_file(
                 info=info[0],
                 password=password,
@@ -161,7 +176,7 @@ class Document(BaseDocument):
                 **options,
             )
 
-    def import_file(self, **kwargs):
+    def import_file(self, **kwargs: object) -> None:
         """Import file."""
         # File in which to store the process ID
         # so that it can be killed if necessary
@@ -172,7 +187,7 @@ class Document(BaseDocument):
         kwargs["first"] = kwargs.pop("first_page")
         kwargs["last"] = kwargs.pop("last_page")
 
-        def _import_file_data_callback(response):
+        def _import_file_data_callback(response: Response) -> None:
             try:
                 self.add_page(*response.info["row"])
             except (AttributeError, TypeError):
@@ -182,9 +197,9 @@ class Document(BaseDocument):
         kwargs["data_callback"] = _import_file_data_callback
         self.thread.import_file(**kwargs)
 
-    def _post_process_rotate(self, page_id, options):
+    def _post_process_rotate(self, page_id: int, options: dict[str, object]) -> None:
 
-        def updated_page_callback(response):
+        def updated_page_callback(response: Response) -> None:
             info = response.info
             if info and "type" in info and info["type"] == "page":
                 del options["rotate"]
@@ -197,9 +212,9 @@ class Document(BaseDocument):
         del rotate_options["finished_callback"]
         self.rotate(**rotate_options)
 
-    def _post_process_unpaper(self, page_id, options):
+    def _post_process_unpaper(self, page_id: int, options: dict[str, object]) -> None:
 
-        def updated_page_callback(response):
+        def updated_page_callback(response: Response) -> None:
             info = response.info
             if info and "type" in info and info["type"] == "page":
                 del options["unpaper"]
@@ -215,9 +230,9 @@ class Document(BaseDocument):
         del unpaper_options["finished_callback"]
         self.unpaper(**unpaper_options)
 
-    def _post_process_udt(self, page_id, options):
+    def _post_process_udt(self, page_id: int, options: dict[str, object]) -> None:
 
-        def updated_page_callback(response):
+        def updated_page_callback(response: Response) -> None:
             info = response.info
             if info and "type" in info and info["type"] == "page":
                 del options["udt"]
@@ -229,9 +244,9 @@ class Document(BaseDocument):
         udt_options["updated_page_callback"] = updated_page_callback
         self.user_defined(**udt_options)
 
-    def _post_process_ocr(self, page_id, options):
+    def _post_process_ocr(self, page_id: int, options: dict[str, object]) -> None:
 
-        def ocr_finished_callback(_response):
+        def ocr_finished_callback(_response: Response) -> None:
             del options["ocr"]
             self._post_process_scan(None, options)  # to fire finished_callback
 
@@ -247,7 +262,9 @@ class Document(BaseDocument):
             display_callback=options.get("display_callback"),
         )
 
-    def _post_process_scan(self, page_id, options):
+    def _post_process_scan(
+        self, page_id: int | None, options: dict[str, object]
+    ) -> None:
         options = defaultdict(None, options)
 
         if options.get("rotate"):
@@ -269,7 +286,7 @@ class Document(BaseDocument):
         if options.get("finished_callback"):
             options["finished_callback"](None)
 
-    def import_scan(self, **kwargs):
+    def import_scan(self, **kwargs: object) -> None:
         """Take new scan, display it, and set off any post-processing chains."""
         page_kwargs = {
             "resolution": kwargs["resolution"],
@@ -281,7 +298,7 @@ class Document(BaseDocument):
 
         import_scan_kwargs = kwargs.copy()
 
-        def _post_process(page_id, options):
+        def _post_process(page_id: int, options: dict[str, object]) -> None:
             self._post_process_scan(page_id, options)
 
         import_scan_kwargs["data_callback"] = partial(
@@ -291,33 +308,37 @@ class Document(BaseDocument):
             del import_scan_kwargs["finished_callback"]
         self.thread.import_page(**import_scan_kwargs)
 
-    def split_page(self, **kwargs):
+    def split_page(self, **kwargs: object) -> None:
         """Split a page vertically or horizontally, creating an additional page."""
         kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.split_page(**kwargs)
 
-    def ocr_pages(self, **kwargs):
+    def ocr_pages(self, **kwargs: object) -> None:
         """Wrap the various OCR engines."""
         for page in kwargs["pages"]:
             kwargs["page"] = page
             if kwargs["engine"] == "tesseract":
                 self.tesseract(**kwargs)
 
-    def unpaper(self, **kwargs):
+    def unpaper(self, **kwargs: object) -> None:
         """Run unpaper on the given page."""
         kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.unpaper(**kwargs)
 
-    def user_defined(self, **kwargs):
+    def user_defined(self, **kwargs: object) -> None:
         """Run a user-defined command on a page."""
         kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
         self.thread.user_defined(**kwargs)
 
-    def undo(self, finished_callback=None, error_callback=None):
+    def undo(
+        self,
+        finished_callback: Callable[..., object] | None = None,
+        error_callback: Callable[..., object] | None = None,
+    ) -> None:
         """Undo the last action."""
         self.thread.send("set_selection", self.get_selected_indices())
 
-        def _undo_finished(response):
+        def _undo_finished(response: Response) -> None:
             # Block slist signals whilst updating
             self.get_model().handler_block(self.row_changed_signal)
             self.get_selection().handler_block(self.selection_changed_signal)
@@ -340,11 +361,15 @@ class Document(BaseDocument):
             callbacks["error_callback"] = error_callback
         self.thread.send("undo", **callbacks)
 
-    def unundo(self, finished_callback=None, error_callback=None):
+    def unundo(
+        self,
+        finished_callback: Callable[..., object] | None = None,
+        error_callback: Callable[..., object] | None = None,
+    ) -> None:
         """Redo the last action."""
         self.thread.send("set_selection", self.get_selected_indices())
 
-        def _redo_finished(response):
+        def _redo_finished(response: Response) -> None:
             # Block slist signals whilst updating
             self.get_model().handler_block(self.row_changed_signal)
             self.get_selection().handler_block(self.selection_changed_signal)
@@ -367,11 +392,11 @@ class Document(BaseDocument):
             callbacks["error_callback"] = error_callback
         self.thread.send("redo", **callbacks)
 
-    def indices2pages(self, list_of_indices):
+    def indices2pages(self, list_of_indices: list[int]) -> Iterator[object]:
         """Convert an array of indices into an array of UUIDs."""
         return (self.data[x][2] for x in list_of_indices)
 
-    def get_selected_properties(self):
+    def get_selected_properties(self) -> tuple[float | None, float | None]:
         """Get the selected properties."""
         page = self.get_selected_indices()
         xresolution = None
@@ -402,24 +427,24 @@ class Document(BaseDocument):
         return xresolution, yresolution
 
 
-def _is_placeholder_title(value):
+def _is_placeholder_title(value: str) -> bool:
     """Check whether a title is a placeholder such as 'Untitled'."""
     return value.strip().strip("'").strip().lower() == "untitled"
 
 
-def _extract_metadata(info):
-    metadata = {}
-    for key in info:
+def _extract_metadata(info: dict[str, object]) -> dict[str, object]:
+    metadata: dict[str, object] = {}
+    for key, value in info.items():
         if (
             re.search(
                 r"(author|title|subject|keywords)",
                 key,
                 re.MULTILINE | re.DOTALL | re.VERBOSE,
             )
-            and info[key] != "NONE"
-            and not (key == "title" and _is_placeholder_title(unescape_utf8(info[key])))
+            and value != "NONE"
+            and not (key == "title" and _is_placeholder_title(unescape_utf8(value)))
         ):
-            metadata[key] = unescape_utf8(info[key])
+            metadata[key] = unescape_utf8(value)
 
     if "datetime" in info and info["format"] in ["Portable Document Format", "DJVU"]:
         # before python 3.11, fromisoformat() did not understand Z==UTC, or TZs without minutes

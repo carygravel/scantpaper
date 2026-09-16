@@ -1,12 +1,18 @@
 """Classes and methods for reading and writing the bounding box trees from HOCR files."""
 
+from __future__ import annotations
+
 import codecs
 import html
 import json
 import re
 from html.parser import HTMLParser
+from typing import TYPE_CHECKING
 
 from scantpaper.const import ANNOTATION_COLOR, HALF, POINTS_PER_INCH, VERSION
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 DOUBLE_QUOTES = '"'
 BBOX_REGEX = r"(\d+)\s+(\d+)\s+(\d+)\s+(\d+)"
@@ -25,12 +31,12 @@ HOCR_HEADER = f"""<?xml version="1.0" encoding="UTF-8"?>
  <body>"""
 
 
-def unescape_utf8(text):
+def unescape_utf8(text: str) -> str:
     r"""Convert escaped utf8, e.g. F\303\274\303\237\342\200\224 -> Füß—."""
     return codecs.escape_decode(text)[0].decode("utf-8")
 
 
-def flatten_tree(oldbox, newtree):
+def flatten_tree(oldbox: dict[str, object], newtree: list[object]) -> None:
     """Refactor a nested tree into a list."""
     # clone bbox without children
     newbox = dict(oldbox.items())
@@ -41,13 +47,13 @@ def flatten_tree(oldbox, newtree):
 class Bboxtree:
     """Read and write the bounding box trees from HOCR files."""
 
-    def __init__(self, json_string=None) -> None:
+    def __init__(self, json_string: str | None = None) -> None:
         """Initialise Bboxtree."""
         self.bbox_tree = []
         if json_string is not None:
             self.bbox_tree = json.loads(json_string, strict=False)
 
-    def valid(self):
+    def valid(self) -> bool:
         """Return whether the bboxes are valid."""
         for bbox in self.each_bbox():
             _x_1, _y_1, x_2, y_2 = bbox["bbox"]
@@ -55,11 +61,11 @@ class Bboxtree:
                 return False
         return True
 
-    def json(self):
+    def json(self) -> str:
         """seríalise the bboxtree object as JSON."""
         return json.dumps(self.bbox_tree)
 
-    def from_hocr(self, hocr):
+    def from_hocr(self, hocr: str | None) -> None:
         """Write bboxtree to HOCR string."""
         if (hocr is None) or not re.search(
             r"<body>[\s\S]*<\/body>", hocr, re.MULTILINE | re.DOTALL | re.VERBOSE
@@ -71,7 +77,7 @@ class Bboxtree:
             self.bbox_tree = []
             self._walk_bboxes(box_tree[0])
 
-    def from_text(self, text, width, height):
+    def from_text(self, text: str, width: int, height: int) -> None:
         """Create bboxtree from string."""
         self.bbox_tree.append(
             {
@@ -82,7 +88,7 @@ class Bboxtree:
             }
         )
 
-    def each_bbox(self):
+    def each_bbox(self) -> Iterator[dict[str, object]]:
         """Iterate over the parsed bboxes.
 
         Iterator returns bbox.
@@ -90,7 +96,7 @@ class Bboxtree:
         """
         yield from self.bbox_tree
 
-    def to_djvu_txt(self):
+    def to_djvu_txt(self) -> str:
         """Write bboxtree to string for djvu text."""
         string = ""
         prev_depth, height = None, None
@@ -135,7 +141,7 @@ class Bboxtree:
             string += "\n"
         return string
 
-    def _resolve_bbox_type(self, bbox):
+    def _resolve_bbox_type(self, bbox: dict[str, object]) -> str:
         """Return the djVu type for the given bbox, mapping unknown types."""
         bbox_type = bbox["type"]
 
@@ -151,14 +157,14 @@ class Bboxtree:
             bbox_type = regex.group(1) if regex else "line"
         return bbox_type
 
-    def _bbox_is_leaf(self, bbox_list, i):
+    def _bbox_is_leaf(self, bbox_list: list[dict[str, object]], i: int) -> bool:
         """Return True if the bbox at index i has no children."""
         bbox = bbox_list[i]
         return "text" in bbox and (
             i == len(bbox_list) - 1 or bbox_list[i + 1]["depth"] <= bbox["depth"]
         )
 
-    def to_djvu_ann(self):
+    def to_djvu_ann(self) -> str:
         """Write bboxtree as string for djvu annotation layer."""
         string = ""
         height = None
@@ -175,7 +181,7 @@ class Bboxtree:
 
         return string
 
-    def from_djvu_ann(self, djvuann, imagew, imageh):
+    def from_djvu_ann(self, djvuann: str, imagew: int, imageh: int) -> None:
         """Create bboxtree from djvu annotation layer."""
         self.bbox_tree.append(
             {
@@ -220,7 +226,7 @@ class Bboxtree:
                 msg = f"Error parsing djvu annotation '{line}'"
                 raise ValueError(msg)
 
-    def to_text(self):
+    def to_text(self) -> str:
         """Escape backslashes and inverted commas, return as plain text."""
         string = ""
         for bbox in self.each_bbox():
@@ -235,7 +241,7 @@ class Bboxtree:
             r"[ ]+$", r"", string, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
         )
 
-    def from_djvu_txt(self, djvutext):
+    def from_djvu_txt(self, djvutext: str) -> None:
         """Create bboxtree from djvu text layer."""
         height = None
         depth = 0
@@ -275,7 +281,12 @@ class Bboxtree:
                 msg = f"Error parsing djvu line '{line}'"
                 raise ValueError(msg)
 
-    def from_pdftotext(self, text, resolution, image_size):
+    def from_pdftotext(
+        self,
+        text: str,
+        resolution: tuple[float, float, str],
+        image_size: tuple[int, int],
+    ) -> None:
         """Create bboxtree from PDF text layer."""
         if not re.search(
             r"<body>[\s\S]*<\/body>", text, re.MULTILINE | re.DOTALL | re.VERBOSE
@@ -286,7 +297,7 @@ class Bboxtree:
         if box_tree:
             self._walk_bboxes(box_tree[0])
 
-    def to_hocr(self):
+    def to_hocr(self) -> str:
         """Write the bboxtree as an HOCR string."""
         string = HOCR_HEADER + "\n"
         prev_depth, tags = -1, []
@@ -306,7 +317,7 @@ class Bboxtree:
         string += " </body>\n</html>\n"
         return string
 
-    def crop(self, left, top, width, height):
+    def crop(self, left: int, top: int, width: int, height: int) -> Bboxtree:
         """Crop bboxtree."""
         i = 0
         while i < len(self.bbox_tree):
@@ -326,7 +337,7 @@ class Bboxtree:
 
         return self
 
-    def _walk_bboxes(self, bbox, depth=0):
+    def _walk_bboxes(self, bbox: dict[str, object], depth: int = 0) -> None:
         """Walk the tree, executing the callback on each bounding box."""
         bbox["depth"] = depth
         depth += 1
@@ -340,14 +351,14 @@ class Bboxtree:
 class HOCRParser(HTMLParser):
     """parser for HOCR string."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise HOCRParser."""
         super().__init__(*args, **kwargs)
         self.boxes = []
         self.stack = []
         self.data = {}
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Handle starttag."""
         token = dict(attrs)
         if "class" in token and "title" in token:
@@ -363,7 +374,7 @@ class HOCRParser(HTMLParser):
         # put the new data point on the stack
         self.stack.append(self.data)
 
-    def _process_token(self, token):
+    def _process_token(self, token: dict[str, str | None]) -> None:
         """Process a token carrying hOCR class and title attributes."""
         self._parse_title(token["title"])
         self._parse_class(token["class"])
@@ -387,7 +398,7 @@ class HOCRParser(HTMLParser):
         else:
             self._migrate_to_parent(token)
 
-    def _migrate_to_parent(self, token):
+    def _migrate_to_parent(self, token: dict[str, str | None]) -> None:
         """Adopt the current data point into the previous one's contents."""
         if "id" in token:
             self.data["id"] = token["id"]
@@ -399,13 +410,13 @@ class HOCRParser(HTMLParser):
                 self.stack[-1]["contents"] = []
             self.stack[-1]["contents"].append(self.data)
 
-    def _parse_style(self, tag):
+    def _parse_style(self, tag: str) -> None:
         if self.data and tag in ["strong", "em"]:
             if "style" not in self.data:
                 self.data["style"] = []
             self.data["style"].append(tag)
 
-    def _parse_title(self, title):
+    def _parse_title(self, title: str) -> None:
         data = {}
 
         regex = re.search(
@@ -453,7 +464,7 @@ class HOCRParser(HTMLParser):
 
         self.data = data
 
-    def _parse_class(self, class_name):
+    def _parse_class(self, class_name: str) -> None:
         class_name = re.split("_", class_name)
         if len(class_name) == CLASS_NAME_PARTS:
             class_name[1] = (
@@ -473,26 +484,26 @@ class HOCRParser(HTMLParser):
                 if class_name[1] == "page":
                     self.boxes.append(self.data)
 
-    def handle_endtag(self, _tag):
+    def handle_endtag(self, _tag: str) -> None:
         """Handle endtag."""
         if self.stack:
             self.data = self.stack.pop()
 
-    def handle_data(self, data):
+    def handle_data(self, data: str) -> None:
         """Handle data."""
         data = data.rstrip()
         if data != "":
             self.data["text"] = data
 
 
-def _hocr2boxes(hocr):
+def _hocr2boxes(hocr: str) -> list[dict[str, object]]:
 
     parser = HOCRParser()
     parser.feed(hocr)
     return parser.boxes
 
 
-def _prune_empty_branches(boxes):
+def _prune_empty_branches(boxes: list[dict[str, object]]) -> None:
     i = 0
     while i < len(boxes):
         child = boxes[i]
@@ -507,7 +518,7 @@ def _prune_empty_branches(boxes):
             i += 1
 
 
-def _escape_text(txt):
+def _escape_text(txt: str) -> str:
 
     txt = re.sub(r"\\", r"\\\\", txt, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
     return re.sub(r"\"", r"\\\\\"", txt, flags=re.MULTILINE | re.DOTALL | re.VERBOSE)
@@ -516,7 +527,13 @@ def _escape_text(txt):
 class PDFTextParser(HTMLParser):
     """parser for HTML string for PDF text layer."""
 
-    def __init__(self, resolution, image_size, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        resolution: tuple[float, float, str],
+        image_size: tuple[int, int],
+        *args: object,
+        **kwargs: object,
+    ) -> None:
         """Initialise PDFTextParser."""
         super().__init__(*args, **kwargs)
         self.boxes = []
@@ -526,7 +543,7 @@ class PDFTextParser(HTMLParser):
         self.image_size = image_size
         self.x_offset = 0
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Handle starttag."""
         token = dict(attrs)
         if tag == "page":
@@ -565,30 +582,34 @@ class PDFTextParser(HTMLParser):
         if "bbox" in self.data:
             self.stack.append(self.data)
 
-    def handle_endtag(self, _tag):
+    def handle_endtag(self, _tag: str) -> None:
         """Handle endtag."""
         if self.stack:
             self.data = self.stack.pop()
 
-    def handle_data(self, data):
+    def handle_data(self, data: str) -> None:
         """Handle data."""
         data = data.rstrip()
         if "type" in self.data and data != "":
             self.data["text"] = data
 
 
-def _pdftotext2boxes(text, resolution, image_size):
+def _pdftotext2boxes(
+    text: str, resolution: tuple[float, float, str], image_size: tuple[int, int]
+) -> list[dict[str, object]]:
     parser = PDFTextParser(resolution, image_size)
     parser.feed(text)
     return parser.boxes
 
 
-def scale(value, resolution):
+def scale(value: float, resolution: float) -> int:
     """Convert the given value from mm to pixels."""
     return int(value * resolution // POINTS_PER_INCH + HALF)
 
 
-def _bbox_to_hocr(bbox, prev_depth, tags):
+def _bbox_to_hocr(
+    bbox: dict[str, object], prev_depth: int, tags: list[str]
+) -> tuple[str, int]:
 
     string = ""
     while prev_depth >= bbox["depth"] and len(tags):
@@ -605,7 +626,7 @@ def _bbox_to_hocr(bbox, prev_depth, tags):
     return string, bbox["depth"]
 
 
-def _hocr_open_tag(bbox):
+def _hocr_open_tag(bbox: dict[str, object]) -> tuple[str, str]:
     x_1, y_1, x_2, y_2 = bbox["bbox"]
     bbox_type = "ocr_" + bbox["type"]
     tag = "span"
@@ -638,7 +659,7 @@ def _hocr_open_tag(bbox):
     return string, tag
 
 
-def _text2hocr(bbox):
+def _text2hocr(bbox: dict[str, object]) -> str:
     string = ""
     if "text" in bbox:
         if "style" in bbox:
@@ -653,7 +674,9 @@ def _text2hocr(bbox):
     return string
 
 
-def _crop_axis(text1, text2, crop1, crop2):
+def _crop_axis(
+    text1: int, text2: int, crop1: int, crop2: int
+) -> tuple[int | None, int | None]:
 
     if text1 > crop2 or text2 < crop1:
         return None, None

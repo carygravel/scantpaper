@@ -1,15 +1,22 @@
 """Classes to do with displaying HOCR output."""
 
+from __future__ import annotations
+
 import contextlib
 import html
 import logging
 import math
 import re
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 import gi
 
 from scantpaper.const import _100_PERCENT, EMPTY, EMPTY_LIST, NOT_FOUND, SPACE
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import cairo
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
@@ -53,7 +60,7 @@ HOCR_HEADER = """<?xml version="1.0" encoding="UTF-8"?>
 logger = logging.getLogger(__name__)
 
 
-def rect2bboxarray(rect):
+def rect2bboxarray(rect: Gdk.Rectangle) -> list[int]:
     """Given a Rectangle(), return an array of int suitable for hocr output."""
     return [
         int(rect.x),
@@ -63,7 +70,7 @@ def rect2bboxarray(rect):
     ]
 
 
-def rgb2hsv(rgb):
+def rgb2hsv(rgb: Gdk.RGBA) -> dict[str, float]:
     """Convert from rgb to hsv colour space."""
     minv = min(rgb.green, rgb.red)
     minv = min(rgb.blue, minv)
@@ -95,24 +102,24 @@ def rgb2hsv(rgb):
     return hsv
 
 
-def string2hsv(spec):
+def string2hsv(spec: str) -> dict[str, float]:
     """Return hsv color from string."""
     return rgb2hsv(string2rgb(spec))
 
 
-def string2rgb(spec):
+def string2rgb(spec: str) -> Gdk.RGBA:
     """Return Gdk.RGBA object from string."""
     color = Gdk.RGBA()
     _flag = color.parse(spec)
     return color
 
 
-def linear_interpolation(x1, x2, m):
+def linear_interpolation(x1: float, x2: float, m: float) -> float:
     """1D linear interpolation."""
     return x1 * (1 - m) + x2 * m
 
 
-def hsv2rgb(hsv):
+def hsv2rgb(hsv: dict[str, float]) -> Gdk.RGBA:
     """Convert from hsv to rgb colour space."""
     if hsv["s"] <= 0.0:
         return Gdk.RGBA(hsv["v"], hsv["v"], hsv["v"])
@@ -160,7 +167,7 @@ def hsv2rgb(hsv):
     return Gdk.RGBA(red, green, blue)
 
 
-def _clamp_direction(offset, allocation, pixbuf_size):
+def _clamp_direction(offset: float, allocation: float, pixbuf_size: float) -> float:
     """Centre the image if it is smaller than the widget."""
     if allocation > pixbuf_size:
         offset = (allocation - pixbuf_size) / 2
@@ -174,7 +181,12 @@ def _clamp_direction(offset, allocation, pixbuf_size):
     return offset
 
 
-def button_press_callback(bbox, _target, event, edit_callback):
+def button_press_callback(
+    bbox: Bbox,
+    _target: Gtk.Widget,
+    event: Gdk.EventButton,
+    edit_callback: Callable[..., object],
+) -> None:
     """Button press callback."""
     if event.button == 1:
         canvas = bbox.canvas
@@ -187,7 +199,7 @@ def button_press_callback(bbox, _target, event, edit_callback):
 class Rectangle(Gdk.Rectangle):
     """Helper class so that we can parse arguments when initialising."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: object) -> None:
         """Initialise Rectangle."""
         super().__init__()
         for key in ["x", "y", "width", "height"]:
@@ -197,7 +209,9 @@ class Rectangle(Gdk.Rectangle):
             setattr(self, key, kwargs[key])
 
     @classmethod
-    def from_bbox(cls, x1, y1, x2, y2) -> "Rectangle":
+    def from_bbox(
+        cls: type[Rectangle], x1: float, y1: float, x2: float, y2: float
+    ) -> Rectangle:
         """Create Rectangle from hocr bbox coords."""
         return Rectangle(x=x1, y=y1, width=abs(x2 - x1), height=abs(y2 - y1))
 
@@ -205,7 +219,7 @@ class Rectangle(Gdk.Rectangle):
 class Bbox:
     """Bounding box with text, rectangle, and hierarchy info for OCR display."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: object) -> None:
         """Initialise Rectangle."""
         self.parent = None
         self.children = []
@@ -229,35 +243,37 @@ class Bbox:
             parent.children.append(self)
             self.parent = parent
 
-    def connect(self, signal, callback, *args):
+    def connect(
+        self, signal: str, callback: Callable[..., object], *args: object
+    ) -> None:
         """Connect a callback to a signal."""
         if signal not in self._callbacks:
             self._callbacks[signal] = []
         self._callbacks[signal].append((callback, args))
 
-    def emit(self, signal, *args):
+    def emit(self, signal: str, *args: object) -> None:
         """Emit a signal."""
         for callback, cb_args in self._callbacks.get(signal, []):
             callback(*args, *cb_args)
 
-    def get_children(self):
+    def get_children(self) -> list[Bbox]:
         """Return bbox children only."""
         return [c for c in self.children if isinstance(c, Bbox)]
 
-    def get_n_children(self):
+    def get_n_children(self) -> int:
         """Return number of bbox children."""
         return len(self.get_children())
 
-    def get_child(self, i):
+    def get_child(self, i: int) -> Bbox:
         """Return i-th bbox child."""
         return self.get_children()[i]
 
-    def get_centroid(self):
+    def get_centroid(self) -> tuple[float, float]:
         """Return centroid of bbox."""
         bbox = self.bbox
         return bbox.x + bbox.width / 2, bbox.y + bbox.height / 2
 
-    def get_position_index(self):
+    def get_position_index(self) -> int:
         """Return positional index of bbox."""
         parent = self.parent
         while parent is not None and not isinstance(parent, Bbox):
@@ -275,7 +291,7 @@ class Bbox:
                 return i
         raise IndexError
 
-    def get_child_ordinal(self, child):
+    def get_child_ordinal(self, child: Bbox) -> int:
         """Return index of given child."""
         children = self.get_children()
         for i, candidate in enumerate(children):
@@ -283,18 +299,18 @@ class Bbox:
                 return i
         return NOT_FOUND
 
-    def walk_children(self, callback):
+    def walk_children(self, callback: Callable[..., object] | None) -> None:
         """For each child, execute given callback."""
         for child in self.get_children():
             if callback is not None:
                 callback(child)
                 child.walk_children(callback)
 
-    def confidence2color(self):
+    def confidence2color(self) -> str:
         """Convert confidence percentage into colour using pre-calculated lookup table."""
         return self.canvas.get_color_for_confidence(self.confidence)
 
-    def update_box(self, text, selection):
+    def update_box(self, text: str, selection: Gdk.Rectangle) -> None:
         """Set the text in the given bbox."""
         if len(text) > 0:
             old_pos_ind = self.get_position_index()
@@ -331,7 +347,7 @@ class Bbox:
         else:
             self.delete_box()
 
-    def delete_box(self):
+    def delete_box(self) -> None:
         """Delete bbox."""
         if self.canvas is not None:
             self.canvas.confidence_index.remove_current_box_from_index()
@@ -352,7 +368,7 @@ class Bbox:
 
         logger.info("deleted box %s at %s, %s", self.text, self.bbox.x, self.bbox.y)
 
-    def to_hocr(self, indent=0):
+    def to_hocr(self, indent: int = 0) -> str:
         """Return an hocr string of the bbox."""
         string = EMPTY
 
@@ -406,7 +422,7 @@ class Bbox:
 
         return string
 
-    def get_stack_index_by_position(self, bbox):
+    def get_stack_index_by_position(self, bbox: Bbox) -> int:
         """Given a parent bbox and a new box, return the stack insertion index.
 
         Using binary search.
@@ -436,15 +452,15 @@ class _CanvasRoot:
     def __init__(self) -> None:
         self.children = []
 
-    def get_child(self, i):
+    def get_child(self, i: int) -> Bbox:
         """Return i-th child."""
         return self.children[i]
 
-    def get_n_children(self):
+    def get_n_children(self) -> int:
         """Return number of children."""
         return len(self.children)
 
-    def get_children(self):
+    def get_children(self) -> list[Bbox]:
         """Return all children."""
         return self.children
 
@@ -464,7 +480,7 @@ class Canvas(Gtk.DrawingArea):
         ),
     }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise Canvas."""
         super().__init__(*args, **kwargs)
 
@@ -488,7 +504,7 @@ class Canvas(Gtk.DrawingArea):
         self.position_index = None
         self.confidence_index = None
         self.dragging = False
-        self._drag_start = {}
+        self._drag_start: dict[str, float] = {}
         self._pixbuf_size = None
         self._color_lookup_table = None
         self._root_item = _CanvasRoot()
@@ -505,12 +521,12 @@ class Canvas(Gtk.DrawingArea):
     @GObject.Property(
         type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y"
     )
-    def offset(self):
+    def offset(self) -> Gdk.Rectangle:
         """Getter for offset attribute."""
         return self._offset
 
     @offset.setter
-    def offset(self, newval):
+    def offset(self, newval: Gdk.Rectangle) -> None:
         """Setter for offset attribute."""
         if self.get_pixbuf_size() is None:
             return
@@ -534,12 +550,12 @@ class Canvas(Gtk.DrawingArea):
         nick="zoom",
         blurb="zoom level",
     )
-    def zoom(self):
+    def zoom(self) -> float:
         """Getter for zoom attribute."""
         return self._zoom
 
     @zoom.setter
-    def zoom(self, newval):
+    def zoom(self, newval: float) -> None:
         """Setter for zoom attribute."""
         newval = min(newval, MAX_ZOOM)
         newval = max(newval, MIN_ZOOM)
@@ -554,12 +570,12 @@ class Canvas(Gtk.DrawingArea):
         nick="Maximum color",
         blurb="Color for maximum confidence",
     )
-    def max_color(self):
+    def max_color(self) -> str:
         """Getter for max_color attribute."""
         return self._max_color
 
     @max_color.setter
-    def max_color(self, newval):
+    def max_color(self, newval: str) -> None:
         """Setter for max_color attribute."""
         self._max_color = newval
         self._max_color_hsv = string2hsv(self._max_color)
@@ -571,12 +587,12 @@ class Canvas(Gtk.DrawingArea):
         nick="Minimum color",
         blurb="Color for minimum confidence",
     )
-    def min_color(self):
+    def min_color(self) -> str:
         """Getter for min_color attribute."""
         return self._min_color
 
     @min_color.setter
-    def min_color(self, newval):
+    def min_color(self, newval: str) -> None:
         """Setter for min_color attribute."""
         self._min_color = newval
         self._min_color_hsv = string2hsv(self._min_color)
@@ -590,12 +606,12 @@ class Canvas(Gtk.DrawingArea):
         nick="Minimum confidence",
         blurb="Confidence threshold for min-color",
     )
-    def min_confidence(self):
+    def min_confidence(self) -> int:
         """Getter for min_confidence attribute."""
         return self._min_confidence
 
     @min_confidence.setter
-    def min_confidence(self, newval):
+    def min_confidence(self, newval: int) -> None:
         """Setter for min_confidence attribute."""
         self._min_confidence = newval
         self._color_lookup_table = None
@@ -608,29 +624,29 @@ class Canvas(Gtk.DrawingArea):
         nick="Maximum confidence",
         blurb="Confidence threshold for max-color",
     )
-    def max_confidence(self):
+    def max_confidence(self) -> int:
         """Getter for max_confidence attribute."""
         return self._max_confidence
 
     @max_confidence.setter
-    def max_confidence(self, newval):
+    def max_confidence(self, newval: int) -> None:
         """Setter for max_confidence attribute."""
         self._max_confidence = newval
         self._color_lookup_table = None
 
-    def get_max_color_hsv(self):
+    def get_max_color_hsv(self) -> dict[str, float]:
         """Return the max hsv colour."""
         if self._max_color_hsv is None:
             self._max_color_hsv = string2hsv(self._max_color)
         return self._max_color_hsv
 
-    def get_min_color_hsv(self):
+    def get_min_color_hsv(self) -> dict[str, float]:
         """Return the min hsv colour."""
         if self._min_color_hsv is None:
             self._min_color_hsv = string2hsv(self._min_color)
         return self._min_color_hsv
 
-    def _build_color_lookup_table(self, num_bands=10):
+    def _build_color_lookup_table(self, num_bands: int = 10) -> None:
         self._color_lookup_table = []
         min_conf = self.min_confidence
         max_conf = self.max_confidence
@@ -654,7 +670,7 @@ class Canvas(Gtk.DrawingArea):
             )
             self._color_lookup_table.append(color)
 
-    def get_color_for_confidence(self, confidence):
+    def get_color_for_confidence(self, confidence: int | None) -> str:
         """Get color string for given confidence value."""
         if confidence is None:
             return self.max_color
@@ -676,7 +692,12 @@ class Canvas(Gtk.DrawingArea):
 
         return self._color_lookup_table[band_index]
 
-    def set_text(self, bboxes, sorted_word_indices, **kwargs):
+    def set_text(
+        self,
+        bboxes: list[dict[str, object]],
+        sorted_word_indices: list[int],
+        **kwargs: object,
+    ) -> None:
         """Set the canvas text from a list of bboxes."""
         if not bboxes:
             self.clear_text()
@@ -702,7 +723,7 @@ class Canvas(Gtk.DrawingArea):
         original_callback = kwargs.get("finished_callback")
         bbox_map = {}
 
-        def finished_with_rebuild():
+        def finished_with_rebuild() -> None:
             words = []
             for i in sorted_word_indices:
                 bbox = bbox_map.get(i)
@@ -726,11 +747,11 @@ class Canvas(Gtk.DrawingArea):
         }
         GLib.idle_add(self._boxed_text, options)
 
-    def _on_draw(self, _widget, ctx):
+    def _on_draw(self, _widget: Gtk.Widget, ctx: cairo.Context) -> None:
         """GTK3 draw signal handler."""
         self._draw_scene(ctx)
 
-    def _draw_scene(self, ctx):
+    def _draw_scene(self, ctx: cairo.Context) -> None:
         """Draw the scene graph using Cairo."""
         if self._pixbuf_size is None:
             return
@@ -745,7 +766,7 @@ class Canvas(Gtk.DrawingArea):
 
         ctx.restore()
 
-    def _draw_tree(self, ctx, item):
+    def _draw_tree(self, ctx: cairo.Context, item: _CanvasRoot | Bbox | None) -> None:
         """Recursively draw bbox tree."""
         if item is None:
             return
@@ -754,7 +775,7 @@ class Canvas(Gtk.DrawingArea):
             self._draw_bbox(ctx, child)
             self._draw_tree(ctx, child)
 
-    def _draw_bbox(self, ctx, bbox):
+    def _draw_bbox(self, ctx: cairo.Context, bbox: Bbox) -> None:
         """Draw a single bbox using Cairo."""
         x = bbox.bbox.x
         y = bbox.bbox.y
@@ -818,7 +839,7 @@ class Canvas(Gtk.DrawingArea):
 
         ctx.restore()
 
-    def _create_pango_layout(self, ctx, bbox):
+    def _create_pango_layout(self, ctx: cairo.Context, bbox: Bbox) -> Pango.Layout:
         """Create a PangoLayout for a bbox's text."""
         layout = PangoCairo.create_layout(ctx)
         font_desc = Pango.FontDescription.from_string("Sans 10")
@@ -826,7 +847,7 @@ class Canvas(Gtk.DrawingArea):
         layout.set_text(bbox.text, -1)
         return layout
 
-    def get_first_bbox(self):
+    def get_first_bbox(self) -> Bbox | None:
         """Return first bbox, depending on which index is active."""
         bbox = None
         if self._current_index == "confidence":
@@ -837,7 +858,7 @@ class Canvas(Gtk.DrawingArea):
         self.set_other_index(bbox)
         return bbox
 
-    def get_previous_bbox(self):
+    def get_previous_bbox(self) -> Bbox | None:
         """Return previous bbox, depending on which index is active."""
         bbox = None
         if self._current_index == "confidence":
@@ -848,7 +869,7 @@ class Canvas(Gtk.DrawingArea):
         self.set_other_index(bbox)
         return bbox
 
-    def get_next_bbox(self):
+    def get_next_bbox(self) -> Bbox | None:
         """Return next bbox, depending on which index is active."""
         bbox = None
         if self._current_index == "confidence":
@@ -859,7 +880,7 @@ class Canvas(Gtk.DrawingArea):
         self.set_other_index(bbox)
         return bbox
 
-    def get_last_bbox(self):
+    def get_last_bbox(self) -> Bbox | None:
         """Return last bbox, depending on which index is active."""
         bbox = None
         if self._current_index == "confidence":
@@ -870,7 +891,7 @@ class Canvas(Gtk.DrawingArea):
         self.set_other_index(bbox)
         return bbox
 
-    def get_current_bbox(self):
+    def get_current_bbox(self) -> Bbox | None:
         """Return current bbox."""
         bbox = None
         if self._current_index == "confidence":
@@ -882,7 +903,7 @@ class Canvas(Gtk.DrawingArea):
         self.set_other_index(bbox)
         return bbox
 
-    def set_index_by_bbox(self, bbox):
+    def set_index_by_bbox(self, bbox: Bbox) -> None:
         """Set the index by bbox."""
         if bbox is None:
             raise IndexError
@@ -891,7 +912,7 @@ class Canvas(Gtk.DrawingArea):
         else:
             self.position_index = TreeIter(bbox)
 
-    def set_other_index(self, bbox):
+    def set_other_index(self, bbox: Bbox | None) -> None:
         """Swap indices."""
         if bbox is None:
             return
@@ -900,29 +921,29 @@ class Canvas(Gtk.DrawingArea):
         else:
             self.confidence_index.set_index_by_bbox(bbox, bbox.confidence)
 
-    def get_pixbuf_size(self):
+    def get_pixbuf_size(self) -> dict[str, int] | None:
         """Return the size of the associated pixbuf."""
         return self._pixbuf_size
 
-    def clear_text(self):
+    def clear_text(self) -> None:
         """Clear the canvas."""
         self._root_item = _CanvasRoot()
         self._pixbuf_size = None
         self._color_lookup_table = None
         self.queue_draw()
 
-    def set_offset(self, offset_x, offset_y):
+    def set_offset(self, offset_x: float, offset_y: float) -> None:
         """Set the offset."""
         offset = Gdk.Rectangle()
         offset.x = offset_x
         offset.y = offset_y
         self.offset = offset
 
-    def get_offset(self):
+    def get_offset(self) -> Gdk.Rectangle:
         """Return the offset."""
         return self._offset
 
-    def _hit_test(self, widget_x, widget_y):
+    def _hit_test(self, widget_x: float, widget_y: float) -> Bbox | None:
         """Find the bbox at widget coordinates, return deepest leaf."""
         if self._pixbuf_size is None or self._root_item is None:
             raise ReferenceError
@@ -933,7 +954,9 @@ class Canvas(Gtk.DrawingArea):
 
         return self._find_bbox_at(self._root_item, image_x, image_y)
 
-    def _find_bbox_at(self, item, x, y):
+    def _find_bbox_at(
+        self, item: _CanvasRoot | Bbox | None, x: float, y: float
+    ) -> Bbox | None:
         """Find deepest bbox containing point (x, y)."""
         if item is None:
             return None
@@ -954,7 +977,7 @@ class Canvas(Gtk.DrawingArea):
 
         return found
 
-    def get_bbox_at(self, bbox):
+    def get_bbox_at(self, bbox: Gdk.Rectangle) -> Bbox:
         """Return the bbox at the given coords."""
         x = bbox.x + bbox.width / 2
         y = bbox.y + bbox.height / 2
@@ -965,7 +988,7 @@ class Canvas(Gtk.DrawingArea):
             return result.parent
         return result
 
-    def add_box(self, **kwargs):
+    def add_box(self, **kwargs: object) -> Bbox:
         """Add box to canvas."""
         if "parent" in kwargs:
             parent = kwargs["parent"]
@@ -992,7 +1015,12 @@ class Canvas(Gtk.DrawingArea):
         self.queue_draw()
         return bbox
 
-    def _bbox_kwargs(self, kwargs, parent, transformation):
+    def _bbox_kwargs(
+        self,
+        kwargs: dict[str, object],
+        parent: Bbox | _CanvasRoot,
+        transformation: list[int],
+    ) -> dict[str, object]:
         """Build the option dict for a new Bbox from the add_box kwargs."""
         options = {
             "canvas": self,
@@ -1016,7 +1044,7 @@ class Canvas(Gtk.DrawingArea):
         options["edit_callback"] = kwargs.get("edit_callback")
         return options
 
-    def _boxed_text(self, options):
+    def _boxed_text(self, options: dict[str, object]) -> bool:
         """Draw text on the canvas with a box around it."""
         for _ in range(BATCH_SIZE):
             idx = options["idx"]
@@ -1061,7 +1089,7 @@ class Canvas(Gtk.DrawingArea):
         self.queue_draw()
         return GLib.SOURCE_CONTINUE
 
-    def hocr(self):
+    def hocr(self) -> str:
         """Convert the canvas into hocr."""
         if self.get_pixbuf_size() is None:
             return ""
@@ -1075,11 +1103,13 @@ class Canvas(Gtk.DrawingArea):
 """
         )
 
-    def _to_image_distance(self, x, y):
+    def _to_image_distance(self, x: float, y: float) -> tuple[float, float]:
         """Convert x, y in widget distance to image distance."""
         return x / self.zoom, y / self.zoom
 
-    def _set_zoom_with_center(self, zoom, center_x, center_y):
+    def _set_zoom_with_center(
+        self, zoom: float, center_x: float, center_y: float
+    ) -> None:
         """Set zoom with centre in image coordinates."""
         zoom = min(zoom, MAX_ZOOM)
         allocation = self.get_allocation()
@@ -1088,7 +1118,7 @@ class Canvas(Gtk.DrawingArea):
         self.zoom = zoom
         self.set_offset(offset_x, offset_y)
 
-    def _button_pressed(self, _widget, event):
+    def _button_pressed(self, _widget: Gtk.Widget, event: Gdk.EventButton) -> None:
         if event.button == Gdk.BUTTON_MIDDLE:
             _screen, x, y = self._device.get_position()
             self._drag_start = {"x": x, "y": y}
@@ -1109,14 +1139,14 @@ class Canvas(Gtk.DrawingArea):
             except ReferenceError:
                 pass
 
-    def _button_released(self, _widget, event):
+    def _button_released(self, _widget: Gtk.Widget, event: Gdk.EventButton) -> bool:
         if event.button == Gdk.BUTTON_MIDDLE:
             self.dragging = False
             win = self.get_window()
             win.set_cursor(None)
         return True
 
-    def _motion(self, _widget, _event):
+    def _motion(self, _widget: Gtk.Widget, _event: Gdk.EventMotion) -> bool:
         if not self.dragging:
             return False
         offset = self.get_offset()
@@ -1128,7 +1158,7 @@ class Canvas(Gtk.DrawingArea):
         self.set_offset(offset_x, offset_y)
         return True
 
-    def _scroll(self, _widget, event):
+    def _scroll(self, _widget: Gtk.Widget, event: Gdk.EventScroll) -> bool:
         allocation = self.get_allocation()
         centre_x = allocation.width / 2
         centre_y = allocation.height / 2
@@ -1155,19 +1185,19 @@ class Canvas(Gtk.DrawingArea):
 
         return True
 
-    def sort_by_confidence(self):
+    def sort_by_confidence(self) -> None:
         """Iterate through the bboxes by confidence."""
         self._current_index = "confidence"
 
-    def sort_by_position(self):
+    def sort_by_position(self) -> None:
         """Iterate through the bboxes by position."""
         self._current_index = "position"
 
-    def set_root_item(self, item):
+    def set_root_item(self, item: _CanvasRoot) -> None:
         """Set the root item of the scene graph."""
         self._root_item = item
 
-    def get_root_item(self):
+    def get_root_item(self) -> _CanvasRoot:
         """Get the root item of the scene graph."""
         return self._root_item
 
@@ -1180,35 +1210,35 @@ class ListIter:
         self.list = []
         self.index = EMPTY_LIST
 
-    def get_first_bbox(self):
+    def get_first_bbox(self) -> Bbox:
         """Return first bbox."""
         self.index = 0
         return self.get_current_bbox()
 
-    def get_previous_bbox(self):
+    def get_previous_bbox(self) -> Bbox:
         """Return previous bbox."""
         if self.index > 0:
             self.index -= 1
         return self.get_current_bbox()
 
-    def get_next_bbox(self):
+    def get_next_bbox(self) -> Bbox:
         """Return next bbox."""
         if self.index < len(self.list) - 1:
             self.index += 1
         return self.get_current_bbox()
 
-    def get_last_bbox(self):
+    def get_last_bbox(self) -> Bbox:
         """Return last bbox."""
         self.index = len(self.list) - 1
         return self.get_current_bbox()
 
-    def get_current_bbox(self):
+    def get_current_bbox(self) -> Bbox:
         """Return bbox currently selected."""
         if self.index > EMPTY_LIST:
             return self.list[self.index][0]
         raise StopIteration
 
-    def set_index_by_bbox(self, bbox, value):
+    def set_index_by_bbox(self, bbox: Bbox, value: float) -> int:
         """Set the index to the given bbox."""
         lo = self.get_index_for_value(value - 1)
         for i in range(lo, len(self.list)):
@@ -1218,7 +1248,7 @@ class ListIter:
         self.index = EMPTY_LIST
         return EMPTY_LIST
 
-    def get_index_for_value(self, value):
+    def get_index_for_value(self, value: float) -> int:
         """Return index of value using binary search."""
         lo = 0
         r = len(self.list) - 1
@@ -1234,7 +1264,7 @@ class ListIter:
             lo += 1
         return lo
 
-    def insert_after_position(self, bbox, i, value):
+    def insert_after_position(self, bbox: Bbox | None, i: int, value: float) -> None:
         """Insert bbox after given index."""
         if bbox is None:
             logger.warning("Attempted to add undefined box to confidence list")
@@ -1246,7 +1276,7 @@ class ListIter:
             return
         self.list.insert(i + 1, [bbox, value])
 
-    def insert_before_position(self, bbox, i, value):
+    def insert_before_position(self, bbox: Bbox | None, i: int, value: float) -> None:
         """Insert bbox before given index."""
         if bbox is None:
             logger.warning("Attempted to add undefined box to confidence list")
@@ -1258,7 +1288,7 @@ class ListIter:
             return
         self.list.insert(i, [bbox, value])
 
-    def add_box_to_index(self, bbox, value):
+    def add_box_to_index(self, bbox: Bbox | None, value: int | None) -> None:
         """Insert into list sorted by confidence level using a binary search."""
         if bbox is None:
             logger.warning("Attempted to add undefined box to confidence list")
@@ -1271,7 +1301,7 @@ class ListIter:
             return
         self.insert_before_position(bbox, i, value)
 
-    def remove_current_box_from_index(self):
+    def remove_current_box_from_index(self) -> None:
         """Remove the current box from the index."""
         if self.index < 0:
             logger.warning("Attempted to delete undefined index from confidence list")
@@ -1283,7 +1313,7 @@ class ListIter:
 class TreeIter:
     """Class allowing us to iterate around the tree of bounding boxes."""
 
-    def __init__(self, bbox) -> None:
+    def __init__(self, bbox: Bbox) -> None:
         """Initialise TreeIter."""
         if not isinstance(bbox, Bbox):
             msg = "bbox is not a Bbox object"
@@ -1297,20 +1327,20 @@ class TreeIter:
             bbox = parent
         self._iter.insert(0, 0)
 
-    def first_bbox(self):
+    def first_bbox(self) -> Bbox:
         """Return first bbox."""
         self._bbox = [self._bbox[0]]
         self._iter = [0]
         return self._bbox[0]
 
-    def first_word(self):
+    def first_word(self) -> Bbox:
         """Return first word."""
         bbox = self.first_bbox()
         if bbox.type != "word":
             return self.next_word()
         return bbox
 
-    def next_bbox(self):
+    def next_bbox(self) -> Bbox:
         """Return next bbox."""
         old_bbox = self._bbox.copy()
         old_iter = self._iter.copy()
@@ -1339,7 +1369,7 @@ class TreeIter:
         self._iter = old_iter
         raise StopIteration
 
-    def next_word(self):
+    def next_word(self) -> Bbox:
         """Return next bbox."""
         current_iter = self._iter.copy()
         current_bbox = self._bbox.copy()
@@ -1354,7 +1384,7 @@ class TreeIter:
                 raise StopIteration from exc
         return bbox
 
-    def previous_bbox(self):
+    def previous_bbox(self) -> Bbox:
         """Return previous bbox."""
         if len(self._bbox) <= 1:
             raise StopIteration
@@ -1369,7 +1399,7 @@ class TreeIter:
             return self.last_leaf()
         return parent
 
-    def previous_word(self):
+    def previous_word(self) -> Bbox:
         """Return previous word."""
         current_iter = self._iter.copy()
         current_bbox = self._bbox.copy()
@@ -1388,20 +1418,20 @@ class TreeIter:
             raise StopIteration
         return bbox
 
-    def last_bbox(self):
+    def last_bbox(self) -> Bbox:
         """Return last bbox."""
         self._bbox = [self._bbox[0]]
         self._iter = [1]
         return self.last_leaf()
 
-    def last_word(self):
+    def last_word(self) -> Bbox | None:
         """Return last word."""
         bbox = self.last_bbox()
         while bbox is not None and bbox.type != "word":
             bbox = self.previous_bbox()
         return bbox
 
-    def last_leaf(self):
+    def last_leaf(self) -> Bbox:
         """Return last bbox."""
         n = self._bbox[-1].get_n_children() - 1
         while n > EMPTY_LIST:
@@ -1411,6 +1441,6 @@ class TreeIter:
             return self.last_leaf()
         return self._bbox[-1]
 
-    def get_current_bbox(self):
+    def get_current_bbox(self) -> Bbox:
         """Return bbox currently being viewed."""
         return self._bbox[-1]

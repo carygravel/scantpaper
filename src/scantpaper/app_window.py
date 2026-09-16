@@ -1,5 +1,7 @@
 """application window."""
 
+from __future__ import annotations
+
 import contextlib
 import locale
 import logging
@@ -55,7 +57,9 @@ GLib.set_application_name(PROG_NAME)
 GLib.set_prgname("com.github.scantpaper")
 
 
-def drag_motion_callback(tree, context, x, y, t):
+def drag_motion_callback(
+    tree: Gtk.TreeView, context: Gdk.DragContext, x: int, y: int, t: int
+) -> None:
     """Handle drag motion."""
     try:
         path, how = tree.get_dest_row_at_pos(x, y)
@@ -84,7 +88,7 @@ def drag_motion_callback(tree, context, x, y, t):
         adj.set_value(max(v, m))
 
 
-def view_html(_action, _param):
+def view_html(_action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
     """Perhaps we should use gtk and mallard for this in the future."""
     # Or possibly https://github.com/ultrabug/mkdocs-static-i18n
     # At the moment, we have no translations,
@@ -137,7 +141,7 @@ class ApplicationWindow(
     # is created or we quit
     _pdf_email = None
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         kwargs["title"] = f"{PROG_NAME} v{VERSION}"
         super().__init__(*args, **kwargs)
@@ -204,7 +208,7 @@ class ApplicationWindow(
 
         self._populate_main_window()
 
-    def _init_actions(self):
+    def _init_actions(self) -> None:
         for name, function in [
             ("new", self.new_),
             ("open", self.open_dialog),
@@ -270,13 +274,15 @@ class ApplicationWindow(
             "editmode", GLib.VariantType("s"), GLib.Variant("s", "text")
         )
 
-    def _window_state_event_callback(self, _w, event):
+    def _window_state_event_callback(
+        self, _w: Gtk.Widget, event: Gdk.EventWindowState
+    ) -> None:
         """Note when the window is maximised or not."""
         self.settings["window_maximize"] = bool(
             event.new_window_state & Gdk.WindowState.MAXIMIZED
         )
 
-    def _pre_flight(self):
+    def _pre_flight(self) -> None:
         """Initialise variables, read configuration, and initialise components."""
         if self.settings["cwd"] is None:
             self.settings["cwd"] = str(pathlib.Path.cwd())
@@ -322,7 +328,7 @@ class ApplicationWindow(
 
         self.get_application().set_menubar(self.builder.get_object("menubar"))
 
-    def _read_config(self):
+    def _read_config(self) -> None:
         """Read the configuration file."""
         # config files: XDG_CONFIG_HOME/scantpaperrc or HOME/.config/scantpaperrc
         rcdir = (
@@ -345,7 +351,7 @@ class ApplicationWindow(
         config.add_defaults(self.settings)
         config.remove_invalid_paper(self.settings["Paper"])
 
-    def _populate_main_window(self):
+    def _populate_main_window(self) -> None:
         """Populate the main window with various UI components and set up necessary callbacks."""
         self._create_temp_directory()
 
@@ -414,17 +420,17 @@ class ApplicationWindow(
         if args.import_all is not None:
             self._import_files(args.import_all, all_pages=True)
 
-    def _cancel_post_process(self):
+    def _cancel_post_process(self) -> None:
         """Cancel all queued and running post-process jobs."""
         self.slist.cancel(self.post_process_progress.finish)
 
-    def _changed_text_sort_method(self, _widget, sort_method):
+    def _changed_text_sort_method(self, _widget: Gtk.Widget, sort_method: str) -> None:
         if sort_method == "confidence":
             self.t_canvas.sort_by_confidence()
         else:
             self.t_canvas.sort_by_position()
 
-    def _populate_panes(self):
+    def _populate_panes(self) -> None:
 
         # HPaned for thumbnails and detail view
         self._hpaned.set_position(self.settings["thumb panel"])
@@ -502,7 +508,7 @@ class ApplicationWindow(
             GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
         )
 
-    def _missing_packages_message(self):
+    def _missing_packages_message(self) -> str:
         """Return the warning message for packages needed by the tools."""
         msg = EMPTY
         missing = [
@@ -537,7 +543,7 @@ class ApplicationWindow(
 
         return msg
 
-    def _create_toolbar(self):
+    def _create_toolbar(self) -> None:
         # Check for presence of various packages
         self._check_dependencies()
 
@@ -581,7 +587,7 @@ class ApplicationWindow(
         settings = toolbar.get_settings()
         settings.gtk_toolbar_style = "icons"  # only icons
 
-    def _pack_viewer_tools(self):
+    def _pack_viewer_tools(self) -> None:
         if self.settings["viewer_tools"] == "tabbed":
             self._vnotebook.append_page(self.view, Gtk.Label(label=_("Image")))
             self._vnotebook.append_page(self.t_canvas, Gtk.Label(label=_("Text layer")))
@@ -603,7 +609,7 @@ class ApplicationWindow(
                 self._vnotebook.remove(self.a_canvas)
             self._vpaned.pack1(self._vpanei, resize=True, shrink=True)
 
-    def _handle_clicks(self, widget, event):
+    def _handle_clicks(self, widget: Gtk.Widget, event: Gdk.EventButton) -> bool:
         if event.button == Gdk.BUTTON_SECONDARY:
             if isinstance(widget, ImageView):  # main image
                 self.detail_popup.show_all()
@@ -619,18 +625,22 @@ class ApplicationWindow(
         # allow event propagation
         return False
 
-    def _view_selection_changed_callback(self, _view, sel):
+    def _view_selection_changed_callback(
+        self, _view: ImageView, sel: Gdk.Rectangle
+    ) -> None:
         # copy required here because somehow the garbage collection
         # destroys the Gdk.Rectangle too early and afterwards, the
         # contents are corrupt.
         self.settings["selection"] = sel.copy()
 
-    def _on_view_selection_notify(self, _view, _pspec):
+    def _on_view_selection_notify(
+        self, _view: GObject.Object, _pspec: GObject.ParamSpec
+    ) -> None:
         sel = self.view.selection
         if sel is not None:
             self.settings["selection"] = sel.copy()
 
-    def _on_key_press(self, _widget, event):
+    def _on_key_press(self, _widget: Gtk.Widget, event: Gdk.EventKey) -> bool:
 
         # Let the keypress propagate
         if event.keyval != Gdk.KEY_Delete:
@@ -640,7 +650,9 @@ class ApplicationWindow(
 
     _in_tool_change = False
 
-    def _change_image_tool_cb(self, action, value):
+    def _change_image_tool_cb(
+        self, action: Gio.SimpleAction, value: GLib.Variant
+    ) -> None:
         # GTK3 GtkCheckMenuItem.set_active() calls gtk_menu_item_activate(),
         # re-activating the action with the deactivated item's target value.
         if self._in_tool_change:
@@ -673,7 +685,9 @@ class ApplicationWindow(
         self.settings["image_control_tool"] = value
         self._in_tool_change = False
 
-    def _change_view_cb(self, action, parameter):
+    def _change_view_cb(
+        self, action: Gio.SimpleAction, parameter: GLib.Variant
+    ) -> None:
         """Switch between tabbed and split views."""
         action.set_state(parameter)
 
@@ -695,7 +709,7 @@ class ApplicationWindow(
         self.settings["viewer_tools"] = parameter.get_string()
         self._pack_viewer_tools()
 
-    def _page_selection_changed_callback(self, _selection):
+    def _page_selection_changed_callback(self, _selection: Gtk.TreeSelection) -> None:
         selection = self.slist.get_selected_indices()
 
         # Display the new image
@@ -729,7 +743,7 @@ class ApplicationWindow(
         # have to ensure that any progress bars are hidden afterwards if neceesary.
         self.post_process_progress.finish(None)
 
-    def _update_uimanager(self):
+    def _update_uimanager(self) -> None:
         action_names = [
             "cut",
             "copy",
@@ -791,7 +805,7 @@ class ApplicationWindow(
         # Check free space in session directory
         self._check_disk_space()
 
-    def _update_send_save_actions(self):
+    def _update_send_save_actions(self) -> None:
         """Enable or disable email/print/save depending on page selection."""
         if len(self.slist.data) > 0:
             if self._dependencies["xdg"]:
@@ -809,7 +823,7 @@ class ApplicationWindow(
             self._actions["print"].set_enabled(False)
             self._actions["save"].set_enabled(False)
 
-    def _check_disk_space(self):
+    def _check_disk_space(self) -> None:
         """Warn if free space in the session directory is running low."""
         df = shutil.disk_usage(self.session.name)
         if df:
@@ -829,7 +843,7 @@ class ApplicationWindow(
                     text=text,
                 )
 
-    def _notify_config_load_warnings(self):
+    def _notify_config_load_warnings(self) -> None:
         """Inform the user that settings could not be read in full."""
         if not self._config_load_warnings or self._config_warnings_acknowledged:
             return
@@ -841,7 +855,7 @@ class ApplicationWindow(
             text="\n".join(self._config_load_warnings),
         )
 
-    def _show_message_dialog(self, **kwargs):
+    def _show_message_dialog(self, **kwargs: object) -> None:
         """Display a message dialog with the given options."""
         if self._message_dialog is None:
             self._message_dialog = MultipleMessage(
@@ -868,7 +882,9 @@ class ApplicationWindow(
             self._message_dialog.destroy()
             self._message_dialog = None
 
-    def _process_error_callback(self, widget, process, msg, signal):
+    def _process_error_callback(
+        self, widget: Gtk.Widget, process: str, msg: str, signal: int | None
+    ) -> None:
         """Handle process errors."""
         logger.info("signal 'process-error' emitted with data: %s %s", process, msg)
         if signal is not None:
@@ -891,7 +907,7 @@ class ApplicationWindow(
             store_response=True,
         )
 
-    def _handle_device_open_error(self):
+    def _handle_device_open_error(self) -> None:
         """Handle an error opening the last device used."""
         error_name = "error opening device"
         response = None
@@ -917,7 +933,7 @@ class ApplicationWindow(
 
         # for ignore, we do nothing
 
-    def _ask_device_open_error(self, error_name):
+    def _ask_device_open_error(self, error_name: str) -> str:
         """Ask how to proceed after an open-device error; return the response."""
         dialog = Gtk.MessageDialog(
             parent=self,

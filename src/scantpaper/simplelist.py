@@ -1,6 +1,8 @@
 """A simple interface to Gtk's complex MVC list widget."""
 
-from collections.abc import Iterator
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from warnings import warn
 
 import gi
@@ -13,14 +15,29 @@ from gi.repository import (  # noqa: E402
     Gtk,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
-def scalar_cell_renderer(_tree_column, cell, model, itr, i):
+
+def scalar_cell_renderer(
+    _tree_column: Gtk.TreeViewColumn,
+    cell: Gtk.CellRendererText,
+    model: Gtk.TreeModel,
+    itr: Gtk.TreeIter,
+    i: int,
+) -> None:
     """Provide a custom cell renderer gtype scalar."""
     info = model[itr][i]
     cell.set_property("text", "" if info is None else info)
 
 
-def float_g_cell_renderer(_tree_column, cell, model, itr, i):
+def float_g_cell_renderer(
+    _tree_column: Gtk.TreeViewColumn,
+    cell: Gtk.CellRendererText,
+    model: Gtk.TreeModel,
+    itr: Gtk.TreeIter,
+    i: int,
+) -> None:
     """Provide a custom cell renderer gtype float without a trailing decimal.
 
     Whole numbers such as 210.0 are displayed as 210, while fractional
@@ -62,7 +79,7 @@ column_types = {
 class SimpleList(Gtk.TreeView):
     """A simple interface to Gtk's complex MVC list widget."""
 
-    def __init__(self, **columns) -> None:
+    def __init__(self, **columns: object) -> None:
         """Create a SimpleList from keyword arguments mapping column names to types."""
         super().__init__()
         if len(columns.keys()) < 1:
@@ -142,7 +159,9 @@ class SimpleList(Gtk.TreeView):
                     self.do_connect_text_edited(col["renderer"], col["type"], i)
                     i += 1
 
-    def do_connect_text_edited(self, renderer, col_type, i):
+    def do_connect_text_edited(
+        self, renderer: Gtk.CellRendererText, col_type: object, i: int
+    ) -> None:
         """Connect the 'edited' signal of a text cell renderer."""
         if not isinstance(renderer, Gtk.CellRendererText):
             return
@@ -153,29 +172,35 @@ class SimpleList(Gtk.TreeView):
         )
         renderer.column = i
 
-    def __iter__(self, *args, **kwargs) -> Iterator:
+    def __iter__(self, *args: object, **kwargs: object) -> Iterator:
         """Iterate over the rows of the list model."""
         return iter(self.get_model(), *args, **kwargs)
 
     @property
-    def data(self):
+    def data(self) -> TiedList:
         """Getter for data property."""
         return TiedList(self.get_model())
 
     @data.setter
-    def data(self, new_data):
+    def data(self, new_data: object) -> None:
         """Setter for data property."""
         self.get_model().clear()
         self.data.extend(new_data)
 
-    def do_toggled(self, renderer, row):
+    def do_toggled(self, renderer: Gtk.CellRendererToggle, row: str) -> None:
         """Handle toggled signal of boolean cell."""
         col = renderer.column
         model = self.get_model()
         itr = model.iter_nth_child(None, int(row))
         model[itr][col] = not model[itr][col]
 
-    def do_text_cell_edited(self, renderer, text_path, new_text, col_type):
+    def do_text_cell_edited(
+        self,
+        renderer: Gtk.CellRendererText,
+        text_path: str,
+        new_text: str,
+        col_type: object,
+    ) -> None:
         """Handle edited signal of text cell."""
         path = Gtk.TreePath.new_from_string(text_path)
         model = self.get_model()
@@ -185,16 +210,16 @@ class SimpleList(Gtk.TreeView):
             new_text = parse_number(new_text)
         model[model.get_iter(path)][renderer.column] = new_text
 
-    def set_column_editable(self, index, editable):
+    def set_column_editable(self, index: int, *, editable: bool) -> None:
         """Set whether a column can be edited."""
         column = self.get_column(index)
         if column is None:
             msg = f"invalid column index {index}"
             raise ValueError(msg)
         cell_renderer = column.get_cells()
-        return cell_renderer[0].set_property("editable", editable)
+        cell_renderer[0].set_property("editable", editable)
 
-    def get_column_editable(self, index):
+    def get_column_editable(self, index: int) -> object:
         """Return whether a column can be edited."""
         column = self.get_column(index)
         if column is None:
@@ -203,7 +228,7 @@ class SimpleList(Gtk.TreeView):
         cell_renderer = column.get_cells()
         return cell_renderer[0].get_property("editable")
 
-    def get_selected_indices(self):
+    def get_selected_indices(self) -> list[int]:
         """Get selected indices."""
         selection = self.get_selection()
 
@@ -215,7 +240,7 @@ class SimpleList(Gtk.TreeView):
         _model, indices = selection.get_selected_rows()
         return [x.get_indices()[0] for x in indices]
 
-    def _modify_selection(self, indices, func):
+    def _modify_selection(self, indices: int | list[int | None], func: str) -> None:
         """Modify selection for select/unselect()."""
         selection = self.get_selection()
         if (
@@ -237,15 +262,15 @@ class SimpleList(Gtk.TreeView):
                 continue
             func(itr)
 
-    def select(self, indices):
+    def select(self, indices: int | list[int | None]) -> None:
         """Select indices."""
         self._modify_selection(indices, "select_iter")
 
-    def unselect(self, indices):
+    def unselect(self, indices: int | list[int | None]) -> None:
         """Unselect indices."""
         self._modify_selection(indices, "unselect_iter")
 
-    def get_row_data_from_path(self, path):
+    def get_row_data_from_path(self, path: Gtk.TreePath) -> list[object]:
         """Get row for given path.
 
         path.get_depth() always 1 for SimpleList
@@ -257,12 +282,12 @@ class SimpleList(Gtk.TreeView):
         return list(self.get_model()[index])
 
     @classmethod
-    def add_column_type(cls, **kwargs) -> None:
+    def add_column_type(cls: type[SimpleList], **kwargs: object) -> None:
         """Add column type."""
         column_types.update(kwargs)
 
     @classmethod
-    def get_column_types(cls) -> dict:
+    def get_column_types(cls: type[SimpleList]) -> dict:
         """Return column types."""
         return column_types
 
@@ -270,17 +295,17 @@ class SimpleList(Gtk.TreeView):
 class TiedRow(list):
     """TiedRow is the lowest-level tie, allowing you to treat a row as an array of column data."""
 
-    def __init__(self, model, itr) -> None:
+    def __init__(self, model: Gtk.TreeModel, itr: Gtk.TreeIter) -> None:
         """Store a reference to the TreeModel and tree iterator for this row."""
         super().__init__()
         self.model = model
         self.iter = itr
 
-    def __getitem__(self, index) -> object:
+    def __getitem__(self, index: object) -> object:
         """Return the column data at *index*."""
         return self.model[self.iter][index]
 
-    def __setitem__(self, index, value) -> None:
+    def __setitem__(self, index: object, value: object) -> None:
         """Set the item at the given index."""
         self.model[self.iter][index] = value
 
@@ -288,36 +313,36 @@ class TiedRow(list):
         """Return the number of items."""
         return self.model.get_n_columns()
 
-    def __contains__(self, index) -> bool:
+    def __contains__(self, index: object) -> bool:
         """Check if the index is within range."""
         return index < self.model.get_n_columns()
 
-    def __delitem__(self, _index) -> None:
+    def __delitem__(self, _index: int) -> None:
         """Raise NotImplementedError — fixed-size row."""
         msg = "delete called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
-    def extend(self, _items):
+    def extend(self, _items: object) -> None:
         """Extend the list with items (not supported)."""
         msg = "extend called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear all items (not supported)."""
         msg = "clear called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
-    def pop(self):
+    def pop(self) -> None:
         """Pop the last item (not supported)."""
         msg = "pop called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
-    def append(self, _item):
+    def append(self, _item: object) -> None:
         """Append an item (not supported)."""
         msg = "append called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
 
-    def insert(self, _index, _item):
+    def insert(self, _index: int, _item: object) -> None:
         """Insert an item at position (not supported)."""
         msg = "push called on a TiedRow, but you can't change its size"
         raise NotImplementedError(msg)
@@ -326,12 +351,12 @@ class TiedRow(list):
 class TiedList(list):
     """TiedList is an array in which each element is a row in the liststore."""
 
-    def __init__(self, model) -> None:
+    def __init__(self, model: Gtk.TreeModel) -> None:
         """Init attributes."""
         super().__init__()
         self.model = model
 
-    def __getitem__(self, index) -> object:
+    def __getitem__(self, index: int) -> object:
         """Return the item at the given index."""
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
@@ -339,7 +364,7 @@ class TiedList(list):
             raise IndexError(msg)
         return TiedRow(self.model, itr)
 
-    def __setitem__(self, index, value) -> None:
+    def __setitem__(self, index: int, value: object) -> None:
         """Set the item at the given index."""
         itr = self.model.iter_nth_child(None, index)
         if itr is None:
@@ -355,13 +380,13 @@ class TiedList(list):
         """Return a string representation."""
         return str([list(x) for x in self.model])
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare equality with another instance."""
         return [list(x) for x in self.model] == other
 
     __hash__ = None
 
-    def append(self, values):
+    def append(self, values: object) -> None:
         """Append."""
         self.model.append(values)
 
@@ -369,16 +394,16 @@ class TiedList(list):
         """Iterate over the rows."""
         return iter(self.model)
 
-    def extend(self, values):
+    def extend(self, values: object) -> None:
         """Extend."""
         for row in values:
             self.model.append(row)
 
-    def insert(self, position, row):
+    def insert(self, position: int, row: object) -> None:
         """Insert."""
         self.model.insert(position, row)
 
-    def pop(self):
+    def pop(self) -> list[object]:
         """Pop."""
         model = self.model
         index = model.iter_n_children(None) - 1
@@ -390,7 +415,7 @@ class TiedList(list):
         model.remove(itr)
         return ret
 
-    def __delitem__(self, index) -> None:
+    def __delitem__(self, index: int) -> None:
         """Raise NotImplementedError — fixed-size row."""
         model = self.model
         itr = model.iter_nth_child(None, index)
