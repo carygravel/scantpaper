@@ -48,6 +48,11 @@ def has_numeric_locale(name):
 _HAS_DE_DE = has_numeric_locale("de_DE.utf8")
 
 
+def test_has_numeric_locale_missing():
+    """An unavailable locale is reported as False."""
+    assert has_numeric_locale("no.such.locale.zzz") is False
+
+
 def test_decimal_separator_default():
     """decimal_separator returns the configured separator and keeps LC_NUMERIC."""
     saved = locale.setlocale(locale.LC_NUMERIC)

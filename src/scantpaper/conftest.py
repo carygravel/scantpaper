@@ -48,18 +48,30 @@ def quit_lingering_threads():
     BaseThread.quit_all_live_threads()
 
 
+def has_numeric_locale(name):
+    """Check if the given locale is available on the system."""
+    try:
+        saved = locale.setlocale(locale.LC_NUMERIC)
+        locale.setlocale(locale.LC_NUMERIC, name)
+        locale.setlocale(locale.LC_NUMERIC, saved)
+    except locale.Error:
+        return False
+    return True
+
+
+def _require_de_locale():
+    """Skip the current test when the de_DE.utf8 locale is not installed."""
+    if not has_numeric_locale("de_DE.utf8"):
+        pytest.skip("de_DE.utf8 locale not available")
+
+
 @pytest.fixture
 def comma_locale(monkeypatch):
     """Force the configured locale to a decimal-comma locale and reset the separator cache.
 
     Skips when the de_DE.utf8 locale is not installed on the system.
     """
-    try:
-        saved = locale.setlocale(locale.LC_NUMERIC)
-        locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
-        locale.setlocale(locale.LC_NUMERIC, saved)
-    except locale.Error:
-        pytest.skip("de_DE.utf8 locale not available")
+    _require_de_locale()
 
     monkeypatch.setenv("LC_ALL", "de_DE.utf8")
     monkeypatch.setenv("LANG", "de_DE.utf8")

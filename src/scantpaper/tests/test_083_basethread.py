@@ -533,3 +533,30 @@ def test_quit_all_live_threads():
     t2.join(timeout=2)
     assert not t1.is_alive(), "t1 quit"
     assert not t2.is_alive(), "t2 quit"
+
+
+def test_quit_all_live_threads_logs_exception(mocker):
+    """Test quit_all_live_threads logs and continues when quit() raises."""
+    t1 = BaseThread()
+    t2 = BaseThread()
+    t1.start()
+    t2.start()
+
+    real_quit = t1.quit
+
+    def raising_quit():
+        real_quit()
+        msg = "boom"
+        raise RuntimeError(msg)
+
+    mocker.patch.object(t1, "quit", side_effect=raising_quit)
+    mock_logger = mocker.patch("scantpaper.basethread.logger")
+
+    BaseThread.quit_all_live_threads()
+
+    mock_logger.exception.assert_called_once()
+
+    t1.join(timeout=2)
+    t2.join(timeout=2)
+    assert not t1.is_alive(), "t1 quit"
+    assert not t2.is_alive(), "t2 quit"

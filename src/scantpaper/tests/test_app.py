@@ -1,9 +1,11 @@
 """Tests for app.py."""
 
 import contextlib
+import importlib
 import logging
 import pathlib
 import runpy
+import sys
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -265,6 +267,18 @@ def test_script_entry_point():
         contextlib.suppress(SystemExit),
     ):
         runpy.run_module("scantpaper.app", run_name="__main__")
+
+
+def test_base_dir_frozen(mocker):
+    """BASE_DIR resolves to _MEIPASS when running as a frozen bundle."""
+    original = app_module.BASE_DIR
+    try:
+        mocker.patch.object(sys, "frozen", value=True, create=True)
+        mocker.patch.object(sys, "_MEIPASS", "/fake/meipass", create=True)
+        importlib.reload(app_module)
+        assert app_module.BASE_DIR == "/fake/meipass"
+    finally:
+        app_module.BASE_DIR = original
 
 
 def test_handle_exception(mocker):

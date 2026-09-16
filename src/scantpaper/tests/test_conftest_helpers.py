@@ -1,5 +1,6 @@
 """Tests for conftest helper functions."""
 
+import locale
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -7,7 +8,11 @@ import pytest
 from gi.repository import GLib
 from PIL import Image, ImageFont
 
-from scantpaper.conftest import _create_qbfox_image
+from scantpaper.conftest import (
+    _create_qbfox_image,
+    _require_de_locale,
+    has_numeric_locale,
+)
 
 
 def test_qbfox_font_fallback():
@@ -135,6 +140,25 @@ def test_qbfox_small_bbox_scale():
 def test_clean_up_files_non_existent(clean_up_files):
     """Test clean_up_files handles non-existent files without error."""
     clean_up_files(["/nonexistent/file.txt"])
+
+
+def test_has_numeric_locale():
+    """has_numeric_locale detects available and missing locales."""
+    assert has_numeric_locale("C") is True
+    assert has_numeric_locale("no.such.locale.zzz") is False
+
+
+def test_require_de_locale_skips_when_missing(monkeypatch):
+    """_require_de_locale skips when the de_DE.utf8 locale is unavailable."""
+
+    def fail_setlocale(*_args):
+        msg = "mocked missing locale"
+        raise locale.Error(msg)
+
+    monkeypatch.setattr(locale, "setlocale", fail_setlocale)
+
+    with pytest.raises(pytest.skip.Exception, match=r"de_DE\.utf8"):
+        _require_de_locale()
 
 
 def test_get_page_sync_error(get_page_sync):

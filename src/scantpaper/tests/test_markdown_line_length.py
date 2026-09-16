@@ -9,6 +9,8 @@ package, excluding vendored/untracked directories.
 
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 MAX_LINE_LENGTH = 512
@@ -29,6 +31,18 @@ def test_markdown_line_length():
     assert not long_lines, (
         "Lines exceed the lintian max of 512 characters:\n" + "\n".join(long_lines)
     )
+
+
+def test_markdown_line_length_detects_long_lines(monkeypatch, tmp_path):
+    """The checker flags a markdown file containing an over-long line."""
+    md_file = tmp_path / "long.md"
+    md_file.write_text("x" * (MAX_LINE_LENGTH + 1) + "\n", encoding="utf-8")
+    monkeypatch.setattr(
+        "scantpaper.tests.test_markdown_line_length._iter_shipped_markdown",
+        lambda: [md_file],
+    )
+    with pytest.raises(AssertionError, match=r"long\.md"):
+        test_markdown_line_length()
 
 
 def _iter_shipped_markdown():

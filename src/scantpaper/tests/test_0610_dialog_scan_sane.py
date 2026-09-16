@@ -1238,6 +1238,35 @@ def test_entry_activate_comma_locale(mocker, sane_scan_dialog, comma_locale):
     dialog.set_option.assert_called_with(entry_opt, value=115.5)
 
 
+def test_entry_activate_int_type(sane_scan_dialog):
+    """Activating a TYPE_INT entry parses the text as an int."""
+    dialog = sane_scan_dialog
+    group_opt = Option(
+        0, "group", "Group", "desc", enums.TYPE_GROUP, enums.UNIT_NONE, 0, 0, None
+    )
+    int_opt = Option(
+        1,
+        "test-int-entry",
+        "Test Int Entry",
+        "desc",
+        enums.TYPE_INT,
+        enums.UNIT_NONE,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        None,
+    )
+    dialog.thread.device_handle = MagicMock()
+    dialog.thread.device_handle.test_int_entry = 150
+    dialog._initialise_options(Options([group_opt, int_opt]))
+    widget = dialog.option_widgets["test-int-entry"]
+    assert isinstance(widget, Gtk.Entry)
+
+    dialog.set_option = MagicMock()
+    widget.set_text("300")
+    widget.emit("activate")
+    dialog.set_option.assert_called_with(int_opt, value=300)
+
+
 def test_set_option_clamping(sane_scan_dialog):
     """Test set_option clamping to cover lines 391 and 393."""
     dialog = sane_scan_dialog

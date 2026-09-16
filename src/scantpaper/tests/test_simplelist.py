@@ -257,6 +257,16 @@ def test_mm_display_without_trailing_decimal():
     )
 
 
+def test_mm_display_renders_none_as_empty():
+    """An mm cell renders a None value as empty text."""
+    model = Gtk.ListStore(object)
+    model.append([None])
+    cell = Gtk.CellRendererText()
+    itr = model.iter_nth_child(None, 0)
+    float_g_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr, 0)
+    assert cell.get_property("text") == ""
+
+
 def test_mm_cell_edited():
     """An mm cell parses edits like a double and keeps invalid values."""
     slist = SimpleList(col1="mm")
