@@ -1,5 +1,7 @@
 """Constants that are used in multiple places."""
 
+from __future__ import annotations
+
 import datetime
 import importlib.metadata
 import sys
@@ -18,7 +20,7 @@ BUG_URL = URL + "/issues"
 LOCAL_DOCS_URI = f"/usr/share/doc/C/{PROG_NAME}/documentation.html"
 
 
-def get_version():
+def get_version() -> str:
     """Get version from pyproject.toml."""
     tomlfile_path = Path(__file__).resolve().parents[2] / "pyproject.toml"
     if tomlfile_path.is_file():

@@ -1,10 +1,15 @@
 """pagerange widget."""
 
-from typing import ClassVar
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import gi
 
 from scantpaper.i18n import _
+
+if TYPE_CHECKING:
+    from typing import ClassVar
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -31,7 +36,7 @@ class PageRange(Gtk.Box):
     )
     widget_list: ClassVar[list] = []  # list of all PageRange widgets
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise PageRange."""
         super().__init__(*args, **kwargs)
 
@@ -48,7 +53,7 @@ class PageRange(Gtk.Box):
         group = None
         self.button = {}
 
-        def on_toggled_event(button, active):
+        def on_toggled_event(button: Gtk.RadioButton, active: str) -> None:
             if button.get_active():
                 self.set_active(active)
 
@@ -67,11 +72,11 @@ class PageRange(Gtk.Box):
 
         self.widget_list.append(self)
 
-    def get_active(self):
+    def get_active(self) -> str:
         """Return active button."""
         return self.active
 
-    def set_active(self, active):
+    def set_active(self, active: str) -> None:
         """Set active button."""
         if self.active == active:
             return

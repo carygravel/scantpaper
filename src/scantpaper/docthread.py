@@ -1,5 +1,7 @@
 """Threading model for the Document class."""
 
+from __future__ import annotations
+
 import datetime
 import json
 import logging
@@ -11,6 +13,7 @@ import subprocess
 import tempfile
 import threading
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import gi
 import tesserocr
@@ -23,6 +26,13 @@ from scantpaper.i18n import _
 from scantpaper.importthread import _note_callbacks
 from scantpaper.page import Page
 from scantpaper.savethread import SaveThread
+
+if TYPE_CHECKING:
+    import uuid
+
+    from PIL import Image
+
+    from scantpaper.basethread import Request, Response
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -38,7 +48,7 @@ logger = logging.getLogger(__name__)
 INSERT_AT_START = "<start>"
 
 
-def _loggerise(variables):
+def _loggerise(variables: object) -> object:
     logger_vars = None
     if variables:
         tuple_flag = False
@@ -64,7 +74,7 @@ class DocThread(SaveThread):
     _db = None
     dir = None
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise DocThread."""
         for key, attr in [("dir", "dir"), ("db", "_db")]:
             if key in kwargs:
@@ -83,7 +93,9 @@ class DocThread(SaveThread):
         if not self._wait_for_database_init():
             logger.error("Failed to initialize DocThread for %s", self._db)
 
-    def _set_paths(self, directory, db):
+    def _set_paths(
+        self, directory: str | pathlib.Path | None, db: str | pathlib.Path | None
+    ) -> tuple[pathlib.Path, pathlib.Path]:
         """Resolve the database and working directory paths."""
         if db:
             db = pathlib.Path(db)
@@ -97,18 +109,18 @@ class DocThread(SaveThread):
             db = directory / "document.sdb"
         return directory, db
 
-    def _wait_for_database_init(self):
+    def _wait_for_database_init(self) -> bool:
         """Wait for the database to be created, unless a timeout occurs."""
         mlp = GLib.MainLoop()
         success = False
         timed_out = False
 
-        def on_finished(_):
+        def on_finished(_response: Response) -> None:
             nonlocal success
             success = True
             mlp.quit()
 
-        def on_timeout():
+        def on_timeout() -> bool:
             nonlocal timed_out
             timed_out = True
             mlp.quit()
@@ -126,7 +138,7 @@ class DocThread(SaveThread):
             GLib.source_remove(timeout_id)
         return success
 
-    def _connect(self):
+    def _connect(self) -> None:
         tid = threading.get_native_id()
         if tid not in self._con:
             logger.debug("Connecting to database %s in thread %s", self._db, tid)
@@ -134,7 +146,9 @@ class DocThread(SaveThread):
             self._con[tid].isolation_level = "IMMEDIATE"
             self._cur[tid] = self._con[tid].cursor()
 
-    def _execute(self, query, params=None):
+    def _execute(
+        self, query: str, params: tuple[object, ...] | list[object] | None = None
+    ) -> None:
         """Execute a query on the database."""
         self._connect()
         tid = threading.get_native_id()
@@ -144,7 +158,11 @@ class DocThread(SaveThread):
         else:
             self._cur[tid].execute(query, params)
 
-    def _executemany(self, query, params=None):
+    def _executemany(
+        self,
+        query: str,
+        params: list[tuple[object, ...] | list[object]] | None = None,
+    ) -> None:
         """Execute a query on the database."""
         self._connect()
         tid = threading.get_native_id()
@@ -154,21 +172,21 @@ class DocThread(SaveThread):
         else:
             self._cur[tid].executemany(query, params)
 
-    def _fetchone(self):
+    def _fetchone(self) -> tuple[object, ...] | None:
         """Fetch one row from the database."""
         tid = threading.get_native_id()
         result = self._cur[tid].fetchone()
         logger.debug("_fetchone() in tid %s returned %s", tid, _loggerise(result))
         return result
 
-    def _fetchall(self):
+    def _fetchall(self) -> list[tuple[object, ...]]:
         """Fetch one row from the database."""
         tid = threading.get_native_id()
         result = self._cur[tid].fetchall()
         logger.debug("fetchall() in tid %s returned %s", tid, _loggerise(result))
         return result
 
-    def _check_write_tid(self):
+    def _check_write_tid(self) -> None:
         tid = threading.get_native_id()
         if self._write_tid:
             if self._write_tid != tid:
@@ -180,7 +198,7 @@ class DocThread(SaveThread):
         else:
             self._write_tid = tid
 
-    def do_create(self, request):
+    def do_create(self, request: Request) -> None:
         """Open a saved database."""
         self._check_write_tid()
         self._db = request.args[0]
@@ -219,7 +237,7 @@ class DocThread(SaveThread):
                 action_id INTEGER PRIMARY KEY,
                 row_ids TEXT NOT NULL)""")
 
-    def open(self, db):
+    def open(self, db: str | pathlib.Path) -> None:
         """Open a saved database."""
         self._db = db
         self._connect()
@@ -256,7 +274,7 @@ class DocThread(SaveThread):
         if row:
             self._action_id = row[0]
 
-    def _migrate_page_order_schema(self):
+    def _migrate_page_order_schema(self) -> None:
         """Detect and rebuild a legacy page_order schema with a page_number column."""
         self._execute("PRAGMA table_info(page_order)")
         columns = [row[1] for row in self._fetchall()]
@@ -278,27 +296,29 @@ class DocThread(SaveThread):
         self._execute("ALTER TABLE page_order_new RENAME TO page_order")
         self._con[threading.get_native_id()].commit()
 
-    def do_open(self, request):
+    def do_open(self, request: Request) -> None:
         """Open a saved database on the worker thread."""
         self.open(request.args[0])
 
-    def close(self):
+    def close(self) -> None:
         """Close all database connections."""
         for con in self._con.values():
             con.close()
         self._con.clear()
         self._cur.clear()
 
-    def do_quit(self, _request):
+    def do_quit(self, _request: Request) -> None:
         """Close the database connections before stopping."""
         self.close()
         super().do_quit(_request)
 
-    def save_as(self, db_name):
+    def save_as(self, db_name: str) -> None:
         """Save the current database to a new file."""
         self._execute(f"VACUUM INTO '{db_name}'")
 
-    def _insert_image(self, page, if_different_from=None):
+    def _insert_image(
+        self, page: Page, if_different_from: int | None = None
+    ) -> tuple[int, GdkPixbuf.Pixbuf]:
         """Insert an image to the database."""
         self._check_write_tid()
         bytes_image = page.to_stored_bytes()
@@ -327,7 +347,7 @@ class DocThread(SaveThread):
             return self._cur[threading.get_native_id()].lastrowid, thumb
         return if_different_from, thumb
 
-    def _reuse_image_thumb(self, image_id):
+    def _reuse_image_thumb(self, image_id: int) -> GdkPixbuf.Pixbuf:
         """Return the thumbnail pixbuf of the stored image with the given id."""
         self._check_write_tid()
         self._execute("SELECT thumb FROM image WHERE id = ?", (image_id,))
@@ -337,7 +357,7 @@ class DocThread(SaveThread):
             raise ValueError(msg)
         return self._bytes_to_pixbuf(row[0])
 
-    def _insert_page(self, page, image_id):
+    def _insert_page(self, page: Page, image_id: int) -> int:
         """Insert a page to the database."""
         self._check_write_tid()
         x_res, y_res = None, None
@@ -362,7 +382,7 @@ class DocThread(SaveThread):
         self._con[tid].commit()
         return self._cur[tid].lastrowid
 
-    def _shift_row_ids(self, start_row_id, shift):
+    def _shift_row_ids(self, start_row_id: int, shift: int) -> None:
         """Shift the row_ids of all rows at or after start_row_id by the given amount."""
         self._execute(
             """SELECT row_id, initial_page_id FROM page_order
@@ -375,7 +395,7 @@ class DocThread(SaveThread):
                 (row_id + shift, initial_page_id, self._action_id),
             )
 
-    def _insert_page_order_after(self, initial_page_id, page_id):
+    def _insert_page_order_after(self, initial_page_id: int, page_id: int) -> int:
         """Insert a page_order row immediately after the row with the given initial_page_id."""
         self._execute(
             "SELECT row_id FROM page_order WHERE initial_page_id = ? AND action_id = ?",
@@ -394,7 +414,9 @@ class DocThread(SaveThread):
         )
         return position
 
-    def add_page(self, page, insert_after=None):
+    def add_page(
+        self, page: Page, insert_after: int | str | None = None
+    ) -> tuple[int, GdkPixbuf.Pixbuf, int]:
         """Add a page to the database, appending it or inserting it after the given page."""
         self._check_write_tid()
         self._take_snapshot()
@@ -428,7 +450,9 @@ class DocThread(SaveThread):
         self._con[threading.get_native_id()].commit()
         return position, thumb, page_id
 
-    def replace_page(self, page, initial_page_id, *, reuse_image=False):
+    def replace_page(
+        self, page: Page, initial_page_id: int, *, reuse_image: bool = False
+    ) -> tuple[int, GdkPixbuf.Pixbuf, int]:
         """Replace a page in the database, keeping its position."""
         self._check_write_tid()
         self._take_snapshot()
@@ -459,7 +483,7 @@ class DocThread(SaveThread):
     # TODO: Commit a95296e93b392b35285d00bc633a9aa94c76995c fixed a bug
     # seemingly deleting extra pages. Please write a test which passes after
     # this commit, but fails before it.
-    def do_delete_pages(self, request):
+    def do_delete_pages(self, request: Request) -> None:
         """Delete a page from the database."""
         self._check_write_tid()
         self._take_snapshot()
@@ -509,7 +533,7 @@ class DocThread(SaveThread):
             }
         )
 
-    def do_page_number_table(self, _request):
+    def do_page_number_table(self, _request: Request) -> list[list[object]]:
         """Get data for page number/thumb table on the worker thread."""
         self._execute(
             """SELECT row_id, thumb, initial_page_id
@@ -527,11 +551,11 @@ class DocThread(SaveThread):
         result = [[]]
         mlp = GLib.MainLoop()
 
-        def on_finished(response):
+        def on_finished(response: Response) -> None:
             result[0] = response.info
             mlp.quit()
 
-        def on_error(_response):
+        def on_error(_response: Response) -> None:
             result[0] = None
             mlp.quit()
 
@@ -543,7 +567,7 @@ class DocThread(SaveThread):
         mlp.run()
         return result[0]
 
-    def get_page(self, **kwargs):
+    def get_page(self, **kwargs: object) -> Page:
         """Get a page from the database."""
         if "id" in kwargs:
             self._execute(
@@ -574,12 +598,12 @@ class DocThread(SaveThread):
             image_id=row[8],
         )
 
-    def do_get_page(self, request):
+    def do_get_page(self, request: Request) -> Page:
         """Get a page from the database on the worker thread."""
         kwargs = request.args[0]
         return self.get_page(**kwargs)
 
-    def do_clone_pages(self, request):
+    def do_clone_pages(self, request: Request) -> list[int]:
         """Clone pages in the database."""
         self._check_write_tid()
         self._take_snapshot()
@@ -667,7 +691,7 @@ class DocThread(SaveThread):
         request.data({"type": "page", "new_pages": rows})
         return [dest + i for i in range(len(pages))]
 
-    def do_reorder_pages(self, request):
+    def do_reorder_pages(self, request: Request) -> list[int]:
         """Reorder pages in the database."""
         self._check_write_tid()
         kwargs = request.args[0]
@@ -739,7 +763,7 @@ class DocThread(SaveThread):
         request.data({"type": "page", "new_pages": rows})
         return [row[0] for row in rows]
 
-    def _take_snapshot(self):
+    def _take_snapshot(self) -> None:
         """Take a snapshot of the current state of the document."""
         self._check_write_tid()
 
@@ -785,7 +809,7 @@ class DocThread(SaveThread):
         # delete those outside the undo limit
         self._con[threading.get_native_id()].commit()
 
-    def _get_snapshot(self):
+    def _get_snapshot(self) -> list[list[object]]:
         """Fetch the snapshot of the document with the given action id."""
         self._execute(
             """SELECT row_id, thumb, initial_page_id
@@ -803,21 +827,21 @@ class DocThread(SaveThread):
             rows.append(row)
         return rows
 
-    def _pixbuf_to_bytes(self, pixbuf):
+    def _pixbuf_to_bytes(self, pixbuf: GdkPixbuf.Pixbuf | None) -> bytes:
         """Given a pixbuf, return the equivalent bytes, in order to store them as a blob."""
         if pixbuf is None:
             return b""
         _success, buffer = pixbuf.save_to_bufferv("png", [], [])
         return buffer
 
-    def _bytes_to_pixbuf(self, blob):
+    def _bytes_to_pixbuf(self, blob: bytes) -> GdkPixbuf.Pixbuf:
         """Given a stream of bytes, return the equivalent pixbuf."""
         with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as temp:
             temp.write(blob)
             temp.flush()
             return GdkPixbuf.Pixbuf.new_from_file(temp.name)
 
-    def can_undo(self):
+    def can_undo(self) -> bool:
         """Check whether undo is possible."""
         self._execute("SELECT min(action_id) FROM page_order")
         min_page = self._fetchone()[0]
@@ -827,7 +851,7 @@ class DocThread(SaveThread):
         min_action_id = min(ids) if ids else None
         return min_action_id is not None and min_action_id <= self._action_id
 
-    def can_redo(self):
+    def can_redo(self) -> bool:
         """Check whether redo is possible."""
         self._execute("SELECT max(action_id) FROM page_order")
         max_page = self._fetchone()[0]
@@ -837,7 +861,7 @@ class DocThread(SaveThread):
         max_action_id = max(ids) if ids else None
         return max_action_id is not None and max_action_id > self._action_id
 
-    def do_undo(self, _request):
+    def do_undo(self, _request: Request) -> dict[str, object]:
         """Undo handler — decrements action_id, returns snapshot and selection."""
         if not self.can_undo():
             msg = "No more undo steps possible"
@@ -849,7 +873,7 @@ class DocThread(SaveThread):
             "selection": self.get_selection(),
         }
 
-    def do_redo(self, _request):
+    def do_redo(self, _request: Request) -> dict[str, object]:
         """Redo handler — increments action_id, returns snapshot and selection."""
         if not self.can_redo():
             msg = "No more redo steps possible"
@@ -861,7 +885,7 @@ class DocThread(SaveThread):
             "selection": self.get_selection(),
         }
 
-    def get_selection(self):
+    def get_selection(self) -> list[int]:
         """Get the selected row ids for the current action_id."""
         self._execute(
             "SELECT row_ids FROM selection WHERE action_id = ?",
@@ -870,7 +894,7 @@ class DocThread(SaveThread):
         row_ids = self._fetchone()
         return json.loads(row_ids[0]) if row_ids else []
 
-    def do_set_selection(self, request):
+    def do_set_selection(self, request: Request) -> None:
         """Set the selected row ids for the current action_id."""
         self._check_write_tid()
         row_ids = json.dumps(request.args[0])
@@ -881,7 +905,7 @@ class DocThread(SaveThread):
         )
         self._con[threading.get_native_id()].commit()
 
-    def do_set_saved(self, request):
+    def do_set_saved(self, request: Request) -> None:
         """Mark given page as saved."""
         self._check_write_tid()
         if len(request.args) > 1:
@@ -905,7 +929,7 @@ class DocThread(SaveThread):
         )
         self._con[threading.get_native_id()].commit()
 
-    def pages_saved(self):
+    def pages_saved(self) -> bool:
         """Check that all pages have been saved."""
         self._execute(
             """SELECT COUNT(id)
@@ -915,7 +939,7 @@ class DocThread(SaveThread):
         )
         return self._fetchone()[0] == 0
 
-    def get_thumb(self, page_id):
+    def get_thumb(self, page_id: int) -> GdkPixbuf.Pixbuf:
         """Get the thumbnail for the given page_id."""
         self._execute(
             """SELECT thumb FROM page, page_order
@@ -924,7 +948,7 @@ class DocThread(SaveThread):
         )
         return self._bytes_to_pixbuf(self._fetchone()[0])
 
-    def get_text(self, page_id):
+    def get_text(self, page_id: int) -> str | None:
         """Get the text layer for the given page."""
         self._execute(
             """SELECT text FROM page, page_order
@@ -933,12 +957,12 @@ class DocThread(SaveThread):
         )
         return self._fetchone()[0]
 
-    def parse_bboxtree(self, json_string, **kwargs):
+    def parse_bboxtree(self, json_string: str, **kwargs: object) -> uuid.UUID:
         """Parse bboxtree in thread."""
         callbacks = _note_callbacks(kwargs)
         return self.send("parse_bboxtree", json_string, **callbacks)
 
-    def do_parse_bboxtree(self, request):
+    def do_parse_bboxtree(self, request: Request) -> dict[str, object]:
         """Parse bboxtree in thread."""
         json_string = request.args[0]
         tree = Bboxtree(json_string)
@@ -956,12 +980,12 @@ class DocThread(SaveThread):
             "sorted_word_indices": [x[0] for x in words],
         }
 
-    def set_text(self, page_id, text, **kwargs):
+    def set_text(self, page_id: int, text: str, **kwargs: object) -> uuid.UUID:
         """Set the text layer for the given page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("set_text", page_id, text, **callbacks)
 
-    def do_set_text(self, request):
+    def do_set_text(self, request: Request) -> None:
         """Set the text layer for the given page."""
         self._take_snapshot()
         self._check_write_tid()
@@ -979,7 +1003,7 @@ class DocThread(SaveThread):
         )
         self._con[threading.get_native_id()].commit()
 
-    def get_annotations(self, page_id):
+    def get_annotations(self, page_id: int) -> str | None:
         """Get the annotations layer for the given page."""
         self._execute(
             """SELECT annotations FROM page, page_order
@@ -988,7 +1012,7 @@ class DocThread(SaveThread):
         )
         return self._fetchone()[0]
 
-    def do_set_annotations(self, request):
+    def do_set_annotations(self, request: Request) -> None:
         """Set the annotations layer for the given page."""
         self._check_write_tid()
         page_id, annotations = request.args
@@ -1005,7 +1029,7 @@ class DocThread(SaveThread):
         )
         self._con[threading.get_native_id()].commit()
 
-    def get_resolution(self, page_id):
+    def get_resolution(self, page_id: int) -> tuple[float | None, float | None] | None:
         """Get the resolution for the given page."""
         self._execute(
             """SELECT x_res, y_res FROM page, page_order
@@ -1014,7 +1038,7 @@ class DocThread(SaveThread):
         )
         return self._fetchone()
 
-    def do_set_resolution(self, request):
+    def do_set_resolution(self, request: Request) -> None:
         """Set the resolution for the given page."""
         self._check_write_tid()
         page_id, x_res, y_res = request.args
@@ -1032,7 +1056,7 @@ class DocThread(SaveThread):
         )
         self._con[threading.get_native_id()].commit()
 
-    def get_mean_std_dev(self, page_id):
+    def get_mean_std_dev(self, page_id: int) -> tuple[list[float], list[float]]:
         """Get the mean and std_dev for the given page."""
         self._execute(
             """SELECT mean, std_dev FROM page, page_order
@@ -1044,7 +1068,7 @@ class DocThread(SaveThread):
         std_dev = json.loads(std_dev, strict=False)
         return mean, std_dev
 
-    def do_set_mean_std_dev(self, request):
+    def do_set_mean_std_dev(self, request: Request) -> None:
         """Set the mean and std_dev for the given page."""
         self._check_write_tid()
         page_id, mean, std_dev = request.args
@@ -1062,12 +1086,12 @@ class DocThread(SaveThread):
         )
         self._con[threading.get_native_id()].commit()
 
-    def rotate(self, **kwargs):
+    def rotate(self, **kwargs: object) -> uuid.UUID:
         """Rotate page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("rotate", kwargs, **callbacks)
 
-    def do_rotate(self, request):
+    def do_rotate(self, request: Request) -> None:
         """Rotate page in thread."""
         options = request.args[0]
         page = self.get_page(id=options["page"])
@@ -1092,12 +1116,12 @@ class DocThread(SaveThread):
             }
         )
 
-    def analyse(self, **kwargs):
+    def analyse(self, **kwargs: object) -> uuid.UUID:
         """Analyse page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("analyse", kwargs, **callbacks)
 
-    def do_analyse(self, request):
+    def do_analyse(self, request: Request) -> None:
         """Analyse page in thread."""
         options = request.args[0]
         list_of_pages = options["list_of_pages"]
@@ -1136,12 +1160,12 @@ class DocThread(SaveThread):
                 }
             )
 
-    def threshold(self, **kwargs):
+    def threshold(self, **kwargs: object) -> uuid.UUID:
         """Threshold page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("threshold", kwargs, **callbacks)
 
-    def do_threshold(self, request):
+    def do_threshold(self, request: Request) -> None:
         """Threshold page in thread."""
         options = request.args[0]
         page = self.get_page(id=options["page"])
@@ -1170,12 +1194,12 @@ class DocThread(SaveThread):
             }
         )
 
-    def brightness_contrast(self, **kwargs):
+    def brightness_contrast(self, **kwargs: object) -> uuid.UUID:
         """Adjust brightness and contrast."""
         callbacks = _note_callbacks(kwargs)
         return self.send("brightness_contrast", kwargs, **callbacks)
 
-    def do_brightness_contrast(self, request):
+    def do_brightness_contrast(self, request: Request) -> None:
         """Adjust brightness and contrast in thread."""
         options = request.args[0]
         brightness, contrast = options["brightness"], options["contrast"]
@@ -1204,12 +1228,12 @@ class DocThread(SaveThread):
             }
         )
 
-    def negate(self, **kwargs):
+    def negate(self, **kwargs: object) -> uuid.UUID:
         """Negate page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("negate", kwargs, **callbacks)
 
-    def do_negate(self, request):
+    def do_negate(self, request: Request) -> None:
         """Negate page in thread."""
         options = request.args[0]
         page = self.get_page(id=options["page"])
@@ -1230,12 +1254,12 @@ class DocThread(SaveThread):
             }
         )
 
-    def unsharp(self, **kwargs):
+    def unsharp(self, **kwargs: object) -> uuid.UUID:
         """Run unsharp mask."""
         callbacks = _note_callbacks(kwargs)
         return self.send("unsharp", kwargs, **callbacks)
 
-    def do_unsharp(self, request):
+    def do_unsharp(self, request: Request) -> None:
         """Run unsharp mask in thread."""
         options = request.args[0]
         page = self.get_page(id=options["page"])
@@ -1265,12 +1289,12 @@ class DocThread(SaveThread):
             }
         )
 
-    def crop(self, **kwargs):
+    def crop(self, **kwargs: object) -> uuid.UUID:
         """Crop page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("crop", kwargs, **callbacks)
 
-    def do_crop(self, request):
+    def do_crop(self, request: Request) -> None:
         """Crop page in thread."""
         options = request.args[0]
         page = self.get_page(id=options["page"])
@@ -1303,12 +1327,12 @@ class DocThread(SaveThread):
             }
         )
 
-    def split_page(self, **kwargs):
+    def split_page(self, **kwargs: object) -> uuid.UUID:
         """Split page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("split_page", kwargs, **callbacks)
 
-    def do_split_page(self, request):
+    def do_split_page(self, request: Request) -> None:
         """Split page in thread."""
         options = request.args[0]
         page = self.get_page(id=options["page"])
@@ -1364,12 +1388,12 @@ class DocThread(SaveThread):
             }
         )
 
-    def tesseract(self, **kwargs):
+    def tesseract(self, **kwargs: object) -> uuid.UUID:
         """Run tesseract."""
         callbacks = _note_callbacks(kwargs)
         return self.send("tesseract", kwargs, **callbacks)
 
-    def _find_tessdata_path(self):
+    def _find_tessdata_path(self) -> list[str]:
         """Guess the tessdata path if the default is not in use."""
         paths = sorted(
             str(p) for p in pathlib.Path("/usr/share/tesseract-ocr").glob("*/tessdata")
@@ -1396,7 +1420,7 @@ class DocThread(SaveThread):
                         paths = [str(tessdata)]
         return paths
 
-    def do_tesseract(self, request):
+    def do_tesseract(self, request: Request) -> None:
         """Run tesseract in thread."""
         options = request.args[0]
         page = self.get_page(id=options["page"])
@@ -1450,12 +1474,12 @@ class DocThread(SaveThread):
             }
         )
 
-    def unpaper(self, **kwargs):
+    def unpaper(self, **kwargs: object) -> uuid.UUID:
         """Run unpaper."""
         callbacks = _note_callbacks(kwargs)
         return self.send("unpaper", kwargs, **callbacks)
 
-    def _run_unpaper_cmd(self, request):
+    def _run_unpaper_cmd(self, request: Request) -> tuple[object, object | None]:
         options = request.args[0]
         # SIM115: cross-scope file handle used intentionally
         out = tempfile.NamedTemporaryFile(  # noqa: SIM115
@@ -1513,7 +1537,7 @@ class DocThread(SaveThread):
             out, out2 = out2, out
         return out, out2
 
-    def do_unpaper(self, request):
+    def do_unpaper(self, request: Request) -> None:
         """Run unpaper in thread."""
         options = request.args[0]
         page = self.get_page(id=options["page"])
@@ -1578,12 +1602,12 @@ class DocThread(SaveThread):
             logger.exception("Error creating file in %s", options["dir"])
             request.error(f"Error creating file in {options['dir']}: {err}.")
 
-    def import_page(self, **kwargs):
+    def import_page(self, **kwargs: object) -> uuid.UUID:
         """Import page from file or object."""
         callbacks = _note_callbacks(kwargs)
         return self.send("import_page", kwargs, **callbacks)
 
-    def do_import_page(self, request):
+    def do_import_page(self, request: Request) -> None:
         """Import page from file or object."""
         kwargs = request.args[0]
         insert_after = kwargs.pop("insert_after", None)
@@ -1608,7 +1632,13 @@ class DocThread(SaveThread):
         request.data(data)
 
 
-def _calculate_crop_tuples(options, image):
+def _calculate_crop_tuples(
+    options: dict[str, object], image: Image.Image
+) -> tuple[
+    tuple[int, int, int, int],
+    tuple[int, int, int, int],
+    tuple[int, int, int, int],
+]:
     if options["direction"] == "v":
         width = options["position"]
         height = image.height

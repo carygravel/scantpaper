@@ -1,13 +1,18 @@
 """object and helper methods to manipulate scan options."""
 
+from __future__ import annotations
+
 import contextlib
 import re
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from gi.repository import GObject
 
 from scantpaper.const import EMPTY
 from scantpaper.frontend import enums
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class Option(NamedTuple):
@@ -31,7 +36,7 @@ class Options(GObject.Object):
     Glib.ParamSpec object in Scantpaper.Dialog.Scan.
     """
 
-    def __init__(self, options) -> None:
+    def __init__(self, options: list[Option] | None) -> None:
         """Initialise the options hash and geometry from a SANE options list."""
         GObject.Object.__init__(self)
         self.hash = {}
@@ -73,19 +78,19 @@ class Options(GObject.Object):
         """Return a string representation of the options array."""
         return f"Options({self.array})"
 
-    def by_index(self, i):
+    def by_index(self, i: int) -> Option:
         """Return option by index."""
         return self.array[i]
 
-    def by_name(self, name):
+    def by_name(self, name: str | None) -> Option | None:
         """Return option by name."""
         return self.hash[name] if name is not None and name in self.hash else None
 
-    def num_options(self):
+    def num_options(self) -> int:
         """Return number of options."""
         return len(self.array) - 1 + 1
 
-    def parse_geometry(self):
+    def parse_geometry(self) -> None:
         """Parse out the geometry from libimage-sane-perl or scanimage option names."""
         for key in ("page-height", "pageheight"):
             if key in self.hash:
@@ -105,7 +110,7 @@ class Options(GObject.Object):
             self.geometry["t"] = self.hash["tl-y"].constraint[0]
             self.geometry["y"] = self.hash["br-y"].constraint[1] - self.geometry["t"]
 
-    def supports_paper(self, paper, tolerance):
+    def supports_paper(self, paper: dict[str, float], tolerance: float) -> bool:
         """Check the geometry against the paper size."""
         if not (
             "l" in self.geometry
@@ -129,7 +134,7 @@ class Options(GObject.Object):
             >= paper["y"] + paper["t"]
         )
 
-    def can_duplex(self):
+    def can_duplex(self) -> bool:
         """Return whether the current options support duplex, even if not currently selected.
 
         Alternatively expressed, return False if the scanner is not capable
@@ -158,7 +163,7 @@ class Options(GObject.Object):
 
         return False
 
-    def flatbed_selected(self, get_value):
+    def flatbed_selected(self, get_value: Callable[[str], str | None]) -> bool:
         """Return whether the flatbed is selected."""
         source = None
         if self.source is not None:
@@ -184,7 +189,12 @@ class Options(GObject.Object):
         )
 
 
-def within_tolerance(option, current_value, new_value, tolerance=0):
+def within_tolerance(
+    option: Option,
+    current_value: float,
+    new_value: float,
+    tolerance: float = 0,
+) -> bool:
     """Return whether new_value is within the tolerance of current_value."""
     if isinstance(option.constraint, tuple):
         return bool(

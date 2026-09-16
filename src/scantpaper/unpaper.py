@@ -1,5 +1,7 @@
 """GUI for unpaper."""
 
+from __future__ import annotations
+
 import logging
 import re
 
@@ -21,7 +23,7 @@ class Unpaper:
 
     _version = None
 
-    def __init__(self, default=None) -> None:
+    def __init__(self, default: dict[str, object] | None = None) -> None:
         """Initialise unpaper options from the defaults dict."""
         self.default = default if default is not None else {}
 
@@ -246,7 +248,9 @@ class Unpaper:
             },
         }
 
-    def _add_notebook_page_1(self, vbox, options):
+    def _add_notebook_page_1(
+        self, vbox: Gtk.Box, options: dict[str, object]
+    ) -> Gtk.Box:
         vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox1.set_border_width(vbox.get_border_width())
         dsbutton = self.add_widget(vbox1, options, "no-deskew")
@@ -254,13 +258,13 @@ class Unpaper:
         # Frame for Deskew Scan Direction
         dframe = self.add_widget(vbox1, options, "deskew-scan-direction")
 
-        def dsbutton_toggled_cb(_widget):
+        def dsbutton_toggled_cb(_widget: Gtk.CheckButton) -> None:
             if dsbutton.get_active():
                 dframe.set_sensitive(False)
             else:
                 dframe.set_sensitive(True)
 
-        def deskew_scan_direction_button_cb(widget):
+        def deskew_scan_direction_button_cb(widget: Gtk.CheckButton) -> None:
             """Ensure that at least one checkbutton stays active."""
             if count_active_children(dframe) == 0:
                 widget.set_active(True)
@@ -272,7 +276,9 @@ class Unpaper:
 
         return vbox1
 
-    def _add_notebook_page_2(self, vbox, options):
+    def _add_notebook_page_2(
+        self, vbox: Gtk.Box, options: dict[str, object]
+    ) -> Gtk.Box:
         vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox2.set_border_width(vbox.get_border_width())
         bsbutton = self.add_widget(vbox2, options, "no-border-scan")
@@ -281,7 +287,7 @@ class Unpaper:
         # Frame for Align Border
         bframe = self.add_widget(vbox2, options, "border-align")
 
-        def bsbutton_toggled_cb(_widget):
+        def bsbutton_toggled_cb(_widget: Gtk.CheckButton) -> None:
             if bsbutton.get_active():
                 bframe.set_sensitive(False)
                 babutton.set_sensitive(False)
@@ -292,7 +298,7 @@ class Unpaper:
 
         bsbutton.connect("toggled", bsbutton_toggled_cb)
 
-        def babutton_toggled_cb(_widget):
+        def babutton_toggled_cb(_widget: Gtk.CheckButton) -> None:
             if babutton.get_active():
                 bframe.set_sensitive(False)
             else:
@@ -303,7 +309,7 @@ class Unpaper:
         # Define margins here to reference them below
         bmframe = self.add_widget(vbox2, options, "border-margin")
 
-        def border_align_button_cb(_widget):
+        def border_align_button_cb(_widget: Gtk.CheckButton) -> None:
             """Ghost margin if nothing selected."""
             bmframe.set_sensitive(count_active_children(bframe) > 0)
 
@@ -314,7 +320,7 @@ class Unpaper:
         bmframe.set_sensitive(count_active_children(bframe) > 0)
         return vbox2
 
-    def add_options(self, vbox):
+    def add_options(self, vbox: Gtk.Box) -> None:
         """Add options to given vbox."""
         options = self.options
 
@@ -322,7 +328,7 @@ class Unpaper:
         combobl = self.add_widget(vbox, options, "layout")
         outpages = self.add_widget(vbox, options, "output-pages")
 
-        def combobl_changed_cb(_widget):
+        def combobl_changed_cb(_widget: Gtk.ComboBoxText) -> None:
             if self.get_option("layout") == "double":
                 outpages.set_range(1, 2)
             else:
@@ -331,7 +337,7 @@ class Unpaper:
         combobl.connect("changed", combobl_changed_cb)
         combobw = self.add_widget(vbox, options, "direction")
 
-        def outpages_changed_cb(_widget):
+        def outpages_changed_cb(_widget: Gtk.SpinButton) -> None:
             combobw.get_parent().set_sensitive(
                 outpages.get_value_as_int() == OUTPAGES_DUPLEX
             )
@@ -363,7 +369,7 @@ class Unpaper:
         self.add_widget(vbox3, options, "no-noisefilter")
         self.add_widget(vbox3, options, "no-blurfilter")
 
-        def msbutton_toggled_cb(_widget):
+        def msbutton_toggled_cb(_widget: Gtk.CheckButton) -> None:
             """Make no-mask-center depend on no-mask-scan."""
             if msbutton.get_active():
                 mcbutton.set_sensitive(False)
@@ -375,7 +381,9 @@ class Unpaper:
         # Having added the widgets with callbacks if necessary, set the defaults
         self.set_options(self.default)
 
-    def _add_combobox(self, vbox, hashref, option):
+    def _add_combobox(
+        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+    ) -> Gtk.ComboBoxText:
         hbox = Gtk.Box()
         vbox.pack_start(hbox, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=hashref[option]["string"])
@@ -390,20 +398,24 @@ class Unpaper:
             tooltip.append(hashref[option]["options"][key]["tooltip"])
             hashref[option]["options"][key]["index"] = i
 
-        def combobox_changed_cb(_widget):
+        def combobox_changed_cb(_widget: Gtk.ComboBoxText) -> None:
             if 0 <= widget.get_active() < len(tooltip):
                 widget.set_tooltip_text(tooltip[widget.get_active()])
 
         widget.connect("changed", combobox_changed_cb)
         return widget
 
-    def _add_checkbutton(self, vbox, hashref, option):
+    def _add_checkbutton(
+        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+    ) -> Gtk.CheckButton:
         widget = Gtk.CheckButton(label=hashref[option]["string"])
         widget.set_tooltip_text(hashref[option]["tooltip"])
         vbox.pack_start(widget, expand=True, fill=True, padding=0)
         return widget
 
-    def _add_checkbuttongroup(self, vbox, hashref, option):
+    def _add_checkbuttongroup(
+        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+    ) -> Gtk.Frame:
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.pack_start(widget, expand=True, fill=True, padding=0)
         vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -414,7 +426,9 @@ class Unpaper:
             self.add_widget(vboxf, hashref[option]["options"], key)
         return widget
 
-    def _add_spinbutton(self, vbox, hashref, option):
+    def _add_spinbutton(
+        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+    ) -> Gtk.SpinButton:
         default = self.default
         hbox = Gtk.Box()
         vbox.pack_start(hbox, expand=True, fill=True, padding=0)
@@ -429,7 +443,9 @@ class Unpaper:
             widget.set_value(default[option])
         return widget
 
-    def _add_spinbuttongroup(self, vbox, hashref, option):
+    def _add_spinbuttongroup(
+        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+    ) -> Gtk.Frame:
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.pack_start(widget, expand=True, fill=True, padding=0)
         vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -439,7 +455,9 @@ class Unpaper:
             self.add_widget(vboxf, hashref[option]["options"], key)
         return widget
 
-    def add_widget(self, vbox, hashref, option):
+    def add_widget(
+        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+    ) -> Gtk.Widget | None:
         """Add widget to unpaper dialog."""
         default = self.default
         widget = None
@@ -460,7 +478,7 @@ class Unpaper:
         hashref[option]["widget"] = widget
         return widget
 
-    def _combobox_get_option(self, option):
+    def _combobox_get_option(self, option: str) -> str | None:
         """Get option for combobox."""
         hashref = self.options
         i = hashref[option]["widget"].get_active()
@@ -469,11 +487,11 @@ class Unpaper:
                 return key
         return None
 
-    def _checkbutton_get_option(self, option):
+    def _checkbutton_get_option(self, option: str) -> bool:
         """Get option for checkbutton."""
         return self.options[option]["widget"].get_active()
 
-    def _checkbuttongroup_get_option(self, option):
+    def _checkbuttongroup_get_option(self, option: str) -> str | None:
         """Get option for checkbuttongroup."""
         hashref = self.options
         items = [
@@ -486,19 +504,19 @@ class Unpaper:
             return ",".join(items)
         return None
 
-    def _spinbutton_get_option(self, option):
+    def _spinbutton_get_option(self, option: str) -> int | float:
         """Get option for spinbutton."""
         if self.options[option]["step"] >= 1:
             return self.options[option]["widget"].get_value_as_int()
         return self.options[option]["widget"].get_value()
 
-    def _spinbuttongroup_get_option(self, option):
+    def _spinbuttongroup_get_option(self, option: str) -> str:
         """Get option for spinbuttongroup."""
         options = self.options[option]["options"]
         items = [str(options[key]["widget"].get_value()) for key in options]
         return ",".join(items) if items else ""
 
-    def get_option(self, option):
+    def get_option(self, option: str) -> object:
         """Return given option."""
         options = self.options
         default = self.default
@@ -519,7 +537,7 @@ class Unpaper:
             return options[option]["default"]
         return None
 
-    def get_options(self):
+    def get_options(self) -> dict[str, object]:
         """Return all options."""
         options = self.options
         default = self.default
@@ -530,18 +548,20 @@ class Unpaper:
 
         return default
 
-    def _combobox_set_option(self, option, options):
+    def _combobox_set_option(self, option: str, options: dict[str, object]) -> None:
         """Set option for combobox."""
         hashref = self.options
         i = hashref[option]["options"][options[option]]["index"]
         if i is not None:
             hashref[option]["widget"].set_active(i)
 
-    def _checkbutton_set_option(self, option, options):
+    def _checkbutton_set_option(self, option: str, options: dict[str, object]) -> None:
         """Set option for checkbutton."""
         self.options[option]["widget"].set_active(options[option])
 
-    def _checkbuttongroup_set_option(self, option, options):
+    def _checkbuttongroup_set_option(
+        self, option: str, options: dict[str, object]
+    ) -> None:
         """Set option for checkbuttongroup."""
         hashref = self.options
         default = {}
@@ -552,11 +572,13 @@ class Unpaper:
         for key in hashref[option]["options"]:
             hashref[option]["options"][key]["widget"].set_active(key in default)
 
-    def _spinbutton_set_option(self, option, options):
+    def _spinbutton_set_option(self, option: str, options: dict[str, object]) -> None:
         """Set option for spinbutton."""
         self.options[option]["widget"].set_value(options[option])
 
-    def _spinbuttongroup_set_option(self, option, options):
+    def _spinbuttongroup_set_option(
+        self, option: str, options: dict[str, object]
+    ) -> None:
         """Set option for spinbuttongroup."""
         hashref = self.options
         default = []
@@ -569,7 +591,7 @@ class Unpaper:
                     float(default.pop(0))
                 )
 
-    def set_options(self, options):
+    def set_options(self, options: dict[str, object]) -> None:
         """Set options."""
         hashref = self.options
         for option in options:
@@ -584,7 +606,7 @@ class Unpaper:
                 method = getattr(self, method_name, None)
                 method(option, options)
 
-    def get_cmdline(self):
+    def get_cmdline(self) -> list[str]:
         """Return list for unpaper subprocess call."""
         hashref = self.options
         options = self.get_options()
@@ -603,7 +625,7 @@ class Unpaper:
                 items += [f"--{option}", f"{options[option]}"]
         return [*items, "--overwrite", "%s", "%s", "%s"]
 
-    def program_version(self):
+    def program_version(self) -> str | None:
         """Return program version."""
         if self._version is None:
             version = program_version("stdout", r"([\d.]+)", ["unpaper", "--version"])
@@ -612,7 +634,7 @@ class Unpaper:
         return self._version
 
 
-def count_active_children(frame):
+def count_active_children(frame: Gtk.Frame) -> int:
     """Count active children in the frame."""
     num = 0
     for child in frame.get_child().get_children():

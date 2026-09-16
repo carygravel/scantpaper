@@ -1,5 +1,7 @@
 """A thread backed by internal queues for simple messaging."""
 
+from __future__ import annotations
+
 import contextlib
 import logging
 import os
@@ -8,9 +10,12 @@ import threading
 import uuid
 import weakref
 from enum import Enum
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from gi.repository import GLib
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +25,8 @@ _RUNNING_TICK_MS = 200
 class Response(NamedTuple):
     """Communication tuple sent from a background thread to the main thread."""
 
-    type: "ResponseType"
-    request: "Request"
+    type: ResponseType
+    request: Request
     info: object
     status: str | None
     num_completed_jobs: int | None
@@ -39,7 +44,13 @@ class Request:
     """Attributes and methods around requests."""
 
     def __init__(
-        self, process_name, process_args, return_queue, *args, notify_cb=None, **kwargs
+        self,
+        process_name: str,
+        process_args: tuple[object, ...],
+        return_queue: queue.Queue | None,
+        *args: object,
+        notify_cb: Callable[[], None] | None = None,
+        **kwargs: object,
     ) -> None:
         """Initialise a request with a name, args, and return queue."""
         super().__init__(*args, **kwargs)
@@ -49,7 +60,12 @@ class Request:
         self.return_queue = return_queue
         self._notify_cb = notify_cb
 
-    def put(self, info, rtype=ResponseType.FINISHED, status=None):
+    def put(
+        self,
+        info: object | None,
+        rtype: ResponseType = ResponseType.FINISHED,
+        status: str | None = None,
+    ) -> None:
         """Put a response on the return queue."""
         if self.return_queue is not None:
             self.return_queue.put(
@@ -66,27 +82,27 @@ class Request:
         if self._notify_cb is not None:
             self._notify_cb()
 
-    def queued(self, info=None, status=None):
+    def queued(self, info: object | None = None, status: str | None = None) -> None:
         """Queued notification."""
         self.put(info, ResponseType.QUEUED, status)
 
-    def started(self, info=None, status=None):
+    def started(self, info: object | None = None, status: str | None = None) -> None:
         """Send a started notification."""
         self.put(info, ResponseType.STARTED, status)
 
-    def finished(self, info=None, status=None):
+    def finished(self, info: object | None = None, status: str | None = None) -> None:
         """Finished notification."""
         self.put(info, ResponseType.FINISHED, status)
 
-    def error(self, info=None, status=None):
+    def error(self, info: object | None = None, status: str | None = None) -> None:
         """Error notification."""
         self.put(info, ResponseType.ERROR, status)
 
-    def cancelled(self, info=None, status=None):
+    def cancelled(self, info: object | None = None, status: str | None = None) -> None:
         """Send a cancelled notification."""
         self.put(info, ResponseType.CANCELLED, status)
 
-    def data(self, info, status=None):
+    def data(self, info: object, status: str | None = None) -> None:
         """Pass data back to main thread."""
         self.put(info, ResponseType.DATA, status)
 
@@ -97,7 +113,7 @@ class BaseThread(threading.Thread):
     # Every live thread, so tests can quit any that are not explicitly stopped.
     LiveThreads = weakref.WeakSet()
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise the daemon thread with request/response queues and a notify pipe."""
         super().__init__(*args, **kwargs)
         self.daemon = True
@@ -123,7 +139,7 @@ class BaseThread(threading.Thread):
             self.after[callback] = set()
 
     @staticmethod
-    def cleanup_thread(requests_queue) -> None:
+    def cleanup_thread(requests_queue: queue.Queue) -> None:
         """Cleanup function that does not hold a reference to self."""
         try:
             # We don't need a response queue for finalization
@@ -135,10 +151,10 @@ class BaseThread(threading.Thread):
             # requests_queue.put() can raise arbitrary errors, so we ignore them.
             pass
 
-    def _release_sources(self):
+    def _release_sources(self) -> None:
         """Schedule removal of GLib sources and pipe FDs on the main thread."""
 
-        def _cleanup():
+        def _cleanup() -> bool:
             GLib.source_remove(self._io_watch_id)
             GLib.source_remove(self._tick_id)
             with contextlib.suppress(OSError):
@@ -149,12 +165,12 @@ class BaseThread(threading.Thread):
 
         GLib.idle_add(_cleanup)
 
-    def _notify(self):
+    def _notify(self) -> None:
         """Wake up the GLib main loop to process responses."""
         with contextlib.suppress(OSError):
             os.write(self._notify_w, b"\x01")
 
-    def _on_readable(self, _fd, _condition):
+    def _on_readable(self, _fd: int, _condition: int) -> bool:
         """React when the notification pipe is readable."""
         try:
             while True:
@@ -164,12 +180,12 @@ class BaseThread(threading.Thread):
         self.monitor()
         return GLib.SOURCE_CONTINUE
 
-    def _tick(self):
+    def _tick(self) -> bool:
         """Periodic tick for running callbacks (progress reporting)."""
         self._execute_callbacks_for_stage("running", None)
         return GLib.SOURCE_CONTINUE
 
-    def quit(self):
+    def quit(self) -> uuid.UUID:
         """Quit the thread."""
         return self.send("quit")
 
@@ -183,14 +199,14 @@ class BaseThread(threading.Thread):
                 except Exception:
                     logger.exception("Error quitting thread %s", thread)
 
-    def input_handler(self, request):
+    def input_handler(self, request: Request) -> object:
         """Provide a dummy input handler to be overridden as required."""
         return request.args
 
-    def do_quit(self, _request):
+    def do_quit(self, _request: Request) -> None:
         """Quit function does nothing."""
 
-    def register_callback(self, name, when, reference_cb):
+    def register_callback(self, name: str, when: str, reference_cb: str) -> None:
         """Register a callback with a name and trigger timing."""
         if when not in ["before", "after"]:
             msg = "when can only be 'before' or 'after'"
@@ -213,10 +229,10 @@ class BaseThread(threading.Thread):
 
     def send(
         self,
-        process,
-        *args,
-        **kwargs,
-    ):
+        process: str,
+        *args: object,
+        **kwargs: object,
+    ) -> uuid.UUID:
         """Put the process and args as a `Request` on the requests queue."""
         request = Request(process, args, self.responses, notify_cb=self._notify)
         callbacks = {"started": False}
@@ -241,7 +257,7 @@ class BaseThread(threading.Thread):
         self._notify()
         return request.uuid
 
-    def run(self):
+    def run(self) -> None:
         """Override the threading run method. Not called directly here."""
         while True:
             request = self.requests.get()
@@ -255,7 +271,9 @@ class BaseThread(threading.Thread):
             self.requests.task_done()
         self._release_sources()
 
-    def handler_wrapper(self, request, handler):
+    def handler_wrapper(
+        self, request: Request, handler: Callable[[Request], object]
+    ) -> bool:
         """Separate the handler wrapper logic so that it can be overriden by subclasses."""
         try:
             request.finished(handler(request))
@@ -275,10 +293,10 @@ class BaseThread(threading.Thread):
             request.error(None, str(err))
         return True
 
-    def _request_completed(self, _request):
+    def _request_completed(self, _request: Request) -> None:
         """Provide a hook for when a request's handler finishes or fails."""
 
-    def drain_cancelled_requests(self):
+    def drain_cancelled_requests(self) -> None:
         """Emit a CANCELLED response for every request still queued and unstarted."""
         drained = []
         while True:
@@ -289,7 +307,7 @@ class BaseThread(threading.Thread):
         for request in drained:
             request.cancelled()
 
-    def monitor(self):
+    def monitor(self) -> bool:
         """Monitor the thread, triggering one response callback."""
         self._execute_callbacks_for_stage("running", None)
         if not self.responses.empty():
@@ -297,7 +315,7 @@ class BaseThread(threading.Thread):
             GLib.idle_add(self._drain_one)
         return GLib.SOURCE_CONTINUE
 
-    def _drain_one(self):
+    def _drain_one(self) -> bool:
         """Process one response from the queue, scheduling the next if needed."""
         self._execute_callbacks_for_stage("running", None)
         if not self.responses.empty():
@@ -305,7 +323,7 @@ class BaseThread(threading.Thread):
             return GLib.SOURCE_CONTINUE
         return GLib.SOURCE_REMOVE
 
-    def _execute_callbacks_for_stage(self, stage, result):
+    def _execute_callbacks_for_stage(self, stage: str, result: Response | None) -> None:
         """Run the callbacks associated with each stage."""
         if stage == "running":
             for uid, callbacks in self.callbacks.items():
@@ -314,7 +332,9 @@ class BaseThread(threading.Thread):
         else:
             self._execute_stage_callbacks(stage, result.request.uuid, result)
 
-    def _execute_stage_callbacks(self, stage, uid, data):
+    def _execute_stage_callbacks(
+        self, stage: str, uid: uuid.UUID, data: Response | None
+    ) -> None:
         if uid not in self.callbacks:
             return
         for callback in self.before[stage]:
@@ -323,7 +343,9 @@ class BaseThread(threading.Thread):
         for callback in self.after[stage]:
             self._execute_single_callback(callback + "_callback", stage, uid, data)
 
-    def _execute_single_callback(self, callback, stage, uid, data):
+    def _execute_single_callback(
+        self, callback: str, stage: str, uid: uuid.UUID, data: Response | None
+    ) -> None:
         if data is not None:
             data = data._replace(
                 num_completed_jobs=self.num_completed_jobs,
@@ -355,7 +377,7 @@ class BaseThread(threading.Thread):
                     data = data._replace(status=str(err))
                     self.callbacks[uid]["error_callback"](data)
 
-    def _monitor_response(self):
+    def _monitor_response(self) -> bool:
         try:
             result = self.responses.get(False)
         except queue.Empty:

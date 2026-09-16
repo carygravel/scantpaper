@@ -1,15 +1,24 @@
 """Subclass Gtk.Entry to add completion suggestions."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
 
 class EntryCompletion(Gtk.Entry):
     """Subclass Gtk.Entry to add completion suggestions."""
 
-    def __init__(self, text=None, suggestions=None) -> None:
+    def __init__(
+        self, text: str | None = None, suggestions: Iterable[str] | None = None
+    ) -> None:
         """Initialise Gtk."""
         super().__init__()
         completion = Gtk.EntryCompletion()
@@ -28,13 +37,19 @@ class EntryCompletion(Gtk.Entry):
         if suggestions is not None:
             self.add_to_suggestions(suggestions)
 
-    def _match(self, _completion, key, itr, _data):
+    def _match(
+        self,
+        _completion: Gtk.EntryCompletion,
+        key: str,
+        itr: Gtk.TreeIter,
+        _data: object,
+    ) -> bool:
         return key.casefold() in self._model.get(itr, 0)[0].casefold()
 
-    def _on_changed(self, _entry):
+    def _on_changed(self, _entry: Gtk.Entry) -> None:
         self._refresh_model()
 
-    def _ordered_suggestions(self, key):
+    def _ordered_suggestions(self, key: str) -> list[str]:
         folded = key.casefold()
         if not folded:
             return list(self._suggestions)
@@ -54,24 +69,24 @@ class EntryCompletion(Gtk.Entry):
                 rest.append(text)
         return exact + prefix + substring + rest
 
-    def _refresh_model(self):
+    def _refresh_model(self) -> None:
         key = self.get_text()
         self._model.clear()
         for text in self._ordered_suggestions(key):
             self._model.append([text])
 
-    def get_suggestions(self):
+    def get_suggestions(self) -> list[str]:
         """Return suggestions."""
         return list(self._suggestions)
 
-    def add_to_suggestions(self, suggestions):
+    def add_to_suggestions(self, suggestions: Iterable[str]) -> None:
         """Add to suggestions."""
         for text in suggestions:
             if text not in self._suggestions:
                 self._suggestions.append(text)
         self._refresh_model()
 
-    def set_suggestions(self, suggestions):
+    def set_suggestions(self, suggestions: Iterable[str]) -> None:
         """Clear and set suggestions."""
         self._suggestions = []
         self.add_to_suggestions(suggestions)

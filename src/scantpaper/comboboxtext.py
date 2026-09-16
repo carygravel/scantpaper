@@ -1,5 +1,7 @@
 """a ComboBoxText widget with an index."""
 
+from __future__ import annotations
+
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -29,7 +31,7 @@ class ComboBoxText(Gtk.ComboBoxText):
         blurb="Column of text to be displayed",
     )
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ComboBoxText."""
         data = None
         if "data" in kwargs:
@@ -41,7 +43,7 @@ class ComboBoxText(Gtk.ComboBoxText):
                 self.append_text(row[col])
             self.data = data
 
-    def set_active_index(self, index):
+    def set_active_index(self, index: object) -> None:
         """Set the active item by index column."""
         if index is None:
             return
@@ -50,14 +52,14 @@ class ComboBoxText(Gtk.ComboBoxText):
             if row[col] is not None and row[col] == index:
                 self.set_active(i)
 
-    def get_active_index(self):
+    def get_active_index(self) -> object | None:
         """Get the active item by index column."""
         i = self.get_active()
         if i == -1:
             return None
         return self.data[i][self.index_column]
 
-    def get_row_by_text(self, text):
+    def get_row_by_text(self, text: object) -> int:
         """Get row number with $text."""
         model = self.get_model()
         if model is not None and text is not None:
@@ -67,20 +69,20 @@ class ComboBoxText(Gtk.ComboBoxText):
                     return i
         return -1
 
-    def set_active_by_text(self, text):
+    def set_active_by_text(self, text: object) -> None:
         """Set row by the item text."""
         index = self.get_row_by_text(text)
         if index > -1 and text is not None:
             self.set_active(index)
 
-    def get_num_rows(self):
+    def get_num_rows(self) -> int:
         """Return number of rows."""
         model = self.get_model()
         if model is None:
             return 0
         return len(model)
 
-    def remove_item_by_text(self, text):
+    def remove_item_by_text(self, text: object) -> None:
         """Remove row by the item text."""
         if text is not None:
             i = self.get_row_by_text(text)

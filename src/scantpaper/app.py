@@ -20,6 +20,7 @@ import re
 import shutil
 import sys
 import warnings
+from types import TracebackType
 
 # check for pyinstaller
 if hasattr(sys, "frozen"):
@@ -43,7 +44,7 @@ from gi.repository import (  # noqa: E402
 class Application(Gtk.Application):
     """Application class."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise Application."""
         self.args = kwargs.pop("cmdline", None) or []
         super().__init__(
@@ -61,11 +62,11 @@ class Application(Gtk.Application):
             iconpath = "/usr/share/scantpaper/icons"
         Gtk.IconTheme.get_default().prepend_search_path(iconpath)
 
-    def do_startup(self, *_args, **_kwargs):
+    def do_startup(self, *_args: object, **_kwargs: object) -> None:
         """Do startup."""
         Gtk.Application.do_startup(self)
 
-    def do_activate(self, *_args, **_kwargs):
+    def do_activate(self, *_args: object, **_kwargs: object) -> None:
         """Only allow a single window and raise any existing ones."""
         # Windows are associated with the application
         # until the last one is closed and the application shuts down
@@ -74,7 +75,11 @@ class Application(Gtk.Application):
         self.window.present()
 
 
-def _handle_exception(exc_type, exc_value, exc_traceback):
+def _handle_exception(
+    exc_type: type[BaseException],
+    exc_value: BaseException,
+    exc_traceback: TracebackType | None,
+) -> None:
     """Handle uncaught exceptions by logging them."""
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
@@ -88,7 +93,7 @@ def _handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = _handle_exception
 
 
-def _parse_arguments():
+def _parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         prog=PROG_NAME,
@@ -127,7 +132,7 @@ def _parse_arguments():
             args.log_level = logging.DEBUG
         logging.basicConfig(filename=args.log, filemode="w", level=args.log_level)
 
-        def compress_log():
+        def compress_log() -> None:
             try:
                 with (
                     pathlib.Path(args.log).open("rb") as f_in,
@@ -182,7 +187,7 @@ def _parse_arguments():
     return args
 
 
-def main():
+def main() -> None:
     """Run the application."""
     app = Application(cmdline=_parse_arguments())
     app.run()

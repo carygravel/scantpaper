@@ -6,6 +6,8 @@ Usage:
   python3 compile_mo.py --src po --out src/scantpaper/locale --domain scantpaper
 """
 
+from __future__ import annotations
+
 import argparse
 import sys
 from pathlib import Path
@@ -15,7 +17,9 @@ import polib
 DOMAIN_LANG_PARTS = 2
 
 
-def guess_lang_and_domain(po_file: Path, given_domain: str | None = None):
+def guess_lang_and_domain(
+    po_file: Path, given_domain: str | None = None
+) -> tuple[str, str]:
     """Try to infer language and domain from filename.
 
     Common forms:
@@ -36,7 +40,7 @@ def guess_lang_and_domain(po_file: Path, given_domain: str | None = None):
     return domain, lang
 
 
-def main():
+def main() -> None:
     """Run the application entry point."""
     p = argparse.ArgumentParser(description="Compile .po to .mo")
     p.add_argument(

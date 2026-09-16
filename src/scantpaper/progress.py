@@ -1,12 +1,17 @@
 """HBox with progress bar and cancel button."""
 
+from __future__ import annotations
+
 import time
-from typing import ClassVar
+from typing import TYPE_CHECKING
 
 import gi
 
-from scantpaper.basethread import ResponseType
+from scantpaper.basethread import Response, ResponseType
 from scantpaper.i18n import _
+
+if TYPE_CHECKING:
+    from typing import ClassVar
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -24,7 +29,7 @@ class Progress(Gtk.Box):
         "clicked": (GObject.SignalFlags.RUN_FIRST, None, ())
     }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise Progress."""
         super().__init__(*args, **kwargs)
         self.cancel_callback = None
@@ -40,18 +45,18 @@ class Progress(Gtk.Box):
         self.pack_end(self._button, expand=False, fill=False, padding=0)
         self._button.show()
 
-    def _on_button_clicked(self, _button):
+    def _on_button_clicked(self, _button: Gtk.Button) -> None:
         self.emit("clicked")
 
-    def set_fraction(self, fraction):
+    def set_fraction(self, fraction: float) -> None:
         """Set progress bar fraction."""
         self._pbar.set_fraction(min(1.0, max(0.0, fraction)))
 
-    def set_text(self, text):
+    def set_text(self, text: str) -> None:
         """Set progress bar text."""
         self._pbar.set_text(text)
 
-    def pulse(self):
+    def pulse(self) -> None:
         """Pulse progress bar."""
         now = time.monotonic()
         if now - self._last_pulse < _PULSE_MIN_INTERVAL:
@@ -59,7 +64,7 @@ class Progress(Gtk.Box):
         self._last_pulse = now
         self._pbar.pulse()
 
-    def queued(self, response):  # , pid
+    def queued(self, response: Response) -> None:  # , pid
         """Set up progress bar from queued response."""
         process_name, num_completed, total = (
             response.request.process,
@@ -73,7 +78,7 @@ class Progress(Gtk.Box):
             self.set_fraction(min(1.0, (num_completed + 0.5) / total))
             self.show()
 
-            def cancel_process(_widget):
+            def cancel_process(_widget: Gtk.Widget) -> None:
                 """Pass the signal back.
 
                 1. be able to cancel it when the process has finished
@@ -87,7 +92,7 @@ class Progress(Gtk.Box):
 
             self._signal = self.connect("clicked", cancel_process)
 
-    def update(self, response):
+    def update(self, response: Response) -> None:
         """Update progress bar from response."""
         if not response:
             return
@@ -119,7 +124,7 @@ class Progress(Gtk.Box):
             )
             self.show()
 
-    def finish(self, response):
+    def finish(self, response: Response) -> None:
         """Hide progress bar and disconnect signals."""
         if not response or not response.pending:
             self.hide()

@@ -1,11 +1,19 @@
 """Data and methods for profiles of scan options."""
 
+from __future__ import annotations
+
 import uuid
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 from gi.repository import GObject
 
 from scantpaper.frontend import enums
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from scantpaper.scanner.options import Options
 
 
 class Profile(GObject.Object):
@@ -14,7 +22,12 @@ class Profile(GObject.Object):
     frontend = None
     backend = None
 
-    def __init__(self, frontend=None, backend=None, uid=None) -> None:
+    def __init__(
+        self,
+        frontend: dict[str, object] | None = None,
+        backend: list[tuple[str, object] | dict[str, object]] | None = None,
+        uid: str | None = None,
+    ) -> None:
         """Initialise the profile with deep-copied frontend and backend dicts."""
         super().__init__()
         if isinstance(frontend, dict) and "frontend" in frontend:
@@ -48,7 +61,7 @@ class Profile(GObject.Object):
         # add uuid to identify later which callback has finished
         self.uuid = str(uuid.uuid1()) if uid is None else uid
 
-    def __copy__(self) -> "Profile":
+    def __copy__(self) -> Profile:
         """Return a shallow copy with deep-copied frontend and backend."""
         return Profile(frontend=self.frontend, backend=self.backend, uid=self.uuid)
 
@@ -56,13 +69,15 @@ class Profile(GObject.Object):
         """Return a string representation of the profile."""
         return f"Profile(frontend={self.frontend}, backend={self.backend}, uuid={self.uuid})"
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare profiles by frontend and backend dicts only."""
         return self.frontend == other.frontend and self.backend == other.backend
 
     __hash__ = None
 
-    def add_backend_option(self, name, val, oldval=None):
+    def add_backend_option(
+        self, name: str | None, val: object, oldval: object | None = None
+    ) -> None:
         """Skip geometry options when setting paper as part of a profile."""
         if name is None or name == "":
             msg = "Error: no option name"
@@ -85,16 +100,16 @@ class Profile(GObject.Object):
 
         self.uuid = str(uuid.uuid1())
 
-    def get_backend_option_by_index(self, i):
+    def get_backend_option_by_index(self, i: int) -> tuple[str, object]:
         """get_backend_option_by_index."""
         return self.backend[i]
 
-    def remove_backend_option_by_index(self, i):
+    def remove_backend_option_by_index(self, i: int) -> None:
         """remove_backend_option_by_index."""
         del self.backend[i]
         self.uuid = str(uuid.uuid1())
 
-    def remove_backend_option_by_name(self, name):
+    def remove_backend_option_by_name(self, name: str) -> None:
         """remove_backend_option_by_name."""
         i = None
         for i in self.each_backend_option():
@@ -107,18 +122,18 @@ class Profile(GObject.Object):
 
         self.uuid = str(uuid.uuid1())
 
-    def each_backend_option(self, *, backwards=False):
+    def each_backend_option(self, *, backwards: bool = False) -> Iterator[int]:
         """Iterate over backend options."""
         i = len(self.backend) - 1 if backwards else 0
         while -1 < i < len(self.backend):
             yield i
             i = i - 1 if backwards else i + 1
 
-    def num_backend_options(self):
+    def num_backend_options(self) -> int:
         """num_backend_options."""
         return len(self.backend)
 
-    def add_frontend_option(self, name, val):
+    def add_frontend_option(self, name: str | None, val: object) -> None:
         """add_frontend_option."""
         if name is None or name == "":
             msg = "Error: no option name"
@@ -127,24 +142,24 @@ class Profile(GObject.Object):
         self.frontend[name] = val
         self.uuid = str(uuid.uuid1())
 
-    def each_frontend_option(self):
+    def each_frontend_option(self) -> Iterator[str]:
         """Iterate over frontend options."""
         yield from self.frontend.keys()
 
-    def get_frontend_option(self, name):
+    def get_frontend_option(self, name: str) -> object:
         """get_frontend_option."""
         return self.frontend[name]
 
-    def remove_frontend_option(self, name):
+    def remove_frontend_option(self, name: str) -> None:
         """remove_frontend_option."""
         if name in self.frontend:
             del self.frontend[name]
 
-    def get(self):
+    def get(self) -> dict[str, dict[str, object] | list[tuple[str, object]]]:
         """Return a dict of frontend and backend options."""
         return {"frontend": self.frontend, "backend": self.backend}
 
-    def map_from_cli(self):
+    def map_from_cli(self) -> None:
         """Map scanimage and scanadf (CLI) geometry options to the backend geometry names."""
         new = Profile()
         for i in self.each_backend_option():
@@ -175,7 +190,7 @@ class Profile(GObject.Object):
                 new.add_backend_option(name, val)
         self.backend = deepcopy(new.backend)
 
-    def _subtract_offset(self, val, name_from, name_to):
+    def _subtract_offset(self, val: float, name_from: str, name_to: str) -> float:
         """Subtract the geometry origin from a width or height value."""
         offset = self.get_option_by_name(name_from)
         if offset is None:
@@ -184,7 +199,9 @@ class Profile(GObject.Object):
             val -= offset
         return val
 
-    def _add_cli_option(self, options, new, name, val):
+    def _add_cli_option(
+        self, options: Options | None, new: Profile, name: str, val: object
+    ) -> None:
         if options is not None:
             opt = options.by_name(name)
             if "type" in opt and opt["type"] == enums.TYPE_BOOL:
@@ -192,7 +209,7 @@ class Profile(GObject.Object):
 
         new.add_backend_option(name, val)
 
-    def map_to_cli(self, options):
+    def map_to_cli(self, options: Options | None) -> Profile:
         """Map backend geometry options to the scanimage and scanadf (CLI) geometry names."""
         new = Profile()
         for i in self.each_backend_option():
@@ -216,7 +233,7 @@ class Profile(GObject.Object):
 
         return new
 
-    def get_option_by_name(self, name):
+    def get_option_by_name(self, name: str) -> object | None:
         """Extract a option value from a profile."""
         for i in self.each_backend_option():
             key, val = self.get_backend_option_by_index(i)
@@ -226,9 +243,9 @@ class Profile(GObject.Object):
         return None
 
 
-def _synonyms(name):
+def _synonyms(name: str) -> list[str]:
 
-    synonyms = [
+    synonyms: list[list[str]] = [
         ["page-height", "pageheight"],
         ["page-width", "pagewidth"],
         ["tl-x", "l"],

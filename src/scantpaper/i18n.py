@@ -1,5 +1,7 @@
 """Provide _() function for translations."""
 
+from __future__ import annotations
+
 import gettext
 import logging
 import pathlib
@@ -35,7 +37,7 @@ if TRANSLATE is None:
     TRANSLATE = gettext.NullTranslations()
 
 
-def log_i18n_status():
+def log_i18n_status() -> None:
     """Log the buffered messages."""
     for level, msg, *args in _log_buffer:
         getattr(logger, level)(msg, *args)

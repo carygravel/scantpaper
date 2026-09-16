@@ -1,5 +1,7 @@
 """Threading model for the Document class."""
 
+from __future__ import annotations
+
 import datetime
 import json
 import logging
@@ -9,6 +11,7 @@ import re
 import shutil
 import tempfile
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import img2pdf
 import ocrmypdf
@@ -24,6 +27,12 @@ from scantpaper.helpers import exec_command, exec_command_run
 from scantpaper.i18n import _
 from scantpaper.importthread import Importhread, _note_callbacks
 from scantpaper.page import Page
+
+if TYPE_CHECKING:
+    import uuid
+    from collections.abc import Callable
+    from types import TracebackType
+    from typing import Self
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +62,7 @@ BOTTOM = 3
 
 # Global variable to hold the current thread instance for progress reporting
 # This is a list to make it mutable from within nested functions
-_current_request_for_progress = [None]
+_current_request_for_progress: list[Request | None] = [None]
 
 
 class SaveThreadProgressBar(ProgressBar):
@@ -61,7 +70,7 @@ class SaveThreadProgressBar(ProgressBar):
 
     def __init__(
         self,
-        request,
+        request: Request,
         total: int | None,
         desc: str | None,
         unit: str | None,
@@ -76,7 +85,7 @@ class SaveThreadProgressBar(ProgressBar):
         self.current = 0
         self.disable = disable
 
-    def update(self, n=1, completed=None) -> None:
+    def update(self, n: int = 1, completed: int | None = None) -> None:
         """Update progress."""
         if self.disable:
             return
@@ -90,20 +99,32 @@ class SaveThreadProgressBar(ProgressBar):
             self.request.data(min(1.0, self.current / self.total))
             self.request.data(self.desc)
 
-    def __enter__(self) -> "SaveThread":
+    def __enter__(self) -> Self:
         """Enter the context manager."""
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> bool:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> bool:
         """Exit the context manager."""
         return False
 
 
 @hookimpl
-def get_progressbar_class():
+def get_progressbar_class() -> Callable[..., SaveThreadProgressBar]:
     """Ocrmypdf plugin hook to provide custom progress bar class."""
 
-    def create_progress_bar(total, desc, unit, *, disable=False, **kwargs):
+    def create_progress_bar(
+        total: int | None,
+        desc: str | None,
+        unit: str | None,
+        *,
+        disable: bool = False,
+        **kwargs: object,
+    ) -> SaveThreadProgressBar:
         """Accept all ocrmypdf progress bar parameters and return a progress bar."""
         del kwargs
         request_instance = _current_request_for_progress[0]
@@ -117,12 +138,14 @@ def get_progressbar_class():
 class SaveThread(Importhread):
     """subclass basethread for document."""
 
-    def save_pdf(self, **kwargs):
+    def save_pdf(self, **kwargs: object) -> uuid.UUID:
         """Save pdf."""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_pdf", kwargs, **callbacks)
 
-    def _embed_text_layer(self, outdir, filename, request):
+    def _embed_text_layer(
+        self, outdir: pathlib.Path, filename: str, request: Request
+    ) -> bool:
         """Embed the text layer into the PDF using ocrmypdf."""
         request.data(_("Embedding text layer"))
 
@@ -167,7 +190,7 @@ class SaveThread(Importhread):
 
         return True
 
-    def do_save_pdf(self, request):
+    def do_save_pdf(self, request: Request) -> None:
         """Save PDF in thread."""
         options = defaultdict(None, request.args[0])
 
@@ -207,13 +230,21 @@ class SaveThread(Importhread):
             # Embed text layer using ocrmypdf (also applies PDF/A metadata such
             # as the title), so it runs even when no page has a text layer.
             embed_ok = self._embed_text_layer(outdir, filename, request)
-            self._finalize_pdf(filename, options, request, embed_ok, metadata)
+            self._finalize_pdf(
+                filename, options, request, embed_ok=embed_ok, metadata=metadata
+            )
 
             self.do_set_saved(
                 Request("set_saved", (options["list_of_pages"], True), self.responses)
             )
 
-    def _assemble_pdf(self, outdir, options, request, metadata):
+    def _assemble_pdf(
+        self,
+        outdir: pathlib.Path,
+        options: dict[str, object],
+        request: Request,
+        metadata: dict[str, object],
+    ) -> list[Page]:
         """Convert each page to an image, write origin.pdf, and return the pages."""
         list_of_pages = []
         with pathlib.Path(outdir / "origin.pdf").open(
@@ -262,7 +293,11 @@ class SaveThread(Importhread):
                 )
             index = 0
 
-            def layout_fun(imgwidthpx, imgheightpx, _ndpi):
+            def layout_fun(
+                imgwidthpx: float,
+                imgheightpx: float,
+                _ndpi: float,
+            ) -> tuple[float, float, float, float]:
                 nonlocal index
                 xres, yres = resolutions[index]
                 index += 1
@@ -277,7 +312,15 @@ class SaveThread(Importhread):
                 pathlib.Path(fname).unlink()
         return list_of_pages
 
-    def _finalize_pdf(self, filename, options, request, embed_ok, metadata):
+    def _finalize_pdf(
+        self,
+        filename: str,
+        options: dict[str, object],
+        request: Request,
+        *,
+        embed_ok: bool,
+        metadata: dict[str, object],
+    ) -> None:
         """Apply metadata, encryption, PS conversion, and post-save hooks."""
         # When embed fell back (embed_ok is False) the output PDF may be
         # malformed - pikepdf-dependent operations would fail too, so skip
@@ -341,12 +384,12 @@ class SaveThread(Importhread):
                 filename, options.get("options"), pidfile=options.get("pidfile")
             )
 
-    def save_djvu(self, **kwargs):
+    def save_djvu(self, **kwargs: object) -> uuid.UUID:
         """Save DjvU."""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_djvu", kwargs, **callbacks)
 
-    def do_save_djvu(self, request):
+    def do_save_djvu(self, request: Request) -> None:
         """Save DjvU in thread."""
         args = request.args[0]
         filelist = []
@@ -383,7 +426,7 @@ class SaveThread(Importhread):
             Request("set_saved", (args["list_of_pages"], True), self.responses)
         )
 
-    def _add_metadata_to_djvu(self, options):
+    def _add_metadata_to_djvu(self, options: dict[str, object]) -> None:
         if "metadata" in options and options["metadata"] is not None:
             metadata = prepare_output_metadata("DjVu", options["metadata"])
 
@@ -425,12 +468,12 @@ class SaveThread(Importhread):
                 exec_command_run(cmd, options.get("pidfile"), check=True)
                 self.check_cancelled()
 
-    def save_tiff(self, **kwargs):
+    def save_tiff(self, **kwargs: object) -> uuid.UUID:
         """Save TIFF."""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_tiff", kwargs, **callbacks)
 
-    def do_save_tiff(self, request):
+    def do_save_tiff(self, request: Request) -> None:
         """Save TIFF in thread."""
         options = request.args[0]
 
@@ -483,12 +526,12 @@ class SaveThread(Importhread):
             Request("set_saved", (options["list_of_pages"], True), self.responses)
         )
 
-    def save_image(self, **kwargs):
+    def save_image(self, **kwargs: object) -> uuid.UUID:
         """Save pages as image files."""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_image", kwargs, **callbacks)
 
-    def do_save_image(self, request):
+    def do_save_image(self, request: Request) -> None:
         """Save pages as image files in thread."""
         options = defaultdict(None, request.args[0])
 
@@ -508,12 +551,12 @@ class SaveThread(Importhread):
             Request("set_saved", (options["list_of_pages"], True), self.responses)
         )
 
-    def save_text(self, **kwargs):
+    def save_text(self, **kwargs: object) -> uuid.UUID:
         """Save text file."""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_text", kwargs, **callbacks)
 
-    def do_save_text(self, request):
+    def do_save_text(self, request: Request) -> None:
         """Save text file in thread."""
         options = defaultdict(None, request.args[0])
 
@@ -532,12 +575,12 @@ class SaveThread(Importhread):
             options["path"], options["options"], pidfile=options.get("pidfile")
         )
 
-    def save_hocr(self, **kwargs):
+    def save_hocr(self, **kwargs: object) -> uuid.UUID:
         """Save hocr file."""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_hocr", kwargs, **callbacks)
 
-    def do_save_hocr(self, request):
+    def do_save_hocr(self, request: Request) -> None:
         """Save hocr file in thread."""
         options = defaultdict(None, request.args[0])
 
@@ -570,17 +613,17 @@ class SaveThread(Importhread):
             options["path"], options["options"], pidfile=options.get("pidfile")
         )
 
-    def do_set_paper_sizes(self, request):
+    def do_set_paper_sizes(self, request: Request) -> None:
         """Set paper sizes in thread."""
         paper_sizes = request.args[0]
         self.paper_sizes = paper_sizes
 
-    def user_defined(self, **kwargs):
+    def user_defined(self, **kwargs: object) -> uuid.UUID:
         """Run user defined command on page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("user_defined", kwargs, **callbacks)
 
-    def do_user_defined(self, request):
+    def do_user_defined(self, request: Request) -> None:
         """Run user defined command on page in thread."""
         options = request.args[0]
         try:
@@ -676,7 +719,7 @@ class SaveThread(Importhread):
             )
 
 
-def _need_temp_pdf(options):
+def _need_temp_pdf(options: dict[str, object] | None) -> bool:
     return options and (
         "prepend" in options
         or "append" in options
@@ -685,7 +728,9 @@ def _need_temp_pdf(options):
     )
 
 
-def _estimate_page_pdf_size(image, temp_filename, opts):
+def _estimate_page_pdf_size(
+    image: Image.Image, temp_filename: str, opts: dict[str, object]
+) -> int:
     """Estimate a page's contribution to the output PDF size in bytes."""
     if (
         image.format == "JPEG"
@@ -700,7 +745,7 @@ def _estimate_page_pdf_size(image, temp_filename, opts):
     return int(image.width * image.height * bpp)
 
 
-def _fix_pdf_metadata(path, remove_title):
+def _fix_pdf_metadata(path: str, *, remove_title: bool) -> None:
     """Brand scantpaper as the PDF creator and remove any placeholder title."""
     creator = f"scantpaper v{VERSION}"
     with pikepdf.open(path, allow_overwriting_input=True) as pdf:
@@ -719,7 +764,9 @@ def _fix_pdf_metadata(path, remove_title):
         pdf.save(path, preserve_pdfa=True, linearize=True)
 
 
-def prepare_output_metadata(ftype, metadata):
+def prepare_output_metadata(
+    ftype: str, metadata: dict[str, object]
+) -> dict[str, object]:
     """Format metadata for PDF or DjVu."""
     out = {}
     if metadata and ftype in ["PDF", "DjVu"]:
@@ -738,7 +785,9 @@ def prepare_output_metadata(ftype, metadata):
     return out
 
 
-def _append_pdf(filename, options, request):
+def _append_pdf(
+    filename: str, options: dict[str, object], request: Request
+) -> int | None:
     if options is None or "options" not in options or options["options"] is None:
         return None
     if "prepend" in options["options"]:
@@ -773,7 +822,7 @@ def _append_pdf(filename, options, request):
     return proc.returncode
 
 
-def _set_timestamp(options):
+def _set_timestamp(options: dict[str, object]) -> None:
     if (
         not options.get("options")
         or options["options"].get("set_timestamp") is None
@@ -796,7 +845,9 @@ def _set_timestamp(options):
     os.utime(options["path"], (adatetime, adatetime))
 
 
-def _post_save_hook(filename, options, pidfile=None):
+def _post_save_hook(
+    filename: str, options: dict[str, object] | None, pidfile: str | None = None
+) -> None:
     if options is not None and "post_save_hook" in options:
         args = options["post_save_hook"].split(" ")
         for i, arg in enumerate(args):
@@ -807,7 +858,7 @@ def _post_save_hook(filename, options, pidfile=None):
         exec_command_run(args, pidfile, check=True)
 
 
-def _encrypt_pdf(filename, options, request):
+def _encrypt_pdf(filename: str, options: dict[str, object], request: Request) -> int:
     cmd = ["qpdf"]
     if "user-password" in options["options"]:
         # qpdf < 11 only accepts the positional --encrypt form
@@ -839,12 +890,17 @@ def _encrypt_pdf(filename, options, request):
     return spo.returncode
 
 
-def px2pt(pixels, resolution):
+def px2pt(pixels: int, resolution: float) -> float:
     """Convert pixels to points given the resolution."""
     return pixels / resolution * POINTS_PER_INCH
 
 
-def _bbox2markup(xresolution, yresolution, height, bbox):
+def _bbox2markup(
+    xresolution: float,
+    yresolution: float,
+    height: float,
+    bbox: list[float],
+) -> list[float]:
     for i in (0, 2):
         bbox[i] = px2pt(bbox[i], xresolution)
         bbox[i + 1] = height - px2pt(bbox[i + 1], yresolution)
@@ -862,7 +918,7 @@ def _bbox2markup(xresolution, yresolution, height, bbox):
 
 
 # https://py-pdf.github.io/fpdf2/Annotations.html
-def _add_annotations_to_pdf(page, gs_page):
+def _add_annotations_to_pdf(page: object, gs_page: object) -> None:
     """Box is the same size as the page. We don't know the text position.
 
     Start at the top of the page (PDF coordinate system starts

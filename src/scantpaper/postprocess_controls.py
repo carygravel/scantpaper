@@ -1,5 +1,7 @@
 """provide postprocessing rotate controls for the scan dialog."""
 
+from __future__ import annotations
+
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
@@ -27,7 +29,7 @@ ROTATE = [
 class RotateControlRow(Gtk.Box):
     """provide a row of postprocessing rotate controls for the scan dialog."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise RotateControlRow."""
         super().__init__(*args, **kwargs)
         self.cbutton = Gtk.CheckButton(label=_("Rotate"))
@@ -55,12 +57,12 @@ class RotateControls(Gtk.Box):
         nick="Rotate facing",
         blurb="Angle to rotate facing side",
     )
-    def rotate_facing(self):
+    def rotate_facing(self) -> int:
         """Getter for rotate_facing attribute."""
         return self._rotate_facing
 
     @rotate_facing.setter
-    def rotate_facing(self, newval):
+    def rotate_facing(self, newval: int) -> None:
         if newval == self._rotate_facing:
             return
         self._rotate_facing = newval
@@ -73,12 +75,12 @@ class RotateControls(Gtk.Box):
         nick="Rotate reverse",
         blurb="Angle to rotate reverse side",
     )
-    def rotate_reverse(self):
+    def rotate_reverse(self) -> int:
         """Getter for rotate_reverse attribute."""
         return self._rotate_reverse
 
     @rotate_reverse.setter
-    def rotate_reverse(self, newval):
+    def rotate_reverse(self, newval: int) -> None:
         if newval == self._rotate_reverse:
             return
         self._rotate_reverse = newval
@@ -92,12 +94,12 @@ class RotateControls(Gtk.Box):
         nick="Can duplex",
         blurb="Scanner capable of duplex scanning",
     )
-    def can_duplex(self):
+    def can_duplex(self) -> bool:
         """Getter for can_duplex attribute."""
         return self._can_duplex
 
     @can_duplex.setter
-    def can_duplex(self, newval):
+    def can_duplex(self, newval: bool) -> None:
         if newval == self._can_duplex:
             return
         self._can_duplex = newval
@@ -108,7 +110,7 @@ class RotateControls(Gtk.Box):
             self._side1.side_cmbx.hide()
             self._side2.side_cmbx.hide()
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         # have to do this manually, since Gtk.Box messes with the initialization
         rotate_facing = kwargs.pop("rotate_facing", kwargs.pop("rotate-facing", 0))
@@ -141,13 +143,13 @@ class RotateControls(Gtk.Box):
         # Sync GUI with properties set during instantiation
         self._update_gui()
 
-    def _toggled_rotate_callback(self, _widget):
+    def _toggled_rotate_callback(self, _widget: Gtk.Widget) -> None:
         self._update_attributes(None)
 
-    def _toggled_rotate_side_callback(self, _widget):
+    def _toggled_rotate_side_callback(self, _widget: Gtk.Widget) -> None:
         self._update_attributes(None)
 
-    def _update_side2_options(self):
+    def _update_side2_options(self) -> None:
         side1_cmbx_i = self._side1.side_cmbx.get_active()
         angle1_cmbx_i = self._side1.angle_cmbx.get_active()
 
@@ -173,7 +175,7 @@ class RotateControls(Gtk.Box):
         self._side2.angle_cmbx.data = angle2
         self._side2.angle_cmbx.set_active(0)
 
-    def _update_attributes(self, _widget):
+    def _update_attributes(self, _widget: object) -> None:
         if self._recomputing:
             return
         self._recomputing = True
@@ -203,7 +205,7 @@ class RotateControls(Gtk.Box):
         self.rotate_reverse = rotate_reverse
         self._recomputing = False
 
-    def _update_gui(self):
+    def _update_gui(self) -> None:
         self._recomputing = True
         if self.rotate_facing == 0 and self.rotate_reverse == 0:
             self._side1.cbutton.set_active(False)
@@ -256,12 +258,12 @@ class OCRControls(Gtk.Box):
         nick="OCR engine",
         blurb="Currently selected OCR engine",
     )
-    def engine(self):
+    def engine(self) -> str | None:
         """Getter for engine attribute."""
         return self._engine
 
     @engine.setter
-    def engine(self, newval):
+    def engine(self, newval: str | None) -> None:
         self._engine = newval
 
     _language = None
@@ -272,12 +274,12 @@ class OCRControls(Gtk.Box):
         nick="OCR language",
         blurb="Currently selected OCR language",
     )
-    def language(self):
+    def language(self) -> str | None:
         """Getter for language attribute."""
         return self._language
 
     @language.setter
-    def language(self, newval):
+    def language(self, newval: str | None) -> None:
         self._language = newval
 
     _active = False
@@ -288,12 +290,12 @@ class OCRControls(Gtk.Box):
         nick="Active",
         blurb="Whether OCR will be automatically performed",
     )
-    def active(self):
+    def active(self) -> bool:
         """Getter for active attribute."""
         return self._active
 
     @active.setter
-    def active(self, newval):
+    def active(self, newval: bool) -> None:
         self._active = newval
         if hasattr(self, "_active_button"):
             self._active_button.set_active(newval)
@@ -306,12 +308,12 @@ class OCRControls(Gtk.Box):
         nick="Threshold",
         blurb="Whether to threshold before performing OCR",
     )
-    def threshold(self):
+    def threshold(self) -> bool:
         """Getter for threshold attribute."""
         return self._threshold
 
     @threshold.setter
-    def threshold(self, newval):
+    def threshold(self, newval: bool) -> None:
         self._threshold = newval
         if hasattr(self, "_threshold_button"):
             self._threshold_button.set_active(newval)
@@ -325,17 +327,17 @@ class OCRControls(Gtk.Box):
         blurb="Pixels that differ from the paper colour by more than this "
         "percentage are rendered black",
     )
-    def threshold_value(self):
+    def threshold_value(self) -> float:
         """Getter for threshold_value attribute."""
         return self._threshold_value
 
     @threshold_value.setter
-    def threshold_value(self, newval):
+    def threshold_value(self, newval: float) -> None:
         self._threshold_value = newval
         if hasattr(self, "_threshold_spin"):
             self._threshold_spin.set_value(newval)
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
@@ -396,25 +398,27 @@ class OCRControls(Gtk.Box):
         )
         self._threshold_spin.connect("value-changed", self.on_threshold_changed)
 
-    def on_toggled_active(self, checkbox, hboxtl):
+    def on_toggled_active(self, checkbox: Gtk.CheckButton, hboxtl: Gtk.Box) -> None:
         """React to OCR active checkbox toggle."""
         self.active = checkbox.get_active()
         hboxtl.set_sensitive(sensitive=self.active)
 
-    def on_toggled_threshold(self, checkbox, spinbutton):
+    def on_toggled_threshold(
+        self, checkbox: Gtk.CheckButton, spinbutton: Gtk.SpinButton
+    ) -> None:
         """React to threshold checkbox toggle."""
         self.threshold = checkbox.get_active()
         spinbutton.set_sensitive(sensitive=self.threshold)
 
-    def on_threshold_changed(self, _widget, value):
+    def on_threshold_changed(self, _widget: Gtk.SpinButton, value: float) -> None:
         """React to threshold value spinbutton change."""
         self.threshold_value = value
 
-    def on_language_changed(self, widget):
+    def on_language_changed(self, widget: ComboBoxText) -> None:
         """React to OCR language combobox change."""
         self.language = widget.get_active_index()
 
-    def _add_tess_languages(self):
+    def _add_tess_languages(self) -> Gtk.Box:
         hbox = Gtk.Box()
         self.pack_start(hbox, expand=False, fill=False, padding=0)
         label = Gtk.Label(label=_("Language to recognise"))

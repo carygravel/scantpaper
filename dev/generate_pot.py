@@ -1,5 +1,7 @@
 """Create pot for translation strings. Requires intltool package."""
 
+from __future__ import annotations
+
 import datetime
 import subprocess
 from contextlib import chdir
@@ -18,7 +20,7 @@ from scantpaper.const import (  # noqa: E402
 )
 
 
-def main():
+def main() -> None:
     """Run the application entry point."""
     with chdir(pkg_dir):
         ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))

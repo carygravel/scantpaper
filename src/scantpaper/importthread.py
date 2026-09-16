@@ -1,18 +1,24 @@
 """Threading model for the Document class."""
 
+from __future__ import annotations
+
 import logging
 import pathlib
 import re
 import subprocess
 import tempfile
 import threading
+from typing import TYPE_CHECKING
 
 from PIL import Image
 
-from scantpaper.basethread import BaseThread
+from scantpaper.basethread import BaseThread, Request
 from scantpaper.helpers import exec_command, exec_command_run
 from scantpaper.i18n import _
 from scantpaper.page import Page
+
+if TYPE_CHECKING:
+    import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +49,7 @@ class Importhread(BaseThread):
         self.cancel = False
         self.paper_sizes = {}
 
-    def _request_pidfile(self, request):
+    def _request_pidfile(self, request: Request) -> str | None:
         """Locate the pidfile attached to a request for this thread."""
         pidfile = getattr(request, "pidfile", None)
         if pidfile is not None:
@@ -53,23 +59,23 @@ class Importhread(BaseThread):
                 return args["pidfile"]
         return None
 
-    def _request_completed(self, request):
+    def _request_completed(self, request: Request) -> None:
         """Deregister the request's pidfile now that its handler has finished."""
         pidfile = self._request_pidfile(request)
         if pidfile is not None:
             with self.lock:
                 self.running_pids.pop(pidfile, None)
 
-    def do_cancel(self, _request):
+    def do_cancel(self, _request: Request) -> None:
         """Cancel running tasks."""
         self.cancel = False
 
-    def check_cancelled(self):
+    def check_cancelled(self) -> None:
         """Check if operation was cancelled."""
         if self.cancel:
             raise CancelledError
 
-    def do_get_file_info(self, request):
+    def do_get_file_info(self, request: Request) -> dict[str, object]:
         """Get file info."""
         path, password = request.args
         pidfile = getattr(request, "pidfile", None)
@@ -116,7 +122,9 @@ class Importhread(BaseThread):
         info["path"] = path
         return info
 
-    def _get_djvu_info(self, info, path, pidfile=None):
+    def _get_djvu_info(
+        self, info: dict[str, object], path: str, pidfile: str | None = None
+    ) -> None:
         """Get DjVu info."""
         # Dig out the number of pages
         proc = exec_command(["djvudump", path], pidfile)
@@ -175,7 +183,14 @@ class Importhread(BaseThread):
         # extract the metadata from the file
         _add_metadata_to_info(info, proc.stdout, r'\s+"([^"]+)')
 
-    def _get_pdf_info(self, info, path, password, request, pidfile=None):
+    def _get_pdf_info(
+        self,
+        info: dict[str, object],
+        path: str,
+        password: str | None,
+        request: Request,
+        pidfile: str | None = None,
+    ) -> None:
         """Get PDF info."""
         info["format"] = "Portable Document Format"
         args = ["pdfinfo", "-isodates", path]
@@ -234,7 +249,13 @@ class Importhread(BaseThread):
         # extract the metadata from the file
         _add_metadata_to_info(info, process.stdout, r":\s+([^\n]+)")
 
-    def _get_tif_info(self, info, path, request, pidfile=None):
+    def _get_tif_info(
+        self,
+        info: dict[str, object],
+        path: str,
+        request: Request,
+        pidfile: str | None = None,
+    ) -> None:
         """Get TIFF info."""
         info["format"] = "Tagged Image File Format"
         proc = exec_command(["tiffinfo", path], pidfile)
@@ -272,7 +293,7 @@ class Importhread(BaseThread):
         info["width"] = width
         info["height"] = height
 
-    def do_import_file(self, request):
+    def do_import_file(self, request: Request) -> None:
         """Import file in thread."""
         args = request.args[0]
         if args["info"]["format"] == "DJVU":
@@ -345,16 +366,18 @@ class Importhread(BaseThread):
                 }
             )
 
-    def get_file_info(self, path, password, **kwargs):
+    def get_file_info(
+        self, path: str, password: str | None, **kwargs: object
+    ) -> uuid.UUID:
         """Get file info."""
         return self.send("get_file_info", path, password, **kwargs)
 
-    def import_file(self, **kwargs):
+    def import_file(self, **kwargs: object) -> uuid.UUID:
         """Import file."""
         callbacks = _note_callbacks(kwargs)
         return self.send("import_file", kwargs, **callbacks)
 
-    def _do_import_djvu(self, request):
+    def _do_import_djvu(self, request: Request) -> None:
         args = request.args[0]
         # Extract images from DjVu
         if args["last"] >= args["first"] and args["first"] > 0:
@@ -433,7 +456,7 @@ class Importhread(BaseThread):
                         }
                     )
 
-    def _do_import_pdf(self, request):
+    def _do_import_pdf(self, request: Request) -> None:
         args = request.args[0]
 
         # Extract images from PDF
@@ -501,7 +524,12 @@ class Importhread(BaseThread):
                 ),
             )
 
-    def _import_pdf_images(self, request, i, images_and_resolution):
+    def _import_pdf_images(
+        self,
+        request: Request,
+        i: int,
+        images_and_resolution: list[tuple[str, float | None, float | None, str | None]],
+    ) -> None:
         """Import the images extracted from a PDF page."""
         for fname, xresolution, yresolution, mask_fname in images_and_resolution:
             if mask_fname is not None:
@@ -529,7 +557,7 @@ class Importhread(BaseThread):
                     logger.exception("Caught error importing PDF")
                     request.error(_("Error importing PDF"))
 
-    def _extract_text_from_pdf(self, request, i):
+    def _extract_text_from_pdf(self, request: Request, i: int) -> str:
         args = request.args[0]
         with tempfile.NamedTemporaryFile(
             mode="w+t", dir=args["dir"], suffix=".html"
@@ -558,7 +586,7 @@ class Importhread(BaseThread):
             return html.read()
 
 
-def _add_metadata_to_info(info, string, regex):
+def _add_metadata_to_info(info: dict[str, object], string: str, regex: str) -> None:
     kw_lookup = {
         "Title": "title",
         "Subject": "subject",
@@ -574,14 +602,14 @@ def _add_metadata_to_info(info, string, regex):
             info[value] = match.group(1)
 
 
-def _pdf_cmd_with_password(cmd, password):
+def _pdf_cmd_with_password(cmd: list[str], password: str | None) -> list[str]:
     if password is not None:
         cmd.insert(1, "-upw")
         cmd.insert(2, password)
     return cmd
 
 
-def _parse_pdfimages_list(out):
+def _parse_pdfimages_list(out: str) -> list[dict[str, object]]:
     """Parse pdfimages -list output into a list of image entries."""
     entries = []
     for line in out.splitlines():
@@ -605,7 +633,7 @@ def _parse_pdfimages_list(out):
     return entries
 
 
-def _composite_over_white(image_path, mask_path):
+def _composite_over_white(image_path: str, mask_path: str) -> bool:
     """Composite the image over a white background using its soft mask, in place."""
     try:
         image = Image.open(image_path)
@@ -622,7 +650,9 @@ def _composite_over_white(image_path, mask_path):
     return True
 
 
-def _correlate_pdf_images(entries):
+def _correlate_pdf_images(
+    entries: list[dict[str, object]],
+) -> tuple[list[tuple[str, float | None, float | None, str | None]], bool]:
     """Correlate extracted files with pdfimages -list entries by index."""
     images = sorted(str(x) for x in pathlib.Path().glob("x-??*.???"))
     if len(images) != len(entries):
@@ -649,7 +679,7 @@ def _correlate_pdf_images(entries):
     return images_and_resolution, len(images_and_resolution) != 1
 
 
-def _note_callbacks(kwargs):
+def _note_callbacks(kwargs: dict[str, object]) -> dict[str, object]:
     callbacks = {}
     for callback in [
         "queued",

@@ -1,5 +1,7 @@
 """helper functions to read and write config."""
 
+from __future__ import annotations
+
 import datetime
 import json
 import logging
@@ -129,7 +131,7 @@ DEFAULTS = {
 }
 
 
-def _get_convert_command():
+def _get_convert_command() -> str:
     """Determine the correct imagemagick command."""
     if shutil.which("magick"):
         return "magick"
@@ -147,7 +149,7 @@ THRESHOLD_MIGRATION_VERSION = (3, 0, 16)
 TIMEDELTA_FIELDS = 4
 
 
-def _version_tuple(version):
+def _version_tuple(version: str | None) -> tuple[int, ...]:
     """Parse a version string into a comparable tuple of integers."""
     if not version:
         return (0,)
@@ -157,7 +159,7 @@ def _version_tuple(version):
 class ConfigDict(dict):
     """A dict that carries warnings raised while loading the configuration."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ConfigDict."""
         super().__init__(*args, **kwargs)
         self.load_warnings = []
@@ -166,7 +168,7 @@ class ConfigDict(dict):
 _SALVAGE_PATTERN = re.compile(r'"([^"]+)"\s*:\s*')
 
 
-def _salvage_config(configstr):
+def _salvage_config(configstr: str) -> ConfigDict:
     """Salvage ``"key": <value>`` fragments from an unparseable config file."""
     rescued = ConfigDict()
     decoder = json.JSONDecoder()
@@ -182,7 +184,7 @@ def _salvage_config(configstr):
     return rescued
 
 
-def _coerce_bool(value):
+def _coerce_bool(value: object) -> bool | None:
     """Return a lossless bool coercion of value, or None."""
     if isinstance(value, bool):
         return value
@@ -193,7 +195,7 @@ def _coerce_bool(value):
     return None
 
 
-def _coerce_int(value):
+def _coerce_int(value: object) -> int | None:
     """Return a lossless int coercion of value, or None."""
     if isinstance(value, bool):
         return int(value)
@@ -205,7 +207,7 @@ def _coerce_int(value):
         return None
 
 
-def _coerce_float(value):
+def _coerce_float(value: object) -> float | None:
     """Return a lossless float coercion of value, or None."""
     try:
         return float(value)
@@ -213,7 +215,7 @@ def _coerce_float(value):
         return None
 
 
-def _coerce_str(value):
+def _coerce_str(value: object) -> str | None:
     """Return a lossless str coercion of value, or None."""
     if isinstance(value, str):
         return value
@@ -230,7 +232,9 @@ _COERCE_TO_TYPE = {
 }
 
 
-def _coerce_to_type(value, target_type):
+def _coerce_to_type(
+    value: object, target_type: type
+) -> bool | int | float | str | None:
     """Return a lossless coercion of value to target_type, or None."""
     coerce = _COERCE_TO_TYPE.get(target_type)
     if coerce is None:
@@ -238,7 +242,7 @@ def _coerce_to_type(value, target_type):
     return coerce(value)
 
 
-def _normalise_types(config):
+def _normalise_types(config: ConfigDict) -> None:
     """Coerce wrongly typed known settings to their default's type.
 
     Keys whose default is None are skipped, as are values that already match
@@ -269,7 +273,7 @@ def _normalise_types(config):
             )
 
 
-def read_config(filename):
+def read_config(filename: str) -> ConfigDict:
     """Read the config."""
     config = ConfigDict()
     logger.info("Reading config from %s", filename)
@@ -311,7 +315,7 @@ def read_config(filename):
     return config
 
 
-def _deserialise_and_migrate(config):
+def _deserialise_and_migrate(config: ConfigDict) -> None:
     """Deserialise stored values and apply legacy migrations in place."""
     if "user_defined_tools" in config and not isinstance(
         config["user_defined_tools"], list
@@ -357,7 +361,7 @@ def _deserialise_and_migrate(config):
     _migrate_threshold_tool(config)
 
 
-def _normalise_scan_options(value):
+def _normalise_scan_options(value: object) -> None:
     """Normalise one scan-options dict to the canonical profile shape.
 
     gscan2pdf 2.x wrote scan options without a frontend key, and a misparsed
@@ -378,7 +382,7 @@ def _normalise_scan_options(value):
     value.setdefault("backend", [])
 
 
-def _normalise_profiles(config):
+def _normalise_profiles(config: ConfigDict) -> None:
     """Remove undefined profiles and normalise legacy pre-v3 ones.
 
     Profiles written by gscan2pdf 2.x may be backend-only with no frontend
@@ -398,14 +402,14 @@ def _normalise_profiles(config):
         _normalise_scan_options(profile)
 
 
-def _remove_legacy_int_tools(config):
+def _remove_legacy_int_tools(config: ConfigDict) -> None:
     """Remove old int tool values - these are now strings."""
     for k in "image_control_tool", "viewer_tools":
         if k in config and isinstance(config[k], int):
             del config[k]
 
 
-def _migrate_null_image_type(config):
+def _migrate_null_image_type(config: ConfigDict) -> None:
     """Migrate a legacy null image type to the application default.
 
     gscan2pdf 2.x wrote the document type as JSON ``null`` until it was first
@@ -420,7 +424,7 @@ def _migrate_null_image_type(config):
         )
 
 
-def _migrate_threshold_tool(config):
+def _migrate_threshold_tool(config: ConfigDict) -> None:
     """Migrate the threshold tool value from the pre-colour-aware scale.
 
     The old slider was a raw 0-255 cutoff despite its 0-100 range; 100 - v
@@ -434,7 +438,7 @@ def _migrate_threshold_tool(config):
         config["threshold tool"] = 100 - config["threshold tool"]
 
 
-def add_defaults(config):
+def add_defaults(config: ConfigDict) -> None:
     """Add defaults."""
     # remove unused settings
     for k in list(config.keys()):
@@ -447,7 +451,7 @@ def add_defaults(config):
             config[k] = v
 
 
-def remove_invalid_paper(hashref):
+def remove_invalid_paper(hashref: dict[str, object]) -> None:
     """Remove invalid paper formats."""
     for paper in list(hashref.keys()):
         if paper in ["<>", "</>"]:
@@ -459,7 +463,7 @@ def remove_invalid_paper(hashref):
                     break
 
 
-def write_config(rc, config):
+def write_config(rc: str, config: dict[str, object]) -> None:
     """Write config."""
     output = dict(config)
     # serialise device list
@@ -498,7 +502,9 @@ def write_config(rc, config):
     logger.info("Wrote config to %s", rc)
 
 
-def update_config_from_imported_metadata(config, metadata):
+def update_config_from_imported_metadata(
+    config: ConfigDict, metadata: dict[str, object]
+) -> None:
     """Update config from imported metadata."""
     for name in ["author", "title", "subject", "keywords"]:
         if name in metadata:

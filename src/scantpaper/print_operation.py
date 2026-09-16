@@ -1,5 +1,7 @@
 """print dialog."""
 
+from __future__ import annotations
+
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -12,7 +14,7 @@ from gi.repository import (  # noqa: E402
 class PrintOperation(Gtk.PrintOperation):
     """print dialog."""
 
-    def __init__(self, *_args, **kwargs) -> None:
+    def __init__(self, *_args: object, **kwargs: object) -> None:
         """Initialise PrintOperation."""
         super().__init__()
         if kwargs["settings"] is not None:
@@ -23,7 +25,9 @@ class PrintOperation(Gtk.PrintOperation):
         # scale in draw_page_callback fits pages with any pixel aspect ratio
         self.connect("draw-page", self.draw_page_callback)
 
-    def begin_print_callback(self, _self, _context):
+    def begin_print_callback(
+        self, _self: Gtk.PrintOperation, _context: Gtk.PrintContext
+    ) -> None:
         """Begin print."""
         settings = self.get_print_settings()
         pages = settings.get_print_pages()
@@ -43,7 +47,9 @@ class PrintOperation(Gtk.PrintOperation):
 
         self.set_n_pages(len(self.page_list))
 
-    def draw_page_callback(self, _self, context, page_number):
+    def draw_page_callback(
+        self, _self: Gtk.PrintOperation, context: Gtk.PrintContext, page_number: int
+    ) -> None:
         """Draw page."""
         if self.page_list is not None:
             page_number = self.page_list[page_number]

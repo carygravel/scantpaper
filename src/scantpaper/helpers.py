@@ -1,5 +1,7 @@
 """Various helper functions."""
 
+from __future__ import annotations
+
 import datetime
 import locale
 import logging
@@ -9,9 +11,15 @@ import subprocess
 import weakref
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import TYPE_CHECKING
 
 from scantpaper.dialog import MultipleMessage
 from scantpaper.i18n import _
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
+    from os import PathLike
+    from typing import TextIO
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +29,7 @@ _MESSAGE_DIALOG = {"dialog": None}
 
 
 @lru_cache
-def decimal_separator():
+def decimal_separator() -> str:
     """Return the decimal separator of the configured locale.
 
     The separator is read from the environment rather than the ambient
@@ -35,7 +43,7 @@ def decimal_separator():
     return sep
 
 
-def format_number(number):
+def format_number(number: float) -> str:
     """Format a number with the locale's decimal separator.
 
     Whole numbers keep no decimal part (210 not 210.0), while fractional
@@ -49,7 +57,7 @@ def format_number(number):
     return text
 
 
-def format_number_precise(number):
+def format_number_precise(number: float) -> str:
     """Format a number with the locale separator, keeping full precision.
 
     Scan-option values must round-trip unchanged (e.g. 1.07818603515625), so
@@ -62,7 +70,7 @@ def format_number_precise(number):
     return text
 
 
-def parse_number(text, number_type=float):
+def parse_number(text: str, number_type: type[int | float] = float) -> int | float:
     """Parse user-entered text into a number, accepting the locale's separator."""
     sep = decimal_separator()
     if sep not in (".", ""):
@@ -70,11 +78,11 @@ def parse_number(text, number_type=float):
     return number_type(text)
 
 
-def _weak_callback(obj, method_name):
+def _weak_callback(obj: object, method_name: str) -> Callable[..., object | None]:
     """Create a weak callback."""
     ref = weakref.ref(obj)
 
-    def callback(*args, **kwargs):
+    def callback(*args: object, **kwargs: object) -> object | None:
         instance = ref()
         if instance:
             return getattr(instance, method_name)(*args, **kwargs)
@@ -88,11 +96,11 @@ class Proc:
     """Class for passing returncode, stdout & stderr."""
 
     returncode: int
-    stdout: str
+    stdout: str | None
     stderr: str
 
 
-def exec_command(cmd, pidfile=None):
+def exec_command(cmd: list[str], pidfile: TextIO | None = None) -> Proc:
     """Wrap subprocess.Popen()."""
     logger.info(" ".join(cmd))
     kwargs = {}
@@ -122,15 +130,15 @@ def exec_command(cmd, pidfile=None):
 
 
 def exec_command_run(  # noqa: PLR0913 - mirrors subprocess.run()'s surface; keyword-only after cmd/pidfile
-    cmd,
-    pidfile=None,
+    cmd: str | list[str],
+    pidfile: TextIO | None = None,
     *,
-    check=False,
-    capture_output=False,
-    text=True,
-    shell=False,
-    **kwargs,
-):
+    check: bool = False,
+    capture_output: bool = False,
+    text: bool = True,
+    shell: bool = False,
+    **kwargs: object,
+) -> subprocess.CompletedProcess:
     """Run a command like subprocess.run() but record the spawn pid for cancellation."""
     kwargs = dict(kwargs)
     if pidfile is not None:
@@ -159,12 +167,16 @@ def exec_command_run(  # noqa: PLR0913 - mirrors subprocess.run()'s surface; key
     return subprocess.CompletedProcess(cmd, returncode, stdout_data, stderr_data)
 
 
-def program_version(stream, regex, cmd):
+def program_version(
+    stream: str, regex: str | re.Pattern[str], cmd: list[str]
+) -> str | None:
     """Run command and parse version string from output."""
     return _program_version(stream, regex, exec_command(cmd))
 
 
-def _program_version(stream, regex, proc):
+def _program_version(
+    stream: str, regex: str | re.Pattern[str], proc: Proc
+) -> str | None:
     if proc.stdout is None:
         proc.stdout = ""
     if proc.stderr is None:
@@ -193,7 +205,9 @@ def _program_version(stream, regex, proc):
     return None
 
 
-def collate_metadata(settings, today_and_now):
+def collate_metadata(
+    settings: dict[str, object], today_and_now: datetime.datetime
+) -> dict[str, object]:
     """Collect metadata from settings dictionary."""
     metadata = {}
     for key in ["author", "title", "subject", "keywords"]:
@@ -210,7 +224,7 @@ def collate_metadata(settings, today_and_now):
     return metadata
 
 
-def expand_metadata_pattern(**kwargs):
+def expand_metadata_pattern(**kwargs: object) -> str:
     """Expand metadata template."""
     # Expand author, title and extension
     for key in ["author", "title", "subject", "keywords", "extension"]:
@@ -251,7 +265,7 @@ def expand_metadata_pattern(**kwargs):
     return kwargs["template"]
 
 
-def show_message_dialog(**options):
+def show_message_dialog(**options: object) -> None:
     """Show message dialog."""
     dialog = _MESSAGE_DIALOG["dialog"]
     if not dialog:
@@ -278,7 +292,7 @@ def show_message_dialog(**options):
     dialog.destroy()
 
 
-def get_tmp_dir(dirname, pattern):
+def get_tmp_dir(dirname: str | None, pattern: str) -> str | None:
     """If user selects session dir as tmp dir, return parent dir."""
     if dirname is None:
         return None
@@ -287,7 +301,7 @@ def get_tmp_dir(dirname, pattern):
     return dirname
 
 
-def slurp(file):
+def slurp(file: str | PathLike[str] | TextIO) -> str:
     """Slurp file."""
     if hasattr(file, "read"):
         file.seek(0)
@@ -299,7 +313,7 @@ def slurp(file):
         return fhd.read()
 
 
-def recursive_slurp(files):
+def recursive_slurp(files: Iterable[str | PathLike[str]]) -> None:
     """Recursively process files and directories, logging the contents of each file."""
     for file in files:
         if pathlib.Path(file).is_dir():

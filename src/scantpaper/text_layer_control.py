@@ -1,12 +1,17 @@
 """provide controls for editing the text layer."""
 
+from __future__ import annotations
+
 import logging
-from typing import ClassVar
+from typing import TYPE_CHECKING
 
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.i18n import _
+
+if TYPE_CHECKING:
+    from typing import ClassVar
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -43,7 +48,7 @@ class TextLayerControls(Gtk.Box):
         "delete-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise the text layer control with navigation and editing buttons."""
         super().__init__(*args, **kwargs)
         textview = Gtk.TextView()
@@ -94,7 +99,7 @@ class TextLayerControls(Gtk.Box):
         self.pack_end(ubutton, expand=False, fill=False, padding=0)
         self.pack_end(abutton, expand=False, fill=False, padding=0)
 
-    def _make_icon_button(self, icon, tooltip, signal):
+    def _make_icon_button(self, icon: str, tooltip: str, signal: str) -> Gtk.Button:
         """Build an icon button that emits the given signal."""
         button = Gtk.Button()
         button.set_image(Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.BUTTON))
@@ -102,7 +107,14 @@ class TextLayerControls(Gtk.Box):
         button.connect("clicked", lambda _: self.emit(signal))
         return button
 
-    def _make_mnemonic_button(self, label, tooltip, signal=None, *, close=False):
+    def _make_mnemonic_button(
+        self,
+        label: str,
+        tooltip: str,
+        signal: str | None = None,
+        *,
+        close: bool = False,
+    ) -> Gtk.Button:
         """Build a mnemonic button that emits the given signal or closes."""
         button = Gtk.Button.new_with_mnemonic(label=label)
         button.set_tooltip_text(tooltip)
