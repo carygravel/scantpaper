@@ -47,12 +47,12 @@ class Crop(Dialog):
         nick="Selection",
         blurb="Current selection",
     )
-    def selection(self):
+    def selection(self) -> Gdk.Rectangle | None:
         """Getter for selection attribute."""
         return self._selection
 
     @selection.setter
-    def selection(self, newval):
+    def selection(self, newval: Gdk.Rectangle | None) -> None:
         if (
             newval is not None
             and self._selection is not None
@@ -76,12 +76,12 @@ class Crop(Dialog):
         nick="Page width",
         blurb="Width of current page in pixels",
     )
-    def page_width(self):
+    def page_width(self) -> int:
         """Getter for page_width attribute."""
         return self._page_width
 
     @page_width.setter
-    def page_width(self, newval):
+    def page_width(self, newval: int) -> None:
         if newval == self._page_width:
             return
         self._update_sb_range("x")
@@ -96,19 +96,19 @@ class Crop(Dialog):
         nick="Page height",
         blurb="Height of current page in pixels",
     )
-    def page_height(self):
+    def page_height(self) -> int:
         """Getter for page_width attribute."""
         return self._page_height
 
     @page_height.setter
-    def page_height(self, newval):
+    def page_height(self, newval: int) -> None:
         if newval == self._page_height:
             return
         self._update_sb_range("y")
         self._update_sb_range("height")
         self._page_height = newval
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         kwargs["title"] = _("Crop")
         kwargs["hide_on_delete"] = True
@@ -152,7 +152,9 @@ class Crop(Dialog):
             hbox.pack_start(label, expand=False, fill=True, padding=0)
             widget.set_tooltip_text(row[2])
 
-    def on_sb_selector_value_changed(self, widget, dimension):
+    def on_sb_selector_value_changed(
+        self, widget: Gtk.SpinButton, dimension: str
+    ) -> None:
         """Update selection when spinbutton changes."""
         if self._updating_selection:
             return
@@ -166,7 +168,7 @@ class Crop(Dialog):
         self.selection = new_selection
         self._update_sb_range(dimension)
 
-    def _update_sb_range(self, dimension):
+    def _update_sb_range(self, dimension: str) -> None:
         pagedim = "page_" + ("width" if dimension in ("x", "width") else "height")
         otherattr = {"x": "width", "y": "height", "width": "x", "height": "y"}[
             dimension

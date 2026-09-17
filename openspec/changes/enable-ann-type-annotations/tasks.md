@@ -56,30 +56,30 @@
 
 ## 6. Menu Mixins
 
-- [ ] 6.1 Annotate `src/scantpaper/file_menu_mixins.py` and
+- [x] 6.1 Annotate `src/scantpaper/file_menu_mixins.py` and
       `src/scantpaper/edit_menu_mixins.py`.
-- [ ] 6.2 Annotate `src/scantpaper/tools_menu_mixins.py` and
+- [x] 6.2 Annotate `src/scantpaper/tools_menu_mixins.py` and
       `src/scantpaper/scan_menu_item_mixins.py`.
-- [ ] 6.3 Annotate `src/scantpaper/session_mixins.py`.
-- [ ] 6.4 Run `ruff check .`, `ruff format --check .`, and `pytest`.
+- [x] 6.3 Annotate `src/scantpaper/session_mixins.py`.
+- [x] 6.4 Run `ruff check .`, `ruff format --check .`, and `pytest`.
 
 ## 7. Dialogs
 
-- [ ] 7.1 Annotate `src/scantpaper/dialog/__init__.py`,
+- [x] 7.1 Annotate `src/scantpaper/dialog/__init__.py`,
       `src/scantpaper/dialog/pagecontrols.py`,
       `src/scantpaper/dialog/preferences.py`,
       `src/scantpaper/dialog/crop.py`, `src/scantpaper/dialog/paperlist.py`.
-- [ ] 7.2 Annotate `src/scantpaper/dialog/save.py` and
+- [x] 7.2 Annotate `src/scantpaper/dialog/save.py` and
       `src/scantpaper/dialog/sane.py`.
-- [ ] 7.3 Annotate `src/scantpaper/dialog/scan.py` (largest single module:
+- [x] 7.3 Annotate `src/scantpaper/dialog/scan.py` (largest single module:
       233 violations).
-- [ ] 7.4 Run `ruff check .`, `ruff format --check .`, and `pytest`.
+- [x] 7.4 Run `ruff check .`, `ruff format --check .`, and `pytest`.
 
 ## 8. Tests
 
-- [ ] 8.1 Annotate `src/scantpaper/conftest.py` (fixtures annotated with
+- [x] 8.1 Annotate `src/scantpaper/conftest.py` (fixtures annotated with
       their real types; PEP 563 + `TYPE_CHECKING` for pytest-only imports).
-- [ ] 8.2 Annotate the SANE dialog test files
+- [x] 8.2 Annotate the SANE dialog test files
       (`test_06*.py`, `test_0608*/`/`test_0609*/`, `test_0610`, `test_06182`,
       `test_06198`, `test_06199`, `test_0810*` etc. — the concentrated
       `ANN001`/`ANN202` clusters) and `src/scantpaper/tests/scan_mocks.py`.

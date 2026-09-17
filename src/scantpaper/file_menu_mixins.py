@@ -1,5 +1,7 @@
 """provide methods called from file menu."""
 
+from __future__ import annotations
+
 import datetime
 import fcntl
 import logging
@@ -8,6 +10,7 @@ import pathlib
 import re
 import sys
 import tempfile
+from typing import TYPE_CHECKING
 
 import gi
 
@@ -18,6 +21,9 @@ from scantpaper.dialog.save import Save as SaveDialog
 from scantpaper.helpers import collate_metadata, expand_metadata_pattern
 from scantpaper.i18n import _
 from scantpaper.print_operation import PrintOperation
+
+if TYPE_CHECKING:
+    from scantpaper.basethread import Response
 
 gi.require_version("Gtk", "3.0")
 
@@ -30,7 +36,9 @@ from gi.repository import (  # noqa: E402
 logger = logging.getLogger(__name__)
 
 
-def add_filter(file_chooser, name, file_extensions):
+def add_filter(
+    file_chooser: Gtk.FileChooser, name: str, file_extensions: list[str]
+) -> None:
     """Create a file filter to show only supported file types in FileChooser dialog."""
     ffilter = Gtk.FileFilter()
     for extension in file_extensions:
@@ -55,7 +63,7 @@ def add_filter(file_chooser, name, file_extensions):
     file_chooser.add_filter(ffilter)
 
 
-def file_exists(chooser, filename):
+def file_exists(chooser: Gtk.FileChooser, filename: str) -> bool:
     """Check if a file exists and prompt the user for confirmation if it does."""
     if pathlib.Path(filename).is_file():
         # File exists; get the file chooser to ask the user to confirm.
@@ -68,7 +76,7 @@ def file_exists(chooser, filename):
     return False
 
 
-def launch_default_for_file(filename):
+def launch_default_for_file(filename: str) -> None:
     """Launch default viewer for file."""
     uri = GLib.filename_to_uri(str(pathlib.Path(filename).resolve()), None)
     logger.info("Opening %s via default launcher", uri)
@@ -82,7 +90,7 @@ def launch_default_for_file(filename):
 class FileMenuMixins:
     """provide methods called from file menu."""
 
-    def _chdir_cwd(self):
+    def _chdir_cwd(self) -> None:
         """Change directory to settings['cwd'], falling back to HOME if it doesn't exist."""
         try:
             os.chdir(self.settings["cwd"])
@@ -90,7 +98,7 @@ class FileMenuMixins:
             self.settings["cwd"] = str(pathlib.Path("~").expanduser())
             os.chdir(self.settings["cwd"])
 
-    def new_(self, _action, _param):
+    def new_(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Delete all scans after warning."""
         if not self._pages_saved(
             _("Some pages have not been saved.\nDo you really want to clear all pages?")
@@ -111,7 +119,9 @@ class FileMenuMixins:
 
         self.slist.delete_all_pages()
 
-    def open_dialog(self, _action, _param):
+    def open_dialog(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Throw up file selector and open selected file."""
         # cd back to cwd to get filename
         self._chdir_cwd()
@@ -163,7 +173,9 @@ class FileMenuMixins:
         # cd back to tempdir
         os.chdir(self.session.name)
 
-    def _select_pagerange_callback(self, info):
+    def _select_pagerange_callback(
+        self, info: dict[str, object]
+    ) -> tuple[int, int] | tuple[None, None]:
         dialog = Gtk.Dialog(
             title=_("Pages to extract"),
             transient_for=self,
@@ -197,7 +209,7 @@ class FileMenuMixins:
             return int(spinbuttonf.get_value()), int(spinbuttonl.get_value())
         return None, None
 
-    def _import_files_password_callback(self, filename):
+    def _import_files_password_callback(self, filename: str) -> str | None:
         """Ask for password for encrypted PDF."""
         text = _("Enter user password for PDF %s") % (filename)
         dialog = Gtk.MessageDialog(
@@ -222,7 +234,7 @@ class FileMenuMixins:
             return text
         return None
 
-    def _import_files_finished_callback(self, response):
+    def _import_files_finished_callback(self, response: Response) -> None:
         """import_files finished callback."""
         self.post_process_progress.finish(response)
         # Resume full-resolution loading and show the final imported page.
@@ -231,7 +243,7 @@ class FileMenuMixins:
         if indices:
             self._display_image(self.slist.data[indices[0]][2])
 
-    def _import_files_metadata_callback(self, metadata):
+    def _import_files_metadata_callback(self, metadata: dict[str, object]) -> None:
         """Update the metadata from the imported file."""
         logger.debug("import_files_metadata_callback(%s)", metadata)
         for dialog in (self._windowi, self._windowe):
@@ -239,7 +251,7 @@ class FileMenuMixins:
                 dialog.update_from_import_metadata(metadata)
         config.update_config_from_imported_metadata(self.settings, metadata)
 
-    def _import_files(self, filenames, *, all_pages=False):
+    def _import_files(self, filenames: list[str], *, all_pages: bool = False) -> None:
         """Import given files."""
         # During a bulk import only show thumbnails; the final page is loaded
         # full-res once the import finishes (see _import_files_finished_callback).
@@ -261,7 +273,9 @@ class FileMenuMixins:
 
         self.slist.import_files(**options)
 
-    def _open_session_action(self, _action, _param):
+    def _open_session_action(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Open session."""
         file_chooser = Gtk.FileChooserDialog(
             title=_("Open crashed session"),
@@ -279,14 +293,16 @@ class FileMenuMixins:
 
         file_chooser.destroy()
 
-    def _open_session(self, db):
+    def _open_session(self, db: str) -> None:
         """Open session."""
         logger.info("Restoring session in %s", self.session)
         self.slist.open_session(
             db=db, delete=False, error_callback=self._error_callback
         )
 
-    def save_dialog(self, _action, _param):
+    def save_dialog(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Display page selector and on save a fileselector."""
         if self._windowi is not None:
             self._windowi.present()
@@ -390,7 +406,9 @@ class FileMenuMixins:
         self._windowi.show_all()
         self._windowi.resize(1, 1)
 
-    def _save_button_clicked_callback(self, kbutton, pshbutton):
+    def _save_button_clicked_callback(
+        self, kbutton: Gtk.CheckButton, pshbutton: Gtk.CheckButton
+    ) -> None:
         """Save selected pages."""
         # Compile list of pages
         self.settings["Page range"] = self._windowi.page_range
@@ -439,7 +457,7 @@ class FileMenuMixins:
                 self.settings["quality"] = self._windowi.jpeg_quality
             self._save_image(uuids)
 
-    def _save_file_chooser(self, uuids):
+    def _save_file_chooser(self, uuids: list[str]) -> None:
 
         # cd back to cwd to save
         self._chdir_cwd()
@@ -509,7 +527,7 @@ class FileMenuMixins:
         # cd back to tempdir
         os.chdir(self.session.name)
 
-    def _list_of_page_uuids(self):
+    def _list_of_page_uuids(self) -> list[str]:
         """Compile list of pages."""
         pagelist = self.slist.get_page_index(
             self.settings["Page range"], self._error_callback
@@ -518,12 +536,14 @@ class FileMenuMixins:
             return []
         return [self.slist.data[i][2] for i in pagelist]
 
-    def _normalize_filetype_suffix(self, filetype):
+    def _normalize_filetype_suffix(self, filetype: str) -> str:
         if re.search(r"pdf", filetype, re.IGNORECASE):
             return "pdf"
         return filetype
 
-    def _save_with_filetype(self, filetype, filename, uuids):
+    def _save_with_filetype(
+        self, filetype: str, filename: str, uuids: list[str]
+    ) -> None:
         """Save the selected pages according to the file type."""
         if re.search(r"pdf", filetype, re.IGNORECASE):
             self._save_pdf(filename, uuids, filetype)
@@ -545,7 +565,9 @@ class FileMenuMixins:
             method = getattr(self, f"_save_{filetype}")
             method(filename, uuids)
 
-    def _file_chooser_response_callback(self, dialog, response, data):
+    def _file_chooser_response_callback(
+        self, dialog: Gtk.FileChooserDialog, response: int, data: list[object]
+    ) -> None:
         """Handle file chooser dialog response."""
         filetype, uuids = data
         suffix = self._normalize_filetype_suffix(filetype)
@@ -569,7 +591,7 @@ class FileMenuMixins:
 
         dialog.destroy()
 
-    def _file_writable(self, chooser, filename):
+    def _file_writable(self, chooser: Gtk.FileChooserDialog, filename: str) -> bool:
         """Check if a file or its directory is writable and show an error dialog if not."""
         if not os.access(pathlib.Path(filename).parent, os.W_OK):
             text = _("Directory %s is read-only") % (pathlib.Path(filename).parent)
@@ -593,7 +615,9 @@ class FileMenuMixins:
 
         return True
 
-    def _save_pdf(self, filename, list_of_page_uuids, option):
+    def _save_pdf(
+        self, filename: str, list_of_page_uuids: list[str], option: str
+    ) -> None:
         """Save selected pages as PDF under given name."""
         # Compile options
         options = {
@@ -623,7 +647,7 @@ class FileMenuMixins:
         # Create the PDF
         logger.debug("Started saving %s", filename)
 
-        def save_pdf_finished_callback(response):
+        def save_pdf_finished_callback(response: Response) -> None:
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", list_of_page_uuids)
             if self.settings.get("view files toggle"):
@@ -647,7 +671,7 @@ class FileMenuMixins:
             error_callback=self._error_callback,
         )
 
-    def _save_djvu(self, filename, uuids):
+    def _save_djvu(self, filename: str, uuids: list[str]) -> None:
         """Save a list of pages as a DjVu file."""
         # cd back to tempdir
         os.chdir(self.session.name)
@@ -663,7 +687,7 @@ class FileMenuMixins:
         if self.settings["post_save_hook"]:
             options["post_save_hook"] = self.settings["current_psh"]
 
-        def save_djvu_finished_callback(response):
+        def save_djvu_finished_callback(response: Response) -> None:
             filename = response.request.args[0]["path"]
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
@@ -683,7 +707,7 @@ class FileMenuMixins:
             error_callback=self._error_callback,
         )
 
-    def _save_tif(self, filename, uuids, ps=None):
+    def _save_tif(self, filename: str, uuids: list[str], ps: str | None = None) -> None:
         """Save a list of pages as a TIFF file with specified options."""
         options = {
             "compression": self.settings["tiff compression"],
@@ -693,7 +717,7 @@ class FileMenuMixins:
         if self.settings["post_save_hook"]:
             options["post_save_hook"] = self.settings["current_psh"]
 
-        def save_tiff_finished_callback(response):
+        def save_tiff_finished_callback(response: Response) -> None:
             filename = response.request.args[0]["path"]
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
@@ -714,13 +738,13 @@ class FileMenuMixins:
             error_callback=self._error_callback,
         )
 
-    def _save_txt(self, filename, uuids):
+    def _save_txt(self, filename: str, uuids: list[str]) -> None:
         """Save OCR text."""
         options = {}
         if self.settings["post_save_hook"]:
             options["post_save_hook"] = self.settings["current_psh"]
 
-        def save_text_finished_callback(response):
+        def save_text_finished_callback(response: Response) -> None:
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
             if self.settings.get("view files toggle"):
@@ -739,13 +763,13 @@ class FileMenuMixins:
             error_callback=self._error_callback,
         )
 
-    def _save_hocr(self, filename, uuids):
+    def _save_hocr(self, filename: str, uuids: list[str]) -> None:
         """Save HOCR (HTML OCR) data to a file."""
         options = {}
         if self.settings["post_save_hook"]:
             options["post_save_hook"] = self.settings["current_psh"]
 
-        def save_hocr_finished_callback(response):
+        def save_hocr_finished_callback(response: Response) -> None:
             self.slist.thread.send("set_saved", uuids)
             self.post_process_progress.finish(response)
             if self.settings.get("view files toggle"):
@@ -764,7 +788,7 @@ class FileMenuMixins:
             error_callback=self._error_callback,
         )
 
-    def _save_image(self, uuids):
+    def _save_image(self, uuids: list[str]) -> None:
         """Save selected pages as image under given name."""
         # cd back to cwd to save
         self._chdir_cwd()
@@ -823,7 +847,9 @@ class FileMenuMixins:
 
         file_chooser.destroy()
 
-    def _multi_image_filename(self, file_chooser, uuids, filename):
+    def _multi_image_filename(
+        self, file_chooser: Gtk.FileChooserDialog, uuids: list[str], filename: str
+    ) -> str | None:
         """Return the numbered template filename, or None if it would overwrite."""
         w = len(uuids)
         for i in range(1, w + 1):
@@ -841,7 +867,9 @@ class FileMenuMixins:
 
         return f"${filename}_%0${w}d.{self.settings['image type']}"
 
-    def _single_image_filename(self, file_chooser, filename):
+    def _single_image_filename(
+        self, file_chooser: Gtk.FileChooserDialog, filename: str
+    ) -> str | None:
         """Return the single image filename, or None if not writable."""
         if not re.search(
             rf"[.]{self.settings['image type']}$",
@@ -856,7 +884,9 @@ class FileMenuMixins:
             return None
         return filename
 
-    def _save_image_finished_callback(self, response, uuids):
+    def _save_image_finished_callback(
+        self, response: Response, uuids: list[str]
+    ) -> None:
         filename = response.request.args[0]["path"]
         self.post_process_progress.finish(response)
         self.slist.thread.send("set_saved", uuids)
@@ -870,7 +900,7 @@ class FileMenuMixins:
 
         logger.debug("Finished saving %s", filename)
 
-    def _update_post_save_hooks(self):
+    def _update_post_save_hooks(self) -> None:
         """Update the post-save hooks."""
         if self._windowi is not None:
             if hasattr(self._windowi, "comboboxpsh"):
@@ -889,7 +919,9 @@ class FileMenuMixins:
 
             self._windowi.comboboxpsh.set_active_by_text(self.settings["current_psh"])
 
-    def print_dialog(self, _action, _param):
+    def print_dialog(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Print."""
         self._chdir_cwd()
         print_op = PrintOperation(settings=self.print_settings, slist=self.slist)
@@ -898,12 +930,12 @@ class FileMenuMixins:
             self.print_settings = print_op.get_print_settings()
         os.chdir(self.session.name)
 
-    def quit_app(self, _action, _param):
+    def quit_app(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Handle the quit action for the application."""
         if self._can_quit():
             self.get_application().quit()
 
-    def _can_quit(self):
+    def _can_quit(self) -> bool:
         """Remove temporary files, note window state, save settings and quit."""
         if not self._pages_saved(
             _("Some pages have not been saved.\nDo you really want to quit?")
@@ -948,14 +980,14 @@ class FileMenuMixins:
 
         return True
 
-    def _restart(self):
+    def _restart(self) -> None:
         """Restart the application."""
         self._can_quit()
         os.execv(  # noqa: S606 - execv replaces this process; no shell is involved
             sys.executable, ["python", *sys.argv]
         )
 
-    def _pages_saved(self, message):
+    def _pages_saved(self, message: str) -> bool:
         """Check that all pages have been saved."""
         if not self.slist.thread.pages_saved():
             response = self._ask_question(

@@ -1,5 +1,7 @@
 """test scanner option profiles."""
 
+from __future__ import annotations
+
 import copy
 import unittest.mock
 
@@ -9,7 +11,7 @@ from scantpaper.frontend import enums
 from scantpaper.scanner.profile import Profile, _synonyms
 
 
-def test_synonyms():
+def test_synonyms() -> None:
     """Test synonyms."""
     assert _synonyms("page-height") == [
         "page-height",
@@ -38,7 +40,7 @@ def test_synonyms():
     assert _synonyms("none") == ["none"], "no synonyms"
 
 
-def test_profile_basic():
+def test_profile_basic() -> None:
     """Test basic Profile functionality."""
     profile = Profile()
     assert isinstance(profile, Profile)
@@ -55,7 +57,7 @@ def test_profile_basic():
     }, "pruned duplicate"
 
 
-def test_frontend_options():
+def test_frontend_options() -> None:
     """Test frontend options."""
     profile = Profile()
     profile.add_frontend_option("num_pages", 0)
@@ -77,7 +79,7 @@ def test_frontend_options():
     profile.remove_frontend_option("non-existent")  # Should not raise
 
 
-def test_profile_init_data():
+def test_profile_init_data() -> None:
     """Test Profile initialization from data."""
     profile = Profile(frontend={"num_pages": 1}, backend=[("br-x", "297")])
     assert profile.get() == {
@@ -106,14 +108,14 @@ def test_profile_init_data():
     assert p1.frontend["num_pages"] == 5
 
 
-def test_profile_init_combined_dict_missing_backend():
+def test_profile_init_combined_dict_missing_backend() -> None:
     """Profile from a combined dict with only a frontend key uses empty backend."""
     profile = Profile({"frontend": {"num_pages": 3}})
     assert profile.frontend == {"num_pages": 3}, "frontend extracted"
     assert profile.backend == [], "backend defaults to empty list"
 
 
-def test_profile_round_trip_legacy_default_scan_options():
+def test_profile_round_trip_legacy_default_scan_options() -> None:
     """A normalised legacy default-scan-options value round-trips via Profile."""
     scan_options = {
         "frontend": {},
@@ -126,7 +128,7 @@ def test_profile_round_trip_legacy_default_scan_options():
     }, "legacy default scan options decode to tuples on load"
 
 
-def test_map_from_cli():
+def test_map_from_cli() -> None:
     """Test map_from_cli."""
     profile = Profile(backend=[("l", 1), ("y", 50), ("x", 50), ("t", 2)])
     assert profile.get() == {
@@ -140,7 +142,7 @@ def test_map_from_cli():
     assert p3.get_option_by_name("br-y") == 20
 
 
-def test_backend_option_iteration():
+def test_backend_option_iteration() -> None:
     """Test each_backend_option."""
     profile = Profile(backend=[("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)])
     itr = profile.each_backend_option()
@@ -162,7 +164,7 @@ def test_backend_option_iteration():
         next(itr)
 
 
-def test_remove_backend_option():
+def test_remove_backend_option() -> None:
     """Test removal of backend options."""
     profile = Profile(backend=[("tl-x", 1), ("br-y", 52), ("br-x", 51), ("tl-y", 2)])
     profile.remove_backend_option_by_name("tl-x")
@@ -186,7 +188,7 @@ def test_remove_backend_option():
         p_empty.remove_backend_option_by_name("any")
 
 
-def test_profile_magic_methods():
+def test_profile_magic_methods() -> None:
     """Test magic methods."""
     p1 = Profile(frontend={"num_pages": 5})
     p2 = copy.copy(p1)
@@ -202,7 +204,7 @@ def test_profile_magic_methods():
     assert p1 != Profile(frontend=p1.frontend, backend=[("opt", 1)])
 
 
-def test_add_backend_option_logic():
+def test_add_backend_option_logic() -> None:
     """Test add_backend_option logic and errors."""
     p1 = Profile()
     # add_backend_option oldval logic
@@ -216,7 +218,7 @@ def test_add_backend_option_logic():
         p1.add_backend_option("", 1)
 
 
-def test_add_frontend_option_errors():
+def test_add_frontend_option_errors() -> None:
     """Test add_frontend_option errors."""
     p1 = Profile()
     with pytest.raises(ValueError, match="Error: no option name"):
@@ -225,7 +227,7 @@ def test_add_frontend_option_errors():
         p1.add_frontend_option("", 1)
 
 
-def test_map_to_cli():
+def test_map_to_cli() -> None:
     """Test map_to_cli."""
     p4 = Profile(
         backend=[("tl-x", 1), ("tl-y", 2), ("br-x", 11), ("br-y", 12), ("other", 5)]
@@ -256,7 +258,7 @@ def test_map_to_cli():
     assert p5_no_coords.get_option_by_name("y") == 12
 
 
-def test_map_to_cli_variants():
+def test_map_to_cli_variants() -> None:
     """Test map_to_cli boolean and None options."""
     p6 = Profile(backend=[("bool-opt", True)])
     options = unittest.mock.Mock()

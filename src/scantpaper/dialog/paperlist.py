@@ -1,15 +1,21 @@
 """A list of paper sizes."""
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from scantpaper.i18n import _
 from scantpaper.simplelist import SimpleList
+
+if TYPE_CHECKING:
+    from gi.repository import Gtk
 
 
 class PaperList(SimpleList):
     """A list of paper sizes."""
 
-    def __init__(self, formats) -> None:
+    def __init__(self, formats: dict[str, dict[str, float]]) -> None:
         """Initialise PaperList."""
         columns = {
             _("Name"): "text",
@@ -39,7 +45,7 @@ class PaperList(SimpleList):
 
         self.get_column(0).set_sort_column_id(0)
 
-    def do_add_clicked(self, _widget):
+    def do_add_clicked(self, _widget: Gtk.Button) -> None:
         """Add button callback."""
         rows = self.get_selected_indices()
         if not rows and len(self.data) > 0:
@@ -60,7 +66,7 @@ class PaperList(SimpleList):
 
         self.data.insert(rows[0] + 1, line)
 
-    def do_remove_clicked(self):
+    def do_remove_clicked(self) -> None:
         """Remove button callback."""
         rows = self.get_selected_indices()
         if len(rows) == len(self.data):
@@ -69,7 +75,9 @@ class PaperList(SimpleList):
         while rows:
             del self.data[rows.pop(0)]
 
-    def do_paper_sizes_row_changed(self, _model, path, _iter):
+    def do_paper_sizes_row_changed(
+        self, _model: Gtk.TreeModel, path: Gtk.TreePath, _iter: Gtk.TreeIter
+    ) -> None:
         """Check that no two names are the same."""
         path = int(path.to_string())
         for index, row in enumerate(self.data):
@@ -93,7 +101,7 @@ class PaperList(SimpleList):
                 self.data[path][0] = f"{name} ({version})"
                 return
 
-    def do_remove_paper(self, _widget, window):
+    def do_remove_paper(self, _widget: Gtk.Button, window: Gtk.Window) -> None:
         """Remove paper button callback."""
         if self.data:
             self.do_remove_clicked()

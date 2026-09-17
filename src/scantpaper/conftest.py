@@ -1,5 +1,7 @@
 """Some helper functions to reduce boilerplate."""
 
+from __future__ import annotations
+
 import contextlib
 import locale
 import logging
@@ -8,6 +10,7 @@ import pathlib
 import subprocess
 import tempfile
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import gi
 import pytest
@@ -21,6 +24,13 @@ from scantpaper.frontend.image_sane import decode_info
 from scantpaper.helpers import decimal_separator
 from scantpaper.loop_helpers import _MainLoopWrapper, safe_mainloop
 from scantpaper.tests.scan_mocks import build_scan_options
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+
+    from scantpaper.basethread import Request, Response
+    from scantpaper.frontend.image_sane import SaneThread
+    from scantpaper.scanner.options import Option
 
 gi.require_version("Gtk", "3.0")
 
@@ -36,19 +46,19 @@ WHITE = 255
 logger = logging.getLogger(__name__)
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     """Globals."""
     config.timeout = 10000
 
 
 @pytest.fixture(autouse=True)
-def quit_lingering_threads():
+def quit_lingering_threads() -> Generator[None, None, None]:
     """Quit any BaseThread still alive after a test, releasing its resources."""
     yield
     BaseThread.quit_all_live_threads()
 
 
-def has_numeric_locale(name):
+def has_numeric_locale(name: str) -> bool:
     """Check if the given locale is available on the system."""
     try:
         saved = locale.setlocale(locale.LC_NUMERIC)
@@ -59,14 +69,14 @@ def has_numeric_locale(name):
     return True
 
 
-def _require_de_locale():
+def _require_de_locale() -> None:
     """Skip the current test when the de_DE.utf8 locale is not installed."""
     if not has_numeric_locale("de_DE.utf8"):
         pytest.skip("de_DE.utf8 locale not available")
 
 
 @pytest.fixture
-def comma_locale(monkeypatch):
+def comma_locale(monkeypatch: pytest.MonkeyPatch) -> Generator[str, None, None]:
     """Force the configured locale to a decimal-comma locale and reset the separator cache.
 
     Skips when the de_DE.utf8 locale is not installed on the system.
@@ -81,7 +91,7 @@ def comma_locale(monkeypatch):
 
 
 @pytest.fixture
-def dot_locale(monkeypatch):
+def dot_locale(monkeypatch: pytest.MonkeyPatch) -> Generator[str, None, None]:
     """Force the configured locale to a period decimal separator and reset the separator cache."""
     monkeypatch.setenv("LC_ALL", "C")
     monkeypatch.setenv("LANG", "C")
@@ -91,7 +101,7 @@ def dot_locale(monkeypatch):
 
 
 @pytest.fixture
-def sane_scan_dialog():
+def sane_scan_dialog() -> Generator[SaneScanDialog, None, None]:
     """Return a SaneScanDialog instance."""
     dialog = SaneScanDialog(
         title="title",
@@ -105,7 +115,7 @@ def sane_scan_dialog():
 
 
 @pytest.fixture
-def sane_scan_mocks():
+def sane_scan_mocks() -> Generator[SimpleNamespace, None, None]:
     """raw_options and mocked SaneThread do_* methods for scan-dialog tests."""
     raw_options = build_scan_options(
         [
@@ -124,13 +134,13 @@ def sane_scan_mocks():
         ]
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
-    def mocked_do_get_options(self, _request):
+    def mocked_do_get_options(self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         self.device_handle = SimpleNamespace(
             brightness=0,
@@ -147,7 +157,7 @@ def sane_scan_mocks():
         )
         return raw_options
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """mocked_do_set_option."""
         info = 0
         key, value = _request.args
@@ -164,14 +174,14 @@ def sane_scan_mocks():
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
 
-    def mocked_do_scan_page(self, _request):
+    def mocked_do_scan_page(self: SaneThread, _request: Request) -> Image.Image:
         """mocked_do_scan_page page."""
         if self.device_handle is None:
             msg = "must open device before starting scan"
             raise ValueError(msg)
         return Image.new("1", (100, 100))
 
-    def patch_all(mocker):
+    def patch_all(mocker: pytest.MockerFixture) -> None:
         """Patch the SaneThread do_* methods used by scan-dialog tests."""
         mocker.patch(
             "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
@@ -197,7 +207,9 @@ def sane_scan_mocks():
 
 
 @pytest.fixture
-def inexact_scan_mocks(request):
+def inexact_scan_mocks(
+    request: pytest.FixtureRequest,
+) -> Generator[SimpleNamespace, None, None]:
     """raw_options and mocked SaneThread do_* methods for the test_inexact family."""
     extra_options = getattr(request, "param", None) or {}
     extra_handle = extra_options.get("handle", {})
@@ -215,7 +227,7 @@ def inexact_scan_mocks(request):
     for i, name in enumerate(extra_option_names, start=len(raw_options)):
         raw_options.append(build_scan_options([name])[1]._replace(index=i))
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
@@ -230,11 +242,11 @@ def inexact_scan_mocks(request):
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         return raw_options
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """Reproduce fi-4220C2dj ignoring paper changes due to INFO_INEXACT."""
         key, value = _request.args
         for opt in raw_options:
@@ -257,7 +269,7 @@ def inexact_scan_mocks(request):
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
 
-    def patch_all(mocker):
+    def patch_all(mocker: pytest.MockerFixture) -> None:
         """Patch the SaneThread do_* methods used by the test_inexact family."""
         mocker.patch(
             "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
@@ -269,7 +281,7 @@ def inexact_scan_mocks(request):
             "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option
         )
 
-    def patch_open_get(mocker):
+    def patch_open_get(mocker: pytest.MockerFixture) -> None:
         """Patch do_open_device/do_get_options, leaving do_set_option to the caller."""
         mocker.patch(
             "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
@@ -289,7 +301,7 @@ def inexact_scan_mocks(request):
 
 
 @pytest.fixture
-def infinite_reloads_scan_mocks():
+def infinite_reloads_scan_mocks() -> Generator[SimpleNamespace, None, None]:
     """raw_options and open/get mocks for the test_infinite_reloads family."""
     raw_options = build_scan_options(
         [
@@ -302,7 +314,7 @@ def infinite_reloads_scan_mocks():
         ]
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
@@ -316,12 +328,12 @@ def infinite_reloads_scan_mocks():
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         nonlocal raw_options
         return raw_options
 
-    def patch_open_and_get(mocker):
+    def patch_open_and_get(mocker: pytest.MockerFixture) -> None:
         """Patch the SaneThread do_open_device/do_get_options methods."""
         mocker.patch(
             "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
@@ -339,10 +351,10 @@ def infinite_reloads_scan_mocks():
 
 
 @pytest.fixture
-def import_in_mainloop():
+def import_in_mainloop() -> Callable[[object, list[str]], None]:
     """Import paths in a blocking mainloop."""
 
-    def anonymous(slist, paths):
+    def anonymous(slist: object, paths: list[str]) -> None:
         mlp = safe_mainloop()
         slist.import_files(
             paths=paths,
@@ -354,10 +366,10 @@ def import_in_mainloop():
 
 
 @pytest.fixture
-def set_saved_in_mainloop():
+def set_saved_in_mainloop() -> Callable[..., None]:
     """set_saved in a blocking mainloop."""
 
-    def anonymous(slist, page_id, *, saved=True):
+    def anonymous(slist: object, page_id: str, *, saved: bool = True) -> None:
         mlp = safe_mainloop()
         slist.thread.send(
             "set_saved", page_id, saved, finished_callback=lambda _response: mlp.quit()
@@ -368,10 +380,10 @@ def set_saved_in_mainloop():
 
 
 @pytest.fixture
-def set_text_in_mainloop():
+def set_text_in_mainloop() -> Callable[[object, str, str], None]:
     """set_text in a blocking mainloop."""
 
-    def anonymous(slist, page_id, text):
+    def anonymous(slist: object, page_id: str, text: str) -> None:
         mlp = safe_mainloop()
         slist.thread.send(
             "set_text", page_id, text, finished_callback=lambda _response: mlp.quit()
@@ -382,10 +394,10 @@ def set_text_in_mainloop():
 
 
 @pytest.fixture
-def set_annotations_in_mainloop():
+def set_annotations_in_mainloop() -> Callable[[object, str, object], None]:
     """set_annotations in a blocking mainloop."""
 
-    def anonymous(slist, page_id, annotations):
+    def anonymous(slist: object, page_id: str, annotations: object) -> None:
         mlp = safe_mainloop()
         slist.thread.send(
             "set_annotations",
@@ -399,10 +411,10 @@ def set_annotations_in_mainloop():
 
 
 @pytest.fixture
-def set_resolution_in_mainloop():
+def set_resolution_in_mainloop() -> Callable[[object, str, float, float], None]:
     """set_resolution in a blocking mainloop."""
 
-    def anonymous(slist, page_id, xres, yres):
+    def anonymous(slist: object, page_id: str, xres: float, yres: float) -> None:
         mlp = safe_mainloop()
         slist.thread.send(
             "set_resolution",
@@ -417,19 +429,19 @@ def set_resolution_in_mainloop():
 
 
 @pytest.fixture
-def get_page_sync():
+def get_page_sync() -> Callable[..., object]:
     """Get a page synchronously via async send()."""
 
-    def anonymous(thread, **kwargs):
+    def anonymous(thread: BaseThread, **kwargs: object) -> object:
         result = [None]
         error = [None]
         mlp = safe_mainloop()
 
-        def on_finished(response):
+        def on_finished(response: Response) -> None:
             result[0] = response.info
             mlp.quit()
 
-        def on_error(response):
+        def on_error(response: Response) -> None:
             error[0] = response.status
             mlp.quit()
 
@@ -450,10 +462,12 @@ def get_page_sync():
 
 
 @pytest.fixture
-def mainloop_with_timeout(request):
+def mainloop_with_timeout(
+    request: pytest.FixtureRequest,
+) -> Callable[[], _MainLoopWrapper]:
     """Start a mainloop with a timeout."""
 
-    def anonymous():
+    def anonymous() -> _MainLoopWrapper:
         loop = GLib.MainLoop()
         wrapper = _MainLoopWrapper(loop)
         GLib.timeout_add(request.config.timeout, wrapper.on_timeout)
@@ -463,14 +477,16 @@ def mainloop_with_timeout(request):
 
 
 @pytest.fixture
-def set_device_wait_reload(mainloop_with_timeout):
+def set_device_wait_reload(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> Callable[[SaneScanDialog, str], None]:
     """Set the device and wait for the options to load."""
 
-    def anonymous(dialog, device):
+    def anonymous(dialog: SaneScanDialog, device: str) -> None:
         loop = mainloop_with_timeout()
         signal = None
 
-        def reloaded_scan_options_cb(_arg):
+        def reloaded_scan_options_cb(_arg: object) -> None:
             dialog.disconnect(signal)
             loop.quit()
 
@@ -485,14 +501,18 @@ def set_device_wait_reload(mainloop_with_timeout):
 
 
 @pytest.fixture
-def set_option_in_mainloop(mainloop_with_timeout):
+def set_option_in_mainloop(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> Callable[[SaneScanDialog, str, object], bool]:
     """Set the given option, and wait for it to finish."""
 
-    def anonymous(dialog, name, value):
+    def anonymous(dialog: SaneScanDialog, name: str, value: object) -> bool:
         loop = mainloop_with_timeout()
         callback_ran = False
 
-        def callback(_arg1, _arg2, _arg3, _arg4):
+        def callback(
+            _arg1: object, _arg2: object, _arg3: object, _arg4: object
+        ) -> None:
             nonlocal loop
             nonlocal signal
             nonlocal callback_ran
@@ -510,14 +530,16 @@ def set_option_in_mainloop(mainloop_with_timeout):
 
 
 @pytest.fixture
-def set_paper_in_mainloop(mainloop_with_timeout):
+def set_paper_in_mainloop(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> Callable[[SaneScanDialog, str | None], bool]:
     """Set the given paper, and wait for it to finish."""
 
-    def anonymous(dialog, paper):
+    def anonymous(dialog: SaneScanDialog, paper: str | None) -> bool:
         loop = mainloop_with_timeout()
         callback_ran = False
 
-        def changed_paper(_widget, _paper):
+        def changed_paper(_widget: object, _paper: object) -> None:
             nonlocal loop
             nonlocal signal
             nonlocal callback_ran
@@ -544,7 +566,7 @@ HOCR_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
 
 
 @pytest.fixture
-def temp_db():
+def temp_db() -> Generator[SimpleNamespace, None, None]:
     """Return a temporary db."""
     # SIM115 — cross-scope file handle used intentionally
     f = tempfile.NamedTemporaryFile(  # noqa: SIM115
@@ -558,72 +580,72 @@ def temp_db():
 
 
 @pytest.fixture
-def temp_cjb2():
+def temp_cjb2() -> object:
     """Return a temporary cjb2."""
     return tempfile.NamedTemporaryFile(suffix=".cjb2")
 
 
 @pytest.fixture
-def temp_djvu():
+def temp_djvu() -> object:
     """Return a temporary djvu."""
     return tempfile.NamedTemporaryFile(suffix=".djvu")
 
 
 @pytest.fixture
-def temp_gif():
+def temp_gif() -> object:
     """Return a temporary gif."""
     return tempfile.NamedTemporaryFile(suffix=".gif")
 
 
 @pytest.fixture
-def temp_jpg():
+def temp_jpg() -> object:
     """Return a temporary jpg."""
     return tempfile.NamedTemporaryFile(suffix=".jpg")
 
 
 @pytest.fixture
-def temp_pbm():
+def temp_pbm() -> object:
     """Return a temporary pbm."""
     return tempfile.NamedTemporaryFile(suffix=".pbm")
 
 
 @pytest.fixture
-def temp_pnm():
+def temp_pnm() -> object:
     """Return a temporary pnm."""
     return tempfile.NamedTemporaryFile(suffix=".pnm")
 
 
 @pytest.fixture
-def temp_ppm():
+def temp_ppm() -> object:
     """Return a temporary ppm."""
     return tempfile.NamedTemporaryFile(suffix=".ppm")
 
 
 @pytest.fixture
-def temp_png():
+def temp_png() -> object:
     """Return a temporary png."""
     return tempfile.NamedTemporaryFile(suffix=".png")
 
 
 @pytest.fixture
-def temp_pdf():
+def temp_pdf() -> object:
     """Return a temporary pdf."""
     return tempfile.NamedTemporaryFile(suffix=".pdf")
 
 
 @pytest.fixture
-def temp_tif():
+def temp_tif() -> object:
     """Return a temporary tif file."""
     return tempfile.NamedTemporaryFile(suffix=".tif")
 
 
 @pytest.fixture
-def temp_txt():
+def temp_txt() -> object:
     """Return a temporary txt file."""
     return tempfile.NamedTemporaryFile(suffix=".txt", mode="wt")
 
 
-def _create_rose_image():
+def _create_rose_image() -> Image.Image:
     """Create a 70x46 RGB image resembling the ImageMagick rose: sample."""
     img = Image.new("RGB", (70, 46))
     pixels = img.load()
@@ -640,7 +662,7 @@ def _create_rose_image():
     return img
 
 
-def _create_qbfox_image():
+def _create_qbfox_image() -> Image.Image:
     """Create a rotated grayscale image with 'The quick brown fox' text."""
     font_size = 72
     font = None
@@ -725,7 +747,7 @@ def _create_qbfox_image():
 
 
 @pytest.fixture(scope="session")
-def rose_pnm():
+def rose_pnm() -> Generator[str, None, None]:
     """Return a session-scoped pnm file with a rose image."""
     fd, path = tempfile.mkstemp(suffix=".pnm")
     os.close(fd)
@@ -735,7 +757,7 @@ def rose_pnm():
 
 
 @pytest.fixture(scope="session")
-def rose_png():
+def rose_png() -> Generator[str, None, None]:
     """Return a session-scoped png file with a rose image."""
     fd, path = tempfile.mkstemp(suffix=".png")
     os.close(fd)
@@ -745,7 +767,7 @@ def rose_png():
 
 
 @pytest.fixture(scope="session")
-def rose_jpg():
+def rose_jpg() -> Generator[str, None, None]:
     """Return a session-scoped jpg file with a rose image."""
     fd, path = tempfile.mkstemp(suffix=".jpg")
     os.close(fd)
@@ -755,7 +777,7 @@ def rose_jpg():
 
 
 @pytest.fixture(scope="session")
-def rose_tif():
+def rose_tif() -> Generator[str, None, None]:
     """Return a session-scoped tif file with a rose image."""
     fd, path = tempfile.mkstemp(suffix=".tif")
     os.close(fd)
@@ -765,7 +787,7 @@ def rose_tif():
 
 
 @pytest.fixture(scope="session")
-def rotated_qbfox_pnm():
+def rotated_qbfox_pnm() -> Generator[str, None, None]:
     """Return a session-scoped image with quick brown fox text."""
     fd, path = tempfile.mkstemp(suffix=".pnm")
     os.close(fd)
@@ -775,7 +797,7 @@ def rotated_qbfox_pnm():
 
 
 @pytest.fixture
-def rotated_qbfox_pnm_im(temp_pnm):
+def rotated_qbfox_pnm_im(temp_pnm: object) -> object:
     """Return an ImageMagick-generated image with quick brown fox text."""
     subprocess.run(  # noqa: S603 - test-controlled ImageMagick args; explicit shell=False
         [
@@ -804,10 +826,10 @@ def rotated_qbfox_pnm_im(temp_pnm):
 
 
 @pytest.fixture
-def clean_up_files():
+def clean_up_files() -> Callable[[list[str]], None]:
     """Clean up given files."""
 
-    def anonymous(files):
+    def anonymous(files: list[str]) -> None:
         for fname in files:
             if pathlib.Path(fname).is_file() or pathlib.Path(fname).is_symlink():
                 pathlib.Path(fname).unlink()
@@ -816,6 +838,6 @@ def clean_up_files():
 
 
 @pytest.fixture
-def datadir(request):
+def datadir(request: pytest.FixtureRequest) -> str:
     """Return the directory for test data."""
     return f"{request.fspath.dirname}/"

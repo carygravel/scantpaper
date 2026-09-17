@@ -1,11 +1,17 @@
 """subclass Gtk.Dialog to add some boilerplate."""
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 import gi
 
 from scantpaper.i18n import _
 from scantpaper.pagerange import PageRange
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
@@ -29,7 +35,7 @@ class Dialog(Gtk.Dialog):
         type=str, default="selected", nick="page-range", blurb="Either selected or all"
     )
 
-    def do_delete_event(self, _event):
+    def do_delete_event(self, _event: Gdk.Event) -> bool:
         """Delete event."""
         if self.hide_on_delete:
             self.hide()
@@ -38,7 +44,7 @@ class Dialog(Gtk.Dialog):
         self.destroy()
         return Gdk.EVENT_PROPAGATE
 
-    def do_key_press_event(self, event):
+    def do_key_press_event(self, event: Gdk.EventKey) -> bool:
         """Key press event."""
         if event.keyval == Gdk.KEY_Escape:
             if self.hide_on_delete:
@@ -49,25 +55,27 @@ class Dialog(Gtk.Dialog):
         Gtk.Dialog.do_key_press_event(self, event)
         return Gdk.EVENT_PROPAGATE
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
         self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
 
-    def add_page_range(self):
+    def add_page_range(self) -> None:
         """Add a frame and radio buttons to content area."""
         frame = Gtk.Frame(label=_("Page Range"))
         self.get_content_area().pack_start(frame, expand=False, fill=False, padding=0)
         prng = PageRange()
         prng.set_active(self.page_range)
 
-        def page_range_changed_callback(_widget, data):
+        def page_range_changed_callback(_widget: Gtk.Widget, data: str) -> None:
             self.page_range = data
 
         prng.connect("changed", page_range_changed_callback)
         frame.add(prng)
 
-    def add_actions(self, button_list):
+    def add_actions(
+        self, button_list: list[tuple[str, Callable[[], object]]]
+    ) -> list[Gtk.Button]:
         """Add buttons and link up their actions."""
         responses = [Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL]
         buttons, callbacks = [], {}
@@ -81,7 +89,7 @@ class Dialog(Gtk.Dialog):
 
         self.set_default_response(Gtk.ResponseType.OK)
 
-        def on_response(_widget, response):
+        def on_response(_widget: Gtk.Widget, response: int) -> None:
             if response is not None and response in callbacks:
                 callbacks[response]()
 
@@ -102,7 +110,7 @@ TYPES = {
 class MultipleMessage(Dialog):
     """Subclass of Dialog to display messages and let the user respond or ignore."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise MultipleMessage."""
         super().__init__(*args, **kwargs)
 
@@ -132,13 +140,13 @@ class MultipleMessage(Dialog):
         self.cbn.connect("toggled", self.on_toggled)
         self.add_actions([("gtk-close", close_callback)])
 
-    def on_toggled(self, _data=None):
+    def on_toggled(self, _data: object | None = None) -> None:
         """Handle a checkbutton toggle."""
         state = self.cbn.get_active()
         for cbn in self._list_checkbuttons():
             cbn.set_active(state)
 
-    def add_row(self, row):
+    def add_row(self, row: dict[str, object]) -> None:
         """Add a row with a new message."""
         self.grid.insert_row(self.grid_rows)
         if "page" in row:
@@ -178,7 +186,7 @@ class MultipleMessage(Dialog):
         if self.grid_rows > MIN_ROWS_FOR_CHECKBOX:
             self.cbl.set_label(_("Don't show these messages again"))
 
-    def _checkbutton_consistency(self, _widget=None):
+    def _checkbutton_consistency(self, _widget: Gtk.Widget | None = None) -> None:
         state = None
         for cbn in self._list_checkbuttons():
             if state is None:
@@ -195,7 +203,7 @@ class MultipleMessage(Dialog):
         else:
             self.cbn.set_inconsistent(True)
 
-    def add_message(self, row):
+    def add_message(self, row: dict[str, object]) -> None:
         """Possibly split messages or explain them."""
         if row["text"] is None:
             row["text"] = ""
@@ -212,15 +220,16 @@ class MultipleMessage(Dialog):
         ):
             self.add_row(row)
 
-    def store_responses(self, response, responses):
+    def store_responses(
+        self, response: str, responses: dict[str, dict[str, object]]
+    ) -> None:
         """Store response in responses."""
         for raw_text in self.list_messages_to_ignore(response):
             text = filter_message(raw_text)
             responses[text] = {}
             responses[text]["response"] = response
 
-    def _list_checkbuttons(self):
-
+    def _list_checkbuttons(self) -> list[Gtk.CheckButton]:
         cbs = []
         for row in range(1, self.grid_rows - 1 + 1):
             cbn = self.grid.get_child_at(COL_CHECKBUTTON, row)
@@ -229,7 +238,7 @@ class MultipleMessage(Dialog):
 
         return cbs
 
-    def list_messages_to_ignore(self, response):
+    def list_messages_to_ignore(self, response: str) -> list[str]:
         """Return messages that can be ignored."""
         messages = []
         for row in range(1, self.grid_rows):
@@ -256,12 +265,12 @@ class MultipleMessage(Dialog):
         return messages
 
 
-def response_stored(text, responses):
+def response_stored(text: str, responses: dict[str, dict[str, object]]) -> bool:
     """Return whether there is a response stored for the message."""
     return bool(responses) and text in responses and "response" in responses[text]
 
 
-def munge_message(messages):
+def munge_message(messages: str) -> str | list[str]:
     """Separate from filter_message to show addresses, error numbers, etc."""
     out = []
     regex = re.findall(
@@ -309,7 +318,7 @@ def munge_message(messages):
     return messages
 
 
-def filter_message(message):
+def filter_message(message: str) -> str:
     """External tools sometimes throw warning messages including a number.
 
     E.g. hex address. As the number is very rarely the same, although the message
@@ -327,5 +336,5 @@ def filter_message(message):
     return re.sub(r"\b\d+\b", "%%d", message)
 
 
-def close_callback():
+def close_callback() -> None:
     """Close callback."""

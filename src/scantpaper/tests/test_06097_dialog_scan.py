@@ -1,15 +1,29 @@
 """test scan dialog."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from scantpaper.scanner.profile import Profile
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import SimpleNamespace
+
+    import pytest
+    from gi.repository import Gtk
+
+    from scantpaper.dialog.sane import SaneScanDialog
+    from scantpaper.loop_helpers import _MainLoopWrapper
 
 
 def test_inexact(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-    inexact_scan_mocks,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    inexact_scan_mocks: SimpleNamespace,
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     inexact_scan_mocks.patch_all(mocker)
 
@@ -22,7 +36,7 @@ def test_inexact(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_paper_cb(_widget, _paper):
+    def changed_paper_cb(_widget: Gtk.Widget, _paper: object) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.current_scan_options == Profile(
@@ -43,7 +57,7 @@ def test_inexact(
 
     loop = mainloop_with_timeout()
 
-    def changed_paper_cb2(_widget, _paper):
+    def changed_paper_cb2(_widget: Gtk.Widget, _paper: object) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.current_scan_options == Profile(

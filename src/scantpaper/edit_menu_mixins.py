@@ -1,8 +1,11 @@
 """provide methods called from edit menu."""
 
+from __future__ import annotations
+
 import datetime
 import logging
 import re
+from typing import TYPE_CHECKING
 
 import gi
 
@@ -10,6 +13,11 @@ from scantpaper.const import _LOCAL_TZ, MAX_DPI
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.preferences import PreferencesDialog
 from scantpaper.i18n import _, d_sane
+
+if TYPE_CHECKING:
+    from gi.repository import Gio, GLib
+
+    from scantpaper.basethread import Response
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -20,7 +28,7 @@ logger = logging.getLogger(__name__)
 class EditMenuMixins:
     """provide methods called from edit menu."""
 
-    def undo(self, _action, _param):
+    def undo(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Restore previous snapshot."""
         logger.info("Undoing")
         self._actions["undo"].set_enabled(enabled=False)
@@ -29,7 +37,7 @@ class EditMenuMixins:
             error_callback=self._error_callback,
         )
 
-    def unundo(self, _action, _param):
+    def unundo(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Restore next snapshot."""
         logger.info("Redoing")
         self._actions["redo"].set_enabled(enabled=False)
@@ -38,7 +46,9 @@ class EditMenuMixins:
             error_callback=self._error_callback,
         )
 
-    def properties(self, _action, _param):
+    def properties(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Display and manage the properties dialog for setting X and Y resolution."""
         if self._windowp is not None:
             self._windowp.present()
@@ -72,14 +82,14 @@ class EditMenuMixins:
         xspinbutton.set_value(xresolution)
         yspinbutton.set_value(yresolution)
 
-        def selection_changed_callback(_selection):
+        def selection_changed_callback(_selection: Gtk.TreeSelection) -> None:
             xresolution, yresolution = self.slist.get_selected_properties()
             xspinbutton.set_value(xresolution)
             yspinbutton.set_value(yresolution)
 
         self.slist.get_selection().connect("changed", selection_changed_callback)
 
-        def properties_apply_callback():
+        def properties_apply_callback() -> None:
             self._windowp.hide()
             xresolution = xspinbutton.get_value()
             yresolution = yspinbutton.get_value()
@@ -105,17 +115,23 @@ class EditMenuMixins:
         )
         self._windowp.show_all()
 
-    def cut_selection(self, _action, _param):
+    def cut_selection(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Cut the selection."""
         self.slist.clipboard = self.slist.cut_selection()
         self._update_uimanager()
 
-    def copy_selection(self, _action, _param):
+    def copy_selection(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Copy the selection."""
         self.slist.clipboard = self.slist.copy_selection()
         self._update_uimanager()
 
-    def paste_selection(self, _action, _param):
+    def paste_selection(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Paste the selection."""
         if self.slist.clipboard is None:
             return
@@ -131,16 +147,20 @@ class EditMenuMixins:
             self.slist.paste_selection(data=self.slist.clipboard, select_new_pages=True)
         self._update_uimanager()
 
-    def delete_selection(self, _action, _param):
+    def delete_selection(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Delete the selected scans."""
         self.slist.delete_selection_extra()
         self._update_uimanager()
 
-    def select_all(self, _action, _param):
+    def select_all(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Select all scans."""
         self.slist.get_selection().select_all()
 
-    def select_odd_even(self, odd):
+    def select_odd_even(self, odd: int) -> None:
         """Select all odd(0) or even(1) scans."""
         selection = []
         for i, row in enumerate(self.slist.data):
@@ -150,14 +170,18 @@ class EditMenuMixins:
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def select_invert(self, _action, _param):
+    def select_invert(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Invert selection."""
         selection = self.slist.get_selected_indices()
         inverted = [i for i in range(len(self.slist.data)) if i not in selection]
         self.slist.get_selection().unselect_all()
         self.slist.select(inverted)
 
-    def select_modified_since_ocr(self, _action, _param):
+    def select_modified_since_ocr(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Select pages that have been modified since the last OCR process."""
         selection = []
         for i, row in enumerate(self.slist.data):
@@ -179,7 +203,9 @@ class EditMenuMixins:
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def select_no_ocr(self, _action, _param):
+    def select_no_ocr(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Select pages with no ocr output."""
         selection = []
         for i, row in enumerate(self.slist.data):
@@ -189,7 +215,7 @@ class EditMenuMixins:
         self.slist.get_selection().unselect_all()
         self.slist.select(selection)
 
-    def clear_ocr(self, _action, _param):
+    def clear_ocr(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Clear the OCR output from selected pages."""
         # Clear the existing canvas
         self.t_canvas.clear_text()
@@ -197,19 +223,25 @@ class EditMenuMixins:
         for i in selection:
             self.slist.data[i][2].text_layer = None
 
-    def select_blank(self, _action, _param):
+    def select_blank(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Analyse and select blank pages."""
         self.analyse(select_blank=True, select_dark=False)
 
-    def _select_odd(self, _action, _param):
+    def _select_odd(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Select odd-numbered pages."""
         self.select_odd_even(0)
 
-    def _select_even(self, _action, _param):
+    def _select_even(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Select even-numbered pages."""
         self.select_odd_even(1)
 
-    def select_blank_pages(self):
+    def select_blank_pages(self) -> None:
         """Select blank pages."""
         for page in self.slist.data:
             # compare Std Dev to threshold
@@ -230,11 +262,13 @@ class EditMenuMixins:
                 self.settings["Blank threshold"],
             )
 
-    def select_dark(self, _action, _param):
+    def select_dark(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Analyse and select dark pages."""
         self.analyse(select_blank=False, select_dark=True)
 
-    def select_dark_pages(self):
+    def select_dark_pages(self) -> None:
         """Select dark pages."""
         for page in self.slist.data:
             # compare Mean to threshold
@@ -255,7 +289,7 @@ class EditMenuMixins:
                 self.settings["Dark threshold"],
             )
 
-    def analyse(self, select_blank, select_dark):
+    def analyse(self, *, select_blank: bool, select_dark: bool) -> None:
         """Analyse selected images."""
         pages_to_analyse = []
         for row in self.slist.data:
@@ -281,7 +315,7 @@ class EditMenuMixins:
 
         if len(pages_to_analyse) > 0:
 
-            def analyse_finished_callback(response):
+            def analyse_finished_callback(response: Response) -> None:
                 self.post_process_progress.finish(response)
                 if select_blank:
                     self.select_blank_pages()
@@ -303,7 +337,9 @@ class EditMenuMixins:
             if select_dark:
                 self.select_dark_pages()
 
-    def preferences(self, _action, _param):
+    def preferences(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Preferences dialog."""
         if self._windowr is not None:
             self._windowr.present()
@@ -313,7 +349,9 @@ class EditMenuMixins:
         self._windowr.connect("changed-preferences", self._changed_preferences)
         self._windowr.show_all()
 
-    def _changed_preferences(self, _widget, settings):
+    def _changed_preferences(
+        self, _widget: Gtk.Widget, settings: dict[str, object]
+    ) -> None:
         logger.debug("Preferences changed %s", settings)
 
         if settings["device blacklist"] != self.settings["device blacklist"]:
@@ -359,12 +397,14 @@ class EditMenuMixins:
             if response == Gtk.ResponseType.OK:
                 self._restart()
 
-    def _clear_combobox(self, combobox):
+    def _clear_combobox(self, combobox: Gtk.ComboBoxText | None) -> None:
         if combobox is not None:
             while combobox.get_num_rows() > 0:
                 combobox.remove(0)
 
-    def _update_list_user_defined_tools(self, combobox_array):
+    def _update_list_user_defined_tools(
+        self, combobox_array: list[Gtk.ComboBoxText | None]
+    ) -> None:
         for combobox in combobox_array:
             self._clear_combobox(combobox)
 
@@ -380,7 +420,7 @@ class EditMenuMixins:
 
         self._set_scan_udt_sensitivity()
 
-    def _set_scan_udt_sensitivity(self):
+    def _set_scan_udt_sensitivity(self) -> None:
         if self._scan_udt_hbox is not None and self._scan_udt_button is not None:
             if self.settings["user_defined_tools"]:
                 self._scan_udt_hbox.set_sensitive(sensitive=True)

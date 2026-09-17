@@ -1,11 +1,25 @@
 """test scan dialog."""
 
+from __future__ import annotations
+
 import logging
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import decode_info
 from scantpaper.scanner.options import Option
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import pytest
+    from gi.repository import Gtk
+
+    from scantpaper.basethread import Request
+    from scantpaper.dialog.sane import SaneScanDialog
+    from scantpaper.frontend.image_sane import SaneThread
+    from scantpaper.loop_helpers import _MainLoopWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -685,7 +699,7 @@ raw_options = [
 ]
 
 
-def mocked_do_open_device(self, request):
+def mocked_do_open_device(self: SaneThread, request: Request) -> None:
     """Open device."""
     device_name = request.args[0]
     self.device_handle = SimpleNamespace(
@@ -700,12 +714,12 @@ def mocked_do_open_device(self, request):
     request.data(f"opened device '{self.device_name}'")
 
 
-def mocked_do_get_options(_self, _request):
+def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
     """mocked_do_get_options."""
     return raw_options
 
 
-def mocked_do_set_option(self, _request):
+def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
     """Create tests for the widgets for all options types."""
     key, value = _request.args
     for opt in raw_options:
@@ -725,8 +739,11 @@ def mocked_do_set_option(self, _request):
 
 
 def test_test_backend_options(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
@@ -743,7 +760,9 @@ def test_test_backend_options(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_scan_option_cb(_self, option, value, _uuid):
+    def changed_scan_option_cb(
+        _self: Gtk.Widget, option: str, value: object, _uuid: str
+    ) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         widget = dlg.option_widgets[option]

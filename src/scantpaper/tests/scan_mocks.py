@@ -1,10 +1,12 @@
 """Shared scan-option definitions for scan-dialog tests."""
 
+from __future__ import annotations
+
 from scantpaper.frontend import enums
 from scantpaper.scanner.options import Option
 
 
-def _number_of_options():
+def _number_of_options() -> Option:
     """Provide the read-only option that heads every raw_options list."""
     return Option(
         index=0,
@@ -19,7 +21,7 @@ def _number_of_options():
     )
 
 
-def _geo(name, constraint, title, desc):
+def _geo(name: str, constraint: list | tuple | None, title: str, desc: str) -> Option:
     """Build a 2D-geometry option (tl-x/tl-y/br-x/br-y)."""
     return Option(
         index=0,
@@ -35,11 +37,11 @@ def _geo(name, constraint, title, desc):
 
 
 def _res(
-    constraint,
-    title="Scan resolution",
-    desc="Sets the resolution of the scanned image.",
-    size=1,
-):
+    constraint: list | tuple | None,
+    title: str = "Scan resolution",
+    desc: str = "Sets the resolution of the scanned image.",
+    size: int = 1,
+) -> Option:
     """Build a resolution option."""
     return Option(
         index=0,
@@ -55,10 +57,10 @@ def _res(
 
 
 def _src(
-    constraint,
-    title="Scan source",
-    desc="Selects the scan source (such as a document-feeder).",
-):
+    constraint: list[str],
+    title: str = "Scan source",
+    desc: str = "Selects the scan source (such as a document-feeder).",
+) -> Option:
     """Build a source option."""
     return Option(
         index=0,
@@ -76,7 +78,7 @@ def _src(
 # Unique scan option definitions, keyed by descriptive names. Each test builds
 # its raw_options by listing the keys it needs; build_scan_options assigns the
 # sequential indices.
-OPTIONS = {
+OPTIONS: dict[str, Option] = {
     # ---- resolution ----
     "resolution-100-200-300-600": _res([100, 200, 300, 600]),
     "resolution-100-200-300-600-size4": _res([100, 200, 300, 600], size=4),
@@ -572,7 +574,7 @@ OPTIONS = {
 }
 
 
-def build_scan_options(keys):
+def build_scan_options(keys: list[str]) -> list[Option]:
     """Build a raw_options list from named option keys, auto-assigning indices."""
     opts = [_number_of_options()]
     for i, key in enumerate(keys, start=1):

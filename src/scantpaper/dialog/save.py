@@ -1,5 +1,7 @@
 """subclass dialog for save options."""
 
+from __future__ import annotations
+
 import datetime
 import re
 
@@ -11,8 +13,10 @@ from scantpaper.dialog import Dialog
 from scantpaper.entry_completion import EntryCompletion
 from scantpaper.i18n import _
 
+gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
+    Gdk,
     GLib,
     GObject,
     Gtk,
@@ -87,7 +91,7 @@ class Save(Dialog):
     _meta_datetime_widget = None
 
     @GObject.Property(type=object)
-    def meta_datetime(self):
+    def meta_datetime(self) -> datetime.datetime | datetime.date | None:
         """Datetime object for document date."""
         if self.meta_now_widget.get_active():
             return datetime.datetime.now(_LOCAL_TZ)
@@ -105,7 +109,9 @@ class Save(Dialog):
                     pass
         return self._meta_datetime
 
-    def _resolve_meta_datetime(self, parsed):
+    def _resolve_meta_datetime(
+        self, parsed: datetime.datetime
+    ) -> datetime.datetime | datetime.date:
         """Resolve parsed text against the existing metadata datetime."""
         existing = self._meta_datetime
         result = parsed if self.include_time else parsed.date()
@@ -123,7 +129,7 @@ class Save(Dialog):
         return result
 
     @meta_datetime.setter
-    def meta_datetime(self, newval):
+    def meta_datetime(self, newval: datetime.datetime | datetime.date | None) -> None:
         if newval != self._meta_datetime:
             self._meta_datetime = newval
             if self._meta_datetime_widget is not None:
@@ -140,14 +146,14 @@ class Save(Dialog):
     _include_time = False
 
     @GObject.Property(type=bool, default=False)
-    def include_time(self):
+    def include_time(self) -> bool:
         """Whether to allow the time, as well as the date, to be entered."""
         return self._include_time
 
     @include_time.setter
-    def include_time(self, newval):
+    def include_time(self, newval: bool) -> None:
         if newval != self._include_time:
-            self._on_toggle_include_time(newval)
+            self._on_toggle_include_time(newval=newval)
             self._include_time = newval
 
     _meta_title = None
@@ -155,28 +161,28 @@ class Save(Dialog):
     _meta_title_widget = None
 
     @GObject.Property(type=str, default="")
-    def meta_title(self):
+    def meta_title(self) -> str:
         """Title metadata."""
         if self._meta_title_widget is None:
             return self._meta_title
         return self._meta_title_widget.get_text()
 
     @meta_title.setter
-    def meta_title(self, newval):
+    def meta_title(self, newval: str) -> None:
         self._meta_title = newval
         if self._meta_title_widget is not None:
             self._meta_title_widget.set_text(newval)
             self._meta_title_widget.add_to_suggestions([newval])
 
     @GObject.Property(type=object)
-    def meta_title_suggestions(self):
+    def meta_title_suggestions(self) -> object:
         """Array of title metadata suggestions, used by entry completion widget."""
         if self._meta_title_widget is None:
             return self._meta_title_suggestions
         return self._meta_title_widget.get_suggestions()
 
     @meta_title_suggestions.setter
-    def meta_title_suggestions(self, newval):
+    def meta_title_suggestions(self, newval: list[str]) -> None:
         self._meta_title_suggestions = newval
         if self._meta_title_widget is not None:
             self._meta_title_widget.set_suggestions(newval)
@@ -186,28 +192,28 @@ class Save(Dialog):
     _meta_author_widget = None
 
     @GObject.Property(type=str, default="")
-    def meta_author(self):
+    def meta_author(self) -> str:
         """Return the author metadata."""
         if self._meta_author_widget is None:
             return self._meta_author
         return self._meta_author_widget.get_text()
 
     @meta_author.setter
-    def meta_author(self, newval):
+    def meta_author(self, newval: str) -> None:
         self._meta_author = newval
         if self._meta_author_widget is not None:
             self._meta_author_widget.set_text(newval)
             self._meta_author_widget.add_to_suggestions([newval])
 
     @GObject.Property(type=object)
-    def meta_author_suggestions(self):
+    def meta_author_suggestions(self) -> object:
         """Array of author metadata suggestions, used by entry completion widget."""
         if self._meta_author_widget is None:
             return self._meta_author_suggestions
         return self._meta_author_widget.get_suggestions()
 
     @meta_author_suggestions.setter
-    def meta_author_suggestions(self, newval):
+    def meta_author_suggestions(self, newval: list[str]) -> None:
         self._meta_author_suggestions = newval
         if self._meta_author_widget is not None:
             self._meta_author_widget.set_suggestions(newval)
@@ -217,28 +223,28 @@ class Save(Dialog):
     _meta_subject_widget = None
 
     @GObject.Property(type=str, default="")
-    def meta_subject(self):
+    def meta_subject(self) -> str:
         """Subject metadata."""
         if self._meta_subject_widget is None:
             return self._meta_subject
         return self._meta_subject_widget.get_text()
 
     @meta_subject.setter
-    def meta_subject(self, newval):
+    def meta_subject(self, newval: str) -> None:
         self._meta_subject = newval
         if self._meta_subject_widget is not None:
             self._meta_subject_widget.set_text(newval)
             self._meta_subject_widget.add_to_suggestions([newval])
 
     @GObject.Property(type=object)
-    def meta_subject_suggestions(self):
+    def meta_subject_suggestions(self) -> object:
         """Array of subject metadata suggestions, used by entry completion widget."""
         if self._meta_subject_widget is None:
             return self._meta_subject_suggestions
         return self._meta_subject_widget.get_suggestions()
 
     @meta_subject_suggestions.setter
-    def meta_subject_suggestions(self, newval):
+    def meta_subject_suggestions(self, newval: list[str]) -> None:
         self._meta_subject_suggestions = newval
         if self._meta_subject_widget is not None:
             self._meta_subject_widget.set_suggestions(newval)
@@ -248,28 +254,28 @@ class Save(Dialog):
     _meta_keywords_widget = None
 
     @GObject.Property(type=str, default="")
-    def meta_keywords(self):
+    def meta_keywords(self) -> str:
         """Keyword metadata."""
         if self._meta_keywords_widget is None:
             return self._meta_keywords
         return self._meta_keywords_widget.get_text()
 
     @meta_keywords.setter
-    def meta_keywords(self, newval):
+    def meta_keywords(self, newval: str) -> None:
         self._meta_keywords = newval
         if self._meta_keywords_widget is not None:
             self._meta_keywords_widget.set_text(newval)
             self._meta_keywords_widget.add_to_suggestions([newval])
 
     @GObject.Property(type=object)
-    def meta_keywords_suggestions(self):
+    def meta_keywords_suggestions(self) -> object:
         """Array of keyword metadata suggestions, used by entry completion widget."""
         if self._meta_keywords_widget is None:
             return self._meta_keywords_suggestions
         return self._meta_keywords_widget.get_suggestions()
 
     @meta_keywords_suggestions.setter
-    def meta_keywords_suggestions(self, newval):
+    def meta_keywords_suggestions(self, newval: list[str]) -> None:
         self._meta_keywords_suggestions = newval
         if self._meta_keywords_widget is not None:
             self._meta_keywords_widget.set_suggestions(newval)
@@ -335,7 +341,7 @@ class Save(Dialog):
         type=str, default=None, nick="PDF user password", blurb="PDF user password"
     )
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
         box = self.get_content_area()
@@ -409,7 +415,7 @@ class Save(Dialog):
         button.show()
         self._meta_specify_widget.set_active(self.select_datetime)
         self._add_metadata_widgets(grid, row)
-        self._on_toggle_include_time(self.include_time)
+        self._on_toggle_include_time(newval=self.include_time)
 
         # set this after self._meta_specify_widget.set_active() to prevent
         # meta_now_widget overwriting it
@@ -423,7 +429,9 @@ class Save(Dialog):
                 -1,
             )
 
-    def _clicked_specify_date_button(self, widget, hboxe):
+    def _clicked_specify_date_button(
+        self, widget: Gtk.RadioButton, hboxe: Gtk.Box
+    ) -> None:
         if widget.get_active():
             hboxe.show()
             self.select_datetime = True
@@ -431,13 +439,15 @@ class Save(Dialog):
             hboxe.hide()
             self.select_datetime = False
 
-    def _datetime_focus_out_callback(self, entry_widget, _event):
+    def _datetime_focus_out_callback(
+        self, entry_widget: Gtk.Entry, _event: Gdk.EventFocus
+    ) -> bool:
         text = entry_widget.get_text()
         if text not in [None, ""]:
             self.meta_datetime = datetime.datetime.fromisoformat(text)
         return False
 
-    def _clicked_edit_date_button(self, _widget):
+    def _clicked_edit_date_button(self, _widget: Gtk.Button) -> None:
         window_date = Dialog(
             transient_for=self,
             title=_("Select Date"),
@@ -454,7 +464,7 @@ class Save(Dialog):
             calendar.select_month(current_date.month - 1, current_date.year)
         calendar_s = None
 
-        def calendar_day_selected_callback(_widget):
+        def calendar_day_selected_callback(_widget: Gtk.Calendar) -> None:
             year, month, day = calendar.get_date()
             self.meta_datetime = datetime.datetime(
                 year, month + 1, day, tzinfo=_LOCAL_TZ
@@ -462,7 +472,7 @@ class Save(Dialog):
 
         calendar_s = calendar.connect("day-selected", calendar_day_selected_callback)
 
-        def calendar_day_selected_double_click_callback(widget):
+        def calendar_day_selected_double_click_callback(widget: Gtk.Calendar) -> None:
             calendar_day_selected_callback(widget)
             window_date.destroy()
 
@@ -472,7 +482,7 @@ class Save(Dialog):
         vbox_date.pack_start(calendar, expand=True, fill=True, padding=0)
         today_b = Gtk.Button(label=_("Today"))
 
-        def today_clicked_callback(_widget):
+        def today_clicked_callback(_widget: Gtk.Button) -> None:
             today = datetime.datetime.now(_LOCAL_TZ).date()
 
             # block and unblock signal, and update entry manually
@@ -487,7 +497,9 @@ class Save(Dialog):
         vbox_date.pack_start(today_b, expand=True, fill=True, padding=0)
         window_date.show_all()
 
-    def _insert_text_handler(self, widget, string, _length, _position):
+    def _insert_text_handler(
+        self, widget: Gtk.Entry, string: str, _length: int, _position: int
+    ) -> None:
         text = widget.get_text()
         text_len = len(text)
         widget.handler_block_by_func(self._insert_text_handler)
@@ -522,7 +534,7 @@ class Save(Dialog):
         widget.handler_unblock_by_func(self._insert_text_handler)
         widget.stop_emission_by_name("insert-text")
 
-    def _add_metadata_widgets(self, grid, row):
+    def _add_metadata_widgets(self, grid: Gtk.Grid, row: int) -> None:
         for name, label_text in [
             ("title", _("Title")),
             ("author", _("Author")),
@@ -548,7 +560,7 @@ class Save(Dialog):
                 getattr(self, f"_meta_{name}_widget"), expand=True, fill=True, padding=0
             )
 
-    def _on_toggle_include_time(self, newval):
+    def _on_toggle_include_time(self, *, newval: bool) -> None:
         if hasattr(self, "_meta_box_widget"):
             if newval:
                 self.meta_now_widget.get_child().set_text(_("Now"))
@@ -562,7 +574,7 @@ class Save(Dialog):
                 self.meta_now_widget.set_tooltip_text(_("Use today's date"))
                 self._meta_datetime_widget.set_max_length(ENTRY_WIDTH_DATE)
 
-    def add_image_type(self):
+    def add_image_type(self) -> None:
         """Add image type dropdown."""
         vbox = self.get_content_area()
 
@@ -581,7 +593,7 @@ class Save(Dialog):
         hboxps.pack_start(label, expand=False, fill=False, padding=0)
         combops = ComboBoxText(data=filter_table(PS_BACKENDS, self.ps_backends))
 
-        def ps_backend_changed_callback(_widget):
+        def ps_backend_changed_callback(_widget: Gtk.ComboBox) -> None:
             self.ps_backend = combops.get_active_index()
 
         combops.connect("changed", ps_backend_changed_callback)
@@ -603,7 +615,7 @@ class Save(Dialog):
         # Fill compression ComboBox
         combobtc = ComboBoxText(data=TIFF_COMPRESSION_ALGS)
 
-        def tiff_compression_changed_callback(_widget):
+        def tiff_compression_changed_callback(_widget: Gtk.ComboBox) -> None:
             self.tiff_compression = combobtc.get_active_index()
             if self.tiff_compression == "jpeg":
                 hboxtq.show()
@@ -634,7 +646,9 @@ class Save(Dialog):
         hboxps.set_no_show_all(True)
         combobi.set_active_index(self.image_type)
 
-    def _image_type_changed_callback(self, widget, data):
+    def _image_type_changed_callback(
+        self, widget: Gtk.ComboBox, data: list[Gtk.Widget]
+    ) -> None:
         (
             vboxp,
             hboxpq,
@@ -686,7 +700,7 @@ class Save(Dialog):
 
         self.resize(1, 1)
 
-    def _pdf_selected_callback(self, data):
+    def _pdf_selected_callback(self, data: list[Gtk.Widget]) -> None:
         (
             vboxp,
             hboxpq,
@@ -708,7 +722,7 @@ class Save(Dialog):
         else:
             hboxpq.hide()
 
-    def add_quality_spinbutton(self, vbox):
+    def add_quality_spinbutton(self, vbox: Gtk.Box) -> tuple[Gtk.Box, Gtk.SpinButton]:
         """Set up quality spinbutton here so that it can be shown or hidden by callback."""
         hbox = Gtk.Box()
         vbox.pack_start(hbox, expand=True, fill=True, padding=0)
@@ -719,7 +733,7 @@ class Save(Dialog):
         hbox.pack_end(spinbutton, expand=False, fill=False, padding=0)
         return hbox, spinbutton
 
-    def add_pdf_options(self):
+    def add_pdf_options(self) -> tuple[Gtk.Box, Gtk.Box]:
         """Add pdf options."""
         # pack everything in one vbox to be able to show/hide them all at once
         vboxp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -739,7 +753,7 @@ class Save(Dialog):
         combob = ComboBoxText(data=PDF_COMPRESSION_ALGS)
         combob.connect("changed", self._pdf_compression_changed_callback, hboxq)
 
-        def jpg_quality_changed_callback(_widget):
+        def jpg_quality_changed_callback(_widget: Gtk.SpinButton) -> None:
             self.jpeg_quality = spinbuttonq.get_value()
 
         spinbuttonq.connect("value-changed", jpg_quality_changed_callback)
@@ -759,7 +773,7 @@ class Save(Dialog):
         combob.set_active_index(self.pdf_compression)
         return vboxp, hboxq
 
-    def _add_pdf_downsample_options(self, vboxp):
+    def _add_pdf_downsample_options(self, vboxp: Gtk.Box) -> None:
         hbox = Gtk.Box()
         vboxp.pack_start(hbox, expand=False, fill=False, padding=0)
         button = Gtk.CheckButton(label=_("Downsample to"))
@@ -770,20 +784,22 @@ class Save(Dialog):
         hbox.pack_end(label, expand=False, fill=False, padding=0)
         hbox.pack_end(spinbutton, expand=False, fill=False, padding=0)
 
-        def downsample_toggled_callback(_widget):
+        def downsample_toggled_callback(_widget: Gtk.CheckButton) -> None:
             self.downsample = button.get_active()
             spinbutton.set_sensitive(self.downsample)
 
         button.connect("toggled", downsample_toggled_callback)
 
-        def downsample_dpi_changed_callback(_widget):
+        def downsample_dpi_changed_callback(_widget: Gtk.SpinButton) -> None:
             self.downsample_dpi = spinbutton.get_value()
 
         spinbutton.connect("value-changed", downsample_dpi_changed_callback)
         spinbutton.set_sensitive(self.downsample)
         button.set_active(self.downsample)
 
-    def _pdf_compression_changed_callback(self, widget, hboxq):
+    def _pdf_compression_changed_callback(
+        self, widget: Gtk.ComboBox, hboxq: Gtk.Box
+    ) -> None:
         self.pdf_compression = widget.get_active_index()
         if self.pdf_compression == "jpg":
             hboxq.show()
@@ -791,7 +807,7 @@ class Save(Dialog):
             hboxq.hide()
             self.resize(1, 1)
 
-    def _encrypt_clicked_callback(self, _widget):
+    def _encrypt_clicked_callback(self, _widget: Gtk.Button) -> None:
         passwin = Dialog(
             transient_for=self,
             title=_("Set password"),
@@ -812,11 +828,11 @@ class Save(Dialog):
         grid.attach(userentry, 1, row, 1, 1)
         row += 1
 
-        def clicked_ok_callback():
+        def clicked_ok_callback() -> None:
             self.pdf_user_password = userentry.get_text()
             passwin.destroy()
 
-        def clicked_cancel_callback():
+        def clicked_cancel_callback() -> None:
             passwin.destroy()
 
         passwin.add_actions(
@@ -827,7 +843,7 @@ class Save(Dialog):
         )
         passwin.show_all()
 
-    def update_config_dict(self, config):
+    def update_config_dict(self, config: dict[str, object]) -> None:
         """Update config based from instance metadata."""
         for name in ["author", "title", "subject", "keywords"]:
             value = getattr(self, f"meta_{name}")
@@ -845,13 +861,13 @@ class Save(Dialog):
 
             config["datetime offset"] = doc_datetime - datetime.datetime.now(_LOCAL_TZ)
 
-    def update_from_import_metadata(self, metadata):
+    def update_from_import_metadata(self, metadata: dict[str, object]) -> None:
         """Update instance from imported metadata."""
         for name in ["author", "title", "subject", "keywords", "datetime"]:
             if name in metadata:
                 setattr(self, f"meta_{name}", metadata[name])
 
 
-def filter_table(table, types):
+def filter_table(table: list[tuple[str, str, str]], types: list[str]) -> list:
     """Filter table list by types."""
     return [row for row in table if row[0] in types]

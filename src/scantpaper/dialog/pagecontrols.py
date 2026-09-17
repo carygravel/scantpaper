@@ -59,12 +59,12 @@ class PageControls(Dialog):
         nick="Number of pages",
         blurb="Number of pages to be scanned",
     )
-    def num_pages(self):
+    def num_pages(self) -> int:
         """Getter for num_pages attribute."""
         return self._num_pages
 
     @num_pages.setter
-    def num_pages(self, newval):
+    def num_pages(self, newval: int) -> None:
         if newval == self._num_pages:
             return
         options = self.available_scan_options
@@ -89,12 +89,12 @@ class PageControls(Dialog):
         nick="Starting page number",
         blurb="Page number of first page to be scanned",
     )
-    def page_number_start(self):
+    def page_number_start(self) -> int:
         """Getter for page_number_start attribute."""
         return self._page_number_start
 
     @page_number_start.setter
-    def page_number_start(self, newval):
+    def page_number_start(self, newval: int) -> None:
         self._page_number_start = newval
         self.emit("changed-page-number-start", newval)
 
@@ -106,12 +106,12 @@ class PageControls(Dialog):
         nick="Page number increment",
         blurb="Amount to increment page number when scanning multiple pages",
     )
-    def page_number_increment(self):
+    def page_number_increment(self) -> int:
         """Getter for page_number_increment attribute."""
         return self._page_number_increment
 
     @page_number_increment.setter
-    def page_number_increment(self, newval):
+    def page_number_increment(self, newval: int) -> None:
         self._page_number_increment = newval
         self.emit("changed-page-number-increment", newval)
 
@@ -121,12 +121,12 @@ class PageControls(Dialog):
     @GObject.Property(
         type=str, default="single", nick="Sided", blurb="Either single or double"
     )
-    def sided(self):
+    def sided(self) -> str:
         """Getter for sided attribute."""
         return self._sided
 
     @sided.setter
-    def sided(self, newval):
+    def sided(self, newval: str) -> None:
         self._sided = newval
         widget = self.buttons
         if newval == "double":
@@ -142,12 +142,12 @@ class PageControls(Dialog):
     @GObject.Property(
         type=object, nick="Side to scan", blurb="Either facing or reverse"
     )
-    def side_to_scan(self):
+    def side_to_scan(self) -> str:
         """Getter for side_to_scan attribute."""
         return self._side_to_scan
 
     @side_to_scan.setter
-    def side_to_scan(self, newval):
+    def side_to_scan(self, newval: str) -> None:
         if newval not in ["facing", "reverse"]:
             msg = f"Invalid value for side-to-scan: {newval}"
             raise ValueError(msg)
@@ -162,15 +162,15 @@ class PageControls(Dialog):
     @GObject.Property(
         type=object, nick="Document", blurb="Document object for new scans"
     )
-    def document(self):
+    def document(self) -> object:
         """Getter for document attribute."""
         return self._document
 
     @document.setter
-    def document(self, newval):
+    def document(self, newval: object) -> None:
         self._document = newval
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
 
@@ -253,7 +253,9 @@ class PageControls(Dialog):
 
         self._create_extended_mode(spin_buttonn, self._bscannum)
 
-    def _create_extended_mode(self, spin_buttonn, bscannum):
+    def _create_extended_mode(
+        self, spin_buttonn: Gtk.SpinButton, bscannum: Gtk.RadioButton
+    ) -> None:
 
         # Frame for extended mode
         self.framex = Gtk.Frame(label=_("Page number"))
@@ -350,27 +352,42 @@ class PageControls(Dialog):
             [self],
         )
 
-    def _do_clicked_scan_all(self, bscanall, _value):
+    def _do_clicked_scan_all(
+        self, bscanall: Gtk.RadioButton, _value: object | None
+    ) -> None:
         if bscanall.get_active():
             self.num_pages = 0
 
-    def _do_start_page_changed(self, spin_buttons):
+    def _do_start_page_changed(self, spin_buttons: Gtk.SpinButton) -> None:
         self.page_number_start = spin_buttons.get_value()
 
-    def _do_changed_page_number_start(self, _self, value, spin_buttons):
+    def _do_changed_page_number_start(
+        self, _self: Gtk.Widget, value: int, spin_buttons: Gtk.SpinButton
+    ) -> None:
         spin_buttons.set_value(value)
 
-    def _do_spin_buttoni_value_changed(self, spin_buttoni):
+    def _do_spin_buttoni_value_changed(self, spin_buttoni: Gtk.SpinButton) -> None:
         self.page_number_increment = spin_buttoni.get_value()
 
-    def _do_changed_page_number_increment(self, _self, value, spin_buttoni):
+    def _do_changed_page_number_increment(
+        self, _self: Gtk.Widget, value: int, spin_buttoni: Gtk.SpinButton
+    ) -> None:
         spin_buttoni.set_value(value)
 
-    def _do_clicked_scan_number(self, bscannum, spin_buttonn):
+    def _do_clicked_scan_number(
+        self, bscannum: Gtk.RadioButton, spin_buttonn: Gtk.SpinButton
+    ) -> None:
         if bscannum.get_active():
             self.num_pages = spin_buttonn.get_value()
 
-    def _do_changed_num_pages(self, _self, value, bscanall, bscannum, spin_buttonn):
+    def _do_changed_num_pages(
+        self,
+        _self: Gtk.Widget,
+        value: int,
+        bscanall: Gtk.RadioButton,
+        bscannum: Gtk.RadioButton,
+        spin_buttonn: Gtk.SpinButton,
+    ) -> None:
         if value == 0:
             bscanall.set_active(True)
         else:
@@ -380,31 +397,33 @@ class PageControls(Dialog):
             bscannum.set_active(True)
             spin_buttonn.set_value(value)
 
-    def _do_num_pages_changed(self, spin_buttonn, bscannum):
+    def _do_num_pages_changed(
+        self, spin_buttonn: Gtk.SpinButton, bscannum: Gtk.RadioButton
+    ) -> None:
         """React to a change in the number of pages."""
         self.num_pages = spin_buttonn.get_value()
         bscannum.set_active(True)  # Set the radiobutton active
 
-    def _do_buttons_clicked(self, buttons):
+    def _do_buttons_clicked(self, buttons: Gtk.RadioButton) -> None:
         self.sided = "single" if buttons.get_active() == 1 else "double"
 
-    def _do_side_to_scan_combo_changed(self, combobs):
+    def _do_side_to_scan_combo_changed(self, combobs: ComboBoxText) -> None:
         self.buttond.set_active(True)  # Set the radiobutton active
         self.side_to_scan = "facing" if combobs.get_active() == 0 else "reverse"
 
-    def _do_side_to_scan_changed(self, _self, value):
+    def _do_side_to_scan_changed(self, _self: Gtk.Widget, value: str) -> None:
         if self.sided != "double":
             return
         if value == "facing":
             self.num_pages = 0
 
-    def _reset_batch(self):
+    def _reset_batch(self) -> None:
         """Start tracking a new facing batch for the reverse pass."""
         self._batch_start = None
         self._batch_n = 0
         self.max_pages = 0
 
-    def _fix_batch(self):
+    def _fix_batch(self) -> None:
         """Freeze the current facing batch as the limit for the reverse pass."""
         self.max_pages = self._batch_n
         if self._batch_n > 0 and (
@@ -412,7 +431,7 @@ class PageControls(Dialog):
         ):
             self.num_pages = self._batch_n
 
-    def _flatbed_or_duplex_callback(self):
+    def _flatbed_or_duplex_callback(self) -> None:
         options = self.available_scan_options
         if options is not None and self.thread is not None and hasattr(self, "_vboxx"):
             if options.flatbed_selected(self.thread.get_option_value) or (
@@ -423,7 +442,9 @@ class PageControls(Dialog):
                 self._vboxx.show()
 
 
-def spinbutton_in_hbox(vbox, label, vmin, vmax, step):
+def spinbutton_in_hbox(
+    vbox: Gtk.Box, label: str, vmin: int, vmax: int, step: int
+) -> Gtk.SpinButton:
     """Pack a label and a spinbutton in an hbox."""
     hbox = Gtk.Box()
     vbox.pack_start(hbox, expand=False, fill=False, padding=0)
@@ -433,7 +454,9 @@ def spinbutton_in_hbox(vbox, label, vmin, vmax, step):
     return spin_button
 
 
-def _extended_pagenumber_checkbox_callback(widget, _param, data):
+def _extended_pagenumber_checkbox_callback(
+    widget: Gtk.Switch, _param: object | None, data: list[object]
+) -> None:
     dialog = data[0]
     if widget.get_active():
         dialog.frames.hide()

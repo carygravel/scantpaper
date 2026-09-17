@@ -1,8 +1,11 @@
 """test scan dialog."""
 
+from __future__ import annotations
+
 import pathlib
 import tempfile
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import gi
@@ -16,6 +19,16 @@ from scantpaper.scanner.options import Option
 from scantpaper.scanner.profile import Profile
 from scantpaper.tests.scan_mocks import build_scan_options
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import pytest
+
+    from scantpaper.basethread import Request
+    from scantpaper.dialog.sane import SaneScanDialog
+    from scantpaper.frontend.image_sane import SaneThread
+    from scantpaper.loop_helpers import _MainLoopWrapper
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
     GLib,
@@ -23,7 +36,7 @@ from gi.repository import (  # noqa: E402
 )
 
 
-def test_basics():
+def test_basics() -> None:
     """Test basic functionality of scan dialog."""
     window = Gtk.Window()
 
@@ -60,7 +73,9 @@ def test_basics():
     assert dialog.framen.is_sensitive(), "with no source, num-page gui not ghosted"
 
 
-def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
+def test_doc_interaction(
+    rose_pnm: str, clean_up_files: Callable[[list[str]], None], temp_db: SimpleNamespace
+) -> None:
     """Test interaction of scan dialog and document."""
     window = Gtk.Window()
 
@@ -86,7 +101,7 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
         asserts = 0
         mlp = safe_mainloop(2000)
 
-        def finished_callback(_response):
+        def finished_callback(_response: object) -> None:
             nonlocal asserts
             asserts += 1
             mlp.quit()
@@ -118,7 +133,11 @@ def test_doc_interaction(rose_pnm, clean_up_files, temp_db):
         clean_up_files(pathlib.Path(tempdir).glob("*"))
 
 
-def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloop):
+def test_profiles(
+    sane_scan_dialog: SaneScanDialog,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    set_option_in_mainloop: Callable[[SaneScanDialog, str, object], bool],
+) -> None:
     """First test with test backend."""
     dialog = sane_scan_dialog
     dialog.paper_sizes = {
@@ -134,7 +153,7 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
 
     asserts = 0
 
-    def reloaded_scan_options_cb(_dialog):
+    def reloaded_scan_options_cb(_dialog: object) -> None:
         nonlocal signal
         nonlocal asserts
         nonlocal loop
@@ -191,14 +210,19 @@ def test_profiles(sane_scan_dialog, mainloop_with_timeout, set_option_in_mainloo
     asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts)
 
 
-def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
+def asserts_2(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    set_option_in_mainloop: Callable[[SaneScanDialog, str, object], bool],
+    dialog: SaneScanDialog,
+    asserts: int,
+) -> int:
     """Split test_1 into chunks for the second set of assertions."""
     options = dialog.available_scan_options
 
     dialog.allow_batch_flatbed = True
     dialog.num_pages = 2
 
-    def changed_num_pages_cb(_self, _data):
+    def changed_num_pages_cb(_self: object, _data: object) -> None:
         nonlocal asserts
         nonlocal signal
         dialog.disconnect(signal)
@@ -213,7 +237,9 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
         "default adf-defaults-scan-all-pages"
     )
 
-    def changed_scan_option_cb(_widget, _option, _value, _data):
+    def changed_scan_option_cb(
+        _widget: object, _option: object, _value: object, _data: object
+    ) -> None:
         nonlocal asserts
         nonlocal signal
         dialog.disconnect(signal)
@@ -238,7 +264,9 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     changed_scan_option_cb3 = Mock()
     signal = dialog.connect("changed-scan-option", changed_scan_option_cb3)
 
-    def changed_current_scan_options_cb(_arg1, _arg2, _arg3):
+    def changed_current_scan_options_cb(
+        _arg1: object, _arg2: object, _arg3: object
+    ) -> None:
         nonlocal signal
         nonlocal signal2
         dialog.disconnect(signal)
@@ -254,14 +282,21 @@ def asserts_2(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     return asserts
 
 
-def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
+def asserts_3(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    set_option_in_mainloop: Callable[[SaneScanDialog, str, object], bool],
+    dialog: SaneScanDialog,
+    asserts: int,
+) -> None:
     """Split test_1 into chunks for the third set of assertions."""
     loop = mainloop_with_timeout()
 
     changed_scan_option_cb4 = Mock()
     signal = dialog.connect("changed-scan-option", changed_scan_option_cb4)
 
-    def changed_current_scan_options_cb2(_arg1, _arg2, _arg3):
+    def changed_current_scan_options_cb2(
+        _arg1: object, _arg2: object, _arg3: object
+    ) -> None:
         nonlocal signal
         nonlocal signal2
         dialog.disconnect(signal)
@@ -272,7 +307,7 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
         "changed-current-scan-options", changed_current_scan_options_cb2
     )
 
-    def add_mode_gray_cb():
+    def add_mode_gray_cb() -> None:
         dialog.set_current_scan_options(Profile(backend=[("mode", "Gray")]))
 
     GLib.idle_add(add_mode_gray_cb)
@@ -288,7 +323,7 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
     # set combobox without setting options
     loop = mainloop_with_timeout()
 
-    def changed_paper_cb(_arg1, _arg2):
+    def changed_paper_cb(_arg1: object, _arg2: object) -> None:
         nonlocal asserts
         nonlocal signal
         dialog.disconnect(signal)
@@ -344,12 +379,15 @@ def asserts_3(mainloop_with_timeout, set_option_in_mainloop, dialog, asserts):
 
 
 def test_scan_threads(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     asserts = 0
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
@@ -360,7 +398,7 @@ def test_scan_threads(
         "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
     )
 
-    def mocked_do_get_options(self, _request):
+    def mocked_do_get_options(self: SaneThread, _request: Request) -> list[Option]:
         """Options with opt.type == SANE_TYPE_GROUP don't necessarily have opt.name defined.
 
         This was triggering an error when reloading the options. Override enough
@@ -409,7 +447,7 @@ def test_scan_threads(
         "scantpaper.dialog.sane.SaneThread.do_get_options", mocked_do_get_options
     )
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
         return 0
@@ -422,7 +460,9 @@ def test_scan_threads(
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
 
-    def changed_scan_option_cb(_widget, _option, _value, _uuid):
+    def changed_scan_option_cb(
+        _widget: object, _option: object, _value: object, _uuid: object
+    ) -> None:
         nonlocal asserts
         asserts += 1
         loop.quit()
@@ -436,12 +476,15 @@ def test_scan_threads(
 
 
 def test_source_without_val(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     asserts = 0
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
@@ -452,7 +495,7 @@ def test_source_without_val(
         "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
     )
 
-    def mocked_do_get_options(self, _request):
+    def mocked_do_get_options(self: SaneThread, _request: Request) -> list[Option]:
         """Guard against a Canon Lide 220 producing scanimage output without a val for source.
 
         This produced the error: Use of uninitialized value in pattern match
@@ -501,7 +544,7 @@ def test_source_without_val(
         "scantpaper.dialog.sane.SaneThread.do_get_options", mocked_do_get_options
     )
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
         return 0
@@ -514,7 +557,9 @@ def test_source_without_val(
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
 
-    def changed_scan_option_cb(_widget, _option, _value, _uuid):
+    def changed_scan_option_cb(
+        _widget: object, _option: object, _value: object, _uuid: object
+    ) -> None:
         nonlocal asserts
         asserts += 1
         loop.quit()
@@ -528,12 +573,15 @@ def test_source_without_val(
 
 
 def test_no_source(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     asserts = 0
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
@@ -544,7 +592,7 @@ def test_no_source(
         "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
     )
 
-    def mocked_do_get_options(self, _request):
+    def mocked_do_get_options(self: SaneThread, _request: Request) -> list[Option]:
         """Reproduce a Samsung CLX-4190 having a doc-source option instead of source.
 
         The property allow-batch-flatbed had to be enabled to scan more than
@@ -584,7 +632,9 @@ def test_no_source(
     set_device_wait_reload(dlg, "mock_name")
     loop = mainloop_with_timeout()
 
-    def changed_current_scan_options_cb(_arg1, _arg2, _arg3):
+    def changed_current_scan_options_cb(
+        _arg1: object, _arg2: object, _arg3: object
+    ) -> None:
         nonlocal asserts
         dlg.disconnect(dlg.signal)
         assert dlg.num_pages == 0, "num-pages"
@@ -601,11 +651,14 @@ def test_no_source(
 
 
 def test_officejet_4620(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
@@ -634,7 +687,7 @@ def test_officejet_4620(
         ]
     )
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """Reproduce an Officejet_4620_series resetting the resolution and geometry.
 
         When changing from ADF to Flatbed, ensure that valid parts of the
@@ -648,7 +701,7 @@ def test_officejet_4620(
         "scantpaper.dialog.sane.SaneThread.do_get_options", mocked_do_get_options
     )
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         key, value = _request.args
         info = 0
         if key == "source" and value in "Flatbed":
@@ -679,7 +732,7 @@ def test_officejet_4620(
     loop = mainloop_with_timeout()
     dlg.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "t": 0, "l": 0}}
 
-    def changed_paper_cb(_arg1, _arg2):
+    def changed_paper_cb(_arg1: object, _arg2: object) -> None:
         dlg.disconnect(dlg.signal)
         loop.quit()
 
@@ -698,16 +751,16 @@ def test_officejet_4620(
 
 
 def test_infinite_reloads(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-    infinite_reloads_scan_mocks,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    infinite_reloads_scan_mocks: SimpleNamespace,
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
-    def mocked_do_set_option(_self, _request):
+    def mocked_do_set_option(_self: SaneThread, _request: Request) -> int:
         """Never store the value, so the backend reverts every option.
 
         Trigger an infinite reload loop and test that the apply gives up
@@ -724,7 +777,7 @@ def test_infinite_reloads(
     loop = mainloop_with_timeout()
     dlg.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "t": 0, "l": 0}}
 
-    def changed_paper_cb(_arg1, _arg2):
+    def changed_paper_cb(_arg1: object, _arg2: object) -> None:
         dlg.disconnect(dlg.signal)
         loop.quit()
 

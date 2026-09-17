@@ -1,9 +1,12 @@
 """provide methods called from scan menu item."""
 
+from __future__ import annotations
+
 import logging
 import os
 import re
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import gi
 
@@ -14,13 +17,20 @@ from scantpaper.i18n import _
 from scantpaper.postprocess_controls import OCRControls, RotateControls
 from scantpaper.scanner.profile import Profile
 
+if TYPE_CHECKING:
+    from gi.repository import Gio, GLib
+
+    from scantpaper.basethread import Response
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
 
-def _apply_device_blacklist(device_list, settings, widget):
+def _apply_device_blacklist(
+    device_list: list[object], settings: dict[str, object], widget: SaneScanDialog
+) -> None:
     """Remove blacklisted device names from the list in place."""
     if "device blacklist" not in settings or settings["device blacklist"] in [None, ""]:
         return
@@ -41,7 +51,9 @@ def _apply_device_blacklist(device_list, settings, widget):
         widget.device_list = device_list
 
 
-def _confirm_libusb_caching(parent, device_list, settings):
+def _confirm_libusb_caching(
+    parent: Gtk.Widget, device_list: list[object], settings: dict[str, object]
+) -> bool:
     """Return whether the cached device list should be stored.
 
     Warn when libusb devices are present and let the user choose; a decline
@@ -77,7 +89,14 @@ def _confirm_libusb_caching(parent, device_list, settings):
 class ScanMenuItemMixins:
     """provide methods called from scan menu item."""
 
-    def scan_dialog(self, _action, _param, *, hidden=False, scan=False):
+    def scan_dialog(
+        self,
+        _action: Gio.SimpleAction,
+        _param: GLib.Variant | None,
+        *,
+        hidden: bool = False,
+        scan: bool = False,
+    ) -> None:
         """Scan."""
         if self._windows:
             self._windows.show_all()
@@ -132,7 +151,7 @@ class ScanMenuItemMixins:
         else:
             self._windows.get_devices()
 
-    def _connect_scan_dialog_signals(self, window):
+    def _connect_scan_dialog_signals(self, window: SaneScanDialog) -> None:
         """Wire up all the SaneScanDialog signals."""
         # Can't set the device when creating the window,
         # as the list does not exist then
@@ -142,7 +161,7 @@ class ScanMenuItemMixins:
         window.connect("changed-device", self._changed_device_callback)
         signal = None
 
-        def started_progress_callback(_widget, message):
+        def started_progress_callback(_widget: Gtk.Widget, message: str) -> None:
             logger.debug("'started-process' emitted with message: %s", message)
             self._scan_progress.set_fraction(0)
             self._scan_progress.set_text(message)
@@ -154,19 +173,21 @@ class ScanMenuItemMixins:
         window.connect("changed-progress", self._changed_progress_callback)
         window.connect("finished-process", self._finished_process_callback)
 
-        def do_process_error(_widget, process, msg):
+        def do_process_error(_widget: Gtk.Widget, process: str, msg: str) -> None:
             self._process_error_callback(_widget, process, msg, signal)
 
         window.connect("process-error", do_process_error)
         window.connect("changed-profile", self._changed_profile_callback)
         window.connect("added-profile", self._added_profile_callback)
 
-        def removed_profile_callback(_widget, profile):
+        def removed_profile_callback(_widget: Gtk.Widget, profile: str) -> None:
             del self.settings["profile"][profile]
 
         window.connect("removed-profile", removed_profile_callback)
 
-        def changed_current_scan_options_callback(_widget, profile, _uuid):
+        def changed_current_scan_options_callback(
+            _widget: Gtk.Widget, profile: Profile, _uuid: str
+        ) -> None:
             """Update the default profile when the scan options change."""
             self.settings["default-scan-options"] = profile.get()
 
@@ -174,7 +195,9 @@ class ScanMenuItemMixins:
             "changed-current-scan-options", changed_current_scan_options_callback
         )
 
-        def changed_paper_sizes_callback(_widget, formats):
+        def changed_paper_sizes_callback(
+            _widget: Gtk.Widget, formats: dict[str, object]
+        ) -> None:
             self.settings["Paper"] = formats
 
         window.connect("changed-paper-sizes", changed_paper_sizes_callback)
@@ -183,7 +206,7 @@ class ScanMenuItemMixins:
             "changed-scan-option", self._update_postprocessing_options_callback
         )
 
-    def add_postprocessing_options(self, widget):
+    def add_postprocessing_options(self, widget: SaneScanDialog) -> None:
         """Add post-processing options to the dialog window."""
         scwin = Gtk.ScrolledWindow()
         widget.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
@@ -214,7 +237,7 @@ class ScanMenuItemMixins:
         )
         vboxp.pack_start(ocr_controls, expand=False, fill=False, padding=0)
 
-        def clicked_scan_button_cb(_w):
+        def clicked_scan_button_cb(_w: Gtk.Widget) -> None:
             self.settings["rotate facing"] = self._rotate_controls.rotate_facing
             self.settings["rotate reverse"] = self._rotate_controls.rotate_reverse
             logger.info("rotate facing %s", self.settings["rotate facing"])
@@ -246,7 +269,7 @@ class ScanMenuItemMixins:
 
         widget.connect("clicked-scan-button", clicked_scan_button_cb)
 
-    def _add_postprocessing_unpaper(self, vboxp):
+    def _add_postprocessing_unpaper(self, vboxp: Gtk.Box) -> Gtk.CheckButton:
         hboxu = Gtk.Box()
         vboxp.pack_start(hboxu, expand=False, fill=False, padding=0)
         ubutton = Gtk.CheckButton(label=_("Clean up images"))
@@ -264,14 +287,14 @@ class ScanMenuItemMixins:
         button.connect("clicked", self._show_unpaper_options)
         return ubutton
 
-    def _show_unpaper_options(self, _button):
+    def _show_unpaper_options(self, _button: Gtk.Button) -> None:
         windowuo = Dialog(
             transient_for=self,
             title=_("unpaper options"),
         )
         self._unpaper.add_options(windowuo.get_content_area())
 
-        def unpaper_options_callback():
+        def unpaper_options_callback() -> None:
             self.settings["unpaper options"] = self._unpaper.get_options()
             windowuo.destroy()
 
@@ -283,7 +306,9 @@ class ScanMenuItemMixins:
         )
         windowuo.show_all()
 
-    def _add_postprocessing_udt(self, vboxp):
+    def _add_postprocessing_udt(
+        self, vboxp: Gtk.Box
+    ) -> tuple[Gtk.CheckButton, ComboBoxText]:
         """Add a user-defined tool (UDT) post-processing option to the given VBox."""
         hboxudt = Gtk.Box()
         vboxp.pack_start(hboxudt, expand=False, fill=False, padding=0)
@@ -301,7 +326,7 @@ class ScanMenuItemMixins:
 
         return udtbutton, self._add_udt_combobox(hboxudt)
 
-    def _add_udt_combobox(self, hbox):
+    def _add_udt_combobox(self, hbox: Gtk.Box) -> ComboBoxText:
         """Add a ComboBoxText widget to the given hbox containing user-defined tools."""
         toolarray = [[t, t] for t in self.settings["user_defined_tools"]]
 
@@ -310,7 +335,9 @@ class ScanMenuItemMixins:
         hbox.pack_start(combobox, expand=True, fill=True, padding=0)
         return combobox
 
-    def _changed_device_callback(self, widget, device):
+    def _changed_device_callback(
+        self, widget: SaneScanDialog, device: str | None
+    ) -> None:
         """Handle changed device signal."""
         # widget is windows
         logger.info("signal 'changed-device' emitted with data: '%s'", device)
@@ -324,7 +351,9 @@ class ScanMenuItemMixins:
                 "reloaded-scan-options", self._reloaded_scan_options_callback
             )
 
-    def _changed_device_list_callback(self, widget, device_list):  # widget is windows
+    def _changed_device_list_callback(
+        self, widget: SaneScanDialog, device_list: list[object]
+    ) -> None:  # widget is windows
         """Handle changed device list signal."""
         logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
         if len(device_list):
@@ -350,15 +379,21 @@ class ScanMenuItemMixins:
             self._windows = None
 
     def _update_postprocessing_options_callback(
-        self, widget, _option_name=None, _option_val=None, _uuid=None
-    ):
+        self,
+        widget: SaneScanDialog,
+        _option_name: str | None = None,
+        _option_val: object | None = None,
+        _uuid: str | None = None,
+    ) -> None:
         """Update the visibility of post-processing options based on the widget's scan options."""
         # widget is windows
         options = widget.available_scan_options
         if options is not None:
             self._rotate_controls.can_duplex = options.can_duplex()
 
-    def _changed_progress_callback(self, _widget, progress, message):
+    def _changed_progress_callback(
+        self, _widget: Gtk.Widget, progress: float | None, message: str | None
+    ) -> None:
         """Update the progress bar based on the given progress value and message."""
         if progress is not None and (0 < progress <= 1):
             self._scan_progress.set_fraction(progress)
@@ -368,15 +403,23 @@ class ScanMenuItemMixins:
             self._scan_progress.set_text(message)
         self._scan_progress.show()
 
-    def _changed_profile_callback(self, _widget, profile):
+    def _changed_profile_callback(self, _widget: Gtk.Widget, profile: str) -> None:
         self.settings["default profile"] = profile
 
-    def _added_profile_callback(self, _widget, name, profile):
+    def _added_profile_callback(
+        self, _widget: Gtk.Widget, name: str, profile: Profile
+    ) -> None:
         self.settings["profile"][name] = profile.get()
 
     def _new_scan_callback(
-        self, _widget, image_object, insert_after, side, xresolution, yresolution
-    ):
+        self,
+        _widget: Gtk.Widget,
+        image_object: object,
+        insert_after: str | None,
+        side: str,
+        xresolution: float,
+        yresolution: float,
+    ) -> None:
         """Handle a new scan."""
         if image_object is None:
             return
@@ -413,7 +456,7 @@ class ScanMenuItemMixins:
         logger.info("Importing scan with resolution=%s,%s", xresolution, yresolution)
         self.slist.import_scan(**options)
 
-    def _reloaded_scan_options_callback(self, widget):  # widget is windows
+    def _reloaded_scan_options_callback(self, widget: SaneScanDialog) -> None:
         """Call only the first time after loading the available options."""
         widget.disconnect(widget.reloaded_signal)
         profiles = self.settings["profile"].keys()
@@ -433,6 +476,6 @@ class ScanMenuItemMixins:
 
         self._update_postprocessing_options_callback(widget)
 
-    def _import_scan_finished_callback(self, response):
+    def _import_scan_finished_callback(self, response: Response) -> None:
         """Handle the completion of a scan import process."""
         self.post_process_progress.finish(response)

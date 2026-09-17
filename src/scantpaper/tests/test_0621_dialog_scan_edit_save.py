@@ -1,5 +1,7 @@
 """Test scan dialog."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -48,7 +50,7 @@ class TestScan(Scan):
 
     __test__ = False
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise TestScan."""
         self.thread = MagicMock()
         self.thread.device_handle = MagicMock()
@@ -60,12 +62,14 @@ class TestScan(Scan):
 
 
 @pytest.fixture
-def available_scan_options():
+def available_scan_options() -> Options:
     """Fixture for available_scan_options."""
     return Options(sane_mock.options)
 
 
-def test_edit_profile_dialog(mocker, available_scan_options):
+def test_edit_profile_dialog(
+    mocker: pytest.MockerFixture, available_scan_options: Options
+) -> None:
     """Tests that the edit profile dialog is created with the correct buttons.
 
     This covers changes from commit ff79698.
@@ -89,7 +93,7 @@ def test_edit_profile_dialog(mocker, available_scan_options):
     )
 
 
-def test_save_profile_overwrite_dialog(mocker):
+def test_save_profile_overwrite_dialog(mocker: pytest.MockerFixture) -> None:
     """Tests that the save profile overwrite dialog is created with the correct buttons.
 
     This covers changes from commit 1bd730e.
@@ -115,7 +119,7 @@ def test_save_profile_overwrite_dialog(mocker):
     name_dialog_mock.run.side_effect = [Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL]
     overwrite_dialog_mock.run.return_value = Gtk.ResponseType.OK
 
-    def dialog_side_effect(*_args, **kwargs):
+    def dialog_side_effect(*_args: object, **kwargs: object) -> object:
         if "exists. Overwrite?" in kwargs.get("title", ""):
             return overwrite_dialog_mock
         return name_dialog_mock
@@ -143,7 +147,7 @@ def test_save_profile_overwrite_dialog(mocker):
     parent.save_current_profile.assert_called_once_with("MyProfile")
 
 
-def test_edit_paper_cancel(mocker):
+def test_edit_paper_cancel(mocker: pytest.MockerFixture) -> None:
     """Tests that _edit_paper() method correctly opens the dialog and cancels."""
     # 1. Mock the Scan instance (self)
     mock_self = MagicMock(spec=Scan)
@@ -168,7 +172,7 @@ def test_edit_paper_cancel(mocker):
     # 3. Mock Gtk Widgets
     button_mocks = []
 
-    def mock_button_factory(*_args, **_kwargs):
+    def mock_button_factory(*_args: object, **_kwargs: object) -> MagicMock:
         mock_button = MagicMock()
         button_mocks.append(mock_button)
         return mock_button

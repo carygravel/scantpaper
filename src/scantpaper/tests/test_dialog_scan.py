@@ -1,8 +1,11 @@
 """test scan dialog current_scan_options property."""
 
+from __future__ import annotations
+
 import threading
 import time
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -14,6 +17,13 @@ from scantpaper.frontend import enums
 from scantpaper.scanner.options import Option
 from scantpaper.scanner.profile import Profile
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import pytest
+
+    from scantpaper.loop_helpers import _MainLoopWrapper
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
     GLib,
@@ -24,16 +34,16 @@ from gi.repository import (  # noqa: E402
 class MockOptions:
     """A mock scan options collection."""
 
-    def __init__(self, options) -> None:
+    def __init__(self, options: list[Option]) -> None:
         """Initialise MockOptions."""
         self.options = options
         self.options_dict = {o.name: o for o in options}
 
-    def num_options(self):
+    def num_options(self) -> int:
         """Return the number of options."""
         return len(self.options)
 
-    def by_index(self, i):
+    def by_index(self, i: int) -> Option:
         """Get option by index."""
         return self.options[i]
 
@@ -41,13 +51,13 @@ class MockOptions:
 class MockOption:
     """A mock scan option."""
 
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         """Initialise MockOptions."""
         self.name = name
         self.type = enums.TYPE_INT
 
 
-def test_current_scan_options_property():
+def test_current_scan_options_property() -> None:
     """Test current_scan_options property getter and setter."""
     dialog = Scan(
         title="title",
@@ -64,7 +74,7 @@ def test_current_scan_options_property():
     assert dialog.current_scan_options == new_profile
 
 
-def test_ignore_duplex_capabilities_property():
+def test_ignore_duplex_capabilities_property() -> None:
     """Test ignore_duplex_capabilities property getter and setter."""
     dialog = Scan(
         title="title",
@@ -79,7 +89,7 @@ def test_ignore_duplex_capabilities_property():
     assert dialog.ignore_duplex_capabilities, "Value should be True after setting"
 
 
-def test_show(mocker):
+def test_show(mocker: pytest.MockerFixture) -> None:
     """Test show method."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -113,7 +123,7 @@ def test_show(mocker):
     assert dialog.cursor == "wait", "Cursor should be 'wait' after setting"
 
 
-def test_device_dropdown_changed(mocker):
+def test_device_dropdown_changed(mocker: pytest.MockerFixture) -> None:
     """Test do_device_dropdown_changed callback."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -141,7 +151,7 @@ def test_device_dropdown_changed(mocker):
     dialog.get_devices.assert_called_once()
 
 
-def test_edit_paper_apply(mocker):
+def test_edit_paper_apply(mocker: pytest.MockerFixture) -> None:
     """Test _edit_paper and applying changes."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}}
@@ -173,11 +183,11 @@ def test_edit_paper_apply(mocker):
 
     apply_cb = {}
 
-    def mock_new_with_label(label):
+    def mock_new_with_label(label: str) -> MagicMock:
         btn = mocker.Mock()
         if label == "Apply":  # Assuming no translation or "Apply" is passed
 
-            def connect(signal, callback, *_args):
+            def connect(signal: str, callback: object, *_args: object) -> None:
                 if signal == "clicked":
                     apply_cb["callback"] = callback
 
@@ -208,7 +218,7 @@ def test_edit_paper_apply(mocker):
     mock_window.destroy.assert_called_once()
 
 
-def test_delete_profile_frontend_item(mocker):
+def test_delete_profile_frontend_item(mocker: pytest.MockerFixture) -> None:
     """Test deleting a frontend item from the profile editor."""
     # Setup
     profile = Profile()
@@ -271,7 +281,7 @@ def test_delete_profile_frontend_item(mocker):
     assert len(rows_new) == 0, "Should have 0 rows after deletion"
 
 
-def test_delete_profile_backend_item(mocker):
+def test_delete_profile_backend_item(mocker: pytest.MockerFixture) -> None:
     """Test deleting a backend item from the profile editor."""
     # Setup
     profile = Profile(backend=[("mode", "Color")])
@@ -340,7 +350,7 @@ def test_delete_profile_backend_item(mocker):
     assert len(rows_new) == 0, "Should have 0 rows after deletion"
 
 
-def test_rescan_hides_widgets(mocker):
+def test_rescan_hides_widgets(mocker: pytest.MockerFixture) -> None:
     """Test that selecting rescan hides the device widgets."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -377,7 +387,7 @@ def test_rescan_hides_widgets(mocker):
     dialog.get_devices.assert_called_once()
 
 
-def test_cursor_setter_with_window(mocker):
+def test_cursor_setter_with_window(mocker: pytest.MockerFixture) -> None:
     """Test cursor setter when window exists."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -402,7 +412,7 @@ def test_cursor_setter_with_window(mocker):
     assert dialog.cursor == "wait"
 
 
-def test_cursor_setter_none():
+def test_cursor_setter_none() -> None:
     """Test cursor setter with None value."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.cursor = "wait"
@@ -411,7 +421,7 @@ def test_cursor_setter_none():
     assert dialog.cursor == "wait", "Cursor should not change if None is passed"
 
 
-def test_scan_button(mocker):
+def test_scan_button(mocker: pytest.MockerFixture) -> None:
     """Test scan button action."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -424,7 +434,7 @@ def test_scan_button(mocker):
     # Connect signal to verify _do_scan behavior
     signal_triggered = False
 
-    def on_scan(_widget):
+    def on_scan(_widget: object) -> None:
         nonlocal signal_triggered
         signal_triggered = True
 
@@ -438,7 +448,7 @@ def test_scan_button(mocker):
     dialog.scan.assert_called_once()
 
 
-def test_available_scan_options_flatbed_selected(mocker):
+def test_available_scan_options_flatbed_selected(mocker: pytest.MockerFixture) -> None:
     """Test available_scan_options setter when flatbed is selected."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -468,7 +478,9 @@ def test_available_scan_options_flatbed_selected(mocker):
     mock_set_sensitive.assert_called_with(sensitive=False)
 
 
-def test_available_scan_options_flatbed_not_selected(mocker):
+def test_available_scan_options_flatbed_not_selected(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test available_scan_options setter when flatbed is NOT selected."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.thread = mocker.Mock()
@@ -485,7 +497,7 @@ def test_available_scan_options_flatbed_not_selected(mocker):
     mock_set_sensitive.assert_called_with(sensitive=True)
 
 
-def test_init_with_profiles():
+def test_init_with_profiles() -> None:
     """Test __init__ with profiles argument."""
     profiles = {
         "TestProfile": {"frontend": {"paper": "A4"}, "backend": [("mode", "Color")]}
@@ -504,7 +516,7 @@ def test_init_with_profiles():
     assert found
 
 
-def test_init_with_legacy_profile():
+def test_init_with_legacy_profile() -> None:
     """Test __init__ tolerates a legacy profile with no frontend key."""
     profiles = {"LegacyProfile": {"backend": [("mode", "Color")]}}
     dialog = SaneScanDialog(
@@ -519,7 +531,7 @@ def test_init_with_legacy_profile():
     assert dialog.profiles["LegacyProfile"].frontend == {}, "frontend is empty"
 
 
-def test_profile_setter_updates_combobox(mocker):
+def test_profile_setter_updates_combobox(mocker: pytest.MockerFixture) -> None:
     """Test that setting profile property updates the combobox."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -537,7 +549,9 @@ def test_profile_setter_updates_combobox(mocker):
     mock_set_active.assert_called_with("test_profile")
 
 
-def test_profile_not_cleared_during_profile_setting(mocker):
+def test_profile_not_cleared_during_profile_setting(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test that _post_set_option_hook does not clear the profile during profile setting.
 
     When a profile is being applied (setting_profile is not empty), the profile
@@ -573,7 +587,9 @@ def test_profile_not_cleared_during_profile_setting(mocker):
     )
 
 
-def test_profile_not_cleared_by_late_paper_option(mocker):
+def test_profile_not_cleared_by_late_paper_option(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test that a late-arriving paper profile option does NOT clear the profile.
 
     A late-arriving paper profile option (non-None uuid) after setting_profile
@@ -620,7 +636,9 @@ def test_profile_not_cleared_by_late_paper_option(mocker):
     assert len(calls) == 0, f"combobsp.set_active_by_text was called with None: {calls}"
 
 
-def test_profile_cleared_when_user_changes_option(mocker):
+def test_profile_cleared_when_user_changes_option(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test that profile is cleared when user manually changes an option.
 
     After a profile is applied and the user manually changes any option,
@@ -664,7 +682,9 @@ def test_profile_cleared_when_user_changes_option(mocker):
     )
 
 
-def test_profile_cleared_when_user_changes_paper(mocker):
+def test_profile_cleared_when_user_changes_paper(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test that profile is cleared when user changes paper via combobox.
 
     When the user selects a paper size, the paper setter calls _set_paper
@@ -690,7 +710,9 @@ def test_profile_cleared_when_user_changes_paper(mocker):
     )
 
 
-def test_profile_not_cleared_when_paper_changed_during_profile_apply(mocker):
+def test_profile_not_cleared_when_paper_changed_during_profile_apply(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test that profile is NOT cleared when paper is changed during profile application.
 
     When a named profile is being applied, setting_profile is non-empty
@@ -732,7 +754,9 @@ def test_profile_not_cleared_when_paper_changed_during_profile_apply(mocker):
     )
 
 
-def test_device_dropdown_changed_garbage_collection(mocker):
+def test_device_dropdown_changed_garbage_collection(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test do_device_dropdown_changed callback when dialog is garbage collected."""
     # Mock weakref in the module scope to return None, simulating garbage collection
     # The callback captures the weakref at creation time.
@@ -745,7 +769,9 @@ def test_device_dropdown_changed_garbage_collection(mocker):
     dialog_gc.combobd.emit("changed")
 
 
-def test_paper_dimension_changed_unsets_paper(mocker):
+def test_paper_dimension_changed_unsets_paper(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test that changing geometry unsets paper format."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -792,7 +818,7 @@ def test_paper_dimension_changed_unsets_paper(mocker):
     assert dialog.paper is None
 
 
-def test_get_paper_by_geometry(mocker):
+def test_get_paper_by_geometry(mocker: pytest.MockerFixture) -> None:
     """Test _get_paper_by_geometry method."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -819,7 +845,10 @@ def test_get_paper_by_geometry(mocker):
     assert dialog._get_paper_by_geometry() is None
 
 
-def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout):
+def test_race_condition_device_switching(
+    sane_scan_dialog: SaneScanDialog,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Reproduces a race condition that leaves the dialog in a broken state.
 
     The broken state (non-empty setting_current_scan_options and 'wait' cursor)
@@ -857,7 +886,7 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
         patch("scantpaper.frontend.image_sane.sane.exit"),
     ):
 
-        def delayed_open(_name):
+        def delayed_open(_name: object) -> MagicMock:
             # Signal that we are inside open(), so device_handle should be None
             # (simulated by sleep race)
             ready_to_crash.set()
@@ -867,7 +896,7 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
         mock_sane_open.side_effect = delayed_open
 
         # 4. Trigger the race
-        def set_option_finished_cb(_data):
+        def set_option_finished_cb(_data: object) -> None:
             # Wait for open_device to reach the critical section
             ready_to_crash.wait(timeout=2.0)
             try:
@@ -891,7 +920,10 @@ def test_race_condition_device_switching(sane_scan_dialog, mainloop_with_timeout
         assert dialog.cursor == "default", "cursor should be 'default' (clean state)"
 
 
-def test_infinite_loop_reproduction(sane_scan_dialog, mainloop_with_timeout):
+def test_infinite_loop_reproduction(
+    sane_scan_dialog: SaneScanDialog,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test reproduction of infinite loop issue when switching devices and applying profile."""
     dialog = sane_scan_dialog
     loop = mainloop_with_timeout()
@@ -921,10 +953,10 @@ def test_infinite_loop_reproduction(sane_scan_dialog, mainloop_with_timeout):
     call_count = 0
     original_set_option_profile = dialog._set_option_profile
 
-    def tracked_set_option_profile(*args, **kwargs):
+    def tracked_set_option_profile(*args: object, **kwargs: object) -> None:
         nonlocal call_count
         call_count += 1
-        return original_set_option_profile(*args, **kwargs)
+        original_set_option_profile(*args, **kwargs)
 
     dialog._set_option_profile = tracked_set_option_profile
 
@@ -933,7 +965,7 @@ def test_infinite_loop_reproduction(sane_scan_dialog, mainloop_with_timeout):
 
     with patch("scantpaper.frontend.image_sane.sane.open") as mock_sane_open:
 
-        def delayed_open(_name):
+        def delayed_open(_name: object) -> MagicMock:
             # Signal we are in open_device (handle is None)
             ready_to_crash.set()
             time.sleep(0.5)
@@ -960,7 +992,7 @@ def test_infinite_loop_reproduction(sane_scan_dialog, mainloop_with_timeout):
     assert call_count <= 10, "Loop detected (call count > 10)"
 
 
-def test_do_profile_changed(mocker):
+def test_do_profile_changed(mocker: pytest.MockerFixture) -> None:
     """Test _do_profile_changed callback."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -977,7 +1009,7 @@ def test_do_profile_changed(mocker):
     mock_set_profile.assert_called_with("TestProfile")
 
 
-def test_update_options_recursion_limit(mocker):
+def test_update_options_recursion_limit(mocker: pytest.MockerFixture) -> None:
     """Test _update_options recursion limit."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.reload_recursion_limit = 5
@@ -992,7 +1024,7 @@ def test_update_options_recursion_limit(mocker):
     mock_emit.assert_called_with("process-error", "update_options", mocker.ANY)
 
 
-def test_set_option_profile_inexact(mocker):
+def test_set_option_profile_inexact(mocker: pytest.MockerFixture) -> None:
     """Test _set_option_profile with INFO_INEXACT."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
     dialog.thread = mocker.Mock()
@@ -1029,7 +1061,7 @@ def test_set_option_profile_inexact(mocker):
     dialog.set_option.assert_not_called()
 
 
-def test_update_widget_value_types(mocker):
+def test_update_widget_value_types(mocker: pytest.MockerFixture) -> None:
     """Test _update_widget_value with various widget types."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -1085,7 +1117,7 @@ def test_update_widget_value_types(mocker):
     widget_entry.set_text.assert_called_with("New")
 
 
-def test_get_label_for_option():
+def test_get_label_for_option() -> None:
     """Test _get_label_for_option."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -1099,7 +1131,7 @@ def test_get_label_for_option():
     assert dialog._get_label_for_option("my_opt") == "My Option"
 
 
-def test_pack_widget_unknown_type(mocker):
+def test_pack_widget_unknown_type(mocker: pytest.MockerFixture) -> None:
     """Test _pack_widget with None widget (unknown type)."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -1113,7 +1145,7 @@ def test_pack_widget_unknown_type(mocker):
     mock_logger.warning.assert_called_with("Unknown type %s", "unknown")
 
 
-def test_add_current_scan_options_with_none(mocker):
+def test_add_current_scan_options_with_none(mocker: pytest.MockerFixture) -> None:
     """Test _add_profile with None profile."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -1127,7 +1159,7 @@ def test_add_current_scan_options_with_none(mocker):
     mock_logger.error.assert_called_once_with("Cannot add undefined profile")
 
 
-def test_add_current_scan_options_with_error(mocker):
+def test_add_current_scan_options_with_error(mocker: pytest.MockerFixture) -> None:
     """Test _add_profile with None profile."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -1141,7 +1173,7 @@ def test_add_current_scan_options_with_error(mocker):
     mock_logger.error.assert_called_once_with("%s is not a Profile object", type({}))
 
 
-def test_update_widget_value_widget_undefined(mocker):
+def test_update_widget_value_widget_undefined(mocker: pytest.MockerFixture) -> None:
     """Test _update_widget_value when widget for option is undefined."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
 
@@ -1161,7 +1193,7 @@ def test_update_widget_value_widget_undefined(mocker):
     )
 
 
-def test_update_options_error_return(mocker):
+def test_update_options_error_return(mocker: pytest.MockerFixture) -> None:
     """Test _update_options returns early if _update_option returns True (line 717)."""
     dialog = Scan()
 
@@ -1185,7 +1217,7 @@ def test_update_options_error_return(mocker):
     assert dialog.available_scan_options == initial_options
 
 
-def test_get_label_for_option_none():
+def test_get_label_for_option_none() -> None:
     """Test _get_label_for_option returns None if no label is found (line 1333)."""
     dialog = Scan()
 
@@ -1198,7 +1230,7 @@ def test_get_label_for_option_none():
     assert dialog._get_label_for_option("my_opt") is None
 
 
-def test_coerce_option_value_fixed_string_comma_locale(comma_locale):
+def test_coerce_option_value_fixed_string_comma_locale(comma_locale: str) -> None:
     """A pre-v3 FIXED value written with a decimal comma is coerced."""
     assert comma_locale == ","
     opt = Option(
@@ -1208,7 +1240,7 @@ def test_coerce_option_value_fixed_string_comma_locale(comma_locale):
     assert _coerce_option_value(opt, 115.2) == 115.2
 
 
-def test_coerce_option_value_fixed_string_dot_locale(dot_locale):
+def test_coerce_option_value_fixed_string_dot_locale(dot_locale: str) -> None:
     """A pre-v3 FIXED value written with a period is coerced in a dot locale."""
     assert dot_locale == "."
     opt = Option(
@@ -1217,7 +1249,7 @@ def test_coerce_option_value_fixed_string_dot_locale(dot_locale):
     assert _coerce_option_value(opt, "115.2") == 115.2
 
 
-def test_coerce_option_value_int_string(dot_locale):
+def test_coerce_option_value_int_string(dot_locale: str) -> None:
     """A pre-v3 INT value string is coerced to an int."""
     assert dot_locale == "."
     opt = Option(0, "test", "Test", "desc", enums.TYPE_INT, enums.UNIT_NONE, 0, 0, None)
@@ -1225,7 +1257,7 @@ def test_coerce_option_value_int_string(dot_locale):
     assert _coerce_option_value(opt, 150) == 150
 
 
-def test_coerce_option_value_string_passthrough():
+def test_coerce_option_value_string_passthrough() -> None:
     """Non-numeric option types keep their value unchanged."""
     opt = Option(
         0, "test", "Test", "desc", enums.TYPE_STRING, enums.UNIT_NONE, 0, 0, None

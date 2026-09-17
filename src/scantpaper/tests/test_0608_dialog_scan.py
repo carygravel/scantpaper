@@ -1,6 +1,9 @@
 """test scan dialog."""
 
+from __future__ import annotations
+
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.frontend import enums
@@ -8,16 +11,29 @@ from scantpaper.scanner.options import Option
 from scantpaper.scanner.profile import Profile
 from scantpaper.tests.scan_mocks import build_scan_options
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import pytest
+
+    from scantpaper.basethread import Request
+    from scantpaper.dialog.sane import SaneScanDialog
+    from scantpaper.frontend.image_sane import SaneThread
+    from scantpaper.loop_helpers import _MainLoopWrapper
+
 
 def setup_coupled_scan_options(
-    mocker, dlg, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    dlg: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> SaneScanDialog:
     """Patch the SaneThread to alias scan-area and quick-format."""
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
@@ -49,7 +65,7 @@ def setup_coupled_scan_options(
         )
     )
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         nonlocal raw_options
         return raw_options
@@ -58,7 +74,7 @@ def setup_coupled_scan_options(
         "scantpaper.dialog.sane.SaneThread.do_get_options", mocked_do_get_options
     )
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """Revert the other media option when one is set (epkowa GT-20000)."""
         key, value = _request.args
         info = 0
@@ -83,7 +99,7 @@ def setup_coupled_scan_options(
     return dlg
 
 
-def mocked_do_get_devices(_cls, _request):
+def mocked_do_get_devices(_cls: object, _request: Request) -> list[SimpleNamespace]:
     """mocked_do_get_devices."""
     devices = [("mock_name", "", "", "")]
     return [
@@ -91,11 +107,14 @@ def mocked_do_get_devices(_cls, _request):
     ]
 
 
-def trigger_get_devices(dlg, mainloop_with_timeout):
+def trigger_get_devices(
+    dlg: SaneScanDialog,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Trigger get_devices to cover mocked_do_get_devices."""
     loop = mainloop_with_timeout()
 
-    def reloaded_devices_cb(_arg1, _arg2):
+    def reloaded_devices_cb(_arg1: object, _arg2: object) -> None:
         loop.quit()
 
     handler = dlg.connect("changed-device-list", reloaded_devices_cb)
@@ -105,19 +124,19 @@ def trigger_get_devices(dlg, mainloop_with_timeout):
 
 
 def test_infinite_reloads(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-    infinite_reloads_scan_mocks,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    infinite_reloads_scan_mocks: SimpleNamespace,
+) -> None:
     """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
     )
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """Force a reload for every option.
 
         Trigger an infinite reload loop and test that the reload-recursion-limit
@@ -137,7 +156,7 @@ def test_infinite_reloads(
     loop = mainloop_with_timeout()
     dlg.paper_sizes = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "t": 0, "l": 0}}
 
-    def changed_paper_cb(_arg1, _arg2):
+    def changed_paper_cb(_arg1: object, _arg2: object) -> None:
         dlg.disconnect(dlg.signal)
         loop.quit()
 
@@ -160,11 +179,11 @@ def test_infinite_reloads(
 
 
 def test_coupled_scan_options_drop_reverted(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Coupled media options give up per-option instead of hitting the limit.
 
     Reproduces the epkowa GT-20000 case from the log files: scan-area and
@@ -177,14 +196,16 @@ def test_coupled_scan_options_drop_reverted(
     )
     loop = mainloop_with_timeout()
 
-    def settled_with_drop():
+    def settled_with_drop() -> bool:
         return (
             not dlg.setting_current_scan_options
             and dlg.current_scan_options.get_option_by_name("scan-area") is None
             and dlg.current_scan_options.get_option_by_name("quick-format") is not None
         )
 
-    def changed_current_scan_options_cb(_widget, _profile, _uuid):
+    def changed_current_scan_options_cb(
+        _widget: object, _profile: object, _uuid: object
+    ) -> None:
         if settled_with_drop():
             dlg.disconnect(signal)
             loop.quit()
@@ -222,21 +243,23 @@ def test_coupled_scan_options_drop_reverted(
 
 
 def test_apply_after_drop_starts_fresh(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """A second apply is not harmed by a previous one that dropped an option."""
     dlg = setup_coupled_scan_options(
         mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
     )
 
-    def apply_profile(profile, condition):
+    def apply_profile(profile: Profile, condition: Callable[[], bool]) -> None:
         loop = mainloop_with_timeout()
         signal = None
 
-        def changed_current_scan_options_cb(_widget, _profile, _uuid):
+        def changed_current_scan_options_cb(
+            _widget: object, _profile: object, _uuid: object
+        ) -> None:
             if condition():
                 dlg.disconnect(signal)
                 loop.quit()
@@ -280,12 +303,12 @@ def test_apply_after_drop_starts_fresh(
 
 
 def test_linear_reload_backstop(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-    infinite_reloads_scan_mocks,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    infinite_reloads_scan_mocks: SimpleNamespace,
+) -> None:
     """The reload budget is linear in the option count, not triangular."""
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
@@ -303,19 +326,19 @@ def test_linear_reload_backstop(
 
 
 def test_changed_profile(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-    infinite_reloads_scan_mocks,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    infinite_reloads_scan_mocks: SimpleNamespace,
+) -> None:
     """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
     )
     infinite_reloads_scan_mocks.patch_open_and_get(mocker)
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """Guard against the changed-profile signal being emitted too early.
 
         This resulted in the profile dropdown being set to None.
@@ -337,7 +360,7 @@ def test_changed_profile(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_profile_cb(_widget, profile):
+    def changed_profile_cb(_widget: object, profile: object) -> None:
         nonlocal asserts
         dlg.disconnect(dlg.signal)
         assert profile == "my profile", "changed-profile"
@@ -356,14 +379,17 @@ def test_changed_profile(
 
 
 def test_source_default(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
@@ -374,7 +400,7 @@ def test_source_default(
         "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
     )
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """Reproduce an Acer flatbed scanner using a snapscan backend with no source default.
 
         As the source only had one possibility, which was never set, the source
@@ -427,14 +453,17 @@ def test_source_default(
     assert dlg.framen.is_sensitive(), "num-page gui not ghosted"
 
 
-def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
+def test_more_profiles(
+    sane_scan_dialog: SaneScanDialog,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Check options are reset before applying a profile."""
     dlg = sane_scan_dialog
     dlg._add_profile("my profile", Profile(backend=[("resolution", 100)]))
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def reloaded_scan_options_cb(_arg):
+    def reloaded_scan_options_cb(_arg: object) -> None:
         dlg.disconnect(dlg.signal)
         loop.quit()
 
@@ -445,7 +474,9 @@ def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
 
     loop = mainloop_with_timeout()
 
-    def changed_scan_option_cb(_arg, _arg2, _arg3, _arg4):
+    def changed_scan_option_cb(
+        _arg: object, _arg2: object, _arg3: object, _arg4: object
+    ) -> None:
         dlg.disconnect(dlg.signal)
         loop.quit()
 
@@ -455,7 +486,7 @@ def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
 
     loop = mainloop_with_timeout()
 
-    def changed_profile_cb(_widget, _profile):
+    def changed_profile_cb(_widget: object, _profile: object) -> None:
         nonlocal asserts
         dlg.disconnect(dlg.signal)
         assert dlg.current_scan_options == Profile(backend=[("resolution", 100)]), (
@@ -473,14 +504,17 @@ def test_more_profiles(sane_scan_dialog, mainloop_with_timeout):
 
 
 def test_button_press(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
@@ -509,7 +543,7 @@ def test_button_press(
         ]
     )
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         nonlocal raw_options
         return raw_options
@@ -518,7 +552,7 @@ def test_button_press(
         "scantpaper.dialog.sane.SaneThread.do_get_options", mocked_do_get_options
     )
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """Reload clear-calibration button pressed.
 
         Test that this doesn't trigger an infinite reload loop.
@@ -545,7 +579,7 @@ def test_button_press(
     dlg.paper_sizes = {"A4": {"x": 210, "y": 279, "t": 0, "l": 0}}
     asserts = 0
 
-    def changed_paper_cb(_arg1, _arg2):
+    def changed_paper_cb(_arg1: object, _arg2: object) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.current_scan_options == Profile(
@@ -579,8 +613,11 @@ def test_button_press(
 
 
 def test_get_invalid_option(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test getting an invalid option (gscan2pdf bug #313).
 
     scanimage was segfaulting when retrieving the options from a Brother
@@ -594,7 +631,7 @@ def test_get_invalid_option(
         "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
@@ -624,7 +661,7 @@ def test_get_invalid_option(
         ]
     )
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         nonlocal raw_options
         return raw_options

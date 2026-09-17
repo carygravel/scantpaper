@@ -1,10 +1,13 @@
 """provide methods around session files."""
 
+from __future__ import annotations
+
 import fcntl
 import inspect
 import logging
 import tempfile
 from pathlib import Path, PurePath
+from typing import TYPE_CHECKING
 
 import gi
 import tesserocr
@@ -23,6 +26,16 @@ from scantpaper.simplelist import SimpleList
 from scantpaper.text_layer_control import TextLayerControls
 from scantpaper.unpaper import Unpaper
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from gi.repository import Gio
+
+    from scantpaper.basethread import Response
+    from scantpaper.canvas import Bbox
+    from scantpaper.dialog.sane import SaneScanDialog
+    from scantpaper.page import Page
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
     GLib,
@@ -35,7 +48,7 @@ logger = logging.getLogger(__name__)
 class SessionMixins:
     """provide methods around session files."""
 
-    def _create_temp_directory(self):
+    def _create_temp_directory(self) -> None:
         """Create a temporary directory for the session."""
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
@@ -65,7 +78,7 @@ class SessionMixins:
             )
             self.settings["TMPDIR"] = tmpdir
 
-    def _create_lockfile(self, session=None):
+    def _create_lockfile(self, session: str | None = None) -> object:
         """Create a lockfile in the session directory."""
         if session is None:
             session = self.session.name
@@ -75,7 +88,7 @@ class SessionMixins:
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
         return lockfd
 
-    def _find_crashed_sessions(self):
+    def _find_crashed_sessions(self) -> None:
         """Look for crashed sessions."""
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
@@ -123,7 +136,7 @@ class SessionMixins:
             if selected:
                 self._open_session(crashed[selected[0]])
 
-    def _check_dependencies(self):
+    def _check_dependencies(self) -> None:
         """Check for presence of various packages."""
         self._dependencies["tesseract"] = tesserocr.tesseract_version()
         self._dependencies["tesserocr"] = tesserocr.__version__
@@ -195,7 +208,9 @@ class SessionMixins:
                 ["tesseract", _("Tesseract"), _("Process image with Tesseract.")]
             )
 
-    def _finished_process_callback(self, widget, process, button_signal=None):
+    def _finished_process_callback(
+        self, widget: SaneScanDialog, process: str, button_signal: int | None = None
+    ) -> None:
         """Handle the completion of a process."""
         logger.debug("signal 'finished-process' emitted with data: %s", process)
         if button_signal is not None:
@@ -204,7 +219,7 @@ class SessionMixins:
         self._scan_progress.hide()
         if process == "scan_pages" and widget.sided == "double":
 
-            def prompt_reverse_sides():
+            def prompt_reverse_sides() -> None:
                 message, side = None, None
                 if widget.side_to_scan == "facing":
                     message = _("Finished scanning facing pages. Scan reverse pages?")
@@ -227,7 +242,7 @@ class SessionMixins:
 
             GLib.idle_add(prompt_reverse_sides)
 
-    def _display_callback(self, response):
+    def _display_callback(self, response: Response) -> None:
         """Find the page from the input uuid and display it."""
         if response.info and "row" in response.info:
             uuid = response.info["row"][2]
@@ -237,7 +252,7 @@ class SessionMixins:
             else:
                 self._display_image(self.slist.data[i][2])
 
-    def _display_image(self, pageid):
+    def _display_image(self, pageid: str) -> None:
         """Display the image in the view."""
         # Find the index for this pageid to get the thumbnail
         i = self.slist.find_page_by_uuid(pageid)
@@ -256,7 +271,7 @@ class SessionMixins:
         if getattr(self, "_suppress_full_display", False):
             return
 
-        def on_page_error(response):
+        def on_page_error(response: Response) -> None:
             logger.error("Error loading page %s: %s", pageid, response.status)
 
         self.slist.thread.send(
@@ -266,7 +281,7 @@ class SessionMixins:
             error_callback=on_page_error,
         )
 
-    def _on_page_loaded(self, response):
+    def _on_page_loaded(self, response: Response) -> None:
         """Display a fully loaded page."""
         self._current_page = response.info
         self.view.set_pixbuf(self._current_page.get_pixbuf(), zoom_to_fit=True)
@@ -302,7 +317,7 @@ class SessionMixins:
         else:
             self.a_canvas.clear_text()
 
-    def _error_callback(self, response):
+    def _error_callback(self, response: Response) -> None:
         """Handle errors."""
         args = response.request.args
         process = response.request.process
@@ -336,7 +351,7 @@ class SessionMixins:
             "Error running '%s' callback for '%s' process: %s", stage, process, message
         )
 
-        def show_message_dialog_wrapper():
+        def show_message_dialog_wrapper() -> None:
             """Wrap show_message_dialog() in GLib.idle_add() to let the thread continue.
 
             This allows the thread to return immediately and keep working on
@@ -347,7 +362,7 @@ class SessionMixins:
         GLib.idle_add(show_message_dialog_wrapper)
         self.post_process_progress.hide()
 
-    def _ask_question(self, **kwargs):
+    def _ask_question(self, **kwargs: object) -> object:
         """Display a message dialog, wait for a response, and return it."""
         # replace any numbers with metacharacters to compare to filter
         text = filter_message(kwargs["text"])
@@ -396,7 +411,7 @@ class SessionMixins:
         logger.debug("Replied '%s'", response)
         return response
 
-    def _add_text_view_layers(self):
+    def _add_text_view_layers(self) -> None:
         # split panes for detail view/text layer canvas and text layer dialog
         self._ocr_text_hbox = TextLayerControls()
         edit_hbox = self.builder.get_object("edit_hbox")
@@ -448,7 +463,7 @@ class SessionMixins:
         self._ann_hbox.pack_end(ann_abutton, expand=False, fill=False, padding=0)
         self._pack_viewer_tools()
 
-    def _ocr_text_button_clicked(self, _widget):
+    def _ocr_text_button_clicked(self, _widget: Gtk.Button) -> None:
         old_text = self._current_ocr_bbox.text
         text = self._ocr_text_hbox.textbuffer.get_text(
             self._ocr_text_hbox.textbuffer.get_start_iter(),
@@ -462,7 +477,7 @@ class SessionMixins:
         self._edit_ocr_text(self._current_ocr_bbox)
         logger.info("Corrected '%s'->'%s'", old_text, text)
 
-    def _ocr_text_copy(self, _widget):
+    def _ocr_text_copy(self, _widget: Gtk.Button) -> None:
         self._current_ocr_bbox = self.t_canvas.add_box(
             text=self._ocr_text_hbox.textbuffer.get_text(
                 self._ocr_text_hbox.textbuffer.get_start_iter(),
@@ -476,7 +491,7 @@ class SessionMixins:
         self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
         self._edit_ocr_text(self._current_ocr_bbox)
 
-    def _ocr_text_add(self, _widget):
+    def _ocr_text_add(self, _widget: Gtk.Button) -> None:
         text = self._ocr_text_hbox.textbuffer.get_text(
             self._ocr_text_hbox.textbuffer.get_start_iter(),
             self._ocr_text_hbox.textbuffer.get_end_iter(),
@@ -504,21 +519,21 @@ class SessionMixins:
                 f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
             )
 
-            def ocr_new_page(_widget):
+            def ocr_new_page(_widget: Gtk.Button) -> None:
                 self._current_ocr_bbox = self.t_canvas.get_first_bbox()
                 self._edit_ocr_text(self._current_ocr_bbox)
 
             self._create_txt_canvas(self._current_page, ocr_new_page)
         self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
 
-    def _ocr_text_delete(self, _widget):
+    def _ocr_text_delete(self, _widget: Gtk.Button) -> None:
         self._current_ocr_bbox.delete_box()
         hocr = self.t_canvas.hocr()
         self._current_page.import_hocr(hocr)
         self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
         self._edit_ocr_text(self.t_canvas.get_current_bbox())
 
-    def _ann_text_ok(self, _widget):
+    def _ann_text_ok(self, _widget: Gtk.Button) -> None:
         text = self._ann_hbox.textbuffer.get_text(
             self._ann_hbox.textbuffer.get_start_iter(),
             self._ann_hbox.textbuffer.get_end_iter(),
@@ -529,7 +544,7 @@ class SessionMixins:
         self._current_page.import_annotations(self.a_canvas.hocr())
         self._edit_annotation(self._current_ann_bbox)
 
-    def _ann_text_new(self, _widget):
+    def _ann_text_new(self, _widget: Gtk.Button) -> None:
         text = self._ann_hbox.textbuffer.get_text(
             self._ann_hbox.textbuffer.get_start_iter(),
             self._ann_hbox.textbuffer.get_end_iter(),
@@ -557,18 +572,20 @@ class SessionMixins:
                 f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
             )
 
-            def ann_text_new_page(_widget):
+            def ann_text_new_page(_widget: Gtk.Button) -> None:
                 self._current_ann_bbox = self.a_canvas.get_first_bbox()
                 self._edit_annotation(self._current_ann_bbox)
 
             self._create_ann_canvas(self._current_page, ann_text_new_page)
 
-    def _ann_text_delete(self, _widget):
+    def _ann_text_delete(self, _widget: Gtk.Button) -> None:
         self._current_ann_bbox.delete_box()
         self._current_page.import_hocr(self.a_canvas.hocr())
         self._edit_annotation(self.t_canvas.get_current_bbox())
 
-    def _edit_mode_callback(self, action, parameter):
+    def _edit_mode_callback(
+        self, action: Gio.SimpleAction, parameter: GLib.Variant
+    ) -> None:
         """Show/hide the edit tools."""
         action.set_state(parameter)
         if parameter.get_string() == "text":
@@ -578,7 +595,7 @@ class SessionMixins:
         self._ocr_text_hbox.hide()
         self._ann_hbox.show()
 
-    def _edit_ocr_text(self, bbox, _target=None):
+    def _edit_ocr_text(self, bbox: Bbox | None, _target: object | None = None) -> None:
         """Edit OCR text."""
         if bbox is None:
             logger.debug("edit_ocr_text did not return a bbox")
@@ -594,7 +611,9 @@ class SessionMixins:
         if bbox:
             self.t_canvas.set_index_by_bbox(bbox)
 
-    def _edit_annotation(self, bbox, _target=None):
+    def _edit_annotation(
+        self, bbox: Bbox | None, _target: object | None = None
+    ) -> None:
         """Edit annotation."""
         self._current_ann_bbox = bbox
         self._ann_hbox.textbuffer.set_text(bbox.text)
@@ -606,10 +625,12 @@ class SessionMixins:
         if bbox:
             self.a_canvas.set_index_by_bbox(bbox)
 
-    def _create_txt_canvas(self, page, finished_callback=None):
+    def _create_txt_canvas(
+        self, page: Page, finished_callback: Callable[..., object] | None = None
+    ) -> None:
         """Create the text canvas."""
 
-        def on_parsed(result):
+        def on_parsed(result: Response) -> None:
             self.t_canvas.set_text(
                 bboxes=result.info["bboxes"],
                 sorted_word_indices=result.info["sorted_word_indices"],
@@ -629,10 +650,12 @@ class SessionMixins:
             if finished_callback:
                 finished_callback()
 
-    def _create_ann_canvas(self, page, finished_callback=None):
+    def _create_ann_canvas(
+        self, page: Page, finished_callback: Callable[..., object] | None = None
+    ) -> None:
         """Create the annotation canvas."""
 
-        def on_parsed(result):
+        def on_parsed(result: Response) -> None:
             self.a_canvas.set_text(
                 bboxes=result.info["bboxes"],
                 sorted_word_indices=result.info["sorted_word_indices"],
@@ -652,106 +675,108 @@ class SessionMixins:
             if finished_callback:
                 finished_callback()
 
-    def zoom_100(self, _action, _param):
+    def zoom_100(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Set the zoom level of the view to 100%."""
         self.view.set_zoom(1.0)
 
-    def zoom_to_fit(self, _action, _param):
+    def zoom_to_fit(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Adjust the view to fit the content within the visible area."""
         self.view.zoom_to_fit()
 
-    def zoom_in(self, _action, _param):
+    def zoom_in(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Zoom in the current view."""
         self.view.zoom_in()
 
-    def zoom_out(self, _action, _param):
+    def zoom_out(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Zoom out the current view."""
         self.view.zoom_out()
 
-    def _on_zoom_100(self, _widget):
+    def _on_zoom_100(self, _widget: Gtk.Widget) -> None:
         """Zoom the current page to 100%."""
         self.zoom_100(None, None)
 
-    def _on_zoom_to_fit(self, _widget):
+    def _on_zoom_to_fit(self, _widget: Gtk.Widget) -> None:
         """Zoom the current page so that it fits the viewing pane."""
         self.zoom_to_fit(None, None)
 
-    def _on_zoom_in(self, _widget):
+    def _on_zoom_in(self, _widget: Gtk.Widget) -> None:
         """Zoom in the current page."""
         self.zoom_in(None, None)
 
-    def _on_zoom_out(self, _widget):
+    def _on_zoom_out(self, _widget: Gtk.Widget) -> None:
         """Zoom out the current page."""
         self.zoom_out(None, None)
 
-    def _on_rotate_90(self, _widget):
+    def _on_rotate_90(self, _widget: Gtk.Widget) -> None:
         """Rotate the selected pages by 90 degrees."""
         self.rotate_90(None, None)
 
-    def _on_rotate_180(self, _widget):
+    def _on_rotate_180(self, _widget: Gtk.Widget) -> None:
         """Rotate the selected pages by 180 degrees."""
         self.rotate_180(None, None)
 
-    def _on_rotate_270(self, _widget):
+    def _on_rotate_270(self, _widget: Gtk.Widget) -> None:
         """Rotate the selected pages by 270 degrees."""
         self.rotate_270(None, None)
 
-    def _on_save(self, _widget):
+    def _on_save(self, _widget: Gtk.Widget) -> None:
         """Display the save dialog."""
         self.save_dialog(None, None)
 
-    def _on_email(self, _widget):
+    def _on_email(self, _widget: Gtk.Widget) -> None:
         """Display the email dialog."""
         self.email(None, None)
 
-    def _on_print(self, _widget):
+    def _on_print(self, _widget: Gtk.Widget) -> None:
         """Display the print dialog."""
         self.print_dialog(None, None)
 
-    def _on_select_all(self, _widget):
+    def _on_select_all(self, _widget: Gtk.Widget) -> None:
         """Select all pages."""
         self.select_all(None, None)
 
-    def _on_select_odd(self, _widget):
+    def _on_select_odd(self, _widget: Gtk.Widget) -> None:
         """Select the pages with odd numbers."""
         self.select_odd_even(0)
 
-    def _on_select_even(self, _widget):
+    def _on_select_even(self, _widget: Gtk.Widget) -> None:
         """Select the pages with even numbers."""
         self.select_odd_even(1)
 
-    def _on_invert_selection(self, _widget):
+    def _on_invert_selection(self, _widget: Gtk.Widget) -> None:
         """Inverts the current selection."""
         self.select_invert(None, None)
 
-    def _on_crop(self, _widget):
+    def _on_crop(self, _widget: Gtk.Widget) -> None:
         """Display the crop dialog."""
         self.crop_selection(None, None)
 
-    def _on_cut(self, _widget):
+    def _on_cut(self, _widget: Gtk.Widget) -> None:
         """Cut the selected pages to the clipboard."""
         self.cut_selection(None, None)
 
-    def _on_copy(self, _widget):
+    def _on_copy(self, _widget: Gtk.Widget) -> None:
         """Copy the selected pages to the clipboard."""
         self.copy_selection(None, None)
 
-    def _on_paste(self, _widget):
+    def _on_paste(self, _widget: Gtk.Widget) -> None:
         """Pastes the copied pages."""
         self.paste_selection(None, None)
 
-    def _on_delete(self, _widget):
+    def _on_delete(self, _widget: Gtk.Widget) -> None:
         """Delete the selected pages."""
         self.delete_selection(None, None)
 
-    def _on_clear_ocr(self, _widget):
+    def _on_clear_ocr(self, _widget: Gtk.Widget) -> None:
         """Clear the OCR (Optical Character Recognition) data."""
         self.clear_ocr(None, None)
 
-    def _on_properties(self, _widget):
+    def _on_properties(self, _widget: Gtk.Widget) -> None:
         """Display the properties dialog."""
         self.properties(None, None)
 
-    def _on_quit(self, _action, _param):
+    def _on_quit(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Handle the quit action."""
         self.get_application().quit()

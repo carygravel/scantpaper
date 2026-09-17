@@ -35,7 +35,7 @@ class PreferencesDialog(Dialog):
     }
     settings = None
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise PreferencesDialog."""
         kwargs["title"] = _("Preferences")
         kwargs["hide_on_delete"] = True
@@ -62,7 +62,7 @@ class PreferencesDialog(Dialog):
         self.add_actions([("gtk-ok", self._apply_callback), ("gtk-cancel", self.hide)])
         self.show_all()
 
-    def _add_scan_options(self, vbox):
+    def _add_scan_options(self, vbox: Gtk.Box) -> None:
         self._cbo = Gtk.CheckButton(label=_("Open scanner at program start"))
         self._cbo.set_tooltip_text(
             _(
@@ -170,7 +170,7 @@ class PreferencesDialog(Dialog):
         self._cb_cache_device_list.set_active(self.settings["cache-device-list"])
         vbox.pack_start(self._cb_cache_device_list, expand=False, fill=False, padding=0)
 
-    def _add_general_options1(self, vbox):
+    def _add_general_options1(self, vbox: Gtk.Box) -> None:
 
         # Restore window setting
         self._cbw = Gtk.CheckButton(label=_("Restore window settings on startup"))
@@ -244,7 +244,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         button.connect("clicked", self._choose_temp_dir)
         hbox.pack_end(button, expand=True, fill=True, padding=0)
 
-    def _choose_temp_dir(self, _button):
+    def _choose_temp_dir(self, _button: Gtk.Button) -> None:
         file_chooser = Gtk.FileChooserDialog(
             title=_("Select temporary directory"),
             parent=self,
@@ -263,7 +263,7 @@ All document date codes use strftime codes with a leading D, e.g.:
             )
         file_chooser.destroy()
 
-    def _add_general_options2(self, vbox):
+    def _add_general_options2(self, vbox: Gtk.Box) -> None:
 
         # Available space in temporary directory
         hbox = Gtk.Box()
@@ -334,11 +334,11 @@ All document date codes use strftime codes with a leading D, e.g.:
         self._vboxt.pack_start(abutton, expand=True, fill=True, padding=0)
         abutton.connect("clicked", self._clicked_add_udt)
 
-    def _clicked_add_udt(self, button):
+    def _clicked_add_udt(self, button: Gtk.Button) -> None:
         self._add_user_defined_tool_entry("my-tool %i %o")
         self._vboxt.reorder_child(button, -1)
 
-    def _add_user_defined_tool_entry(self, tool):
+    def _add_user_defined_tool_entry(self, tool: str) -> None:
         """Add user-defined tool entry."""
         hbox = Gtk.Box()
         self._vboxt.pack_start(hbox, expand=True, fill=True, padding=0)
@@ -354,14 +354,14 @@ The other variable available is:
         hbox.pack_start(entry, expand=True, fill=True, padding=0)
         button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
 
-        def delete_udt(_widget):
+        def delete_udt(_widget: Gtk.Button) -> None:
             hbox.destroy()
 
         button.connect("clicked", delete_udt)
         hbox.pack_end(button, expand=False, fill=False, padding=0)
         hbox.show_all()
 
-    def _apply_callback(self):
+    def _apply_callback(self) -> None:
         # Validate user-defined tools before hiding
         tools = []
         for hbox in self._vboxt.get_children():

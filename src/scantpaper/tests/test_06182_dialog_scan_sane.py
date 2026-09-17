@@ -1,21 +1,41 @@
 """test scan dialog."""
 
+from __future__ import annotations
+
 import logging
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 from scantpaper.frontend import enums
 from scantpaper.scanner.options import Option
 from scantpaper.scanner.profile import Profile
 from scantpaper.tests.scan_mocks import build_scan_options
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import pytest
+    from gi.repository import Gtk
+
+    from scantpaper.basethread import Request
+    from scantpaper.dialog.sane import SaneScanDialog
+    from scantpaper.frontend.image_sane import SaneThread
+    from scantpaper.loop_helpers import _MainLoopWrapper
+
 logger = logging.getLogger(__name__)
 
 
-def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
+def test_impossible_options(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test ignoring options with impossible values."""
     asserts = 0
 
-    def mocked_do_get_devices(_cls, _request):
+    def mocked_do_get_devices(
+        _cls: type[SaneThread], _request: Request
+    ) -> list[SimpleNamespace]:
         nonlocal asserts
         asserts += 1
         devices = [("mock_device", "", "", "")]
@@ -28,7 +48,7 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
         "scantpaper.dialog.sane.SaneThread.do_get_devices", mocked_do_get_devices
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace()
@@ -39,7 +59,7 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
         "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
     )
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """Option with min>max."""
         return [
             Option(
@@ -72,7 +92,7 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
 
     dlg = sane_scan_dialog
 
-    def changed_device_list_cb(_arg1, _arg2):
+    def changed_device_list_cb(_arg1: Gtk.Widget, _arg2: list[SimpleNamespace]) -> None:
         dlg.disconnect(dlg.signal)
         assert dlg.device_list == [
             SimpleNamespace(
@@ -86,7 +106,7 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
     dlg.signal = dlg.connect("changed-device-list", changed_device_list_cb)
     loop = mainloop_with_timeout()
 
-    def reloaded_scan_options_cb(_arg):
+    def reloaded_scan_options_cb(_arg: object) -> None:
         dlg.disconnect(dlg.reloaded_signal)
         nonlocal asserts
         asserts += 1
@@ -100,8 +120,11 @@ def test_impossible_options(mocker, sane_scan_dialog, mainloop_with_timeout):
 
 
 def test_cancel_scan(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Cancel the scan immediately after starting it and verify the results.
 
     a. the new-scan signal is not emitted.
@@ -113,13 +136,13 @@ def test_cancel_scan(
     new_scan_mock = mocker.Mock()
     loop = mainloop_with_timeout()
 
-    def started_process_cb(_widget, _process):
+    def started_process_cb(_widget: Gtk.Widget, _process: str) -> None:
         dialog.disconnect(dialog.start_signal)
         dialog.cancel_scan(_widget)
         nonlocal callbacks
         callbacks += 1
 
-    def finished_process_cb(_widget, process):
+    def finished_process_cb(_widget: Gtk.Widget, process: str) -> None:
         if process == "scan_pages":
             dialog.disconnect(dialog.new_signal)
             dialog.disconnect(dialog.finished_signal)
@@ -142,12 +165,19 @@ def test_cancel_scan(
     # is reached by piggybacking the next two lines."""
     loop = mainloop_with_timeout()
 
-    def new_scan_cb2(_widget, _image_ob, _insert_after, _side, _xres, _yres):
+    def new_scan_cb2(
+        _widget: Gtk.Widget,
+        _image_ob: object,
+        _insert_after: object,
+        _side: str,
+        _xres: object,
+        _yres: object,
+    ) -> None:
         dialog.disconnect(dialog.new_signal)
         nonlocal callbacks
         callbacks += 1
 
-    def finished_process_cb2(_widget, process):
+    def finished_process_cb2(_widget: Gtk.Widget, process: str) -> None:
         if process == "scan_pages":
             nonlocal callbacks
             callbacks += 1
@@ -166,8 +196,11 @@ def test_cancel_scan(
 
 
 def test_option_dependency(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_get_devices(), do_open_device() & do_get_options()."""
     raw_options = build_scan_options(
         [
@@ -179,7 +212,7 @@ def test_option_dependency(
         ]
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
@@ -193,11 +226,11 @@ def test_option_dependency(
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         return raw_options
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """mocked_do_set_option."""
         info = 0
         key, value = _request.args
@@ -229,7 +262,9 @@ def test_option_dependency(
     }
     assert dlg.ignored_paper_sizes == ["US Legal"], "flatbed paper"
 
-    def changed_scan_option_cb(_self, _option, _value, _uuid):
+    def changed_scan_option_cb(
+        _self: Gtk.Widget, _option: str, _value: object, _uuid: object
+    ) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.ignored_paper_sizes == [], "ADF paper"
@@ -246,11 +281,11 @@ def test_option_dependency(
 
 
 def test_unsetting_profile(
-    sane_scan_dialog,
-    set_device_wait_reload,
-    set_paper_in_mainloop,
-    mainloop_with_timeout,
-):
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    set_paper_in_mainloop: Callable[[SaneScanDialog, str | None], bool],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Apply geometry settings via a paper size, then change geometry via a profile.
 
     Ensure the paper size is unset.
@@ -271,7 +306,7 @@ def test_unsetting_profile(
     dialog._add_profile("20x20", Profile(backend=[("br-y", 20)]))
     loop = mainloop_with_timeout()
 
-    def changed_profile_cb(_widget, _profile):
+    def changed_profile_cb(_widget: Gtk.Widget, _profile: str) -> None:
         dialog.disconnect(dialog.signal)
         assert dialog.paper is None, "paper undefined after changing geometry"
         assert dialog.combobp.get_active_text() == "Manual", (
@@ -292,7 +327,7 @@ def test_unsetting_profile(
 
     loop = mainloop_with_timeout()
 
-    def changed_paper3(_widget, _paper):
+    def changed_paper3(_widget: Gtk.Widget, _paper: str | None) -> None:
         dialog.disconnect(dialog.signal)
         assert dialog.paper is None, "manual geometry means undefined paper"
         loop.quit()
@@ -312,7 +347,7 @@ def test_unsetting_profile(
     )
     loop = mainloop_with_timeout()
 
-    def changed_profile_cb2(_widget, _profile):
+    def changed_profile_cb2(_widget: Gtk.Widget, _profile: str) -> None:
         dialog.disconnect(dialog.signal)
         assert dialog._get_paper_by_geometry() == "10x10", "get_paper_by_geometry()"
         assert dialog.paper == "10x10", "paper size updated after changing profile"
@@ -329,11 +364,11 @@ def test_unsetting_profile(
 
 
 def test_restore_options_after_cycle(
-    sane_scan_dialog,
-    set_device_wait_reload,
-    set_option_in_mainloop,
-    mainloop_with_timeout,
-):
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    set_option_in_mainloop: Callable[[SaneScanDialog, str, object], bool],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Check that with the cycle-sane-handle option activated.
 
     After scanning, the open-device process has fired, and the options are
@@ -349,13 +384,13 @@ def test_restore_options_after_cycle(
         "set resolution before scan"
     )
 
-    def finished_process_cb(_widget, process):
+    def finished_process_cb(_widget: Gtk.Widget, process: str) -> None:
         if process == "open_device":
             dialog.disconnect(dialog.open_signal)
             nonlocal callbacks
             callbacks += 1
 
-    def reloaded_scan_options_cb(_widget):
+    def reloaded_scan_options_cb(_widget: Gtk.Widget) -> None:
         # After cycling the device, check that options are still correct
         assert dialog.current_scan_options == Profile(backend=[("resolution", 51)]), (
             f"set resolution after scan, got {dialog.current_scan_options.backend}"
@@ -380,8 +415,11 @@ def test_restore_options_after_cycle(
 
 
 def test_scanner_with_no_source(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test behavour with scanner without source option."""
     raw_options = build_scan_options(
         [
@@ -395,13 +433,13 @@ def test_scanner_with_no_source(
         ]
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
-    def mocked_do_get_options(self, _request):
+    def mocked_do_get_options(self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         self.device_handle = SimpleNamespace(
             mode="Gray",
@@ -414,7 +452,7 @@ def test_scanner_with_no_source(
         )
         return raw_options
 
-    def mocked_do_set_option(_self, _request):
+    def mocked_do_set_option(_self: SaneThread, _request: Request) -> int:
         """mocked_do_set_option."""
         return 0
 
@@ -433,7 +471,9 @@ def test_scanner_with_no_source(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_scan_option_cb(_self, _option, _value, _uuid):
+    def changed_scan_option_cb(
+        _self: Gtk.Widget, _option: str, _value: object, _uuid: object
+    ) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.num_pages == 1, "num-pages reset to 1 because no source option"
@@ -451,9 +491,9 @@ def test_scanner_with_no_source(
 
 
 def test_defaults(
-    sane_scan_dialog,
-    mainloop_with_timeout,
-):
+    sane_scan_dialog: SaneScanDialog,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Scan options are set to defaults before applying a profile.
 
     Check that this doesn't happen immediately after initially opening the
@@ -464,7 +504,7 @@ def test_defaults(
     callbacks = 0
     loop = mainloop_with_timeout()
 
-    def reloaded_scan_options_cb(_arg):
+    def reloaded_scan_options_cb(_arg: object) -> None:
         dialog.set_current_scan_options(
             Profile(
                 frontend={"num_pages": 0},
@@ -474,7 +514,9 @@ def test_defaults(
         nonlocal callbacks
         callbacks += 1
 
-    def changed_current_scan_options_cb(_widget, _profile, _uuid):
+    def changed_current_scan_options_cb(
+        _widget: Gtk.Widget, _profile: Profile, _uuid: object
+    ) -> None:
         dialog.disconnect(dialog.signal)
         assert dialog.num_pages == 0
         loop.quit()
@@ -495,8 +537,11 @@ def test_defaults(
 
 
 def test_hiding_geometry(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test behavour with scanner without source option."""
     raw_options = build_scan_options(
         [
@@ -507,13 +552,13 @@ def test_hiding_geometry(
         ]
     )
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device = device_name
         request.data(f"opened device '{self.device_name}'")
 
-    def mocked_do_get_options(self, _request):
+    def mocked_do_get_options(self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         self.device_handle = SimpleNamespace(
             tl_x=0,
@@ -523,7 +568,7 @@ def test_hiding_geometry(
         )
         return raw_options
 
-    def mocked_do_set_option(_self, _request):
+    def mocked_do_set_option(_self: SaneThread, _request: Request) -> int:
         """mocked_do_set_option."""
         return 0
 
@@ -541,11 +586,11 @@ def test_hiding_geometry(
     callbacks = 0
     loop = mainloop_with_timeout()
 
-    def changed_paper_sizes(_widget, _formats):
+    def changed_paper_sizes(_widget: Gtk.Widget, _formats: object) -> None:
         nonlocal callbacks
         callbacks += 1
 
-    def changed_paper(_widget, paper):
+    def changed_paper(_widget: Gtk.Widget, paper: str | None) -> None:
         assert paper == "US Letter", "changed-paper"
         assert not dialog.option_widgets["tl-x"].is_visible(), "geometry hidden"
         assert dialog.thread.device_handle.br_x == 215.900009155273, (
@@ -572,8 +617,11 @@ def test_hiding_geometry(
 
 
 def test_combobox_on_reload(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Check that scan options in a combobox are updated if values change by a reload."""
     raw_options = build_scan_options(
         [
@@ -582,7 +630,7 @@ def test_combobox_on_reload(
         ]
     )
 
-    def mocked_do_get_options(self, _request):
+    def mocked_do_get_options(self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         self.device_handle = SimpleNamespace(
             resolution=75,
@@ -590,7 +638,7 @@ def test_combobox_on_reload(
         )
         return raw_options
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """mocked_do_set_option."""
         info = 0
         key, value = _request.args
@@ -621,7 +669,9 @@ def test_combobox_on_reload(
     callbacks = 0
     loop = mainloop_with_timeout()
 
-    def changed_scan_option_cb(self, _option, _value, _uuid):
+    def changed_scan_option_cb(
+        self: Gtk.Widget, _option: str, _value: object, _uuid: object
+    ) -> None:
         dialog.disconnect(dialog.signal)
         widget = self.option_widgets["resolution"]
         model = widget.get_model()
@@ -647,7 +697,9 @@ def test_combobox_on_reload(
 
     loop = mainloop_with_timeout()
 
-    def changed_scan_option_cb2(_self, _option, value, _uuid):
+    def changed_scan_option_cb2(
+        _self: Gtk.Widget, _option: str, value: object, _uuid: object
+    ) -> None:
         dialog.disconnect(dialog.signal)
         assert value == 600, "resolution values updated"
         loop.quit()

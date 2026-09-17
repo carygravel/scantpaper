@@ -1,9 +1,12 @@
 """provide methods called from tools menu."""
 
+from __future__ import annotations
+
 import datetime
 import logging
 import re
 from functools import partial
+from typing import TYPE_CHECKING
 
 import gi
 
@@ -26,6 +29,13 @@ from scantpaper.helpers import collate_metadata, exec_command, expand_metadata_p
 from scantpaper.i18n import _
 from scantpaper.postprocess_controls import OCRControls
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from gi.repository import Gio
+
+    from scantpaper.basethread import Response
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
     Gdk,
@@ -40,28 +50,32 @@ logger = logging.getLogger(__name__)
 class ToolsMenuMixins:
     """provide methods called from tools menu."""
 
-    def rotate_90(self, _action, _param):
+    def rotate_90(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Rotates the selected pages by 90 degrees."""
         self._rotate(
             -_90_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
-    def rotate_180(self, _action, _param):
+    def rotate_180(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Rotates the selected pages by 180 degrees."""
         self._rotate(
             _180_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
-    def rotate_270(self, _action, _param):
+    def rotate_270(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Rotates the selected pages by 270 degrees."""
         self._rotate(
             _90_DEGREES,
             self.slist.indices2pages(self.slist.get_selected_indices()),
         )
 
-    def _rotate(self, angle, pagelist):
+    def _rotate(self, angle: int, pagelist: Iterator[object]) -> None:
         """Rotate selected images."""
         for page in pagelist:
             self.slist.rotate(
@@ -75,7 +89,7 @@ class ToolsMenuMixins:
                 display_callback=self._display_callback,
             )
 
-    def threshold(self, _action, _param):
+    def threshold(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display page selector and on apply threshold accordingly."""
         windowt = Dialog(
             transient_for=self,
@@ -104,7 +118,7 @@ class ToolsMenuMixins:
         )
         hboxt.pack_end(spinbutton, expand=False, fill=True, padding=0)
 
-        def threshold_apply_callback():
+        def threshold_apply_callback() -> None:
             self.settings["threshold tool"] = spinbutton.get_value()
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
@@ -114,7 +128,7 @@ class ToolsMenuMixins:
                 return
             for i in pagelist:
 
-                def threshold_finished_callback(response):
+                def threshold_finished_callback(response: Response) -> None:
                     self.post_process_progress.finish(response)
 
                 self.slist.threshold(
@@ -136,7 +150,9 @@ class ToolsMenuMixins:
         )
         windowt.show_all()
 
-    def brightness_contrast(self, _action, _param):
+    def brightness_contrast(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Display page selector and on apply brightness & contrast accordingly."""
         windowt = Dialog(
             transient_for=self,
@@ -170,7 +186,7 @@ class ToolsMenuMixins:
         spinbuttonc.set_value(self.settings["contrast tool"])
         hbox.pack_end(spinbuttonc, expand=False, fill=True, padding=0)
 
-        def brightness_contrast_callback():
+        def brightness_contrast_callback() -> None:
             self.settings["brightness tool"] = spinbuttonb.get_value()
             self.settings["contrast tool"] = spinbuttonc.get_value()
             self.settings["Page range"] = windowt.page_range
@@ -181,7 +197,7 @@ class ToolsMenuMixins:
                 return
             for i in pagelist:
 
-                def brightness_contrast_finished_callback(response):
+                def brightness_contrast_finished_callback(response: Response) -> None:
                     self.post_process_progress.finish(response)
 
                 self.slist.brightness_contrast(
@@ -204,7 +220,7 @@ class ToolsMenuMixins:
         )
         windowt.show_all()
 
-    def negate(self, _action, _param):
+    def negate(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display page selector and on apply negate accordingly."""
         windowt = Dialog(
             transient_for=self,
@@ -214,7 +230,7 @@ class ToolsMenuMixins:
         # Frame for page range
         windowt.add_page_range()
 
-        def negate_callback():
+        def negate_callback() -> None:
             self.settings["Page range"] = windowt.page_range
             pagelist = self.slist.get_page_index(
                 self.settings["Page range"], self._error_callback
@@ -223,7 +239,7 @@ class ToolsMenuMixins:
                 return
             for i in pagelist:
 
-                def negate_finished_callback(response):
+                def negate_finished_callback(response: Response) -> None:
                     self.post_process_progress.finish(response)
 
                 self.slist.negate(
@@ -241,7 +257,7 @@ class ToolsMenuMixins:
         )
         windowt.show_all()
 
-    def unsharp(self, _action, _param):
+    def unsharp(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display page selector and on apply unsharp accordingly."""
         windowum = Dialog(
             transient_for=self,
@@ -309,7 +325,7 @@ class ToolsMenuMixins:
             if len(row) > col and row[col] is not None:
                 row[1].set_tooltip_text(row[col])
 
-        def unsharp_callback():
+        def unsharp_callback() -> None:
             self.settings["unsharp radius"] = spinbuttonr.get_value()
             self.settings["unsharp percentage"] = int(spinbuttons.get_value())
             self.settings["unsharp threshold"] = int(spinbuttont.get_value())
@@ -321,7 +337,7 @@ class ToolsMenuMixins:
                 return
             for i in pagelist:
 
-                def unsharp_finished_callback(response):
+                def unsharp_finished_callback(response: Response) -> None:
                     self.post_process_progress.finish(response)
 
                 self.slist.unsharp(
@@ -342,7 +358,9 @@ class ToolsMenuMixins:
         )
         windowum.show_all()
 
-    def crop_dialog(self, _action, _param):
+    def crop_dialog(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Display page selector and on apply crop accordingly."""
         if self._windowc is not None:
             self._windowc.present()
@@ -367,7 +385,7 @@ class ToolsMenuMixins:
         if self.settings["selection"]:
             self._windowc.selection = self.settings["selection"]
 
-        def crop_callback():
+        def crop_callback() -> None:
             self.settings["Page range"] = self._windowc.page_range
             self.crop_selection(
                 None,  # action
@@ -382,7 +400,12 @@ class ToolsMenuMixins:
         )
         self._windowc.show_all()
 
-    def crop_selection(self, _action, _param, pagelist=None):
+    def crop_selection(
+        self,
+        _action: Gio.SimpleAction,
+        _param: GLib.Variant | None,
+        pagelist: list[int] | None = None,
+    ) -> None:
         """Crop the selected area of the specified pages."""
         if not self.settings["selection"]:
             return
@@ -395,7 +418,7 @@ class ToolsMenuMixins:
 
         for i in pagelist:
 
-            def crop_finished_callback(response):
+            def crop_finished_callback(response: Response) -> None:
                 self.post_process_progress.finish(response)
 
             self.slist.crop(
@@ -412,7 +435,9 @@ class ToolsMenuMixins:
                 display_callback=self._display_callback,
             )
 
-    def split_dialog(self, _action, _param):
+    def split_dialog(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Display page selector and on apply crop accordingly."""
         windowsp = Dialog(
             transient_for=self,
@@ -443,7 +468,7 @@ class ToolsMenuMixins:
         width, height = self._current_page.get_size()
         sb_pos = Gtk.SpinButton.new_with_range(0, width, 1)
 
-        def changed_split_direction(_widget):
+        def changed_split_direction(_widget: Gtk.Widget) -> None:
             if direction[combob.get_active()][0] == "v":
                 sb_pos.set_range(0, width)
             else:
@@ -470,7 +495,9 @@ class ToolsMenuMixins:
         )
         sb_pos.set_value(width / 2)
 
-        def changed_split_position_selection(_widget, sel):
+        def changed_split_position_selection(
+            _widget: Gtk.Widget, sel: Gdk.Rectangle | None
+        ) -> None:
             if sel:
                 if direction[combob.get_active()][0] == "v":
                     sb_pos.set_value(sel.x + sel.width)
@@ -481,7 +508,7 @@ class ToolsMenuMixins:
             "selection-changed", changed_split_position_selection
         )
 
-        def split_cancel_callback():
+        def split_cancel_callback() -> None:
             self.view.disconnect(self.view.position_changed_signal)
             windowsp.destroy()
 
@@ -501,7 +528,13 @@ class ToolsMenuMixins:
         )
         windowsp.show_all()
 
-    def _split_apply_callback(self, windowsp, combob, sb_pos, direction):
+    def _split_apply_callback(
+        self,
+        windowsp: Dialog,
+        combob: ComboBoxText,
+        sb_pos: Gtk.SpinButton,
+        direction: list[list[object]],
+    ) -> None:
         """Apply the split to the selected pages."""
         self.settings["split-direction"] = direction[combob.get_active()][0]
         self.settings["split-position"] = sb_pos.get_value()
@@ -524,10 +557,12 @@ class ToolsMenuMixins:
                 display_callback=self._display_callback,
             )
 
-    def _split_finished_callback(self, response):
+    def _split_finished_callback(self, response: Response) -> None:
         self.post_process_progress.finish(response)
 
-    def _update_view_position(self, direction, position, width, height):
+    def _update_view_position(
+        self, direction: str, position: float, width: int, height: int
+    ) -> None:
         """Update the view's selection rectangle based on the given direction and dimensions."""
         selection = Gdk.Rectangle()
         if direction == "v":
@@ -538,7 +573,9 @@ class ToolsMenuMixins:
             selection.height = position
         self.view.set_selection(selection)
 
-    def unpaper_dialog(self, _action, _param):
+    def unpaper_dialog(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Run unpaper to clean up scan."""
         if self._windowu is not None:
             self._windowu.present()
@@ -557,7 +594,7 @@ class ToolsMenuMixins:
         vbox = self._windowu.get_content_area()
         self._unpaper.add_options(vbox)
 
-        def unpaper_apply_callback():
+        def unpaper_apply_callback() -> None:
 
             # Update $self.settings
             self.settings["unpaper options"] = self._unpaper.get_options()
@@ -572,7 +609,7 @@ class ToolsMenuMixins:
             # run unpaper
             for pageobject in pagelist:
 
-                def unpaper_finished_callback(response):
+                def unpaper_finished_callback(response: Response) -> None:
                     self.post_process_progress.finish(response)
 
                 self.slist.unpaper(
@@ -595,7 +632,9 @@ class ToolsMenuMixins:
         )
         self._windowu.show_all()
 
-    def ocr_dialog(self, _action, _parma):
+    def ocr_dialog(
+        self, _action: Gio.SimpleAction, _parma: GLib.Variant | None
+    ) -> None:
         """Run OCR on current page and display result."""
         if self._windowo is not None:
             self._windowo.present()
@@ -622,12 +661,12 @@ class ToolsMenuMixins:
         vbox = self._windowo.get_content_area()
         vbox.pack_start(ocr_controls, expand=False, fill=True, padding=0)
 
-        def ocr_apply_callback():
+        def ocr_apply_callback() -> None:
             self._run_ocr(
-                ocr_controls.engine,
-                ocr_controls.language,
-                ocr_controls.threshold,
-                ocr_controls.threshold_value,
+                engine=ocr_controls.engine,
+                tesslang=ocr_controls.language,
+                threshold_flag=ocr_controls.threshold,
+                threshold=ocr_controls.threshold_value,
             )
 
         self._windowo.add_actions(
@@ -635,7 +674,14 @@ class ToolsMenuMixins:
         )
         self._windowo.show_all()
 
-    def _run_ocr(self, engine, tesslang, threshold_flag, threshold):
+    def _run_ocr(
+        self,
+        *,
+        engine: str,
+        tesslang: str | None,
+        threshold_flag: bool,
+        threshold: float,
+    ) -> None:
         """Run OCR on a set of pages."""
         if engine == "tesseract":
             self.settings["ocr language"] = tesslang
@@ -671,7 +717,9 @@ class ToolsMenuMixins:
         self.slist.ocr_pages(**kwargs)
         self._windowo.hide()
 
-    def user_defined_dialog(self, _action, _param):
+    def user_defined_dialog(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
         """Display a dialog for selecting and applying user-defined tools."""
         windowudt = Dialog(
             transient_for=self,
@@ -688,7 +736,7 @@ class ToolsMenuMixins:
         hbox.pack_start(label, expand=False, fill=True, padding=0)
         self._pref_udt_cmbx = self._add_udt_combobox(hbox)
 
-        def udt_apply_callback():
+        def udt_apply_callback() -> None:
             self.settings["Page range"] = windowudt.page_range
             pagelist = self.slist.indices2pages(
                 self.slist.get_page_index(
@@ -699,7 +747,7 @@ class ToolsMenuMixins:
 
             for page in pagelist:
 
-                def user_defined_finished_callback(response):
+                def user_defined_finished_callback(response: Response) -> None:
                     self.post_process_progress.finish(response)
 
                 self.slist.user_defined(
@@ -719,7 +767,7 @@ class ToolsMenuMixins:
         )
         windowudt.show_all()
 
-    def email(self, _action, _param):
+    def email(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display page selector and email."""
         if self._windowe is not None:
             self._windowe.present()
@@ -755,7 +803,7 @@ class ToolsMenuMixins:
         # PDF options
         self._windowe.add_pdf_options()
 
-        def email_callback():
+        def email_callback() -> None:
 
             # Set options
             self._windowe.update_config_dict(self.settings)
@@ -794,7 +842,7 @@ class ToolsMenuMixins:
             self._pdf_email = f"{self.session.name}/{filename}.pdf"
 
             # Create the PDF
-            def email_finished_callback(response):
+            def email_finished_callback(response: Response) -> None:
                 self.post_process_progress.finish(response)
                 self.slist.thread.send("set_saved", uuids)
                 if self.settings.get("view files toggle"):
@@ -830,7 +878,7 @@ class ToolsMenuMixins:
         )
         self._windowe.show_all()
 
-    def about(self, _action, _param):
+    def about(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display about dialog."""
         about = Gtk.AboutDialog()
 

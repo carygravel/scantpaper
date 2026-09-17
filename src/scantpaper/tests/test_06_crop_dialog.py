@@ -13,7 +13,7 @@ from gi.repository import (  # noqa: E402
 )
 
 
-def test_1():
+def test_1() -> None:
     """Test dialog."""
     dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
     assert isinstance(dialog, Crop), "Created dialog"
@@ -23,7 +23,7 @@ def test_1():
     flag = False
     mlp = safe_mainloop(2000)
 
-    def on_changed_selection(*_):
+    def on_changed_selection(*_: object) -> None:
         nonlocal flag
         flag = True
         mlp.quit()
@@ -37,7 +37,7 @@ def test_1():
     assert dialog._sb_x.get_value() == 10, "updating selection changes spinbutton"
 
 
-def test_coverage():
+def test_coverage() -> None:
     """Test coverage for edge cases."""
     dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
 
@@ -63,7 +63,7 @@ def test_coverage():
     assert dialog.selection is not None
 
 
-def test_crop_selector_with_existing_selection():
+def test_crop_selector_with_existing_selection() -> None:
     """Test on_sb_selector_value_changed when selection already exists."""
     dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
 

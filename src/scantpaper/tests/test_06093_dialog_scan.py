@@ -1,7 +1,10 @@
 """test scan dialog."""
 
+from __future__ import annotations
+
 import logging
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -10,15 +13,27 @@ from scantpaper.frontend.image_sane import decode_info
 from scantpaper.scanner.profile import Profile
 from scantpaper.tests.scan_mocks import build_scan_options
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from scantpaper.basethread import Request
+    from scantpaper.dialog.sane import SaneScanDialog
+    from scantpaper.frontend.image_sane import SaneThread
+    from scantpaper.loop_helpers import _MainLoopWrapper
+    from scantpaper.scanner.options import Option
+
 logger = logging.getLogger(__name__)
 
 
 def test_infinite_reloads_due_to_tolerance(
-    mocker, sane_scan_dialog, set_device_wait_reload, mainloop_with_timeout
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
 
-    def mocked_do_open_device(self, request):
+    def mocked_do_open_device(self: SaneThread, request: Request) -> None:
         """Open device."""
         device_name = request.args[0]
         self.device_handle = SimpleNamespace(
@@ -82,7 +97,7 @@ def test_infinite_reloads_due_to_tolerance(
         ]
     )
 
-    def mocked_do_get_options(_self, _request):
+    def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
         """mocked_do_get_options."""
         nonlocal raw_options
         return raw_options
@@ -91,7 +106,7 @@ def test_infinite_reloads_due_to_tolerance(
         "scantpaper.dialog.sane.SaneThread.do_get_options", mocked_do_get_options
     )
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """Guard against an Epson ET-4750 triggering a reload on setting br-x and -y.
 
         The reloaded values were outside the tolerance. Ensure that the reload
@@ -142,7 +157,7 @@ def test_infinite_reloads_due_to_tolerance(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_profile_cb(_widget, profile):
+    def changed_profile_cb(_widget: object, profile: str) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert profile == "my profile", "changed-profile"
@@ -168,12 +183,12 @@ def test_infinite_reloads_due_to_tolerance(
 
 
 def test_inexact(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-    inexact_scan_mocks,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    inexact_scan_mocks: SimpleNamespace,
+) -> None:
     """Test more of scan dialog by mocking do_open_device() & do_get_options()."""
     inexact_scan_mocks.patch_all(mocker)
 
@@ -186,7 +201,7 @@ def test_inexact(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_paper_cb(_widget, _paper):
+    def changed_paper_cb(_widget: object, _paper: object) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.current_scan_options == Profile(
@@ -208,7 +223,7 @@ def test_inexact(
 
     loop = mainloop_with_timeout()
 
-    def changed_paper_cb2(_widget, _paper):
+    def changed_paper_cb2(_widget: object, _paper: object) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.current_scan_options == Profile(
@@ -234,16 +249,16 @@ def test_inexact(
     indirect=True,
 )
 def test_infinite_reloads_due_to_inexact(
-    mocker,
-    sane_scan_dialog,
-    set_device_wait_reload,
-    mainloop_with_timeout,
-    inexact_scan_mocks,
-):
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    inexact_scan_mocks: SimpleNamespace,
+) -> None:
     """Test that SANE_INFO_INEXACT geometry changes do not hit the reload-recursion-limit."""
     inexact_scan_mocks.patch_open_get(mocker)
 
-    def mocked_do_set_option(self, _request):
+    def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """Guard against an EPSON DS-1660W setting tl-y=0.99 instead of 1.
 
         This was not setting SANE_INFO_INEXACT, which was hitting the
@@ -279,7 +294,7 @@ def test_infinite_reloads_due_to_inexact(
     loop = mainloop_with_timeout()
     asserts = 0
 
-    def changed_paper_cb(_widget, _paper):
+    def changed_paper_cb(_widget: object, _paper: object) -> None:
         dlg.disconnect(dlg.signal)
         nonlocal asserts
         assert dlg.current_scan_options == Profile(
