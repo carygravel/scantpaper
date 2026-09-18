@@ -1,11 +1,17 @@
 """test dialog.save."""
 
+from __future__ import annotations
+
 from datetime import date, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import gi
 
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.save import Save
+
+if TYPE_CHECKING:
+    import pytest
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -17,12 +23,12 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
-    def now(cls, tz=None) -> datetime:
+    def now(cls, tz: datetime.tzinfo | None = None) -> datetime:
         """Now."""
         return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 
 
-def test_basic(mocker):
+def test_basic(mocker: pytest.MockerFixture) -> None:
     """Basic tests."""
     mocker.patch("scantpaper.dialog.save.datetime.datetime", MockedDateTime)
     dialog = Save(
@@ -102,7 +108,7 @@ def test_basic(mocker):
     assert dialog.meta_keywords == "old keywords", "keywords"
 
 
-def test_datetime():
+def test_datetime() -> None:
     """Test datetime."""
     dialog = Save(
         transient_for=Gtk.Window(),
@@ -115,7 +121,7 @@ def test_datetime():
     )
 
 
-def test_now(mocker):
+def test_now(mocker: pytest.MockerFixture) -> None:
     """Test not setting datetime."""
     now = datetime(2018, 1, 1, 0, 0, 0, tzinfo=_LOCAL_TZ)
     mocker.patch("scantpaper.dialog.save.datetime.datetime", MockedDateTime)
@@ -127,7 +133,7 @@ def test_now(mocker):
     assert dialog.meta_datetime == now, "now"
 
 
-def test_image_type_selection(mocker):
+def test_image_type_selection(mocker: pytest.MockerFixture) -> None:
     """Test image type selection updates UI."""
     dialog = Save(
         transient_for=Gtk.Window(),
@@ -139,7 +145,7 @@ def test_image_type_selection(mocker):
 
     dialog.add_image_type()
 
-    def find_combobox(container):
+    def find_combobox(container: Gtk.Container) -> Gtk.ComboBox | None:
         """Find the image type combobox by searching children."""
         cb = None
         for child in container.get_children():
@@ -180,7 +186,7 @@ def test_image_type_selection(mocker):
     assert dialog._meta_box_widget.get_visible()
 
 
-def test_pdf_options(mocker):
+def test_pdf_options(mocker: pytest.MockerFixture) -> None:
     """Test PDF specific options."""
     dialog = Save(
         transient_for=Gtk.Window(),
@@ -250,7 +256,7 @@ def test_pdf_options(mocker):
     hboxq.hide.assert_called_once()
 
 
-def test_date_entry_validation(mocker):
+def test_date_entry_validation(mocker: pytest.MockerFixture) -> None:
     """Test date entry validation."""
     mocker.patch(
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
@@ -284,7 +290,7 @@ def test_date_entry_validation(mocker):
     entry.insert_text.assert_called_with(":", 11)
 
 
-def test_edit_date_button(mocker):
+def test_edit_date_button(mocker: pytest.MockerFixture) -> None:
     """Test _clicked_edit_date_button."""
     mocker.patch(
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
@@ -301,7 +307,7 @@ def test_edit_date_button(mocker):
     class CapturedDialog(original_dialog):
         """capture dialog instances."""
 
-        def __init__(self, *args, **kwargs) -> None:
+        def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, **kwargs)
             captured_dialogs.append(self)
 
@@ -316,14 +322,14 @@ def test_edit_date_button(mocker):
     class CapturedCalendar(original_calendar):
         """capture calendar instances."""
 
-        def __init__(self, *args, **kwargs) -> None:
+        def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, **kwargs)
             captured_calendar.append(self)
 
     class CapturedButton(original_button):
         """capture button instances."""
 
-        def __init__(self, *args, **kwargs) -> None:
+        def __init__(self, *args: object, **kwargs: object) -> None:
             super().__init__(*args, **kwargs)
             captured_button.append(self)
 
@@ -364,7 +370,7 @@ def test_edit_date_button(mocker):
     assert dialog._meta_datetime_widget.get_text() == expected_today
 
 
-def test_image_type_changed_branches(mocker):
+def test_image_type_changed_branches(mocker: pytest.MockerFixture) -> None:
     """Test branches in _image_type_changed_callback."""
     dialog = Save(transient_for=Gtk.Window())
     dialog.resize = mocker.Mock()
@@ -407,7 +413,7 @@ def test_image_type_changed_branches(mocker):
     hboxps.hide.assert_called()
 
 
-def test_datetime_focus_out(mocker):
+def test_datetime_focus_out(mocker: pytest.MockerFixture) -> None:
     """Test _datetime_focus_out_callback."""
     mocker.patch(
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
@@ -426,7 +432,7 @@ def test_datetime_focus_out(mocker):
     assert dialog.meta_datetime == datetime(2022, 2, 22)  # noqa: DTZ001
 
 
-def test_datetime_setter(mocker):
+def test_datetime_setter(mocker: pytest.MockerFixture) -> None:
     """Test meta_datetime setter updates widget."""
     mocker.patch(
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
@@ -438,7 +444,7 @@ def test_datetime_setter(mocker):
     assert dialog._meta_datetime_widget.get_text() == "2023-03-23 12:00:00"
 
 
-def test_tiff_compression_selection(mocker):
+def test_tiff_compression_selection(mocker: pytest.MockerFixture) -> None:
     """Test tiff compression selection updates UI."""
     dialog = Save(
         transient_for=Gtk.Window(),
@@ -452,7 +458,9 @@ def test_tiff_compression_selection(mocker):
     combobtc = find_widget_by_label(content_area, "Compression", Gtk.ComboBox)
     assert combobtc is not None, "Could not find Compression ComboBox"
 
-    def find_box_containing_label(container, label_text):
+    def find_box_containing_label(
+        container: Gtk.Container, label_text: str
+    ) -> Gtk.Box | None:
         """Find a Box that contains a Label with the given text."""
         box = None
         for child in container.get_children():
@@ -479,7 +487,9 @@ def test_tiff_compression_selection(mocker):
     dialog.resize.assert_called()
 
 
-def find_widget_by_label(container, label_text, widget_type):
+def find_widget_by_label(
+    container: Gtk.Container, label_text: str, widget_type: type[Gtk.Widget]
+) -> Gtk.Widget | None:
     """Find a widget by its sibling label text."""
     widget = None
     for child in container.get_children():
@@ -496,7 +506,9 @@ def find_widget_by_label(container, label_text, widget_type):
     return widget
 
 
-def find_checkbutton(container, label_text):
+def find_checkbutton(
+    container: Gtk.Container, label_text: str
+) -> Gtk.CheckButton | None:
     """Find a checkbutton by its label text."""
     for child in container.get_children():
         if isinstance(child, Gtk.CheckButton) and child.get_label() == label_text:
@@ -508,7 +520,9 @@ def find_checkbutton(container, label_text):
     return None
 
 
-def find_all_spinbuttons_near_label(container, label_text):
+def find_all_spinbuttons_near_label(
+    container: Gtk.Container, label_text: str
+) -> list[Gtk.SpinButton]:
     """Find all spinbuttons that share a box with a label."""
     found = []
     for child in container.get_children():
@@ -525,7 +539,7 @@ def find_all_spinbuttons_near_label(container, label_text):
     return found
 
 
-def test_other_save_dialog_callbacks():
+def test_other_save_dialog_callbacks() -> None:
     """Test other callbacks in Save dialog."""
     dialog = Save(
         transient_for=Gtk.Window(),
@@ -575,7 +589,7 @@ def test_other_save_dialog_callbacks():
     assert found_pdf_spin, "Could not find PDF JPEG Quality SpinButton"
 
 
-def test_date_entry_inc_dec(mocker):
+def test_date_entry_inc_dec(mocker: pytest.MockerFixture) -> None:
     """Test + and - keys in date entry."""
     mocker.patch(
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
@@ -596,7 +610,7 @@ def test_date_entry_inc_dec(mocker):
     assert entry.get_text() == "2020-01-01"
 
 
-def test_date_entry_cursor_position(mocker):
+def test_date_entry_cursor_position(mocker: pytest.MockerFixture) -> None:
     """Test cursor position update in date entry."""
     mocker.patch(
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)

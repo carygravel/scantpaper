@@ -1,5 +1,7 @@
 """Tests for Page class."""
 
+from __future__ import annotations
+
 import io
 import pathlib
 import subprocess
@@ -21,7 +23,7 @@ from scantpaper.helpers import Proc
 from scantpaper.page import Page, _prepare_scale
 
 
-def test_1(temp_pnm, temp_jpg):
+def test_1(temp_pnm: object, temp_jpg: object) -> None:
     """Tests for Page class."""
     with pytest.raises(TypeError):
         page = Page(image_object=None)
@@ -170,7 +172,7 @@ def test_1(temp_pnm, temp_jpg):
         )
 
 
-def test_2(temp_pnm):
+def test_2(temp_pnm: object) -> None:
     """Tests for Page class."""
     subprocess.run(
         [
@@ -347,7 +349,7 @@ def test_2(temp_pnm):
         )
 
 
-def test_get_pixbuf_error(mocker):
+def test_get_pixbuf_error(mocker: pytest.MockerFixture) -> None:
     """Test error handling in get_pixbuf()."""
     mocker.patch(
         "scantpaper.page.GdkPixbuf.Pixbuf.new_from_file", side_effect=TypeError
@@ -362,7 +364,7 @@ def test_get_pixbuf_error(mocker):
     )
 
 
-def test_write_image_for_djvu():
+def test_write_image_for_djvu() -> None:
     """Test write_image_for_djvu()."""
     with (
         tempfile.TemporaryDirectory() as dirname,
@@ -375,7 +377,7 @@ def test_write_image_for_djvu():
         )
 
 
-def test_write_image_for_tiff():
+def test_write_image_for_tiff() -> None:
     """Test write_image_for_djvu()."""
     with (
         tempfile.TemporaryDirectory() as dirname,
@@ -391,7 +393,7 @@ def test_write_image_for_tiff():
         )
 
 
-def test_write_image_for_djvu_error(mocker):
+def test_write_image_for_djvu_error(mocker: pytest.MockerFixture) -> None:
     """Test error handling in write_image_for_djvu()."""
     with (
         tempfile.TemporaryDirectory() as dirname,
@@ -407,7 +409,7 @@ def test_write_image_for_djvu_error(mocker):
         mock_exec.assert_called_once()
 
 
-def test_import_hocr_empty():
+def test_import_hocr_empty() -> None:
     """Test that importing empty hOCR sets text_layer to None."""
     empty_hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -430,7 +432,7 @@ def test_import_hocr_empty():
         assert page.text_layer is None, "empty hOCR should set text_layer to None"
 
 
-def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif):
+def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif: object) -> None:
     """continuous-tone TIFF pages are stored as JPEG."""
     Image.new("L", (A4_WIDTH_MM, A4_HEIGHT_MM), 128).save(temp_tif.name)
     page = Page(filename=temp_tif.name)
@@ -438,7 +440,7 @@ def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif):
     assert Image.open(io.BytesIO(stored)).format == "JPEG"
 
 
-def test_to_stored_bytes_bilevel_is_png(temp_tif):
+def test_to_stored_bytes_bilevel_is_png(temp_tif: object) -> None:
     """1-bit pages are stored losslessly as PNG."""
     Image.new("1", (A4_WIDTH_MM, A4_HEIGHT_MM), 0).save(temp_tif.name)
     page = Page(filename=temp_tif.name)
@@ -446,7 +448,7 @@ def test_to_stored_bytes_bilevel_is_png(temp_tif):
     assert Image.open(io.BytesIO(stored)).format == "PNG"
 
 
-def test_to_stored_bytes_rgba_is_png():
+def test_to_stored_bytes_rgba_is_png() -> None:
     """Images with an alpha channel are stored losslessly."""
     page = Page(image_object=Image.new("RGBA", (A4_WIDTH_MM, A4_HEIGHT_MM)))
     stored = page.to_stored_bytes()
@@ -455,7 +457,7 @@ def test_to_stored_bytes_rgba_is_png():
     assert image.mode == "RGBA"
 
 
-def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
+def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg: object) -> None:
     """Importing a JPEG file stores the original bytes."""
     Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(temp_jpg.name, format="JPEG")
     with pathlib.Path(temp_jpg.name).open("rb") as fhd:
@@ -464,7 +466,7 @@ def test_to_stored_bytes_jpeg_file_passthrough(temp_jpg):
     assert page.to_stored_bytes() == original
 
 
-def test_to_stored_bytes_png_file_passthrough(temp_png):
+def test_to_stored_bytes_png_file_passthrough(temp_png: object) -> None:
     """Importing a PNG file stores the original bytes."""
     Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(temp_png.name, format="PNG")
     with pathlib.Path(temp_png.name).open("rb") as fhd:
@@ -473,13 +475,17 @@ def test_to_stored_bytes_png_file_passthrough(temp_png):
     assert page.to_stored_bytes() == original
 
 
-def test_get_pixbuf_at_scale_downscales_before_save(mocker):
+def test_get_pixbuf_at_scale_downscales_before_save(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Thumbnails are produced from a downscaled image, not a full-size one."""
     page = Page(image_object=Image.new("RGB", (1000, 1000)))
     saved_sizes = []
     original_save = Image.Image.save
 
-    def spy_save(self, fp, *args, **kwargs):
+    def spy_save(
+        self: Image.Image, fp: object, *args: object, **kwargs: object
+    ) -> None:
         saved_sizes.append(self.size)
         return original_save(self, fp, *args, **kwargs)
 
@@ -491,7 +497,9 @@ def test_get_pixbuf_at_scale_downscales_before_save(mocker):
     assert saved_sizes == [(100, 100)], "image downscaled before save"
 
 
-def test_get_pixbuf_at_scale_uses_decimate_then_lanczos(mocker):
+def test_get_pixbuf_at_scale_uses_decimate_then_lanczos(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Thumbnails are produced via Image.reduce then a LANCZOS resize."""
     reduce_spy = mocker.spy(Image.Image, "reduce")
     resize_spy = mocker.spy(Image.Image, "resize")
@@ -509,7 +517,7 @@ def test_get_pixbuf_at_scale_uses_decimate_then_lanczos(mocker):
     assert pixbuf.get_height() == 100, "downscaled pixbuf height"
 
 
-def test_get_pixbuf_at_scale_respects_resolution_ratio():
+def test_get_pixbuf_at_scale_respects_resolution_ratio() -> None:
     """Non-uniform x/y resolution produces an aspect-correct thumbnail."""
     page = Page(image_object=Image.new("RGB", (2000, 1000)))
     page.resolution = (300, 150, "PixelsPerInch")
@@ -520,7 +528,7 @@ def test_get_pixbuf_at_scale_respects_resolution_ratio():
     assert pixbuf.get_height() == 100, "resolution-adjusted height"
 
 
-def test_get_pixbuf_at_scale_upscales_small_image_to_fill_box():
+def test_get_pixbuf_at_scale_upscales_small_image_to_fill_box() -> None:
     """A source image smaller than the thumbnail box is resized to fill it."""
     page = Page(image_object=Image.new("RGB", (70, 46)))
     pixbuf = page.get_pixbuf_at_scale(100, 100)
@@ -529,14 +537,18 @@ def test_get_pixbuf_at_scale_upscales_small_image_to_fill_box():
     assert pixbuf.get_height() == 65, "resized to fill box height"
 
 
-def test_get_pixbuf_at_scale_antialiases_bilevel_source(mocker):
+def test_get_pixbuf_at_scale_antialiases_bilevel_source(
+    mocker: pytest.MockerFixture,
+) -> None:
     """A bilevel source yields an anti-aliased thumbnail, not a 2-tone one."""
     page = Page(image_object=Image.new("1", (1000, 1000), 1))
     page.image_object.paste(0, (100, 100, 900, 900))
     saved = []
     original_save = Image.Image.save
 
-    def spy_save(self, fp, *args, **kwargs):
+    def spy_save(
+        self: Image.Image, fp: object, *args: object, **kwargs: object
+    ) -> None:
         saved.append(self)
         return original_save(self, fp, *args, **kwargs)
 
@@ -547,7 +559,9 @@ def test_get_pixbuf_at_scale_antialiases_bilevel_source(mocker):
     assert levels > 2, "bilevel thumbnail must be anti-aliased, got 2 tones"
 
 
-def test_get_pixbuf_at_scale_antialiases_palette_source(mocker):
+def test_get_pixbuf_at_scale_antialiases_palette_source(
+    mocker: pytest.MockerFixture,
+) -> None:
     """A palette source yields an anti-aliased thumbnail at the box size."""
     page = Page(image_object=Image.new("P", (1000, 1000), 255))
     page.image_object.putpalette([i for i in range(256) for _ in range(3)])
@@ -555,7 +569,9 @@ def test_get_pixbuf_at_scale_antialiases_palette_source(mocker):
     saved = []
     original_save = Image.Image.save
 
-    def spy_save(self, fp, *args, **kwargs):
+    def spy_save(
+        self: Image.Image, fp: object, *args: object, **kwargs: object
+    ) -> None:
         saved.append(self)
         return original_save(self, fp, *args, **kwargs)
 
@@ -569,7 +585,7 @@ def test_get_pixbuf_at_scale_antialiases_palette_source(mocker):
     assert levels > 2, "palette thumbnail must be anti-aliased"
 
 
-def test_write_image_for_pdf_passthrough():
+def test_write_image_for_pdf_passthrough() -> None:
     """Stored JPEG bytes are written to the PDF without re-encoding."""
     buf = io.BytesIO()
     Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
@@ -582,7 +598,7 @@ def test_write_image_for_pdf_passthrough():
             assert fhd.read() == stored, "bytes passed through"
 
 
-def test_write_image_for_pdf_reenocodes_with_options():
+def test_write_image_for_pdf_reenocodes_with_options() -> None:
     """Downsampling or compression forces a re-encode."""
     buf = io.BytesIO()
     Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
@@ -605,7 +621,7 @@ def test_write_image_for_pdf_reenocodes_with_options():
         assert Image.open(io.BytesIO(output)).mode == "1", "thresholded to bilevel"
 
 
-def test_from_bytes_png_blob_readable():
+def test_from_bytes_png_blob_readable() -> None:
     """PNG blobs from sessions before this change remain readable."""
     img = Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM))
     buf = io.BytesIO()

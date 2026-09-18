@@ -1,7 +1,10 @@
 """Test Document tools."""
 
+from __future__ import annotations
+
 import re
 import subprocess
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import gi
@@ -13,12 +16,22 @@ from scantpaper.const import VERSION
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    import pathlib
+    from collections.abc import Callable
+
+    from scantpaper.basethread import Response
+
 gi.require_version("Gtk", "3.0")
 
 
 def test_rotate(
-    rose_jpg, temp_db, import_in_mainloop, set_saved_in_mainloop, get_page_sync
-):
+    rose_jpg: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test rotating."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -28,7 +41,7 @@ def test_rotate(
 
     asserts = 0
 
-    def display_cb(_response):
+    def display_cb(_response: Response) -> None:
         nonlocal asserts
         assert True, "Triggered display callback"
         asserts += 1
@@ -50,7 +63,12 @@ def test_rotate(
     assert slist.data[0][1].get_width() == 65, "thumbnail width after rotation"
 
 
-def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_sync):
+def test_analyse_blank(
+    import_in_mainloop: Callable[[object, list[str]], None],
+    temp_db: object,
+    clean_up_files: Callable[[list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test analyse."""
     subprocess.run(
         [config.CONVERT_COMMAND, "-size", "10x10", "xc:white", "white.pgm"], check=True
@@ -75,7 +93,12 @@ def test_analyse_blank(import_in_mainloop, temp_db, clean_up_files, get_page_syn
     clean_up_files(["white.pgm"])
 
 
-def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files, get_page_sync):
+def test_analyse_dark(
+    import_in_mainloop: Callable[[object, list[str]], None],
+    temp_db: object,
+    clean_up_files: Callable[[list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test analyse."""
     subprocess.run([config.CONVERT_COMMAND, "xc:black", "black.pgm"], check=True)
 
@@ -99,13 +122,13 @@ def test_analyse_dark(import_in_mainloop, temp_db, clean_up_files, get_page_sync
 
 
 def test_threshold(
-    import_in_mainloop,
-    set_saved_in_mainloop,
-    set_text_in_mainloop,
-    temp_db,
-    rose_jpg,
-    get_page_sync,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    temp_db: object,
+    rose_jpg: str,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test threshold."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -152,17 +175,17 @@ xfail_image_types = [
     ("suffix", "mode", "white", "expected_mean"), image_types + xfail_image_types
 )
 def test_negate(
-    import_in_mainloop,
-    set_saved_in_mainloop,
-    set_text_in_mainloop,
-    temp_db,
-    tmp_path,
-    suffix,
-    mode,
-    white,
-    expected_mean,
-    get_page_sync,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    temp_db: object,
+    tmp_path: pathlib.Path,
+    suffix: str,
+    mode: str,
+    white: object,
+    expected_mean: float,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test negate."""
     image = str(tmp_path / f"white.{suffix}")
     im = Image.new(mode, [1, 1], color=white)

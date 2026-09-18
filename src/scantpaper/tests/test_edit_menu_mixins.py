@@ -1,13 +1,19 @@
 """Tests for the EditMenuMixins."""
 
+from __future__ import annotations
+
 import datetime
-from typing import ClassVar
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import gi
 import pytest
 
 from scantpaper.edit_menu_mixins import EditMenuMixins
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from typing import ClassVar
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -16,7 +22,9 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 @pytest.fixture
-def mock_edit_window(mocker):
+def mock_edit_window(
+    mocker: pytest.MockerFixture,
+) -> Generator[object, None, None]:
     """Fixture to provide a configured MockWindow."""
     mocker.Mock()
 
@@ -77,7 +85,7 @@ def mock_edit_window(mocker):
     window.destroy()
 
 
-def test_undo(mock_edit_window):
+def test_undo(mock_edit_window: object) -> None:
     """Test undo."""
     mock_edit_window.undo(None, None)
     mock_edit_window._actions["undo"].set_enabled.assert_called_with(enabled=False)
@@ -89,7 +97,7 @@ def test_undo(mock_edit_window):
     mock_edit_window._update_uimanager.assert_called_once()
 
 
-def test_unundo(mock_edit_window):
+def test_unundo(mock_edit_window: object) -> None:
     """Test unundo."""
     mock_edit_window.unundo(None, None)
     mock_edit_window._actions["redo"].set_enabled.assert_called_with(enabled=False)
@@ -100,7 +108,7 @@ def test_unundo(mock_edit_window):
     mock_edit_window._update_uimanager.assert_called_once()
 
 
-def test_cut_selection(mock_edit_window):
+def test_cut_selection(mock_edit_window: object) -> None:
     """Test cut_selection."""
     mock_edit_window.slist.cut_selection.return_value = "clipboard_data"
     mock_edit_window.cut_selection(None, None)
@@ -109,7 +117,7 @@ def test_cut_selection(mock_edit_window):
     mock_edit_window._update_uimanager.assert_called_once()
 
 
-def test_copy_selection(mock_edit_window):
+def test_copy_selection(mock_edit_window: object) -> None:
     """Test copy_selection."""
     mock_edit_window.slist.copy_selection.return_value = "clipboard_data"
     mock_edit_window.copy_selection(None, None)
@@ -118,14 +126,14 @@ def test_copy_selection(mock_edit_window):
     mock_edit_window._update_uimanager.assert_called_once()
 
 
-def test_paste_selection_empty(mock_edit_window):
+def test_paste_selection_empty(mock_edit_window: object) -> None:
     """Test paste_selection with empty clipboard."""
     mock_edit_window.slist.clipboard = None
     mock_edit_window.paste_selection(None, None)
     mock_edit_window.slist.paste_selection.assert_not_called()
 
 
-def test_paste_selection_with_pages(mock_edit_window):
+def test_paste_selection_with_pages(mock_edit_window: object) -> None:
     """Test paste_selection with selected pages."""
     mock_edit_window.slist.clipboard = "data"
     mock_edit_window.slist.get_selected_indices.return_value = [0, 1]
@@ -138,7 +146,7 @@ def test_paste_selection_with_pages(mock_edit_window):
     mock_edit_window._update_uimanager.assert_called_once()
 
 
-def test_paste_selection_no_pages(mock_edit_window):
+def test_paste_selection_no_pages(mock_edit_window: object) -> None:
     """Test paste_selection without selected pages."""
     mock_edit_window.slist.clipboard = "data"
     mock_edit_window.slist.get_selected_indices.return_value = []
@@ -151,7 +159,7 @@ def test_paste_selection_no_pages(mock_edit_window):
     mock_edit_window._update_uimanager.assert_called_once()
 
 
-def test_delete_selection(mock_edit_window):
+def test_delete_selection(mock_edit_window: object) -> None:
     """Test delete_selection."""
     mock_edit_window.delete_selection(None, None)
 
@@ -159,7 +167,7 @@ def test_delete_selection(mock_edit_window):
     mock_edit_window._update_uimanager.assert_called_once()
 
 
-def test_select_all(mock_edit_window):
+def test_select_all(mock_edit_window: object) -> None:
     """Test select_all."""
     mock_selection = MagicMock()
     mock_edit_window.slist.get_selection.return_value = mock_selection
@@ -169,7 +177,7 @@ def test_select_all(mock_edit_window):
     mock_selection.select_all.assert_called_once()
 
 
-def test_select_odd_even(mock_edit_window):
+def test_select_odd_even(mock_edit_window: object) -> None:
     """Test select_odd_even."""
     # Data structure: [index, ?, page]
     # Use 1-based page numbers for logic check: 1=Odd, 2=Even, 3=Odd
@@ -191,7 +199,7 @@ def test_select_odd_even(mock_edit_window):
     mock_edit_window.slist.select.assert_called_with([1])
 
 
-def test_select_invert(mock_edit_window):
+def test_select_invert(mock_edit_window: object) -> None:
     """Test select_invert."""
     mock_edit_window.slist.data = [[0], [1], [2]]
     mock_edit_window.slist.get_selected_indices.return_value = [0]
@@ -204,7 +212,7 @@ def test_select_invert(mock_edit_window):
     mock_edit_window.slist.select.assert_called_once_with([1, 2])
 
 
-def test_select_modified_since_ocr(mock_edit_window):
+def test_select_modified_since_ocr(mock_edit_window: object) -> None:
     """Test select_modified_since_ocr."""
     page1 = MagicMock()
     page1.ocr_flag = True
@@ -231,7 +239,7 @@ def test_select_modified_since_ocr(mock_edit_window):
     mock_edit_window.slist.select.assert_called_once_with([0])
 
 
-def test_select_no_ocr(mock_edit_window):
+def test_select_no_ocr(mock_edit_window: object) -> None:
     """Test select_no_ocr."""
     page1 = MagicMock()
     page1.text_layer = "text"
@@ -249,7 +257,7 @@ def test_select_no_ocr(mock_edit_window):
     mock_edit_window.slist.select.assert_called_once_with([1])
 
 
-def test_clear_ocr(mock_edit_window):
+def test_clear_ocr(mock_edit_window: object) -> None:
     """Test clear_ocr."""
     page1 = MagicMock()
     page1.text_layer = "text"
@@ -263,7 +271,7 @@ def test_clear_ocr(mock_edit_window):
     assert page1.text_layer is None
 
 
-def test_select_blank(mock_edit_window):
+def test_select_blank(mock_edit_window: object) -> None:
     """Test select_blank callback."""
     # Mock the analyse method
     mock_edit_window.analyse = MagicMock()
@@ -277,7 +285,7 @@ def test_select_blank(mock_edit_window):
     )
 
 
-def test_select_odd(mock_edit_window):
+def test_select_odd(mock_edit_window: object) -> None:
     """Test _select_odd callback."""
     # Mock the select_odd_even method
     mock_edit_window.select_odd_even = MagicMock()
@@ -289,7 +297,7 @@ def test_select_odd(mock_edit_window):
     mock_edit_window.select_odd_even.assert_called_once_with(0)
 
 
-def test_select_even(mock_edit_window):
+def test_select_even(mock_edit_window: object) -> None:
     """Test _select_even callback."""
     # Mock the select_odd_even method
     mock_edit_window.select_odd_even = MagicMock()
@@ -301,7 +309,7 @@ def test_select_even(mock_edit_window):
     mock_edit_window.select_odd_even.assert_called_once_with(1)
 
 
-def test_select_dark(mock_edit_window):
+def test_select_dark(mock_edit_window: object) -> None:
     """Test select_blank callback."""
     # Mock the analyse method
     mock_edit_window.analyse = MagicMock()
@@ -315,7 +323,9 @@ def test_select_dark(mock_edit_window):
     )
 
 
-def test_properties_dialog(mocker, mock_edit_window):
+def test_properties_dialog(
+    mocker: pytest.MockerFixture, mock_edit_window: object
+) -> None:
     """Test properties dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.edit_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -364,7 +374,7 @@ def test_properties_dialog(mocker, mock_edit_window):
     )
 
 
-def test_properties_window_present(mock_edit_window):
+def test_properties_window_present(mock_edit_window: object) -> None:
     """Test that properties() calls self._windowp.present() if the window already exists."""
     # Mock the existing properties window
     mock_windowp = MagicMock()
@@ -377,7 +387,9 @@ def test_properties_window_present(mock_edit_window):
     mock_windowp.present.assert_called_once()
 
 
-def test_properties_selection_changed_callback(mocker, mock_edit_window):
+def test_properties_selection_changed_callback(
+    mocker: pytest.MockerFixture, mock_edit_window: object
+) -> None:
     """Test that selection_changed_callback updates the properties window."""
     mock_dialog_cls = mocker.patch("scantpaper.edit_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -415,7 +427,9 @@ def test_properties_selection_changed_callback(mocker, mock_edit_window):
     mock_y_spin.set_value.assert_called_with(200)
 
 
-def test_preferences_dialog(mocker, mock_edit_window):
+def test_preferences_dialog(
+    mocker: pytest.MockerFixture, mock_edit_window: object
+) -> None:
     """Test preferences dialog."""
     mock_pref_cls = mocker.patch("scantpaper.edit_menu_mixins.PreferencesDialog")
     mock_pref_instance = mock_pref_cls.return_value
@@ -431,14 +445,16 @@ def test_preferences_dialog(mocker, mock_edit_window):
     )
 
 
-def test_preferences_dialog_already_open(mock_edit_window, mocker):
+def test_preferences_dialog_already_open(
+    mock_edit_window: object, mocker: pytest.MockerFixture
+) -> None:
     """Test preferences dialog when already open."""
     mock_edit_window._windowr = mocker.Mock()
     mock_edit_window.preferences(None, None)
     mock_edit_window._windowr.present.assert_called_once()
 
 
-def test_changed_preferences_valid_regex(mock_edit_window):
+def test_changed_preferences_valid_regex(mock_edit_window: object) -> None:
     """Test _changed_preferences with valid regex in device blacklist."""
     new_settings = mock_edit_window.settings.copy()
     new_settings["device blacklist"] = "hp.*"
@@ -449,7 +465,7 @@ def test_changed_preferences_valid_regex(mock_edit_window):
     assert mock_edit_window.settings["device blacklist"] == "hp.*"
 
 
-def test_changed_preferences(mock_edit_window):
+def test_changed_preferences(mock_edit_window: object) -> None:
     """Test _changed_preferences."""
     new_settings = mock_edit_window.settings.copy()
     new_settings["TMPDIR"] = "/new/tmp"
@@ -461,7 +477,7 @@ def test_changed_preferences(mock_edit_window):
     assert mock_edit_window.settings["TMPDIR"] == "/new/tmp"
 
 
-def test_changed_preferences_invalid_regex(mock_edit_window):
+def test_changed_preferences_invalid_regex(mock_edit_window: object) -> None:
     """Test _changed_preferences with invalid regex in device blacklist."""
     new_settings = mock_edit_window.settings.copy()
     new_settings["device blacklist"] = "["  # Invalid regex
@@ -475,7 +491,9 @@ def test_changed_preferences_invalid_regex(mock_edit_window):
     )
 
 
-def test_changed_preferences_updates_windows(mock_edit_window, mocker):
+def test_changed_preferences_updates_windows(
+    mock_edit_window: object, mocker: pytest.MockerFixture
+) -> None:
     """Test _changed_preferences updates _windows and _windowi."""
     mock_edit_window._windows = mocker.Mock()
     mock_edit_window._windowi = mocker.Mock()
@@ -492,7 +510,7 @@ def test_changed_preferences_updates_windows(mock_edit_window, mocker):
     assert mock_edit_window.settings["cycle sane handle"] is True
 
 
-def test_select_blank_pages(mock_edit_window):
+def test_select_blank_pages(mock_edit_window: object) -> None:
     """Test select_blank_pages."""
     mock_edit_window.settings["Blank threshold"] = 10
 
@@ -510,7 +528,7 @@ def test_select_blank_pages(mock_edit_window):
     mock_edit_window.slist.unselect.assert_called_with([1, 0, page2])
 
 
-def test_select_dark_pages(mock_edit_window):
+def test_select_dark_pages(mock_edit_window: object) -> None:
     """Test select_dark_pages."""
     mock_edit_window.settings["Dark threshold"] = 10
 
@@ -532,7 +550,7 @@ def test_select_dark_pages(mock_edit_window):
     mock_edit_window.slist.unselect.assert_called_with([1, 0, page2])
 
 
-def test_analyse(mock_edit_window):
+def test_analyse(mock_edit_window: object) -> None:
     """Test analyse."""
     page1 = MagicMock()
     page1.uuid = "uuid1"
@@ -582,7 +600,7 @@ def test_analyse(mock_edit_window):
     mock_edit_window.select_dark_pages.assert_called_once()
 
 
-def test_analyse_cached(mock_edit_window):
+def test_analyse_cached(mock_edit_window: object) -> None:
     """Test analyse when no pages need analysis."""
     page1 = MagicMock()
     page1.analyse_time = datetime.datetime(2023, 1, 2, tzinfo=_LOCAL_TZ)
@@ -598,7 +616,7 @@ def test_analyse_cached(mock_edit_window):
     mock_edit_window.select_dark_pages.assert_called_once()
 
 
-def test_update_list_user_defined_tools(mock_edit_window):
+def test_update_list_user_defined_tools(mock_edit_window: object) -> None:
     """Test _update_list_user_defined_tools."""
     mock_combobox = MagicMock()
     # Simulate existing rows
@@ -624,7 +642,9 @@ def test_update_list_user_defined_tools(mock_edit_window):
     mock_edit_window._update_post_save_hooks.assert_called_once()
 
 
-def test_changed_preferences_updates_tools_before_self_settings(mock_edit_window):
+def test_changed_preferences_updates_tools_before_self_settings(
+    mock_edit_window: object,
+) -> None:
     """Test that _changed_preferences updates combobox with new tool list."""
     mock_combobox = MagicMock()
     mock_combobox.get_num_rows.side_effect = [1, 0]
@@ -642,7 +662,9 @@ def test_changed_preferences_updates_tools_before_self_settings(mock_edit_window
     mock_combobox.append_text.assert_any_call("new_tool")
 
 
-def test_update_list_user_defined_tools_enables_scan_udt_with_tools(mock_edit_window):
+def test_update_list_user_defined_tools_enables_scan_udt_with_tools(
+    mock_edit_window: object,
+) -> None:
     """Test _update_list_user_defined_tools enables scan UDT UI when tools exist."""
     mock_hbox = MagicMock()
     mock_button = MagicMock()
@@ -662,8 +684,8 @@ def test_update_list_user_defined_tools_enables_scan_udt_with_tools(mock_edit_wi
 
 
 def test_update_list_user_defined_tools_disables_scan_udt_without_tools(
-    mock_edit_window,
-):
+    mock_edit_window: object,
+) -> None:
     """Test _update_list_user_defined_tools disables scan UDT UI when no tools."""
     mock_hbox = MagicMock()
     mock_button = MagicMock()

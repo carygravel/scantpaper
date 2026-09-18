@@ -1,8 +1,11 @@
 """Test Canvas class."""
 
+from __future__ import annotations
+
 import json
 import tempfile
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import cairo
@@ -29,6 +32,9 @@ from scantpaper.const import POINTS_PER_INCH
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 gi.require_version("Gdk", "3.0")
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
@@ -40,14 +46,14 @@ from gi.repository import (  # noqa: E402
 )
 
 
-def assert_rgba_equal(c1, c2):
+def assert_rgba_equal(c1: Gdk.RGBA, c2: Gdk.RGBA) -> None:
     """Assert two Gdk.RGBA colors are equal."""
     assert c1.red == pytest.approx(c2.red)
     assert c1.green == pytest.approx(c2.green)
     assert c1.blue == pytest.approx(c2.blue)
 
 
-def test_color_functions_more():
+def test_color_functions_more() -> None:
     """Test more branches in color conversion."""
     # rgb2hsv gray case (delta < tolerance)
     assert rgb2hsv(Gdk.RGBA(0.5, 0.5, 0.5)) == {"h": 0, "s": 0, "v": 0.5}
@@ -85,7 +91,7 @@ def test_color_functions_more():
     assert_rgba_equal(c, Gdk.RGBA(1, 0, 1))
 
 
-def test_string2rgb():
+def test_string2rgb() -> None:
     """Test string2rgb color parsing."""
     # named color
     c = string2rgb("red")
@@ -116,7 +122,9 @@ def test_string2rgb():
     assert c.alpha == 1.0
 
 
-def get_bboxes_and_indices(json_string):
+def get_bboxes_and_indices(
+    json_string: str,
+) -> tuple[list[dict[str, object]], list[int]]:
     """Simulate docthread parsing."""
     tree = Bboxtree(json_string)
     bboxes = list(tree.each_bbox())
@@ -128,7 +136,7 @@ def get_bboxes_and_indices(json_string):
     return bboxes, [x[0] for x in words]
 
 
-def test_canvas_offset_setter_no_change():
+def test_canvas_offset_setter_no_change() -> None:
     """Test offset setter when values don't change."""
     canvas_obj = Canvas()
     canvas_obj.emit = MagicMock()
@@ -143,12 +151,12 @@ def test_canvas_offset_setter_no_change():
     canvas_obj.emit.assert_not_called()
 
 
-def test_hsv2rgb_coverage():
+def test_hsv2rgb_coverage() -> None:
     """Test hsv2rgb all branches."""
     assert hsv2rgb({"h": 0, "s": 0, "v": 1.0}).red == 1.0
 
     # sectors
-    def check_sector(h, r, g, b):
+    def check_sector(h: float, r: float, g: float, b: float) -> None:
         c = hsv2rgb({"h": h, "s": 1.0, "v": 1.0})
         assert c.red == pytest.approx(r)
         assert c.green == pytest.approx(g)
@@ -162,7 +170,7 @@ def test_hsv2rgb_coverage():
     check_sector(300, 1, 0, 1)  # i=5 (magenta)
 
 
-def test_canvas_basics(rose_pnm):
+def test_canvas_basics(rose_pnm: str) -> None:
     """Basic tests."""
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
@@ -223,7 +231,7 @@ def test_canvas_basics(rose_pnm):
         assert canvas.get_last_bbox().text == "quick", "get_last_bbox after deletion"
 
 
-def test_canvas_basics2(rose_pnm):
+def test_canvas_basics2(rose_pnm: str) -> None:
     """Basic tests."""
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
@@ -395,7 +403,7 @@ def test_canvas_basics2(rose_pnm):
         assert canvas.hocr() == expected, "updated hocr with HTML-escape characters"
 
 
-def test_canvas_clear_text(mocker):
+def test_canvas_clear_text(mocker: pytest.MockerFixture) -> None:
     """Test clearing text from canvas."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -410,7 +418,7 @@ def test_canvas_clear_text(mocker):
     assert mock_queue_draw.called
 
 
-def test_hocr(rose_pnm):
+def test_hocr(rose_pnm: str) -> None:
     """Tests hocr export."""
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
@@ -515,7 +523,7 @@ def test_hocr(rose_pnm):
             canvas.get_last_bbox()
 
 
-def test_bbox_text_placement(rose_pnm):
+def test_bbox_text_placement(rose_pnm: str) -> None:
     """Test that hOCR text is placed correctly within its bounding box."""
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
@@ -557,7 +565,7 @@ def test_bbox_text_placement(rose_pnm):
         assert bbox.text == "fox"
 
 
-def test_initialisation(mocker):
+def test_initialisation(mocker: pytest.MockerFixture) -> None:
     """Test initialisation."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -568,7 +576,7 @@ def test_initialisation(mocker):
     assert canvas.min_confidence == 50, "min-confidence"
 
 
-def test_drag_text_layer(mocker):
+def test_drag_text_layer(mocker: pytest.MockerFixture) -> None:
     """Test dragging a text layer."""
 
     @dataclass
@@ -609,7 +617,7 @@ def test_drag_text_layer(mocker):
     assert canvas.get_offset().x == 0, "canvas has moved"
 
 
-def test_canvas_drag_cursor(mocker):
+def test_canvas_drag_cursor(mocker: pytest.MockerFixture) -> None:
     """Test that the cursor changes when dragging the canvas."""
     mock_display = mocker.patch("gi.repository.Gdk.Display.get_default")
     mock_display.return_value.get_default_seat.return_value.get_pointer.return_value.get_position.return_value = (
@@ -641,14 +649,14 @@ def test_canvas_drag_cursor(mocker):
     mock_window.set_cursor.assert_called_once_with(None)
 
 
-def test_canvas_hocr_empty(mocker):
+def test_canvas_hocr_empty(mocker: pytest.MockerFixture) -> None:
     """Test Canvas.hocr when empty."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
     assert canvas.hocr() == ""
 
 
-def test_canvas_set_offset_clamping():
+def test_canvas_set_offset_clamping() -> None:
     """Test set_offset clamping logic."""
     canvas_obj = Canvas()
 
@@ -688,7 +696,7 @@ def test_canvas_set_offset_clamping():
     assert canvas_obj.offset.y == -100
 
 
-def test_canvas_scroll():
+def test_canvas_scroll() -> None:
     """Test scroll event zooming."""
     canvas_obj = Canvas()
     canvas_obj.zoom = 1.0
@@ -721,7 +729,7 @@ def test_canvas_scroll():
     assert canvas_obj.zoom == 1.0
 
 
-def test_canvas_get_bbox_at():
+def test_canvas_get_bbox_at() -> None:
     """Test get_bbox_at."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -756,13 +764,13 @@ def test_canvas_get_bbox_at():
         canvas_obj.get_bbox_at(Rectangle(x=200, y=200, width=1, height=1))
 
 
-def test_rectangle_init():
+def test_rectangle_init() -> None:
     """Test Rectangle init checks."""
     with pytest.raises(AttributeError):
         Rectangle(x=0, y=0, width=10)
 
 
-def test_list_iter_edge_cases():
+def test_list_iter_edge_cases() -> None:
     """Test ListIter edge cases."""
     li = ListIter()
 
@@ -797,7 +805,7 @@ def test_list_iter_edge_cases():
         mock_logger.warning.assert_called()
 
 
-def test_bbox_methods_via_canvas():
+def test_bbox_methods_via_canvas() -> None:
     """Test Bbox methods by creating them on canvas."""
     # This avoids segfaults by letting Canvas manage hierarchy
     canvas_obj = Canvas()
@@ -857,7 +865,7 @@ def test_bbox_methods_via_canvas():
     assert child2.get_position_index() == 1
 
 
-def test_canvas_indices():
+def test_canvas_indices() -> None:
     """Test Canvas indices switching and manipulation."""
     canvas_obj = Canvas()
 
@@ -907,7 +915,7 @@ def test_canvas_indices():
         mock_confidence.set_index_by_bbox.assert_called_with(bbox, 90)
 
 
-def test_bbox_stack_index():
+def test_bbox_stack_index() -> None:
     """Test get_stack_index_by_position logic."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -945,7 +953,7 @@ def test_bbox_stack_index():
     assert idx == 1
 
 
-def test_add_box_callbacks():
+def test_add_box_callbacks() -> None:
     """Test add_box with callbacks and transformation."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -980,7 +988,7 @@ def test_add_box_callbacks():
     mock_edit.assert_called_once()
 
 
-def test_bbox_init_zero_width_text():
+def test_bbox_init_zero_width_text() -> None:
     """Test Bbox init with zero width text."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1003,7 +1011,7 @@ def test_bbox_init_zero_width_text():
         assert bbox.text == "zerowidth"
 
 
-def test_tree_iter_navigation():
+def test_tree_iter_navigation() -> None:
     """Test TreeIter navigation methods."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1061,7 +1069,7 @@ def test_tree_iter_navigation():
         ti.next_word()
 
 
-def test_bbox_to_hocr_types():
+def test_bbox_to_hocr_types() -> None:
     """Test Bbox.to_hocr with different types."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1095,7 +1103,7 @@ def test_bbox_to_hocr_types():
     assert "<p" in hocr
 
 
-def test_canvas_event_handlers(mocker):
+def test_canvas_event_handlers(mocker: pytest.MockerFixture) -> None:
     """Test Canvas event handlers for coverage."""
     mock_display = MagicMock(spec=Gdk.Display)
     mocker.patch("gi.repository.Gdk.Display.get_default", return_value=mock_display)
@@ -1128,7 +1136,7 @@ def test_canvas_event_handlers(mocker):
     assert not canvas_obj.dragging
 
 
-def test_bbox_update_box_empty_text():
+def test_bbox_update_box_empty_text() -> None:
     """Test Bbox.update_box with empty text (deletes box)."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1158,7 +1166,7 @@ def test_bbox_update_box_empty_text():
     word.delete_box.assert_called_once()
 
 
-def test_list_iter_more():
+def test_list_iter_more() -> None:
     """Test ListIter additional methods."""
     li = ListIter()
     bbox = MagicMock()
@@ -1179,7 +1187,7 @@ def test_list_iter_more():
     assert li.list[li.index][0] == bbox2
 
 
-def test_tree_iter_exceptions():
+def test_tree_iter_exceptions() -> None:
     """Test TreeIter exceptions."""
     # Init with non-Bbox
     with pytest.raises(TypeError):
@@ -1209,7 +1217,7 @@ def test_tree_iter_exceptions():
         ti.previous_word()
 
 
-def test_bbox_update_box_full():
+def test_bbox_update_box_full() -> None:
     """Test Bbox.update_box with more branches."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1255,7 +1263,7 @@ def test_bbox_update_box_full():
     assert word2.get_centroid()[0] < word.get_centroid()[0]
 
 
-def test_canvas_set_text_full(rose_pnm):
+def test_canvas_set_text_full(rose_pnm: str) -> None:
     """Test Canvas.set_text with real-ish page."""
     with tempfile.TemporaryDirectory() as dirname:
         page = Page(
@@ -1288,7 +1296,7 @@ def test_canvas_set_text_full(rose_pnm):
         assert canvas_obj.get_pixbuf_size() == {"width": 100, "height": 100}
 
 
-def test_canvas_set_offset_pixbuf_none():
+def test_canvas_set_offset_pixbuf_none() -> None:
     """Test Canvas.set_offset when pixbuf_size is None."""
     canvas_obj = Canvas()
     canvas_obj._pixbuf_size = None
@@ -1297,7 +1305,7 @@ def test_canvas_set_offset_pixbuf_none():
     assert canvas_obj.get_offset().x == 0
 
 
-def test_canvas_get_max_min_color_hsv():
+def test_canvas_get_max_min_color_hsv() -> None:
     """Test color HSV getters."""
     canvas_obj = Canvas()
     hsv = canvas_obj.get_max_color_hsv()
@@ -1306,7 +1314,7 @@ def test_canvas_get_max_min_color_hsv():
     assert "h" in hsv
 
 
-def test_set_text_empty_list():
+def test_set_text_empty_list() -> None:
     """Test set_text with an empty list to cover lines 323-326."""
     canvas = Canvas()
     canvas.clear_text = MagicMock()
@@ -1316,11 +1324,11 @@ def test_set_text_empty_list():
     callback.assert_called_once()
 
 
-def test_set_text_empty_generator():
+def test_set_text_empty_generator() -> None:
     """Test set_text with an empty generator to cover lines 343-344."""
     canvas = Canvas()
 
-    def empty_gen():
+    def empty_gen() -> Generator[dict[str, object], None, None]:
         yield from []
 
     # Generators are truthy even when empty, so this bypasses 'if not bboxes'
@@ -1332,7 +1340,7 @@ def test_set_text_empty_generator():
     )
 
 
-def test_set_text_empty_list_with_none_callback():
+def test_set_text_empty_list_with_none_callback() -> None:
     """Test set_text with an empty list and finished_callback=None."""
     canvas = Canvas()
     canvas.clear_text = MagicMock()
@@ -1341,7 +1349,7 @@ def test_set_text_empty_list_with_none_callback():
     canvas.clear_text.assert_called_once()
 
 
-def test_bbox_button_press_callback():
+def test_bbox_button_press_callback() -> None:
     """Test Bbox button_press_callback."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1367,7 +1375,7 @@ def test_bbox_button_press_callback():
     mock_edit.assert_called_once()
 
 
-def test_bbox_walk_children():
+def test_bbox_walk_children() -> None:
     """Test Bbox.walk_children."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1390,7 +1398,7 @@ def test_bbox_walk_children():
 
     visited = []
 
-    def callback(bbox):
+    def callback(bbox: Bbox) -> None:
         visited.append(bbox)
 
     page.walk_children(callback)
@@ -1398,7 +1406,7 @@ def test_bbox_walk_children():
     assert word in visited
 
 
-def test_canvas_get_bbox_at_more():
+def test_canvas_get_bbox_at_more() -> None:
     """Test Canvas.get_bbox_at."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1428,7 +1436,7 @@ def test_canvas_get_bbox_at_more():
     assert res == line
 
 
-def test_bbox_to_hocr_more():
+def test_bbox_to_hocr_more() -> None:
     """Test Bbox.to_hocr with extended properties."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1451,7 +1459,7 @@ def test_bbox_to_hocr_more():
     assert "textangle 90" in hocr
 
 
-def test_bbox_stack_index_coverage():
+def test_bbox_stack_index_coverage() -> None:
     """Test get_stack_index_by_position coverage and robust binary search."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1496,7 +1504,7 @@ def test_bbox_stack_index_coverage():
     assert idx == 0
 
 
-def test_tree_iter_next_word_stop_iteration():
+def test_tree_iter_next_word_stop_iteration() -> None:
     """Test TreeIter.next_word() state restoration on StopIteration (lines 1358-1361)."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1532,7 +1540,7 @@ def test_tree_iter_next_word_stop_iteration():
     assert ti._bbox == old_bbox
 
 
-def test_tree_iter_previous_word_same_node():
+def test_tree_iter_previous_word_same_node() -> None:
     """Test TreeIter.previous_word() when previous_bbox returns same node (lines 1399-1401)."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1561,7 +1569,9 @@ def test_tree_iter_previous_word_same_node():
         ti.previous_word()
 
 
-def test_list_iter_insert_before_position_warnings(mocker):
+def test_list_iter_insert_before_position_warnings(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test ListIter.insert_before_position() warnings (lines 1240-1247)."""
     li = ListIter()
     mock_logger = mocker.patch("scantpaper.canvas.logger")
@@ -1580,7 +1590,7 @@ def test_list_iter_insert_before_position_warnings(mocker):
     )
 
 
-def test_bbox_get_position_index_more():
+def test_bbox_get_position_index_more() -> None:
     """Test Bbox.get_position_index() coverage (lines 966-978)."""
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
@@ -1649,7 +1659,7 @@ def test_bbox_get_position_index_more():
         w2.get_position_index()
 
 
-def test_canvas_color_setters():
+def test_canvas_color_setters() -> None:
     """Test max_color and min_color setters update HSV properties (lines 224, 225, 248, 249)."""
     canvas = Canvas()
 
@@ -1666,7 +1676,7 @@ def test_canvas_color_setters():
     assert canvas.get_min_color_hsv()["h"] == pytest.approx(120)
 
 
-def test_color_functions_coverage():
+def test_color_functions_coverage() -> None:
     """Test color functions edge cases (lines 90, 119)."""
     # Line 119: hsv2rgb with h >= 360
     c1 = hsv2rgb({"h": 360, "s": 1.0, "v": 1.0})
@@ -1684,7 +1694,7 @@ def test_color_functions_coverage():
     assert res["h"] < 360.0
 
 
-def test_canvas_index_none():
+def test_canvas_index_none() -> None:
     """Test set_index_by_bbox and set_other_index with None bbox (lines 416, 425)."""
     canvas = Canvas()
 
@@ -1700,7 +1710,7 @@ def test_canvas_index_none():
     assert canvas._current_index == "position"
 
 
-def test_canvas_add_box_with_transformation():
+def test_canvas_add_box_with_transformation() -> None:
     """Test add_box with explicit transformation (line 495)."""
     canvas = Canvas()
     canvas.confidence_index = ListIter()
@@ -1726,7 +1736,7 @@ def test_canvas_add_box_with_transformation():
     assert bbox.transformation == trans
 
 
-def test_bbox_get_child_ordinal_not_found():
+def test_bbox_get_child_ordinal_not_found() -> None:
     """Test Bbox.get_child_ordinal() returns NOT_FOUND (line 974)."""
     canvas = Canvas()
     canvas.confidence_index = ListIter()
@@ -1755,7 +1765,7 @@ def test_bbox_get_child_ordinal_not_found():
     assert bbox2.get_child_ordinal(bbox1) == NOT_FOUND
 
 
-def test_list_iter_set_index_by_bbox_not_found():
+def test_list_iter_set_index_by_bbox_not_found() -> None:
     """Test ListIter.set_index_by_bbox() when bbox is not found (lines 1183, 1184)."""
     li = ListIter()
     bbox1 = MagicMock()
@@ -1770,7 +1780,7 @@ def test_list_iter_set_index_by_bbox_not_found():
     assert li.index == EMPTY_LIST
 
 
-def test_tree_iter_first_last_word():
+def test_tree_iter_first_last_word() -> None:
     """Test TreeIter.first_word() and last_word() branches (lines 1296, 1401)."""
     canvas = Canvas()
     canvas.confidence_index = ListIter()
@@ -1832,7 +1842,7 @@ def test_tree_iter_first_last_word():
 
 
 # Performance regression tests
-def create_test_page_with_words(num_words, words_per_line=10):
+def create_test_page_with_words(num_words: int, words_per_line: int = 10) -> str:
     """Create a test page with the specified number of words."""
     boxes = []
 
@@ -1876,7 +1886,7 @@ def create_test_page_with_words(num_words, words_per_line=10):
 
 
 @pytest.mark.slow
-def test_canvas_no_stack_overflow(rose_pnm):
+def test_canvas_no_stack_overflow(rose_pnm: str) -> None:
     """Test that large pages don't cause stack overflow.
 
     Before optimization, _boxed_text() was recursive and would hit
@@ -1909,14 +1919,14 @@ def test_canvas_no_stack_overflow(rose_pnm):
         assert len(canvas.confidence_index.list) == num_words
 
 
-def test_canvas_motion_no_dragging():
+def test_canvas_motion_no_dragging() -> None:
     """Test _motion returns False when not dragging (line 678)."""
     canvas = Canvas()
     canvas.dragging = False
     assert canvas._motion(None, None) is False
 
 
-def test_bbox_connect_new_signal(mocker):
+def test_bbox_connect_new_signal(mocker: pytest.MockerFixture) -> None:
     """Test Bbox.connect with a new signal name (line 233)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -1932,7 +1942,7 @@ def test_bbox_connect_new_signal(mocker):
     assert "custom-signal" in page._callbacks
 
 
-def test_bbox_emit_callback(mocker):
+def test_bbox_emit_callback(mocker: pytest.MockerFixture) -> None:
     """Test Bbox.emit invokes callback (line 239)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -1950,7 +1960,7 @@ def test_bbox_emit_callback(mocker):
     callback.assert_called_once_with("arg1")
 
 
-def test_delete_box_both_position_index_stop(mocker):
+def test_delete_box_both_position_index_stop(mocker: pytest.MockerFixture) -> None:
     """Test delete_box when position_index raises StopIteration on both next/previous (line 350)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -1974,7 +1984,7 @@ def test_delete_box_both_position_index_stop(mocker):
     word.delete_box()
 
 
-def test_draw_scene_pixbuf_none(mocker):
+def test_draw_scene_pixbuf_none(mocker: pytest.MockerFixture) -> None:
     """Test _draw_scene returns early when pixbuf_size is None (lines 741-742)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -1984,7 +1994,7 @@ def test_draw_scene_pixbuf_none(mocker):
     canvas._draw_scene(ctx)
 
 
-def test_draw_bbox_full(mocker):
+def test_draw_bbox_full(mocker: pytest.MockerFixture) -> None:
     """Test _draw_bbox and _draw_tree covering multiple branches (lines 744-827)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2035,14 +2045,14 @@ def test_draw_bbox_full(mocker):
     pg_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
     pg_ctx = cairo.Context(pg_surface)
 
-    def make_layout(text):
+    def make_layout(text: str) -> object:
         layout = PangoCairo.create_layout(pg_ctx)
         font_desc = Pango.FontDescription.from_string("Sans 10")
         layout.set_font_description(font_desc)
         layout.set_text(text, -1)
         return layout
 
-    def patched_create_pango_layout(ctx, bbox):
+    def patched_create_pango_layout(ctx: object, bbox: Bbox) -> object:
         del ctx
         return make_layout(bbox.text)
 
@@ -2054,7 +2064,7 @@ def test_draw_bbox_full(mocker):
     canvas._draw_tree(ctx, None)
 
 
-def test_hit_test_reference_error(mocker):
+def test_hit_test_reference_error(mocker: pytest.MockerFixture) -> None:
     """Test _hit_test raises ReferenceError when pixbuf or root is None (lines 940-941)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2066,7 +2076,7 @@ def test_hit_test_reference_error(mocker):
         canvas._hit_test(10, 10)
 
 
-def test_set_zoom_with_center_clamp(mocker):
+def test_set_zoom_with_center_clamp(mocker: pytest.MockerFixture) -> None:
     """Test _set_zoom_with_center clamps to MAX_ZOOM (line 1097)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2078,7 +2088,7 @@ def test_set_zoom_with_center_clamp(mocker):
     assert canvas.zoom == MAX_ZOOM
 
 
-def test_draw_bbox_none_confidence(mocker):
+def test_draw_bbox_none_confidence(mocker: pytest.MockerFixture) -> None:
     """Test _draw_bbox handles bbox with confidence=None (TypeError regression)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2106,7 +2116,7 @@ def test_draw_bbox_none_confidence(mocker):
     canvas._draw_scene(ctx)
 
 
-def test_hit_test_with_valid_state(mocker):
+def test_hit_test_with_valid_state(mocker: pytest.MockerFixture) -> None:
     """Test _hit_test with valid pixbuf_size and root_item (line 945)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2133,7 +2143,7 @@ def test_hit_test_with_valid_state(mocker):
     assert result is not None
 
 
-def test_hit_test_nonzero_offset(mocker):
+def test_hit_test_nonzero_offset(mocker: pytest.MockerFixture) -> None:
     """Test _hit_test with non-zero offset matches forward transform."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2170,7 +2180,7 @@ def test_hit_test_nonzero_offset(mocker):
     assert result.type == "line"
 
 
-def test_button_press_callback_edge_cases():
+def test_button_press_callback_edge_cases() -> None:
     """Test button_press_callback with button != 1 and no canvas."""
     bbox = MagicMock()
     bbox.canvas = None
@@ -2190,7 +2200,7 @@ def test_button_press_callback_edge_cases():
     bbox.emit.assert_called_once_with("clicked")
 
 
-def test_bbox_connect_duplicate_signal():
+def test_bbox_connect_duplicate_signal() -> None:
     """Test Bbox.connect when signal already registered."""
     bbox = Bbox()
     cb = MagicMock()
@@ -2199,7 +2209,7 @@ def test_bbox_connect_duplicate_signal():
     assert len(bbox._callbacks["sig"]) == 2
 
 
-def test_bbox_get_position_index_non_bbox_parent(mocker):
+def test_bbox_get_position_index_non_bbox_parent(mocker: pytest.MockerFixture) -> None:
     """Test get_position_index traverses non-Bbox parents."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2228,7 +2238,7 @@ def test_bbox_get_position_index_non_bbox_parent(mocker):
     assert idx == 0
 
 
-def test_bbox_walk_children_none_callback(mocker):
+def test_bbox_walk_children_none_callback(mocker: pytest.MockerFixture) -> None:
     """Test walk_children with None callback."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2249,7 +2259,7 @@ def test_bbox_walk_children_none_callback(mocker):
     page.walk_children(None)
 
 
-def test_bbox_update_box_no_canvas(mocker):
+def test_bbox_update_box_no_canvas(mocker: pytest.MockerFixture) -> None:
     """Test update_box when canvas is None (covers 302->305, 327->exit)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2272,7 +2282,7 @@ def test_bbox_update_box_no_canvas(mocker):
     assert word.text == "new"
 
 
-def test_bbox_update_box_page_type_skips_bbox(mocker):
+def test_bbox_update_box_page_type_skips_bbox(mocker: pytest.MockerFixture) -> None:
     """Test update_box with type 'page' skips bbox update (covers 307->310)."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2296,7 +2306,7 @@ def test_bbox_update_box_page_type_skips_bbox(mocker):
     assert page.bbox.x == 0
 
 
-def test_bbox_update_box_indices_out_of_range(mocker):
+def test_bbox_update_box_indices_out_of_range(mocker: pytest.MockerFixture) -> None:
     """Test update_box when indices are out of parent_children bounds."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2319,7 +2329,7 @@ def test_bbox_update_box_indices_out_of_range(mocker):
     assert word.text == "new"
 
 
-def test_bbox_delete_box_no_canvas():
+def test_bbox_delete_box_no_canvas() -> None:
     """Test delete_box with bbox that has no canvas."""
     bbox = Bbox(
         text="test",
@@ -2328,7 +2338,7 @@ def test_bbox_delete_box_no_canvas():
     bbox.delete_box()
 
 
-def test_bbox_delete_box_parent_none_or_not_found(mocker):
+def test_bbox_delete_box_parent_none_or_not_found(mocker: pytest.MockerFixture) -> None:
     """Test delete_box with parent None or self not found in children."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2350,7 +2360,7 @@ def test_bbox_delete_box_parent_none_or_not_found(mocker):
     word.delete_box()
 
 
-def test_bbox_delete_box_self_not_in_children(mocker):
+def test_bbox_delete_box_self_not_in_children(mocker: pytest.MockerFixture) -> None:
     """Test delete_box when self is not found in parent_children."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2372,7 +2382,7 @@ def test_bbox_delete_box_self_not_in_children(mocker):
     word.delete_box()
 
 
-def test_bbox_to_hocr_falsy_bbox_or_type():
+def test_bbox_to_hocr_falsy_bbox_or_type() -> None:
     """Test to_hocr returns empty string when bbox or type is falsy."""
     bbox_no_bbox = Bbox(text="test", type="word")
     assert bbox_no_bbox.to_hocr() == ""
@@ -2385,7 +2395,7 @@ def test_bbox_to_hocr_falsy_bbox_or_type():
     assert bbox_no_type.to_hocr() == ""
 
 
-def test_get_color_for_confidence_lookup_exists(mocker):
+def test_get_color_for_confidence_lookup_exists(mocker: pytest.MockerFixture) -> None:
     """Test get_color_for_confidence when lookup table already built."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2394,7 +2404,9 @@ def test_get_color_for_confidence_lookup_exists(mocker):
     assert result == "#ff0000"
 
 
-def test_canvas_set_text_finished_with_rebuild_edge(mocker, rose_pnm):
+def test_canvas_set_text_finished_with_rebuild_edge(
+    mocker: pytest.MockerFixture, rose_pnm: str
+) -> None:
     """Test set_text finished_with_rebuild with missing bbox and no callback."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     with tempfile.TemporaryDirectory() as dirname:
@@ -2442,7 +2454,7 @@ def test_canvas_set_text_finished_with_rebuild_edge(mocker, rose_pnm):
         callback_mock.assert_called_once()
 
 
-def test_canvas_on_draw(mocker):
+def test_canvas_on_draw(mocker: pytest.MockerFixture) -> None:
     """Test _on_draw handler."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2456,7 +2468,7 @@ def test_canvas_on_draw(mocker):
     canvas._on_draw(None, ctx)
 
 
-def test_draw_bbox_more_branches(mocker):
+def test_draw_bbox_more_branches(mocker: pytest.MockerFixture) -> None:
     """Test _draw_bbox with layout cached, layout None, zero-width, no rotation."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2485,7 +2497,7 @@ def test_draw_bbox_more_branches(mocker):
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
     ctx = cairo.Context(surface)
 
-    def make_layout(ctx2, bbox):
+    def make_layout(ctx2: object, bbox: Bbox) -> object:
         layout = PangoCairo.create_layout(ctx2)
         font_desc = Pango.FontDescription.from_string("Sans 10")
         layout.set_font_description(font_desc)
@@ -2530,7 +2542,7 @@ def test_draw_bbox_more_branches(mocker):
     canvas._draw_tree(ctx, None)
 
 
-def test_find_bbox_at_edge_cases(mocker):
+def test_find_bbox_at_edge_cases(mocker: pytest.MockerFixture) -> None:
     """Test _find_bbox_at with item=None and child with bbox=None."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()
@@ -2544,7 +2556,7 @@ def test_find_bbox_at_edge_cases(mocker):
     assert result is None
 
 
-def test_boxed_text_no_callback(mocker):
+def test_boxed_text_no_callback(mocker: pytest.MockerFixture) -> None:
     """Test _boxed_text when finished_callback is falsy."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2571,7 +2583,7 @@ def test_boxed_text_no_callback(mocker):
     assert result == GLib.SOURCE_REMOVE
 
 
-def test_button_pressed_released_more(mocker):
+def test_button_pressed_released_more(mocker: pytest.MockerFixture) -> None:
     """Test _button_pressed and _button_released edge cases."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
@@ -2611,7 +2623,7 @@ def test_button_pressed_released_more(mocker):
     canvas._button_pressed(None, event)
 
 
-def test_list_iter_get_previous_bbox_at_zero():
+def test_list_iter_get_previous_bbox_at_zero() -> None:
     """Test get_previous_bbox when index is already 0."""
     li = ListIter()
     bbox = MagicMock()
@@ -2622,7 +2634,7 @@ def test_list_iter_get_previous_bbox_at_zero():
     assert li.index == 0
 
 
-def test_tree_iter_non_bbox_children(mocker):
+def test_tree_iter_non_bbox_children(mocker: pytest.MockerFixture) -> None:
     """Test TreeIter with non-Bbox children and siblings."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas_obj = Canvas()

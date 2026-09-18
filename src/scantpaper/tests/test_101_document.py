@@ -1,5 +1,7 @@
 """Tests for document.py."""
 
+from __future__ import annotations
+
 import datetime
 import pathlib
 import shutil
@@ -9,6 +11,7 @@ import sys
 import tempfile
 import threading
 from collections import defaultdict
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, Mock, patch
 
 import gi
@@ -43,18 +46,23 @@ from gi.repository import (  # noqa: E402
     Gtk,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def get_page_index_all_callback(_uuid, _process, _message):
+
+def get_page_index_all_callback(_uuid: object, _process: str, _message: str) -> None:
     """React to get_page_index for all pages."""
     assert True, "error in all"
 
 
-def get_page_index_selected_callback(_uuid, _process, _message):
+def get_page_index_selected_callback(
+    _uuid: object, _process: str, _message: str
+) -> None:
     """React to get_page_index for selected pages."""
     assert True, "error in selected"
 
 
-def test_basics(temp_db):
+def test_basics(temp_db: object) -> None:
     """Test basics."""
     slist = Document(db=temp_db.name)
 
@@ -90,7 +98,7 @@ def test_basics(temp_db):
     ), "renumber makes numbers consecutive"
 
 
-def test_indexing(temp_db):
+def test_indexing(temp_db: object) -> None:
     """Test indexing."""
     slist = Document(db=temp_db.name)
     slist.data = [[1, None, None], [6, None, None], [7, None, None], [8, None, None]]
@@ -142,7 +150,7 @@ def test_indexing(temp_db):
     )
 
 
-def test_file_dates(temp_txt):
+def test_file_dates(temp_txt: object) -> None:
     """Test file dates."""
     options = defaultdict(
         None,
@@ -170,7 +178,7 @@ def test_file_dates(temp_txt):
     )
 
 
-def test_helpers():
+def test_helpers() -> None:
     """Test helpers."""
     proc = exec_command([sys.executable, "-c", 'print("a" * 65537)'])
     assert len(proc.stdout) == 65538, "exec_command returns more than 65536 bytes"
@@ -500,14 +508,19 @@ def test_helpers():
     )
 
 
-def test_bbox2markup():
+def test_bbox2markup() -> None:
     """Test _bbox2markup()."""
     assert _bbox2markup(300, 300, 500, [0, 0, 452, 57]) == pytest.approx(
         [0.0, 486.32, 108.48, 486.32, 0.0, 500.0, 108.48, 500.0], abs=0.01
     ), "converted bbox to markup coords"
 
 
-def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
+def test_docthread_basic(
+    temp_db: object,
+    rose_png: str,
+    temp_pdf: object,
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Tests for DocThread."""
     with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
         thread = DocThread(db=temp_db.name)
@@ -576,7 +589,9 @@ def test_docthread_basic(temp_db, rose_png, temp_pdf, clean_up_files):
 
 
 @pytest.mark.skipif(shutil.which("cjb2") is None, reason="requires cjb2")
-def test_docthread_djvu(temp_db, temp_cjb2, temp_djvu, temp_pbm):
+def test_docthread_djvu(
+    temp_db: object, temp_cjb2: object, temp_djvu: object, temp_pbm: object
+) -> None:
     """Tests for djvu DocThread."""
     thread = DocThread(db=temp_db.name)
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_pbm.name], check=True)
@@ -595,7 +610,7 @@ def test_docthread_djvu(temp_db, temp_cjb2, temp_djvu, temp_pbm):
     }, "do_get_file_info + djvu"
 
 
-def test_db(temp_db):
+def test_db(temp_db: object) -> None:
     """Test database access."""
     thread = DocThread(db=temp_db.name)
 
@@ -675,7 +690,7 @@ def test_db(temp_db):
     assert thread.get_selection() == [2], "g/set_selection"
 
 
-def test_undo_redo_snapshot_page_numbers(temp_db):
+def test_undo_redo_snapshot_page_numbers(temp_db: object) -> None:
     """Undo and redo snapshots carry 1-based page numbers."""
     thread = DocThread(db=temp_db.name)
 
@@ -695,7 +710,7 @@ def test_undo_redo_snapshot_page_numbers(temp_db):
     assert [row[0] for row in result["snapshot"]] == [1, 2], "redo"
 
 
-def test_do_quit_closes_database_connection(temp_db):
+def test_do_quit_closes_database_connection(temp_db: object) -> None:
     """Test that do_quit closes the worker thread's database connection."""
     thread = DocThread(db=temp_db.name)
     tid = threading.get_native_id()
@@ -708,7 +723,7 @@ def test_do_quit_closes_database_connection(temp_db):
     assert tid not in thread._con, "connection closed after quit"
 
 
-def test_reorder_pages(temp_db):
+def test_reorder_pages(temp_db: object) -> None:
     """Reorder pages via do_reorder_pages."""
     thread = DocThread(db=temp_db.name)
 
@@ -743,7 +758,7 @@ def test_reorder_pages(temp_db):
     assert [row[2] for row in result["snapshot"]] == ids, "single undo restores order"
 
 
-def test_reorder_pages_block(temp_db):
+def test_reorder_pages_block(temp_db: object) -> None:
     """Reorder a block of pages preserving relative order."""
     thread = DocThread(db=temp_db.name)
 
@@ -766,7 +781,7 @@ def test_reorder_pages_block(temp_db):
     assert after == [ids[0], ids[3], ids[4], ids[1], ids[2]], "block preserved order"
 
 
-def test_reorder_pages_consecutive_numbering(temp_db):
+def test_reorder_pages_consecutive_numbering(temp_db: object) -> None:
     """Reorder keeps page numbers consecutive."""
     thread = DocThread(db=temp_db.name)
 
@@ -793,7 +808,7 @@ def test_reorder_pages_consecutive_numbering(temp_db):
     ], "row ids consecutive after reorder"
 
 
-def test_reorder_pages_unknown_id(temp_db):
+def test_reorder_pages_unknown_id(temp_db: object) -> None:
     """Reorder with an id no longer present returns the current order unchanged."""
     thread = DocThread(db=temp_db.name)
 
@@ -818,18 +833,18 @@ def test_reorder_pages_unknown_id(temp_db):
     assert after == ids, "ordering matches the pre-reorder page order"
 
 
-def test_document(rose_tif):
+def test_document(rose_tif: str) -> None:
     """Tests for Document()."""
     with tempfile.TemporaryDirectory() as tempdir:
         slist = Document(dir=tempdir)
         ran_callback = False
         dialog = Scan(title="title", transient_for=Gtk.Window(), document=slist)
 
-        def finished_callback(_result):
+        def finished_callback(_result: object) -> None:
             nonlocal ran_callback
             clipboard = slist.copy_selection()
 
-            def step2():
+            def step2() -> None:
                 nonlocal clipboard
                 assert slist.data[0][2] != slist.data[1][2], "different uuid"
                 assert slist.data[1][0] == 2, "new page is number 2"
@@ -838,7 +853,7 @@ def test_document(rose_tif):
                 clipboard = slist.cut_selection(finished_callback=step3)
                 assert len(clipboard) == 1, "cut 1 page to clipboard"
 
-            def step3():
+            def step3() -> None:
                 assert len(slist.data) == 1, "1 page left in list"
                 assert slist.get_selected_indices() == [0], (
                     "selection changed to previous page"
@@ -850,7 +865,7 @@ def test_document(rose_tif):
                     finished_callback=step4,
                 )  # paste page before 1
 
-            def step4():
+            def step4() -> None:
                 assert len(slist.data) == 2, "2 pages now in list"
                 assert slist.data[0][0] == 1, "cut page renumbered to page 1"
                 assert slist.get_selected_indices() == [1], (
@@ -862,13 +877,13 @@ def test_document(rose_tif):
 
                 slist.delete_selection(finished_callback=step5)
 
-            def step5():
+            def step5() -> None:
                 assert len(slist.data) == 0, "deleted all pages"
 
-                def after_undo():
+                def after_undo() -> None:
                     assert len(slist.data) == 2, "undo delete"
 
-                    def after_redo():
+                    def after_redo() -> None:
                         assert len(slist.data) == 0, "redo delete"
 
                         nonlocal ran_callback
@@ -893,26 +908,26 @@ def test_document(rose_tif):
         assert ran_callback, "ran finished callback"
 
 
-def test_delete_all_pages_undo_redo(rose_tif):
+def test_delete_all_pages_undo_redo(rose_tif: str) -> None:
     """Tests for Document.delete_all_pages() with undo/redo."""
     with tempfile.TemporaryDirectory() as tempdir:
         slist = Document(dir=tempdir)
         ran_callback = False
 
-        def after_import(_result):
+        def after_import(_result: object) -> None:
             nonlocal ran_callback
             assert len(slist.data) == 1, "imported 1 page"
 
-            def after_clear():
+            def after_clear() -> None:
                 assert len(slist.data) == 0, "all pages cleared"
                 assert slist.thread.can_undo(), "clear is undoable"
                 assert not slist.thread.can_redo(), "nothing to redo after clear"
 
-                def after_undo():
+                def after_undo() -> None:
                     assert len(slist.data) == 1, "undo restores cleared pages"
                     assert slist.thread.can_redo(), "redo available after undo"
 
-                    def after_redo():
+                    def after_redo() -> None:
                         nonlocal ran_callback
                         assert len(slist.data) == 0, "redo clears pages again"
                         assert not slist.thread.can_redo(), "redo exhausted"
@@ -931,13 +946,13 @@ def test_delete_all_pages_undo_redo(rose_tif):
         assert ran_callback, "ran finished callback"
 
 
-def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
+def test_issue_74_new_file_then_scan_edit_undo(rose_tif: str) -> None:
     """Issue #74 regression: undo after New File must not resurrect old pages."""
     with tempfile.TemporaryDirectory() as tempdir:
         slist = Document(dir=tempdir)
         ran_callback = False
 
-        def step2():
+        def step2() -> None:
             nonlocal ran_callback
             # page B has been scanned; edit it (as the crop tool would)
             b_id = slist.data[0][2]
@@ -945,7 +960,7 @@ def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
             slist.thread._write_tid = threading.get_native_id()
             slist.thread.replace_page(edited, b_id)
 
-            def after_undo():
+            def after_undo() -> None:
                 nonlocal ran_callback
                 assert len(slist.data) == 1, "only page B remains after undo"
                 assert slist.data[0][2] == b_id, "page A was not resurrected"
@@ -954,14 +969,14 @@ def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
 
             slist.undo(finished_callback=after_undo)
 
-        def after_import_b(_result):
+        def after_import_b(_result: object) -> None:
             assert len(slist.data) == 1, "1 page after New File + scan"
             GLib.idle_add(step2)
 
-        def after_clear():
+        def after_clear() -> None:
             slist.import_files(paths=[rose_tif], finished_callback=after_import_b)
 
-        def after_import_a(_result):
+        def after_import_a(_result: object) -> None:
             assert len(slist.data) == 1, "imported page A"
             slist.delete_all_pages(finished_callback=after_clear)
 
@@ -971,7 +986,7 @@ def test_issue_74_new_file_then_scan_edit_undo(rose_tif):
         assert ran_callback, "ran finished callback"
 
 
-def test_import_files_encrypted():
+def test_import_files_encrypted() -> None:
     """Test import_files with encryption."""
     with patch("scantpaper.basedocument.DocThread") as mockdocthread:
         mockdocthread.return_value.dir = "/tmp"
@@ -989,7 +1004,9 @@ def test_import_files_encrypted():
         # 3. password_callback called
         # 4. get_file_info called (with password)
 
-        def get_file_info_side_effect(path, password, **kwargs):
+        def get_file_info_side_effect(
+            path: str, password: str | None, **kwargs: object
+        ) -> None:
             finished_callback = kwargs["finished_callback"]
             response = MagicMock()
             response.info = {"encrypted": True, "path": path}
@@ -1013,7 +1030,7 @@ def test_import_files_encrypted():
         assert args[1] == "secret"
 
 
-def test_import_files_multiple_errors():
+def test_import_files_multiple_errors() -> None:
     """Test import_files with multiple files and errors."""
     with patch("scantpaper.basedocument.DocThread") as mockdocthread:
         mockdocthread.return_value.dir = "/tmp"
@@ -1026,7 +1043,9 @@ def test_import_files_multiple_errors():
         # Case 1: Session file mixed
         paths = ["file1", "session.db"]
 
-        def get_file_info_side_effect(path, _password, **kwargs):
+        def get_file_info_side_effect(
+            path: str, _password: str | None, **kwargs: object
+        ) -> None:
             finished_callback = kwargs["finished_callback"]
             response = MagicMock()
             if path == "file1":
@@ -1049,7 +1068,9 @@ def test_import_files_multiple_errors():
         doc.thread.get_file_info.reset_mock()
         paths = ["file1", "multipage.pdf"]
 
-        def get_file_info_side_effect_2(path, _password, **kwargs):
+        def get_file_info_side_effect_2(
+            path: str, _password: str | None, **kwargs: object
+        ) -> None:
             finished_callback = kwargs["finished_callback"]
             response = MagicMock()
             if path == "file1":
@@ -1066,10 +1087,10 @@ def test_import_files_multiple_errors():
         assert "multipage file" in args[2]
 
 
-def _make_page_callback_side_effect():
+def _make_page_callback_side_effect() -> Callable[..., None]:
     """Return a side_effect that fires updated_page_callback with a dummy page response."""
 
-    def side_effect(**kwargs):
+    def side_effect(**kwargs: object) -> None:
         callback = kwargs["updated_page_callback"]
         response = MagicMock()
         response.info = {"type": "page", "row": [1, None, "uuid1"]}
@@ -1078,7 +1099,7 @@ def _make_page_callback_side_effect():
     return side_effect
 
 
-def test_post_process_chain():
+def test_post_process_chain() -> None:
     """Test post process chain."""
     with patch("scantpaper.basedocument.DocThread") as mockdocthread:
         mockdocthread.return_value.dir = "/tmp"
@@ -1094,7 +1115,7 @@ def test_post_process_chain():
         doc.ocr_pages = MagicMock()
 
         # 1. Rotate
-        def import_page_side_effect(**kwargs):
+        def import_page_side_effect(**kwargs: object) -> None:
             data_callback = kwargs["data_callback"]
             response = MagicMock()
             response.info = {"type": "page", "row": [1, None, "uuid1"]}
@@ -1130,7 +1151,7 @@ def test_post_process_chain():
         # 4. OCR
         doc.user_defined.reset_mock()
 
-        def ocr_side_effect(**kwargs):
+        def ocr_side_effect(**kwargs: object) -> None:
             callback = kwargs["finished_callback"]
             callback(None)
 
@@ -1148,7 +1169,7 @@ def test_post_process_chain():
         assert finished_callback.called
 
 
-def test_split_page():
+def test_split_page() -> None:
     """Test split_page."""
     with patch("scantpaper.basedocument.DocThread") as mockdocthread:
         mockdocthread.return_value.dir = "/tmp"
@@ -1156,7 +1177,7 @@ def test_split_page():
         doc.thread = mockdocthread.return_value
         doc.add_page = MagicMock()
 
-        def split_page_side_effect(**kwargs):
+        def split_page_side_effect(**kwargs: object) -> None:
             data_callback = kwargs["data_callback"]
             response = MagicMock()
             response.info = {"type": "page", "row": [1, None, "uuid1"]}
@@ -1169,7 +1190,7 @@ def test_split_page():
         assert doc.add_page.called
 
 
-def test_get_selected_properties(temp_db):
+def test_get_selected_properties(temp_db: object) -> None:
     """Test get_selected_properties with multiple pages."""
     slist = Document(db=temp_db.name)
 

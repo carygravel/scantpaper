@@ -1,7 +1,10 @@
 """Test unpaper."""
 
+from __future__ import annotations
+
 import shutil
 import subprocess
+from typing import TYPE_CHECKING
 
 import gi
 import pytest
@@ -13,11 +16,16 @@ from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.unpaper import Unpaper
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from scantpaper.basethread import Response
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
 
-def test_unpaper_program_version(mocker):
+def test_unpaper_program_version(mocker: pytest.MockerFixture) -> None:
     """Test Unpaper.program_version caching and retrieval."""
     unpaper = Unpaper()
     assert unpaper._version is None
@@ -29,13 +37,13 @@ def test_unpaper_program_version(mocker):
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_version():
+def test_version() -> None:
     """Test unpaper version."""
     unpaper = Unpaper()
     assert unpaper.program_version() is not None, "version"
 
 
-def test_1():
+def test_1() -> None:
     """Test unpaper dialog."""
     unpaper = Unpaper()
 
@@ -161,7 +169,12 @@ def test_1():
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
+def test_unpaper(
+    temp_pbm: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    temp_db: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test unpaper."""
     unpaper = Unpaper()
     paper_sizes = {
@@ -201,7 +214,7 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
 
     asserts = 0
 
-    def display_cb(response):
+    def display_cb(response: Response) -> None:
         nonlocal asserts
         if response.info and "row" in response.info:
             assert True, "Triggered display callback"
@@ -223,12 +236,12 @@ def test_unpaper(temp_pbm, import_in_mainloop, temp_db, get_page_sync):
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
 def test_unpaper2(
-    temp_pnm,
-    temp_db,
-    import_in_mainloop,
-    set_resolution_in_mainloop,
-    get_page_sync,
-):
+    temp_pnm: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_resolution_in_mainloop: Callable[[object, str, float, float], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test unpaper."""
     unpaper = Unpaper()
     paper_sizes = {
@@ -276,7 +289,7 @@ def test_unpaper2(
 
     asserts = 0
 
-    def display_cb(response):
+    def display_cb(response: Response) -> None:
         nonlocal asserts
         if response.info and "row" in response.info:
             assert True, "Triggered display callback"
@@ -297,7 +310,13 @@ def test_unpaper2(
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_page_sync):
+def test_unpaper3(
+    temp_pnm: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    clean_up_files: Callable[[list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test unpaper."""
     unpaper = Unpaper({"output-pages": 2, "layout": "double"})
     subprocess.run(
@@ -364,7 +383,7 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
 
     asserts = 0
 
-    def display_cb(response):
+    def display_cb(response: Response) -> None:
         nonlocal asserts
         if response.info and "row" in response.info:
             assert True, "Triggered display callback"
@@ -391,7 +410,12 @@ def test_unpaper3(temp_pnm, temp_db, import_in_mainloop, clean_up_files, get_pag
 
 
 @pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
-def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
+def test_unpaper_rtl(
+    temp_pnm: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test unpaper."""
     unpaper = Unpaper({"output-pages": 2, "layout": "double", "direction": "rtl"})
 
@@ -421,7 +445,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
 
     asserts = 0
 
-    def display_cb(response):
+    def display_cb(response: Response) -> None:
         nonlocal asserts
         if response.info and "row" in response.info:
             assert True, "Triggered display callback"
@@ -446,7 +470,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
         page = get_page_sync(slist.thread, id=i + 1)
         out_level.append(page.image_object.getpixel((100, 100)))
 
-    def close(a, b):
+    def close(a: tuple[int, int, int], b: tuple[int, int, int]) -> bool:
         """Return whether two RGB pixels differ by no more than 8 in any channel."""
         return all(abs(c1 - c2) <= 8 for c1, c2 in zip(a, b, strict=False))
 
@@ -456,7 +480,7 @@ def test_unpaper_rtl(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
     assert close(in_level[1], out_level[0]), "rtl"
 
 
-def test_unpaper_ui_toggles():
+def test_unpaper_ui_toggles() -> None:
     """Test UI interaction and toggles in Unpaper."""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -476,7 +500,7 @@ def test_unpaper_ui_toggles():
     # test deskew_scan_direction_button_cb (at least one active)
     checkbuttons = []
 
-    def find_checkbuttons(widget):
+    def find_checkbuttons(widget: Gtk.Widget) -> None:
         if isinstance(widget, Gtk.CheckButton):
             checkbuttons.append(widget)
         elif hasattr(widget, "get_children"):
@@ -508,7 +532,7 @@ def test_unpaper_ui_toggles():
     assert bframe.get_sensitive()
 
 
-def test_unpaper_ui_border_margins():
+def test_unpaper_ui_border_margins() -> None:
     """Test border margin sensitivity based on alignment."""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -520,7 +544,7 @@ def test_unpaper_ui_border_margins():
 
     checkbuttons = []
 
-    def find_checkbuttons(widget):
+    def find_checkbuttons(widget: Gtk.Widget) -> None:
         if isinstance(widget, Gtk.CheckButton):
             checkbuttons.append(widget)
         elif hasattr(widget, "get_children"):
@@ -540,7 +564,7 @@ def test_unpaper_ui_border_margins():
     assert bmframe.get_sensitive()
 
 
-def test_unpaper_mask_scan_sync():
+def test_unpaper_mask_scan_sync() -> None:
     """Test no-mask-scan affecting no-mask-center sensitivity."""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -556,7 +580,7 @@ def test_unpaper_mask_scan_sync():
     assert mcbutton.get_sensitive()
 
 
-def test_combobox_tooltip():
+def test_combobox_tooltip() -> None:
     """Test ComboBox tooltip change on selection."""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -572,7 +596,7 @@ def test_combobox_tooltip():
     assert unpaper._combobox_get_option("layout") is None
 
 
-def test_combobox_tooltip_explicit():
+def test_combobox_tooltip_explicit() -> None:
     """Test ComboBox tooltip change on selection with explicit assertions."""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -592,7 +616,7 @@ def test_combobox_tooltip_explicit():
     assert combobl.get_tooltip_text()[:10] == "One page p"
 
 
-def test_set_options_mixed_types():
+def test_set_options_mixed_types() -> None:
     """Test set_options with various types including group ones."""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -609,7 +633,7 @@ def test_set_options_mixed_types():
     assert unpaper.get_option("border-margin") == "10.0,5.0"
 
 
-def test_get_cmdline_branches():
+def test_get_cmdline_branches() -> None:
     """Test get_cmdline branches."""
     unpaper = Unpaper()
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

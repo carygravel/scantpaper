@@ -1,8 +1,11 @@
 """test file_menu_mixins."""
 
+from __future__ import annotations
+
 import datetime
 import pathlib
 import unittest.mock
+from typing import TYPE_CHECKING
 
 import gi
 import pytest
@@ -14,6 +17,9 @@ from scantpaper.file_menu_mixins import (
     file_exists,
     launch_default_for_file,
 )
+
+if TYPE_CHECKING:
+    from unittest.mock import MagicMock
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -31,67 +37,69 @@ class MockSlist:
         self.selection_changed_signal = "selection-changed"
         self.thread = unittest.mock.Mock()
 
-    def handler_block(self, signal):
+    def handler_block(self, signal: object) -> None:
         """Block the handler for the specified signal (currently a placeholder)."""
 
-    def handler_unblock(self, signal):
+    def handler_unblock(self, signal: object) -> None:
         """Unblock the handler for the specified signal (currently a placeholder)."""
 
-    def unselect_all(self):
+    def unselect_all(self) -> None:
         """Deselects all currently selected items."""
 
-    def delete_all_pages(self, **kwargs):
+    def delete_all_pages(self, **kwargs: object) -> None:
         """Mock delete_all_pages."""
 
-    def import_files(self, **kwargs):
+    def import_files(self, **kwargs: object) -> None:
         """Mock import_files."""
 
-    def open_session(self, _dir, delete, error_callback):
+    def open_session(
+        self, _dir: object, delete: object, error_callback: object
+    ) -> None:
         """Mock open_session."""
 
-    def save_pdf(self, **kwargs):
+    def save_pdf(self, **kwargs: object) -> None:
         """Mock save_pdf."""
 
-    def save_djvu(self, **kwargs):
+    def save_djvu(self, **kwargs: object) -> None:
         """Mock save_djvu."""
 
-    def save_tiff(self, **kwargs):
+    def save_tiff(self, **kwargs: object) -> None:
         """Mock save_tiff."""
 
-    def save_text(self, **kwargs):
+    def save_text(self, **kwargs: object) -> None:
         """Mock save_text."""
 
-    def save_hocr(self, **kwargs):
+    def save_hocr(self, **kwargs: object) -> None:
         """Mock save_hocr."""
 
-    def save_image(self, **kwargs):
+    def save_image(self, **kwargs: object) -> None:
         """Mock save_image."""
 
-    def save_session(self, filename, version):
+    def save_session(self, filename: object, version: object) -> None:
         """Mock save_session."""
 
 
 class MockView:
     """A mock view class."""
 
-    def set_pixbuf(self, pixbuf):
+    def set_pixbuf(self, pixbuf: object) -> None:
         """Set the pixbuf for the view."""
 
 
 class MockCanvas:
     """A mock canvas class."""
 
-    def clear_text(self):
+    def clear_text(self) -> None:
         """Clear the text on the canvas."""
 
 
 class MockWindows:
     """A mock scan window class."""
 
-    def reset_start_page(self):
+    def reset_start_page(self) -> None:
         """Reset the start page to its default value."""
 
-    def get_size(self):
+    def get_size(self) -> tuple[int, int]:
         """Return the size of the window."""
         return (100, 100)
 
@@ -100,7 +108,7 @@ class MockWindows:
         return True
 
     @property
-    def thread(self):
+    def thread(self) -> unittest.mock.Mock:
         """Mock thread property."""
         return unittest.mock.Mock()
 
@@ -108,7 +116,7 @@ class MockWindows:
 class MockApp(unittest.mock.Mock, FileMenuMixins):
     """A mock application class."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: object) -> None:
         """Initialise MockWindows."""
         super().__init__(**kwargs)
         self.slist = MockSlist()
@@ -132,15 +140,15 @@ class MockApp(unittest.mock.Mock, FileMenuMixins):
         self._windowi = None
         self._windowe = None
 
-    def get_size(self):
+    def get_size(self) -> tuple[int, int]:
         """Mock get_size."""
         return (800, 600)
 
-    def get_position(self):
+    def get_position(self) -> tuple[int, int]:
         """Mock get_position."""
         return (0, 0)
 
-    def _show_message_dialog(self, **kwargs):
+    def _show_message_dialog(self, **kwargs: object) -> None:
         """Mock _show_message_dialog."""
 
 
@@ -148,7 +156,7 @@ class TestStandaloneFunctions(unittest.TestCase):
     """Test standalone functions in file_menu_mixins."""
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_add_filter(self, mock_gtk):
+    def test_add_filter(self, mock_gtk: MagicMock) -> None:
         """add_filter adds correct filters and patterns."""
         mock_file_chooser = unittest.mock.Mock()
         mock_filter = unittest.mock.Mock()
@@ -178,7 +186,9 @@ class TestStandaloneFunctions(unittest.TestCase):
 
     @unittest.mock.patch.object(pathlib.Path, "is_file")
     @unittest.mock.patch("scantpaper.file_menu_mixins.GLib")
-    def test_file_exists_true(self, mock_glib, mock_isfile):
+    def test_file_exists_true(
+        self, mock_glib: MagicMock, mock_isfile: MagicMock
+    ) -> None:
         """file_exists returns True if file exists."""
         mock_isfile.return_value = True
         chooser = unittest.mock.Mock()
@@ -188,7 +198,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         mock_glib.idle_add.assert_called()
 
     @unittest.mock.patch.object(pathlib.Path, "is_file")
-    def test_file_exists_false(self, mock_isfile):
+    def test_file_exists_false(self, mock_isfile: MagicMock) -> None:
         """file_exists returns False if file does not exist."""
         mock_isfile.return_value = False
         chooser = unittest.mock.Mock()
@@ -197,7 +207,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         chooser.set_filename.assert_not_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gio")
-    def test_launch_default_for_file_success(self, mock_gio):
+    def test_launch_default_for_file_success(self, mock_gio: MagicMock) -> None:
         """Test successful launch."""
         mock_context = unittest.mock.Mock()
         mock_gio.AppLaunchContext.return_value = mock_context
@@ -208,7 +218,9 @@ class TestStandaloneFunctions(unittest.TestCase):
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gio")
     @unittest.mock.patch("scantpaper.file_menu_mixins.logger")
-    def test_launch_default_for_file_error(self, mock_logger, mock_gio):
+    def test_launch_default_for_file_error(
+        self, mock_logger: MagicMock, mock_gio: MagicMock
+    ) -> None:
         """Test launch with error."""
         mock_gio.Error = Exception
         mock_gio.AppInfo.launch_default_for_uri.side_effect = Exception("error")
@@ -222,7 +234,7 @@ class TestFileMenuMixins:
     """Test FileMenuMixins class and its methods."""
 
     @pytest.fixture(autouse=True)
-    def app(self, tmp_path):
+    def app(self, tmp_path: pathlib.Path) -> MockApp:
         """Set up a mock application for testing."""
         app = MockApp()
         app.settings = {
@@ -266,7 +278,7 @@ class TestFileMenuMixins:
         app.session.name = str(tmp_path)
         return app
 
-    def test_new(self, app):
+    def test_new(self, app: MockApp) -> None:
         """new_() resets state and dispatches deletion via the thread."""
         app.slist.data = [1, 2, 3]
         app.view.set_pixbuf = unittest.mock.Mock()
@@ -287,7 +299,7 @@ class TestFileMenuMixins:
         app.a_canvas.clear_text.assert_called_once()
         assert app._current_page is None
 
-    def test_new_before_scan_dialog(self, app):
+    def test_new_before_scan_dialog(self, app: MockApp) -> None:
         """Verify fix for #28 File/New straight after start causes Traceback."""
         app._windows = None
         app.slist.data = [1, 2, 3]
@@ -295,7 +307,7 @@ class TestFileMenuMixins:
         app.new_(None, None)
         app.slist.delete_all_pages.assert_called_once()
 
-    def test_new_cancel(self, app):
+    def test_new_cancel(self, app: MockApp) -> None:
         """Test new_() does not clear data if pages not saved."""
         app.slist.data = [1, 2, 3]
         app._pages_saved = unittest.mock.Mock(return_value=False)
@@ -307,7 +319,7 @@ class TestFileMenuMixins:
         app.slist.delete_all_pages.assert_not_called()
         assert app.slist.data == [1, 2, 3]
 
-    def test_new_empty_document(self, app):
+    def test_new_empty_document(self, app: MockApp) -> None:
         """Test new_() on an empty document sends no request."""
         app.slist.data = []
         app.view.set_pixbuf = unittest.mock.Mock()
@@ -319,7 +331,7 @@ class TestFileMenuMixins:
         app._pages_saved.assert_called_once()
         app.slist.delete_all_pages.assert_not_called()
 
-    def test_quit_app(self, app):
+    def test_quit_app(self, app: MockApp) -> None:
         """Test quit_app() calls application quit method."""
         app._can_quit = unittest.mock.Mock(return_value=True)
         app_mock = unittest.mock.Mock()
@@ -328,7 +340,7 @@ class TestFileMenuMixins:
         app.quit_app(None, None)
         app_mock.quit.assert_called_once()
 
-    def test_can_quit_pages_not_saved(self, app):
+    def test_can_quit_pages_not_saved(self, app: MockApp) -> None:
         """Test _can_quit returns False if pages not saved."""
         app._pages_saved = unittest.mock.Mock(return_value=False)
         assert not app._can_quit()
@@ -336,7 +348,14 @@ class TestFileMenuMixins:
     @unittest.mock.patch("scantpaper.file_menu_mixins.os")
     @unittest.mock.patch("scantpaper.file_menu_mixins.fcntl")
     @unittest.mock.patch("scantpaper.file_menu_mixins.config")
-    def test_can_quit(self, mock_config, mock_fcntl, mock_os, mocker, app):
+    def test_can_quit(
+        self,
+        mock_config: MagicMock,
+        mock_fcntl: MagicMock,
+        mock_os: MagicMock,
+        mocker: pytest.MockerFixture,
+        app: MockApp,
+    ) -> None:
         """Test _can_quit performs cleanup and saves settings."""
         app._pages_saved = unittest.mock.Mock(return_value=True)
         mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = [
@@ -358,8 +377,13 @@ class TestFileMenuMixins:
     @unittest.mock.patch("scantpaper.file_menu_mixins.fcntl")
     @unittest.mock.patch("scantpaper.file_menu_mixins.config")
     def test_can_quit_skips_write_on_unacknowledged_rescued_load(
-        self, mock_config, mock_fcntl, mock_os, mocker, app
-    ):
+        self,
+        mock_config: MagicMock,
+        mock_fcntl: MagicMock,
+        mock_os: MagicMock,
+        mocker: pytest.MockerFixture,
+        app: MockApp,
+    ) -> None:
         """A rescued load that has not been acknowledged is never written over."""
         app._pages_saved = unittest.mock.Mock(return_value=True)
         mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = []
@@ -378,8 +402,13 @@ class TestFileMenuMixins:
     @unittest.mock.patch("scantpaper.file_menu_mixins.fcntl")
     @unittest.mock.patch("scantpaper.file_menu_mixins.config")
     def test_can_quit_writes_once_warnings_acknowledged(
-        self, mock_config, mock_fcntl, mock_os, mocker, app
-    ):
+        self,
+        mock_config: MagicMock,
+        mock_fcntl: MagicMock,
+        mock_os: MagicMock,
+        mocker: pytest.MockerFixture,
+        app: MockApp,
+    ) -> None:
         """Once the user has seen the load warnings, the write proceeds."""
         app._pages_saved = unittest.mock.Mock(return_value=True)
         mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = []
@@ -394,19 +423,19 @@ class TestFileMenuMixins:
         mock_os.chdir.assert_called_with(app.settings["cwd"])
         mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
 
-    def test_pages_saved_true(self, app):
+    def test_pages_saved_true(self, app: MockApp) -> None:
         """Test _pages_saved returns True if pages are saved."""
         app.slist.thread.pages_saved.return_value = True
         assert app._pages_saved("message")
 
-    def test_pages_saved_false_ok(self, app):
+    def test_pages_saved_false_ok(self, app: MockApp) -> None:
         """Test _pages_saved returns True if user confirms save."""
         app.slist.thread.pages_saved.return_value = False
         app._ask_question.return_value = Gtk.ResponseType.OK
         assert app._pages_saved("message")
         app._ask_question.assert_called_once()
 
-    def test_pages_saved_false_cancel(self, app):
+    def test_pages_saved_false_cancel(self, app: MockApp) -> None:
         """Test _pages_saved returns False if user cancels save."""
         app.slist.thread.pages_saved.return_value = False
         app._ask_question.return_value = Gtk.ResponseType.CANCEL
@@ -415,7 +444,9 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
     @unittest.mock.patch("scantpaper.file_menu_mixins.os")
-    def test_open_dialog_ok(self, mock_os, mock_gtk, app):
+    def test_open_dialog_ok(
+        self, mock_os: MagicMock, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test open_dialog imports files on OK response."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.OK
@@ -438,7 +469,7 @@ class TestFileMenuMixins:
         assert mock_os.chdir.call_count >= 3
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_open_dialog_cancel(self, mock_gtk, app):
+    def test_open_dialog_cancel(self, mock_gtk: MagicMock, app: MockApp) -> None:
         """Test open_dialog does not import files on cancel."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
@@ -452,7 +483,9 @@ class TestFileMenuMixins:
         app._import_files.assert_not_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_select_pagerange_callback_ok(self, mock_gtk, app):
+    def test_select_pagerange_callback_ok(
+        self, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _select_pagerange_callback returns correct range on OK."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.OK
@@ -475,7 +508,9 @@ class TestFileMenuMixins:
         mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_select_pagerange_callback_cancel(self, mock_gtk, app):
+    def test_select_pagerange_callback_cancel(
+        self, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _select_pagerange_callback returns None on cancel."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
@@ -488,7 +523,9 @@ class TestFileMenuMixins:
         mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_import_files_password_callback_ok(self, mock_gtk, app):
+    def test_import_files_password_callback_ok(
+        self, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _import_files_password_callback returns password on OK."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.OK
@@ -505,7 +542,9 @@ class TestFileMenuMixins:
         mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_import_files_password_callback_cancel(self, mock_gtk, app):
+    def test_import_files_password_callback_cancel(
+        self, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _import_files_password_callback returns None on cancel."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
@@ -522,7 +561,9 @@ class TestFileMenuMixins:
         mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_import_files_password_callback_empty(self, mock_gtk, app):
+    def test_import_files_password_callback_empty(
+        self, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _import_files_password_callback returns None if empty."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.run.return_value = mock_gtk.ResponseType.OK
@@ -538,14 +579,16 @@ class TestFileMenuMixins:
         assert password is None
         mock_dialog.destroy.assert_called_once()
 
-    def test_import_files_finished_callback(self, app):
+    def test_import_files_finished_callback(self, app: MockApp) -> None:
         """Test _import_files_finished_callback calls finish."""
         app.slist.get_selected_indices = unittest.mock.Mock(return_value=[])
         app._import_files_finished_callback("response")
         app.post_process_progress.finish.assert_called_with("response")
         assert app._suppress_full_display is False
 
-    def test_import_files_finished_callback_displays_last_page(self, app):
+    def test_import_files_finished_callback_displays_last_page(
+        self, app: MockApp
+    ) -> None:
         """Test _import_files_finished_callback displays the last imported page."""
         app.slist.get_selected_indices = unittest.mock.Mock(return_value=[1])
         app._display_image = unittest.mock.Mock()
@@ -553,7 +596,7 @@ class TestFileMenuMixins:
         app._display_image.assert_called_once_with(app.slist.data[1][2])
         assert app._suppress_full_display is False
 
-    def test_import_files_sets_suppress_flag(self, app):
+    def test_import_files_sets_suppress_flag(self, app: MockApp) -> None:
         """Test _import_files suppresses full-res loading during the import."""
         app.slist.import_files = unittest.mock.Mock()
         app._select_pagerange_callback = unittest.mock.Mock(return_value=(1, 5))
@@ -561,7 +604,9 @@ class TestFileMenuMixins:
         assert app._suppress_full_display is True
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.config")
-    def test_import_files_metadata_callback(self, mock_config, app):
+    def test_import_files_metadata_callback(
+        self, mock_config: MagicMock, app: MockApp
+    ) -> None:
         """Test _import_files_metadata_callback updates metadata."""
         app._windowi = unittest.mock.Mock()
         app._windowe = unittest.mock.Mock()
@@ -575,7 +620,7 @@ class TestFileMenuMixins:
             app.settings, metadata
         )
 
-    def test_import_files_all_pages(self, app):
+    def test_import_files_all_pages(self, app: MockApp) -> None:
         """Test _import_files with all_pages=True passes correct pagerange_callback."""
         app.slist.import_files = unittest.mock.Mock()
         filenames = ["file1.pdf", "file2.pdf"]
@@ -588,7 +633,7 @@ class TestFileMenuMixins:
         assert "pagerange_callback" in kwargs
         assert kwargs["pagerange_callback"]({"pages": 10}) == (1, 10)
 
-    def test_import_files(self, app):
+    def test_import_files(self, app: MockApp) -> None:
         """Test _import_files passes correct pagerange_callback."""
         app.slist.import_files = unittest.mock.Mock()
         app._select_pagerange_callback = unittest.mock.Mock(return_value=(1, 5))
@@ -603,7 +648,7 @@ class TestFileMenuMixins:
         assert kwargs["pagerange_callback"] == app._select_pagerange_callback
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_open_session_action_ok(self, mock_gtk, app):
+    def test_open_session_action_ok(self, mock_gtk: MagicMock, app: MockApp) -> None:
         """Test _open_session_action opens session on OK."""
         app._open_session = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
@@ -619,7 +664,9 @@ class TestFileMenuMixins:
         mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_open_session_action_cancel(self, mock_gtk, app):
+    def test_open_session_action_cancel(
+        self, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _open_session_action does not open session on cancel."""
         app._open_session = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
@@ -632,7 +679,7 @@ class TestFileMenuMixins:
         app._open_session.assert_not_called()
         mock_dialog.destroy.assert_called_once()
 
-    def test_open_session(self, app):
+    def test_open_session(self, app: MockApp) -> None:
         """Test _open_session calls slist.open_session with correct args."""
         app.slist.open_session = unittest.mock.Mock()
 
@@ -644,7 +691,7 @@ class TestFileMenuMixins:
             error_callback=app._error_callback,
         )
 
-    def test_open_session_actual(self, app):
+    def test_open_session_actual(self, app: MockApp) -> None:
         """Call _open_session via FileMenuMixins class to hit the logic."""
         app.slist.open_session = unittest.mock.Mock()
         FileMenuMixins._open_session(app, "/some/path")
@@ -654,7 +701,9 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.datetime")
     @unittest.mock.patch("scantpaper.file_menu_mixins.SaveDialog")
-    def test_save_dialog(self, mock_save_dialog, mock_datetime, app):
+    def test_save_dialog(
+        self, mock_save_dialog: MagicMock, mock_datetime: MagicMock, app: MockApp
+    ) -> None:
         """Test save_dialog creates and shows SaveDialog."""
         app._windowi = None
         mock_dialog = unittest.mock.Mock()
@@ -681,7 +730,7 @@ class TestFileMenuMixins:
         app.save_dialog(None, None)
         mock_dialog.present.assert_called_once()
 
-    def test_save_button_clicked_callback_pdf(self, app):
+    def test_save_button_clicked_callback_pdf(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for PDF type."""
         app._windowi = unittest.mock.Mock()
         app._windowi.page_range = "all"
@@ -712,7 +761,7 @@ class TestFileMenuMixins:
         assert app.settings["quality"] == 80
         app._save_file_chooser.assert_called_with(["uuid1"])
 
-    def test_save_button_clicked_callback_djvu(self, app):
+    def test_save_button_clicked_callback_djvu(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for DjVu type."""
         app._windowi = unittest.mock.Mock()
         app._windowi.page_range = "all"
@@ -732,7 +781,7 @@ class TestFileMenuMixins:
         app._windowi.update_config_dict.assert_called_with(app.settings)
         app._save_file_chooser.assert_called_with(["uuid1"])
 
-    def test_save_button_clicked_callback_tif(self, app):
+    def test_save_button_clicked_callback_tif(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for TIFF type."""
         app._windowi = unittest.mock.Mock()
         app._windowi.page_range = "all"
@@ -755,7 +804,7 @@ class TestFileMenuMixins:
         assert app.settings["quality"] == 80
         app._save_file_chooser.assert_called_with(["uuid1"])
 
-    def test_save_button_clicked_callback_txt(self, app):
+    def test_save_button_clicked_callback_txt(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for TXT type."""
         app._windowi = unittest.mock.Mock()
         app._windowi.image_type = "txt"
@@ -770,7 +819,7 @@ class TestFileMenuMixins:
         assert app.settings["image type"] == "txt"
         app._save_file_chooser.assert_called_with(["uuid1"])
 
-    def test_save_button_clicked_callback_ps(self, app):
+    def test_save_button_clicked_callback_ps(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for PS type."""
         app._windowi = unittest.mock.Mock()
         app._windowi.image_type = "ps"
@@ -787,7 +836,7 @@ class TestFileMenuMixins:
         assert app.settings["ps_backend"] == "libtiff"
         app._save_file_chooser.assert_called_with(["uuid1"])
 
-    def test_save_button_clicked_callback_jpg(self, app):
+    def test_save_button_clicked_callback_jpg(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for JPG type."""
         app._windowi = unittest.mock.Mock()
         app._windowi.image_type = "jpg"
@@ -804,7 +853,7 @@ class TestFileMenuMixins:
         assert app.settings["quality"] == 90
         app._save_image.assert_called_with(["uuid1"])
 
-    def test_save_button_clicked_callback_png(self, app):
+    def test_save_button_clicked_callback_png(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for PNG type (no quality setting)."""
         app._windowi = unittest.mock.Mock()
         app._windowi.image_type = "png"
@@ -824,8 +873,12 @@ class TestFileMenuMixins:
     @unittest.mock.patch("scantpaper.file_menu_mixins.os")
     @unittest.mock.patch("scantpaper.file_menu_mixins.expand_metadata_pattern")
     def test_save_file_chooser_pdf(
-        self, mock_expand_metadata_pattern, mock_os, mock_gtk, app
-    ):
+        self,
+        mock_expand_metadata_pattern: MagicMock,
+        mock_os: MagicMock,
+        mock_gtk: MagicMock,
+        app: MockApp,
+    ) -> None:
         """The save file chooser dialog is correctly invoked for PDF files."""
         app._windowi = unittest.mock.Mock()
         app._windowi.meta_datetime = "datetime"
@@ -842,7 +895,7 @@ class TestFileMenuMixins:
         assert mock_os.chdir.call_count >= 2
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_save_file_chooser_djvu(self, mock_gtk, app):
+    def test_save_file_chooser_djvu(self, mock_gtk: MagicMock, app: MockApp) -> None:
         """The save file chooser dialog is correctly invoked for DjVu image type."""
         app.settings["image type"] = "djvu"
         app._windowi = unittest.mock.Mock()
@@ -855,7 +908,7 @@ class TestFileMenuMixins:
         mock_dialog.connect.assert_called_once()
         mock_dialog.show.assert_called_once()
 
-    def test_list_of_page_uuids(self, app):
+    def test_list_of_page_uuids(self, app: MockApp) -> None:
         """_list_of_page_uuids returns correct UUIDs."""
         app.slist.get_page_index = unittest.mock.Mock(return_value=[0, 2])
         app.slist.data = [[0, 0, "uuid1"], [0, 0, "uuid2"], [0, 0, "uuid3"]]
@@ -868,7 +921,9 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.re")
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_file_chooser_response_callback_ok_pdf(self, mock_gtk, mock_re, app):
+    def test_file_chooser_response_callback_ok_pdf(
+        self, mock_gtk: MagicMock, mock_re: MagicMock, app: MockApp
+    ) -> None:
         """Test _file_chooser_response_callback for PDF type."""
         app._save_pdf = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
@@ -891,8 +946,8 @@ class TestFileMenuMixins:
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
     @unittest.mock.patch("scantpaper.file_menu_mixins.tempfile")
     def test_file_chooser_response_callback_ok_ps_libtiff(
-        self, mock_tempfile, mock_gtk, app
-    ):
+        self, mock_tempfile: MagicMock, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _file_chooser_response_callback for PS type with libtiff backend."""
         app._save_tif = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
@@ -911,7 +966,9 @@ class TestFileMenuMixins:
         app._save_tif.assert_called_with("temp.tif", ["uuid1"], "/path/to/file.ps")
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_file_chooser_response_callback_ok_ps_pdf(self, mock_gtk, app):
+    def test_file_chooser_response_callback_ok_ps_pdf(
+        self, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _file_chooser_response_callback for PS type with PDF backend."""
         app._save_pdf = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
@@ -926,7 +983,9 @@ class TestFileMenuMixins:
         app._save_pdf.assert_called_with("/path/to/file.ps", ["uuid1"], "ps")
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_file_chooser_response_callback_ok_formats(self, mock_gtk, app):
+    def test_file_chooser_response_callback_ok_formats(
+        self, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _file_chooser_response_callback for multiple formats."""
         app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
@@ -943,7 +1002,9 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.os")
     @unittest.mock.patch.object(pathlib.Path, "is_file")
-    def test_file_writable_errors(self, mock_isfile, mock_os, app):
+    def test_file_writable_errors(
+        self, mock_isfile: MagicMock, mock_os: MagicMock, app: MockApp
+    ) -> None:
         """Test _file_writable error cases."""
         app._show_message_dialog = unittest.mock.Mock()
         mock_chooser = unittest.mock.Mock()
@@ -962,7 +1023,9 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.collate_metadata")
     @unittest.mock.patch("scantpaper.file_menu_mixins.datetime")
-    def test_save_pdf(self, mock_datetime, mock_collate_metadata, app):
+    def test_save_pdf(
+        self, mock_datetime: MagicMock, mock_collate_metadata: MagicMock, app: MockApp
+    ) -> None:
         """Test _save_pdf calls save_pdf with correct arguments."""
         app.slist.save_pdf = unittest.mock.Mock()
         app._windowi = unittest.mock.Mock()
@@ -995,7 +1058,7 @@ class TestFileMenuMixins:
             error_callback=app._error_callback,
         )
 
-    def test_save_pdf_variants(self, app):
+    def test_save_pdf_variants(self, app: MockApp) -> None:
         """Test _save_pdf with prepend/append/ps options."""
         app.slist.save_pdf = unittest.mock.Mock()
         app._windowi = unittest.mock.Mock()
@@ -1012,7 +1075,9 @@ class TestFileMenuMixins:
         assert app.slist.save_pdf.call_args[1]["options"]["pstool"] == "pdf2ps"
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.launch_default_for_file")
-    def test_save_pdf_finished_callback(self, mock_launch, app):
+    def test_save_pdf_finished_callback(
+        self, mock_launch: MagicMock, app: MockApp
+    ) -> None:
         """Test finished callback for _save_pdf launches file and sets saved."""
         response = unittest.mock.Mock()
         app.slist.thread.send = unittest.mock.Mock()
@@ -1031,7 +1096,9 @@ class TestFileMenuMixins:
         mock_launch.assert_called_with("file.pdf")
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.launch_default_for_file")
-    def test_save_pdf_finished_callback_ps(self, mock_launch, app):
+    def test_save_pdf_finished_callback_ps(
+        self, mock_launch: MagicMock, app: MockApp
+    ) -> None:
         """Test finished callback for _save_pdf launches file for ps."""
         response = unittest.mock.Mock()
         app.slist.thread.send = unittest.mock.Mock()
@@ -1050,7 +1117,9 @@ class TestFileMenuMixins:
         mock_launch.assert_called_with("file.ps")
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.launch_default_for_file")
-    def test_save_djvu_finished_callback(self, mock_launch, app):
+    def test_save_djvu_finished_callback(
+        self, mock_launch: MagicMock, app: MockApp
+    ) -> None:
         """Test finished callback for _save_djvu launches file and sets saved."""
         response = unittest.mock.Mock()
         response.request.args = [{"path": "file.djvu"}]
@@ -1072,7 +1141,13 @@ class TestFileMenuMixins:
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
     @unittest.mock.patch("scantpaper.file_menu_mixins.file_exists")
     @unittest.mock.patch.object(pathlib.Path, "is_file")
-    def test_save_image_logic(self, mock_isfile, mock_file_exists, mock_gtk, app):
+    def test_save_image_logic(
+        self,
+        mock_isfile: MagicMock,
+        mock_file_exists: MagicMock,
+        mock_gtk: MagicMock,
+        app: MockApp,
+    ) -> None:
         """Test _save_image with multiple pages and overwrite check."""
         app.slist.save_image = unittest.mock.Mock()
         app._windowi = unittest.mock.Mock()
@@ -1098,7 +1173,9 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
     @unittest.mock.patch("scantpaper.file_menu_mixins.file_exists")
-    def test_save_image_file_exists(self, mock_file_exists, mock_gtk, app):
+    def test_save_image_file_exists(
+        self, mock_file_exists: MagicMock, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _save_image with multiple pages and overwrite check."""
         app.slist.save_image = unittest.mock.Mock()
         app.settings["image type"] = "png"
@@ -1113,7 +1190,9 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
     @unittest.mock.patch("scantpaper.file_menu_mixins.file_exists")
-    def test_save_image_file_not_writable(self, mock_file_exists, mock_gtk, app):
+    def test_save_image_file_not_writable(
+        self, mock_file_exists: MagicMock, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test _save_image with multiple pages and overwrite check."""
         app.slist.save_image = unittest.mock.Mock()
         app.settings["image type"] = "png"
@@ -1129,7 +1208,7 @@ class TestFileMenuMixins:
         app.slist.save_image.assert_not_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.PrintOperation")
-    def test_print_dialog(self, mock_print_op, app):
+    def test_print_dialog(self, mock_print_op: MagicMock, app: MockApp) -> None:
         """Test print dialog."""
         mock_op = unittest.mock.Mock()
         mock_print_op.return_value = mock_op
@@ -1142,7 +1221,9 @@ class TestFileMenuMixins:
         assert app.print_settings == "new_settings"
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.ComboBoxText")
-    def test_update_post_save_hooks(self, mock_combobox, app):
+    def test_update_post_save_hooks(
+        self, mock_combobox: MagicMock, app: MockApp
+    ) -> None:
         """Test update post save hooks."""
         app._windowi = unittest.mock.Mock(spec=[])  # No comboboxpsh
 
@@ -1152,7 +1233,7 @@ class TestFileMenuMixins:
         assert hasattr(app._windowi, "comboboxpsh")
         app._windowi.comboboxpsh.append_text.assert_called()
 
-    def test_update_post_save_hooks_existing(self, app):
+    def test_update_post_save_hooks_existing(self, app: MockApp) -> None:
         """Test update post save hooks existing."""
         app._windowi = unittest.mock.Mock()
         app._windowi.comboboxpsh = unittest.mock.Mock()
@@ -1164,7 +1245,7 @@ class TestFileMenuMixins:
         app._windowi.comboboxpsh.append_text.assert_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.os.execv")
-    def test_restart(self, mock_execv, app):
+    def test_restart(self, mock_execv: MagicMock, app: MockApp) -> None:
         """Test restart."""
         app._can_quit = unittest.mock.Mock()
 
@@ -1174,7 +1255,7 @@ class TestFileMenuMixins:
         mock_execv.assert_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_save_image_multiple(self, mock_gtk, app):
+    def test_save_image_multiple(self, mock_gtk: MagicMock, app: MockApp) -> None:
         """Test save image multiple."""
         app.slist.save_image = unittest.mock.Mock()
         app.settings["image type"] = "png"
@@ -1189,7 +1270,7 @@ class TestFileMenuMixins:
         args = app.slist.save_image.call_args[1]
         assert "%0$2d" in args["path"]
 
-    def test_update_post_save_hooks_filter(self, app):
+    def test_update_post_save_hooks_filter(self, app: MockApp) -> None:
         """Test that tools with %o are filtered out."""
         app.settings["user_defined_tools"] = ["tool1", "tool2 %o"]
         app._windowi = unittest.mock.Mock()
@@ -1200,7 +1281,7 @@ class TestFileMenuMixins:
 
         app._windowi.comboboxpsh.append_text.assert_called_once_with("tool1")
 
-    def test_save_button_clicked_callback_session(self, app):
+    def test_save_button_clicked_callback_session(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for session type."""
         app._windowi = unittest.mock.Mock()
         app._windowi.image_type = "sdb"
@@ -1215,7 +1296,7 @@ class TestFileMenuMixins:
         assert app.settings["image type"] == "sdb"
         app._save_file_chooser.assert_called_with(["uuid1"])
 
-    def test_save_button_clicked_callback_hocr(self, app):
+    def test_save_button_clicked_callback_hocr(self, app: MockApp) -> None:
         """Test _save_button_clicked_callback for hocr type."""
         app._windowi = unittest.mock.Mock()
         app._windowi.image_type = "hocr"
@@ -1231,7 +1312,7 @@ class TestFileMenuMixins:
         app._save_file_chooser.assert_called_with(["uuid1"])
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_save_file_chooser_others(self, mock_gtk, app):
+    def test_save_file_chooser_others(self, mock_gtk: MagicMock, app: MockApp) -> None:
         """Test save file chooser for other types."""
         app._windowi = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
@@ -1244,7 +1325,7 @@ class TestFileMenuMixins:
             mock_gtk.FileChooserDialog.reset_mock()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_save_file_chooser_sdb(self, mock_gtk, app):
+    def test_save_file_chooser_sdb(self, mock_gtk: MagicMock, app: MockApp) -> None:
         """Test save file chooser for sdb (scantpaper session) type."""
         app.settings["image type"] = "sdb"
         app._windowi = unittest.mock.Mock()
@@ -1261,8 +1342,8 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.file_exists")
     def test_file_chooser_response_callback_append_extension(
-        self, mock_file_exists, app
-    ):
+        self, mock_file_exists: MagicMock, app: MockApp
+    ) -> None:
         """Test appending extension if missing."""
         app._save_pdf = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
@@ -1278,8 +1359,8 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.file_exists")
     def test_file_chooser_response_callback_file_exists_abort(
-        self, mock_file_exists, app
-    ):
+        self, mock_file_exists: MagicMock, app: MockApp
+    ) -> None:
         """Test abort if file exists and user cancels."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file.pdf"
@@ -1294,8 +1375,8 @@ class TestFileMenuMixins:
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.file_exists")
     def test_file_chooser_response_callback_file_exists_suffix(
-        self, mock_file_exists, app
-    ):
+        self, mock_file_exists: MagicMock, app: MockApp
+    ) -> None:
         """Test abort if file exists after adding suffix and user cancels."""
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_filename.return_value = "/path/to/file"
@@ -1308,7 +1389,7 @@ class TestFileMenuMixins:
         app._save_pdf = unittest.mock.Mock()
         app._save_pdf.assert_not_called()
 
-    def test_file_chooser_response_callback_session(self, app):
+    def test_file_chooser_response_callback_session(self, app: MockApp) -> None:
         """Test saving session."""
         app.slist.save_session = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
@@ -1322,14 +1403,16 @@ class TestFileMenuMixins:
         app.slist.save_session.assert_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.launch_default_for_file")
-    def test_save_tif_finished_callback(self, mock_launch, app):
+    def test_save_tif_finished_callback(
+        self, mock_launch: MagicMock, app: MockApp
+    ) -> None:
         """Test finished callback for _save_tif."""
         response = unittest.mock.Mock()
         response.request.args = [{"path": "file.tif"}]
         app.slist.thread.send = unittest.mock.Mock()
         app.settings["post_save_hook"] = True
 
-        def mock_save_tiff(finished_callback, **_kwargs):
+        def mock_save_tiff(finished_callback: object, **_kwargs: object) -> None:
             finished_callback(response)
 
         app.slist.save_tiff = mock_save_tiff
@@ -1341,13 +1424,15 @@ class TestFileMenuMixins:
         mock_launch.assert_called_with("file.tif")
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.launch_default_for_file")
-    def test_save_txt_finished_callback(self, mock_launch, app):
+    def test_save_txt_finished_callback(
+        self, mock_launch: MagicMock, app: MockApp
+    ) -> None:
         """Test finished callback for _save_txt."""
         response = unittest.mock.Mock()
         app.slist.thread.send = unittest.mock.Mock()
         app.settings["post_save_hook"] = True
 
-        def mock_save_text(finished_callback, **_kwargs):
+        def mock_save_text(finished_callback: object, **_kwargs: object) -> None:
             finished_callback(response)
 
         app.slist.save_text = mock_save_text
@@ -1358,13 +1443,15 @@ class TestFileMenuMixins:
         mock_launch.assert_called_with("file.txt")
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.launch_default_for_file")
-    def test_save_hocr_finished_callback(self, mock_launch, app):
+    def test_save_hocr_finished_callback(
+        self, mock_launch: MagicMock, app: MockApp
+    ) -> None:
         """Test finished callback for _save_hocr."""
         response = unittest.mock.Mock()
         app.slist.thread.send = unittest.mock.Mock()
         app.settings["post_save_hook"] = True
 
-        def mock_save_hocr(finished_callback, **_kwargs):
+        def mock_save_hocr(finished_callback: object, **_kwargs: object) -> None:
             finished_callback(response)
 
         app.slist.save_hocr = mock_save_hocr
@@ -1377,7 +1464,13 @@ class TestFileMenuMixins:
     @unittest.mock.patch("scantpaper.file_menu_mixins.launch_default_for_file")
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
     @unittest.mock.patch("scantpaper.file_menu_mixins.os")
-    def test_save_image_finished_callback(self, mock_os, mock_gtk, mock_launch, app):
+    def test_save_image_finished_callback(
+        self,
+        mock_os: MagicMock,
+        mock_gtk: MagicMock,
+        mock_launch: MagicMock,
+        app: MockApp,
+    ) -> None:
         """Test finished callback for _save_image."""
         response = unittest.mock.Mock()
         response.request.args = [{"path": "file%d.jpg"}]
@@ -1391,7 +1484,7 @@ class TestFileMenuMixins:
 
         mock_os.access.return_value = True
 
-        def mock_save_image(finished_callback, **_kwargs):
+        def mock_save_image(finished_callback: object, **_kwargs: object) -> None:
             finished_callback(response)
 
         # Single file
@@ -1406,14 +1499,16 @@ class TestFileMenuMixins:
         app._save_image(["uuid1", "uuid2"])
         assert mock_launch.call_count == 2
 
-    def test_list_of_page_uuids_empty(self, app):
+    def test_list_of_page_uuids_empty(self, app: MockApp) -> None:
         """Test _list_of_page_uuids returning empty."""
         app.slist.get_page_index = unittest.mock.Mock(return_value=[])
         assert app._list_of_page_uuids() == []
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
     @unittest.mock.patch("scantpaper.file_menu_mixins.os.chdir")
-    def test_open_dialog_invalid_cwd(self, mock_chdir, mock_gtk, app):
+    def test_open_dialog_invalid_cwd(
+        self, mock_chdir: MagicMock, mock_gtk: MagicMock, app: MockApp
+    ) -> None:
         """Test open_dialog when cwd does not exist."""
         app.settings["cwd"] = "/non/existent/path"
         mock_chdir.side_effect = [FileNotFoundError, None, None]

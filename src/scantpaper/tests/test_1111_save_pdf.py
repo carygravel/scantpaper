@@ -1,5 +1,7 @@
 """Test writing basic PDF."""
 
+from __future__ import annotations
+
 import datetime
 import locale
 import pathlib
@@ -9,6 +11,7 @@ import shutil
 import subprocess
 import tempfile
 import threading
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import img2pdf
@@ -24,8 +27,11 @@ from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def has_locale(name):
+
+def has_locale(name: str) -> bool:
     """Check if the given locale is available on the system."""
     try:
         old_locale = locale.setlocale(locale.LC_CTYPE)
@@ -37,7 +43,7 @@ def has_locale(name):
         return True
 
 
-def get_page_size(path):
+def get_page_size(path: str) -> tuple[float, float]:
     """Get page size from PDF using pikepdf. Returns (width, height) in points."""
     with pikepdf.open(path) as pdf:
         page = pdf.pages[0]
@@ -46,13 +52,13 @@ def get_page_size(path):
         return width, height
 
 
-def test_has_locale():
+def test_has_locale() -> None:
     """Test has_locale function."""
     assert has_locale("C") is True
     assert has_locale("non-existent-locale") is False
 
 
-def test_do_save_pdf(rose_pnm, temp_db, temp_pdf):
+def test_do_save_pdf(rose_pnm: str, temp_db: object, temp_pdf: object) -> None:
     """Test writing basic PDF."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -80,18 +86,23 @@ def test_do_save_pdf(rose_pnm, temp_db, temp_pdf):
         assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"
 
 
-def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
+def test_save_pdf(
+    rose_pnm: str,
+    temp_db: object,
+    temp_pdf: object,
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Test writing basic PDF."""
     slist = Document(db=temp_db.name)
 
     asserts = 0
 
-    def import_files_started_cb(response):
+    def import_files_started_cb(response: object) -> None:
         nonlocal asserts
         assert response.request.process in ["get_file_info", "import_file"]
         asserts += 1
 
-    def import_files_finished_cb(_response):
+    def import_files_finished_cb(_response: object) -> None:
         nonlocal asserts
         assert not slist.thread.pages_saved(), "pages not tagged as saved"
         asserts += 1
@@ -105,12 +116,12 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
     mlp = safe_mainloop(5000)
     mlp.run()
 
-    def save_pdf_started_cb(result):
+    def save_pdf_started_cb(result: object) -> None:
         nonlocal asserts
         assert result.request.process == "save_pdf", "save_pdf"
         asserts += 1
 
-    def save_pdf_finished_cb(_result):
+    def save_pdf_finished_cb(_result: object) -> None:
         nonlocal asserts
         width, height = get_page_size(temp_pdf.name)
         assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"
@@ -143,7 +154,12 @@ def test_save_pdf(rose_pnm, temp_db, temp_pdf, clean_up_files):
 @pytest.mark.skipif(
     not has_locale("de_DE.utf8"), reason="Locale de_DE.utf8 not available"
 )
-def test_save_pdf_with_locale(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
+def test_save_pdf_with_locale(
+    rose_pnm: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test with non-English locale."""
     locale.setlocale(locale.LC_CTYPE, "de_DE.utf8")
 
@@ -163,7 +179,11 @@ def test_save_pdf_with_locale(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
     assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"
 
 
-def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
+def test_save_pdf_with_error(
+    rose_pnm: str,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving a PDF and triggering an error."""
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
@@ -174,7 +194,7 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
         # inject error before save_pdf
         pathlib.Path(dirname).chmod(0o500)  # no write access
 
-        def error_callback1(_page, _process, _message):
+        def error_callback1(_page: object, _process: str, _message: object) -> None:
             """No write access."""
             assert True, "caught error injected before save_pdf"
             nonlocal asserts
@@ -189,7 +209,7 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
         )
         mlp.run()
 
-        def error_callback2(_page, _process, _message):
+        def error_callback2(_page: object, _process: str, _message: object) -> None:
             assert True, "save_pdf caught error injected in queue"
             pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
@@ -208,8 +228,11 @@ def test_save_pdf_with_error(rose_pnm, temp_pdf, import_in_mainloop):
 
 
 def test_save_pdf_different_resolutions(
-    temp_png, temp_db, temp_pdf, import_in_mainloop
-):
+    temp_png: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving a PDF with different resolutions in the height and width directions."""
     # Create test image
     subprocess.run(
@@ -234,7 +257,12 @@ def test_save_pdf_different_resolutions(
 
 
 @pytest.mark.skipif(shutil.which("qpdf") is None, reason="qpdf not found")
-def test_save_encrypted_pdf(rose_jpg, temp_db, temp_pdf, import_in_mainloop):
+def test_save_encrypted_pdf(
+    rose_jpg: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving an encrypted PDF."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -252,8 +280,13 @@ def test_save_encrypted_pdf(rose_jpg, temp_db, temp_pdf, import_in_mainloop):
 
 
 def test_save_pdf_with_hocr(
-    import_in_mainloop, set_text_in_mainloop, temp_db, temp_pdf, temp_png, get_page_sync
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    temp_db: object,
+    temp_pdf: object,
+    temp_png: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test writing PDF with text layer from hocr."""
     subprocess.run(
         [
@@ -348,8 +381,12 @@ def test_save_pdf_with_hocr(
     reason="ocrmypdf GlyphlessFont + PDF/A conversion mangles non-ASCII text extraction"
 )
 def test_save_pdf_with_utf8(
-    rose_pnm, temp_pdf, temp_db, import_in_mainloop, set_text_in_mainloop
-):
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+) -> None:
     """Test writing PDF with utf8 in text layer."""
     slist = Document(db=temp_db.name)
 
@@ -381,8 +418,12 @@ def test_save_pdf_with_utf8(
 
 
 def test_save_pdf_with_1bpp(
-    temp_pbm, temp_db, temp_pdf, import_in_mainloop, clean_up_files
-):
+    temp_pbm: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Test writing PDF with a 1bpp image."""
     subprocess.run(
         [config.CONVERT_COMMAND, "magick:netscape", temp_pbm.name], check=True
@@ -409,7 +450,13 @@ def test_save_pdf_with_1bpp(
     clean_up_files(pathlib.Path().glob("x-000.p*m"))
 
 
-def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_files):
+def test_save_pdf_g4(
+    rose_png: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Test writing PDF with group 4 compression."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png])
@@ -433,7 +480,13 @@ def test_save_pdf_g4(rose_png, temp_db, temp_pdf, import_in_mainloop, clean_up_f
     clean_up_files(pathlib.Path().glob("x-000.p*m"))
 
 
-def test_save_pdf_g4_alpha(temp_tif, temp_png, temp_db, temp_pdf, import_in_mainloop):
+def test_save_pdf_g4_alpha(
+    temp_tif: object,
+    temp_png: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing PDF with group 4 compression."""
     subprocess.run(
         [
@@ -505,7 +558,12 @@ def test_save_pdf_g4_alpha(temp_tif, temp_png, temp_db, temp_pdf, import_in_main
     assert example == expected, "valid G4 PDF created from multi-strip TIFF"
 
 
-def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
+def test_save_pdf_with_metadata(
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing PDF with metadata."""
     slist = Document(db=temp_db.name)
 
@@ -543,8 +601,11 @@ def test_save_pdf_with_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop)
 
 
 def test_save_pdf_without_title_has_no_placeholder_title(
-    rose_pnm, temp_pdf, temp_db, import_in_mainloop
-):
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing PDF without title gets no placeholder title."""
     slist = Document(db=temp_db.name)
 
@@ -574,8 +635,11 @@ def test_save_pdf_without_title_has_no_placeholder_title(
 
 
 def test_save_pdf_with_title_retains_title_in_xmp(
-    rose_pnm, temp_pdf, temp_db, import_in_mainloop
-):
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing PDF with title retains it in docinfo and XMP."""
     slist = Document(db=temp_db.name)
 
@@ -601,7 +665,12 @@ def test_save_pdf_with_title_retains_title_in_xmp(
             assert md.get("dc:title") == "metadata title", "metadata title in XMP"
 
 
-def test_save_pdf_creator_branded(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
+def test_save_pdf_creator_branded(
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing PDF brands scantpaper as creator, keeping toolchain provenance."""
     slist = Document(db=temp_db.name)
 
@@ -636,8 +705,11 @@ def test_save_pdf_creator_branded(rose_pnm, temp_pdf, temp_db, import_in_mainloo
 
 
 def test_save_pdf_creator_branded_with_title(
-    rose_pnm, temp_pdf, temp_db, import_in_mainloop
-):
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing PDF with a title still brands scantpaper as creator."""
     slist = Document(db=temp_db.name)
 
@@ -669,8 +741,11 @@ def test_save_pdf_creator_branded_with_title(
 
 
 def test_save_import_without_title_roundtrip(
-    rose_pnm, temp_pdf, temp_db, import_in_mainloop
-):
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving without title and re-importing yields no title."""
     slist = Document(db=temp_db.name)
 
@@ -690,7 +765,7 @@ def test_save_import_without_title_roundtrip(
 
     asserts = 0
 
-    def metadata_cb(response):
+    def metadata_cb(response: object) -> None:
         assert "title" not in response, "no title in re-imported metadata"
         nonlocal asserts
         asserts += 1
@@ -707,7 +782,12 @@ def test_save_import_without_title_roundtrip(
     assert asserts == 1, "metadata callback ran"
 
 
-def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainloop):
+def test_save_pdf_with_old_metadata(
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing PDF with old metadata."""
     slist = Document(db=temp_db.name)
 
@@ -720,7 +800,7 @@ def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainl
 
     called = False
 
-    def error_callback(_result):
+    def error_callback(_result: object) -> None:
         nonlocal called
         called = True
         mlp.quit()
@@ -746,8 +826,12 @@ def test_save_pdf_with_old_metadata(rose_pnm, temp_pdf, temp_db, import_in_mainl
 
 
 def test_save_pdf_with_downsample(
-    temp_png, temp_pdf, temp_db, import_in_mainloop, clean_up_files
-):
+    temp_png: object,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Test writing PDF with downsampled image."""
     subprocess.run(
         [
@@ -809,7 +893,13 @@ def test_save_pdf_with_downsample(
     clean_up_files(["x-000.pbm"])
 
 
-def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainloop):
+def test_cancel_save_pdf(
+    rose_pnm: str,
+    temp_pdf: object,
+    temp_db: object,
+    temp_jpg: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing PDF with downsampled image."""
     slist = Document(db=temp_db.name)
 
@@ -819,7 +909,7 @@ def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainlo
     mlp = safe_mainloop(5000)
     called = False
 
-    def cancelled_callback(_response):
+    def cancelled_callback(_response: object) -> None:
         nonlocal called
         called = True
         mlp.quit()
@@ -848,8 +938,11 @@ def test_cancel_save_pdf(rose_pnm, temp_pdf, temp_db, temp_jpg, import_in_mainlo
 
 
 def test_import_pdf_without_text_and_resave(
-    rose_png, temp_db, import_in_mainloop, clean_up_files
-):
+    rose_png: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Regression test for importing a PDF without a text layer.
 
     Re-saving it as a PDF would fail with: 'HocrTransform' object has no
@@ -887,7 +980,9 @@ def test_import_pdf_without_text_and_resave(
         clean_up_files([temp_pdf2.name])
 
 
-def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
+def test_import_pdf_from_transparent_image_creates_one_page(
+    temp_db: object, tmp_path: pathlib.Path
+) -> None:
     """Regression test for issue #43: opening a transparent-image PDF.
 
     Import a single page, not an extra page for the alpha mask. The imported
@@ -928,7 +1023,9 @@ def test_import_pdf_from_transparent_image_creates_one_page(temp_db, tmp_path):
         assert imported.getpixel((0, 0)) == 255, "transparent pixel becomes white"
 
 
-def test_save_pdf_with_empty_text_layer(rose_pnm, temp_db, temp_pdf):
+def test_save_pdf_with_empty_text_layer(
+    rose_pnm: str, temp_db: object, temp_pdf: object
+) -> None:
     """Regression test for saving a PDF with text_layer set to '[]'.
 
     An empty JSON array, as produced by tesseract when no text is found,

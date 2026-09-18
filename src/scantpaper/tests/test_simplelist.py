@@ -1,5 +1,7 @@
 """tests for SimpleList."""
 
+from __future__ import annotations
+
 import gi
 import pytest
 
@@ -13,7 +15,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
 
-def test_basic():
+def test_basic() -> None:
     """Basic functionality tests for SimpleList."""
     slist = SimpleList(col1="text")
     assert isinstance(slist, SimpleList), "Created simplelist"
@@ -78,7 +80,7 @@ def test_basic():
     assert model[model.iter_nth_child(None, 0)][0] == "new data", "set data"
 
 
-def test_iterators():
+def test_iterators() -> None:
     """Test iterators in SimpleList."""
     slist = SimpleList(col1="text")
     slist.data = [["new data"]]
@@ -93,7 +95,7 @@ def test_iterators():
     assert flag, "iterated over slist"
 
 
-def test_error():
+def test_error() -> None:
     """Test error handling in SimpleList."""
     with pytest.raises(TypeError):
         SimpleList()
@@ -147,7 +149,7 @@ def test_error():
         del slist.data[10]
 
 
-def test_renderer():
+def test_renderer() -> None:
     """Test renderer in SimpleList."""
     window = Gtk.Window()
     slist = SimpleList(col="scalar")
@@ -157,7 +159,7 @@ def test_renderer():
     assert True, "scalar_cell_renderer() threw no error"
 
 
-def test_signals():
+def test_signals() -> None:
     """Test signals in SimpleList."""
     slist = SimpleList(col1="text", col2="bool")
     slist.data.append(["row1", True])
@@ -177,13 +179,13 @@ def test_signals():
     assert not slist.data[0][1], "toggled"
 
 
-def test_pixbuf():
+def test_pixbuf() -> None:
     """Test pixbuf column."""
     slist = SimpleList(col="pixbuf")
     assert isinstance(slist, SimpleList), "Created simplelist"
 
 
-def test_shared_renderer_isolation():
+def test_shared_renderer_isolation() -> None:
     """Test that modifying one SimpleList does not affect another."""
     slist1 = SimpleList(col1="text")
     slist1.set_column_editable(0, editable=True)
@@ -194,7 +196,7 @@ def test_shared_renderer_isolation():
     )
 
 
-def test_edited_types():
+def test_edited_types() -> None:
     """Test edited signal with different column types."""
     slist = SimpleList(col1="int", col2="double")
     slist.data.append([1, 1.1])
@@ -215,7 +217,7 @@ def test_edited_types():
     assert isinstance(slist.data[0][1], float)
 
 
-def test_edited_double_fractional():
+def test_edited_double_fractional() -> None:
     """Editing a double cell accepts fractional text."""
     slist = SimpleList(col1="double")
     slist.data.append([210])
@@ -227,7 +229,7 @@ def test_edited_double_fractional():
     assert isinstance(slist.data[0][0], float)
 
 
-def test_edited_double_rejects_invalid():
+def test_edited_double_rejects_invalid() -> None:
     """Editing a double cell with non-numeric text keeps the old value."""
     slist = SimpleList(col1="double")
     slist.data.append([210])
@@ -238,7 +240,7 @@ def test_edited_double_rejects_invalid():
     assert slist.data[0][0] == 210
 
 
-def test_mm_display_without_trailing_decimal():
+def test_mm_display_without_trailing_decimal() -> None:
     """An mm cell renders whole numbers without a trailing decimal."""
     slist = SimpleList(col="mm")
     slist.data.append([210.0])
@@ -257,7 +259,7 @@ def test_mm_display_without_trailing_decimal():
     )
 
 
-def test_mm_display_renders_none_as_empty():
+def test_mm_display_renders_none_as_empty() -> None:
     """An mm cell renders a None value as empty text."""
     model = Gtk.ListStore(object)
     model.append([None])
@@ -267,7 +269,7 @@ def test_mm_display_renders_none_as_empty():
     assert cell.get_property("text") == ""
 
 
-def test_mm_cell_edited():
+def test_mm_cell_edited() -> None:
     """An mm cell parses edits like a double and keeps invalid values."""
     slist = SimpleList(col1="mm")
     slist.data.append([210.0])
@@ -281,7 +283,7 @@ def test_mm_cell_edited():
     assert slist.data[0][0] == 115.2
 
 
-def test_scalar_renderer_sets_gobject_text_property():
+def test_scalar_renderer_sets_gobject_text_property() -> None:
     """scalar_cell_renderer sets the GObject text property GTK paints."""
     slist = SimpleList(col="scalar")
     slist.data.append(["row1"])
@@ -295,7 +297,7 @@ def test_scalar_renderer_sets_gobject_text_property():
     assert cell.get_property("text") == "", "None renders as empty text"
 
 
-def test_connect_edited_non_text_renderer_is_noop():
+def test_connect_edited_non_text_renderer_is_noop() -> None:
     """do_connect_text_edited ignores non-text renderers."""
     slist = SimpleList(col1="text")
     pixbuf_renderer = Gtk.CellRendererPixbuf()
@@ -303,7 +305,7 @@ def test_connect_edited_non_text_renderer_is_noop():
     assert not hasattr(pixbuf_renderer, "column"), "no column set for non-text"
 
 
-def test_edited_double_accepts_comma_locale(comma_locale):
+def test_edited_double_accepts_comma_locale(comma_locale: str) -> None:
     """A double cell accepts the locale decimal separator, storing a float."""
     assert comma_locale == ","
     slist = SimpleList(col1="double")
@@ -316,7 +318,7 @@ def test_edited_double_accepts_comma_locale(comma_locale):
     assert isinstance(slist.data[0][0], float)
 
 
-def test_edited_double_period_still_works_in_comma_locale(comma_locale):
+def test_edited_double_period_still_works_in_comma_locale(comma_locale: str) -> None:
     """A period still parses in a comma locale."""
     assert comma_locale == ","
     slist = SimpleList(col1="double")
@@ -328,7 +330,7 @@ def test_edited_double_period_still_works_in_comma_locale(comma_locale):
     assert slist.data[0][0] == 115.2
 
 
-def test_edited_double_rejects_invalid_in_comma_locale(comma_locale):
+def test_edited_double_rejects_invalid_in_comma_locale(comma_locale: str) -> None:
     """Invalid input is still rejected in a comma locale."""
     assert comma_locale == ","
     slist = SimpleList(col1="double")
@@ -342,7 +344,7 @@ def test_edited_double_rejects_invalid_in_comma_locale(comma_locale):
     assert slist.data[0][0] == 210.0
 
 
-def test_mm_display_with_comma_locale(comma_locale):
+def test_mm_display_with_comma_locale(comma_locale: str) -> None:
     """An mm cell renders fractional values with the locale's separator."""
     assert comma_locale == ","
     slist = SimpleList(col="mm")
@@ -354,7 +356,7 @@ def test_mm_display_with_comma_locale(comma_locale):
     assert cell.get_property("text") == "115,2"
 
 
-def test_mm_display_whole_with_comma_locale(comma_locale):
+def test_mm_display_whole_with_comma_locale(comma_locale: str) -> None:
     """An mm cell still renders whole numbers without decimals in a comma locale."""
     assert comma_locale == ","
     slist = SimpleList(col="mm")

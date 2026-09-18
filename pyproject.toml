@@ -44,7 +44,7 @@ exclude = ["scantpaper.tests"]
 scantpaper = ["app.ui", "icons/**/*"]
 
 [tool.pytest.ini_options]
-addopts = "--timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=99"
+addopts = "--timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=98"
 pythonpath = ["src"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -58,6 +58,7 @@ filterwarnings = [
 
 [tool.coverage.run]
 branch = true
+omit = ["*/scantpaper/tests/*", "*/scantpaper/conftest.py"]
 
 [tool.coverage.report]
 show_missing = true

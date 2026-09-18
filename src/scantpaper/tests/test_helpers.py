@@ -1,5 +1,7 @@
 """test helpers coverage."""
 
+from __future__ import annotations
+
 import datetime
 import gc
 import locale
@@ -34,7 +36,7 @@ from scantpaper.helpers import (
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
-def has_numeric_locale(name):
+def has_numeric_locale(name: str) -> bool:
     """Check if the given locale is available on the system."""
     try:
         saved = locale.setlocale(locale.LC_NUMERIC)
@@ -48,12 +50,12 @@ def has_numeric_locale(name):
 _HAS_DE_DE = has_numeric_locale("de_DE.utf8")
 
 
-def test_has_numeric_locale_missing():
+def test_has_numeric_locale_missing() -> None:
     """An unavailable locale is reported as False."""
     assert has_numeric_locale("no.such.locale.zzz") is False
 
 
-def test_decimal_separator_default():
+def test_decimal_separator_default() -> None:
     """decimal_separator returns the configured separator and keeps LC_NUMERIC."""
     saved = locale.setlocale(locale.LC_NUMERIC)
     sep = decimal_separator()
@@ -63,7 +65,7 @@ def test_decimal_separator_default():
 
 
 @pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
-def test_decimal_separator_comma_locale(monkeypatch):
+def test_decimal_separator_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """decimal_separator returns ',' when the configured locale uses a comma."""
     monkeypatch.setenv("LC_ALL", "de_DE.utf8")
     monkeypatch.setenv("LANG", "de_DE.utf8")
@@ -73,7 +75,9 @@ def test_decimal_separator_comma_locale(monkeypatch):
 
 
 @pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
-def test_decimal_separator_robust_to_lc_numeric_flip(monkeypatch):
+def test_decimal_separator_robust_to_lc_numeric_flip(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """The separator survives other code flipping LC_NUMERIC to 'C'."""
     monkeypatch.setenv("LC_ALL", "de_DE.utf8")
     monkeypatch.setenv("LANG", "de_DE.utf8")
@@ -85,7 +89,7 @@ def test_decimal_separator_robust_to_lc_numeric_flip(monkeypatch):
     decimal_separator.cache_clear()
 
 
-def test_format_number_default_locale():
+def test_format_number_default_locale() -> None:
     """format_number uses dots in a dot locale and trims whole numbers."""
     assert format_number(115.2) == "115.2"
     assert format_number(210.0) == "210"
@@ -94,7 +98,7 @@ def test_format_number_default_locale():
 
 
 @pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
-def test_format_number_comma_locale(monkeypatch):
+def test_format_number_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """format_number uses the comma in a comma locale."""
     monkeypatch.setenv("LC_ALL", "de_DE.utf8")
     monkeypatch.setenv("LANG", "de_DE.utf8")
@@ -104,7 +108,7 @@ def test_format_number_comma_locale(monkeypatch):
     decimal_separator.cache_clear()
 
 
-def test_parse_number_default_locale():
+def test_parse_number_default_locale() -> None:
     """parse_number accepts dots in a dot locale and rejects junk."""
     assert parse_number("115.2") == 115.2
     assert parse_number("150", int) == 150
@@ -114,7 +118,7 @@ def test_parse_number_default_locale():
 
 
 @pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
-def test_parse_number_comma_locale(monkeypatch):
+def test_parse_number_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """parse_number accepts the comma in a comma locale, and dots too."""
     monkeypatch.setenv("LC_ALL", "de_DE.utf8")
     monkeypatch.setenv("LANG", "de_DE.utf8")
@@ -127,7 +131,7 @@ def test_parse_number_comma_locale(monkeypatch):
     decimal_separator.cache_clear()
 
 
-def test_format_number_precise_default_locale():
+def test_format_number_precise_default_locale() -> None:
     """format_number_precise keeps full precision and a dot separator."""
     assert format_number_precise(1.07818603515625) == "1.07818603515625"
     assert format_number_precise(150) == "150"
@@ -136,7 +140,7 @@ def test_format_number_precise_default_locale():
 
 
 @pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
-def test_format_number_precise_comma_locale(monkeypatch):
+def test_format_number_precise_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """format_number_precise localizes the separator without trimming."""
     monkeypatch.setenv("LC_ALL", "de_DE.utf8")
     monkeypatch.setenv("LANG", "de_DE.utf8")
@@ -149,12 +153,14 @@ def test_format_number_precise_comma_locale(monkeypatch):
 class MockObj:
     """A mock object for testing weak callbacks."""
 
-    def method(self, *args, **kwargs):
+    def method(
+        self, *args: object, **kwargs: object
+    ) -> tuple[tuple[object, ...], dict[str, object]]:
         """Return the method's arguments."""
         return args, kwargs
 
 
-def test_weak_callback():
+def test_weak_callback() -> None:
     """Test _weak_callback."""
     obj = MockObj()
     cb = _weak_callback(obj, "method")
@@ -164,7 +170,7 @@ def test_weak_callback():
     assert cb(1, a=2) is None
 
 
-def test_exec_command_success(mocker):
+def test_exec_command_success(mocker: pytest.MockerFixture) -> None:
     """Test exec_command success."""
     mock_popen = mocker.patch("subprocess.Popen")
     proc = mock_popen.return_value.__enter__.return_value
@@ -181,7 +187,7 @@ def test_exec_command_success(mocker):
     pidfile.write.assert_called_with("1234")
 
 
-def test_exec_command_filenotfound(mocker):
+def test_exec_command_filenotfound(mocker: pytest.MockerFixture) -> None:
     """Test exec_command file not found."""
     mocker.patch("subprocess.Popen", side_effect=FileNotFoundError("not found"))
     res = exec_command(["nonexistent"])
@@ -190,7 +196,7 @@ def test_exec_command_filenotfound(mocker):
     assert "not found" in res.stderr
 
 
-def test_exec_command_run_success(mocker):
+def test_exec_command_run_success(mocker: pytest.MockerFixture) -> None:
     """Test exec_command_run success path."""
     mock_popen = mocker.patch("subprocess.Popen")
     proc = mock_popen.return_value.__enter__.return_value
@@ -208,7 +214,7 @@ def test_exec_command_run_success(mocker):
     pidfile.flush.assert_called_once()
 
 
-def test_exec_command_run_check_failure(mocker):
+def test_exec_command_run_check_failure(mocker: pytest.MockerFixture) -> None:
     """Test exec_command_run raises CalledProcessError when check and nonzero."""
     mock_popen = mocker.patch("subprocess.Popen")
     proc = mock_popen.return_value.__enter__.return_value
@@ -221,7 +227,7 @@ def test_exec_command_run_check_failure(mocker):
     assert exc_info.value.stderr == "boom"
 
 
-def test_exec_command_run_no_check_returns_failed(mocker):
+def test_exec_command_run_no_check_returns_failed(mocker: pytest.MockerFixture) -> None:
     """Test exec_command_run with check=False returns PROCESS_FAILED on FileNotFoundError."""
     mocker.patch("subprocess.Popen", side_effect=FileNotFoundError("not found"))
     res = exec_command_run(["nonexistent"], check=False)
@@ -229,14 +235,16 @@ def test_exec_command_run_no_check_returns_failed(mocker):
     assert res.stdout is None
 
 
-def test_exec_command_run_check_propagates_filenotfound(mocker):
+def test_exec_command_run_check_propagates_filenotfound(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test exec_command_run with check=True propagates FileNotFoundError."""
     mocker.patch("subprocess.Popen", side_effect=FileNotFoundError("not found"))
     with pytest.raises(FileNotFoundError):
         exec_command_run(["nonexistent"], check=True)
 
 
-def test_exec_command_run_sets_new_session(mocker):
+def test_exec_command_run_sets_new_session(mocker: pytest.MockerFixture) -> None:
     """Test exec_command_run starts a new session when a pidfile is given."""
     mock_popen = mocker.patch("subprocess.Popen")
     proc = mock_popen.return_value.__enter__.return_value
@@ -247,7 +255,7 @@ def test_exec_command_run_sets_new_session(mocker):
     assert mock_popen.call_args.kwargs["start_new_session"] is True
 
 
-def test_program_version(mocker):
+def test_program_version(mocker: pytest.MockerFixture) -> None:
     """Test program_version."""
     mocker.patch(
         "scantpaper.helpers.exec_command", return_value=Proc(0, "version 1.2.3", "")
@@ -255,7 +263,7 @@ def test_program_version(mocker):
     assert program_version("stdout", r"version ([\d.]+)", ["cmd"]) == "1.2.3"
 
 
-def test_program_version_helper_branches():
+def test_program_version_helper_branches() -> None:
     """Test _program_version branches."""
     # both stream
     proc = Proc(0, "out", "err")
@@ -283,7 +291,7 @@ def test_program_version_helper_branches():
     assert _program_version("stdout", r"(.*)", proc_none) == ""
 
 
-def test_collate_metadata():
+def test_collate_metadata() -> None:
     """Test collate_metadata."""
     settings = {
         "author": "me",
@@ -311,7 +319,7 @@ def test_collate_metadata():
     assert "author" not in res
 
 
-def test_expand_metadata_pattern():
+def test_expand_metadata_pattern() -> None:
     """Test expand_metadata_pattern."""
     kwargs = {
         "template": "%Da %Dt %Ds %Dk %De",
@@ -351,7 +359,7 @@ def test_expand_metadata_pattern():
     assert res == ""
 
 
-def test_show_message_dialog(mocker):
+def test_show_message_dialog(mocker: pytest.MockerFixture) -> None:
     """Test show_message_dialog."""
     # Mock global variables and MultipleMessage
     mock_multiple_message = mocker.patch("scantpaper.helpers.MultipleMessage")
@@ -379,21 +387,21 @@ def test_show_message_dialog(mocker):
     show_message_dialog(parent=MagicMock())
 
 
-def test_get_tmp_dir():
+def test_get_tmp_dir() -> None:
     """Test get_tmp_dir."""
     assert get_tmp_dir(None, "pattern") is None
     assert get_tmp_dir("/a/b/c", "b") == "/a"
     assert get_tmp_dir("/a/b/c", "notfound") == "/a/b/c"
 
 
-def test_slurp(tmp_path):
+def test_slurp(tmp_path: pathlib.Path) -> None:
     """Test slurp."""
     f = tmp_path / "test.txt"
     f.write_text("content", encoding="utf-8")
     assert slurp(str(f)) == "content"
 
 
-def test_slurp_file_object(tmp_path):
+def test_slurp_file_object(tmp_path: pathlib.Path) -> None:
     """Test slurp reads a file object (e.g. a TemporaryFile pidfile)."""
     f = tmp_path / "pid"
     with pathlib.Path(f).open("w+", encoding="utf-8") as fhd:
@@ -402,13 +410,13 @@ def test_slurp_file_object(tmp_path):
         assert slurp(fhd) == "1234"
 
 
-def test_slurp_binary_file_object():
+def test_slurp_binary_file_object() -> None:
     """Test slurp decodes bytes read from a binary file object."""
     fhd = BytesIO(b"1234")
     assert slurp(fhd) == "1234"
 
 
-def test_recursive_slurp(tmp_path, mocker):
+def test_recursive_slurp(tmp_path: pathlib.Path, mocker: pytest.MockerFixture) -> None:
     """Test recursive_slurp."""
     d = tmp_path / "dir"
     d.mkdir()

@@ -1,6 +1,9 @@
 """Test writing image."""
 
+from __future__ import annotations
+
 import tempfile
+from typing import TYPE_CHECKING
 
 from PIL import Image
 
@@ -8,8 +11,18 @@ from scantpaper import config
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import SimpleNamespace
 
-def test_save_image(rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop):
+
+def test_save_image(
+    rose_pnm: str,
+    temp_db: SimpleNamespace,
+    temp_jpg: object,
+    temp_png: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing image."""
     slist = Document(db=temp_db.name)
 
@@ -35,7 +48,11 @@ def test_save_image(rose_pnm, temp_db, temp_jpg, temp_png, import_in_mainloop):
     assert img.size == (70, 46), "post-save hook dimensions"
 
 
-def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop):
+def test_save_image_with_quote(
+    rose_pnm: str,
+    temp_db: SimpleNamespace,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing image."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_pnm])
@@ -54,8 +71,11 @@ def test_save_image_with_quote(rose_pnm, temp_db, import_in_mainloop):
 
 
 def test_save_image_with_ampersand(
-    rose_pnm, temp_db, import_in_mainloop, clean_up_files
-):
+    rose_pnm: str,
+    temp_db: SimpleNamespace,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Test writing image."""
     slist = Document(db=temp_db.name)
 

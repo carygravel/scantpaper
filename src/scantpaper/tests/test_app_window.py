@@ -1,9 +1,11 @@
 """Tests for ApplicationWindow."""
 
+from __future__ import annotations
+
 import pathlib
 import uuid
 from itertools import cycle
-from typing import ClassVar
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -11,6 +13,10 @@ import pytest
 
 from scantpaper.app_window import ApplicationWindow, drag_motion_callback, view_html
 from scantpaper.config import ConfigDict
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+    from typing import ClassVar
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -35,16 +41,16 @@ class MockImageView(Gtk.DrawingArea):
         type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y"
     )
 
-    def set_tool(self, tool):
+    def set_tool(self, tool: object) -> None:
         """Mock set_tool."""
 
-    def set_pixbuf(self, pixbuf, *args):
+    def set_pixbuf(self, pixbuf: object, *args: object) -> None:
         """Mock set_pixbuf."""
 
-    def set_resolution_ratio(self, ratio):
+    def set_resolution_ratio(self, ratio: object) -> None:
         """Mock set_resolution_ratio."""
 
-    def set_selection(self, selection):
+    def set_selection(self, selection: object) -> None:
         """Mock set_selection."""
 
 
@@ -60,20 +66,22 @@ class MockCanvas(Gtk.DrawingArea):
         type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y"
     )
 
-    def clear_text(self):
+    def clear_text(self) -> None:
         """Mock clear_text."""
 
-    def sort_by_confidence(self):
+    def sort_by_confidence(self) -> None:
         """Mock sort_by_confidence."""
 
-    def sort_by_position(self):
+    def sort_by_position(self) -> None:
         """Mock sort_by_position."""
 
 
-def _make_create_temp_func(session_dir):
+def _make_create_temp_func(
+    session_dir: pathlib.Path,
+) -> Callable[[object], None]:
     """Return a mock _create_temp_directory side-effect using session_dir."""
 
-    def mock_create_temp_func(self):
+    def mock_create_temp_func(self: object) -> None:
         self.session = MagicMock()
         self.session.name = str(session_dir)
         self._lockfd = MagicMock()
@@ -91,7 +99,9 @@ def _make_create_temp_func(session_dir):
     return mock_create_temp_func
 
 
-def _setup_app_window_mocks(mocker, tmp_path):
+def _setup_app_window_mocks(
+    mocker: pytest.MockerFixture, tmp_path: pathlib.Path
+) -> tuple[MagicMock, MagicMock, MagicMock]:
     """Apply common mocks needed for ApplicationWindow tests.
 
     Returns (mock_selector, mock_dragger, mock_selector_dragger).
@@ -141,7 +151,9 @@ def _setup_app_window_mocks(mocker, tmp_path):
     return mock_selector, mock_dragger, mock_selector_dragger
 
 
-def _create_test_app(test_fn):
+def _create_test_app(
+    test_fn: Callable[[Gtk.Application, ApplicationWindow], None],
+) -> None:
     """Create a Gtk.Application, run test_fn(application, win), and clean up."""
     app = Gtk.Application()
     app.set_menubar = MagicMock()
@@ -162,7 +174,7 @@ def _create_test_app(test_fn):
 
 
 @pytest.fixture
-def mock_builder(mocker):
+def mock_builder(mocker: pytest.MockerFixture) -> Generator[object, None, None]:
     """Mock Gtk.Builder."""
     builder_cls = mocker.patch("scantpaper.app_window.Gtk.Builder")
     builder = builder_cls.return_value
@@ -172,7 +184,7 @@ def mock_builder(mocker):
 
 
 @pytest.fixture
-def mock_config(mocker):
+def mock_config(mocker: pytest.MockerFixture) -> Generator[object, None, None]:
     """Mock config module."""
     config = mocker.patch("scantpaper.app_window.config")
     config.read_config.return_value = {
@@ -200,7 +212,11 @@ def mock_config(mocker):
 
 
 @pytest.fixture
-def app_window(mocker, mock_builder, mock_config):
+def app_window(
+    mocker: pytest.MockerFixture,
+    mock_builder: object,
+    mock_config: object,
+) -> Generator[ApplicationWindow, None, None]:
     """Fixture to create an ApplicationWindow instance with mocked dependencies."""
     del mock_builder, mock_config
     mocker.patch("scantpaper.app_window.Document")
@@ -232,7 +248,7 @@ def app_window(mocker, mock_builder, mock_config):
     mock_shutil = mocker.patch("scantpaper.app_window.shutil")
     mock_shutil.disk_usage.return_value.free = 1000 * 1024 * 1024  # 1000 MB
 
-    def mock_create_temp_func(self):
+    def mock_create_temp_func(self: object) -> None:
         self.session = MagicMock()
         self.session.name = "/tmp/session"
         self._lockfd = MagicMock()
@@ -277,13 +293,15 @@ def app_window(mocker, mock_builder, mock_config):
         app.quit()
 
 
-def test_init(app_window):
+def test_init(app_window: ApplicationWindow) -> None:
     """Test initialization."""
     assert isinstance(app_window, ApplicationWindow)
     assert app_window.session.name == "/tmp/session"
 
 
-def test_post_process_progress_cancel_callback_wired(app_window):
+def test_post_process_progress_cancel_callback_wired(
+    app_window: ApplicationWindow,
+) -> None:
     """Test the post-process progress bar has a cancel callback wired to slist.cancel."""
     assert callable(app_window.post_process_progress.cancel_callback)
     assert app_window.post_process_progress.cancel_callback.__self__ is app_window
@@ -292,7 +310,7 @@ def test_post_process_progress_cancel_callback_wired(app_window):
     mocker.assert_called_once_with(app_window.post_process_progress.finish)
 
 
-def test_drag_motion_callback(mocker):
+def test_drag_motion_callback(mocker: pytest.MockerFixture) -> None:
     """Test drag_motion_callback."""
     mocker.patch("scantpaper.app_window.Gdk.drag_status")
     tree = MagicMock()
@@ -328,7 +346,7 @@ def test_drag_motion_callback(mocker):
     adj.set_value.assert_called()
 
 
-def test_drag_motion_callback_error():
+def test_drag_motion_callback_error() -> None:
     """Test drag_motion_callback with TypeError."""
     tree = MagicMock()
     # Mock get_dest_row_at_pos to raise TypeError (e.g. returns None)
@@ -337,7 +355,7 @@ def test_drag_motion_callback_error():
     # Should return early without crashing
 
 
-def test_drag_motion_callback_copy(mocker):
+def test_drag_motion_callback_copy(mocker: pytest.MockerFixture) -> None:
     """Test drag_motion_callback with COPY action."""
     mock_drag_status = mocker.patch("scantpaper.app_window.Gdk.drag_status")
     tree = MagicMock()
@@ -357,7 +375,7 @@ def test_drag_motion_callback_copy(mocker):
     mock_drag_status.assert_called_with(context, Gdk.DragAction.COPY, 0)
 
 
-def test_view_html(mocker):
+def test_view_html(mocker: pytest.MockerFixture) -> None:
     """Test view_html."""
     mocker.patch("pathlib.Path.exists", return_value=True)
     mock_launch = mocker.patch("gi.repository.Gio.AppInfo.launch_default_for_uri")
@@ -372,7 +390,9 @@ def test_view_html(mocker):
     assert "https://github.com/carygravel/scantpaper" in args[0]
 
 
-def test_read_config_migration(app_window, mocker):
+def test_read_config_migration(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test configuration file migration from old name."""
     mocker.patch("scantpaper.app_window.os.environ", {"HOME": "/home/user"})
     mock_exists = mocker.patch.object(pathlib.Path, "exists", autospec=True)
@@ -389,7 +409,9 @@ def test_read_config_migration(app_window, mocker):
     mock_copy.assert_called_once()
 
 
-def test_read_config_stashes_load_warnings(app_window, mocker):
+def test_read_config_stashes_load_warnings(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Load warnings are stashed on the window until the user is informed."""
     mock_settings = ConfigDict(Paper={})
     mock_settings.load_warnings = ["settings were rescued"]
@@ -406,7 +428,7 @@ def test_read_config_stashes_load_warnings(app_window, mocker):
     assert not app_window._config_warnings_acknowledged
 
 
-def test_notify_config_load_warnings(app_window):
+def test_notify_config_load_warnings(app_window: ApplicationWindow) -> None:
     """Config load warnings are shown to the user and marked acknowledged."""
     app_window._config_load_warnings = ["something was rescued"]
     app_window._config_warnings_acknowledged = False
@@ -424,7 +446,7 @@ def test_notify_config_load_warnings(app_window):
     app_window._show_message_dialog.assert_called_once()
 
 
-def test_read_config_restore_window(mocker):
+def test_read_config_restore_window(mocker: pytest.MockerFixture) -> None:
     """Test window restoration from config."""
     mock_settings = {
         "restore window": True,
@@ -453,7 +475,7 @@ def test_read_config_restore_window(mocker):
         patch.object(ApplicationWindow, "_populate_main_window"),
     ):
 
-        def mock_read_config_side_effect(self):
+        def mock_read_config_side_effect(self: object) -> None:
             self.settings = mock_settings
 
         with patch.object(
@@ -479,7 +501,7 @@ def test_read_config_restore_window(mocker):
             mock_maximize.assert_called()
 
 
-def test_init_actions(app_window):
+def test_init_actions(app_window: ApplicationWindow) -> None:
     """Test that actions are initialized."""
     actions = app_window.list_actions()
     assert "scan" in actions
@@ -491,7 +513,9 @@ def test_init_actions(app_window):
     assert app_window._actions["tooltype"].get_state().get_string() == "selector"
 
 
-def test_change_image_tool_cb(app_window, mocker):
+def test_change_image_tool_cb(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test changing image tool."""
     app_window.view = MagicMock()
 
@@ -528,7 +552,9 @@ def test_change_image_tool_cb(app_window, mocker):
     app_window.view.set_selection.assert_called()
 
 
-def test_change_image_tool_no_reentrant_loop(app_window, mocker):
+def test_change_image_tool_no_reentrant_loop(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """GtkCheckMenuItem.set_active() calls gtk_menu_item_activate().
 
     This re-activates the action with the old item's target. Verify this
@@ -540,7 +566,7 @@ def test_change_image_tool_no_reentrant_loop(app_window, mocker):
     action = app_window._actions["tooltype"]
     original_set_state = action.set_state
 
-    def reentrant_set_state(variant):
+    def reentrant_set_state(variant: GLib.Variant) -> None:
         original_set_state(variant)
         # Simulate GtkCheckMenuItem deactivating the previously-active item,
         # which calls gtk_menu_item_activate -> g_action_activate with old value
@@ -553,7 +579,7 @@ def test_change_image_tool_no_reentrant_loop(app_window, mocker):
     assert action.get_state().get_string() == "dragger"
 
 
-def test_change_view_cb(app_window):
+def test_change_view_cb(app_window: ApplicationWindow) -> None:
     """Test changing view type and covering all old mode branches."""
     action = app_window._actions["viewtype"]
     app_window._vnotebook = MagicMock()
@@ -580,7 +606,7 @@ def test_change_view_cb(app_window):
     app_window._vpanei.remove.assert_called()
 
 
-def test_create_toolbar_missing_deps(app_window):
+def test_create_toolbar_missing_deps(app_window: ApplicationWindow) -> None:
     """Test toolbar creation with missing dependencies."""
     app_window._dependencies = {
         "imagemagick": False,
@@ -599,7 +625,9 @@ def test_create_toolbar_missing_deps(app_window):
     assert not app_window._actions["email"].get_enabled()
 
 
-def test_create_toolbar_tesseract_lang_missing(app_window, mocker):
+def test_create_toolbar_tesseract_lang_missing(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test toolbar creation when tesseract language is missing (covers 530-531)."""
     app_window._dependencies["tesseract"] = True
     mock_locale_installed = mocker.patch(
@@ -617,7 +645,7 @@ def test_create_toolbar_tesseract_lang_missing(app_window, mocker):
     assert "Missing language package" in kwargs["text"]
 
 
-def test_update_uimanager(app_window):
+def test_update_uimanager(app_window: ApplicationWindow) -> None:
     """Test _update_uimanager."""
     # Simulate no selection
     app_window.slist.get_selected_indices.return_value = []
@@ -638,7 +666,9 @@ def test_update_uimanager(app_window):
     assert app_window._actions["crop-dialog"].get_enabled()
 
 
-def test_update_uimanager_low_disk_space(app_window, mocker):
+def test_update_uimanager_low_disk_space(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _update_uimanager when disk space is low."""
     # Set free space to 50 MB, which is less than available-tmp-warning (100 MB)
     mock_shutil = mocker.patch("scantpaper.app_window.shutil")
@@ -654,7 +684,7 @@ def test_update_uimanager_low_disk_space(app_window, mocker):
     assert "50Mb free" in kwargs["text"]
 
 
-def test_update_uimanager_unpaper_missing(app_window):
+def test_update_uimanager_unpaper_missing(app_window: ApplicationWindow) -> None:
     """Test _update_uimanager when unpaper is missing."""
     app_window._dependencies["unpaper"] = False
     assert "unpaper" in app_window._actions
@@ -669,14 +699,16 @@ def test_update_uimanager_unpaper_missing(app_window):
     app_window._update_uimanager()
 
 
-def test_update_uimanager_ocr_missing(app_window):
+def test_update_uimanager_ocr_missing(app_window: ApplicationWindow) -> None:
     """Test _update_uimanager when ocr is missing."""
     app_window._dependencies["ocr"] = False
     app_window._update_uimanager()
     assert not app_window._actions["ocr"].get_enabled()
 
 
-def test_update_uimanager_no_pages_hide_email_dialog(app_window):
+def test_update_uimanager_no_pages_hide_email_dialog(
+    app_window: ApplicationWindow,
+) -> None:
     """Test _update_uimanager hides email dialog if no pages."""
     app_window.slist.data = []
     app_window._dependencies["xdg"] = True
@@ -688,7 +720,7 @@ def test_update_uimanager_no_pages_hide_email_dialog(app_window):
     app_window._windowe.hide.assert_called_once()
 
 
-def test_update_uimanager_xdg_missing(app_window):
+def test_update_uimanager_xdg_missing(app_window: ApplicationWindow) -> None:
     """Test _update_uimanager when xdg is missing (covers branches)."""
     app_window._dependencies["xdg"] = False
 
@@ -703,7 +735,9 @@ def test_update_uimanager_xdg_missing(app_window):
     assert not app_window._actions["email"].get_enabled()
 
 
-def test_update_uimanager_no_pages_no_email_dialog(app_window):
+def test_update_uimanager_no_pages_no_email_dialog(
+    app_window: ApplicationWindow,
+) -> None:
     """Test _update_uimanager does not hide email dialog if it is None."""
     app_window.slist.data = []
     app_window._dependencies["xdg"] = True
@@ -712,14 +746,16 @@ def test_update_uimanager_no_pages_no_email_dialog(app_window):
     # covers branch jump 768->771
 
 
-def test_update_uimanager_ocr_present(app_window):
+def test_update_uimanager_ocr_present(app_window: ApplicationWindow) -> None:
     """Test _update_uimanager when ocr is present."""
     app_window._dependencies["ocr"] = True
     app_window._update_uimanager()
     # covers branch jump 755->758
 
 
-def test_update_uimanager_ghost_ocr_and_hide_email(app_window):
+def test_update_uimanager_ghost_ocr_and_hide_email(
+    app_window: ApplicationWindow,
+) -> None:
     """Test ghosting ocr and hiding email dialog in one go (covers 756 & 769)."""
     app_window._dependencies["ocr"] = False
     app_window._dependencies["xdg"] = True
@@ -732,7 +768,9 @@ def test_update_uimanager_ghost_ocr_and_hide_email(app_window):
     app_window._windowe.hide.assert_called_once()
 
 
-def test_process_error_reopen(app_window, mocker):
+def test_process_error_reopen(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _process_error_callback with reopen response (covers 892)."""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
@@ -767,7 +805,9 @@ def test_process_error_reopen(app_window, mocker):
     app_window.scan_dialog.assert_called_once()
 
 
-def test_process_error_rescan(app_window, mocker):
+def test_process_error_rescan(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _process_error_callback with rescan response (covers 900)."""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
@@ -800,7 +840,9 @@ def test_process_error_rescan(app_window, mocker):
     app_window.scan_dialog.assert_called_with(None, None, hidden=False, scan=True)
 
 
-def test_process_error_ignore(app_window, mocker):
+def test_process_error_ignore(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _process_error_callback with ignore response (covers 892)."""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
@@ -821,7 +863,7 @@ def test_process_error_ignore(app_window, mocker):
     app_window.scan_dialog.assert_not_called()
 
 
-def test_window_state_event_callback(app_window):
+def test_window_state_event_callback(app_window: ApplicationWindow) -> None:
     """Test _window_state_event_callback."""
     event = MagicMock()
     event.new_window_state = Gdk.WindowState.MAXIMIZED
@@ -833,7 +875,7 @@ def test_window_state_event_callback(app_window):
     assert app_window.settings["window_maximize"] is False
 
 
-def test_changed_text_sort_method(app_window):
+def test_changed_text_sort_method(app_window: ApplicationWindow) -> None:
     """Test _changed_text_sort_method."""
     app_window.t_canvas = MagicMock()
 
@@ -844,7 +886,7 @@ def test_changed_text_sort_method(app_window):
     app_window.t_canvas.sort_by_position.assert_called_once()
 
 
-def test_handle_clicks(app_window):
+def test_handle_clicks(app_window: ApplicationWindow) -> None:
     """Test _handle_clicks."""
     event = MagicMock()
     event.button = 3  # Right click
@@ -869,7 +911,7 @@ def test_handle_clicks(app_window):
     assert app_window._handle_clicks(view_widget, event) is False
 
 
-def test_view_selection_changed_callback(app_window):
+def test_view_selection_changed_callback(app_window: ApplicationWindow) -> None:
     """Test _view_selection_changed_callback."""
     sel = MagicMock()
     copied_sel = MagicMock()
@@ -881,13 +923,13 @@ def test_view_selection_changed_callback(app_window):
     assert app_window.settings["selection"] == copied_sel
 
 
-def test_view_selection_changed_callback_none(app_window):
+def test_view_selection_changed_callback_none(app_window: ApplicationWindow) -> None:
     """Test _view_selection_changed_callback with None."""
     with pytest.raises(AttributeError):
         app_window._view_selection_changed_callback(None, None)
 
 
-def test_on_key_press(app_window):
+def test_on_key_press(app_window: ApplicationWindow) -> None:
     """Test _on_key_press."""
     app_window.delete_selection = MagicMock()
 
@@ -902,7 +944,7 @@ def test_on_key_press(app_window):
     assert app_window._on_key_press(None, event) == Gdk.EVENT_PROPAGATE
 
 
-def test_on_view_selection_notify(app_window):
+def test_on_view_selection_notify(app_window: ApplicationWindow) -> None:
     """Test _on_view_selection_notify with a non-None selection."""
     sel = MagicMock()
     copied = MagicMock()
@@ -917,7 +959,9 @@ def test_on_view_selection_notify(app_window):
     app_window._on_view_selection_notify(None, None)
 
 
-def test_process_error_callback(app_window, mocker):
+def test_process_error_callback(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _process_error_callback."""
     app_window._scan_progress = MagicMock()
     app_window._show_message_dialog = MagicMock()
@@ -980,7 +1024,9 @@ def test_process_error_callback(app_window, mocker):
     app_window._show_message_dialog.assert_called()
 
 
-def test_process_error_callback_ignore_hides_bar_after_dialog(app_window, mocker):
+def test_process_error_callback_ignore_hides_bar_after_dialog(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test that selecting 'ignore' in the open_device error dialog hides the progress bar."""
     app_window._scan_progress = MagicMock()
     app_window._show_message_dialog = MagicMock()
@@ -1015,7 +1061,7 @@ def test_process_error_callback_ignore_hides_bar_after_dialog(app_window, mocker
     app_window.scan_dialog.assert_not_called()
 
 
-def test_page_selection_changed_callback(app_window):
+def test_page_selection_changed_callback(app_window: ApplicationWindow) -> None:
     """Test _page_selection_changed_callback."""
     app_window.view = MagicMock()
     app_window.t_canvas = MagicMock()
@@ -1047,7 +1093,9 @@ def test_page_selection_changed_callback(app_window):
     app_window.post_process_progress.finish.assert_called_once()
 
 
-def test_page_selection_changed_with_value_error(app_window, mocker):
+def test_page_selection_changed_with_value_error(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _page_selection_changed_callback handles ValueError (covers 690-691)."""
     app_window.slist.get_selected_indices.return_value = [0]
     app_window.slist.data = [[1, None, "page_id"]]
@@ -1058,7 +1106,9 @@ def test_page_selection_changed_with_value_error(app_window, mocker):
     app_window._page_selection_changed_callback(None)
 
 
-def test_page_selection_changed_restore_selection(app_window, mocker):
+def test_page_selection_changed_restore_selection(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _page_selection_changed_callback restores selection (covers 692-693)."""
     app_window.slist.get_selected_indices.return_value = [0]
     app_window.slist.data = [[1, None, "page_id"]]
@@ -1072,7 +1122,7 @@ def test_page_selection_changed_restore_selection(app_window, mocker):
     app_window.view.set_selection.assert_called_with(mock_selection)
 
 
-def test_pack_viewer_tools(app_window):
+def test_pack_viewer_tools(app_window: ApplicationWindow) -> None:
     """Test _pack_viewer_tools."""
     app_window._vnotebook = MagicMock()
     app_window._hpanei = MagicMock()
@@ -1108,7 +1158,9 @@ def test_pack_viewer_tools(app_window):
     )
 
 
-def test_show_message_dialog(app_window, mocker):
+def test_show_message_dialog(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _show_message_dialog."""
     mock_mm_cls = mocker.patch("scantpaper.app_window.MultipleMessage")
     mock_mm = mock_mm_cls.return_value
@@ -1130,7 +1182,9 @@ def test_show_message_dialog(app_window, mocker):
     assert app_window.settings["message_window_height"] == 400
 
 
-def test_show_message_dialog_already_exists(app_window, mocker):
+def test_show_message_dialog_already_exists(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
     """Test _show_message_dialog when _message_dialog is already created."""
     mock_mm_cls = mocker.patch("scantpaper.app_window.MultipleMessage")
     mock_mm = MagicMock()
@@ -1147,7 +1201,7 @@ def test_show_message_dialog_already_exists(app_window, mocker):
 
 
 @pytest.mark.usefixtures("mock_builder", "mock_config")
-def test_pre_flight_linux(mocker):
+def test_pre_flight_linux(mocker: pytest.MockerFixture) -> None:
     """Test that recursive_slurp is called on Linux."""
     mocker.patch("scantpaper.app_window.sys.platform", "linux")
     mock_slurp = mocker.patch("scantpaper.app_window.recursive_slurp")
@@ -1176,7 +1230,7 @@ def test_pre_flight_linux(mocker):
         1000 * 1024 * 1024
     )
 
-    def mock_create_temp_func(self):
+    def mock_create_temp_func(self: object) -> None:
         self.session = MagicMock()
         self.session.name = "/tmp/session"
         self._lockfd = MagicMock()
@@ -1220,7 +1274,9 @@ def test_pre_flight_linux(mocker):
 
 
 @pytest.mark.usefixtures("mock_builder")
-def test_pre_flight_cwd_none(mocker, mock_config, tmp_path):
+def test_pre_flight_cwd_none(
+    mocker: pytest.MockerFixture, mock_config: object, tmp_path: pathlib.Path
+) -> None:
     """Test that cwd is set to os.getcwd() if it is None."""
     mock_config.read_config.return_value["cwd"] = None
 
@@ -1248,14 +1304,16 @@ def test_pre_flight_cwd_none(mocker, mock_config, tmp_path):
 
 
 @pytest.mark.usefixtures("mock_builder", "mock_config")
-def test_populate_main_window_cwd_missing(mocker, tmp_path):
+def test_populate_main_window_cwd_missing(
+    mocker: pytest.MockerFixture, tmp_path: pathlib.Path
+) -> None:
     """Test that cwd is set to os.getcwd() if it is missing in _populate_main_window."""
     _setup_app_window_mocks(mocker, tmp_path)
 
     # Patch _pre_flight to delete 'cwd' from settings after it runs
     original_pre_flight = ApplicationWindow._pre_flight
 
-    def mock_pre_flight(self):
+    def mock_pre_flight(self: object) -> None:
         original_pre_flight(self)
         del self.settings["cwd"]
 
@@ -1285,7 +1343,9 @@ def test_populate_main_window_cwd_missing(mocker, tmp_path):
 
 
 @pytest.mark.usefixtures("mock_builder")
-def test_init_with_auto_open_and_imports(mocker, mock_config, tmp_path):
+def test_init_with_auto_open_and_imports(
+    mocker: pytest.MockerFixture, mock_config: object, tmp_path: pathlib.Path
+) -> None:
     """Test that scan_dialog and _import_files are called during init if configured."""
     mock_config.read_config.return_value["auto-open-scan-dialog"] = True
 
@@ -1321,13 +1381,15 @@ def test_init_with_auto_open_and_imports(mocker, mock_config, tmp_path):
 
 
 @pytest.mark.usefixtures("mock_builder")
-def test_populate_panes_tool_selection(mocker, mock_config, tmp_path):
+def test_populate_panes_tool_selection(
+    mocker: pytest.MockerFixture, mock_config: object, tmp_path: pathlib.Path
+) -> None:
     """Test _populate_panes with different image_control_tool settings."""
     mock_selector, mock_dragger, mock_selector_dragger = _setup_app_window_mocks(
         mocker, tmp_path
     )
 
-    def assert_dragger(_app, _win):
+    def assert_dragger(_app: Gtk.Application, _win: ApplicationWindow) -> None:
         mock_dragger.assert_called()
         mock_dragger.reset_mock()
         mock_selector.reset_mock()
@@ -1340,7 +1402,7 @@ def test_populate_panes_tool_selection(mocker, mock_config, tmp_path):
     # Test with "selectordragger" (or any other value that falls into 'else')
     mock_config.read_config.return_value["image_control_tool"] = "selectordragger"
 
-    def assert_selector_dragger(_app, _win):
+    def assert_selector_dragger(_app: Gtk.Application, _win: ApplicationWindow) -> None:
         mock_selector_dragger.assert_called()
 
     _create_test_app(assert_selector_dragger)

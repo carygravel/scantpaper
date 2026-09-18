@@ -1,5 +1,7 @@
 """test document module."""
 
+from __future__ import annotations
+
 import datetime
 import unittest.mock
 
@@ -9,7 +11,7 @@ from scantpaper.document import Document, _extract_metadata
 class MockResponse:
     """A mock response class."""
 
-    def __init__(self, info) -> None:
+    def __init__(self, info: object) -> None:
         """Initialize mock response."""
         self.info = info
 
@@ -32,7 +34,7 @@ class MockThread:
         self.send = unittest.mock.Mock()
 
 
-def create_doc():
+def create_doc() -> Document:
     """Create a mock document instance."""
     with unittest.mock.patch(
         "scantpaper.document.BaseDocument.__init__", return_value=None
@@ -52,7 +54,7 @@ def create_doc():
         return d
 
 
-def test_import_files_encrypted():
+def test_import_files_encrypted() -> None:
     """Test import_files with encrypted file."""
     doc = create_doc()
     password_callback = unittest.mock.Mock(return_value="password")
@@ -62,7 +64,7 @@ def test_import_files_encrypted():
     assert doc.thread.get_file_info.call_count == 2
 
 
-def test_import_files_multiple_success():
+def test_import_files_multiple_success() -> None:
     """Test success importing multiple single-page files."""
     doc = create_doc()
     metadata_callback = unittest.mock.Mock()
@@ -82,7 +84,7 @@ def test_import_files_multiple_success():
     assert doc.thread.import_file.call_count == 2
 
 
-def test_multiple_files_renumber_once_on_finish():
+def test_multiple_files_renumber_once_on_finish() -> None:
     """Test a multi-file import renumbers once at the end of the batch."""
     doc = create_doc()
     finished_callback = unittest.mock.Mock()
@@ -107,7 +109,7 @@ def test_multiple_files_renumber_once_on_finish():
         finished_callback.assert_called_once()
 
 
-def test_get_file_info_finished_callback2_pagerange():
+def test_get_file_info_finished_callback2_pagerange() -> None:
     """Test pagerange_callback."""
     doc = create_doc()
     pagerange_callback = unittest.mock.Mock(return_value=(2, 3))
@@ -118,7 +120,7 @@ def test_get_file_info_finished_callback2_pagerange():
     assert doc.thread.import_file.call_args[1]["first"] == 2
 
 
-def test_get_file_info_finished_callback2_no_pagerange():
+def test_get_file_info_finished_callback2_no_pagerange() -> None:
     """Test pagerange_callback."""
     doc = create_doc()
     pagerange_callback = unittest.mock.Mock(return_value=(None, 3))
@@ -131,7 +133,7 @@ def test_get_file_info_finished_callback2_no_pagerange():
     )
 
 
-def test_get_file_info_finished_callback2_session_file():
+def test_get_file_info_finished_callback2_session_file() -> None:
     """Test session file handling in get_file_info_finished_callback2."""
     doc = create_doc()
     info = [{"format": "session file", "path": "f.session"}]
@@ -141,7 +143,7 @@ def test_get_file_info_finished_callback2_session_file():
         open_session.assert_called_with(db="f.session", **options)
 
 
-def test_post_process_rotate():
+def test_post_process_rotate() -> None:
     """Test _post_process_rotate."""
     doc = create_doc()
     doc.rotate = unittest.mock.Mock()
@@ -155,7 +157,7 @@ def test_post_process_rotate():
         mock_pps.assert_called_with("new_uuid", options)
 
 
-def test_post_process_unpaper():
+def test_post_process_unpaper() -> None:
     """Test _post_process_unpaper."""
     doc = create_doc()
     doc.unpaper = unittest.mock.Mock()
@@ -170,7 +172,7 @@ def test_post_process_unpaper():
         mock_pps.assert_called()
 
 
-def test_post_process_udt():
+def test_post_process_udt() -> None:
     """Test _post_process_udt."""
     doc = create_doc()
     doc.user_defined = unittest.mock.Mock()
@@ -184,7 +186,7 @@ def test_post_process_udt():
         mock_pps.assert_called()
 
 
-def test_post_process_ocr():
+def test_post_process_ocr() -> None:
     """Test _post_process_ocr."""
     doc = create_doc()
     doc.ocr_pages = unittest.mock.Mock()
@@ -203,7 +205,7 @@ def test_post_process_ocr():
         mock_pps.assert_called_with(None, options)
 
 
-def test_import_scan():
+def test_import_scan() -> None:
     """Test import_scan."""
     doc = create_doc()
     doc.import_scan(resolution=300, rotate=None)
@@ -213,7 +215,7 @@ def test_import_scan():
         mock_pps.assert_called()
 
 
-def test_split_page():
+def test_split_page() -> None:
     """Test split_page."""
     doc = create_doc()
     doc.split_page(first_page=1, last_page=1)
@@ -222,7 +224,7 @@ def test_split_page():
     doc.add_page.assert_called()
 
 
-def test_split_page_no_info():
+def test_split_page_no_info() -> None:
     """Test split_page with improper input."""
     doc = create_doc()
     logger_callback = unittest.mock.Mock()
@@ -232,7 +234,7 @@ def test_split_page_no_info():
     logger_callback.assert_called()
 
 
-def test_ocr_pages():
+def test_ocr_pages() -> None:
     """Test ocr_pages."""
     doc = create_doc()
     doc.tesseract = unittest.mock.Mock()
@@ -240,7 +242,7 @@ def test_ocr_pages():
     doc.tesseract.assert_called()
 
 
-def test_unpaper_method():
+def test_unpaper_method() -> None:
     """Test unpaper."""
     doc = create_doc()
     doc.unpaper(page="uuid")
@@ -249,7 +251,7 @@ def test_unpaper_method():
     doc.add_page.assert_called()
 
 
-def test_unpaper_no_info():
+def test_unpaper_no_info() -> None:
     """Test unpaper with improper input."""
     doc = create_doc()
     logger_callback = unittest.mock.Mock()
@@ -259,7 +261,7 @@ def test_unpaper_no_info():
     logger_callback.assert_called()
 
 
-def test_user_defined_method():
+def test_user_defined_method() -> None:
     """Test user_defined method."""
     doc = create_doc()
     doc.user_defined(page="uuid", command="ls")
@@ -268,7 +270,7 @@ def test_user_defined_method():
     doc.add_page.assert_called()
 
 
-def test_undo_redo():
+def test_undo_redo() -> None:
     """Test undo and redo."""
     doc = create_doc()
     # Mock data property using patch.object on Document class
@@ -279,7 +281,7 @@ def test_undo_redo():
             doc._data_list if not args else setattr(doc, "_data_list", args[0])
         )
 
-        def mock_send(process, *_args, **kwargs):
+        def mock_send(process: str, *_args: object, **kwargs: object) -> None:
             if process == "undo":
                 kwargs["finished_callback"](
                     MockResponse({"snapshot": "new_data", "selection": [0]})
@@ -297,7 +299,7 @@ def test_undo_redo():
         assert doc._data_list == "newer_data"
 
 
-def test_undo_redo_with_error_callback():
+def test_undo_redo_with_error_callback() -> None:
     """Test undo and redo with an error callback."""
     doc = create_doc()
     error_callback = unittest.mock.Mock()
@@ -308,7 +310,7 @@ def test_undo_redo_with_error_callback():
 
         last_call = {}
 
-        def mock_send(process, *_args, **kwargs):
+        def mock_send(process: str, *_args: object, **kwargs: object) -> None:
             last_call.update(kwargs)
             if process in ("undo", "redo"):
                 kwargs["finished_callback"](
@@ -323,7 +325,7 @@ def test_undo_redo_with_error_callback():
         assert last_call["error_callback"] is error_callback
 
 
-def test_get_selected_properties():
+def test_get_selected_properties() -> None:
     """Test get_selected_properties."""
     doc = create_doc()
     mock_p1 = unittest.mock.Mock()
@@ -337,7 +339,7 @@ def test_get_selected_properties():
         assert doc.get_selected_properties() == (300, 300)
 
 
-def test_extract_metadata_isoformat():
+def test_extract_metadata_isoformat() -> None:
     """Test _extract_metadata."""
     info = {
         "format": "Portable Document Format",
@@ -389,7 +391,7 @@ def test_extract_metadata_isoformat():
         assert isinstance(meta["datetime"], datetime.datetime)
 
 
-def test_extract_metadata_placeholder_title():
+def test_extract_metadata_placeholder_title() -> None:
     """Test _extract_metadata with placeholder titles."""
     info = {
         "format": "Portable Document Format",

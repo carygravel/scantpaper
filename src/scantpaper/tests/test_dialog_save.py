@@ -1,11 +1,17 @@
 """Coverage tests for dialog.save."""
 
+from __future__ import annotations
+
 import datetime as dt
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import gi
 
 from scantpaper.dialog.save import Save, filter_table
+
+if TYPE_CHECKING:
+    import pytest
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -13,14 +19,14 @@ from gi.repository import Gtk  # noqa: E402
 _LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
 
 
-def test_filter_table():
+def test_filter_table() -> None:
     """Test filter_table function."""
     table = [("a", 1), ("b", 2), ("c", 3)]
     types = ["a", "c"]
     assert filter_table(table, types) == [("a", 1), ("c", 3)]
 
 
-def test_metadata_properties():
+def test_metadata_properties() -> None:
     """Test metadata properties and suggestions."""
     dialog = Save(meta_title="initial title")
 
@@ -52,7 +58,7 @@ def test_metadata_properties():
     assert "kw1" in dialog.meta_keywords_suggestions
 
 
-def test_include_time_toggle():
+def test_include_time_toggle() -> None:
     """Test include_time property."""
     dialog = Save()
     dialog.include_time = True
@@ -65,7 +71,7 @@ def test_include_time_toggle():
     assert dialog.meta_now_widget.get_child().get_text() == "Today"
 
 
-def test_meta_datetime_property(mocker):
+def test_meta_datetime_property(mocker: pytest.MockerFixture) -> None:
     """Test meta_datetime property logic."""
     mock_now = dt.datetime(2023, 1, 1, 12, 0, 0, tzinfo=_LOCAL_TZ)
     # Capture the real class and its fromisoformat before patching
@@ -92,7 +98,7 @@ def test_meta_datetime_property(mocker):
     assert dialog.meta_datetime == test_date
 
 
-def test_insert_text_handler_inc_dec(mocker):
+def test_insert_text_handler_inc_dec(mocker: pytest.MockerFixture) -> None:
     """Test increment/decrement date via + and - keys."""
     mocker.patch(
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
@@ -113,7 +119,7 @@ def test_insert_text_handler_inc_dec(mocker):
     assert entry.get_text() == "2023-01-01"
 
 
-def test_insert_text_handler_filtering(mocker):
+def test_insert_text_handler_filtering(mocker: pytest.MockerFixture) -> None:
     """Test character filtering in _insert_text_handler."""
     mocker.patch(
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
@@ -135,7 +141,7 @@ def test_insert_text_handler_filtering(mocker):
     assert entry.get_text() == ""
 
 
-def test_add_image_type(mocker):
+def test_add_image_type(mocker: pytest.MockerFixture) -> None:
     """Test add_image_type and UI setup."""
     # Mock filter_table which is imported into save
     mocker.patch("scantpaper.dialog.save.filter_table", side_effect=lambda x, _y: x)
@@ -144,7 +150,7 @@ def test_add_image_type(mocker):
     dialog.add_image_type()
 
 
-def test_image_type_changed_callback(mocker):
+def test_image_type_changed_callback(mocker: pytest.MockerFixture) -> None:
     """Test image type changed logic."""
     mocker.patch("scantpaper.dialog.save.filter_table", side_effect=lambda x, _y: x)
     dialog = Save(
@@ -171,7 +177,7 @@ def test_image_type_changed_callback(mocker):
     assert dialog.image_type == "ps"
 
 
-def test_pdf_compression_changed_callback():
+def test_pdf_compression_changed_callback() -> None:
     """Test PDF compression changed callback."""
     dialog = Save()
     mock_hboxq = MagicMock()
@@ -188,7 +194,7 @@ def test_pdf_compression_changed_callback():
     mock_hboxq.hide.assert_called()
 
 
-def test_encrypt_clicked_callback(mocker):
+def test_encrypt_clicked_callback(mocker: pytest.MockerFixture) -> None:
     """Test encryption dialog creation and callbacks."""
     dialog = Save()
     dialog.can_encrypt_pdf = True
@@ -202,7 +208,7 @@ def test_encrypt_clicked_callback(mocker):
     # Capture actions added to the dialog
     actions = []
 
-    def mock_add_actions(act_list):
+    def mock_add_actions(act_list: object) -> None:
         nonlocal actions
         actions = act_list
 
@@ -249,7 +255,7 @@ def test_encrypt_clicked_callback(mocker):
     mock_dialog.destroy.assert_called()
 
 
-def test_update_config_dict():
+def test_update_config_dict() -> None:
     """Test update_config_dict."""
     dialog = Save()
     dialog._meta_specify_widget.set_active(True)
@@ -264,7 +270,7 @@ def test_update_config_dict():
     assert "datetime offset" in config
 
 
-def test_update_config_dict_adds_typed_metadata_to_suggestions():
+def test_update_config_dict_adds_typed_metadata_to_suggestions() -> None:
     """Test that user-typed metadata is added to suggestions."""
     dialog = Save()
     dialog._meta_title_widget.get_buffer().set_text("New typed title", -1)
@@ -278,7 +284,7 @@ def test_update_config_dict_adds_typed_metadata_to_suggestions():
     assert "New typed author" in config["author-suggestions"]
 
 
-def test_author_suggestions_ranked():
+def test_author_suggestions_ranked() -> None:
     """Test author suggestions are ranked with prefix matches first."""
     dialog = Save()
     dialog.meta_author_suggestions = ["Dejo", "John Smith"]
@@ -290,7 +296,7 @@ def test_author_suggestions_ranked():
     assert rows == ["John Smith", "Dejo"]
 
 
-def test_keyword_suggestions_ranked():
+def test_keyword_suggestions_ranked() -> None:
     """Test keyword suggestions are ranked with prefix matches first."""
     dialog = Save()
     dialog.meta_keywords_suggestions = ["rescan", "scanned document"]
@@ -302,7 +308,7 @@ def test_keyword_suggestions_ranked():
     assert rows == ["scanned document", "rescan"]
 
 
-def test_update_config_dict_preserves_suggestion_order():
+def test_update_config_dict_preserves_suggestion_order() -> None:
     """Test suggestions are persisted in insertion order despite ranking."""
     dialog = Save()
     dialog.meta_author_suggestions = ["Dejo", "John Smith", "Jane Doe"]
@@ -318,7 +324,7 @@ def test_update_config_dict_preserves_suggestion_order():
     assert config["author-suggestions"] == ["Dejo", "John Smith", "Jane Doe"]
 
 
-def test_datetime_focus_out_callback():
+def test_datetime_focus_out_callback() -> None:
     """Test _datetime_focus_out_callback."""
     dialog = Save()
     dialog._meta_specify_widget.set_active(True)
@@ -330,7 +336,7 @@ def test_datetime_focus_out_callback():
     assert dialog.meta_datetime == dt.datetime(2023, 1, 1)  # noqa: DTZ001
 
 
-def test_clicked_specify_date_button():
+def test_clicked_specify_date_button() -> None:
     """Test _clicked_specify_date_button."""
     dialog = Save()
     mock_hboxe = MagicMock()
@@ -349,7 +355,7 @@ def test_clicked_specify_date_button():
     assert dialog.select_datetime is False
 
 
-def test_pdf_selected_callback(mocker):
+def test_pdf_selected_callback(mocker: pytest.MockerFixture) -> None:
     """Test _pdf_selected_callback."""
     dialog = Save()
     dialog.image_type = "appendpdf"
@@ -367,7 +373,7 @@ def test_pdf_selected_callback(mocker):
     args[1].show.assert_called()  # hboxpq
 
 
-def test_meta_datetime_reads_from_widget_immediately():
+def test_meta_datetime_reads_from_widget_immediately() -> None:
     """Regression test for issue #68.
 
     1. Open the Save Dialog: Go to File -> Save (or use the Save icon).
@@ -413,7 +419,7 @@ def test_meta_datetime_reads_from_widget_immediately():
     assert dialog.meta_datetime.date() == dt.date(2026, 1, 1)
 
 
-def test_meta_datetime_preserves_time_when_not_included():
+def test_meta_datetime_preserves_time_when_not_included() -> None:
     """Test that if include_time is False, we still preserve the original time.
 
     This applies when the date part hasn't changed in the widget.
@@ -438,7 +444,7 @@ def test_meta_datetime_preserves_time_when_not_included():
     assert dialog.meta_datetime.hour == 12
 
 
-def test_meta_datetime_preserves_datetime_when_not_changed():
+def test_meta_datetime_preserves_datetime_when_not_changed() -> None:
     """Test that if include_time is True, we return the original datetime.
 
     This applies if the widget text hasn't changed.
@@ -462,7 +468,7 @@ def test_meta_datetime_preserves_datetime_when_not_changed():
     assert dialog.meta_datetime is initial_datetime
 
 
-def test_meta_datetime_returns_date_when_initial_was_date():
+def test_meta_datetime_returns_date_when_initial_was_date() -> None:
     """Test that if the initial _meta_datetime was a date object.
 
     It returns a date object (covers lines 115-116).
@@ -488,7 +494,7 @@ def test_meta_datetime_returns_date_when_initial_was_date():
     assert res == dt.date(2026, 1, 1)
 
 
-def test_meta_datetime_when_initial_is_none():
+def test_meta_datetime_when_initial_is_none() -> None:
     """Test meta_datetime property when initial value is None (covers line 117)."""
     dialog = Save(
         image_types=["pdf"],

@@ -1,5 +1,7 @@
 """Coverage tests for basedocument.py."""
 
+from __future__ import annotations
+
 import pathlib
 import queue
 import shutil
@@ -7,6 +9,7 @@ import signal
 import tempfile
 import threading
 import uuid
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, Mock, patch
 
 import gi
@@ -18,6 +21,9 @@ from scantpaper.docthread import INSERT_AT_START
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
     GLib,
@@ -26,7 +32,7 @@ from gi.repository import (  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
-def mock_thread(mocker):
+def mock_thread(mocker: pytest.MockerFixture) -> MagicMock:
     """Automatically mock DocThread for all tests in this module."""
     mock_cls = mocker.patch("scantpaper.basedocument.DocThread")
     mock_inst = mock_cls.return_value
@@ -43,8 +49,8 @@ def mock_thread(mocker):
     mock_inst._con = MagicMock()
 
     # Mock DocThread.send to avoid blocking on queues
-    def mock_send(_process, *_args, **kwargs):
-        def run_callbacks():
+    def mock_send(_process: str, *_args: object, **kwargs: object) -> uuid.UUID:
+        def run_callbacks() -> bool:
             if "data_callback" in kwargs:
                 response = MagicMock()
                 response.info = {"type": "page"}
@@ -61,13 +67,13 @@ def mock_thread(mocker):
     return mock_inst
 
 
-def test_create_pidfile_error():
+def test_create_pidfile_error() -> None:
     """Test create_pidfile error handling."""
     slist = Document(dir="/non-existent-directory")
 
     error_called = False
 
-    def error_callback(_page, _process, message):
+    def error_callback(_page: object, _process: str, message: str) -> None:
         nonlocal error_called
         error_called = True
         assert "unable to write to" in message
@@ -79,7 +85,7 @@ def test_create_pidfile_error():
     assert error_called
 
 
-def test_create_pidfile_registers_in_running_pids(tmp_path):
+def test_create_pidfile_registers_in_running_pids(tmp_path: pathlib.Path) -> None:
     """Test create_pidfile registers the pidfile in running_pids."""
     slist = Document(dir=tmp_path)
     slist.thread.running_pids = {}
@@ -89,7 +95,7 @@ def test_create_pidfile_registers_in_running_pids(tmp_path):
     assert slist.thread.running_pids[pidfile] is pidfile
 
 
-def test_cancel(mock_thread):
+def test_cancel(mock_thread: MagicMock) -> None:
     """Test cancel method."""
     mock_thread.running_pids = {"dummy.pid": "dummy.pid"}
     slist = Document()
@@ -112,7 +118,7 @@ def test_cancel(mock_thread):
         assert "dummy.pid" not in slist.thread.running_pids
 
 
-def test_add_page_extra():
+def test_add_page_extra() -> None:
     """Test add_page with replace and insert-after."""
     slist = Document()
 
@@ -135,7 +141,7 @@ def test_add_page_extra():
         slist.add_page(3, None, 104, replace=999)
 
 
-def test_delete_selection_extra_edge_cases():
+def test_delete_selection_extra_edge_cases() -> None:
     """Test delete_selection_extra edge cases."""
     slist = Document()
 
@@ -144,7 +150,9 @@ def test_delete_selection_extra_edge_cases():
     slist.add_page(3, None, 103)
 
     # Mock delete_selection to actually remove the rows since we've mocked the thread
-    def mock_delete_selection(_self=None, context=None, **kwargs):
+    def mock_delete_selection(
+        _self: object = None, context: object = None, **kwargs: object
+    ) -> None:
         del context
         indices = slist.get_selected_indices()
         for i in reversed(indices):
@@ -164,7 +172,7 @@ def test_delete_selection_extra_edge_cases():
     assert len(slist.data) == 0
 
 
-def test_save_open_session():
+def test_save_open_session() -> None:
     """Test save_session and open_session."""
     slist = Document()
     temp_dir = tempfile.mkdtemp()
@@ -189,7 +197,7 @@ def test_save_open_session():
         error_callback = MagicMock()
 
         # Override send to simulate async responses synchronously
-        def mock_send(process, *_args, **kwargs):
+        def mock_send(process: str, *_args: object, **kwargs: object) -> MagicMock:
             if process == "open":
                 if "finished_callback" in kwargs:
                     kwargs["finished_callback"](MagicMock())
@@ -216,7 +224,7 @@ def test_save_open_session():
         shutil.rmtree(temp_dir)
 
 
-def test_renumber_ascending():
+def test_renumber_ascending() -> None:
     """Test renumber makes page numbers consecutive 1..n."""
     slist = Document()
     # Manually set non-ascending numbers
@@ -230,7 +238,7 @@ def test_renumber_ascending():
     assert slist.data[2][0] == 3
 
 
-def test_generated_methods(mock_thread):
+def test_generated_methods(mock_thread: MagicMock) -> None:
     """Test generated methods like save_pdf and rotate."""
     slist = Document()
 
@@ -243,7 +251,7 @@ def test_generated_methods(mock_thread):
     mock_thread.rotate.assert_called_once()
 
 
-def test_add_page_insert_before():
+def test_add_page_insert_before() -> None:
     """Test add_page inserts at the start of the document."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -253,7 +261,7 @@ def test_add_page_insert_before():
     assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
 
 
-def test_add_page_renumbers():
+def test_add_page_renumbers() -> None:
     """Test add_page keeps page numbers consecutive."""
     slist = Document()
 
@@ -268,7 +276,7 @@ def test_add_page_renumbers():
     assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
 
 
-def test_add_page_in_order_append_skips_renumber():
+def test_add_page_in_order_append_skips_renumber() -> None:
     """Test add_page does not renumber when an in-order page is appended."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -280,7 +288,7 @@ def test_add_page_in_order_append_skips_renumber():
     assert [row[0] for row in slist.data] == [1, 2], "numbers remain consecutive"
 
 
-def test_add_page_out_of_order_append_renumbers():
+def test_add_page_out_of_order_append_renumbers() -> None:
     """Test add_page renumbers when an out-of-order page is appended."""
     slist = Document()
     slist.add_page(10, None, 101)
@@ -291,7 +299,7 @@ def test_add_page_out_of_order_append_renumbers():
     mock_renumber.assert_called_once()
 
 
-def test_paste_selection_complex():
+def test_paste_selection_complex() -> None:
     """Test paste_selection with specific destination and position."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -300,7 +308,12 @@ def test_paste_selection_complex():
     data_to_paste = [[1, None, 101]]
 
     # Mock the clone_pages response
-    def mock_send(cmd, _args, data_callback=None, finished_callback=None):
+    def mock_send(
+        cmd: str,
+        _args: object,
+        data_callback: Callable[[object], object] | None = None,
+        finished_callback: Callable[..., object] | None = None,
+    ) -> None:
         del finished_callback
         if cmd == "clone_pages":
             response = MagicMock()
@@ -318,7 +331,7 @@ def test_paste_selection_complex():
     assert slist.data[1][2] == 103
 
 
-def test_get_page_index_errors():
+def test_get_page_index_errors() -> None:
     """Test get_page_index error handling."""
     slist = Document()
     error_callback = MagicMock()
@@ -334,7 +347,7 @@ def test_get_page_index_errors():
     error_callback.assert_called_with(None, "Get page", "No pages selected")
 
 
-def test_on_row_changed_sorting():
+def test_on_row_changed_sorting() -> None:
     """Test _on_row_changed triggers renumbering and maintains selection."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -350,13 +363,13 @@ def test_on_row_changed_sorting():
     assert slist.data[0][2] == 102
 
 
-def test_find_page_by_uuid_none():
+def test_find_page_by_uuid_none() -> None:
     """Test find_page_by_uuid with None."""
     slist = Document()
     assert slist.find_page_by_uuid(None) is None
 
 
-def test_open_session_error_copy():
+def test_open_session_error_copy() -> None:
     """Test open_session when shutil.copy fails."""
     slist = Document()
     error_callback = MagicMock()
@@ -365,7 +378,7 @@ def test_open_session_error_copy():
         error_callback.assert_called_once()
 
 
-def test_modify_method_callback():
+def test_modify_method_callback() -> None:
     """Test the callback generated by _modify_method_generator."""
     slist = Document()
     slist.add_page = MagicMock()
@@ -379,7 +392,7 @@ def test_modify_method_callback():
     # generated methods use getattr(self.thread, _method_name)
     captured = {}
 
-    def mock_rotate(**kwargs):
+    def mock_rotate(**kwargs: object) -> None:
         captured["data_callback"] = kwargs.get("data_callback")
 
     slist.thread.rotate = mock_rotate
@@ -397,7 +410,7 @@ def test_modify_method_callback():
     logger_cb.assert_called_with(response)
 
 
-def test_open_session_error_no_db():
+def test_open_session_error_no_db() -> None:
     """Test open_session with missing db key."""
     slist = Document()
     error_callback = MagicMock()
@@ -405,7 +418,7 @@ def test_open_session_error_no_db():
     error_callback.assert_called_once()
 
 
-def test_drag_data_received_callback_no_rows():
+def test_drag_data_received_callback_no_rows() -> None:
     """Test drag_data_received_callback with no selection."""
     tree = MagicMock(spec=Document)
     tree.get_selected_indices.return_value = []
@@ -413,14 +426,14 @@ def test_drag_data_received_callback_no_rows():
     tree.paste_selection.assert_not_called()
 
 
-def test_drag_data_received_callback_abort():
+def test_drag_data_received_callback_abort() -> None:
     """Test drag_data_received_callback abort case."""
     context = MagicMock()
     drag_data_received_callback(MagicMock(), context, 0, 0, MagicMock(), 999, 123)
     context.abort.assert_called_once()
 
 
-def test_drag_data_received_callback_uri(mocker):
+def test_drag_data_received_callback_uri(mocker: pytest.MockerFixture) -> None:
     """Test drag_data_received_callback with URI list."""
     mocker.patch("scantpaper.basedocument.Gtk.drag_finish")
     tree = MagicMock(spec=Document)
@@ -432,7 +445,7 @@ def test_drag_data_received_callback_uri(mocker):
     tree.import_files.assert_called_with(paths=["file:///tmp/test.png"])
 
 
-def test_drag_data_received_callback_path_to_string():
+def test_drag_data_received_callback_path_to_string() -> None:
     """Test that path.to_string() is called and reorder_pages is dispatched."""
     # Mock the tree and context
     tree = MagicMock()
@@ -467,7 +480,7 @@ def test_drag_data_received_callback_path_to_string():
         mock_drag_finish.assert_called_once_with(context, True, False, time)  # noqa: FBT003
 
 
-def test_reorder_data_moves_pages():
+def test_reorder_data_moves_pages() -> None:
     """Test _reorder_data reorders self.data and reselects moved pages."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -482,7 +495,7 @@ def test_reorder_data_moves_pages():
     assert slist.get_selected_indices() == [2], "moved page reselected"
 
 
-def test_reorder_pages_data_callback():
+def test_reorder_pages_data_callback() -> None:
     """Test reorder_pages data callback reorders data but keeps the suppress flag set."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -506,7 +519,7 @@ def test_reorder_pages_data_callback():
     )
 
 
-def test_reorder_then_drag_data_delete_not_double_deleted():
+def test_reorder_then_drag_data_delete_not_double_deleted() -> None:
     """Test the drag-data-delete after a reorder is suppressed even after the reorder completes."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -539,7 +552,7 @@ def test_reorder_then_drag_data_delete_not_double_deleted():
     assert slist._suppress_delete is False, "flag cleared at drag-end"
 
 
-def test_drag_end_clears_suppress_flag():
+def test_drag_end_clears_suppress_flag() -> None:
     """Test a lingering reorder suppression is cleared once the drag ends."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -550,7 +563,7 @@ def test_drag_end_clears_suppress_flag():
     assert slist._suppress_delete is False, "drag-end clears the suppress flag"
 
 
-def test_delete_selection_suppressed_after_reorder():
+def test_delete_selection_suppressed_after_reorder() -> None:
     """Test delete_selection is suppressed during a reorder drag."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -568,7 +581,7 @@ def test_delete_selection_suppressed_after_reorder():
         assert call.args[0] != "delete_pages"
 
 
-def test_on_row_changed_moves_page():
+def test_on_row_changed_moves_page() -> None:
     """Test _on_row_changed moves the edited page to its number's position."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -581,7 +594,7 @@ def test_on_row_changed_moves_page():
     assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
 
 
-def test_drag_data_received_callback_repeat(mocker):
+def test_drag_data_received_callback_repeat(mocker: pytest.MockerFixture) -> None:
     """Test drag_data_received_callback ignore repeated drops."""
     mocker.patch("scantpaper.basedocument.Gtk.drag_finish")
     tree = MagicMock()
@@ -590,7 +603,7 @@ def test_drag_data_received_callback_repeat(mocker):
     assert not tree.drops
 
 
-def test_cut_selection():
+def test_cut_selection() -> None:
     """Test cut_selection."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -608,7 +621,7 @@ def test_cut_selection():
     slist.delete_selection_extra.assert_called_once()
 
 
-def test_copy_selection_empty():
+def test_copy_selection_empty() -> None:
     """Test copy_selection with no selection."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -617,7 +630,7 @@ def test_copy_selection_empty():
     assert slist.copy_selection() is None
 
 
-def test_set_paper_sizes(mock_thread):
+def test_set_paper_sizes(mock_thread: MagicMock) -> None:
     """Test set_paper_sizes."""
     slist = Document()
     sizes = {"A4": (A4_WIDTH_MM, A4_HEIGHT_MM)}
@@ -626,14 +639,19 @@ def test_set_paper_sizes(mock_thread):
     mock_thread.send.assert_called_with("set_paper_sizes", sizes)
 
 
-def test_paste_selection_default_dest():
+def test_paste_selection_default_dest() -> None:
     """Test paste_selection with default destination (append)."""
     slist = Document()
     slist.add_page(1, None, 101)
 
     data_to_paste = [[1, None, 101]]
 
-    def mock_send(cmd, _args, data_callback=None, finished_callback=None):
+    def mock_send(
+        cmd: str,
+        _args: object,
+        data_callback: Callable[[object], object] | None = None,
+        finished_callback: Callable[..., object] | None = None,
+    ) -> None:
         del finished_callback
         if cmd == "clone_pages":
             response = MagicMock()
@@ -650,7 +668,7 @@ def test_paste_selection_default_dest():
     finished_callback.assert_called_once()
 
 
-def test_delete_selection_with_context():
+def test_delete_selection_with_context() -> None:
     """Test delete_selection with duplicate context."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -674,7 +692,7 @@ def test_delete_selection_with_context():
     slist.thread.send.assert_called_once()
 
 
-def test_selection_changed_blocked(mock_thread):
+def test_selection_changed_blocked(mock_thread: MagicMock) -> None:
     """Test _on_selection_changed when signals blocked."""
     slist = Document()
     slist._block_signals = True
@@ -705,7 +723,7 @@ def test_selection_changed_blocked(mock_thread):
     assert calls
 
 
-def test_drag_drop_callback_logic():
+def test_drag_drop_callback_logic() -> None:
     """Test drag_drop_callback logic."""
     # This is an internal function defined in __init__, so we can't test it directly easily
     # without emitting the signal.
@@ -732,12 +750,16 @@ def test_drag_drop_callback_logic():
     # Or just rely on the fact that we can't easily reach it without heavy mocking of Gtk.
 
 
-def test_drag_data_get_and_drop_callbacks(mocker):
+def test_drag_data_get_and_drop_callbacks(mocker: pytest.MockerFixture) -> None:
     """Test drag_data_get_callback and drag_drop_callback by capturing them."""
     captured_callbacks = {}
     original_connect = Gtk.TreeView.connect
 
-    def mocked_connect(self, signal_name, callback):
+    def mocked_connect(
+        self: Gtk.TreeView,
+        signal_name: str,
+        callback: Callable[..., object],
+    ) -> int:
         captured_callbacks[signal_name] = callback
         return original_connect(self, signal_name, callback)
 
@@ -766,14 +788,16 @@ def test_drag_data_get_and_drop_callbacks(mocker):
     assert result is False
 
 
-def test_delete_selection_extra_reselect():
+def test_delete_selection_extra_reselect() -> None:
     """Test delete_selection_extra re-selecting nearest page."""
     slist = Document()
     slist.add_page(1, None, 101)
     slist.add_page(2, None, 102)
     slist.add_page(3, None, 103)
 
-    def mock_delete_selection(_self=None, context=None, **kwargs):
+    def mock_delete_selection(
+        _self: object = None, context: object = None, **kwargs: object
+    ) -> None:
         del context
         # We MUST capture the indices before deleting anything from data.
         indices_to_del = sorted(slist.get_selected_indices(), reverse=True)
@@ -813,7 +837,7 @@ def test_delete_selection_extra_reselect():
     assert len(slist.data) == 0
 
 
-def test_find_page_by_uuid_index():
+def test_find_page_by_uuid_index() -> None:
     """Test find_page_by_uuid returns the page index."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -824,7 +848,7 @@ def test_find_page_by_uuid_index():
     assert slist.find_page_by_uuid(999) is None, "missing page returns None"
 
 
-def test_get_page_index_selected_none():
+def test_get_page_index_selected_none() -> None:
     """Test get_page_index with 'selected' and no pages selected."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -834,20 +858,20 @@ def test_get_page_index_selected_none():
     error_callback.assert_called_with(None, "Get page", "No pages selected")
 
 
-def test_init_with_kwargs():
+def test_init_with_kwargs() -> None:
     """Test BaseDocument __init__ with kwargs."""
     slist = Document(custom_attr="value")
     assert vars(slist)["custom_attr"] == "value"
 
 
-def test_create_pidfile_permission_error():
+def test_create_pidfile_permission_error() -> None:
     """Test create_pidfile with PermissionError."""
     slist = Document()
     with patch("tempfile.TemporaryFile", side_effect=PermissionError("no permission")):
         assert slist.create_pidfile({}) is None
 
 
-def test_cancel_empty_queues(mock_thread):
+def test_cancel_empty_queues(mock_thread: MagicMock) -> None:
     """Test cancel method with already empty queues."""
     mock_thread.requests.get.side_effect = queue.Empty
     mock_thread.responses.get.side_effect = queue.Empty
@@ -856,14 +880,19 @@ def test_cancel_empty_queues(mock_thread):
     assert slist.thread.cancel is True
 
 
-def test_paste_selection_after_into_or_after():
+def test_paste_selection_after_into_or_after() -> None:
     """Test paste_selection with INTO_OR_AFTER."""
     slist = Document()
     slist.add_page(1, None, 101)
 
     data_to_paste = [[1, None, 101]]
 
-    def mock_send(cmd, _args, data_callback=None, finished_callback=None):
+    def mock_send(
+        cmd: str,
+        _args: object,
+        data_callback: Callable[[object], object] | None = None,
+        finished_callback: Callable[..., object] | None = None,
+    ) -> None:
         del finished_callback
         if cmd == "clone_pages":
             response = MagicMock()
@@ -879,7 +908,7 @@ def test_paste_selection_after_into_or_after():
     assert slist.data[1][2] == 102
 
 
-def test_cancel_with_pid_1(mock_thread):
+def test_cancel_with_pid_1(mock_thread: MagicMock) -> None:
     """Test cancel method does not kill PID 1."""
     mock_thread.running_pids = {"pid1.pid": "pid1.pid"}
     slist = Document()
@@ -892,7 +921,7 @@ def test_cancel_with_pid_1(mock_thread):
         mock_killpg.assert_not_called()
 
 
-def test_cancel_with_empty_pid(mock_thread):
+def test_cancel_with_empty_pid(mock_thread: MagicMock) -> None:
     """Test cancel method with empty pid from slurp."""
     mock_thread.running_pids = {"empty.pid": "empty.pid"}
     slist = Document()
@@ -905,7 +934,7 @@ def test_cancel_with_empty_pid(mock_thread):
         mock_killpg.assert_not_called()
 
 
-def test_cancel_already_dead_pid(mock_thread):
+def test_cancel_already_dead_pid(mock_thread: MagicMock) -> None:
     """Test cancel handles a pid that is already dead (ProcessLookupError)."""
     mock_thread.running_pids = {"dead.pid": "dead.pid"}
     slist = Document()
@@ -919,7 +948,7 @@ def test_cancel_already_dead_pid(mock_thread):
     assert "dead.pid" not in slist.thread.running_pids, "pidfile deregistered"
 
 
-def test_delete_selection_callback_removes_rows():
+def test_delete_selection_callback_removes_rows() -> None:
     """Test delete_selection data_callback removes rows from model."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -928,7 +957,12 @@ def test_delete_selection_callback_removes_rows():
     # We need to trigger the _data_callback in delete_selection
     captured = {}
 
-    def mock_send(cmd, args, data_callback=None, **kwargs):
+    def mock_send(
+        cmd: str,
+        args: object,
+        data_callback: Callable[[object], object] | None = None,
+        **kwargs: object,
+    ) -> None:
         del args, kwargs
         if cmd == "delete_pages":
             captured["data_callback"] = data_callback
@@ -948,7 +982,7 @@ def test_delete_selection_callback_removes_rows():
     assert len(slist.get_model()) == 0
 
 
-def test_delete_all_pages_sends_page_ids_and_clears_on_response():
+def test_delete_all_pages_sends_page_ids_and_clears_on_response() -> None:
     """Test delete_all_pages sends all page ids and clears rows in data_callback."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -956,7 +990,12 @@ def test_delete_all_pages_sends_page_ids_and_clears_on_response():
 
     captured = {}
 
-    def mock_send(cmd, args, data_callback=None, **kwargs):
+    def mock_send(
+        cmd: str,
+        args: object,
+        data_callback: Callable[[object], object] | None = None,
+        **kwargs: object,
+    ) -> None:
         captured["cmd"] = cmd
         captured["args"] = args
         captured["data_callback"] = data_callback
@@ -983,14 +1022,19 @@ def test_delete_all_pages_sends_page_ids_and_clears_on_response():
     finished.assert_called_once_with()
 
 
-def test_delete_all_pages_finished_called_on_other_response():
+def test_delete_all_pages_finished_called_on_other_response() -> None:
     """Test delete_all_pages calls finished_callback even for other responses."""
     slist = Document()
     slist.add_page(1, None, 101)
 
     captured = {}
 
-    def mock_send(cmd, _args, data_callback=None, **kwargs):
+    def mock_send(
+        cmd: str,
+        _args: object,
+        data_callback: Callable[[object], object] | None = None,
+        **kwargs: object,
+    ) -> None:
         del cmd, kwargs
         captured["data_callback"] = data_callback
 
@@ -1006,14 +1050,19 @@ def test_delete_all_pages_finished_called_on_other_response():
     finished.assert_called_once_with()
 
 
-def test_delete_all_pages_without_finished_callback():
+def test_delete_all_pages_without_finished_callback() -> None:
     """Test delete_all_pages works without a finished_callback."""
     slist = Document()
     slist.add_page(1, None, 101)
 
     captured = {}
 
-    def mock_send(cmd, args, data_callback=None, **kwargs):
+    def mock_send(
+        cmd: str,
+        args: object,
+        data_callback: Callable[[object], object] | None = None,
+        **kwargs: object,
+    ) -> None:
         del cmd
         captured["args"] = args
         captured["data_callback"] = data_callback
@@ -1032,7 +1081,7 @@ def test_delete_all_pages_without_finished_callback():
     assert len(slist.get_model()) == 0
 
 
-def test_delete_selection_extra_signal():
+def test_delete_selection_extra_signal() -> None:
     """Test delete_selection_extra emits changed signal."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -1050,7 +1099,7 @@ def test_delete_selection_extra_signal():
     mock_changed.assert_called()
 
 
-def test_paste_selection_insert_after():
+def test_paste_selection_insert_after() -> None:
     """Test paste_selection with Gtk.TreeViewDropPosition.AFTER."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -1058,7 +1107,12 @@ def test_paste_selection_insert_after():
 
     data_to_paste = [[1, None, 101]]
 
-    def mock_send(cmd, _args, data_callback=None, finished_callback=None):
+    def mock_send(
+        cmd: str,
+        _args: object,
+        data_callback: Callable[[object], object] | None = None,
+        finished_callback: Callable[..., object] | None = None,
+    ) -> None:
         del finished_callback
         if cmd == "clone_pages":
             response = MagicMock()
@@ -1076,7 +1130,7 @@ def test_paste_selection_insert_after():
     assert slist.data[1][0] == 2  # renumbered to dest-1[0] + 1 = 1 + 1 = 2
 
 
-def test_delete_renumbers():
+def test_delete_renumbers() -> None:
     """Delete renumbers remaining pages consecutively."""
     slist = Document()
     slist.add_page(1, None, 101)
@@ -1087,7 +1141,7 @@ def test_delete_renumbers():
     slist.select(1)  # select page 2
     mlp = safe_mainloop()
 
-    def _done(_result=None):
+    def _done(_result: object = None) -> None:
         mlp.quit()
 
     slist.delete_selection(finished_callback=_done)
@@ -1097,7 +1151,7 @@ def test_delete_renumbers():
     assert [row[2] for row in slist.data] == [101, 103], "correct pages remain"
 
 
-def test_create_pidfile_ioerror():
+def test_create_pidfile_ioerror() -> None:
     """Test create_pidfile with IOError."""
     slist = Document()
     # Mock tempfile.TemporaryFile to raise IOError
@@ -1105,7 +1159,7 @@ def test_create_pidfile_ioerror():
         assert slist.create_pidfile({}) is None
 
 
-def test_open_session_error_callback():
+def test_open_session_error_callback() -> None:
     """Test open_session error callback during send."""
     slist = Document()
     temp_dir = tempfile.mkdtemp()
@@ -1114,8 +1168,8 @@ def test_open_session_error_callback():
     db_path.write_text("dummy", encoding="utf-8")
     errors = []
 
-    def mock_send(_process, *_args, **kwargs):
-        def run_callbacks():
+    def mock_send(_process: str, *_args: object, **kwargs: object) -> MagicMock:
+        def run_callbacks() -> bool:
             if "error_callback" in kwargs:
                 response = MagicMock()
                 response.status = "open failed"

@@ -1,8 +1,10 @@
 """Coverage tests for SessionMixins."""
 
+from __future__ import annotations
+
 import logging
 import pathlib
-from typing import ClassVar
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import gi
@@ -12,12 +14,18 @@ from scantpaper.basethread import Request, Response, ResponseType
 from scantpaper.const import EMPTY
 from scantpaper.session_mixins import SessionMixins
 
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
+    from typing import ClassVar
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
 
 @pytest.fixture
-def mock_session_window(mocker):
+def mock_session_window(
+    mocker: pytest.MockerFixture,
+) -> Generator[object, None, None]:
     """Fixture to provide a configured MockWindow."""
     mock_app = mocker.Mock()
 
@@ -68,7 +76,7 @@ def mock_session_window(mocker):
         rotate_270 = mocker.Mock()
         _pack_viewer_tools = mocker.Mock()
 
-        def get_application(self, *_args, **_kwargs):
+        def get_application(self, *_args: object, **_kwargs: object) -> object:
             """Mock."""
             return mock_app
 
@@ -102,7 +110,9 @@ def mock_session_window(mocker):
     window.destroy()
 
 
-def test_create_temp_directory_success(mocker, mock_session_window):
+def test_create_temp_directory_success(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _create_temp_directory success."""
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp/found")
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
@@ -122,7 +132,9 @@ def test_create_temp_directory_success(mocker, mock_session_window):
     assert mock_session_window.session == mock_temp_dir_instance
 
 
-def test_create_temp_directory_no_tmpdir(mocker, mock_session_window):
+def test_create_temp_directory_no_tmpdir(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _create_temp_directory when get_tmp_dir returns None."""
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value=None)
     mocker.patch("scantpaper.session_mixins.fcntl.lockf")
@@ -136,7 +148,9 @@ def test_create_temp_directory_no_tmpdir(mocker, mock_session_window):
     mock_temp_dir.assert_called_with(prefix="scantpaper-")
 
 
-def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
+def test_create_temp_directory_empty_tmpdir(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _create_temp_directory when get_tmp_dir returns EMPTY."""
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value=EMPTY)
     mocker.patch("scantpaper.session_mixins.fcntl.lockf")
@@ -150,7 +164,9 @@ def test_create_temp_directory_empty_tmpdir(mocker, mock_session_window):
     mock_temp_dir.assert_called_with(prefix="scantpaper-")
 
 
-def test_create_temp_directory_fallback(mocker, mock_session_window):
+def test_create_temp_directory_fallback(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _create_temp_directory fallback when preferred dir fails."""
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp/bad")
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
@@ -176,7 +192,9 @@ def test_create_temp_directory_fallback(mocker, mock_session_window):
     mock_temp_dir.assert_any_call(prefix="scantpaper-")
 
 
-def test_create_temp_directory_non_existent_tmpdir(mocker, mock_session_window):
+def test_create_temp_directory_non_existent_tmpdir(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _create_temp_directory when tmpdir does not exist."""
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp/new")
     mocker.patch.object(pathlib.Path, "is_dir", return_value=False)
@@ -190,7 +208,9 @@ def test_create_temp_directory_non_existent_tmpdir(mocker, mock_session_window):
     mock_mkdir.assert_called_once_with()
 
 
-def test_check_dependencies(mocker, mock_session_window):
+def test_check_dependencies(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _check_dependencies."""
     mocker.patch("tesserocr.tesseract_version", return_value="4.0")
     mocker.patch("tesserocr.__version__", return_value="2.5")
@@ -213,7 +233,9 @@ def test_check_dependencies(mocker, mock_session_window):
     assert mock_session_window._dependencies["imagemagick"] == "1.0"
 
 
-def test_check_dependencies_graphicsmagick_fallback(mocker, mock_session_window):
+def test_check_dependencies_graphicsmagick_fallback(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _check_dependencies with GraphicsMagick fallback."""
     mocker.patch("tesserocr.tesseract_version", return_value=None)
     mocker.patch("tesserocr.__version__", return_value="2.5")
@@ -221,7 +243,7 @@ def test_check_dependencies_graphicsmagick_fallback(mocker, mock_session_window)
 
     mock_program_version = mocker.patch("scantpaper.session_mixins.program_version")
 
-    def side_effect(stream, regex, cmd):
+    def side_effect(stream: str, regex: object, cmd: list[str]) -> str | None:
         del stream, regex
         if "gm" in cmd:
             return "1.3"
@@ -234,7 +256,7 @@ def test_check_dependencies_graphicsmagick_fallback(mocker, mock_session_window)
     mock_session_window._show_message_dialog.assert_called()
 
 
-def test_zoom_methods(mock_session_window):
+def test_zoom_methods(mock_session_window: object) -> None:
     """Test zoom methods."""
     mock_session_window.zoom_100(None, None)
     mock_session_window.view.set_zoom.assert_called_with(1.0)
@@ -249,7 +271,9 @@ def test_zoom_methods(mock_session_window):
     mock_session_window.view.zoom_out.assert_called_once()
 
 
-def test_find_crashed_sessions_default_tmpdir_none(mocker, mock_session_window):
+def test_find_crashed_sessions_default_tmpdir_none(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _find_crashed_sessions when get_tmp_dir returns None."""
     mocker.patch.object(pathlib.Path, "glob", return_value=[])
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value=None)
@@ -262,7 +286,9 @@ def test_find_crashed_sessions_default_tmpdir_none(mocker, mock_session_window):
     mock_session_window._open_session.assert_not_called()
 
 
-def test_find_crashed_sessions_default_tmpdir_empty(mocker, mock_session_window):
+def test_find_crashed_sessions_default_tmpdir_empty(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _find_crashed_sessions when get_tmp_dir returns EMPTY."""
     mocker.patch.object(pathlib.Path, "glob", return_value=[])
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value=EMPTY)
@@ -275,7 +301,9 @@ def test_find_crashed_sessions_default_tmpdir_empty(mocker, mock_session_window)
     mock_session_window._open_session.assert_not_called()
 
 
-def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
+def test_find_crashed_sessions_running_sessions(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _find_crashed_sessions with currently running sessions (locked)."""
     mocker.patch.object(
         pathlib.Path, "glob", return_value=["/tmp/scantpaper-other.sdb"]
@@ -292,7 +320,9 @@ def test_find_crashed_sessions_running_sessions(mocker, mock_session_window):
     mock_session_window._open_session.assert_not_called()
 
 
-def test_find_crashed_sessions_skips_current(mocker, mock_session_window):
+def test_find_crashed_sessions_skips_current(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _find_crashed_sessions skips the current running session."""
     mocker.patch.object(
         pathlib.Path, "glob", return_value=["/tmp/scantpaper-running.sdb"]
@@ -309,7 +339,9 @@ def test_find_crashed_sessions_skips_current(mocker, mock_session_window):
     mock_session_window._open_session.assert_not_called()
 
 
-def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
+def test_find_crashed_sessions_recoverable(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _find_crashed_sessions with a recoverable session."""
     mocker.patch.object(
         pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashed.sdb"]
@@ -337,7 +369,9 @@ def test_find_crashed_sessions_recoverable(mocker, mock_session_window):
     mock_session_window._open_session.assert_called_with("/tmp/scantpaper-crashed.sdb")
 
 
-def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window):
+def test_find_crashed_sessions_recoverable_no_select(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _find_crashed_sessions with a recoverable session but no selection."""
     mocker.patch.object(pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashed"])
     mock_session_window.session = mocker.Mock()
@@ -356,7 +390,9 @@ def test_find_crashed_sessions_recoverable_no_select(mocker, mock_session_window
     mock_session_window._open_session.assert_not_called()
 
 
-def test_find_crashed_sessions_with_path_objects(mocker, mock_session_window):
+def test_find_crashed_sessions_with_path_objects(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Real Path results from glob never reach the str-typed SimpleList.
 
     Regression test for a startup TypeError where a pathlib.Path value from
@@ -383,7 +419,9 @@ def test_find_crashed_sessions_with_path_objects(mocker, mock_session_window):
     mock_session_window._open_session.assert_not_called()
 
 
-def test_finished_process_callback(mocker, mock_session_window):
+def test_finished_process_callback(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _finished_process_callback."""
     mock_session_window._scan_progress = mocker.Mock()
 
@@ -403,7 +441,7 @@ def test_finished_process_callback(mocker, mock_session_window):
     mock_session_window._ask_question = mocker.Mock(return_value=Gtk.ResponseType.OK)
 
     # idle_add needed because the callback runs inside it
-    def immediate_idle_add(f, *args):
+    def immediate_idle_add(f: object, *args: object) -> bool:
         f(*args)
         return True
 
@@ -420,7 +458,9 @@ def test_finished_process_callback(mocker, mock_session_window):
     assert mock_widget.side_to_scan == "facing"
 
 
-def test_display_callback(mocker, mock_session_window):
+def test_display_callback(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _display_callback."""
     mock_response = mocker.Mock()
     mock_response.info = {"row": [None, None, "uuid-123"]}
@@ -439,7 +479,9 @@ def test_display_callback(mocker, mock_session_window):
     mock_session_window._display_callback(mock_response)
 
 
-def test_display_image(mocker, mock_session_window):
+def test_display_image(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _display_image."""
     mock_page = mocker.Mock()
     mock_page.get_pixbuf.return_value = "pixbuf"
@@ -459,7 +501,7 @@ def test_display_image(mocker, mock_session_window):
     # Capture the callbacks passed to send()
     captured_callbacks = {}
 
-    def capture_send(process, *_args, **kwargs):
+    def capture_send(process: object, *_args: object, **kwargs: object) -> object:
         del process
         captured_callbacks["finished_callback"] = kwargs.get("finished_callback")
         captured_callbacks["error_callback"] = kwargs.get("error_callback")
@@ -520,14 +562,18 @@ def test_display_image(mocker, mock_session_window):
     mock_session_window._display_image("nonexistent_page")
 
 
-def test_display_image_error(caplog, mocker, mock_session_window):
+def test_display_image_error(
+    caplog: pytest.LogCaptureFixture,
+    mocker: pytest.MockerFixture,
+    mock_session_window: object,
+) -> None:
     """Test _display_image error callback."""
     mock_session_window.slist.find_page_by_uuid.return_value = 0
     mock_session_window.slist.data = [["page_num", None, "page_id"]]
 
     captured_callbacks = {}
 
-    def capture_send(process, *_args, **kwargs):
+    def capture_send(process: object, *_args: object, **kwargs: object) -> object:
         del process
         captured_callbacks["error_callback"] = kwargs.get("error_callback")
         return mocker.Mock()
@@ -544,7 +590,9 @@ def test_display_image_error(caplog, mocker, mock_session_window):
     assert "Error loading page page_id: Some error" in caplog.text
 
 
-def test_display_image_suppressed_no_get_page(mocker, mock_session_window):
+def test_display_image_suppressed_no_get_page(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _display_image shows only the thumbnail while import suppresses full-res."""
     mock_session_window.slist.find_page_by_uuid.return_value = 0
     mock_thumbnail = mocker.Mock()
@@ -564,7 +612,7 @@ def test_display_image_suppressed_no_get_page(mocker, mock_session_window):
     assert not sent_requests, "no get_page while import is in progress"
 
 
-def test_display_image_not_suppressed_sends(mock_session_window):
+def test_display_image_not_suppressed_sends(mock_session_window: object) -> None:
     """Test a _display_image call sends get_page when not suppressed."""
     mock_session_window.slist.find_page_by_uuid.return_value = 0
     mock_session_window.slist.data = [["page_num", None, "page_id"]]
@@ -581,7 +629,9 @@ def test_display_image_not_suppressed_sends(mock_session_window):
     assert sent_requests[0][0] == "get_page"
 
 
-def test_error_callback(mocker, mock_session_window):
+def test_error_callback(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _error_callback."""
     mock_response = mocker.Mock()
     mock_response.request.args = [{"page": "uuid-123"}]
@@ -594,7 +644,7 @@ def test_error_callback(mocker, mock_session_window):
 
     mock_session_window.post_process_progress = mocker.Mock()
 
-    def immediate_idle_add(f, *args):
+    def immediate_idle_add(f: object, *args: object) -> bool:
         f(*args)
         return True
 
@@ -610,7 +660,9 @@ def test_error_callback(mocker, mock_session_window):
     mock_session_window._error_callback(mock_response)
 
 
-def test_ask_question(mocker, mock_session_window):
+def test_ask_question(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _ask_question."""
     mocker.patch(
         "scantpaper.session_mixins.filter_message", return_value="filtered_text"
@@ -658,7 +710,9 @@ def test_ask_question(mocker, mock_session_window):
     assert response == Gtk.ResponseType.CANCEL
 
 
-def test_ask_question_with_default_response(mocker, mock_session_window):
+def test_ask_question_with_default_response(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _ask_question with default-response."""
     mocker.patch(
         "scantpaper.session_mixins.filter_message", return_value="filtered_text"
@@ -681,7 +735,9 @@ def test_ask_question_with_default_response(mocker, mock_session_window):
     mock_dialog.set_default_response.assert_called_with(Gtk.ResponseType.OK)
 
 
-def test_ocr_text_operations(mocker, mock_session_window):
+def test_ocr_text_operations(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test OCR text operations: add, copy, delete."""
     mock_session_window.slist.thread._take_snapshot = mocker.Mock()
     mock_session_window._ocr_text_hbox = mocker.Mock()
@@ -734,7 +790,9 @@ def test_ocr_text_operations(mocker, mock_session_window):
     mock_session_window._current_ocr_bbox.update_box.assert_called()
 
 
-def test_annotation_operations(mocker, mock_session_window):
+def test_annotation_operations(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test annotation operations: ok, new, delete."""
     mock_session_window._ann_hbox = mocker.Mock()
     mock_session_window._ann_hbox.textbuffer.get_text.return_value = "ann text"
@@ -758,7 +816,9 @@ def test_annotation_operations(mocker, mock_session_window):
     mock_session_window._current_ann_bbox.delete_box.assert_called()
 
 
-def test_add_text_view_layers(mocker, mock_session_window):
+def test_add_text_view_layers(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _add_text_view_layers."""
     mocker.patch("scantpaper.session_mixins.TextLayerControls")
     mock_edit_hbox = mocker.Mock()
@@ -771,7 +831,9 @@ def test_add_text_view_layers(mocker, mock_session_window):
     assert mock_session_window._ann_hbox is not None
 
 
-def test_edit_mode_callback(mocker, mock_session_window):
+def test_edit_mode_callback(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _edit_mode_callback."""
     mock_action = mocker.Mock()
     mock_param = mocker.Mock()
@@ -792,7 +854,9 @@ def test_edit_mode_callback(mocker, mock_session_window):
     mock_session_window._ann_hbox.show.assert_called()
 
 
-def test_edit_ocr_text(mocker, mock_session_window):
+def test_edit_ocr_text(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _edit_ocr_text."""
     mock_bbox = mocker.Mock()
     mock_bbox.text = "some text"
@@ -814,7 +878,9 @@ def test_edit_ocr_text(mocker, mock_session_window):
     mock_session_window.t_canvas.set_index_by_bbox.assert_called_with(mock_bbox)
 
 
-def test_edit_annotation(mocker, mock_session_window):
+def test_edit_annotation(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _edit_annotation."""
     mock_bbox = mocker.Mock()
     mock_bbox.text = "some text"
@@ -830,7 +896,7 @@ def test_edit_annotation(mocker, mock_session_window):
     mock_session_window.a_canvas.set_index_by_bbox.assert_called_with(mock_bbox)
 
 
-def test_tool_actions(mock_session_window):
+def test_tool_actions(mock_session_window: object) -> None:
     """Test tool action callbacks."""
     mock_session_window._on_zoom_100(None)
     mock_session_window._on_zoom_to_fit(None)
@@ -858,10 +924,15 @@ def test_tool_actions(mock_session_window):
     mock_session_window.get_application().quit.assert_called()
 
 
-def test_create_txt_ann_canvas(mocker, mock_session_window):
+def test_create_txt_ann_canvas(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _create_txt_canvas and _create_ann_canvas."""
 
-    def sync_parse(_json_string, finished_callback=None):
+    def sync_parse(
+        _json_string: object,
+        finished_callback: Callable[[object], None] | None = None,
+    ) -> None:
         mock_result = mocker.Mock()
         mock_result.info = {
             "bboxes": [{"bbox": [0, 0, 100, 100]}],
@@ -886,7 +957,9 @@ def test_create_txt_ann_canvas(mocker, mock_session_window):
     mock_session_window.a_canvas.set_offset.assert_called_with(10, 20)
 
 
-def test_create_txt_ann_canvas_no_layer(mocker, mock_session_window):
+def test_create_txt_ann_canvas_no_layer(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _create_txt_canvas and _create_ann_canvas with no layers."""
     mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
     mock_page = mocker.Mock()
@@ -904,7 +977,9 @@ def test_create_txt_ann_canvas_no_layer(mocker, mock_session_window):
     callback.assert_called_once()
 
 
-def test_ann_text_new_no_layer(mocker, mock_session_window):
+def test_ann_text_new_no_layer(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _ann_text_new with no existing text layer and empty text."""
     mock_session_window._ann_hbox = mocker.Mock()
     # Line 643 coverage: text is EMPTY
@@ -916,10 +991,10 @@ def test_ann_text_new_no_layer(mocker, mock_session_window):
     del mock_page.text_layer
     page_data = {"width": 100, "height": 100}
 
-    def getitem(key):
+    def getitem(key: str) -> object | None:
         return page_data.get(key)
 
-    def setitem(key, value):
+    def setitem(key: str, value: object) -> None:
         page_data[key] = value
 
     mock_page.__getitem__.side_effect = getitem
@@ -934,7 +1009,9 @@ def test_ann_text_new_no_layer(mocker, mock_session_window):
     }
 
     # Line 671-672 coverage: need to call the callback passed to _create_ann_canvas
-    def create_ann_canvas_side_effect(_page, callback):
+    def create_ann_canvas_side_effect(
+        _page: object, callback: Callable[[object], None]
+    ) -> None:
         callback(None)
 
     mock_session_window._create_ann_canvas = mocker.Mock(
@@ -952,7 +1029,9 @@ def test_ann_text_new_no_layer(mocker, mock_session_window):
     mock_session_window._edit_annotation.assert_called()
 
 
-def test_ocr_text_add_no_layer(mocker, mock_session_window):
+def test_ocr_text_add_no_layer(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _ocr_text_add with no existing text layer and empty text."""
     mock_session_window._ocr_text_hbox = mocker.Mock()
     # Line 587 coverage: text is EMPTY
@@ -964,7 +1043,7 @@ def test_ocr_text_add_no_layer(mocker, mock_session_window):
     del mock_page.text_layer
     page_data = {"width": 100, "height": 100}
 
-    def getitem(key):
+    def getitem(key: str) -> object | None:
         return page_data.get(key)
 
     mock_page.__getitem__.side_effect = getitem
@@ -979,7 +1058,9 @@ def test_ocr_text_add_no_layer(mocker, mock_session_window):
     }
 
     # Line 615-616 coverage: need to call the callback passed to _create_txt_canvas
-    def create_txt_canvas_side_effect(_page, callback):
+    def create_txt_canvas_side_effect(
+        _page: object, callback: Callable[[object], None]
+    ) -> None:
         callback(None)
 
     mock_session_window._create_txt_canvas = mocker.Mock(
@@ -1007,7 +1088,7 @@ class MockApp(SessionMixins):
         self.slist.data = [[1, None, 1]]
 
         # find_page_by_uuid returns index if found, else None
-        def find_side_effect(_page_id):
+        def find_side_effect(_page_id: object) -> None:
             return None
 
         self.slist.find_page_by_uuid.side_effect = find_side_effect
@@ -1017,7 +1098,9 @@ class MockApp(SessionMixins):
         self._show_message_dialog = MagicMock()
 
 
-def test_error_callback_with_corrupted_args(caplog):
+def test_error_callback_with_corrupted_args(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test that _error_callback does not crash on corrupted request args.
 
     E.g. page UUID replaced by an object, or key missing. It should log
@@ -1049,7 +1132,9 @@ def test_error_callback_with_corrupted_args(caplog):
     )
 
 
-def test_error_callback_with_missing_page_key(caplog):
+def test_error_callback_with_missing_page_key(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test that _error_callback does not crash when the 'page' key is missing.
 
     It should log correctly.
@@ -1079,7 +1164,9 @@ def test_error_callback_with_missing_page_key(caplog):
     )
 
 
-def test_error_callback_with_trace(mocker, mock_session_window):
+def test_error_callback_with_trace(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
     """Test _error_callback with a stack trace."""
     mock_response = mocker.Mock()
     mock_response.request.args = [{}]
@@ -1096,7 +1183,7 @@ def test_error_callback_with_trace(mocker, mock_session_window):
     mock_logger = mocker.patch("scantpaper.session_mixins.logger")
 
     # Mock idle_add to run the callback immediately
-    def immediate_idle_add(f, *args):
+    def immediate_idle_add(f: object, *args: object) -> bool:
         f(*args)
         return True
 

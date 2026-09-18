@@ -1,5 +1,7 @@
 """Test saving a djvu."""
 
+from __future__ import annotations
+
 import codecs
 import datetime
 import pathlib
@@ -7,6 +9,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,11 +19,19 @@ from scantpaper import config
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu):
+def test_save_djvu1(
+    import_in_mainloop: Callable[[object, list[str]], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_djvu: object,
+) -> None:
     """Test saving a djvu."""
     slist = Document(db=temp_db.name)
 
@@ -44,13 +55,13 @@ def test_save_djvu1(import_in_mainloop, rose_pnm, temp_db, temp_djvu):
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu_text_layer(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_djvu,
-    temp_txt,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_djvu: object,
+    temp_txt: object,
+) -> None:
     """Test saving a djvu with text layer."""
     slist = Document(db=temp_db.name)
 
@@ -85,14 +96,14 @@ def test_save_djvu_text_layer(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu_with_hocr(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    set_annotations_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_djvu,
-    get_page_sync,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    set_annotations_in_mainloop: Callable[[object, str, object], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_djvu: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test saving a djvu with text layer from HOCR."""
     slist = Document(db=temp_db.name)
 
@@ -146,13 +157,13 @@ def test_save_djvu_with_hocr(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_cancel_save_djvu(
-    rose_pnm,
-    temp_db,
-    temp_jpg,
-    import_in_mainloop,
-    set_text_in_mainloop,
-    temp_djvu,
-):
+    rose_pnm: str,
+    temp_db: object,
+    temp_jpg: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    temp_djvu: object,
+) -> None:
     """Test cancel saving a DjVu."""
     slist = Document(db=temp_db.name)
 
@@ -171,7 +182,7 @@ def test_cancel_save_djvu(
     mlp = safe_mainloop(2000)
     called = False
 
-    def cancelled_callback(_response):
+    def cancelled_callback(_response: object) -> None:
         nonlocal called
         called = True
         mlp.quit()
@@ -204,7 +215,11 @@ def test_cancel_save_djvu(
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
+def test_save_djvu_with_error(
+    rose_pnm: str,
+    temp_djvu: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving a djvu and triggering an error."""
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
@@ -215,7 +230,7 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
         # inject error before save_djvu
         pathlib.Path(dirname).chmod(0o500)  # no write access
 
-        def error_callback1(_page, _process, _message):
+        def error_callback1(_page: object, _process: str, _message: object) -> None:
             """No write access."""
             assert True, "caught error injected before save_djvu"
             nonlocal asserts
@@ -230,7 +245,7 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
         )
         mlp.run()
 
-        def error_callback2(_page, _process, _message):
+        def error_callback2(_page: object, _process: str, _message: object) -> None:
             assert True, "save_djvu caught error injected in queue"
             pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
@@ -252,12 +267,12 @@ def test_save_djvu_with_error(rose_pnm, temp_djvu, import_in_mainloop):
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu_with_float_resolution(
-    rose_png,
-    temp_db,
-    temp_djvu,
-    import_in_mainloop,
-    set_resolution_in_mainloop,
-):
+    rose_png: str,
+    temp_db: object,
+    temp_djvu: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_resolution_in_mainloop: Callable[[object, str, float, float], None],
+) -> None:
     """Test saving a djvu with resolution as float."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png])
@@ -280,8 +295,11 @@ def test_save_djvu_with_float_resolution(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_save_djvu_different_resolutions(
-    temp_png, temp_db, temp_djvu, import_in_mainloop
-):
+    temp_png: object,
+    temp_db: object,
+    temp_djvu: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving a djvu with different resolutions."""
     subprocess.run(
         [config.CONVERT_COMMAND, "rose:", "-density", "100x200", temp_png.name],
@@ -309,7 +327,12 @@ def test_save_djvu_different_resolutions(
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloop):
+def test_save_djvu_with_metadata(
+    rose_pnm: str,
+    temp_db: object,
+    temp_djvu: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving a djvu with metadata."""
     slist = Document(db=temp_db.name)
 
@@ -346,7 +369,12 @@ def test_save_djvu_with_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloo
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_save_djvu_with_old_metadata(rose_pnm, temp_db, temp_djvu, import_in_mainloop):
+def test_save_djvu_with_old_metadata(
+    rose_pnm: str,
+    temp_db: object,
+    temp_djvu: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving a djvu with old metadata."""
     slist = Document(db=temp_db.name)
 
@@ -354,7 +382,7 @@ def test_save_djvu_with_old_metadata(rose_pnm, temp_db, temp_djvu, import_in_mai
 
     called = False
 
-    def error_callback(_result):
+    def error_callback(_result: object) -> None:
         nonlocal called
         called = True
         mlp.quit()

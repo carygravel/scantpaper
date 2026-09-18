@@ -1,7 +1,9 @@
 """Test tool_menu_mixins.py."""
 
+from __future__ import annotations
+
 import datetime
-from typing import ClassVar
+from typing import TYPE_CHECKING
 
 import gi
 import pytest
@@ -9,6 +11,10 @@ import pytest
 from scantpaper.const import _90_DEGREES, _180_DEGREES
 from scantpaper.helpers import Proc
 from scantpaper.tools_menu_mixins import ToolsMenuMixins
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from typing import ClassVar
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -20,7 +26,9 @@ _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
 @pytest.fixture
-def mock_tool_window(mocker):
+def mock_tool_window(
+    mocker: pytest.MockerFixture,
+) -> Generator[object, None, None]:
     """Fixture to provide a configured MockWindow."""
     mock_app = mocker.Mock()
 
@@ -46,11 +54,11 @@ def mock_tool_window(mocker):
         _pref_udt_cmbx = None
         session = None
 
-        def get_application(self, *_args, **_kwargs):
+        def get_application(self, *_args: object, **_kwargs: object) -> object:
             """Mock."""
             return mock_app
 
-        def _show_message_dialog(self, **kwargs):
+        def _show_message_dialog(self, **kwargs: object) -> None:
             """Mock."""
 
     # Instantiate
@@ -68,14 +76,14 @@ def mock_tool_window(mocker):
     window.destroy()
 
 
-def _trigger_apply(mock_dialog_instance):
+def _trigger_apply(mock_dialog_instance: object) -> None:
     """Find and trigger the apply/ok action."""
     args, _ = mock_dialog_instance.add_actions.call_args
     apply_cb = next(cb for name, cb in args[0] if name in ("gtk-apply", "gtk-ok"))
     apply_cb()
 
 
-def test_rotate_90(mock_tool_window):
+def test_rotate_90(mock_tool_window: object) -> None:
     """Test rotate_90."""
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
@@ -88,7 +96,7 @@ def test_rotate_90(mock_tool_window):
     assert call_kwargs["page"] == "pageobject"
 
 
-def test_rotate_180(mock_tool_window):
+def test_rotate_180(mock_tool_window: object) -> None:
     """Test rotate_180."""
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
@@ -101,7 +109,7 @@ def test_rotate_180(mock_tool_window):
     assert call_kwargs["page"] == "pageobject"
 
 
-def test_rotate_270(mock_tool_window):
+def test_rotate_270(mock_tool_window: object) -> None:
     """Test rotate_270."""
     mock_tool_window.slist.get_selected_indices.return_value = [0]
     mock_tool_window.slist.indices2pages.return_value = ["pageobject"]
@@ -114,7 +122,9 @@ def test_rotate_270(mock_tool_window):
     assert call_kwargs["page"] == "pageobject"
 
 
-def test_threshold_dialog(mocker, mock_tool_window):
+def test_threshold_dialog(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test the threshold dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -142,7 +152,9 @@ def test_threshold_dialog(mocker, mock_tool_window):
     mock_tool_window.post_process_progress.finish.assert_called_with("response")
 
 
-def test_threshold_dialog_no_pages(mocker, mock_tool_window):
+def test_threshold_dialog_no_pages(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test the threshold dialog with no pages selected."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -156,7 +168,9 @@ def test_threshold_dialog_no_pages(mocker, mock_tool_window):
     mock_tool_window.slist.threshold.assert_not_called()
 
 
-def test_threshold_dialog_ink_strength_label(mocker, mock_tool_window):
+def test_threshold_dialog_ink_strength_label(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test the threshold dialog labels the slider as ink strength."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -182,7 +196,9 @@ def test_threshold_dialog_ink_strength_label(mocker, mock_tool_window):
     assert "Ink strength" in labels
 
 
-def test_brightness_contrast_dialog(mocker, mock_tool_window):
+def test_brightness_contrast_dialog(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test the brightness_contrast dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -211,7 +227,9 @@ def test_brightness_contrast_dialog(mocker, mock_tool_window):
     mock_tool_window.post_process_progress.finish.assert_called_with("response")
 
 
-def test_brightness_contrast_no_pages(mocker, mock_tool_window):
+def test_brightness_contrast_no_pages(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test brightness_contrast with no pages."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_tool_window.settings = {"brightness tool": 20, "contrast tool": 30}
@@ -223,7 +241,7 @@ def test_brightness_contrast_no_pages(mocker, mock_tool_window):
     mock_tool_window.slist.brightness_contrast.assert_not_called()
 
 
-def test_negate_dialog(mocker, mock_tool_window):
+def test_negate_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test the negate dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -250,7 +268,9 @@ def test_negate_dialog(mocker, mock_tool_window):
     mock_tool_window.post_process_progress.finish.assert_called_with("response")
 
 
-def test_negate_no_pages(mocker, mock_tool_window):
+def test_negate_no_pages(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test negate with no pages."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_tool_window.settings = {"Page range": "selected"}
@@ -262,7 +282,7 @@ def test_negate_no_pages(mocker, mock_tool_window):
     mock_tool_window.slist.negate.assert_not_called()
 
 
-def test_unsharp(mocker, mock_tool_window):
+def test_unsharp(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test the unsharp dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -297,7 +317,9 @@ def test_unsharp(mocker, mock_tool_window):
     mock_tool_window.post_process_progress.finish.assert_called_with("response")
 
 
-def test_unsharp_no_pages(mocker, mock_tool_window):
+def test_unsharp_no_pages(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test unsharp with no pages."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_tool_window.settings = {
@@ -314,7 +336,7 @@ def test_unsharp_no_pages(mocker, mock_tool_window):
     mock_tool_window.slist.unsharp.assert_not_called()
 
 
-def test_crop_dialog(mocker, mock_tool_window):
+def test_crop_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test the crop dialog."""
     mock_crop_cls = mocker.patch("scantpaper.tools_menu_mixins.Crop")
     mock_crop_instance = mock_crop_cls.return_value
@@ -357,14 +379,18 @@ def test_crop_dialog(mocker, mock_tool_window):
     mock_tool_window.post_process_progress.finish.assert_called_with("response")
 
 
-def test_crop_dialog_existing(mocker, mock_tool_window):
+def test_crop_dialog_existing(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test the crop dialog when already open."""
     mock_tool_window._windowc = mocker.Mock()
     mock_tool_window.crop_dialog(None, None)
     mock_tool_window._windowc.present.assert_called_once()
 
 
-def test_crop_dialog_tool_activation(mocker, mock_tool_window):
+def test_crop_dialog_tool_activation(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test that crop dialog activates the combined tool if necessary."""
     mocker.patch("scantpaper.tools_menu_mixins.Crop")
     mock_page = mocker.Mock()
@@ -396,14 +422,14 @@ def test_crop_dialog_tool_activation(mocker, mock_tool_window):
     assert args[1].get_string() == "selectordragger"
 
 
-def test_crop_selection_no_selection(mock_tool_window):
+def test_crop_selection_no_selection(mock_tool_window: object) -> None:
     """Test crop_selection with no selection in settings."""
     mock_tool_window.settings = {"selection": None, "image_control_tool": "selector"}
     mock_tool_window.crop_selection(None, None)
     mock_tool_window.slist.crop.assert_not_called()
 
 
-def test_crop_selection_no_pages(mock_tool_window):
+def test_crop_selection_no_pages(mock_tool_window: object) -> None:
     """Test crop_selection with no pages selected."""
     mock_tool_window.settings = {
         "selection": "something",
@@ -414,7 +440,9 @@ def test_crop_selection_no_pages(mock_tool_window):
     mock_tool_window.slist.crop.assert_not_called()
 
 
-def test_crop_dialog_selection_change(mocker, mock_tool_window):
+def test_crop_dialog_selection_change(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test that crop dialog binds selection to view."""
     mock_crop_cls = mocker.patch("scantpaper.tools_menu_mixins.Crop")
     mock_crop_instance = mock_crop_cls.return_value
@@ -438,7 +466,7 @@ def test_crop_dialog_selection_change(mocker, mock_tool_window):
     )
 
 
-def test_split_dialog(mocker, mock_tool_window):
+def test_split_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test the split dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -466,7 +494,9 @@ def test_split_dialog(mocker, mock_tool_window):
     mock_tool_window.post_process_progress.finish.assert_called_with("response")
 
 
-def test_split_dialog_interaction(mocker, mock_tool_window):
+def test_split_dialog_interaction(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test split dialog interaction including horizontal split."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog = mock_dialog_cls.return_value
@@ -536,7 +566,7 @@ def test_split_dialog_interaction(mocker, mock_tool_window):
     mock_tool_window.view.disconnect.assert_called()
 
 
-def test_split_no_pages(mocker, mock_tool_window):
+def test_split_no_pages(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test split with no pages."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mocker.patch("scantpaper.tools_menu_mixins.ComboBoxText")
@@ -554,7 +584,9 @@ def test_split_no_pages(mocker, mock_tool_window):
     mock_tool_window.slist.split_page.assert_not_called()
 
 
-def test_split_selection_changed(mocker, mock_tool_window):
+def test_split_selection_changed(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test split dialog selection changed on view."""
     mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_combo_cls = mocker.patch("scantpaper.tools_menu_mixins.ComboBoxText")
@@ -583,7 +615,9 @@ def test_split_selection_changed(mocker, mock_tool_window):
     mock_spin.set_value.assert_called_with(30)  # 10 + 20
 
 
-def test_split_selection_changed_h(mocker, mock_tool_window):
+def test_split_selection_changed_h(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test split dialog selection changed on view."""
     mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_combo_cls = mocker.patch("scantpaper.tools_menu_mixins.ComboBoxText")
@@ -612,7 +646,7 @@ def test_split_selection_changed_h(mocker, mock_tool_window):
     mock_spin.set_value.assert_called_with(15)  # 10 + 5
 
 
-def test_unpaper_dialog(mocker, mock_tool_window):
+def test_unpaper_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test the unpaper dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -647,14 +681,16 @@ def test_unpaper_dialog(mocker, mock_tool_window):
     mock_tool_window.post_process_progress.finish.assert_called_with("response")
 
 
-def test_unpaper_dialog_existing(mocker, mock_tool_window):
+def test_unpaper_dialog_existing(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test unpaper_dialog when already open."""
     mock_tool_window._windowu = mocker.Mock()
     mock_tool_window.unpaper_dialog(None, None)
     mock_tool_window._windowu.present.assert_called_once()
 
 
-def test_ocr_dialog(mocker, mock_tool_window):
+def test_ocr_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test the ocr dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -697,7 +733,9 @@ def test_ocr_dialog(mocker, mock_tool_window):
     assert call_kwargs["pages"] == ["pageobject"]
 
 
-def test_ocr_dialog_no_pages(mocker, mock_tool_window):
+def test_ocr_dialog_no_pages(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test the ocr dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -733,14 +771,18 @@ def test_ocr_dialog_no_pages(mocker, mock_tool_window):
     _trigger_apply(mock_dialog_instance)
 
 
-def test_ocr_dialog_existing(mocker, mock_tool_window):
+def test_ocr_dialog_existing(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test ocr_dialog when already open."""
     mock_tool_window._windowo = mocker.Mock()
     mock_tool_window.ocr_dialog(None, None)
     mock_tool_window._windowo.present.assert_called_once()
 
 
-def test_user_defined_dialog(mocker, mock_tool_window):
+def test_user_defined_dialog(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test the user_defined_dialog."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_dialog_instance = mock_dialog_cls.return_value
@@ -775,7 +817,9 @@ def test_user_defined_dialog(mocker, mock_tool_window):
     mock_tool_window.post_process_progress.finish.assert_called_with("response")
 
 
-def test_user_defined_no_pages(mocker, mock_tool_window):
+def test_user_defined_no_pages(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test user_defined with no pages."""
     mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
     mock_tool_window.settings = {"Page range": "selected"}
@@ -789,7 +833,7 @@ def test_user_defined_no_pages(mocker, mock_tool_window):
     mock_tool_window.slist.user_defined.assert_not_called()
 
 
-def test_email_dialog(mocker, mock_tool_window):
+def test_email_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test the email dialog."""
     mock_save_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.SaveDialog")
     mock_save_dialog_instance = mock_save_dialog_cls.return_value
@@ -843,14 +887,18 @@ def test_email_dialog(mocker, mock_tool_window):
     assert call_kwargs["options"]["user-password"] == "password"
 
 
-def test_email_dialog_existing(mocker, mock_tool_window):
+def test_email_dialog_existing(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test email dialog when already open."""
     mock_tool_window._windowe = mocker.Mock()
     mock_tool_window.email(None, None)
     mock_tool_window._windowe.present.assert_called_once()
 
 
-def test_email_execution_flow(mocker, mock_tool_window):
+def test_email_execution_flow(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test email execution including success and failure callback."""
     mock_save_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.SaveDialog")
     mock_save_dialog = mock_save_dialog_cls.return_value
@@ -921,7 +969,9 @@ def test_email_execution_flow(mocker, mock_tool_window):
     mock_tool_window._show_message_dialog.assert_called()
 
 
-def test_email_default_filename(mocker, mock_tool_window):
+def test_email_default_filename(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test email default filename fallback."""
     mock_save_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.SaveDialog")
     mock_save_dialog = mock_save_dialog_cls.return_value
@@ -975,7 +1025,9 @@ def test_email_default_filename(mocker, mock_tool_window):
     assert call_kwargs["path"] == "sess/document.pdf"
 
 
-def test_about_dialog_runs(mocker, mock_tool_window):
+def test_about_dialog_runs(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
     """Test that ToolsMenuMixins.about runs without error."""
     mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
 

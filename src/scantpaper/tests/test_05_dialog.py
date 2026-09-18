@@ -1,5 +1,7 @@
 """test dialog."""
 
+from __future__ import annotations
+
 import gi
 
 from scantpaper.dialog import Dialog, MultipleMessage
@@ -12,7 +14,7 @@ from gi.repository import (  # noqa: E402
 )
 
 
-def test_dialog():
+def test_dialog() -> None:
     """Test dialog."""
     window = Gtk.Window()
     dialog = Dialog(title="title", transient_for=window)
@@ -27,7 +29,7 @@ def test_dialog():
 
     finalized = False
 
-    def on_finalized():
+    def on_finalized() -> None:
         nonlocal finalized
         finalized = True
 
@@ -56,7 +58,7 @@ def test_dialog():
 
     dialog = Dialog()
 
-    def on_key_press_event(_widget, _event):
+    def on_key_press_event(_widget: Gtk.Widget, _event: Gdk.Event) -> None:
         assert event.keyval == Gdk.KEY_Delete, "other key press events still propagate"
 
     dialog.connect_after("key-press-event", on_key_press_event)
@@ -69,7 +71,7 @@ def test_dialog():
     assert True, "no crash due to undefined response"
 
 
-def test_multiple_message():
+def test_multiple_message() -> None:
     """Test MultipleMessage."""
     dialog = MultipleMessage()
 
@@ -126,7 +128,7 @@ def test_multiple_message():
     assert "message 2" not in messages
 
 
-def test_dialog_page_range():
+def test_dialog_page_range() -> None:
     """Test dialog page-range."""
     dialog = Dialog()
     dialog.add_page_range()
@@ -143,7 +145,7 @@ def test_dialog_page_range():
     assert dialog.page_range == "all", "page-range updated"
 
 
-def test_add_actions_limit():
+def test_add_actions_limit() -> None:
     """Test add_actions with more buttons than responses."""
     dialog = Dialog()
     # add_actions only supports 2 responses (OK, CANCEL)
@@ -153,7 +155,7 @@ def test_add_actions_limit():
     assert len(buttons) == 2, "only 2 buttons added"
 
 
-def test_multiple_message_none_text():
+def test_multiple_message_none_text() -> None:
     """Test MultipleMessage with None text."""
     dialog = MultipleMessage()
     row = {
@@ -164,7 +166,7 @@ def test_multiple_message_none_text():
     assert row["text"] == "", "None text converted to empty string"
 
 
-def test_multiple_message_list_text():
+def test_multiple_message_list_text() -> None:
     """Test MultipleMessage with text that gets munged into a list."""
     dialog = MultipleMessage()
     row = {
@@ -178,12 +180,12 @@ def test_multiple_message_list_text():
     # Actually, grid_rows is incremented after each add_row call?
 
 
-def test_add_actions_callback():
+def test_add_actions_callback() -> None:
     """Test add_actions callback."""
     dialog = Dialog()
     called = False
 
-    def callback():
+    def callback() -> None:
         nonlocal called
         called = True
 
@@ -192,7 +194,7 @@ def test_add_actions_callback():
     assert called, "callback was called on response"
 
 
-def test_multiple_message_duplicate():
+def test_multiple_message_duplicate() -> None:
     """Test MultipleMessage skipping duplicate message."""
     dialog = MultipleMessage()
     responses = {"message": {"response": "ok"}}
