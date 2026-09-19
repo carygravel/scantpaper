@@ -1,11 +1,13 @@
 """scantpaper --- to aid the scan to PDF or DjVu process."""
 
 # Roadmap and wishlist:
+# Bump target-version & requires-python ?
+# Do we need tox.ini ?
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
-# various improvements from StackOverflow
-# add type hints and turn on type checks in tox.ini
 # migrate to Gtk4
+# improve translations, including those in org.scantpaper.desktop.metainfo.xml
+# look again at translating docs
 # + scan profile viewer/editor
 # remaining FIXMEs and TODOs
 
