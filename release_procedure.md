@@ -55,6 +55,10 @@
 
    Watch them [build](https://launchpad.net/~jeffreyratcliffe/+archive).
 
+   Note: when we drop jammy, we can bump target-version & requires-python and
+   drop the tomli conditional (;python_version<'3.11')
+
+
 1. gscan2pdf-announce@lists.sourceforge.net, gscan2pdf-help@lists.sourceforge.net,
    sane-devel@lists.alioth.debian.org
 1. To interactively debug in the schroot:

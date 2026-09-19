@@ -1,7 +1,6 @@
 """scantpaper --- to aid the scan to PDF or DjVu process."""
 
 # Roadmap and wishlist:
-# Bump target-version & requires-python ?
 # Do we need tox.ini ?
 # refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
