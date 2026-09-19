@@ -1,6 +1,6 @@
 [project]
 name = "scantpaper"
-version = "3.0.18"
+version = "3.0.19"
 dependencies = [
   "img2pdf",
   "ocrmypdf>=15.4.3",

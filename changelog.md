@@ -1,4 +1,4 @@
-## 3.0.19 (unreleased)
+## 3.0.19 (2026-09-19)
 
 * Log automatic corrections of wrongly typed configuration values instead of
   showing them in the start-up message; only values that cannot be corrected
