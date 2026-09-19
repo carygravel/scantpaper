@@ -1,10 +1,13 @@
 """Test importing TIFF."""
 
+from __future__ import annotations
+
 import pathlib
 import subprocess
 import tempfile
 import threading
 import time
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 from PIL import Image
@@ -14,8 +17,13 @@ from scantpaper.document import Document
 from scantpaper.helpers import exec_command_run
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def test_import_tiff(rose_tif, temp_db, get_page_sync):
+
+def test_import_tiff(
+    rose_tif: str, temp_db: object, get_page_sync: Callable[..., object]
+) -> None:
     """Test importing basic TIFF."""
     slist = Document(db=temp_db.name)
 
@@ -31,7 +39,9 @@ def test_import_tiff(rose_tif, temp_db, get_page_sync):
     assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
 
-def test_import_tiff_with_units(temp_tif, temp_db, get_page_sync):
+def test_import_tiff_with_units(
+    temp_tif: object, temp_db: object, get_page_sync: Callable[..., object]
+) -> None:
     """Test importing TIFF with units."""
     subprocess.run(
         [
@@ -60,7 +70,7 @@ def test_import_tiff_with_units(temp_tif, temp_db, get_page_sync):
     assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
 
-def test_import_tiff_with_error(rose_tif):
+def test_import_tiff_with_error(rose_tif: str) -> None:
     """Test importing TIFF."""
     with tempfile.TemporaryDirectory() as dirname:
         slist = Document(dir=dirname)
@@ -72,7 +82,7 @@ def test_import_tiff_with_error(rose_tif):
         # inject error during import file
         pathlib.Path(dirname).chmod(0o500)  # allow access
 
-        def error_cb(*args):
+        def error_cb(*args: object) -> None:
             nonlocal asserts
             message = args[-1] if len(args) > 1 else args[0].status
             assert message, "error_cb"
@@ -88,7 +98,7 @@ def test_import_tiff_with_error(rose_tif):
         )
         mlp.run()
 
-        def queued_cb(_response):
+        def queued_cb(_response: object) -> None:
             nonlocal asserts
             if asserts == 1:
                 asserts += 1
@@ -107,7 +117,7 @@ def test_import_tiff_with_error(rose_tif):
         assert asserts == 3, "all callbacks run"
 
 
-def test_import_multipage_tiff(rose_tif, temp_db):
+def test_import_multipage_tiff(rose_tif: str, temp_db: object) -> None:
     """Test importing TIFF."""
     with tempfile.NamedTemporaryFile(suffix=".tif") as temp_tif2:
         subprocess.run(["tiffcp", rose_tif, rose_tif, temp_tif2.name], check=True)
@@ -125,7 +135,9 @@ def test_import_multipage_tiff(rose_tif, temp_db):
         assert len(slist.data) == 2, "imported 2 pages"
 
 
-def test_import_linked_tiff(rose_tif, temp_db, get_page_sync):
+def test_import_linked_tiff(
+    rose_tif: str, temp_db: object, get_page_sync: Callable[..., object]
+) -> None:
     """Test importing TIFF."""
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_tif = pathlib.Path(temp_dir) / "test.tif"
@@ -147,7 +159,9 @@ def test_import_linked_tiff(rose_tif, temp_db, get_page_sync):
         assert page.image_object.mode == "RGB", "TIFF imported correctly"
 
 
-def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
+def test_import_multiple_tiffs_with_corrupt(
+    temp_db: object, rose_tif: str, clean_up_files: Callable[[list[str]], None]
+) -> None:
     """Test importing TIFF."""
     slist = Document(db=temp_db.name)
     paths = [rose_tif for _ in range(9)]
@@ -160,7 +174,7 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
 
     asserts = 0
 
-    def error_cb(response):
+    def error_cb(response: object) -> None:
         nonlocal asserts
         assert response.status == "Error importing zero-length file 5.tif.", (
             "caught error importing corrupt file"
@@ -182,7 +196,12 @@ def test_import_multiple_tiffs_with_corrupt(temp_db, rose_tif, clean_up_files):
     clean_up_files(["5.tif"])
 
 
-def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync):
+def test_cancel_import_tiff(
+    rose_tif: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test importing TIFF."""
     img = Image.open(rose_tif)
     img.load()  # verify file is readable
@@ -194,7 +213,7 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync
     asserts = 0
     finished_cb = MagicMock()
 
-    def cancelled_cb(_response):
+    def cancelled_cb(_response: object) -> None:
         nonlocal asserts
         assert len(slist.data) == 0, "TIFF not imported"
         asserts += 1
@@ -218,7 +237,7 @@ def test_cancel_import_tiff(rose_tif, temp_db, import_in_mainloop, get_page_sync
     )
 
 
-def test_cancel_kills_registered_pidfile_process(temp_db):
+def test_cancel_kills_registered_pidfile_process(temp_db: object) -> None:
     """Test cancel() kills a process spawned through a registered pidfile."""
     slist = Document(db=temp_db.name)
     pidfile = slist.create_pidfile({})
@@ -226,7 +245,7 @@ def test_cancel_kills_registered_pidfile_process(temp_db):
 
     result = {}
 
-    def run_sleep():
+    def run_sleep() -> None:
         result["proc"] = exec_command_run(["sleep", "30"], pidfile, check=False)
 
     worker = threading.Thread(target=run_sleep)
@@ -246,7 +265,7 @@ def test_cancel_kills_registered_pidfile_process(temp_db):
     mlp = safe_mainloop(3000)
     cancelled = []
 
-    def cancelled_callback(_response):
+    def cancelled_callback(_response: object) -> None:
         cancelled.append(True)
         mlp.quit()
 

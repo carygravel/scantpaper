@@ -1,8 +1,11 @@
 """Test process chain."""
 
+from __future__ import annotations
+
 import re
 import shutil
 import subprocess
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -12,12 +15,21 @@ from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.unpaper import Unpaper
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from scantpaper.basethread import Response
+
 
 @pytest.mark.skipif(
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain(temp_db, temp_pnm, get_page_sync):
+def test_process_chain(
+    temp_db: object,
+    temp_pnm: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test process chain."""
     unpaper = Unpaper()
     subprocess.run(
@@ -46,7 +58,7 @@ def test_process_chain(temp_db, temp_pnm, get_page_sync):
 
     asserts = 0
 
-    def display_cb(response):
+    def display_cb(response: Response) -> None:
         nonlocal asserts
         if response.info and "row" in response.info:
             assert True, "Triggered display callback"
@@ -85,7 +97,11 @@ def test_process_chain(temp_db, temp_pnm, get_page_sync):
     shutil.which("unpaper") is None or shutil.which("tesseract") is None,
     reason="requires unpaper and tesseract",
 )
-def test_process_chain2(temp_db, temp_pnm, get_page_sync):
+def test_process_chain2(
+    temp_db: object,
+    temp_pnm: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test process chain."""
     subprocess.run(
         [
@@ -122,13 +138,17 @@ def test_process_chain2(temp_db, temp_pnm, get_page_sync):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync):
+def test_tesseract_in_process_chain(
+    temp_db: object,
+    rotated_qbfox_pnm_im: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test tesseract in process chain using ImageMagick-generated image."""
     slist = Document(db=temp_db.name)
 
     asserts = 0
 
-    def display_cb(_response):
+    def display_cb(_response: Response) -> None:
         nonlocal asserts
         asserts += 1
 
@@ -159,18 +179,18 @@ def test_tesseract_in_process_chain(temp_db, rotated_qbfox_pnm_im, get_page_sync
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm):
+def test_error_in_process_chain1(temp_db: object, rotated_qbfox_pnm: str) -> None:
     """Test error handling in process chain."""
     slist = Document(db=temp_db.name)
 
     asserts = 0
     mlp = safe_mainloop()
 
-    def started_callback(_response):
+    def started_callback(_response: Response) -> None:
         slist.select(0)
         slist.delete_selection()
 
-    def error_callback(_response):
+    def error_callback(_response: Response) -> None:
         nonlocal asserts
         asserts += 1
         mlp.quit()
@@ -194,7 +214,7 @@ def test_error_in_process_chain1(temp_db, rotated_qbfox_pnm):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm):
+def test_error_in_process_chain2(temp_db: object, rotated_qbfox_pnm: str) -> None:
     """Test error handling in process chain."""
     slist = Document(db=temp_db.name)
     mlp = safe_mainloop(5000)
@@ -216,18 +236,18 @@ def test_error_in_process_chain2(temp_db, rotated_qbfox_pnm):
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_error_in_process_chain3(temp_db, rotated_qbfox_pnm):
+def test_error_in_process_chain3(temp_db: object, rotated_qbfox_pnm: str) -> None:
     """Test error handling in process chain."""
     slist = Document(db=temp_db.name)
 
     asserts = 0
     mlp = safe_mainloop()
 
-    def started_callback(_response):
+    def started_callback(_response: Response) -> None:
         slist.select(0)
         slist.delete_selection()
 
-    def finished_or_error_callback(_response):
+    def finished_or_error_callback(_response: Response) -> None:
         nonlocal asserts
         asserts += 1
         mlp.quit()

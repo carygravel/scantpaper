@@ -1,12 +1,14 @@
 """Tests for compiling translation .po files."""
 
+from __future__ import annotations
+
 import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
-def test_compile_po_files(tmp_path):
+def test_compile_po_files(tmp_path: Path) -> None:
     """All .po files compile cleanly to .mo, as done in CI."""
     src = REPO_ROOT / "po"
     out = tmp_path / "locale"

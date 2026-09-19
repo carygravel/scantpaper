@@ -1,7 +1,10 @@
 """test frontend/image_sane.py."""
 
+from __future__ import annotations
+
 import threading
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import PIL
@@ -10,6 +13,9 @@ import pytest
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import SaneThread
 from scantpaper.loop_helpers import safe_mainloop
+
+if TYPE_CHECKING:
+    from scantpaper.basethread import Response
 
 
 class FeederEmptyError(Exception):
@@ -29,7 +35,9 @@ class FakeBrscan5Device:
     backend's buffer. Flatbed mode refills the glass on every ``start()``.
     """
 
-    def __init__(self, frames=None, *, refill=False) -> None:
+    def __init__(
+        self, frames: list[int] | None = None, *, refill: bool = False
+    ) -> None:
         """Initialise FeederEmptyError."""
         self.buffered = list(frames) if frames is not None else []
         self.refill = refill
@@ -42,7 +50,7 @@ class FakeBrscan5Device:
         self.slow_event = threading.Event()
         self.cancel_event = threading.Event()
 
-    def start(self):
+    def start(self) -> None:
         """Start a page: flatbed refills the glass, feeder runs out when empty."""
         if self.refill:
             self.page_counter += 1
@@ -54,11 +62,11 @@ class FakeBrscan5Device:
         # a transfer intentionally interrupted by cancel() is not a fresh start
         self.cancel_event.clear()
 
-    def get_parameters(self):
+    def get_parameters(self) -> tuple[str, int, tuple[int, int], int, int]:
         """Report scan parameters with a small but positive line count."""
         return ("color", 1, (100, 10), 8, 30)
 
-    def snap(self, *, no_cancel=False, progress=None):
+    def snap(self, *, no_cancel: bool = False, progress: object = None) -> int:
         """Read the next buffered frame, optionally blocking to emulate a transfer."""
         del progress
         self.snap_no_cancel.append(no_cancel)
@@ -78,7 +86,7 @@ class FakeBrscan5Device:
             self.cancel()
         return frame
 
-    def cancel(self):
+    def cancel(self) -> None:
         """cancel: drop any prefetched-but-unread frames."""
         self.cancel_calls += 1
         self.buffered.clear()
@@ -88,7 +96,7 @@ class FakeBrscan5Device:
 class CancelRaisesDevice(FakeBrscan5Device):
     """emulate a backend whose cross-thread cancel() raises before cancelling."""
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Cancel."""
         super().cancel()
         msg = "Invalid argument"
@@ -110,18 +118,18 @@ class MockDevice:
             "__load_option_dict"
         ]
 
-    def close(self):
+    def close(self) -> None:
         """Mock close method."""
 
 
-def test_error_handling():
+def test_error_handling() -> None:
     """Test frontend/image_sane.py."""
     thread = SaneThread()
     thread.start()
 
     asserts = 0
 
-    def scan_error_callback(response):
+    def scan_error_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "scan_page", (
             "scan_page without opening device"
@@ -138,14 +146,14 @@ def test_error_handling():
     assert asserts == 1, "checked all expected responses #1"
 
 
-def test_2():
+def test_2() -> None:
     """Test frontend/image_sane.py #2."""
     thread = SaneThread()
     thread.start()
 
     asserts = 0
 
-    def get_devices_callback(response):
+    def get_devices_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "get_devices", (
             "get_devices_finished_callback"
@@ -160,14 +168,14 @@ def test_2():
     assert asserts == 1, "checked all expected responses #2"
 
 
-def _check_scan_response(response, *labels):
+def _check_scan_response(response: Response, *labels: str) -> None:
     """Assert a scan_page response contains an image of non-zero size."""
     assert isinstance(response.info, PIL.Image.Image), labels[0]
     assert response.info.size[0] > 0, labels[1]
     assert response.info.size[1] > 0, labels[2]
 
 
-def test_3():
+def test_3() -> None:
     """Test frontend/image_sane.py #3."""
     thread = SaneThread()
     thread.start()
@@ -176,7 +184,7 @@ def test_3():
 
     mlp = safe_mainloop(2000)
 
-    def open_callback(response):
+    def open_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "open_device", "open_callback"
         asserts += 1
@@ -189,7 +197,7 @@ def test_3():
 
     mlp = safe_mainloop(2000)
 
-    def scan_page_finished_callback(response):
+    def scan_page_finished_callback(response: Response) -> None:
         nonlocal asserts
         _check_scan_response(
             response,
@@ -204,7 +212,7 @@ def test_3():
     mlp.run()
     assert asserts == 2, "checked all expected responses #4"
 
-    def new_page_callback(image):
+    def new_page_callback(image: PIL.Image.Image) -> None:
         nonlocal asserts
         assert isinstance(image, PIL.Image.Image), (
             "scan_page finished_callback returned image"
@@ -215,7 +223,7 @@ def test_3():
 
     mlp = safe_mainloop(2000)
 
-    def scan_pages_finished_callback(response):
+    def scan_pages_finished_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "scan_page", "scan_pages_finished_callback"
         assert thread.num_pages_scanned == 2, "scanned 2 pages"
@@ -232,7 +240,7 @@ def test_3():
 
     mlp = safe_mainloop(2000)
 
-    def open_again_callback(response):
+    def open_again_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "open_device", "open without closing"
         asserts += 1
@@ -244,7 +252,7 @@ def test_3():
     assert asserts == 6, "checked all expected responses #6"
 
 
-def test_4():
+def test_4() -> None:
     """Test frontend/image_sane.py #4."""
     thread = SaneThread()
     thread.start()
@@ -253,7 +261,7 @@ def test_4():
 
     asserts = 0
 
-    def get_options_callback(response):
+    def get_options_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "get_options", "get_options"
         assert isinstance(response.info, list), "get_options return a list of options"
@@ -268,7 +276,7 @@ def test_4():
 
     mlp = safe_mainloop(2000)
 
-    def get_option_callback(response):
+    def get_option_callback(response: Response) -> None:
         nonlocal asserts
         assert response.info == 0, "enable-test-options defaults to False"
         asserts += 1
@@ -288,7 +296,7 @@ def test_4():
 
     mlp = safe_mainloop(2000)
 
-    def get_option_callback2(response):
+    def get_option_callback2(response: Response) -> None:
         nonlocal asserts
         assert response.info == 1, "enable-test-options now True"
         asserts += 1
@@ -300,7 +308,7 @@ def test_4():
 
     mlp = safe_mainloop(2000)
 
-    def close_device_callback(response):
+    def close_device_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "close_device", "close_device"
         asserts += 1
@@ -313,7 +321,7 @@ def test_4():
     assert asserts == 4, "checked all expected responses #10"
 
 
-def test_5_edge_cases_part_1():
+def test_5_edge_cases_part_1() -> None:
     """Test frontend/image_sane.py edge cases part 1."""
     thread = SaneThread()
     thread.start()
@@ -322,7 +330,7 @@ def test_5_edge_cases_part_1():
     asserts = 0
 
     # Open device
-    def open_callback(response):
+    def open_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "open_device"
         asserts += 1
@@ -333,7 +341,7 @@ def test_5_edge_cases_part_1():
     assert asserts == 1, "opened device"
 
     # 1. Read-only attribute
-    def error_callback_readonly(response):
+    def error_callback_readonly(response: Response) -> None:
         nonlocal asserts
         assert "Read-only attribute: dev" in response.status
         asserts += 1
@@ -344,7 +352,7 @@ def test_5_edge_cases_part_1():
     assert asserts == 2, "checked read-only attribute"
 
     # 2. Inactive option
-    def error_callback_inactive(response):
+    def error_callback_inactive(response: Response) -> None:
         nonlocal asserts
         assert "Inactive option: three_pass" in response.status
         asserts += 1
@@ -358,7 +366,7 @@ def test_5_edge_cases_part_1():
     mlp.run()
 
 
-def test_5_edge_cases_part_2():
+def test_5_edge_cases_part_2() -> None:
     """Test frontend/image_sane.py edge cases part 2."""
     thread = SaneThread()
     thread.start()
@@ -367,7 +375,7 @@ def test_5_edge_cases_part_2():
     asserts = 0
 
     # Open device
-    def open_callback(response):
+    def open_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "open_device"
         asserts += 1
@@ -377,7 +385,7 @@ def test_5_edge_cases_part_2():
     mlp.run()
 
     # 3. Non-existent option
-    def finished_callback_nonexistent(response):
+    def finished_callback_nonexistent(response: Response) -> None:
         nonlocal asserts
         assert response.info == 0
         asserts += 1
@@ -390,7 +398,7 @@ def test_5_edge_cases_part_2():
     assert asserts == 2, "checked nonexistent option"
 
     # 4. Enable test options
-    def finished_callback_enable(response):
+    def finished_callback_enable(response: Response) -> None:
         nonlocal asserts
         assert isinstance(response.info, int)
         asserts += 1
@@ -403,7 +411,7 @@ def test_5_edge_cases_part_2():
     assert asserts == 3, "enabled test options"
 
     # 5. Fixed type conversion
-    def finished_callback_fixed(response):
+    def finished_callback_fixed(response: Response) -> None:
         nonlocal asserts
         assert isinstance(response.info, int)
         asserts += 1
@@ -417,7 +425,7 @@ def test_5_edge_cases_part_2():
     mlp.run()
 
 
-def _make_test_options():
+def _make_test_options() -> dict[str, SimpleNamespace]:
     """Return a dict of mock SANE options for test_6."""
     opt_group = SimpleNamespace(
         name="group-option",
@@ -444,13 +452,13 @@ def _make_test_options():
     }
 
 
-def _set_option_side_effect(index, _value):
+def _set_option_side_effect(index: int, _value: object) -> int:
     """Side effect for mock SANE set_option that triggers a reload."""
     del index
     return enums.INFO_RELOAD_OPTIONS
 
 
-def test_6_mock_device():
+def test_6_mock_device() -> None:
     """Test with mocked device for specific edge cases."""
     with patch("sane.open") as mock_open:
         mock_dev_instance = MockDevice()
@@ -466,7 +474,7 @@ def test_6_mock_device():
         asserts = 0
 
         # Open device (mocks sane.open)
-        def open_cb(response):
+        def open_cb(response: Response) -> None:
             nonlocal asserts
             assert response.request.process == "open_device"
             asserts += 1
@@ -476,7 +484,7 @@ def test_6_mock_device():
         mlp.run()
 
         # 1. Test Group Option (Line 103)
-        def error_cb_group(response):
+        def error_cb_group(response: Response) -> None:
             nonlocal asserts
             assert "Groups don't have values: group_option" in response.status
             asserts += 1
@@ -486,7 +494,7 @@ def test_6_mock_device():
         mlp.run()
 
         # 2. Test Unsettable Option (Line 107)
-        def error_cb_unsettable(response):
+        def error_cb_unsettable(response: Response) -> None:
             nonlocal asserts
             assert (
                 "Option can't be set by software: unsettable_option" in response.status
@@ -500,7 +508,7 @@ def test_6_mock_device():
         mlp.run()
 
         # 3. Test Reload Option with __load_option_dict (Line 116)
-        def finished_cb_reload(_response):
+        def finished_cb_reload(_response: Response) -> None:
             nonlocal asserts
             asserts += 1
             mlp.quit()
@@ -536,7 +544,7 @@ def test_6_mock_device():
         mlp.run()
 
 
-def test_7_close_device_not_open():
+def test_7_close_device_not_open() -> None:
     """Test do_close_device when device is not open (line 145)."""
     thread = SaneThread()
     thread.start()
@@ -544,12 +552,12 @@ def test_7_close_device_not_open():
     mlp = safe_mainloop(2000)
     asserts = 0
 
-    def data_callback(response):
+    def data_callback(response: Response) -> None:
         nonlocal asserts
         assert response.info == "Ignoring close_device() call - no device open."
         asserts += 1
 
-    def finished_callback(response):
+    def finished_callback(response: Response) -> None:
         nonlocal asserts
         assert response.request.process == "close_device"
         asserts += 1
@@ -565,7 +573,7 @@ def test_7_close_device_not_open():
     mlp.run()
 
 
-def test_8_cancel_empties_queue():
+def test_8_cancel_empties_queue() -> None:
     """Test cancel() empties the requests queue (line 240)."""
     thread = SaneThread()
     # Don't start the thread yet, so requests stay in the queue
@@ -584,13 +592,13 @@ def test_8_cancel_empties_queue():
     assert request.process == "cancel"
 
 
-def test_queued_job_reports_cancelled(mocker):
+def test_queued_job_reports_cancelled(mocker: pytest.MockerFixture) -> None:
     """A cancel drops a queued scan-job and notifies its requester via cancelled_callback."""
     thread = SaneThread()
     finished_cb = mocker.Mock()
     cancelled_calls = []
 
-    def cancelled_cb(_response):
+    def cancelled_cb(_response: Response) -> None:
         cancelled_calls.append(_response)
         mlp.quit()
 
@@ -613,7 +621,7 @@ def test_queued_job_reports_cancelled(mocker):
     mlp.run()
 
 
-def test_9_quit_handles_sane_exit_exception():
+def test_9_quit_handles_sane_exit_exception() -> None:
     """Test do_quit handles exception from sane.exit() (lines 78-79)."""
     with patch("sane.exit") as mock_exit:
         # Make sane.exit() raise an exception
@@ -624,7 +632,7 @@ def test_9_quit_handles_sane_exit_exception():
 
         mlp = safe_mainloop(2000)
 
-        def open_callback(response):
+        def open_callback(response: Response) -> None:
             assert response.request.process == "open_device"
             mlp.quit()
 
@@ -640,7 +648,7 @@ def test_9_quit_handles_sane_exit_exception():
         mock_exit.assert_called_once()
 
 
-def test_get_option_value_timeout():
+def test_get_option_value_timeout() -> None:
     """get_option_value raises TimeoutError when the worker does not respond in time."""
     thread = SaneThread()
     thread.start()
@@ -655,7 +663,9 @@ def test_get_option_value_timeout():
     thread.join(timeout=1)
 
 
-def _run_with_fake(fake, scan_kwargs):
+def _run_with_fake(
+    fake: FakeBrscan5Device, scan_kwargs: dict[str, object]
+) -> tuple[SaneThread, list[int], list[str]]:
     """Open a fake device, run scan_pages with the given kwargs, then quit."""
     thread = SaneThread()
     thread.start()
@@ -663,14 +673,14 @@ def _run_with_fake(fake, scan_kwargs):
     pages = []
     errors = []
 
-    def new_page(image):
+    def new_page(image: object) -> None:
         pages.append(image)
 
-    def error(response):
+    def error(response: Response) -> None:
         errors.append(response.status)
         mlp.quit()
 
-    def quit_mlp(_response):
+    def quit_mlp(_response: Response) -> None:
         mlp.quit()
 
     mlp = safe_mainloop(2000)
@@ -693,7 +703,7 @@ def _run_with_fake(fake, scan_kwargs):
     return thread, pages, errors
 
 
-def test_duplex_feeder_imports_both_sides():
+def test_duplex_feeder_imports_both_sides() -> None:
     """Regression test for issue #73: a duplex feeder imports both sides."""
     fake = FakeBrscan5Device(frames=[1, 2])
     _thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
@@ -702,7 +712,7 @@ def test_duplex_feeder_imports_both_sides():
     assert fake.snap_no_cancel == [True, True], "no cancel requested between pages"
 
 
-def test_flatbed_cancel_between_pages_enabled():
+def test_flatbed_cancel_between_pages_enabled() -> None:
     """Flatbed with the setting enabled cancels the session between pages."""
     fake = FakeBrscan5Device(refill=True)
     _thread, pages, _errors = _run_with_fake(
@@ -713,7 +723,7 @@ def test_flatbed_cancel_between_pages_enabled():
     assert fake.snap_no_cancel == [False, False], "cancel requested between pages"
 
 
-def test_flatbed_cancel_between_pages_disabled():
+def test_flatbed_cancel_between_pages_disabled() -> None:
     """Flatbed with the setting disabled only cancels at batch end."""
     fake = FakeBrscan5Device(refill=True)
     _thread, pages, _errors = _run_with_fake(
@@ -724,7 +734,7 @@ def test_flatbed_cancel_between_pages_disabled():
     assert fake.snap_no_cancel == [True, True], "no cancel requested between pages"
 
 
-def test_page_limit_discards_buffered_frames():
+def test_page_limit_discards_buffered_frames() -> None:
     """Reaching the requested page count terminates and drops buffered frames."""
     fake = FakeBrscan5Device(frames=[1, 2, 3])
     _thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
@@ -733,7 +743,7 @@ def test_page_limit_discards_buffered_frames():
     assert not fake.buffered, "prefetched page 3 discarded by the terminal cancel"
 
 
-def test_mid_batch_error_reports_and_terminates():
+def test_mid_batch_error_reports_and_terminates() -> None:
     """An error mid-batch is reported and the session is terminated."""
     fake = FakeBrscan5Device(frames=[1, 2, 3])
     fake.error_on_frame = 2
@@ -743,7 +753,7 @@ def test_mid_batch_error_reports_and_terminates():
     assert fake.cancel_calls >= 1, "session terminated after the error"
 
 
-def test_user_cancel_terminates_session(mocker):
+def test_user_cancel_terminates_session(mocker: pytest.MockerFixture) -> None:
     """A user cancel interrupts an in-flight transfer without importing the page."""
     thread = SaneThread()
     thread.start()
@@ -753,7 +763,7 @@ def test_user_cancel_terminates_session(mocker):
     error = mocker.Mock()
     cancel_sent = [False]
 
-    def running(_response):
+    def running(_response: Response) -> None:
         # only cancel once the in-flight transfer is actually active, so the
         # direct device cancel interrupts a blocked snap() rather than racing
         # with the still-unstarted page
@@ -761,7 +771,7 @@ def test_user_cancel_terminates_session(mocker):
             cancel_sent[0] = True
             thread.cancel()
 
-    def quit_mlp(_response):
+    def quit_mlp(_response: Response) -> None:
         mlp.quit()
 
     mlp = safe_mainloop(2000)
@@ -790,7 +800,7 @@ def test_user_cancel_terminates_session(mocker):
     mlp.run()
 
 
-def test_feeder_empty_ends_batch_cleanly(mocker):
+def test_feeder_empty_ends_batch_cleanly(mocker: pytest.MockerFixture) -> None:
     """The batch ends cleanly with the acquired pages when the feeder runs dry."""
     thread = SaneThread()
     thread.start()
@@ -798,10 +808,10 @@ def test_feeder_empty_ends_batch_cleanly(mocker):
     pages = []
     error = mocker.Mock()
 
-    def new_page(page):
+    def new_page(page: object) -> None:
         pages.append(page)
 
-    def quit_mlp(_response):
+    def quit_mlp(_response: Response) -> None:
         mlp.quit()
 
     mlp = safe_mainloop(2000)
@@ -830,7 +840,9 @@ def test_feeder_empty_ends_batch_cleanly(mocker):
     assert fake.cancel_calls == 1, "session terminated when the feeder ran dry"
 
 
-def test_cancel_raises_on_device_terminates_cleanly(mocker):
+def test_cancel_raises_on_device_terminates_cleanly(
+    mocker: pytest.MockerFixture,
+) -> None:
     """A device cancel() that raises is tolerated; the session still ends cleanly."""
     thread = SaneThread()
     thread.start()
@@ -840,12 +852,12 @@ def test_cancel_raises_on_device_terminates_cleanly(mocker):
     error = mocker.Mock()
     cancel_sent = [False]
 
-    def running(_response):
+    def running(_response: Response) -> None:
         if not cancel_sent[0] and thread._scan_active:
             cancel_sent[0] = True
             thread.cancel()
 
-    def quit_mlp(_response):
+    def quit_mlp(_response: Response) -> None:
         mlp.quit()
 
     mlp = safe_mainloop(2000)

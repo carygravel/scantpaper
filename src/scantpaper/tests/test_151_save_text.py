@@ -1,20 +1,26 @@
 """Test saving text."""
 
+from __future__ import annotations
+
 import pathlib
 import tempfile
+from typing import TYPE_CHECKING
 
 from scantpaper.bboxtree import VERSION
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 def test_save_text(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_txt,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_txt: object,
+) -> None:
     """Test saving text."""
     slist = Document(db=temp_db.name)
 
@@ -47,7 +53,12 @@ def test_save_text(
             assert f.read() == "The quick brown fox", "ran post-save hook"
 
 
-def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop):
+def test_save_no_text(
+    rose_pnm: str,
+    temp_txt: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test saving text."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_pnm])
@@ -71,12 +82,12 @@ def test_save_no_text(rose_pnm, temp_txt, temp_db, import_in_mainloop):
 
 
 def test_save_utf8(
-    import_in_mainloop,
-    set_text_in_mainloop,
-    rose_pnm,
-    temp_db,
-    temp_txt,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_txt: object,
+) -> None:
     """Test writing text."""
     slist = Document(db=temp_db.name)
 
@@ -105,8 +116,13 @@ def test_save_utf8(
 
 
 def test_save_hocr_as_text(
-    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_txt: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test saving HOCR as text."""
     slist = Document(db=temp_db.name)
 
@@ -152,8 +168,13 @@ def test_save_hocr_as_text(
 
 
 def test_save_hocr(
-    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_txt: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test writing text."""
     slist = Document(db=temp_db.name)
 
@@ -205,8 +226,13 @@ def test_save_hocr(
 
 
 def test_save_hocr_with_encoding(
-    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_txt: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test writing text."""
     slist = Document(db=temp_db.name)
 
@@ -261,8 +287,13 @@ def test_save_hocr_with_encoding(
 
 
 def test_save_multipage_hocr(
-    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_txt: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test writing text."""
     slist = Document(db=temp_db.name)
 
@@ -345,8 +376,13 @@ def test_save_multipage_hocr(
 
 
 def test_save_hocr_structure(
-    import_in_mainloop, set_text_in_mainloop, rose_pnm, temp_db, temp_txt, get_page_sync
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_txt: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test writing text."""
     slist = Document(db=temp_db.name)
 

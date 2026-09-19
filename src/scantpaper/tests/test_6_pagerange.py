@@ -1,5 +1,7 @@
 """test pagerange widget."""
 
+from __future__ import annotations
+
 from scantpaper.pagerange import PageRange
 
 
@@ -10,12 +12,12 @@ class SignalCatch:
         """Initialise SignalCatch."""
         self.signal_emitted = False
 
-    def catch_signal(self, _widget, _data):
+    def catch_signal(self, _widget: object, _data: object) -> None:
         """Catch signal."""
         self.signal_emitted = True
 
 
-def test_1():
+def test_1() -> None:
     """Test pagerange widget."""
     prg = PageRange()
     assert isinstance(prg, PageRange), "Created PageRange widget"
@@ -29,7 +31,7 @@ def test_1():
     assert prg.get_active() == "all", "all2"
 
 
-def test_signal():
+def test_signal() -> None:
     """Test that changed signal is emitted."""
     prg = PageRange()
     catcher = SignalCatch()

@@ -1,12 +1,14 @@
 """Tests for AppStream metadata files."""
 
+from __future__ import annotations
+
 import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
-def test_appstream_validate():
+def test_appstream_validate() -> None:
     """Validate AppStream metadata with appstreamcli."""
     filepath = REPO_ROOT / "org.scantpaper.desktop.metainfo.xml"
 

@@ -1,5 +1,7 @@
 """test MultipleMessage class."""
 
+from __future__ import annotations
+
 import gi
 
 from scantpaper.dialog import MultipleMessage, filter_message, munge_message
@@ -8,7 +10,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
 
-def test_1():
+def test_1() -> None:
     """Test MultipleMessage class."""
     window = Gtk.Window()
 

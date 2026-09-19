@@ -1,17 +1,29 @@
 """Test user-defined tools."""
 
+from __future__ import annotations
+
 import re
 import subprocess
+from typing import TYPE_CHECKING
 
 from scantpaper import config
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM, MM_PER_INCH
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from scantpaper.basethread import Response
+
 
 def test_udt(
-    temp_pnm, temp_db, import_in_mainloop, set_text_in_mainloop, get_page_sync
-):
+    temp_pnm: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test user-defined tools."""
     paper_sizes = {
         "A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0},
@@ -63,7 +75,12 @@ def test_udt(
     assert not slist.thread.pages_saved(), "modification removed saved tag"
 
 
-def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
+def test_udt_in_place(
+    temp_pnm: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test user-defined tools."""
     subprocess.run([config.CONVERT_COMMAND, "xc:white", temp_pnm.name], check=True)
 
@@ -90,7 +107,13 @@ def test_udt_in_place(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
     assert page.mean == [0.0], "User-defined with %i"
 
 
-def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page_sync):
+def test_udt_page_size(
+    temp_pnm: object,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test user-defined tools."""
     paper_sizes = {
         "A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0},
@@ -138,8 +161,12 @@ def test_udt_page_size(temp_pnm, temp_pdf, temp_db, import_in_mainloop, get_page
 
 
 def test_udt_resolution(
-    temp_pnm, temp_db, import_in_mainloop, set_resolution_in_mainloop, get_page_sync
-):
+    temp_pnm: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_resolution_in_mainloop: Callable[[object, str, float, float], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test user-defined tools."""
     subprocess.run(
         [config.CONVERT_COMMAND, "-size", "210x297", "xc:white", temp_pnm.name],
@@ -167,7 +194,12 @@ def test_udt_resolution(
     ), "Resolution of converted image taken from input"
 
 
-def test_udt_error(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
+def test_udt_error(
+    temp_pnm: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test user-defined tools."""
     subprocess.run([config.CONVERT_COMMAND, "xc:white", temp_pnm.name], check=True)
 
@@ -177,7 +209,7 @@ def test_udt_error(temp_pnm, temp_db, import_in_mainloop, get_page_sync):
 
     asserts = 0
 
-    def logger_cb(response):
+    def logger_cb(response: Response) -> None:
         nonlocal asserts
         assert re.search(r"error", response.info["info"]), "error_cb"
         asserts += 1

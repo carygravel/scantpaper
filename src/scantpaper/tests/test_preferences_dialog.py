@@ -1,5 +1,7 @@
 """Test preferences dialog."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -13,7 +15,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 @patch("scantpaper.dialog.preferences.shutil.which")
-def test_preferences_dialog(mock_which):
+def test_preferences_dialog(mock_which: MagicMock) -> None:
     """Test preferences dialog."""
     mock_which.return_value = "/usr/bin/gimp"
 
@@ -29,7 +31,7 @@ def test_preferences_dialog(mock_which):
     assert dialog.settings["TMPDIR"] == "/tmp", "updated settings"
 
 
-def test_preferences_blacklist_setting():
+def test_preferences_blacklist_setting() -> None:
     """Test that the device blacklist is set correctly in the preferences dialog."""
     # Mock settings with a device blacklist
     settings = DEFAULTS.copy()
@@ -45,7 +47,9 @@ def test_preferences_blacklist_setting():
 
 @patch("scantpaper.dialog.preferences.Gtk.FileChooserDialog")
 @patch("scantpaper.dialog.preferences.get_tmp_dir")
-def test_choose_temp_dir(mock_get_tmp_dir, mock_file_chooser_dialog):
+def test_choose_temp_dir(
+    mock_get_tmp_dir: MagicMock, mock_file_chooser_dialog: MagicMock
+) -> None:
     """Test the _choose_temp_dir method."""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
@@ -82,7 +86,7 @@ def test_choose_temp_dir(mock_get_tmp_dir, mock_file_chooser_dialog):
     assert dialog._tmpentry.get_text() == "/new/tmp/scantpaper-xxxx"
 
 
-def test_clicked_add_udt():
+def test_clicked_add_udt() -> None:
     """Test the _clicked_add_udt method."""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
@@ -110,7 +114,7 @@ def test_clicked_add_udt():
     assert entry_found, "No Gtk.Entry found in the last child box"
 
 
-def test_delete_udt():
+def test_delete_udt() -> None:
     """Test the delete_udt callback."""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
@@ -156,8 +160,8 @@ def test_delete_udt():
 @patch("scantpaper.dialog.preferences.shutil.which")
 @patch("scantpaper.dialog.preferences.Gtk.MessageDialog")
 def test_apply_callback_shows_error_for_nonexistent_tool(
-    mock_message_dialog, mock_which
-):
+    mock_message_dialog: MagicMock, mock_which: MagicMock
+) -> None:
     """Test that an error dialog is shown when a user-defined tool is not found."""
     mock_which.return_value = None
     mock_dialog = MagicMock()
@@ -187,7 +191,9 @@ def test_apply_callback_shows_error_for_nonexistent_tool(
 
 @patch("scantpaper.dialog.preferences.shutil.which")
 @patch("scantpaper.dialog.preferences.Gtk.MessageDialog")
-def test_apply_callback_multiple_invalid_tools(mock_message_dialog, mock_which):
+def test_apply_callback_multiple_invalid_tools(
+    mock_message_dialog: MagicMock, mock_which: MagicMock
+) -> None:
     """Test that all invalid tools are reported in the error dialog."""
     mock_which.return_value = None
     mock_dialog = MagicMock()
@@ -212,7 +218,7 @@ def test_apply_callback_multiple_invalid_tools(mock_message_dialog, mock_which):
 
 
 @patch("scantpaper.dialog.preferences.shutil.which")
-def test_apply_callback_allows_valid_tool(mock_which):
+def test_apply_callback_allows_valid_tool(mock_which: MagicMock) -> None:
     """Test that a valid executable is saved without error."""
     mock_which.return_value = "/usr/bin/convert"
 
@@ -232,7 +238,9 @@ def test_apply_callback_allows_valid_tool(mock_which):
     ("allow_batch_flatbed", "expected_sensitive"),
     [(True, True), (False, False)],
 )
-def test_cancel_between_pages_sensitivity(allow_batch_flatbed, expected_sensitive):
+def test_cancel_between_pages_sensitivity(
+    *, allow_batch_flatbed: bool, expected_sensitive: bool
+) -> None:
     """The cancel-between-pages checkbox tracks allow-batch-flatbed sensitivity."""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
@@ -246,7 +254,7 @@ def test_cancel_between_pages_sensitivity(allow_batch_flatbed, expected_sensitiv
     )
 
 
-def test_cancel_between_pages_sensitivity_toggles():
+def test_cancel_between_pages_sensitivity_toggles() -> None:
     """Toggling allow-batch-flatbed updates the cancel-between-pages sensitivity."""
     settings = DEFAULTS.copy()
     settings["TMPDIR"] = "/tmp"
@@ -269,7 +277,9 @@ def test_cancel_between_pages_sensitivity_toggles():
 
 
 @patch("scantpaper.dialog.preferences.Gtk.MessageDialog")
-def test_apply_callback_shows_error_for_empty_tool(mock_message_dialog):
+def test_apply_callback_shows_error_for_empty_tool(
+    mock_message_dialog: MagicMock,
+) -> None:
     """Test that an error dialog is shown when a user-defined tool is empty or whitespace-only."""
     mock_dialog = MagicMock()
     mock_message_dialog.return_value = mock_dialog

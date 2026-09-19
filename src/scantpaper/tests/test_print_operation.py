@@ -1,5 +1,7 @@
 """Tests for the PrintOperation class."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import gi
@@ -13,7 +15,7 @@ from gi.repository import Gtk  # noqa: E402
 
 
 @pytest.fixture
-def mock_slist():
+def mock_slist() -> MagicMock:
     """Fixture for mock simplelist."""
     slist = MagicMock()
     # Mock data structure: [page_number, ?, page_object]
@@ -41,14 +43,14 @@ def mock_slist():
     return slist
 
 
-def test_init(mock_slist):
+def test_init(mock_slist: MagicMock) -> None:
     """Test initialization."""
     settings = Gtk.PrintSettings()
     op = PrintOperation(slist=mock_slist, settings=settings)
     assert op.slist == mock_slist
 
 
-def test_begin_print_all(mock_slist):
+def test_begin_print_all(mock_slist: MagicMock) -> None:
     """Test begin_print_callback with ALL pages."""
     settings = MagicMock()
     settings.get_print_pages.return_value = Gtk.PrintPages.ALL
@@ -62,7 +64,7 @@ def test_begin_print_all(mock_slist):
     op.set_n_pages.assert_called_once_with(3)
 
 
-def test_begin_print_ranges(mock_slist):
+def test_begin_print_ranges(mock_slist: MagicMock) -> None:
     """Test begin_print_callback with RANGES."""
     settings = MagicMock()
     settings.get_print_pages.return_value = Gtk.PrintPages.RANGES
@@ -87,7 +89,7 @@ def test_begin_print_ranges(mock_slist):
     op.set_n_pages.assert_called_once_with(1)
 
 
-def test_draw_page(mock_slist, mocker):
+def test_draw_page(mock_slist: MagicMock, mocker: pytest.MockerFixture) -> None:
     """Test draw_page_callback."""
     op = PrintOperation(slist=mock_slist, settings=None)
 
@@ -113,7 +115,7 @@ def test_draw_page(mock_slist, mocker):
     cr.paint.assert_called_once()
 
 
-def test_draw_page_mapped(mock_slist, mocker):
+def test_draw_page_mapped(mock_slist: MagicMock, mocker: pytest.MockerFixture) -> None:
     """Test draw_page_callback with mapping."""
     op = PrintOperation(slist=mock_slist, settings=None)
 
@@ -145,7 +147,14 @@ def test_draw_page_mapped(mock_slist, mocker):
         (100, 200, 300, 300, (1.0, 1.0)),  # ratio == 1
     ],
 )
-def test_draw_page_ratio(mocker, iwidth, iheight, xres, yres, expected_scale):
+def test_draw_page_ratio(
+    mocker: pytest.MockerFixture,
+    iwidth: int,
+    iheight: int,
+    xres: int,
+    yres: int,
+    expected_scale: tuple[float, float],
+) -> None:
     """Test draw_page_callback scales correctly for non-1:1 pixel aspect ratios."""
     page = MagicMock()
     page.get_pixbuf.return_value.get_width.return_value = iwidth

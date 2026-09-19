@@ -1,12 +1,14 @@
 """Tests for scanner option handling."""
 
+from __future__ import annotations
+
 import pytest
 
 from scantpaper.frontend import enums
 from scantpaper.scanner.options import Option, Options, within_tolerance
 
 
-def test_within_tolerance():
+def test_within_tolerance() -> None:
     """Test within_tolerance branches."""
     options = Options(
         [
@@ -176,13 +178,15 @@ def test_within_tolerance():
     ("options", "exception"),
     [(None, ValueError), ("", TypeError)],
 )
-def test_options_constructor_errors(options, exception):
+def test_options_constructor_errors(
+    options: object, exception: type[BaseException]
+) -> None:
     """Test that Options raises an error on invalid input."""
     with pytest.raises(exception):
         Options(options)
 
 
-def test_can_duplex():
+def test_can_duplex() -> None:
     """Test can_duplex from the option name."""
     options = Options(
         [
@@ -239,7 +243,7 @@ def test_can_duplex():
 @pytest.mark.usefixtures(
     "sane_scan_dialog", "set_device_wait_reload", "mainloop_with_timeout"
 )
-def test_option_name_none():
+def test_option_name_none() -> None:
     """Test option.name=None."""
     raw_options = [
         Option(

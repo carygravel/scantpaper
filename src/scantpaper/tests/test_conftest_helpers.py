@@ -1,7 +1,10 @@
 """Tests for conftest helper functions."""
 
+from __future__ import annotations
+
 import locale
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -14,13 +17,16 @@ from scantpaper.conftest import (
     has_numeric_locale,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def test_qbfox_font_fallback():
+
+def test_qbfox_font_fallback() -> None:
     """Test _create_qbfox_image falls back to system font path."""
     call_count = [0]
     original_truetype = ImageFont.truetype
 
-    def mock_truetype(path, size):
+    def mock_truetype(path: str, size: int) -> object:
         call_count[0] += 1
         if call_count[0] == 1:
             msg = "font not found"
@@ -33,10 +39,10 @@ def test_qbfox_font_fallback():
         assert call_count[0] >= 2
 
 
-def test_qbfox_no_bbox():
+def test_qbfox_no_bbox() -> None:
     """Test _create_qbfox_image handles getbbox returning None."""
 
-    def mock_getbbox(_self):
+    def mock_getbbox(_self: object) -> None:
         return None
 
     with patch.object(Image.Image, "getbbox", mock_getbbox):
@@ -51,11 +57,11 @@ KNOWN_FONT_PATHS = [
 ]
 
 
-def test_qbfox_fc_match_fallback():
+def test_qbfox_fc_match_fallback() -> None:
     """Test _create_qbfox_image uses fc-match when all explicit paths fail."""
     original_truetype = ImageFont.truetype
 
-    def mock_truetype(path, size, **kwargs):
+    def mock_truetype(path: str, size: int, **kwargs: object) -> object:
         if path in KNOWN_FONT_PATHS:
             msg = "font not found"
             raise OSError(msg)
@@ -73,11 +79,11 @@ def test_qbfox_fc_match_fallback():
         assert img is not None
 
 
-def test_qbfox_load_default_with_size():
+def test_qbfox_load_default_with_size() -> None:
     """Test _create_qbfox_image falls back to load_default(size=...)."""
     original_truetype = ImageFont.truetype
 
-    def mock_truetype(path, size, **kwargs):
+    def mock_truetype(path: str, size: int, **kwargs: object) -> object:
         if path in KNOWN_FONT_PATHS:
             msg = "font not found"
             raise OSError(msg)
@@ -95,11 +101,11 @@ def test_qbfox_load_default_with_size():
         assert img is not None
 
 
-def test_qbfox_load_default_bitmap():
+def test_qbfox_load_default_bitmap() -> None:
     """Test _create_qbfox_image falls back to bitmap load_default()."""
     original_truetype = ImageFont.truetype
 
-    def mock_truetype(path, size, **kwargs):
+    def mock_truetype(path: str, size: int, **kwargs: object) -> object:
         if path in KNOWN_FONT_PATHS:
             msg = "font not found"
             raise OSError(msg)
@@ -111,7 +117,7 @@ def test_qbfox_load_default_bitmap():
 
     original_load_default = ImageFont.load_default
 
-    def mock_load_default_with_size(size=None):
+    def mock_load_default_with_size(size: int | None = None) -> object:
         if size is not None:
             msg = "this PIL version does not support size"
             raise TypeError(msg)
@@ -126,10 +132,10 @@ def test_qbfox_load_default_bitmap():
         assert img is not None
 
 
-def test_qbfox_small_bbox_scale():
+def test_qbfox_small_bbox_scale() -> None:
     """Test _create_qbfox_image scales up when cropped image is too small."""
 
-    def mock_getbbox(_self):
+    def mock_getbbox(_self: object) -> tuple[int, int, int, int]:
         return (0, 0, 10, 10)
 
     with patch.object(Image.Image, "getbbox", mock_getbbox):
@@ -137,21 +143,23 @@ def test_qbfox_small_bbox_scale():
         assert img is not None
 
 
-def test_clean_up_files_non_existent(clean_up_files):
+def test_clean_up_files_non_existent(
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Test clean_up_files handles non-existent files without error."""
     clean_up_files(["/nonexistent/file.txt"])
 
 
-def test_has_numeric_locale():
+def test_has_numeric_locale() -> None:
     """has_numeric_locale detects available and missing locales."""
     assert has_numeric_locale("C") is True
     assert has_numeric_locale("no.such.locale.zzz") is False
 
 
-def test_require_de_locale_skips_when_missing(monkeypatch):
+def test_require_de_locale_skips_when_missing(monkeypatch: pytest.MonkeyPatch) -> None:
     """_require_de_locale skips when the de_DE.utf8 locale is unavailable."""
 
-    def fail_setlocale(*_args):
+    def fail_setlocale(*_args: object) -> object:
         msg = "mocked missing locale"
         raise locale.Error(msg)
 
@@ -161,11 +169,11 @@ def test_require_de_locale_skips_when_missing(monkeypatch):
         _require_de_locale()
 
 
-def test_get_page_sync_error(get_page_sync):
+def test_get_page_sync_error(get_page_sync: Callable[..., object]) -> None:
     """Test get_page_sync raises ValueError on error callback."""
     thread = MagicMock()
 
-    def send_side_effect(*_, **kwargs):
+    def send_side_effect(*_: object, **kwargs: object) -> None:
         error_callback = kwargs["error_callback"]
         GLib.idle_add(lambda: error_callback(SimpleNamespace(status="mock_error")))
 

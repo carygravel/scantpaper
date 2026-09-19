@@ -1,6 +1,9 @@
 """tests for PageControls dialog component."""
 
+from __future__ import annotations
+
 import tempfile
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import gi
@@ -17,8 +20,13 @@ from scantpaper.document import Document
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def test_side_to_scan_invalid_value():
+    from scantpaper.loop_helpers import _MainLoopWrapper
+
+
+def test_side_to_scan_invalid_value() -> None:
     """Test that ValueError is raised for invalid side-to-scan values."""
     page_controls = PageControls()
 
@@ -28,7 +36,7 @@ def test_side_to_scan_invalid_value():
         set_side_to_scan(page_controls, "invalid")
 
 
-def test_do_spin_buttoni_value_changed():
+def test_do_spin_buttoni_value_changed() -> None:
     """Test that the position advance spin button sets the increment, allowing 0."""
     page_controls = PageControls()
 
@@ -38,7 +46,7 @@ def test_do_spin_buttoni_value_changed():
     assert page_controls.page_number_increment == 0
 
 
-def test_do_start_page_changed():
+def test_do_start_page_changed() -> None:
     """Test that _do_start_page_changed sets the page-number-start property."""
     page_controls = PageControls()
 
@@ -48,7 +56,7 @@ def test_do_start_page_changed():
     assert page_controls.page_number_start == 5
 
 
-def test_reset_batch():
+def test_reset_batch() -> None:
     """Test that _reset_batch clears the facing batch tracking."""
     page_controls = PageControls()
     page_controls._batch_start = 1
@@ -60,7 +68,7 @@ def test_reset_batch():
     assert page_controls.max_pages == 0
 
 
-def test_fix_batch():
+def test_fix_batch() -> None:
     """Test that _fix_batch bounds the reverse pass by the facing batch."""
     page_controls = PageControls()
     page_controls._batch_start = 1
@@ -72,7 +80,7 @@ def test_fix_batch():
     assert page_controls.num_pages == 3
 
 
-def test_extended_pagenumber_checkbox_callback():
+def test_extended_pagenumber_checkbox_callback() -> None:
     """Test that the extended page numbering checkbox shows/hides the frames."""
     page_controls = PageControls()
     page_controls.frames = MagicMock()
@@ -94,7 +102,11 @@ def test_extended_pagenumber_checkbox_callback():
     page_controls.framex.hide.assert_called_once()
 
 
-def test_page_controls(rose_pnm, temp_db, mainloop_with_timeout):
+def test_page_controls(
+    rose_pnm: str,
+    temp_db: object,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
     """Test PageControls."""
     page_controls = Scan(title="title", transient_for=Gtk.Window())
     assert isinstance(page_controls, PageControls), "Created PageControls dialog"

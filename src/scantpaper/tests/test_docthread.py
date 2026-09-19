@@ -1,10 +1,13 @@
 """Tests for DocThread."""
 
+from __future__ import annotations
+
 import pathlib
 import sqlite3
 import subprocess
 import threading
 import time
+from typing import TYPE_CHECKING
 
 import pytest
 from gi.repository import GLib
@@ -16,8 +19,11 @@ from scantpaper.docthread import INSERT_AT_START, DocThread, _calculate_crop_tup
 from scantpaper.importthread import CancelledError
 from scantpaper.page import Page
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def test_do_tesseract_path_fallback(mocker):
+
+def test_do_tesseract_path_fallback(mocker: pytest.MockerFixture) -> None:
     """Test do_tesseract when path is ./."""
     # Mock DocThread to avoid real DB connection if possible, but here we just
     # spoof _write_tid.
@@ -66,7 +72,7 @@ def test_do_tesseract_path_fallback(mocker):
     )
 
 
-def test_do_tesseract_path_fallback_suse(mocker):
+def test_do_tesseract_path_fallback_suse(mocker: pytest.MockerFixture) -> None:
     """Test do_tesseract when path is ./ and tessdata found via SUSE flat layout."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -101,7 +107,7 @@ def test_do_tesseract_path_fallback_suse(mocker):
     mock_api.assert_called_with(lang="eng", path="/usr/share/tesseract-ocr/tessdata")
 
 
-def test_do_tesseract_in_memory_pixels(mocker):
+def test_do_tesseract_in_memory_pixels(mocker: pytest.MockerFixture) -> None:
     """Test do_tesseract feeds page pixels to tesseract in memory."""
     thread = DocThread(db=":memory:")
 
@@ -137,7 +143,9 @@ def test_do_tesseract_in_memory_pixels(mocker):
     assert mock_page.ocr_flag is True
 
 
-def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
+def test_do_tesseract_path_fallback_not_found(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
     """Test do_tesseract when path is ./ and no system tessdata found."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -182,7 +190,9 @@ def test_do_tesseract_path_fallback_not_found(temp_db, mocker):
     assert "tessdata directory not found" in str(request.error.call_args)
 
 
-def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
+def test_do_tesseract_path_fallback_symlink(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
     """Test do_tesseract when path is ./ and tessdata found via symlink."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -233,7 +243,7 @@ def test_do_tesseract_path_fallback_symlink(temp_db, mocker):
     mock_api.assert_called_with(lang="eng", path="/usr/local/share/tessdata")
 
 
-def test_calculate_crop_tuples(mocker):
+def test_calculate_crop_tuples(mocker: pytest.MockerFixture) -> None:
     """Test _calculate_crop_tuples."""
     mock_image = mocker.Mock()
     mock_image.width = 100
@@ -258,7 +268,7 @@ def test_calculate_crop_tuples(mocker):
     )
 
 
-def test_get_thumb(mocker):
+def test_get_thumb(mocker: pytest.MockerFixture) -> None:
     """Test get_thumb."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -276,7 +286,7 @@ def test_get_thumb(mocker):
     assert result == "mock_pixbuf"
 
 
-def test_get_text(mocker):
+def test_get_text(mocker: pytest.MockerFixture) -> None:
     """Test get_text."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -293,7 +303,7 @@ def test_get_text(mocker):
     assert result == "dummy_text"
 
 
-def test_open_session_file(mocker):
+def test_open_session_file(mocker: pytest.MockerFixture) -> None:
     """Test open session file."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -322,7 +332,7 @@ def test_open_session_file(mocker):
     mock_execute.assert_any_call("SELECT MAX(action_id) FROM page_order")
 
 
-def test_open_session_file_invalid_app_id(mocker):
+def test_open_session_file_invalid_app_id(mocker: pytest.MockerFixture) -> None:
     """Test open session file with invalid application id."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -339,7 +349,7 @@ def test_open_session_file_invalid_app_id(mocker):
         thread.open("test.db")
 
 
-def test_open_session_file_invalid_app_id0(mocker):
+def test_open_session_file_invalid_app_id0(mocker: pytest.MockerFixture) -> None:
     """Test open session file with invalid application id."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -356,7 +366,7 @@ def test_open_session_file_invalid_app_id0(mocker):
         thread.open("test.db")
 
 
-def test_do_set_saved(mocker):
+def test_do_set_saved(mocker: pytest.MockerFixture) -> None:
     """Test do_set_saved."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -403,7 +413,7 @@ def test_do_set_saved(mocker):
     )
 
 
-def test_do_set_text(mocker):
+def test_do_set_text(mocker: pytest.MockerFixture) -> None:
     """Test do_set_text."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -424,7 +434,7 @@ def test_do_set_text(mocker):
     )
 
 
-def test_parse_bboxtree(mocker):
+def test_parse_bboxtree(mocker: pytest.MockerFixture) -> None:
     """Test parse_bboxtree."""
     thread = DocThread(db=":memory:")
     mock_send = mocker.patch.object(thread, "send")
@@ -432,7 +442,7 @@ def test_parse_bboxtree(mocker):
     mock_send.assert_called_with("parse_bboxtree", "json")
 
 
-def test_do_parse_bboxtree():
+def test_do_parse_bboxtree() -> None:
     """Test do_parse_bboxtree."""
     thread = DocThread(db=":memory:")
     hocr = """
@@ -448,7 +458,7 @@ def test_do_parse_bboxtree():
     assert result["sorted_word_indices"] == [2, 1]
 
 
-def test_do_set_annotations(mocker):
+def test_do_set_annotations(mocker: pytest.MockerFixture) -> None:
     """Test do_set_annotations."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -468,7 +478,7 @@ def test_do_set_annotations(mocker):
     )
 
 
-def test_do_set_resolution(mocker):
+def test_do_set_resolution(mocker: pytest.MockerFixture) -> None:
     """Test do_set_resolution."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -488,7 +498,7 @@ def test_do_set_resolution(mocker):
     )
 
 
-def test_do_set_mean_std_dev(mocker):
+def test_do_set_mean_std_dev(mocker: pytest.MockerFixture) -> None:
     """Test do_set_mean_std_dev."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -508,7 +518,7 @@ def test_do_set_mean_std_dev(mocker):
     )
 
 
-def test_do_delete_pages_ids(mocker):
+def test_do_delete_pages_ids(mocker: pytest.MockerFixture) -> None:
     """Test do_delete_pages with page_ids."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -534,7 +544,7 @@ def test_do_delete_pages_ids(mocker):
     )
 
 
-def test_run_unpaper_cmd_rtl(mocker):
+def test_run_unpaper_cmd_rtl(mocker: pytest.MockerFixture) -> None:
     """Test _run_unpaper_cmd with rtl direction."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -566,7 +576,7 @@ def test_run_unpaper_cmd_rtl(mocker):
     assert out != out2
 
 
-def test_run_unpaper_cmd_rtl_error(mocker):
+def test_run_unpaper_cmd_rtl_error(mocker: pytest.MockerFixture) -> None:
     """Test _run_unpaper_cmd error handling."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -613,7 +623,7 @@ def test_run_unpaper_cmd_rtl_error(mocker):
     request.data.assert_called_with("Error processing")
 
 
-def test_set_text_calls_send(mocker):
+def test_set_text_calls_send(mocker: pytest.MockerFixture) -> None:
     """Test that `set_text()` forwards to `send()` with correct args."""
     thread = DocThread(db=":memory:")
 
@@ -629,7 +639,7 @@ def test_set_text_calls_send(mocker):
     assert result == "sent"
 
 
-def test_check_cancelled():
+def test_check_cancelled() -> None:
     """Test check_cancelled."""
     thread = DocThread(db=":memory:")
     thread.cancel = False
@@ -641,7 +651,7 @@ def test_check_cancelled():
         thread.check_cancelled()
 
 
-def test_do_analyse_empty_image(mocker):
+def test_do_analyse_empty_image(mocker: pytest.MockerFixture) -> None:
     """Test do_analyse with an empty image."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -665,7 +675,7 @@ def test_do_analyse_empty_image(mocker):
     assert mock_page.std_dev == [0.0]
 
 
-def test_do_threshold_colour(mocker):
+def test_do_threshold_colour(mocker: pytest.MockerFixture) -> None:
     """Test do_threshold preserves colour content on white."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -700,7 +710,7 @@ def test_do_threshold_colour(mocker):
     assert [pix[x, 2] for x in range(4)] == [0, 0, 0, 0], "light colours kept"
 
 
-def test_do_threshold_percent(mocker):
+def test_do_threshold_percent(mocker: pytest.MockerFixture) -> None:
     """Test do_threshold value is a percentage of the range."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -742,7 +752,7 @@ def test_do_threshold_percent(mocker):
     ]
 
 
-def test_executemany_no_params(mocker):
+def test_executemany_no_params(mocker: pytest.MockerFixture) -> None:
     """Test _executemany when params is None to cover line 111."""
     thread = DocThread(db=":memory:")
     tid = threading.get_native_id()
@@ -759,7 +769,7 @@ def test_executemany_no_params(mocker):
     mock_cur.executemany.assert_called_once_with("dummy query")
 
 
-def test_open_newer_version(mocker):
+def test_open_newer_version(mocker: pytest.MockerFixture) -> None:
     """Test open session file with newer version."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -786,7 +796,7 @@ def test_open_newer_version(mocker):
     )
 
 
-def test_insert_image_not_found(mocker):
+def test_insert_image_not_found(mocker: pytest.MockerFixture) -> None:
     """Test _insert_image with non-existent if_different_from."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -801,7 +811,7 @@ def test_insert_image_not_found(mocker):
         thread._insert_image(mock_page, if_different_from=1)
 
 
-def test_reuse_image_thumb_not_found(mocker):
+def test_reuse_image_thumb_not_found(mocker: pytest.MockerFixture) -> None:
     """Test _reuse_image_thumb with an unknown image id."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -813,7 +823,7 @@ def test_reuse_image_thumb_not_found(mocker):
         thread._reuse_image_thumb(99)
 
 
-def test_add_page_insert_after_not_found(mocker):
+def test_add_page_insert_after_not_found(mocker: pytest.MockerFixture) -> None:
     """Test add_page with a non-existent insert_after page."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -830,7 +840,7 @@ def test_add_page_insert_after_not_found(mocker):
         thread.add_page(mock_page, insert_after=999)
 
 
-def test_do_delete_pages_row_ids(mocker):
+def test_do_delete_pages_row_ids(mocker: pytest.MockerFixture) -> None:
     """Test do_delete_pages with row_ids."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -852,7 +862,7 @@ def test_do_delete_pages_row_ids(mocker):
     assert mock_execute.call_count >= 1
 
 
-def test_do_delete_pages_no_args(mocker):
+def test_do_delete_pages_no_args(mocker: pytest.MockerFixture) -> None:
     """Test do_delete_pages with no args."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -866,7 +876,7 @@ def test_do_delete_pages_no_args(mocker):
         thread.do_delete_pages(request)
 
 
-def test_get_page_errors(mocker):
+def test_get_page_errors(mocker: pytest.MockerFixture) -> None:
     """Test get_page error conditions."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -883,7 +893,7 @@ def test_get_page_errors(mocker):
         thread.get_page(id=1)
 
 
-def test_do_tesseract_no_lang(mocker):
+def test_do_tesseract_no_lang(mocker: pytest.MockerFixture) -> None:
     """Test do_tesseract with no language."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -898,7 +908,7 @@ def test_do_tesseract_no_lang(mocker):
         thread.do_tesseract(request)
 
 
-def test_do_unpaper_ioerror(mocker):
+def test_do_unpaper_ioerror(mocker: pytest.MockerFixture) -> None:
     """Test do_unpaper handling IOError."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -921,7 +931,9 @@ def test_do_unpaper_ioerror(mocker):
     assert "Error creating file in /tmp: Mocked IOError" in str(request.error.call_args)
 
 
-def test_pages_saved_after_replace(temp_db, mocker):
+def test_pages_saved_after_replace(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
     """Test pages_saved after replace_page and do_set_saved with initial_page_id."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -950,7 +962,9 @@ def test_pages_saved_after_replace(temp_db, mocker):
     assert thread.pages_saved()
 
 
-def test_replace_page_reuse_image(temp_db, mocker):
+def test_replace_page_reuse_image(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
     """Test replace_page with reuse_image=True keeps the stored image."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -979,7 +993,9 @@ def test_replace_page_reuse_image(temp_db, mocker):
     assert thread.get_page(id=page_id).image_id == image_id
 
 
-def test_replace_page_default_inserts_image(temp_db, mocker):
+def test_replace_page_default_inserts_image(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
     """Test replace_page default reuse_image=False calls _insert_image."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -997,7 +1013,7 @@ def test_replace_page_default_inserts_image(temp_db, mocker):
     insert_image_spy.assert_called_once()
 
 
-def test_ocr_undo_redo(temp_db, mocker):
+def test_ocr_undo_redo(temp_db: object, mocker: pytest.MockerFixture) -> None:
     """Test OCR text layer changes are undoable and redoable, image preserved."""
     hocr = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -1057,7 +1073,7 @@ def test_ocr_undo_redo(temp_db, mocker):
     assert thread.get_page(id=page_id).image_id == image_id_before, "redo keeps image"
 
 
-def test_issue_74_ghost_page_mechanism(temp_db):
+def test_issue_74_ghost_page_mechanism(temp_db: object) -> None:
     """Issue #74: a clear that bypasses the thread leaves ghosts in the undo chain."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -1084,7 +1100,7 @@ def test_issue_74_ghost_page_mechanism(temp_db):
     ], "a frontend-only clear leaves page A in the undo chain (issue #74)"
 
 
-def test_undo_after_delete_all_has_no_ghost(temp_db):
+def test_undo_after_delete_all_has_no_ghost(temp_db: object) -> None:
     """Issue #74 regression: clearing all pages via the thread keeps undo coherent."""
     thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
@@ -1109,7 +1125,7 @@ def test_undo_after_delete_all_has_no_ghost(temp_db):
     assert ids == [id_b], "undo after New File restores only unedited page B"
 
 
-def test_open_migration_v1_to_v2(temp_db):
+def test_open_migration_v1_to_v2(temp_db: object) -> None:
     """Test migration from version 1 to 2."""
     db_path = temp_db.name
     conn = sqlite3.connect(db_path)
@@ -1150,7 +1166,7 @@ def test_open_migration_v1_to_v2(temp_db):
     assert thread._fetchone()[0] == 1
 
 
-def test_pixbuf_to_bytes():
+def test_pixbuf_to_bytes() -> None:
     """Test _pixbuf_to_bytes."""
     thread = DocThread(db=":memory:")
     assert thread._pixbuf_to_bytes(None) == b"", (
@@ -1158,7 +1174,9 @@ def test_pixbuf_to_bytes():
     )
 
 
-def test_init_race_condition(tmp_path, monkeypatch):
+def test_init_race_condition(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Test that DocThread.__init__ correctly waits for the 'create' request.
 
     This applies even if it takes longer than the old 2-second timeout.
@@ -1167,7 +1185,7 @@ def test_init_race_condition(tmp_path, monkeypatch):
 
     original_do_create = DocThread.do_create
 
-    def delayed_do_create(self, request):
+    def delayed_do_create(self: DocThread, request: Request) -> None:
         time.sleep(3)  # Longer than the old 2s timeout
         original_do_create(self, request)
 
@@ -1183,14 +1201,20 @@ def test_init_race_condition(tmp_path, monkeypatch):
     thread.quit()
 
 
-def test_init_timeout_logging(tmp_path, mocker, caplog):
+def test_init_timeout_logging(
+    tmp_path: pathlib.Path,
+    mocker: pytest.MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Test that DocThread.__init__ logs an error if initialization times out."""
     db_path = tmp_path / "test_timeout.db"
 
     # Mock GLib.timeout_add to use a very short timeout instead of 10s
     original_timeout_add = GLib.timeout_add
 
-    def mock_timeout_add(ms, callback, *args):
+    def mock_timeout_add(
+        ms: int, callback: Callable[..., object], *args: object
+    ) -> int:
         del ms
         return original_timeout_add(1, callback, *args)
 
@@ -1205,7 +1229,7 @@ def test_init_timeout_logging(tmp_path, mocker, caplog):
     thread.quit()
 
 
-def test_close(mocker):
+def test_close(mocker: pytest.MockerFixture) -> None:
     """Test closing the db."""
     thread = DocThread(db=":memory:")
     tid = threading.get_native_id()
@@ -1216,7 +1240,7 @@ def test_close(mocker):
     assert tid not in thread._con, "removed connection from pool on close"
 
 
-def test_save_as(temp_db, mocker):
+def test_save_as(temp_db: object, mocker: pytest.MockerFixture) -> None:
     """Test saving the db."""
     thread = DocThread(db=":memory:")
     execute = mocker.patch.object(thread, "_execute")
@@ -1224,7 +1248,7 @@ def test_save_as(temp_db, mocker):
     execute.assert_called_with(f"VACUUM INTO '{temp_db.name}'")
 
 
-def test_init_no_dir_db():
+def test_init_no_dir_db() -> None:
     """Test __init__ falls back to temp dir when no dir or db given."""
     thread = DocThread()
     assert thread.dir is not None
@@ -1232,7 +1256,7 @@ def test_init_no_dir_db():
     thread.quit()
 
 
-def test_do_open(mocker):
+def test_do_open(mocker: pytest.MockerFixture) -> None:
     """Test do_open calls open with the given path."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -1243,7 +1267,7 @@ def test_do_open(mocker):
     mock_open.assert_called_with("/tmp/test.db")
 
 
-def test_add_page_insert_at_start(mocker):
+def test_add_page_insert_at_start(mocker: pytest.MockerFixture) -> None:
     """Test add_page with INSERT_AT_START position."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -1262,12 +1286,12 @@ def test_add_page_insert_at_start(mocker):
     mock_execute.assert_called()
 
 
-def test_page_number_table_error(mocker):
+def test_page_number_table_error(mocker: pytest.MockerFixture) -> None:
     """Test page_number_table error callback."""
     thread = DocThread(db=":memory:")
     mock_send = mocker.patch.object(thread, "send")
 
-    def send_side_effect(*_args, **kwargs):
+    def send_side_effect(*_args: object, **kwargs: object) -> None:
         error_callback = kwargs["error_callback"]
         response = mocker.Mock()
         response.info = None
@@ -1278,7 +1302,7 @@ def test_page_number_table_error(mocker):
     assert result is None
 
 
-def test_do_import_page_insert_after(mocker):
+def test_do_import_page_insert_after(mocker: pytest.MockerFixture) -> None:
     """Test do_import_page with insert_after set."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -1294,13 +1318,13 @@ def test_do_import_page_insert_after(mocker):
     )
 
 
-def test_close_tid_not_in_con():
+def test_close_tid_not_in_con() -> None:
     """Test close when tid is not in _con."""
     thread = DocThread(db=":memory:")
     thread.close()
 
 
-def test_insert_page_no_resolution(mocker):
+def test_insert_page_no_resolution(mocker: pytest.MockerFixture) -> None:
     """Test _insert_page when page.resolution is falsy."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
@@ -1321,7 +1345,7 @@ def test_insert_page_no_resolution(mocker):
     assert None in execute_call[0][1][2:4]
 
 
-def test_do_rotate_not_90(mocker):
+def test_do_rotate_not_90(mocker: pytest.MockerFixture) -> None:
     """Test do_rotate with angle not in (-90, 90)."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()

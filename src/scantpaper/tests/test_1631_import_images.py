@@ -1,15 +1,23 @@
 """Test importing PPM."""
 
+from __future__ import annotations
+
 import os
 import subprocess
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 from scantpaper import config
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def test_import_ppm(temp_db, temp_ppm, get_page_sync):
+
+def test_import_ppm(
+    temp_db: object, temp_ppm: object, get_page_sync: Callable[..., object]
+) -> None:
     """Test importing PPM."""
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_ppm.name], check=True)
 
@@ -27,7 +35,9 @@ def test_import_ppm(temp_db, temp_ppm, get_page_sync):
     assert page.image_object.mode == "RGB", "PPM imported correctly"
 
 
-def test_import_truncated_ppm(temp_db, temp_pnm, get_page_sync):
+def test_import_truncated_ppm(
+    temp_db: object, temp_pnm: object, get_page_sync: Callable[..., object]
+) -> None:
     """Test importing a truncated PPM still gives a full-size page."""
     # build a cropped (i.e. too little data compared with header) pnm
     # to test padding code
@@ -57,7 +67,7 @@ def test_import_truncated_ppm(temp_db, temp_pnm, get_page_sync):
     assert page.image_object.mode == "RGB", "padded pnm imported as RGB"
 
 
-def test_import_corrupt_png(temp_png, temp_db):
+def test_import_corrupt_png(temp_png: object, temp_db: object) -> None:
     """Test importing PNG."""
     slist = Document(db=temp_db.name)
 
@@ -65,7 +75,7 @@ def test_import_corrupt_png(temp_png, temp_db):
 
     asserts = 0
 
-    def error_cb(response):
+    def error_cb(response: object) -> None:
         nonlocal asserts
         assert (
             response.status == f"Error importing zero-length file {temp_png.name}."

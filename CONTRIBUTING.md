@@ -148,6 +148,25 @@ that is accurate. Where a value genuinely has several possible types, use a
 a truly polymorphic payload use `object` rather than `Any`, so consumers are
 forced to narrow it explicitly.
 
+The classifier rules `ANN001`-`ANN003` and `ANN201`/`ANN202` are enforced, so
+every module is fully annotated. The codebase adopts the following conventions:
+
+- Add `from __future__ import annotations` at the top of every module, so
+  annotations are evaluated lazily and forward references need no quoting.
+- Type-only imports (types referenced only in annotations) live in an
+  `if TYPE_CHECKING:` block at the top of the module instead of being imported
+  at runtime; import `TYPE_CHECKING` from `typing`. `ruff` (`TC003`) enforces
+  this.
+- GTK signal handlers are annotated with the concrete `gi.repository` types
+  (e.g. `Gtk.Widget`, `Gdk.Rectangle`, `Gdk.Event`) where the parameter
+  corresponds to an emitted widget or payload; fall back to `object` only when
+  the value is genuinely duck-typed. Handlers return `-> None`.
+- Because annotations are lazy, a `@GObject.Property` getter/setter must keep
+  an explicit `type=` argument on the `@GObject.Property` decorator; it cannot
+  rely on the (stringised) return annotation. Methods with
+  `@GObject.Property` must annotate the getter with `-> <type>` and the
+  setter with both the parameter and `-> None`.
+
 ## Commit messages
 
 Please ensure that all commits have meaningful messages:
@@ -166,6 +185,8 @@ pytest
 
 This will run all tests and generate a coverage report. Please ensure that your
 changes do not increase the number of uncovered or partially-covered lines.
+The only acceptable newly-uncovered lines are the type-only imports inside
+`if TYPE_CHECKING:` blocks, which by design never execute.
 
 ## Documentation
 

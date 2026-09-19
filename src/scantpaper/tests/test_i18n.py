@@ -1,13 +1,19 @@
 """Tests for i18n helpers."""
 
+from __future__ import annotations
+
 import gettext
 import importlib
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 from scantpaper import i18n
 
+if TYPE_CHECKING:
+    import pytest
 
-def test_i18n_fallbacks(caplog):
+
+def test_i18n_fallbacks(caplog: pytest.LogCaptureFixture) -> None:
     """Test the fallback logic when translations are not found."""
     with patch("gettext.translation", side_effect=FileNotFoundError):
         # Reload the module to trigger the logic at the module level
@@ -26,7 +32,7 @@ def test_i18n_fallbacks(caplog):
     assert i18n.d_sane is gettext.gettext
 
 
-def test_i18n_load_success():
+def test_i18n_load_success() -> None:
     """Test the successful loading of translations."""
     mock_translation = MagicMock()
     with patch("gettext.translation", return_value=mock_translation):

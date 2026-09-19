@@ -1,11 +1,14 @@
 """test config helper functions."""
 
+from __future__ import annotations
+
 import json
 import logging
 import pathlib
 import tempfile
 from datetime import datetime, timedelta
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 from gi.repository import Gdk
 
@@ -25,6 +28,9 @@ from scantpaper.config import (
 )
 from scantpaper.helpers import slurp
 
+if TYPE_CHECKING:
+    import pytest
+
 _LOCAL_TZ = datetime.now().astimezone().tzinfo
 
 
@@ -32,12 +38,12 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
-    def now(cls, tz=None) -> datetime:
+    def now(cls, tz: datetime.tzinfo | None = None) -> datetime:
         """Now."""
         return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 
 
-def test_config():
+def test_config() -> None:
     """Test config helper functions."""
     rc = "test"
 
@@ -126,7 +132,7 @@ def test_config():
     assert output == example, "remove undefined profiles"
 
 
-def test_legacy_profile_gains_frontend_key():
+def test_legacy_profile_gains_frontend_key() -> None:
     """Legacy pre-v3 profiles missing a frontend key are normalised on load."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -145,7 +151,7 @@ def test_legacy_profile_gains_frontend_key():
         )
 
 
-def test_well_formed_profile_unaffected_by_migration():
+def test_well_formed_profile_unaffected_by_migration() -> None:
     """A profile with both keys is left unchanged by the migration."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -162,7 +168,7 @@ def test_well_formed_profile_unaffected_by_migration():
         }, "well-formed profile is untouched"
 
 
-def test_legacy_default_scan_options_gain_frontend_key():
+def test_legacy_default_scan_options_gain_frontend_key() -> None:
     """Legacy default scan options missing a frontend key are normalised."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -183,7 +189,7 @@ def test_legacy_default_scan_options_gain_frontend_key():
         ], "backend options are unchanged"
 
 
-def test_corrupted_default_scan_options_repaired():
+def test_corrupted_default_scan_options_repaired() -> None:
     """A misparsed legacy default-scan-options serialisation is repaired."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -200,7 +206,7 @@ def test_corrupted_default_scan_options_repaired():
         }, "trapped backend options are hoisted into the outer backend"
 
 
-def test_well_formed_default_scan_options_unaffected():
+def test_well_formed_default_scan_options_unaffected() -> None:
     """A default-scan-options block with both keys is left unchanged."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -217,7 +223,7 @@ def test_well_formed_default_scan_options_unaffected():
         }, "well-formed default scan options are untouched"
 
 
-def test_non_dict_default_scan_options_ignored():
+def test_non_dict_default_scan_options_ignored() -> None:
     """A non-dict default-scan-options value is left unchanged."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -227,7 +233,7 @@ def test_non_dict_default_scan_options_ignored():
         assert output["default-scan-options"] == "broken"
 
 
-def test_config_string_conversion():
+def test_config_string_conversion() -> None:
     """Test that old integer-based settings are converted to strings."""
     rc = "test_string_conversion"
 
@@ -249,7 +255,7 @@ def test_config_string_conversion():
     pathlib.Path(rc).unlink()
 
 
-def test_config2(mocker):
+def test_config2(mocker: pytest.MockerFixture) -> None:
     """Test config helper functions."""
     rc = "test"
 
@@ -381,7 +387,7 @@ def test_config2(mocker):
     pathlib.Path(f"{rc}.old").unlink()  # rc doesn't exist because it was corrupt
 
 
-def test_threshold_tool_migration():
+def test_threshold_tool_migration() -> None:
     """Test migration of threshold tool to the ink-strength scale."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "config"
@@ -405,7 +411,7 @@ def test_threshold_tool_migration():
         assert output["threshold tool"] == 40, "absent version treated as legacy"
 
 
-def test_threshold_tool_default():
+def test_threshold_tool_default() -> None:
     """Test that the default threshold tool value is 20."""
     assert DEFAULTS["threshold tool"] == 20
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -415,7 +421,7 @@ def test_threshold_tool_default():
         assert output["threshold tool"] == 20, "default threshold tool is 20"
 
 
-def test_get_convert_command(mocker):
+def test_get_convert_command(mocker: pytest.MockerFixture) -> None:
     """Test _get_convert_command."""
     mock_which = mocker.patch("scantpaper.config.shutil.which")
 
@@ -428,7 +434,7 @@ def test_get_convert_command(mocker):
     assert _get_convert_command() == "convert"
 
 
-def test_read_non_existent_config():
+def test_read_non_existent_config() -> None:
     """Test reading a config file that doesn't exist."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "non_existent_config"
@@ -442,7 +448,7 @@ def test_read_non_existent_config():
         assert output.load_warnings == [], "no warnings for a missing file"
 
 
-def test_rescue_config_from_unparseable_file(caplog):
+def test_rescue_config_from_unparseable_file(caplog: pytest.LogCaptureFixture) -> None:
     """An unparseable file rescues intact settings and keeps a backup."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -477,7 +483,7 @@ def test_rescue_config_from_unparseable_file(caplog):
         ), "rescue notice is logged at WARNING"
 
 
-def test_coerce_helpers():
+def test_coerce_helpers() -> None:
     """The lossless coercion helpers cover every scalar type branch."""
     assert _coerce_bool(value=True) is True
     assert _coerce_bool(1) is True
@@ -509,7 +515,7 @@ def test_coerce_helpers():
     assert _coerce_to_type(1, timedelta) is None, "unknown target type"
 
 
-def test_wrong_typed_structural_settings_preserved():
+def test_wrong_typed_structural_settings_preserved() -> None:
     """Non-deserialisable structural values are kept raw with a warning."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -529,7 +535,7 @@ def test_wrong_typed_structural_settings_preserved():
         assert output.load_warnings, "wrong types record warnings"
 
 
-def test_threshold_tool_wrong_type_not_migrated():
+def test_threshold_tool_wrong_type_not_migrated() -> None:
     """A non-integer threshold tool is left for normalisation, not migrated."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -538,7 +544,9 @@ def test_threshold_tool_wrong_type_not_migrated():
         assert output["threshold tool"] == 80, "string coerced but not migrated"
 
 
-def test_normalise_wrong_typed_scalar_settings(caplog):
+def test_normalise_wrong_typed_scalar_settings(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Lossless conversions are logged; unusable values warn the user."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -570,7 +578,7 @@ def test_normalise_wrong_typed_scalar_settings(caplog):
         ), "unusable value is logged at WARNING"
 
 
-def test_write_config_is_copied_and_never_writes_old():
+def test_write_config_is_copied_and_never_writes_old() -> None:
     """write_config serialises on a copy and never writes to *.old."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -602,7 +610,7 @@ def test_write_config_is_copied_and_never_writes_old():
         )
 
 
-def test_legacy_null_image_type_migrated_to_default():
+def test_legacy_null_image_type_migrated_to_default() -> None:
     """A legacy null image type is migrated to the application default."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -616,7 +624,7 @@ def test_legacy_null_image_type_migrated_to_default():
         assert not output.load_warnings, "no warning is raised for the migrated value"
 
 
-def test_null_image_type_round_trips_as_default():
+def test_null_image_type_round_trips_as_default() -> None:
     """The migrated value is written back as the default, not null."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
@@ -629,7 +637,9 @@ def test_null_image_type_round_trips_as_default():
         assert persisted["image type"] == "pdf", "migrated value is stored, not null"
 
 
-def test_null_image_type_migration_logged_at_info(caplog):
+def test_null_image_type_migration_logged_at_info(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """The migration is logged at INFO with no warning for the migrated value."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"

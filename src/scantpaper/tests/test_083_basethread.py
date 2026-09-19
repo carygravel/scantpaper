@@ -1,5 +1,7 @@
 """test basethread class."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,7 +14,7 @@ from scantpaper.loop_helpers import safe_mainloop
 class MyThread(BaseThread):
     """test thread class."""
 
-    def do_div(self, request):
+    def do_div(self, request: Request) -> float:
         """Test method."""
         arg1, arg2 = request.args
         request.data("arg1 / arg2")
@@ -97,11 +99,11 @@ EXPECTED = [
 ]
 
 
-def test_1():
+def test_1() -> None:
     """Test baseprocess class."""
     n_callbacks = 0
 
-    def callback(response=None):
+    def callback(response: Response | None = None) -> None:
         """React to the callback."""
         nonlocal n_callbacks
         if response is None:
@@ -165,27 +167,27 @@ def test_1():
     mlp.run()
 
 
-def test_mainloop_wrapper_getattr():
+def test_mainloop_wrapper_getattr() -> None:
     """Test that __getattr__ proxies to the underlying GLib.MainLoop."""
     mlp = safe_mainloop(2000)
     ctx = mlp.get_context()
     assert ctx is not None
 
 
-def test_empty_queue():
+def test_empty_queue() -> None:
     """Test _monitor_response with empty queue."""
     thread = BaseThread()
     assert thread._monitor_response() == GLib.SOURCE_CONTINUE
 
 
-def test_job_counters_do_not_leak_across_batches():
+def test_job_counters_do_not_leak_across_batches() -> None:
     """Test that num_completed_jobs and total_jobs are reset between batches."""
     thread = MyThread()
     thread.start()
 
     callback_calls = []
 
-    def callback(response=None):
+    def callback(response: Response | None = None) -> None:
         callback_calls.append(response)
         if response is not None and response.type == ResponseType.FINISHED:
             mlp.quit()
@@ -218,7 +220,7 @@ def test_job_counters_do_not_leak_across_batches():
     mlp.run()
 
 
-def test_job_counters_persist_within_batch():
+def test_job_counters_persist_within_batch() -> None:
     """Test that counters accumulate within a multi-job batch."""
     thread = MyThread()
     thread.start()
@@ -226,7 +228,7 @@ def test_job_counters_persist_within_batch():
     callback_calls = []
     n_callbacks = 0
 
-    def callback(response=None):
+    def callback(response: Response | None = None) -> None:
         nonlocal n_callbacks
         callback_calls.append(response)
         if response is not None and response.type == ResponseType.FINISHED:
@@ -255,7 +257,7 @@ def test_job_counters_persist_within_batch():
     mlp.run()
 
 
-def test_register_callback_errors():
+def test_register_callback_errors() -> None:
     """Test errors raised by register_callback."""
     thread = BaseThread()
     with pytest.raises(ValueError, match="when can only be"):
@@ -264,14 +266,14 @@ def test_register_callback_errors():
         thread.register_callback("name", "before", "nonexistent")
 
 
-def test_pipe_notification():
+def test_pipe_notification() -> None:
     """Test that _notify wakes up the IO watcher and processes responses."""
     thread = BaseThread()
     thread.start()
 
     responses_received = []
 
-    def on_finished(response):
+    def on_finished(response: Response) -> None:
         responses_received.append(response)
         mlp.quit()
 
@@ -283,12 +285,12 @@ def test_pipe_notification():
     assert responses_received[0].type == ResponseType.FINISHED
 
 
-def test_running_callback_on_empty_queue():
+def test_running_callback_on_empty_queue() -> None:
     """Test that monitor triggers running callbacks even when response queue is empty."""
     thread = BaseThread()
     running_called = []
 
-    def running_cb(_response):
+    def running_cb(_response: Response) -> None:
         running_called.append(True)
 
     # Manually add a callback with started=True so running_cb is eligible
@@ -308,7 +310,7 @@ def test_running_callback_on_empty_queue():
     )
 
 
-def test_none_callback():
+def test_none_callback() -> None:
     """Test that None callbacks don't cause errors."""
     thread = MyThread()
     thread.start()
@@ -338,12 +340,12 @@ def test_none_callback():
     mlp.run()
 
 
-def test_monitor_processes_one_at_a_time():
+def test_monitor_processes_one_at_a_time() -> None:
     """Test that monitor processes exactly one response per call."""
     thread = BaseThread()
     finished_calls = []
 
-    def finished_cb(response):
+    def finished_cb(response: Response) -> None:
         finished_calls.append(response)
 
     # Manually enqueue two finished responses
@@ -367,7 +369,7 @@ def test_monitor_processes_one_at_a_time():
     assert thread.responses.qsize() == 1
 
 
-def test_monitor_schedules_idle_when_responses_remain():
+def test_monitor_schedules_idle_when_responses_remain() -> None:
     """Test that GLib.idle_add is called when responses still in queue."""
     thread = BaseThread()
 
@@ -384,13 +386,15 @@ def test_monitor_schedules_idle_when_responses_remain():
     "terminal_type",
     [ResponseType.FINISHED, ResponseType.ERROR, ResponseType.CANCELLED],
 )
-def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_type):
+def test_running_callback_suppressed_during_terminal_dispatch(
+    mocker: pytest.MockerFixture, terminal_type: ResponseType
+) -> None:
     """Test that running callbacks don't fire while a terminal callback is dispatched."""
     thread = BaseThread()
     running_cb = mocker.Mock()
     terminal_dispatched = []
 
-    def terminal_cb(_response):
+    def terminal_cb(_response: Response) -> None:
         # Simulates a nested main loop firing the running stage while the
         # terminal callback is still being processed (e.g. a modal dialog
         # opened from within the error callback)
@@ -412,7 +416,9 @@ def test_running_callback_suppressed_during_terminal_dispatch(mocker, terminal_t
     running_cb.assert_not_called()
 
 
-def test_cancelled_response_dispatches_cancelled_callback(mocker):
+def test_cancelled_response_dispatches_cancelled_callback(
+    mocker: pytest.MockerFixture,
+) -> None:
     """CANCELLED fires cancelled_callback, suppresses finished, and cleans the registry."""
     thread = BaseThread()
     cancelled_cb = mocker.Mock()
@@ -435,7 +441,9 @@ def test_cancelled_response_dispatches_cancelled_callback(mocker):
     assert thread.num_completed_jobs == 1, "cancelled job counted as complete"
 
 
-def test_drain_cancelled_requests_notifies_queued_jobs(mocker):
+def test_drain_cancelled_requests_notifies_queued_jobs(
+    mocker: pytest.MockerFixture,
+) -> None:
     """drain_cancelled_requests drops queued requests and notifies their requesters."""
     thread = BaseThread()
     cancelled_cb = mocker.Mock()
@@ -462,7 +470,7 @@ def test_drain_cancelled_requests_notifies_queued_jobs(mocker):
     assert request.uuid not in thread.callbacks, "registry entry removed"
 
 
-def testcleanup_thread_exception_caught(mocker):
+def testcleanup_thread_exception_caught(mocker: pytest.MockerFixture) -> None:
     """Test cleanup_thread catches exceptions from queue.put during interpreter shutdown."""
     mock_queue = mocker.Mock()
     mock_queue.put.side_effect = Exception("queue closed")
@@ -470,12 +478,12 @@ def testcleanup_thread_exception_caught(mocker):
     mock_queue.put.assert_called_once()
 
 
-def test_stage_callback_exception_invokes_error_callback():
+def test_stage_callback_exception_invokes_error_callback() -> None:
     """Test that a failing non-error stage callback triggers the error_callback."""
     thread = BaseThread()
     error_callback = MagicMock()
 
-    def failing_callback(_response):
+    def failing_callback(_response: Response) -> None:
         msg = "boom"
         raise ValueError(msg)
 
@@ -502,7 +510,7 @@ def test_stage_callback_exception_invokes_error_callback():
 
 
 @pytest.mark.filterwarnings("ignore:Source ID .* was not found.*")
-def test_release_sources_close_oserror(mocker):
+def test_release_sources_close_oserror(mocker: pytest.MockerFixture) -> None:
     """Test _release_sources catches OSError from os.close."""
     thread = BaseThread()
     thread._io_watch_id = 999999
@@ -518,7 +526,7 @@ def test_release_sources_close_oserror(mocker):
     assert mock_close.call_count >= 2
 
 
-def test_quit_all_live_threads():
+def test_quit_all_live_threads() -> None:
     """Test quit_all_live_threads stops all registered live threads."""
     t1 = BaseThread()
     t2 = BaseThread()
@@ -535,7 +543,9 @@ def test_quit_all_live_threads():
     assert not t2.is_alive(), "t2 quit"
 
 
-def test_quit_all_live_threads_logs_exception(mocker):
+def test_quit_all_live_threads_logs_exception(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test quit_all_live_threads logs and continues when quit() raises."""
     t1 = BaseThread()
     t2 = BaseThread()
@@ -544,7 +554,7 @@ def test_quit_all_live_threads_logs_exception(mocker):
 
     real_quit = t1.quit
 
-    def raising_quit():
+    def raising_quit() -> None:
         real_quit()
         msg = "boom"
         raise RuntimeError(msg)

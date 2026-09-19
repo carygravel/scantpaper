@@ -1,10 +1,12 @@
 """options from data."""
 
+from __future__ import annotations
+
 from scantpaper.frontend import enums
 from scantpaper.scanner.options import Option, Options
 
 
-def test_1():
+def test_1() -> None:
     """Options from data."""
     data = [
         Option(

@@ -1,6 +1,9 @@
 """test TextLayerControls widget."""
 
+from __future__ import annotations
+
 import pathlib
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import gi
@@ -14,8 +17,11 @@ gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gtk  # noqa: E402
 
+if TYPE_CHECKING:
+    import pytest
 
-def test_text_layer_sort_combo_box(mocker):
+
+def test_text_layer_sort_combo_box(mocker: pytest.MockerFixture) -> None:
     """Test the text layer sort combo box."""
     mocker.patch("scantpaper.app_window.ApplicationWindow._populate_main_window")
     mocker.patch("scantpaper.app_window.ApplicationWindow._create_temp_directory")
@@ -58,7 +64,7 @@ def test_text_layer_sort_combo_box(mocker):
     window.t_canvas.sort_by_position.assert_called_once()
 
 
-def test_text_layer_add_and_ok_buttons(mocker):
+def test_text_layer_add_and_ok_buttons(mocker: pytest.MockerFixture) -> None:
     """Test that the text layer add and ok buttons call _take_snapshot."""
     mocker.patch("scantpaper.app_window.ApplicationWindow._populate_main_window")
     mocker.patch("scantpaper.app_window.ApplicationWindow._create_temp_directory")
@@ -142,7 +148,7 @@ def test_text_layer_add_and_ok_buttons(mocker):
     )
 
 
-def test_edit_ocr_text_updates_selection(mocker):
+def test_edit_ocr_text_updates_selection(mocker: pytest.MockerFixture) -> None:
     """Test _edit_ocr_text."""
     mocker.patch("scantpaper.app_window.ApplicationWindow._populate_main_window")
     mocker.patch("scantpaper.app_window.ApplicationWindow._create_temp_directory")
@@ -191,14 +197,14 @@ def test_edit_ocr_text_updates_selection(mocker):
     assert window._current_ocr_bbox == mock_bbox2
 
 
-def test_text_layer_control_signals():
+def test_text_layer_control_signals() -> None:
     """Test that buttons emit the correct signals."""
     tlc = TextLayerControls()
 
     # Helper to track signals
     signals_received = []
 
-    def on_signal(_widget, name):
+    def on_signal(_widget: object, name: str) -> None:
         signals_received.append(name)
 
     # Connect signals
@@ -215,7 +221,7 @@ def test_text_layer_control_signals():
         tlc.connect(signal, lambda w, s=signal: on_signal(w, s))
 
     # Helper to find child by tooltip
-    def get_child_by_tooltip(tooltip):
+    def get_child_by_tooltip(tooltip: str) -> object:
         retval = None
         for child in tlc.get_children():
             if child.get_tooltip_text() == tooltip:
@@ -244,11 +250,11 @@ def test_text_layer_control_signals():
         assert signals_received[-1] == signal, f"Signal '{signal}' not received"
 
 
-def test_text_layer_control_sort():
+def test_text_layer_control_sort() -> None:
     """Test sort combo box."""
     tlc = TextLayerControls()
 
-    def get_child_by_tooltip(tooltip):
+    def get_child_by_tooltip(tooltip: str) -> object:
         widget = None
         for child in tlc.get_children():
             if child.get_tooltip_text() == tooltip:
@@ -270,7 +276,7 @@ def test_text_layer_control_sort():
     assert received_sort[-1] == "confidence"
 
 
-def test_text_layer_control_cancel():
+def test_text_layer_control_cancel() -> None:
     """Test cancel button existence."""
     tlc = TextLayerControls()
 

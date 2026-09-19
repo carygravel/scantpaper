@@ -1,12 +1,14 @@
 """Tests for bboxtree."""
 
+from __future__ import annotations
+
 import pytest
 
 from scantpaper.bboxtree import HOCR_HEADER, VERSION, Bboxtree
 from scantpaper.const import POINTS_PER_INCH
 
 
-def test_1():
+def test_1() -> None:
     """Tests for bboxtree."""
     tree = Bboxtree()
     tree.from_hocr(None)
@@ -283,7 +285,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
     assert tree.to_hocr() == expected, "to_hocr with par and style"
 
 
-def test_2():
+def test_2() -> None:
     """Tests for bboxtree."""
     hocr = """<!DOCTYPE html PUBLIC "-//W3C//DTD
 HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -569,7 +571,7 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
     )
 
 
-def test_from_djvu_txt():
+def test_from_djvu_txt() -> None:
     """Tests for bboxtree.from_djvu_txt()."""
     djvu = """(page 0 0 2236 3185
   (column 157 3011 1725 3105
@@ -740,7 +742,7 @@ def test_from_djvu_txt():
         )
 
 
-def test_from_pdftotext():
+def test_from_pdftotext() -> None:
     """Tests for bboxtree.from_pdftotext()."""
     pdftext = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
@@ -942,7 +944,7 @@ def test_from_pdftotext():
     assert tree.bbox_tree == expected, "from_pdftotext() invalid page"
 
 
-def test_valid():
+def test_valid() -> None:
     """Test valid() method."""
     tree = Bboxtree()
     tree.from_text("The quick brown fox", 422, 61)
@@ -958,7 +960,7 @@ def test_valid():
     assert tree.valid(), "empty tree is valid"
 
 
-def test_crop():
+def test_crop() -> None:
     """Test crop() method."""
     tree = Bboxtree()
     tree.from_text("The quick brown fox", 422, 61)

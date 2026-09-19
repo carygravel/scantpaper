@@ -1,11 +1,14 @@
 """Test importing DjVu."""
 
+from __future__ import annotations
+
 import datetime
 import pathlib
 import re
 import shutil
 import subprocess
 import tempfile
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,13 +18,21 @@ from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_import_djvu(
-    rose_jpg, temp_djvu, temp_txt, clean_up_files, temp_db, get_page_sync
-):
+    rose_jpg: str,
+    temp_djvu: object,
+    temp_txt: object,
+    clean_up_files: Callable[[list[str]], None],
+    temp_db: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test importing DjVu."""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
     text = """(page 0 0 2236 3185
@@ -68,12 +79,12 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 
     asserts = 0
 
-    def started_cb(response):
+    def started_cb(response: object) -> None:
         nonlocal asserts
         assert response.request.process in ["get_file_info", "import_file"]
         asserts += 1
 
-    def metadata_cb(response):
+    def metadata_cb(response: object) -> None:
         assert response["datetime"] == datetime.datetime(
             2018, 12, 31, 13, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
         ), "datetime"
@@ -140,7 +151,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_import_djvu_with_error(rose_jpg, temp_djvu):
+def test_import_djvu_with_error(rose_jpg: str, temp_djvu: object) -> None:
     """Test importing DjVu."""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
 
@@ -151,7 +162,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
 
         asserts = 0
 
-        def queued_cb(_response):
+        def queued_cb(_response: object) -> None:
             nonlocal asserts
             if asserts == 0:
                 asserts += 1
@@ -159,7 +170,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
                 # inject error during import file
                 pathlib.Path(dirname).chmod(0o500)  # no write access
 
-        def error_cb(*args):
+        def error_cb(*args: object) -> None:
             nonlocal asserts
             message = args[-1] if len(args) > 1 else args[0].status
             assert re.search(r"Error|Errno", message), "error_cb"
@@ -179,7 +190,7 @@ def test_import_djvu_with_error(rose_jpg, temp_djvu):
         assert asserts == 2, "all callbacks run"
 
 
-def mock_import_djvu_txt(_self, _text):
+def mock_import_djvu_txt(_self: Page, _text: str) -> None:
     """Mock import_djvu_txt method to test error handling."""
     msg = "Error parsing djvu text"
     raise ValueError(msg)
@@ -189,8 +200,12 @@ def mock_import_djvu_txt(_self, _text):
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
 def test_import_djvu_with_error2(
-    monkeypatch, rose_jpg, temp_djvu, temp_db, get_page_sync
-):
+    monkeypatch: pytest.MonkeyPatch,
+    rose_jpg: str,
+    temp_djvu: object,
+    temp_db: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test importing DjVu."""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
 
@@ -203,7 +218,7 @@ def test_import_djvu_with_error2(
 
     asserts = 0
 
-    def logger_cb(response):
+    def logger_cb(response: object) -> None:
         nonlocal asserts
         assert re.search(r"error", response.status), "error_cb"
         asserts += 1
@@ -223,7 +238,9 @@ def test_import_djvu_with_error2(
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db):
+def test_import_multipage_djvu(
+    rose_jpg: str, temp_djvu: object, temp_db: object
+) -> None:
     """Test importing multipage DjVu."""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
     with tempfile.NamedTemporaryFile(suffix=".djvu") as temp_djvu2:
@@ -237,7 +254,7 @@ def test_import_multipage_djvu(rose_jpg, temp_djvu, temp_db):
 
         asserts = 0
 
-        def started_cb(response):
+        def started_cb(response: object) -> None:
             nonlocal asserts
             assert response.request.process in ["get_file_info", "import_file"]
             asserts += 1

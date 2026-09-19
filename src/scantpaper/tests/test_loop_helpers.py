@@ -1,5 +1,7 @@
 """Tests for loop_helpers module."""
 
+from __future__ import annotations
+
 import pytest
 
 from scantpaper.loop_helpers import _MainLoopWrapper
@@ -12,17 +14,17 @@ class _FakeLoop:
         self.run_count = 0
         self.quit_count = 0
 
-    def is_running(self):
+    def is_running(self) -> bool:
         return False
 
-    def run(self):
+    def run(self) -> None:
         self.run_count += 1
 
-    def quit(self):
+    def quit(self) -> None:
         self.quit_count += 1
 
 
-def test_mainloop_wrapper_timeout_raises():
+def test_mainloop_wrapper_timeout_raises() -> None:
     """The wrapper raises TimeoutError when the safety timer fires."""
     loop = _FakeLoop()
     wrapper = _MainLoopWrapper(loop)
@@ -31,7 +33,7 @@ def test_mainloop_wrapper_timeout_raises():
         wrapper.run()
 
 
-def test_mainloop_wrapper_quit_before_run():
+def test_mainloop_wrapper_quit_before_run() -> None:
     """A quit before run() short-circuits run() without starting the loop."""
     loop = _FakeLoop()
     wrapper = _MainLoopWrapper(loop)

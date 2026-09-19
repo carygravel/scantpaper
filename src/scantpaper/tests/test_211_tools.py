@@ -233,13 +233,13 @@ def test_negate(
 
 
 def test_unsharp_mask(
-    import_in_mainloop,
-    set_saved_in_mainloop,
-    set_text_in_mainloop,
-    temp_db,
-    rose_jpg,
-    get_page_sync,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    temp_db: object,
+    rose_jpg: str,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test unsharp mask."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -293,13 +293,13 @@ def test_unsharp_mask(
 
 
 def test_crop(
-    import_in_mainloop,
-    set_saved_in_mainloop,
-    set_text_in_mainloop,
-    temp_db,
-    temp_gif,
-    get_page_sync,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    temp_db: object,
+    temp_gif: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test brightness contrast."""
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
 
@@ -375,13 +375,13 @@ def test_crop(
 
 
 def test_split(
-    import_in_mainloop,
-    set_saved_in_mainloop,
-    set_text_in_mainloop,
-    temp_db,
-    temp_gif,
-    get_page_sync,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    temp_db: object,
+    temp_gif: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test split."""
     subprocess.run([config.CONVERT_COMMAND, "rose:", temp_gif.name], check=True)
 
@@ -479,13 +479,13 @@ def test_split(
 
 
 def test_brightness_contrast(
-    import_in_mainloop,
-    set_saved_in_mainloop,
-    set_text_in_mainloop,
-    temp_db,
-    rose_jpg,
-    get_page_sync,
-):
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    temp_db: object,
+    rose_jpg: str,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test brightness contrast."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
@@ -527,7 +527,12 @@ def test_brightness_contrast(
     assert not slist.thread.pages_saved(), "modification removed saved tag"
 
 
-def test_race_condition_rotate_save(rose_pnm, temp_db, temp_pdf, import_in_mainloop):
+def test_race_condition_rotate_save(
+    rose_pnm: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test that saving a page while it's being rotated doesn't cause an error."""
     slist = Document(db=temp_db.name)
 
@@ -556,7 +561,11 @@ def test_race_condition_rotate_save(rose_pnm, temp_db, temp_pdf, import_in_mainl
     error_callback.assert_not_called()
 
 
-def test_race_condition_rotate_rotate(rose_pnm, temp_db, import_in_mainloop):
+def test_race_condition_rotate_rotate(
+    rose_pnm: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test rotating the same page twice in a row before the first rotate finishes."""
     slist = Document(db=temp_db.name)
 

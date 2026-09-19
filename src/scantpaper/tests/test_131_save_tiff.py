@@ -1,8 +1,11 @@
 """Test writing TIFF."""
 
+from __future__ import annotations
+
 import pathlib
 import subprocess
 import tempfile
+from typing import TYPE_CHECKING
 
 import pikepdf
 from PIL import Image
@@ -11,8 +14,17 @@ from scantpaper import config
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def test_save_tiff(rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop):
+
+def test_save_tiff(
+    rose_pnm: str,
+    temp_db: object,
+    temp_tif: object,
+    temp_png: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing TIFF."""
     slist = Document(db=temp_db.name)
 
@@ -38,7 +50,13 @@ def test_save_tiff(rose_pnm, temp_db, temp_tif, temp_png, import_in_mainloop):
     assert img.size == (70, 46), "post-save hook dimensions"
 
 
-def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainloop):
+def test_cancel_save_tiff(
+    rose_pnm: str,
+    temp_db: object,
+    temp_tif: object,
+    temp_jpg: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test cancel saving a TIFF."""
     slist = Document(db=temp_db.name)
 
@@ -47,7 +65,7 @@ def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainl
     mlp = safe_mainloop(2000)
     called = False
 
-    def cancelled_callback(_response):
+    def cancelled_callback(_response: object) -> None:
         nonlocal called
         called = True
         mlp.quit()
@@ -76,7 +94,11 @@ def test_cancel_save_tiff(rose_pnm, temp_db, temp_tif, temp_jpg, import_in_mainl
     )
 
 
-def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
+def test_save_tiff_with_error(
+    rose_pnm: str,
+    temp_tif: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing TIFF and triggering an error."""
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
         slist = Document(dir=dirname)
@@ -87,7 +109,7 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
         # inject error before save_djvu
         pathlib.Path(dirname).chmod(0o500)  # no write access
 
-        def error_callback1(_page, _process, _message):
+        def error_callback1(_page: object, _process: str, _message: object) -> None:
             """No write access."""
             assert True, "caught error injected before save_tiff"
             nonlocal asserts
@@ -102,7 +124,7 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
         )
         mlp.run()
 
-        def error_callback2(_page, _process, _message):
+        def error_callback2(_page: object, _process: str, _message: object) -> None:
             assert True, "save_djvu caught error injected in queue"
             pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
@@ -120,7 +142,12 @@ def test_save_tiff_with_error(rose_pnm, temp_tif, import_in_mainloop):
         assert asserts == 2, "ran all callbacks"
 
 
-def test_save_tiff_with_alpha(temp_png, temp_db, temp_tif, import_in_mainloop):
+def test_save_tiff_with_alpha(
+    temp_png: object,
+    temp_db: object,
+    temp_tif: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing TIFF with alpha layer."""
     subprocess.run(
         [
@@ -161,7 +188,13 @@ def test_save_tiff_with_alpha(temp_png, temp_db, temp_tif, import_in_mainloop):
     assert img.mode == "RGB", "valid TIFF with alpha"
 
 
-def test_save_tiff_as_ps(rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainloop):
+def test_save_tiff_as_ps(
+    rose_pnm: str,
+    temp_db: object,
+    temp_tif: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing TIFF and postscript."""
     slist = Document(db=temp_db.name)
 
@@ -192,7 +225,12 @@ def test_save_tiff_as_ps(rose_pnm, temp_db, temp_tif, temp_pdf, import_in_mainlo
         assert "tiff2ps" in creator, "ran post-save hook"
 
 
-def test_save_tiff_g4(rose_png, temp_db, temp_tif, import_in_mainloop):
+def test_save_tiff_g4(
+    rose_png: str,
+    temp_db: object,
+    temp_tif: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
     """Test writing TIFF with group 4 compression."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png])

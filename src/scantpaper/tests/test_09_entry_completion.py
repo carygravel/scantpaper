@@ -1,9 +1,11 @@
 """test EntryCompletion."""
 
+from __future__ import annotations
+
 from scantpaper.entry_completion import EntryCompletion
 
 
-def model_rows(entry):
+def model_rows(entry: EntryCompletion) -> list[str]:
     """Return the suggestion rows in model (display) order."""
     model = entry.get_completion().get_model()
     rows = []
@@ -11,7 +13,7 @@ def model_rows(entry):
     return rows
 
 
-def test_1():
+def test_1() -> None:
     """Test EntryCompletion."""
     suggestions = ["one", "two", "three"]
     entry = EntryCompletion()
@@ -30,7 +32,7 @@ def test_1():
     assert entry.get_suggestions() == example, "ignored duplicates in suggestions"
 
 
-def test_substring_match():
+def test_substring_match() -> None:
     """Text occurring in the middle of a suggestion matches."""
     entry = EntryCompletion()
     entry.add_to_suggestions(["La Voz de Galicia", "voxel"])
@@ -40,7 +42,7 @@ def test_substring_match():
     assert "voxel" in rows
 
 
-def test_case_insensitive_match():
+def test_case_insensitive_match() -> None:
     """Matching is case-insensitive."""
     entry = EntryCompletion()
     entry.add_to_suggestions(["Brian", "Sabrina"])
@@ -50,7 +52,7 @@ def test_case_insensitive_match():
     assert "Sabrina" in rows
 
 
-def test_no_match():
+def test_no_match() -> None:
     """No suggestion matches when the text appears nowhere."""
     entry = EntryCompletion()
     entry.add_to_suggestions(["Brian", "Sabrina"])
@@ -63,7 +65,7 @@ def test_no_match():
         itr = model.iter_next(itr)
 
 
-def test_prefix_matches_before_substring():
+def test_prefix_matches_before_substring() -> None:
     """Prefix matches are ordered before substring-only matches."""
     entry = EntryCompletion()
     entry.add_to_suggestions(["Brian", "Sabrina", "breeze"])
@@ -71,7 +73,7 @@ def test_prefix_matches_before_substring():
     assert model_rows(entry) == ["Brian", "breeze", "Sabrina"]
 
 
-def test_exact_match_ranks_first():
+def test_exact_match_ranks_first() -> None:
     """Exact match ranks first."""
     entry = EntryCompletion()
     entry.add_to_suggestions(["Sabrina", "Brian", "Brianna"])
@@ -79,7 +81,7 @@ def test_exact_match_ranks_first():
     assert model_rows(entry) == ["Brian", "Brianna", "Sabrina"]
 
 
-def test_inline_completion_uses_top_ranked_match():
+def test_inline_completion_uses_top_ranked_match() -> None:
     """The first suggestion in the model is a prefix match."""
     entry = EntryCompletion()
     entry.add_to_suggestions(["Sabrina", "Brian"])
@@ -88,7 +90,7 @@ def test_inline_completion_uses_top_ranked_match():
     assert rows[0].casefold().startswith("br")
 
 
-def test_empty_text_keeps_insertion_order():
+def test_empty_text_keeps_insertion_order() -> None:
     """Empty entry text renders suggestions in insertion order."""
     entry = EntryCompletion()
     entry.add_to_suggestions(["one", "two", "three"])
@@ -96,7 +98,7 @@ def test_empty_text_keeps_insertion_order():
     assert model_rows(entry) == ["one", "two", "three"]
 
 
-def test_ranking_applies_on_every_keystroke():
+def test_ranking_applies_on_every_keystroke() -> None:
     """The model re-orders as the text changes."""
     entry = EntryCompletion()
     entry.add_to_suggestions(["Sabrina", "Brian"])

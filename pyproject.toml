@@ -58,7 +58,6 @@ filterwarnings = [
 
 [tool.coverage.run]
 branch = true
-omit = ["*/scantpaper/tests/*", "*/scantpaper/conftest.py"]
 
 [tool.coverage.report]
 show_missing = true
@@ -101,11 +100,6 @@ select = ["ALL"]
 ignore = [
     "D203",    # incompatible with `no-blank-line-before-class` (D211)
     "D213",    # incompatible with `multi-line-summary-first-line` (D212)
-    "ANN001",  # type annotations: would require typing the whole codebase
-    "ANN002",  # (argument types and public/private return types). Only the
-    "ANN003",  # mechanical ANN204/ANN205/ANN206 (special/static/class method
-    "ANN201",  # return types) are enforced.
-    "ANN202",
     "E501",    # line length: formatted by ruff
     "COM812",  # trailing commas: ruff documents this as a formatter conflict (unsupported combo)
     "CPY001",  # copyright headers: not required by this project

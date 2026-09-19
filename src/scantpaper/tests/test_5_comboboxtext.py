@@ -1,9 +1,11 @@
 """test ComboBoxText widget."""
 
+from __future__ import annotations
+
 from scantpaper.comboboxtext import ComboBoxText
 
 
-def test_1():
+def test_1() -> None:
     """Test ComboBoxText widget."""
     cbt = ComboBoxText()
     assert isinstance(cbt, ComboBoxText), "Created ComboBoxText widget"

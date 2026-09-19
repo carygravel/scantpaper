@@ -1,8 +1,11 @@
 """Test tesseract helper functions."""
 
+from __future__ import annotations
+
 import re
 import shutil
 import subprocess
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -17,8 +20,11 @@ from scantpaper.tesseract import (
     locale_installed,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def test_tesseract_code_conversions():
+
+def test_tesseract_code_conversions() -> None:
     """Test tesseract helper functions."""
     assert languages(["eng", "deu", "chi-sim-vert"]) == {
         "chi-sim-vert": "Chinese - Simplified (vertical)",
@@ -48,12 +54,12 @@ def test_tesseract_code_conversions():
 
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
-def test_get_tesseract_codes():
+def test_get_tesseract_codes() -> None:
     """Test get_tesseract_codes()."""
     assert isinstance(get_tesseract_codes(), list), "get_tesseract_codes() returns list"
 
 
-def test_get_tesseract_codes_mocked(mocker):
+def test_get_tesseract_codes_mocked(mocker: pytest.MockerFixture) -> None:
     """Test get_tesseract_codes() with mocked exec_command."""
     mock_exec = mocker.patch("scantpaper.tesseract.exec_command")
 
@@ -72,7 +78,12 @@ def test_get_tesseract_codes_mocked(mocker):
     assert get_tesseract_codes() == ["eng", "deu"]
 
 
-def test_tesseract_in_thread(temp_png, temp_db, import_in_mainloop, get_page_sync):
+def test_tesseract_in_thread(
+    temp_png: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test importing PDF."""
     args = [
         config.CONVERT_COMMAND,

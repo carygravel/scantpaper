@@ -1,9 +1,12 @@
 """Tests for Importhread."""
 
+from __future__ import annotations
+
 import pathlib
 import subprocess
 import unittest.mock
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 from PIL import Image
@@ -16,6 +19,10 @@ from scantpaper.importthread import (
     _parse_pdfimages_list,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from unittest.mock import MagicMock
+
 _PDFIMAGES_LIST_HEADER = (
     "page   num  type   width height color comp bpc  enc interp"
     "  object ID x-ppi y-ppi size ratio\n"
@@ -23,12 +30,12 @@ _PDFIMAGES_LIST_HEADER = (
 )
 
 
-def _pdfimages_list(*lines):
+def _pdfimages_list(*lines: str) -> str:
     """Build a pdfimages -list capture from the given image data lines."""
     return _PDFIMAGES_LIST_HEADER + "\n".join(lines) + "\n"
 
 
-def test_parse_pdfimages_list():
+def test_parse_pdfimages_list() -> None:
     """Test _parse_pdfimages_list parses a data line into an entry."""
     out = _pdfimages_list(
         "   1     0 image     600   200  gray    1   8  image  no"
@@ -45,7 +52,7 @@ def test_parse_pdfimages_list():
     ]
 
 
-def test_parse_pdfimages_list_types():
+def test_parse_pdfimages_list_types() -> None:
     """Test _parse_pdfimages_list captures image, smask and stencil types."""
     out = _pdfimages_list(
         "   1     0 image     600   200  gray    1   8  image  no"
@@ -59,13 +66,13 @@ def test_parse_pdfimages_list_types():
     assert [entry["type"] for entry in entries] == ["image", "smask", "stencil"]
 
 
-def test_parse_pdfimages_list_no_images():
+def test_parse_pdfimages_list_no_images() -> None:
     """Test _parse_pdfimages_list returns an empty list for header-only output."""
     out = _pdfimages_list()
     assert not _parse_pdfimages_list(out)
 
 
-def test_parse_pdfimages_list_inline():
+def test_parse_pdfimages_list_inline() -> None:
     """Test _parse_pdfimages_list handles inline images without an object ID."""
     out = _pdfimages_list(
         "   1     0 image     157   196  gray    1   1  ccitt  no"
@@ -82,7 +89,7 @@ def test_parse_pdfimages_list_inline():
     ]
 
 
-def test_composite_over_white_opaque_and_transparent(tmp_path):
+def test_composite_over_white_opaque_and_transparent(tmp_path: pathlib.Path) -> None:
     """Test that compositing over white keeps opaque pixels and makes transparent ones white."""
     image = Image.new("L", (2, 1))
     image.putpixel((0, 0), 200)
@@ -102,7 +109,7 @@ def test_composite_over_white_opaque_and_transparent(tmp_path):
     assert result.getpixel((1, 0)) == 255, "transparent mask becomes white"
 
 
-def test_composite_over_white_half_alpha(tmp_path):
+def test_composite_over_white_half_alpha(tmp_path: pathlib.Path) -> None:
     """Test that a 50% mask blends image and white to the midpoint."""
     image_path = tmp_path / "img.pgm"
     mask_path = tmp_path / "mask.pgm"
@@ -115,7 +122,7 @@ def test_composite_over_white_half_alpha(tmp_path):
     assert result.getpixel((0, 0)) == 227  # (200*128 + 255*127) // 255
 
 
-def test_composite_over_white_color(tmp_path):
+def test_composite_over_white_color(tmp_path: pathlib.Path) -> None:
     """Test that a color image is composited per channel."""
     image_path = tmp_path / "img.ppm"
     mask_path = tmp_path / "mask.pgm"
@@ -128,7 +135,7 @@ def test_composite_over_white_color(tmp_path):
     assert result.getpixel((0, 0)) == (132, 137, 142)
 
 
-def test_composite_over_white_size_mismatch(tmp_path):
+def test_composite_over_white_size_mismatch(tmp_path: pathlib.Path) -> None:
     """Test that a size mismatch returns False and leaves the files untouched."""
     image_path = tmp_path / "img.pgm"
     mask_path = tmp_path / "mask.pgm"
@@ -142,7 +149,7 @@ def test_composite_over_white_size_mismatch(tmp_path):
     assert mask_path.read_bytes() == before_mask, "mask file untouched"
 
 
-def test_correlate_pdf_images_pairs_smask(mocker):
+def test_correlate_pdf_images_pairs_smask(mocker: pytest.MockerFixture) -> None:
     """Test that an image entry is paired with the smask that follows it."""
     mocker.patch.object(pathlib.Path, "glob", return_value=["x-000.pnm", "x-001.pnm"])
     remove = mocker.patch.object(pathlib.Path, "unlink", autospec=True)
@@ -158,7 +165,9 @@ def test_correlate_pdf_images_pairs_smask(mocker):
     assert not remove.called, "paired mask is not removed by the correlator"
 
 
-def test_correlate_pdf_images_removes_unpaired_smask(mocker):
+def test_correlate_pdf_images_removes_unpaired_smask(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test that an smask without a preceding image is removed."""
     mocker.patch.object(pathlib.Path, "glob", return_value=["x-000.pnm", "x-001.pnm"])
     remove = mocker.patch.object(pathlib.Path, "unlink", autospec=True)
@@ -174,7 +183,7 @@ def test_correlate_pdf_images_removes_unpaired_smask(mocker):
     remove.assert_any_call(pathlib.Path("x-000.pnm"))
 
 
-def test_get_file_info_session(mocker, temp_db):
+def test_get_file_info_session(mocker: pytest.MockerFixture, temp_db: object) -> None:
     """Test that a SQLite database is identified as a session file."""
     # Mock exec_command to return SQLite signature
     mock_exec = mocker.patch("scantpaper.importthread.exec_command")
@@ -194,7 +203,7 @@ def test_get_file_info_session(mocker, temp_db):
     assert info["path"] == temp_db.name
 
 
-def test_get_file_info_file_not_found():
+def test_get_file_info_file_not_found() -> None:
     """Test that a non-existent file raises FileNotFoundError."""
     thread = Importhread()
 
@@ -203,7 +212,9 @@ def test_get_file_info_file_not_found():
         thread.do_get_file_info(request)
 
 
-def test_get_file_info_zero_length(mocker, tmp_path):
+def test_get_file_info_zero_length(
+    mocker: pytest.MockerFixture, tmp_path: pathlib.Path
+) -> None:
     """Test that a zero-length file raises a RuntimeError."""
     empty_file = tmp_path / "empty.txt"
     empty_file.write_text("", encoding="utf-8")
@@ -218,7 +229,7 @@ def test_get_file_info_zero_length(mocker, tmp_path):
         thread.do_get_file_info(request)
 
 
-def test_get_file_info_no_stdout(mocker):
+def test_get_file_info_no_stdout(mocker: pytest.MockerFixture) -> None:
     """Test that a zero-length file raises a RuntimeError."""
     mock_exec = mocker.patch("scantpaper.importthread.exec_command")
     mock_exec.return_value = Proc(returncode=-1, stdout=None, stderr="not found")
@@ -228,7 +239,7 @@ def test_get_file_info_no_stdout(mocker):
         thread.do_get_file_info(request)
 
 
-def test_get_djvu_info_no_djvudump(mocker):
+def test_get_djvu_info_no_djvudump(mocker: pytest.MockerFixture) -> None:
     """Test that error is raised when djvudump is not found."""
     mock_exec = mocker.patch("scantpaper.importthread.exec_command")
     mock_exec.return_value = Proc(
@@ -243,7 +254,7 @@ def test_get_djvu_info_no_djvudump(mocker):
         thread._get_djvu_info({}, None)
 
 
-def test_get_djvu_info_no_djvused(mocker):
+def test_get_djvu_info_no_djvused(mocker: pytest.MockerFixture) -> None:
     """Test that error is raised when djvused is not found."""
     mock_exec = mocker.patch("scantpaper.importthread.exec_command")
 
@@ -262,7 +273,7 @@ def test_get_djvu_info_no_djvused(mocker):
         )
 
 
-def test_get_tif_info_no_tiffinfo(mocker):
+def test_get_tif_info_no_tiffinfo(mocker: pytest.MockerFixture) -> None:
     """Test that error is raised when tiffinfo is not found."""
     mock_exec = mocker.patch("scantpaper.importthread.exec_command")
     mock_exec.return_value = Proc(
@@ -277,7 +288,7 @@ def test_get_tif_info_no_tiffinfo(mocker):
         thread._get_tif_info({}, None, None)
 
 
-def test_get_djvu_info_corrupt(mocker):
+def test_get_djvu_info_corrupt(mocker: pytest.MockerFixture) -> None:
     """Test that error is raised when structure corrupt."""
     mock_exec = mocker.patch("scantpaper.importthread.exec_command")
     mock_exec.return_value = Proc(
@@ -302,7 +313,9 @@ def test_get_djvu_info_corrupt(mocker):
 
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
 @unittest.mock.patch("scantpaper.importthread.Page")
-def test_do_import_djvu_annotation_error(mock_page, mock_run):
+def test_do_import_djvu_annotation_error(
+    mock_page: MagicMock, mock_run: MagicMock
+) -> None:
     """Test that error is raised when import_djvu_ann raises an error."""
     mock_run.return_value = Proc(
         returncode=0,
@@ -339,7 +352,7 @@ def test_do_import_djvu_annotation_error(mock_page, mock_run):
 
 
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
-def test_get_pdf_info_error(mock_run):
+def test_get_pdf_info_error(mock_run: MagicMock) -> None:
     """Test that request.error is thrown when pdfinfo returns error."""
     mock_run.side_effect = subprocess.CalledProcessError(
         returncode=1,
@@ -354,7 +367,7 @@ def test_get_pdf_info_error(mock_run):
 
 
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
-def test_get_pdf_images_error(mock_run):
+def test_get_pdf_images_error(mock_run: MagicMock) -> None:
     """Test that request.error is thrown when pdfimages returns error."""
     mock_run.side_effect = [
         Proc(
@@ -393,7 +406,9 @@ def test_get_pdf_images_error(mock_run):
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
 @unittest.mock.patch.object(pathlib.Path, "glob")
 @unittest.mock.patch("scantpaper.importthread.Page")
-def test_import_pdf_image_error(mock_page, mock_glob, mock_run):
+def test_import_pdf_image_error(
+    mock_page: MagicMock, mock_glob: MagicMock, mock_run: MagicMock
+) -> None:
     """Test that request.error is thrown when importing individual images fails."""
     mock_run.side_effect = [
         Proc(
@@ -455,7 +470,7 @@ _LIST_TWO_IMAGES = _pdfimages_list(
 )
 
 
-def _pdf_import_args(first, last):
+def _pdf_import_args(first: int, last: int) -> dict[str, object]:
     """Build the args for _do_import_pdf."""
     return {
         "first": first,
@@ -466,15 +481,19 @@ def _pdf_import_args(first, last):
     }
 
 
-def _pdf_import_request(mock_request, first, last):
+def _pdf_import_request(mock_request: MagicMock, first: int, last: int) -> None:
     """Attach args to a mocked request."""
     mock_request.args = (_pdf_import_args(first, last), None)
 
 
-def _pdf_exec_command_run_side_effect(list_output):
+def _pdf_exec_command_run_side_effect(
+    list_output: str,
+) -> Callable[..., object]:
     """Mock exec_command_run for _do_import_pdf tests."""
 
-    def _side_effect(cmd, _pidfile=None, **_kwargs):
+    def _side_effect(
+        cmd: list[str], _pidfile: object | None = None, **_kwargs: object
+    ) -> object:
         if "-list" in cmd:
             return Proc(returncode=0, stdout=list_output, stderr="")
         return unittest.mock.Mock(returncode=0)
@@ -486,7 +505,12 @@ def _pdf_exec_command_run_side_effect(list_output):
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
 @unittest.mock.patch.object(pathlib.Path, "glob")
 @unittest.mock.patch("scantpaper.importthread.Page")
-def test_import_pdf_skips_smask(mock_page, mock_glob, mock_run, mock_remove):
+def test_import_pdf_skips_smask(
+    mock_page: MagicMock,
+    mock_glob: MagicMock,
+    mock_run: MagicMock,
+    mock_remove: MagicMock,
+) -> None:
     """Test that a soft mask is not imported as a page."""
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE_SMASK)
     mock_glob.side_effect = [[], ["x-000.pnm", "x-001.pnm"]]
@@ -504,7 +528,7 @@ def test_import_pdf_skips_smask(mock_page, mock_glob, mock_run, mock_remove):
     mock_request.error.assert_not_called()
 
 
-def test_import_pdf_no_warning_for_smask(mocker):
+def test_import_pdf_no_warning_for_smask(mocker: pytest.MockerFixture) -> None:
     """Test that an image plus soft mask does not trigger a warning."""
     mocker.patch("scantpaper.importthread.Page")
     mock_glob = mocker.patch.object(pathlib.Path, "glob")
@@ -523,7 +547,7 @@ def test_import_pdf_no_warning_for_smask(mocker):
     mock_request.error.assert_not_called()
 
 
-def test_import_pdf_warning_for_two_images(mocker):
+def test_import_pdf_warning_for_two_images(mocker: pytest.MockerFixture) -> None:
     """Test that two real images on a page trigger a warning."""
     mock_page = mocker.patch("scantpaper.importthread.Page")
     mock_glob = mocker.patch.object(pathlib.Path, "glob")
@@ -545,7 +569,9 @@ def test_import_pdf_warning_for_two_images(mocker):
     assert "expects one image per page" in args[1]
 
 
-def test_import_pdf_resolution_from_own_entry(mocker):
+def test_import_pdf_resolution_from_own_entry(
+    mocker: pytest.MockerFixture,
+) -> None:
     """Test that the imported page resolution comes from its own -list entry."""
     mock_page = mocker.patch("scantpaper.importthread.Page")
     mock_glob = mocker.patch.object(pathlib.Path, "glob")
@@ -567,7 +593,7 @@ def test_import_pdf_resolution_from_own_entry(mocker):
     assert mock_page.call_args.kwargs["resolution"] == (150.0, 150.0, "PixelsPerInch")
 
 
-def test_import_pdf_count_mismatch_fallback(mocker):
+def test_import_pdf_count_mismatch_fallback(mocker: pytest.MockerFixture) -> None:
     """Test that a count mismatch imports every file and warns."""
     mock_page = mocker.patch("scantpaper.importthread.Page")
     mock_glob = mocker.patch.object(pathlib.Path, "glob")
@@ -594,8 +620,11 @@ def test_import_pdf_count_mismatch_fallback(mocker):
 @unittest.mock.patch.object(pathlib.Path, "glob")
 @unittest.mock.patch("scantpaper.importthread.Page")
 def test_import_pdf_cleans_up_leftover_files(
-    mock_page, mock_glob, mock_run, mock_remove
-):
+    mock_page: MagicMock,
+    mock_glob: MagicMock,
+    mock_run: MagicMock,
+    mock_remove: MagicMock,
+) -> None:
     """Test that leftover extraction files are removed before the next page."""
     mock_run.side_effect = _pdf_exec_command_run_side_effect(_LIST_IMAGE)
     mock_glob.side_effect = [
@@ -620,8 +649,12 @@ def test_import_pdf_cleans_up_leftover_files(
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
 @unittest.mock.patch.object(pathlib.Path, "glob")
 def test_import_pdf_imports_composited_image(
-    mock_glob, mock_run, mock_remove, monkeypatch, tmp_path
-):
+    mock_glob: MagicMock,
+    mock_run: MagicMock,
+    mock_remove: MagicMock,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pathlib.Path,
+) -> None:
     """Test that an image with a soft mask is imported as a single composited page."""
     image = Image.new("L", (2, 1))
     image.putpixel((0, 0), 200)
@@ -651,7 +684,7 @@ def test_import_pdf_imports_composited_image(
 
 
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
-def test_extract_text_from_pdf_error(mock_run):
+def test_extract_text_from_pdf_error(mock_run: MagicMock) -> None:
     """Test that request.error is thrown when pdftotext fails."""
     # Simulate a subprocess error when running pdftotext
     mock_run.return_value = unittest.mock.Mock(returncode=1)
@@ -674,7 +707,7 @@ def test_extract_text_from_pdf_error(mock_run):
     mock_request.error.assert_called_once_with("Error extracting text layer from PDF")
 
 
-def test_request_pidfile_from_attribute():
+def test_request_pidfile_from_attribute() -> None:
     """Test _request_pidfile returns a pidfile attached as a request attribute."""
     thread = Importhread()
     pidfile = SimpleNamespace()
@@ -682,7 +715,7 @@ def test_request_pidfile_from_attribute():
     assert thread._request_pidfile(request) is pidfile
 
 
-def test_request_pidfile_from_args_dict():
+def test_request_pidfile_from_args_dict() -> None:
     """Test _request_pidfile finds a pidfile in the request args dict."""
     thread = Importhread()
     pidfile = SimpleNamespace()
@@ -690,14 +723,14 @@ def test_request_pidfile_from_args_dict():
     assert thread._request_pidfile(request) is pidfile
 
 
-def test_request_pidfile_none():
+def test_request_pidfile_none() -> None:
     """Test _request_pidfile returns None when no pidfile is present."""
     thread = Importhread()
     request = SimpleNamespace(pidfile=None, args=())
     assert thread._request_pidfile(request) is None
 
 
-def test_request_completed_deregisters_pidfile():
+def test_request_completed_deregisters_pidfile() -> None:
     """Test _request_completed removes the pidfile from running_pids."""
     thread = Importhread()
     pidfile = "pidfile"
@@ -707,7 +740,7 @@ def test_request_completed_deregisters_pidfile():
     assert pidfile not in thread.running_pids
 
 
-def test_request_completed_ignores_missing():
+def test_request_completed_ignores_missing() -> None:
     """Test _request_completed tolerates a pidfile not in running_pids."""
     thread = Importhread()
     pidfile = "pidfile"

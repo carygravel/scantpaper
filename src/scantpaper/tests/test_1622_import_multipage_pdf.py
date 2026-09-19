@@ -1,11 +1,14 @@
 """Test importing PDF."""
 
+from __future__ import annotations
+
 import datetime
 import pathlib
 import re
 import shutil
 import subprocess
 import tempfile
+from typing import TYPE_CHECKING
 
 import img2pdf
 import pytest
@@ -14,8 +17,11 @@ from scantpaper import config
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
-def test_import_multipage_pdf(rose_png, temp_pdf, temp_db):
+
+def test_import_multipage_pdf(rose_png: str, temp_pdf: object, temp_db: object) -> None:
     """Test importing PDF."""
     temp_pdf.write(img2pdf.convert([rose_png, rose_png]))
     temp_pdf.flush()
@@ -37,7 +43,9 @@ def test_import_multipage_pdf(rose_png, temp_pdf, temp_db):
     shutil.which("pdfunite") is None,
     reason="Please install pdfunite (poppler utils) to enable test",
 )
-def test_import_multipage_pdf_with_not_enough_images(rose_png, temp_db, temp_pdf):
+def test_import_multipage_pdf_with_not_enough_images(
+    rose_png: str, temp_db: object, temp_pdf: object
+) -> None:
     """Test importing PDF."""
     with (
         tempfile.NamedTemporaryFile(suffix=".pdf") as page1,
@@ -123,7 +131,7 @@ startxref
 
     asserts = 0
 
-    def error_cb(response):
+    def error_cb(response: object) -> None:
         nonlocal asserts
         assert re.search(r"one image per page", response.status), (
             "one image per page warning"
@@ -142,7 +150,12 @@ startxref
     assert len(slist.data) == 1, "imported 1 pages"
 
 
-def test_import_pdf_bw(temp_png, temp_pdf, temp_db, get_page_sync):
+def test_import_pdf_bw(
+    temp_png: object,
+    temp_pdf: object,
+    temp_db: object,
+    get_page_sync: Callable[..., object],
+) -> None:
     """Test importing PDF."""
     options = [
         config.CONVERT_COMMAND,
@@ -182,7 +195,7 @@ def test_import_pdf_bw(temp_png, temp_pdf, temp_db, get_page_sync):
     )
 
 
-def test_import_pdf_with_error(rose_png, temp_pdf):
+def test_import_pdf_with_error(rose_png: str, temp_pdf: object) -> None:
     """Test importing PDF."""
     temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
@@ -194,7 +207,7 @@ def test_import_pdf_with_error(rose_png, temp_pdf):
 
         asserts = 0
 
-        def queued_cb(_response):
+        def queued_cb(_response: object) -> None:
             nonlocal asserts
             if asserts == 0:
                 asserts += 1
@@ -202,7 +215,7 @@ def test_import_pdf_with_error(rose_png, temp_pdf):
                 # inject error during import file
                 pathlib.Path(dirname).chmod(0o500)  # no write access
 
-        def error_cb(*args):
+        def error_cb(*args: object) -> None:
             nonlocal asserts
             message = args[-1] if len(args) > 1 else args[0].status
             assert message, "error_cb"
@@ -225,7 +238,12 @@ def test_import_pdf_with_error(rose_png, temp_pdf):
 @pytest.mark.skipif(
     shutil.which("qpdf") is None, reason="Please install qpdf to enable test"
 )
-def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
+def test_import_encrypted_pdf(
+    rose_png: str,
+    temp_db: object,
+    temp_pdf: object,
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
     """Test importing PDF."""
     temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
@@ -253,7 +271,7 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
 
     asserts = 0
 
-    def password_cb(path):
+    def password_cb(path: str) -> str:
         nonlocal asserts
         assert path == "output.pdf"
         asserts += 1
@@ -274,7 +292,9 @@ def test_import_encrypted_pdf(rose_png, temp_db, temp_pdf, clean_up_files):
     clean_up_files(["output.pdf"])
 
 
-def test_import_pdf_with_metadata(rose_png, temp_pdf, temp_db):
+def test_import_pdf_with_metadata(
+    rose_png: str, temp_pdf: object, temp_db: object
+) -> None:
     """Test importing PDF."""
     temp_pdf.write(
         img2pdf.convert(
@@ -296,7 +316,7 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, temp_db):
 
     asserts = 0
 
-    def metadata_cb(response):
+    def metadata_cb(response: object) -> None:
         assert response["datetime"] == datetime.datetime(
             2018, 12, 31, 12, 0, tzinfo=datetime.timezone.utc
         ), "datetime"
@@ -317,7 +337,9 @@ def test_import_pdf_with_metadata(rose_png, temp_pdf, temp_db):
     assert asserts == 1, "callbacks all run"
 
 
-def test_import_pdf_with_placeholder_title(rose_png, temp_pdf, temp_db):
+def test_import_pdf_with_placeholder_title(
+    rose_png: str, temp_pdf: object, temp_db: object
+) -> None:
     """Test importing PDF with a placeholder title."""
     temp_pdf.write(img2pdf.convert(rose_png, title="Untitled"))
     temp_pdf.flush()
@@ -328,7 +350,7 @@ def test_import_pdf_with_placeholder_title(rose_png, temp_pdf, temp_db):
 
     asserts = 0
 
-    def metadata_cb(response):
+    def metadata_cb(response: object) -> None:
         assert "title" not in response, "placeholder title not imported"
         nonlocal asserts
         asserts += 1

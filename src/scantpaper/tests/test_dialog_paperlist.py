@@ -1,5 +1,7 @@
 """Test PaperList class."""
 
+from __future__ import annotations
+
 import json
 
 import gi
@@ -12,7 +14,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
 
 
-def test_paperlist():
+def test_paperlist() -> None:
     """Test PaperList class."""
     with pytest.raises(TypeError):
         PaperList()
@@ -55,7 +57,7 @@ def test_paperlist():
         plist.do_remove_clicked()
 
 
-def test_remove_paper_empty(mocker):
+def test_remove_paper_empty(mocker: pytest.MockerFixture) -> None:
     """Test do_remove_paper when no papers left."""
     plist = PaperList({})
     mock_window = mocker.Mock()
@@ -70,7 +72,7 @@ def test_remove_paper_empty(mocker):
     mock_app_window.show_message_dialog.assert_called_once()
 
 
-def test_fractional_dimensions_preserved():
+def test_fractional_dimensions_preserved() -> None:
     """PaperList keeps sub-millimetre dimensions intact."""
     plist = PaperList({"RPB_quer": {"x": 115.2, "y": 174.5, "l": 0.5, "t": 0}})
     assert plist.data[0][1] == 115.2, "width preserved"
@@ -81,14 +83,14 @@ def test_fractional_dimensions_preserved():
     assert plist.data[0][4] == 0.0, "top preserved"
 
 
-def test_integer_whole_mm_roundtrip():
+def test_integer_whole_mm_roundtrip() -> None:
     """Integer-defined whole-millimetre sizes stay numerically equal."""
     plist = PaperList({"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}})
     assert plist.data[0][1] == A4_WIDTH_MM, "width numerically equal"
     assert plist.data[0][2] == A4_HEIGHT_MM, "height numerically equal"
 
 
-def test_apply_roundtrip_json_identical():
+def test_apply_roundtrip_json_identical() -> None:
     """Apply-style round-trip writes floats kept numerically identical in JSON."""
     plist = PaperList({"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}})
     formats = {}
