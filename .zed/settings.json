@@ -1,0 +1,20 @@
+{
+  "languages": {
+    "Python": {
+      "language_servers": [
+        // This project standardizes on ty (type checking) and ruff (linting),
+        // both configured in pyproject.toml. basedpyright, pyright and pylsp
+        // are disabled because they duplicate ty/ruff: pyright is a second
+        // full type-checker whose gi.repository access errors are GTK-untyped
+        // noise (and it mis-resolves the stdlib here), and pylsp re-runs
+        // pyflakes/pycodestyle/mypy/pylint over the same code. "..." keeps any
+        // other registered Python servers active (e.g. ruff).
+        "ty",
+        "!basedpyright",
+        "!pyright",
+        "!pylsp",
+        "..."
+      ]
+    }
+  }
+}

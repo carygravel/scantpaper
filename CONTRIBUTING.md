@@ -111,6 +111,11 @@ Please run `ruff format` over new or changed code to automatically format it,
 and `ruff check` to lint it. Both are configured in `pyproject.toml` and are
 enforced in CI (`ruff format --check .` and `ruff check .`).
 
+Please also run `ty check .` (the project's type checker) and keep it clean,
+matching the ruff discipline. Its rule blacklist is configured in
+`[tool.ty.rules]` in `pyproject.toml`. `ty check .` runs in CI alongside the
+ruff checks, so new or changed code should not add `ty` diagnostics.
+
 Scantpaper follows the PEP 8 style guide for Python code. Please ensure that
 your code adheres to these guidelines. Ruff is used to check your code; the
 configuration lives in `pyproject.toml`.

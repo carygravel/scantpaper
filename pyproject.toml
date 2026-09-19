@@ -149,3 +149,30 @@ task-tags = ["TODO", "FIXME"]
 # PATH without ever using a shell, and print their progress/errors directly
 # (T201) as one-shot developer CLI tools.
 "dev/**" = ["INP001", "S603", "S607", "T201"]
+
+[tool.ty]
+# ty is the type checker Zed uses for Python. It is an editor-time checker, not
+# a CI or packaging gate. Like ruff, the `rules` table below is a blacklist of
+# the categories that are noise on this legacy codebase; it should be ratcheted
+# down as the underlying issues are fixed. The overwhelming majority of
+# diagnostics stem from GTK3 (`gi.repository`) having no type stubs, which
+# makes almost every GTK object resolve to `Unknown` and cascades into hundreds
+# of member/index/call errors.
+[tool.ty.rules]
+"unresolved-attribute" = "ignore"
+"invalid-argument-type" = "ignore"
+"not-subscriptable" = "ignore"
+"invalid-assignment" = "ignore"
+"unresolved-import" = "ignore"
+"unsupported-operator" = "ignore"
+"call-non-callable" = "ignore"
+"not-iterable" = "ignore"
+"no-matching-overload" = "ignore"
+"invalid-method-override" = "ignore"
+"invalid-return-type" = "ignore"
+"invalid-attribute-access" = "ignore"
+"redundant-condition" = "ignore"
+"possibly-missing-submodule" = "ignore"
+"missing-argument" = "ignore"
+"invalid-type-form" = "ignore"
+"unknown-argument" = "ignore"
