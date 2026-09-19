@@ -9,7 +9,6 @@ import queue
 import shutil
 import signal
 import tempfile
-import weakref
 from collections import defaultdict
 from functools import partial
 from typing import TYPE_CHECKING
@@ -51,9 +50,6 @@ class BaseDocument(SimpleList):
         self.thread = DocThread(**kwargs)
         self.thread.register_callback("display", "after", "data")
         self.thread.register_callback("updated_page", "after", "data")
-        self._finalizer = weakref.finalize(
-            self, self.thread.cleanup_thread, self.thread.requests
-        )
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
         self.set_reorderable(True)

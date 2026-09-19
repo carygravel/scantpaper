@@ -128,7 +128,6 @@ class BaseThread(threading.Thread):
         self._notify_r, self._notify_w = os.pipe()
         os.set_blocking(self._notify_r, False)
         os.set_blocking(self._notify_w, False)
-        self._finalizer = weakref.finalize(self, self.cleanup_thread, self.requests)
         self.LiveThreads.add(self)
         self._io_watch_id = GLib.io_add_watch(
             self._notify_r, GLib.PRIORITY_DEFAULT, GLib.IO_IN, self._on_readable
@@ -137,19 +136,6 @@ class BaseThread(threading.Thread):
         for callback in CALLBACKS:
             self.before[callback] = set()
             self.after[callback] = set()
-
-    @staticmethod
-    def cleanup_thread(requests_queue: queue.Queue) -> None:
-        """Cleanup function that does not hold a reference to self."""
-        try:
-            # We don't need a response queue for finalization
-            request = Request("quit", [], None)
-            requests_queue.put(request)
-        except Exception:  # noqa: BLE001, S110
-            # S110, BLE001 — swallowed intentionally: during interpreter shutdown
-            # the queue may be closed/None, logging is unreliable there, and
-            # requests_queue.put() can raise arbitrary errors, so we ignore them.
-            pass
 
     def _release_sources(self) -> None:
         """Schedule removal of GLib sources and pipe FDs on the main thread."""
@@ -259,17 +245,19 @@ class BaseThread(threading.Thread):
 
     def run(self) -> None:
         """Override the threading run method. Not called directly here."""
-        while True:
-            request = self.requests.get()
-            request.started()
-            request.args = self.input_handler(request)
-            handler = getattr(self, f"do_{request.process}", None)
-            if handler is None:
-                request.error(None, f"no handler for [{request.process}]")
-            elif not self.handler_wrapper(request, handler):
-                break
-            self.requests.task_done()
-        self._release_sources()
+        try:
+            while True:
+                request = self.requests.get()
+                request.started()
+                request.args = self.input_handler(request)
+                handler = getattr(self, f"do_{request.process}", None)
+                if handler is None:
+                    request.error(None, f"no handler for [{request.process}]")
+                elif not self.handler_wrapper(request, handler):
+                    break
+                self.requests.task_done()
+        finally:
+            self._release_sources()
 
     def handler_wrapper(
         self, request: Request, handler: Callable[[Request], object]

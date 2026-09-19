@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import gc
+import threading
+import time
+import weakref
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -470,14 +474,6 @@ def test_drain_cancelled_requests_notifies_queued_jobs(
     assert request.uuid not in thread.callbacks, "registry entry removed"
 
 
-def testcleanup_thread_exception_caught(mocker: pytest.MockerFixture) -> None:
-    """Test cleanup_thread catches exceptions from queue.put during interpreter shutdown."""
-    mock_queue = mocker.Mock()
-    mock_queue.put.side_effect = Exception("queue closed")
-    BaseThread.cleanup_thread(mock_queue)
-    mock_queue.put.assert_called_once()
-
-
 def test_stage_callback_exception_invokes_error_callback() -> None:
     """Test that a failing non-error stage callback triggers the error_callback."""
     thread = BaseThread()
@@ -541,6 +537,71 @@ def test_quit_all_live_threads() -> None:
     t2.join(timeout=2)
     assert not t1.is_alive(), "t1 quit"
     assert not t2.is_alive(), "t2 quit"
+
+
+def test_quit_all_live_threads_stops_dropped_thread() -> None:
+    """Test a dropped, un-quit worker is still stopped by quit_all_live_threads.
+
+    The run() frame keeps the worker alive (and therefore visible to the
+    LiveThreads WeakSet) even after the owner drops all references.
+    """
+    thread = BaseThread()
+    thread_ref = weakref.ref(thread)
+    thread.start()
+    del thread
+    gc.collect()
+    assert thread_ref() is not None, "worker kept alive by its run() frame"
+
+    BaseThread.quit_all_live_threads()
+
+    for _ in range(100):
+        mlp = safe_mainloop(100)
+        GLib.timeout_add(50, mlp.quit)
+        mlp.run()
+        gc.collect()
+        if thread_ref() is None:
+            break
+        time.sleep(0.01)
+    assert thread_ref() is None, "dropped worker ended by LiveThreads teardown"
+
+
+def test_run_releases_sources_when_input_handler_raises(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Test run() releases sources even when the loop exits abnormally."""
+    recorded_exceptions: list[BaseException] = []
+
+    class ExplodingThread(BaseThread):
+        def input_handler(self, _request: Request) -> object:
+            msg = "boom"
+            raise RuntimeError(msg)
+
+    thread = ExplodingThread()
+    original_hook = threading.excepthook
+
+    def record_excepthook(args: threading.ExceptHookArgs) -> None:
+        recorded_exceptions.append(args.exc_value)
+
+    threading.excepthook = record_excepthook
+    try:
+        thread.start()
+        thread.requests.put(Request("div", (1, 2), None))
+        thread.join(timeout=2)
+    finally:
+        threading.excepthook = original_hook
+
+    assert len(recorded_exceptions) == 1, "worker exception reached excepthook"
+    assert not thread.is_alive(), "worker exited after abnormal loop termination"
+
+    mock_source_remove = mocker.patch("scantpaper.basethread.GLib.source_remove")
+    mock_os_close = mocker.patch("scantpaper.basethread.os.close")
+    mlp = safe_mainloop(500)
+    GLib.timeout_add(100, mlp.quit)
+    mlp.run()
+
+    mock_source_remove.assert_any_call(thread._io_watch_id)
+    mock_source_remove.assert_any_call(thread._tick_id)
+    assert mock_os_close.call_count >= 2, "notification pipe closed after cleanup"
 
 
 def test_quit_all_live_threads_logs_exception(

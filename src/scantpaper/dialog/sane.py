@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import weakref
 from typing import TYPE_CHECKING
 
 from gi.repository import GObject, Gtk
@@ -46,9 +45,6 @@ class SaneScanDialog(Scan):
         """Initialise SaneScanDialog."""
         super().__init__(*args, **kwargs)
         self.thread = SaneThread()
-        self._finalizer = weakref.finalize(
-            self, self.thread.cleanup_thread, self.thread.requests
-        )
         self.thread.start()
         self.geometry_boxes = None
         self._option_info = {}
