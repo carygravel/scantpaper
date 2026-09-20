@@ -318,8 +318,8 @@ def test_edited_double_accepts_comma_locale(comma_locale: str) -> None:
     assert isinstance(slist.data[0][0], float)
 
 
-def test_edited_double_period_still_works_in_comma_locale(comma_locale: str) -> None:
-    """A period still parses in a comma locale."""
+def test_edited_double_period_rejected_in_comma_locale(comma_locale: str) -> None:
+    """A period is rejected in a comma locale, leaving the cell unchanged."""
     assert comma_locale == ","
     slist = SimpleList(col1="double")
     slist.data.append([210.0])
@@ -327,7 +327,7 @@ def test_edited_double_period_still_works_in_comma_locale(comma_locale: str) -> 
     column0 = slist.get_column(0)
     cell_renderer0 = column0.get_cells()[0]
     cell_renderer0.emit("edited", "0", "115.2")
-    assert slist.data[0][0] == 115.2
+    assert slist.data[0][0] == 210.0
 
 
 def test_edited_double_rejects_invalid_in_comma_locale(comma_locale: str) -> None:

@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
+from scantpaper.const import FRACTIONAL_DIGITS
 from scantpaper.dialog import MultipleMessage
 from scantpaper.i18n import _
 
@@ -39,6 +40,21 @@ def decimal_separator() -> str:
     previous = locale.setlocale(locale.LC_NUMERIC, None)
     locale.setlocale(locale.LC_NUMERIC, "")
     sep = locale.localeconv()["decimal_point"]
+    locale.setlocale(locale.LC_NUMERIC, previous)
+    return sep
+
+
+@lru_cache
+def grouping_separator() -> str:
+    """Return the digit grouping separator of the configured locale.
+
+    Mirrors decimal_separator(): read from the environment, restore the
+    previous LC_NUMERIC state. May be empty for locales without digit
+    grouping, such as "C".
+    """
+    previous = locale.setlocale(locale.LC_NUMERIC, None)
+    locale.setlocale(locale.LC_NUMERIC, "")
+    sep = locale.localeconv()["thousands_sep"]
     locale.setlocale(locale.LC_NUMERIC, previous)
     return sep
 
@@ -70,12 +86,57 @@ def format_number_precise(number: float) -> str:
     return text
 
 
-def parse_number(text: str, number_type: type[int | float] = float) -> int | float:
-    """Parse user-entered text into a number, accepting the locale's separator."""
+def parse_number(
+    text: str, number_type: type[int | float] = float, *, strict: bool = True
+) -> int | float:
+    """Parse user-entered text into a number, accepting the locale's separator.
+
+    With strict=True only digits, a single locale decimal separator and
+    right-aligned groups of three digits separated by the locale grouping
+    separator are accepted; anything else raises ValueError. With
+    strict=False the historical lenient behaviour is kept: the first locale
+    decimal separator is translated and the rest is handed to number_type.
+    """
+    if strict:
+        _validate_strict_number(text)
+        grp = grouping_separator()
+        if grp:
+            text = text.replace(grp, "")
     sep = decimal_separator()
     if sep not in (".", ""):
         text = text.replace(sep, ".", 1)
     return number_type(text)
+
+
+def _validate_strict_number(text: str) -> None:
+    """Raise ValueError when text is not a number written in the locale."""
+    dec = re.escape(decimal_separator())
+    if grp := grouping_separator():
+        grp = re.escape(grp)
+        pattern = rf"^[+-]?(\d{{1,3}}({grp}\d{{3}})*|\d+)({dec}\d*)?$"
+    else:
+        pattern = rf"^[+-]?\d+({dec}\d*)?$"
+    if not re.fullmatch(pattern, text):
+        msg = f"'{text}' is not a number in this locale"
+        raise ValueError(msg)
+
+
+def spin_step(constraint: tuple[float, float, float]) -> int:
+    """Whole-unit step for a ranged option, ignoring any fractional step."""
+    if constraint[2] > 0:
+        return max(1, int(constraint[2]))
+    return 1
+
+
+def fractional_digits(value: float) -> int:
+    """Display precision (0 to FRACTIONAL_DIGITS) for a numeric value.
+
+    Trailing zeros are trimmed, so a whole value renders with 0 fractional
+    digits, a value with one non-zero fraction digit with 1, and so on up to
+    the configured maximum.
+    """
+    fraction = f"{value:.{FRACTIONAL_DIGITS}f}".partition(".")[2]
+    return len(fraction.rstrip("0"))
 
 
 def _weak_callback(obj: object, method_name: str) -> Callable[..., object | None]:

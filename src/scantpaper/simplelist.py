@@ -207,7 +207,10 @@ class SimpleList(Gtk.TreeView):
         if col_type is int:
             new_text = int(new_text)
         elif col_type is float:
-            new_text = parse_number(new_text)
+            try:
+                new_text = parse_number(new_text)
+            except ValueError:
+                return
         model[model.get_iter(path)][renderer.column] = new_text
 
     def set_column_editable(self, index: int, *, editable: bool) -> None:

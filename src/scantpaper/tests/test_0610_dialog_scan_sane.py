@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import locale
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from unittest.mock import ANY, MagicMock
 
+import pytest
 from gi.repository import Gtk
 
 from scantpaper.dialog.sane import SaneScanDialog
@@ -15,9 +17,7 @@ from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    import pytest
+    from collections.abc import Callable, Generator
 
     from scantpaper.basethread import Request
     from scantpaper.frontend.image_sane import SaneThread
@@ -1298,6 +1298,53 @@ def _entry_option() -> tuple[Option, Option]:
     return group_opt, entry_opt
 
 
+def _spin_option() -> tuple[Option, Option]:
+    """Return a ranged size option for the spin button tests."""
+    group_opt = Option(
+        0, "group", "Group", "desc", enums.TYPE_GROUP, enums.UNIT_NONE, 0, 0, None
+    )
+    spin_opt = Option(
+        2,
+        "test-spin",
+        "Test Spin",
+        "desc",
+        enums.TYPE_FIXED,
+        enums.UNIT_MM,
+        0,
+        enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
+        (0.0, 297.2, 0.0),
+    )
+    return group_opt, spin_opt
+
+
+@pytest.fixture
+def de_locale_process(comma_locale: str) -> Generator[str, None, None]:
+    """Make the widget machinery render numbers with a comma separator.
+
+    GTK renders spin-button text using the process locale, so the de_DE
+    environment from the comma_locale fixture must also become the process
+    locale for the display to switch from a period to a comma.
+    """
+    saved = locale.setlocale(locale.LC_ALL)
+    locale.setlocale(locale.LC_ALL, "de_DE.utf8")
+    yield comma_locale
+    locale.setlocale(locale.LC_ALL, saved)
+
+
+def _spin_dialog(
+    dialog: SaneScanDialog, mocker: pytest.MockerFixture, value: float
+) -> Gtk.SpinButton:
+    """Create the spin-option widgets with the given device value."""
+    mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
+    group_opt, spin_opt = _spin_option()
+    dialog.thread.device_handle = MagicMock()
+    dialog.thread.device_handle.test_spin = value
+    dialog._initialise_options(Options([group_opt, spin_opt]))
+    widget = dialog.option_widgets["test-spin"]
+    assert isinstance(widget, Gtk.SpinButton)
+    return widget
+
+
 def _combo_items(dialog: SaneScanDialog) -> list[str]:
     """Return the displayed item texts of the test-combo combobox."""
     widget = dialog.option_widgets["test-combo"]
@@ -1374,9 +1421,11 @@ def test_entry_activate_comma_locale(
     widget.set_text("115,5")
     widget.emit("activate")
     dialog.set_option.assert_called_with(entry_opt, value=115.5)
+    dialog.set_option.reset_mock()
+    # A period is not the decimal separator in a comma locale and is rejected.
     widget.set_text("115.5")
     widget.emit("activate")
-    dialog.set_option.assert_called_with(entry_opt, value=115.5)
+    dialog.set_option.assert_not_called()
 
 
 def test_entry_activate_int_type(sane_scan_dialog: SaneScanDialog) -> None:
@@ -1406,6 +1455,86 @@ def test_entry_activate_int_type(sane_scan_dialog: SaneScanDialog) -> None:
     widget.set_text("300")
     widget.emit("activate")
     dialog.set_option.assert_called_with(int_opt, value=300)
+    dialog.set_option.reset_mock()
+    widget.set_text("abc")
+    widget.emit("activate")
+    dialog.set_option.assert_not_called()
+
+
+def test_spin_display_comma_locale(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    de_locale_process: str,
+) -> None:
+    """A ranged size field trims trailing zeros and uses the locale separator."""
+    assert de_locale_process == ","
+    dialog = sane_scan_dialog
+    widget = _spin_dialog(dialog, mocker, 115.2)
+    assert widget.get_text() == "115,2"
+    widget.set_value(174.0)
+    assert widget.get_text() == "174"
+
+
+def test_spin_display_dot_locale(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    dot_locale: str,
+) -> None:
+    """A dot locale keeps the period and trims trailing zeros."""
+    assert dot_locale == "."
+    dialog = sane_scan_dialog
+    widget = _spin_dialog(dialog, mocker, 115.2)
+    assert widget.get_text() == "115.2"
+    widget.set_value(174.0)
+    assert widget.get_text() == "174"
+
+
+def test_spin_accepts_locale_fraction(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    de_locale_process: str,
+) -> None:
+    """Committing a locale-valid fraction sets the fractional value."""
+    assert de_locale_process == ","
+    dialog = sane_scan_dialog
+    widget = _spin_dialog(dialog, mocker, 174.0)
+    dialog.set_option = MagicMock()
+    widget.get_buffer().set_text("115,2", -1)
+    widget.emit("focus-out-event", None)
+    assert widget.get_value() == 115.2
+    dialog.set_option.assert_called_with(_spin_option()[1], value=115.2)
+
+
+def test_spin_rejects_non_locale_separator(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    de_locale_process: str,
+) -> None:
+    """Committing a number with a non-locale separator reverts the field."""
+    assert de_locale_process == ","
+    dialog = sane_scan_dialog
+    widget = _spin_dialog(dialog, mocker, 174.0)
+    dialog.set_option = MagicMock()
+    widget.get_buffer().set_text("115.2", -1)
+    widget.emit("focus-out-event", None)
+    assert widget.get_value() == 174.0
+    assert widget.get_text() == "174"
+    dialog.set_option.assert_not_called()
+
+
+def test_spin_arrow_step_stays_whole(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    de_locale_process: str,
+) -> None:
+    """Arrow stepping moves by whole units and keeps the typed fraction."""
+    assert de_locale_process == ","
+    dialog = sane_scan_dialog
+    widget = _spin_dialog(dialog, mocker, 114.8)
+    widget.set_value(114.8)
+    widget.spin(Gtk.SpinType.STEP_FORWARD, 1.0)
+    assert widget.get_value() == 115.8
+    assert widget.get_text() == "115,8"
 
 
 def test_set_option_clamping(sane_scan_dialog: SaneScanDialog) -> None:

@@ -1,3 +1,16 @@
+## 3.0.20 (unreleased)
+
+* Accept fractional values in the numeric spin-button scan options (e.g. the
+  scan-area fields `br-x`, `br-y`): typing a value with the locale's decimal
+  separator (e.g. `115,2` mm in a German locale) now keeps the fraction
+  instead of rounding to whole millimetres. Whole-millimetre values still
+  display without trailing zeros, and the arrow buttons step by whole units
+  while preserving the typed fraction.
+* Enforce the locale's decimal and grouping separators strictly when typing
+  numbers: in a comma locale a period is now rejected (`115.2` no longer
+  silently passes) instead of being accepted alongside the comma.
+
+
 ## 3.0.19 (2026-09-19)
 
 * Log automatic corrections of wrongly typed configuration values instead of

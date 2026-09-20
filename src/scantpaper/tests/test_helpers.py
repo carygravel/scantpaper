@@ -25,12 +25,15 @@ from scantpaper.helpers import (
     expand_metadata_pattern,
     format_number,
     format_number_precise,
+    fractional_digits,
     get_tmp_dir,
+    grouping_separator,
     parse_number,
     program_version,
     recursive_slurp,
     show_message_dialog,
     slurp,
+    spin_step,
 )
 
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
@@ -89,6 +92,46 @@ def test_decimal_separator_robust_to_lc_numeric_flip(
     decimal_separator.cache_clear()
 
 
+def test_grouping_separator_default() -> None:
+    """grouping_separator returns the configured separator and keeps LC_NUMERIC."""
+    saved = locale.setlocale(locale.LC_NUMERIC)
+    grp = grouping_separator()
+    assert grp in (".", ",", ""), "a grouping separator is reported"
+    assert locale.setlocale(locale.LC_NUMERIC) == saved, "state is restored"
+    grouping_separator.cache_clear()
+
+
+@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+def test_grouping_separator_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
+    """grouping_separator returns '.' in a de_DE locale."""
+    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
+    monkeypatch.setenv("LANG", "de_DE.utf8")
+    grouping_separator.cache_clear()
+    assert grouping_separator() == "."
+    grouping_separator.cache_clear()
+
+
+def test_spin_step() -> None:
+    """spin_step returns whole-unit steps, ignoring fractional ones."""
+    assert spin_step((0.0, 100.0, 1.0)) == 1
+    assert spin_step((0.0, 100.0, 0.0)) == 1
+    assert spin_step((0.0, 100.0, -1.0)) == 1
+    assert spin_step((0.0, 100.0, 0.5)) == 1
+    assert spin_step((0.0, 100.0, 2.5)) == 2
+    assert spin_step((0.0, 100.0, 297.18)) == 297
+
+
+def test_fractional_digits() -> None:
+    """fractional_digits trims trailing zeros up to the configured precision."""
+    assert fractional_digits(174.0) == 0
+    assert fractional_digits(174) == 0
+    assert fractional_digits(115.2) == 1
+    assert fractional_digits(115.25) == 2
+    assert fractional_digits(115.20) == 1
+    assert fractional_digits(-114.8) == 1
+    assert fractional_digits(115.256) == 2
+
+
 def test_format_number_default_locale() -> None:
     """format_number uses dots in a dot locale and trims whole numbers."""
     assert format_number(115.2) == "115.2"
@@ -112,23 +155,48 @@ def test_parse_number_default_locale() -> None:
     """parse_number accepts dots in a dot locale and rejects junk."""
     assert parse_number("115.2") == 115.2
     assert parse_number("150", int) == 150
-    with pytest.raises(ValueError, match="could not convert"):
+    with pytest.raises(ValueError, match="not a number"):
         parse_number("abc")
+    with pytest.raises(ValueError, match="not a number"):
+        parse_number("1,5")
+    assert parse_number("1.5", strict=False) == 1.5
     decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
+
+
+def test_parse_number_strict_no_grouping_locale(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Strict parsing accepts decimals in a locale without grouping."""
+    monkeypatch.setenv("LC_ALL", "C")
+    monkeypatch.setenv("LANG", "C")
+    decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
+    assert grouping_separator() == ""
+    assert parse_number("115.5") == 115.5
+    with pytest.raises(ValueError, match="not a number"):
+        parse_number("115,5")
+    decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
 
 
 @pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
 def test_parse_number_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
-    """parse_number accepts the comma in a comma locale, and dots too."""
+    """parse_number accepts the comma in a comma locale, rejecting the dot."""
     monkeypatch.setenv("LC_ALL", "de_DE.utf8")
     monkeypatch.setenv("LANG", "de_DE.utf8")
     decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
     assert parse_number("115,2") == 115.2
-    assert parse_number("115.2") == 115.2
     assert parse_number("150", int) == 150
-    with pytest.raises(ValueError, match="could not convert"):
+    assert parse_number("1.234") == 1234
+    with pytest.raises(ValueError, match="not a number"):
+        parse_number("115.2")
+    with pytest.raises(ValueError, match="not a number"):
         parse_number("1,2.3")
+    assert parse_number("115.2", strict=False) == 115.2
     decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
 
 
 def test_format_number_precise_default_locale() -> None:

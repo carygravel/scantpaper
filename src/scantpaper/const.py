@@ -51,6 +51,11 @@ MAX_DPI = 2400
 A4_WIDTH_MM = 210
 A4_HEIGHT_MM = 297
 
+# Number of fractional digits shown in ranged scan-option (spin button) size
+# fields. Values are rounded to this precision for display, and arrow steps
+# stay whole units. This constant is the single knob controlling the precision.
+FRACTIONAL_DIGITS = 2
+
 DRAGGER_TOOL = "dragger"
 SELECTOR_TOOL = "selector"
 SELECTORDRAGGER_TOOL = "selectordragger"

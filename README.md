@@ -136,6 +136,12 @@ pages; the session is always cancelled at the end of the batch.
   e.g. page size and scan area); such an option is then set at most twice and
   dropped for the rest of that apply, so the scan still proceeds instead of
   ending in a reload-recursion error.
+  Scan-area and page-size fields accept fractional values typed with your
+  locale's decimal separator (e.g. `115,2` mm in a German locale), show them
+  without trailing zeros (`174` mm, not `174,00`), and step by whole units with
+  the arrows while keeping the typed fraction. Only separators your locale
+  actually uses are accepted when typing numbers; a period in a comma locale is
+  rejected rather than silently misinterpreted.
 - **Save:** Save selected/all pages in multiple formats. Supports metadata. The
   Title, Author, Subject, and Keywords fields offer autocompletion, suggesting
   values from imported documents and values you have entered before. When saving

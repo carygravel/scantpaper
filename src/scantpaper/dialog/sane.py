@@ -7,11 +7,16 @@ from typing import TYPE_CHECKING
 
 from gi.repository import GObject, Gtk
 
-from scantpaper.const import EMPTY
+from scantpaper.const import EMPTY, FRACTIONAL_DIGITS
 from scantpaper.dialog.scan import Scan, _geometry_option, make_progress_string
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import SaneThread
-from scantpaper.helpers import format_number_precise, parse_number
+from scantpaper.helpers import (
+    format_number_precise,
+    fractional_digits,
+    parse_number,
+    spin_step,
+)
 from scantpaper.i18n import _, d_sane
 from scantpaper.scanner.options import Options
 
@@ -284,17 +289,25 @@ class SaneScanDialog(Scan):
                 opt.constraint[1],
             )
             return None
-        step = 1
-        if opt.constraint[2] > 0:
-            step = opt.constraint[2]
+        step = spin_step(opt.constraint)
 
         widget = Gtk.SpinButton.new_with_range(
             opt.constraint[0], opt.constraint[1], step
         )
 
+        # Size fields take fractional values, with the locale's decimal
+        # separator and whole-unit arrow steps.
+        if opt.type == enums.TYPE_FIXED:
+            widget.set_digits(FRACTIONAL_DIGITS)
+
         # Set the default
         if val is not None and not opt.cap & enums.CAP_INACTIVE:
             widget.set_value(val)
+
+        if opt.type == enums.TYPE_FIXED:
+            self._configure_fractional_spinbutton(widget)
+
+        last_forwarded: list[object] = [None]
 
         def value_changed_spinbutton_cb(_widget: Gtk.SpinButton) -> None:
             self.num_reloads = 0  # num-reloads is read-only
@@ -302,10 +315,30 @@ class SaneScanDialog(Scan):
             value = widget.get_value()
             if opt.type == enums.TYPE_INT:
                 value = int(value)
-            self.set_option(opt, value=value)
+            if last_forwarded[0] != value:
+                last_forwarded[0] = value
+                self.set_option(opt, value=value)
 
         widget.signal = widget.connect("value-changed", value_changed_spinbutton_cb)
         return widget
+
+    def _configure_fractional_spinbutton(self, widget: Gtk.SpinButton) -> None:
+        """Make a size spin button fractional, locale-correct and strictly input."""
+
+        def value_changed_trim_cb(_widget: Gtk.SpinButton) -> None:
+            _widget.set_digits(fractional_digits(_widget.get_value()))
+
+        def commit_validate_cb(_widget: Gtk.SpinButton, *_args: object) -> None:
+            try:
+                parse_number(_widget.get_text())
+            except ValueError:
+                # Not a number in this locale: revert to the last valid value.
+                _widget.set_value(_widget.get_value())
+
+        widget.connect("value-changed", value_changed_trim_cb)
+        widget.connect("focus-out-event", commit_validate_cb)
+        widget.connect("activate", commit_validate_cb)
+        widget.set_digits(fractional_digits(widget.get_value()))
 
     def _create_widget_combobox(self, opt: Option, val: object) -> Gtk.ComboBoxText:
         widget = Gtk.ComboBoxText()
@@ -350,13 +383,18 @@ class SaneScanDialog(Scan):
         def activate_entry_cb(_widget: Gtk.Entry) -> None:
             self.num_reloads = 0  # num-reloads is read-only
             self._reverted_option_counts.pop(opt.name, None)
-            text = widget.get_text()
             if opt.type == enums.TYPE_FIXED:
-                value = parse_number(text)
+                try:
+                    value = parse_number(widget.get_text())
+                except ValueError:
+                    return
             elif opt.type == enums.TYPE_INT:
-                value = parse_number(text, int)
+                try:
+                    value = parse_number(widget.get_text(), int)
+                except ValueError:
+                    return
             else:
-                value = text
+                value = widget.get_text()
             self.set_option(opt, value=value)
 
         widget.signal = widget.connect("activate", activate_entry_cb)

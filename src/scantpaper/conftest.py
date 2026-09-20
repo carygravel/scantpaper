@@ -21,7 +21,7 @@ from scantpaper.basethread import BaseThread
 from scantpaper.dialog.sane import SaneScanDialog
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import decode_info
-from scantpaper.helpers import decimal_separator
+from scantpaper.helpers import decimal_separator, grouping_separator
 from scantpaper.loop_helpers import _MainLoopWrapper, safe_mainloop
 from scantpaper.tests.scan_mocks import build_scan_options
 
@@ -86,8 +86,10 @@ def comma_locale(monkeypatch: pytest.MonkeyPatch) -> Generator[str, None, None]:
     monkeypatch.setenv("LC_ALL", "de_DE.utf8")
     monkeypatch.setenv("LANG", "de_DE.utf8")
     decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
     yield decimal_separator()
     decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
 
 
 @pytest.fixture
@@ -96,8 +98,10 @@ def dot_locale(monkeypatch: pytest.MonkeyPatch) -> Generator[str, None, None]:
     monkeypatch.setenv("LC_ALL", "C")
     monkeypatch.setenv("LANG", "C")
     decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
     yield decimal_separator()
     decimal_separator.cache_clear()
+    grouping_separator.cache_clear()
 
 
 @pytest.fixture

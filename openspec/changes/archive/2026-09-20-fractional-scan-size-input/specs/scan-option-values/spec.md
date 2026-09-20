@@ -1,39 +1,4 @@
-# scan-option-values
-
-## Purpose
-
-Makes the numeric values shown against scan options follow the user's locale,
-so comma-locale users see and type the values with a comma while the SANE
-backend keeps receiving canonical numbers.
-
-## Requirements
-
-### Requirement: Numeric scan-option values display with the locale separator
-
-The scan dialog SHALL render numeric values that belong to a scan option —
-both the items of a list/combobox option (e.g. resolutions) and the default
-of a free-text entry option — using the locale's decimal separator, at the
-driver's full precision, so a value of 215.9 is shown as "215,9" when the
-locale uses a comma and as "215.9" otherwise, and a value of
-1.07818603515625 is shown unchanged apart from the separator. Integer
-values SHALL keep rendering without a decimal part.
-
-#### Scenario: Resolution list items are localized
-
-- **WHEN** a scan option offers the resolution list [150, 300, 215.9] and
-  the user's locale uses a comma as decimal separator
-- **THEN** the combobox shows the items 150, 300 and 215,9
-
-#### Scenario: Free-text numeric default is localized
-
-- **WHEN** a free-text numeric scan option has the default 115.2 and the
-  user's locale uses a comma as decimal separator
-- **THEN** the entry shows 115,2
-
-#### Scenario: Whole-number values stay without decimals
-
-- **WHEN** a scan option value is 150
-- **THEN** it is displayed as 150 in every locale
+## MODIFIED Requirements
 
 ### Requirement: Typed scan-option numbers accept the locale decimal separator
 
@@ -65,6 +30,8 @@ scan-area size fields.
   separator, such as 1.234 in a comma locale whose grouping separator is
   a period
 - **THEN** the backend receives the canonical number 1234
+
+## ADDED Requirements
 
 ### Requirement: Fractional scan-area values can be typed into ranged fields
 
@@ -113,15 +80,3 @@ typing, not by stepping.
 - **WHEN** a scan-area field shows 114.8 and the user clicks the up arrow
 - **THEN** the field shows 115.8 (the value increases by exactly one whole
   unit, preserving the fractional part)
-
-### Requirement: Legacy profile values with a decimal comma are imported
-
-When applying a scan profile whose values were read from text (pre-v3
-config), a numeric option value written with a decimal comma SHALL be
-converted to the canonical number instead of raising a conversion error.
-
-#### Scenario: Pre-v3 profile with a comma is applied
-
-- **WHEN** a pre-v3 profile contains a FIXED option whose value string is
-  115,2
-- **THEN** the option is applied with the canonical number 115.2

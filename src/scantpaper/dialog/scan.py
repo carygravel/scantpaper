@@ -22,6 +22,7 @@ from scantpaper.helpers import (
     format_number_precise,
     parse_number,
     show_message_dialog,
+    spin_step,
 )
 from scantpaper.i18n import _, d_sane
 from scantpaper.scanner.options import Options, within_tolerance
@@ -91,11 +92,11 @@ def _coerce_option_value(opt: Option, val: object) -> object:
     """Force the value's type to match the option type from a pre-v3 config."""
     if opt.type == enums.TYPE_INT:
         if isinstance(val, str):
-            return parse_number(val, int)
+            return parse_number(val, int, strict=False)
         return int(val)
     if opt.type == enums.TYPE_FIXED:
         if isinstance(val, str):
-            return parse_number(val)
+            return parse_number(val, strict=False)
         return float(val)
     if opt.type == enums.TYPE_BOOL:
         return bool(val)
@@ -818,10 +819,8 @@ class Scan(PageControls):
     def _set_spinbutton_widget(
         self, widget: Gtk.SpinButton, value: object, opt: Option
     ) -> None:
-        step, page = widget.get_increments()
-        step = 1
-        if opt.constraint[2] > 0:
-            step = opt.constraint[2]
+        step = spin_step(opt.constraint)
+        _, page = widget.get_increments()
 
         widget.set_range(opt.constraint[0], opt.constraint[1])
         widget.set_increments(step, page)
