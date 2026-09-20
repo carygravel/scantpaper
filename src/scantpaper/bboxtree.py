@@ -143,7 +143,7 @@ class Bboxtree:
 
     def _resolve_bbox_type(self, bbox: dict[str, object]) -> str:
         """Return the djVu type for the given bbox, mapping unknown types."""
-        bbox_type = bbox["type"]
+        bbox_type = str(bbox["type"])
 
         # deal with unsupported types, e.g. header
         if not re.search(
@@ -623,7 +623,7 @@ def _bbox_to_hocr(
     open_tag, tag = _hocr_open_tag(bbox)
     string += open_tag
     tags.append(tag)
-    return string, bbox["depth"]
+    return string, int(bbox["depth"])
 
 
 def _hocr_open_tag(bbox: dict[str, object]) -> tuple[str, str]:

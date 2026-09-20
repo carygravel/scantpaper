@@ -160,7 +160,7 @@ class Save(Dialog):
             self._on_toggle_include_time(newval=newval)
             self._include_time = newval
 
-    _meta_title = None
+    _meta_title: str = ""
     _meta_title_suggestions = None
     _meta_title_widget = None
 
@@ -191,7 +191,7 @@ class Save(Dialog):
         if self._meta_title_widget is not None:
             self._meta_title_widget.set_suggestions(newval)
 
-    _meta_author = None
+    _meta_author: str = ""
     _meta_author_suggestions = None
     _meta_author_widget = None
 
@@ -222,7 +222,7 @@ class Save(Dialog):
         if self._meta_author_widget is not None:
             self._meta_author_widget.set_suggestions(newval)
 
-    _meta_subject = None
+    _meta_subject: str = ""
     _meta_subject_suggestions = None
     _meta_subject_widget = None
 
@@ -253,7 +253,7 @@ class Save(Dialog):
         if self._meta_subject_widget is not None:
             self._meta_subject_widget.set_suggestions(newval)
 
-    _meta_keywords = None
+    _meta_keywords: str = ""
     _meta_keywords_suggestions = None
     _meta_keywords_widget = None
 

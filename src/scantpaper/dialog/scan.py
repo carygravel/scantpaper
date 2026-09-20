@@ -52,9 +52,12 @@ logger = logging.getLogger(__name__)
 def _resolution_value(thread: SaneThread, name: str) -> float:
     """Return the value of the named resolution option, or 0 if unavailable."""
     try:
-        return thread.get_option_value(name)
+        value = thread.get_option_value(name)
     except AttributeError:
         return 0
+    if not isinstance(value, (int, float)):
+        return 0
+    return float(value)
 
 
 def _dedupe_unique_names(device_list: list[SimpleNamespace]) -> None:

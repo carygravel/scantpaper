@@ -119,7 +119,7 @@ def sane_scan_dialog() -> Generator[SaneScanDialog, None, None]:
 
 
 @pytest.fixture
-def sane_scan_mocks() -> Generator[SimpleNamespace, None, None]:
+def sane_scan_mocks() -> SimpleNamespace:
     """raw_options and mocked SaneThread do_* methods for scan-dialog tests."""
     raw_options = build_scan_options(
         [
@@ -213,7 +213,7 @@ def sane_scan_mocks() -> Generator[SimpleNamespace, None, None]:
 @pytest.fixture
 def inexact_scan_mocks(
     request: pytest.FixtureRequest,
-) -> Generator[SimpleNamespace, None, None]:
+) -> SimpleNamespace:
     """raw_options and mocked SaneThread do_* methods for the test_inexact family."""
     extra_options = getattr(request, "param", None) or {}
     extra_handle = extra_options.get("handle", {})
@@ -305,7 +305,7 @@ def inexact_scan_mocks(
 
 
 @pytest.fixture
-def infinite_reloads_scan_mocks() -> Generator[SimpleNamespace, None, None]:
+def infinite_reloads_scan_mocks() -> SimpleNamespace:
     """raw_options and open/get mocks for the test_infinite_reloads family."""
     raw_options = build_scan_options(
         [
@@ -666,7 +666,7 @@ def _create_rose_image() -> Image.Image:
     return img
 
 
-def _load_default(**kwargs: object) -> ImageFont.ImageFont:
+def _load_default(**kwargs: object) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     """Call Pillow's load_default, tolerating its version-varying signature."""
     return ImageFont.load_default(**kwargs)
 

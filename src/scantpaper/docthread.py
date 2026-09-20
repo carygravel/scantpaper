@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 import threading
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 import tesserocr
@@ -105,7 +105,7 @@ class DocThread(SaveThread):
             directory = db.parent
         else:
             directory = pathlib.Path(tempfile.gettempdir())
-        if db is None:
+        if not isinstance(db, pathlib.Path):
             db = directory / "document.sdb"
         return directory, db
 
@@ -345,7 +345,7 @@ class DocThread(SaveThread):
                 ),
             )
             return self._cur[threading.get_native_id()].lastrowid, thumb
-        return if_different_from, thumb
+        return cast("int", if_different_from), thumb
 
     def _reuse_image_thumb(self, image_id: int) -> GdkPixbuf.Pixbuf:
         """Return the thumbnail pixbuf of the stored image with the given id."""
@@ -478,7 +478,7 @@ class DocThread(SaveThread):
         )
         position = self._fetchone()[0]
         self._con[threading.get_native_id()].commit()
-        return position, thumb, initial_page_id
+        return int(position), thumb, initial_page_id
 
     # TODO: Commit a95296e93b392b35285d00bc633a9aa94c76995c fixed a bug
     # seemingly deleting extra pages. Please write a test which passes after
@@ -725,7 +725,7 @@ class DocThread(SaveThread):
                 row[1] = self._bytes_to_pixbuf(row[1])
                 rows.append(row)
             request.data({"type": "page", "new_pages": rows})
-            return [row[0] for row in rows]
+            return [int(row[0]) for row in rows]
         self._take_snapshot()
         moved_set = set(moved)
         remaining = [pid for pid in current if pid not in moved_set]
@@ -761,7 +761,7 @@ class DocThread(SaveThread):
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
         request.data({"type": "page", "new_pages": rows})
-        return [row[0] for row in rows]
+        return [int(row[0]) for row in rows]
 
     def _take_snapshot(self) -> None:
         """Take a snapshot of the current state of the document."""
@@ -955,7 +955,7 @@ class DocThread(SaveThread):
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
-        return self._fetchone()[0]
+        return cast("str | None", self._fetchone()[0])
 
     def parse_bboxtree(self, json_string: str, **kwargs: object) -> uuid.UUID:
         """Parse bboxtree in thread."""
@@ -1010,7 +1010,7 @@ class DocThread(SaveThread):
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
-        return self._fetchone()[0]
+        return cast("str | None", self._fetchone()[0])
 
     def do_set_annotations(self, request: Request) -> None:
         """Set the annotations layer for the given page."""
@@ -1036,7 +1036,7 @@ class DocThread(SaveThread):
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
-        return self._fetchone()
+        return cast("tuple[float | None, float | None] | None", self._fetchone())
 
     def do_set_resolution(self, request: Request) -> None:
         """Set the resolution for the given page."""
@@ -1639,8 +1639,9 @@ def _calculate_crop_tuples(
     tuple[int, int, int, int],
     tuple[int, int, int, int],
 ]:
+    position = int(options["position"])
     if options["direction"] == "v":
-        width = options["position"]
+        width = position
         height = image.height
         right = width
         bottom = 0
@@ -1648,7 +1649,7 @@ def _calculate_crop_tuples(
         height2 = height
     else:
         width = image.width
-        height = options["position"]
+        height = position
         right = 0
         bottom = height
         width2 = width

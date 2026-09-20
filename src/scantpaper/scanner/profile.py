@@ -19,8 +19,8 @@ if TYPE_CHECKING:
 class Profile(GObject.Object):
     """Subclass Glib.Object for use in Glib.ParamSpec in Scantpaper.Dialog.Scan."""
 
-    frontend = None
-    backend = None
+    frontend: dict[str, object]
+    backend: list[tuple[str, object] | dict[str, object]]
 
     def __init__(
         self,
@@ -100,7 +100,9 @@ class Profile(GObject.Object):
 
         self.uuid = str(uuid.uuid1())
 
-    def get_backend_option_by_index(self, i: int) -> tuple[str, object]:
+    def get_backend_option_by_index(
+        self, i: int
+    ) -> tuple[str, object] | dict[str, object]:
         """get_backend_option_by_index."""
         return self.backend[i]
 
@@ -155,7 +157,9 @@ class Profile(GObject.Object):
         if name in self.frontend:
             del self.frontend[name]
 
-    def get(self) -> dict[str, dict[str, object] | list[tuple[str, object]]]:
+    def get(
+        self,
+    ) -> dict[str, dict[str, object] | list[tuple[str, object] | dict[str, object]]]:
         """Return a dict of frontend and backend options."""
         return {"frontend": self.frontend, "backend": self.backend}
 

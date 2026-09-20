@@ -611,7 +611,7 @@ def _pdf_cmd_with_password(cmd: list[str], password: str | None) -> list[str]:
 
 def _parse_pdfimages_list(out: str) -> list[dict[str, object]]:
     """Parse pdfimages -list output into a list of image entries."""
-    entries = []
+    entries: list[dict[str, object]] = []
     for line in out.splitlines():
         tokens = line.split()
         if len(tokens) < PDFIMAGES_LIST_COLUMNS:
@@ -659,8 +659,8 @@ def _correlate_pdf_images(
         # Unexpected structure: import every file and warn
         xresolution, yresolution = None, None
         if entries:
-            xresolution = entries[0]["x_ppi"]
-            yresolution = entries[0]["y_ppi"]
+            xresolution = float(entries[0]["x_ppi"])
+            yresolution = float(entries[0]["y_ppi"])
         return [(fname, xresolution, yresolution, None) for fname in images], True
     images_and_resolution = []
     paired_masks = set()
@@ -671,7 +671,7 @@ def _correlate_pdf_images(
                 mask_fname = images[i + 1]
                 paired_masks.add(images[i + 1])
             images_and_resolution.append(
-                (fname, entry["x_ppi"], entry["y_ppi"], mask_fname)
+                (fname, float(entry["x_ppi"]), float(entry["y_ppi"]), mask_fname)
             )
     for fname, entry in zip(images, entries, strict=False):
         if entry["type"] != "image" and fname not in paired_masks:

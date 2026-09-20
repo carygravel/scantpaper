@@ -720,7 +720,7 @@ class SaveThread(Importhread):
 
 
 def _need_temp_pdf(options: dict[str, object] | None) -> bool:
-    return options and (
+    return options is not None and (
         "prepend" in options
         or "append" in options
         or "ps" in options

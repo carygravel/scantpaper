@@ -484,7 +484,7 @@ class Unpaper:
         i = hashref[option]["widget"].get_active()
         for key in hashref[option]["options"]:
             if hashref[option]["options"][key]["index"] == i:
-                return key
+                return str(key)
         return None
 
     def _checkbutton_get_option(self, option: str) -> bool:

@@ -169,5 +169,4 @@ task-tags = ["TODO", "FIXME"]
 "not-iterable" = "ignore"
 "no-matching-overload" = "ignore"
 "invalid-method-override" = "ignore"
-"invalid-return-type" = "ignore"
 "missing-argument" = "ignore"
