@@ -174,4 +174,3 @@ task-tags = ["TODO", "FIXME"]
 "redundant-condition" = "ignore"
 "possibly-missing-submodule" = "ignore"
 "missing-argument" = "ignore"
-"invalid-type-form" = "ignore"

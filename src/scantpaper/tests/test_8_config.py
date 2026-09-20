@@ -6,7 +6,7 @@ import json
 import logging
 import pathlib
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, tzinfo
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
@@ -38,7 +38,7 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
-    def now(cls, tz: datetime.tzinfo | None = None) -> datetime:
+    def now(cls, tz: tzinfo | None = None) -> datetime:
         """Now."""
         return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 

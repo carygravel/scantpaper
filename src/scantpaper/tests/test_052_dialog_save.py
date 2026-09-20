@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, tzinfo
 from typing import TYPE_CHECKING
 
 import gi
@@ -23,7 +23,7 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
-    def now(cls, tz: datetime.tzinfo | None = None) -> datetime:
+    def now(cls, tz: tzinfo | None = None) -> datetime:
         """Now."""
         return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 
