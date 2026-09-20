@@ -226,7 +226,7 @@ def test_edit_paper_cancel(mocker: pytest.MockerFixture) -> None:
     cbutton_mock.connect.assert_called_once()
     assert cbutton_mock.connect.call_args[0][0] == "clicked"
     cancel_handler = cbutton_mock.connect.call_args[0][1]
-    cancel_handler()
+    cancel_handler(cbutton_mock)
 
     # 3. window.destroy() was called after handler invocation
     mock_editor_window.destroy.assert_called_once()

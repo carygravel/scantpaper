@@ -9,6 +9,7 @@
 * Enforce the locale's decimal and grouping separators strictly when typing
   numbers: in a comma locale a period is now rejected (`115.2` no longer
   silently passes) instead of being accepted alongside the comma.
+* Fixed cancel button in paper size editor
 
 
 ## 3.0.19 (2026-09-19)

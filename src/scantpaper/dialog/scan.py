@@ -1069,8 +1069,7 @@ class Scan(PageControls):
         hboxb.pack_start(abutton, expand=True, fill=False, padding=0)
         cbutton = Gtk.Button.new_with_label(_("Cancel"))
 
-        def do_cancel_paper_sizes() -> None:
-
+        def do_cancel_paper_sizes(_widget: Gtk.Button) -> None:
             # Set the combobox back from Edit to the previous value
             combobp.set_active_by_text(self.paper)
             window.destroy()
