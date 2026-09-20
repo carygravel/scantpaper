@@ -172,5 +172,4 @@ task-tags = ["TODO", "FIXME"]
 "invalid-return-type" = "ignore"
 "invalid-attribute-access" = "ignore"
 "redundant-condition" = "ignore"
-"possibly-missing-submodule" = "ignore"
 "missing-argument" = "ignore"

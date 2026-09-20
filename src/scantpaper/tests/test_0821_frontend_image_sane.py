@@ -7,8 +7,8 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
-import PIL
 import pytest
+from PIL import Image
 
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import SaneThread
@@ -170,7 +170,7 @@ def test_2() -> None:
 
 def _check_scan_response(response: Response, *labels: str) -> None:
     """Assert a scan_page response contains an image of non-zero size."""
-    assert isinstance(response.info, PIL.Image.Image), labels[0]
+    assert isinstance(response.info, Image.Image), labels[0]
     assert response.info.size[0] > 0, labels[1]
     assert response.info.size[1] > 0, labels[2]
 
@@ -212,9 +212,9 @@ def test_3() -> None:
     mlp.run()
     assert asserts == 2, "checked all expected responses #4"
 
-    def new_page_callback(image: PIL.Image.Image) -> None:
+    def new_page_callback(image: Image.Image) -> None:
         nonlocal asserts
-        assert isinstance(image, PIL.Image.Image), (
+        assert isinstance(image, Image.Image), (
             "scan_page finished_callback returned image"
         )
         assert image.size[0] > 0, "scan_page finished_callback image width"
