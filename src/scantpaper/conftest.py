@@ -666,6 +666,11 @@ def _create_rose_image() -> Image.Image:
     return img
 
 
+def _load_default(**kwargs: object) -> ImageFont.ImageFont:
+    """Call Pillow's load_default, tolerating its version-varying signature."""
+    return ImageFont.load_default(**kwargs)
+
+
 def _create_qbfox_image() -> Image.Image:
     """Create a rotated grayscale image with 'The quick brown fox' text."""
     font_size = 72
@@ -695,10 +700,10 @@ def _create_qbfox_image() -> Image.Image:
             font_source = f"fc-match:{result.stdout.strip()}"
     if font is None:
         try:
-            font = ImageFont.load_default(size=font_size)
+            font = _load_default(size=font_size)
             font_source = "PIL load_default(size=72)"
         except TypeError:
-            font = ImageFont.load_default()
+            font = _load_default()
             font_source = "PIL load_default() bitmap"
     print(f"[conftest] _create_qbfox_image: font_source={font_source}", flush=True)
     print(
