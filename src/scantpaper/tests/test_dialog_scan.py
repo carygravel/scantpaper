@@ -74,6 +74,17 @@ def test_current_scan_options_property() -> None:
     assert dialog.current_scan_options == new_profile
 
 
+def test_constructor_paper_sizes() -> None:
+    """Test paper_sizes passed as a constructor kwarg are preserved."""
+    formats = {"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}}
+    dialog = Scan(
+        title="title",
+        transient_for=Gtk.Window(),
+        paper_sizes=formats,
+    )
+    assert dialog.paper_sizes == formats, "paper_sizes kwarg preserved"
+
+
 def test_ignore_duplex_capabilities_property() -> None:
     """Test ignore_duplex_capabilities property getter and setter."""
     dialog = Scan(

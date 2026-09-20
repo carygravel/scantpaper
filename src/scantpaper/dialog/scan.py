@@ -419,10 +419,12 @@ class Scan(PageControls):
         profiles = {}
         if "profiles" in kwargs:
             profiles = kwargs.pop("profiles")
-        super().__init__(*args, **kwargs)
 
         self._paper_sizes: dict[str, dict[str, float]] = {}
         self._device_list: list[SimpleNamespace] = []
+
+        super().__init__(*args, **kwargs)
+
         self.ignored_paper_sizes = []
         self.option_widgets = {}
         self._geometry_boxes = {}
