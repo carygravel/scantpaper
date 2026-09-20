@@ -175,4 +175,3 @@ task-tags = ["TODO", "FIXME"]
 "possibly-missing-submodule" = "ignore"
 "missing-argument" = "ignore"
 "invalid-type-form" = "ignore"
-"unknown-argument" = "ignore"

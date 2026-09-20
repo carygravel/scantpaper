@@ -24,6 +24,7 @@ from gi.repository import (  # noqa: E402
 
 ENTRY_WIDTH_DATE = 10
 ENTRY_WIDTH_DATETIME = 19
+_DATETIME = datetime.datetime
 IMAGE_TYPES = [
     ("pdf", _("PDF"), _("Portable Document Format")),
     ("gif", _("GIF"), _("CompuServe graphics interchange format")),
@@ -134,7 +135,10 @@ class Save(Dialog):
             self._meta_datetime = newval
             if self._meta_datetime_widget is not None:
                 self._meta_datetime_widget.get_buffer().set_text(
-                    newval.isoformat(sep=" "), -1
+                    newval.isoformat(sep=" ")
+                    if isinstance(newval, _DATETIME)
+                    else newval.isoformat(),
+                    -1,
                 )
 
     select_datetime = GObject.Property(
