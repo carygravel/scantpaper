@@ -1515,7 +1515,7 @@ class Scan(PageControls):
 
             if self.adf_defaults_scan_all_pages and re.search(
                 r"(ADF|Automatic[ ]Document[ ]Feeder)",
-                value,
+                str(value),
                 re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
             ):
                 self.num_pages = 0

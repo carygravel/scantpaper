@@ -356,7 +356,7 @@ class EditMenuMixins:
 
         if settings["device blacklist"] != self.settings["device blacklist"]:
             try:
-                re.search(settings["device blacklist"], "dummy_device")
+                re.search(str(settings["device blacklist"]), "dummy_device")
             except re.error:
                 msg = _("Invalid regex. Try without special characters such as '*'")
                 logger.warning(msg)

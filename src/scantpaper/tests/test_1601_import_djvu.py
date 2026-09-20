@@ -173,7 +173,7 @@ def test_import_djvu_with_error(rose_jpg: str, temp_djvu: object) -> None:
         def error_cb(*args: object) -> None:
             nonlocal asserts
             message = args[-1] if len(args) > 1 else args[0].status
-            assert re.search(r"Error|Errno", message), "error_cb"
+            assert re.search(r"Error|Errno", str(message)), "error_cb"
             asserts += 1
 
             # inject error during import file

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from warnings import warn
 
 import gi
@@ -50,7 +50,7 @@ def float_g_cell_renderer(
     cell.set_property("text", format_number(info))
 
 
-column_types = {
+column_types: dict[str, dict[str, object]] = {
     "hstring": {"type": str, "attr": "hidden"},
     "hint": {"type": int, "attr": "hidden"},
     "text": {"type": str, "renderer": Gtk.CellRendererText, "attr": "text"},
@@ -287,7 +287,7 @@ class SimpleList(Gtk.TreeView):
     @classmethod
     def add_column_type(cls: type[SimpleList], **kwargs: object) -> None:
         """Add column type."""
-        column_types.update(kwargs)
+        column_types.update(cast("dict[str, dict[str, object]]", kwargs))
 
     @classmethod
     def get_column_types(cls: type[SimpleList]) -> dict:

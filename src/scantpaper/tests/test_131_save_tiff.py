@@ -5,7 +5,7 @@ from __future__ import annotations
 import pathlib
 import subprocess
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pikepdf
 from PIL import Image
@@ -221,7 +221,7 @@ def test_save_tiff_as_ps(
         ), "valid postscript created"
 
         with pikepdf.open(temp_pdf.name) as pdf:
-            creator = str(pdf.docinfo.get("/Creator", ""))
+            creator = str(cast("dict[str, object]", pdf.docinfo).get("/Creator", ""))
         assert "tiff2ps" in creator, "ran post-save hook"
 
 

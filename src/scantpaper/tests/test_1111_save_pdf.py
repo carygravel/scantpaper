@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import tempfile
 import threading
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
 
 import img2pdf
@@ -590,7 +590,7 @@ def test_save_pdf_with_metadata(
         assert "/Subject" not in docinfo or docinfo["/Subject"] != "", (
             "don't add blank metadata"
         )
-        creationdate = str(docinfo.get("/CreationDate", ""))
+        creationdate = str(cast("dict[str, object]", docinfo).get("/CreationDate", ""))
         assert "20160210" in creationdate, "metadata CreationDate in PDF"
     stb = pathlib.Path(temp_pdf.name).stat()
     assert datetime.datetime.fromtimestamp(
@@ -690,11 +690,11 @@ def test_save_pdf_creator_branded(
 
     with pikepdf.open(temp_pdf.name) as pdf:
         docinfo = pdf.docinfo or {}
-        creator = str(docinfo.get("/Creator", ""))
+        creator = str(cast("dict[str, object]", docinfo).get("/Creator", ""))
         assert creator.startswith("scantpaper v"), "scantpaper first in Creator"
         assert "OCRmyPDF" in creator, "OCRmyPDF provenance retained"
         assert "Tesseract" in creator, "Tesseract provenance retained"
-        producer = str(docinfo.get("/Producer", ""))
+        producer = str(cast("dict[str, object]", docinfo).get("/Producer", ""))
         assert producer.startswith("pikepdf"), "producer untouched"
         with pdf.open_metadata() as md:
             assert md.get("xmp:CreatorTool") == creator, "XMP creator matches docinfo"
@@ -731,7 +731,7 @@ def test_save_pdf_creator_branded_with_title(
     with pikepdf.open(temp_pdf.name) as pdf:
         docinfo = pdf.docinfo or {}
         assert docinfo.get("/Title") == "metadata title", "user title kept"
-        creator = str(docinfo.get("/Creator", ""))
+        creator = str(cast("dict[str, object]", docinfo).get("/Creator", ""))
         assert creator.startswith("scantpaper v"), "branded despite user title"
         assert "OCRmyPDF" in creator, "toolchain provenance retained"
         with pdf.open_metadata() as md:
@@ -821,7 +821,7 @@ def test_save_pdf_with_old_metadata(
     with pikepdf.open(temp_pdf.name) as pdf:
         docinfo = pdf.docinfo or {}
         assert docinfo.get("/Title") == "metadata title", "metadata title in PDF"
-        creationdate = str(docinfo.get("/CreationDate", ""))
+        creationdate = str(cast("dict[str, object]", docinfo).get("/CreationDate", ""))
         assert "19660210" in creationdate, "metadata CreationDate in PDF"
 
 

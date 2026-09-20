@@ -7,7 +7,7 @@ import html
 import json
 import re
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from scantpaper.const import ANNOTATION_COLOR, HALF, POINTS_PER_INCH, VERSION
 
@@ -152,7 +152,7 @@ class Bboxtree:
             re.MULTILINE | re.DOTALL | re.VERBOSE,
         ):
             regex = re.search(
-                r"([A-Za-z]+)", bbox["id"], re.MULTILINE | re.DOTALL | re.VERBOSE
+                r"([A-Za-z]+)", str(bbox["id"]), re.MULTILINE | re.DOTALL | re.VERBOSE
             )
             bbox_type = regex.group(1) if regex else "line"
         return bbox_type
@@ -632,7 +632,7 @@ def _hocr_open_tag(bbox: dict[str, object]) -> tuple[str, str]:
     tag = "span"
     if bbox["type"] == "page":
         tag = "div"
-    elif re.search(r"^(?:carea|column)$", bbox["type"]):
+    elif re.search(r"^(?:carea|column)$", str(bbox["type"])):
         bbox_type = "ocr_carea"
         tag = "div"
     elif bbox["type"] == "para":
@@ -669,7 +669,7 @@ def _text2hocr(bbox: dict[str, object]) -> str:
         string += html.escape(bbox["text"])
 
         if "style" in bbox:
-            for style in reversed(bbox["style"]):
+            for style in reversed(cast("list[str]", bbox["style"])):
                 string += f"</{style}>"
     return string
 

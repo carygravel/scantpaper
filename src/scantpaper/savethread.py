@@ -11,7 +11,7 @@ import re
 import shutil
 import tempfile
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import img2pdf
 import ocrmypdf
@@ -192,16 +192,18 @@ class SaveThread(Importhread):
 
     def do_save_pdf(self, request: Request) -> None:
         """Save PDF in thread."""
-        options = defaultdict(None, request.args[0])
+        options = _options_from_request(request)
 
         request.data(_("Setting up PDF"))
-        with tempfile.TemporaryDirectory(dir=options.get("dir")) as tempdir:
+        with tempfile.TemporaryDirectory(
+            dir=cast("str | None", options.get("dir"))
+        ) as tempdir:
             outdir = pathlib.Path(tempdir)
             filename = options["path"]
             if _need_temp_pdf(options.get("options")):
                 # SIM115 — cross-scope file handle used intentionally
                 temp_pdf = tempfile.NamedTemporaryFile(  # noqa: SIM115
-                    dir=options.get("dir"), suffix=".pdf"
+                    dir=cast("str | None", options.get("dir")), suffix=".pdf"
                 )
                 filename = temp_pdf.name
 
@@ -271,7 +273,9 @@ class SaveThread(Importhread):
                 # store the filename and not the tempfile object to avoid potentially
                 # holding many open filehandles
                 with tempfile.NamedTemporaryFile(
-                    dir=options.get("dir"), suffix=".png", delete=False
+                    dir=cast("str | None", options.get("dir")),
+                    suffix=".png",
+                    delete=False,
                 ) as tmp:
                     page.write_image_for_pdf(tmp.name, options)
                     filenames.append(tmp.name)
@@ -432,7 +436,9 @@ class SaveThread(Importhread):
 
             # Write djvusedmetafile
             with tempfile.NamedTemporaryFile(
-                mode="wt", dir=options.get("dir"), suffix=".txt"
+                mode="wt",
+                dir=cast("str | None", options.get("dir")),
+                suffix=".txt",
             ) as fhd:
                 fhd.write("(metadata\n")
 
@@ -443,7 +449,7 @@ class SaveThread(Importhread):
                         val = re.sub(
                             r"\\",
                             r"\\\\",
-                            raw_val,
+                            str(raw_val),
                             flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
                         )
                         val = re.sub(
@@ -533,7 +539,7 @@ class SaveThread(Importhread):
 
     def do_save_image(self, request: Request) -> None:
         """Save pages as image files in thread."""
-        options = defaultdict(None, request.args[0])
+        options = _options_from_request(request)
 
         for i, page_id in enumerate(options["list_of_pages"], start=1):
             page = self.get_page(id=page_id)
@@ -558,7 +564,7 @@ class SaveThread(Importhread):
 
     def do_save_text(self, request: Request) -> None:
         """Save text file in thread."""
-        options = defaultdict(None, request.args[0])
+        options = _options_from_request(request)
 
         string = ""
         for page_id in options["list_of_pages"]:
@@ -582,7 +588,7 @@ class SaveThread(Importhread):
 
     def do_save_hocr(self, request: Request) -> None:
         """Save hocr file in thread."""
-        options = defaultdict(None, request.args[0])
+        options = _options_from_request(request)
 
         with pathlib.Path(options["path"]).open("w", encoding="utf-8") as fhd:
             written_header = False
@@ -719,6 +725,13 @@ class SaveThread(Importhread):
             )
 
 
+def _options_from_request(request: Request) -> defaultdict[str, object]:
+    """Return the options mapping from a save Request's first positional argument."""
+    options = defaultdict(None)
+    options.update(cast("dict[str, object]", request.args[0]))
+    return options
+
+
 def _need_temp_pdf(options: dict[str, object] | None) -> bool:
     return options is not None and (
         "prepend" in options
@@ -749,7 +762,9 @@ def _fix_pdf_metadata(path: str, *, remove_title: bool) -> None:
     """Brand scantpaper as the PDF creator and remove any placeholder title."""
     creator = f"scantpaper v{VERSION}"
     with pikepdf.open(path, allow_overwriting_input=True) as pdf:
-        existing_creator = str(pdf.docinfo.get("/Creator", "")).strip()
+        existing_creator = str(
+            cast("dict[str, object]", pdf.docinfo).get("/Creator", "")
+        ).strip()
         if existing_creator:
             creator = f"{creator} / {existing_creator}"
         with pdf.open_metadata(

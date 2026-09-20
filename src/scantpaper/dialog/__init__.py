@@ -163,7 +163,7 @@ class MultipleMessage(Dialog):
         row["text"] = re.sub(
             r"\s+\Z",
             r"",
-            row["text"],
+            str(row["text"]),
             count=1,
             flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
         )

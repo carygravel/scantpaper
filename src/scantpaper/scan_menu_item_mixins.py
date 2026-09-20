@@ -38,8 +38,8 @@ def _apply_device_blacklist(
     i = 0
     while i < len(device_list):
         if re.search(
-            device_list[i].name,
-            settings["device blacklist"],
+            str(device_list[i].name),
+            str(settings["device blacklist"]),
             re.MULTILINE | re.DOTALL | re.VERBOSE,
         ):
             logger.info("Blacklisting device %s", device_list[i].name)

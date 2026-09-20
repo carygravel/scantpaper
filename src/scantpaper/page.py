@@ -11,6 +11,7 @@ import re
 import subprocess
 import tempfile
 import uuid
+from typing import cast
 
 import gi
 from PIL import Image, ImageFile
@@ -454,7 +455,7 @@ class Page:
             suffix = ".pnm"
 
         with tempfile.NamedTemporaryFile(
-            dir=options.get("dir"), suffix=suffix
+            dir=cast("str | None", options.get("dir")), suffix=suffix
         ) as tempimage:
             image.save(tempimage.name)
             proc = exec_command(
@@ -477,6 +478,8 @@ class Page:
             try:
                 txt = self.export_djvu_txt()
             except json.decoder.JSONDecodeError:
+                return
+            if txt is None:
                 return
             logger.debug(txt)
 
@@ -507,6 +510,8 @@ class Page:
                 ann = self.export_djvu_ann()
             except json.decoder.JSONDecodeError:
                 return
+            if ann is None:
+                return
             logger.debug(ann)
 
             # Write djvusedtxtfile
@@ -532,7 +537,7 @@ class Page:
     def write_image_for_tiff(self, filename: str, options: dict[str, object]) -> None:
         """Save the image as a TIFF file."""
         with tempfile.NamedTemporaryFile(
-            dir=options.get("dir"), suffix=".tif"
+            dir=cast("str | None", options.get("dir")), suffix=".tif"
         ) as infile:
             self.image_object.save(infile.name)
             xresolution, yresolution, units = self.resolution

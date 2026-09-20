@@ -341,10 +341,9 @@ def test_program_version_helper_branches() -> None:
     assert _program_version("stderr", r"(.*)", proc) == "err"
 
     # unknown stream
-    # Note: helpers.py:81 sets output=None for unknown stream, then re.search fails.
+    # Note: helpers.py:258 guards a missing output; an unknown stream yields None.
     with patch("scantpaper.helpers.logger") as mock_logger:
-        with pytest.raises(TypeError):
-            _program_version("unknown", r".*", proc)
+        assert _program_version("unknown", r".*", proc) is None
         mock_logger.error.assert_called()
 
     # PROCESS_FAILED

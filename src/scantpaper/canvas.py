@@ -378,7 +378,7 @@ class Bbox:
             if self.type == "page":
                 tag = "div"
 
-            elif re.search(r"^(?:carea|column)$", self.type):
+            elif re.search(r"^(?:carea|column)$", str(self.type)):
                 typestr = "ocr_carea"
                 tag = "div"
 

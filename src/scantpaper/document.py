@@ -452,7 +452,7 @@ def _extract_metadata(info: dict[str, object]) -> dict[str, object]:
             if info["datetime"][-1] == "Z":
                 info["datetime"] = info["datetime"][:-1] + "+00:00"
             elif re.search(
-                r"^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d$", info["datetime"]
+                r"^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d$", str(info["datetime"])
             ):
                 info["datetime"] += ":00"
         with contextlib.suppress(ValueError):

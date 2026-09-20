@@ -11,7 +11,7 @@ import subprocess
 import weakref
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from scantpaper.const import FRACTIONAL_DIGITS
 from scantpaper.dialog import MultipleMessage
@@ -164,19 +164,17 @@ class Proc:
 def exec_command(cmd: list[str], pidfile: TextIO | None = None) -> Proc:
     """Wrap subprocess.Popen()."""
     logger.info(" ".join(cmd))
-    kwargs = {}
-    if pidfile is not None:
+    try:
         # Put the child in its own session so that cancel() can killpg() it
         # without taking down the process group of the whole application.
-        kwargs["start_new_session"] = True
-    try:
         with subprocess.Popen(  # noqa: S603 - cmd from internal call sites; explicit shell=False
             cmd,
             shell=False,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            **kwargs,
+            encoding=locale.getpreferredencoding(),
+            start_new_session=pidfile is not None,
         ) as proc:
             logger.info("Spawned PID %s", proc.pid)
             if pidfile is not None:
@@ -210,7 +208,10 @@ def exec_command_run(  # noqa: PLR0913 - mirrors subprocess.run()'s surface; key
     kwargs["text"] = text
     try:
         with subprocess.Popen(  # noqa: S603 - shell forwarded deliberately; defaults to False
-            cmd, shell=shell, **kwargs
+            cmd,
+            shell=shell,
+            encoding=locale.getpreferredencoding(),
+            **cast("Any", kwargs),
         ) as proc:
             if pidfile is not None:
                 pidfile.write(str(proc.pid))
@@ -255,7 +256,7 @@ def _program_version(
     else:
         logger.error("Unknown stream: '%s'", (stream,))
 
-    regex2 = re.search(regex, output)
+    regex2 = re.search(regex, output) if output is not None else None
     if regex2:
         return regex2.group(1)
     if proc.returncode == PROCESS_FAILED:
@@ -293,7 +294,10 @@ def expand_metadata_pattern(**kwargs: object) -> str:
             kwargs[key] = ""
         regex = r"%D" + key[0]
         kwargs["template"] = re.sub(
-            regex, kwargs[key], kwargs["template"], flags=re.MULTILINE | re.DOTALL
+            regex,
+            str(kwargs[key]),
+            str(kwargs["template"]),
+            flags=re.MULTILINE | re.DOTALL,
         )
 
     # Expand convert %Dx code to %x, convert using strftime and replace

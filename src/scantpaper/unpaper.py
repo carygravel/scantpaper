@@ -566,7 +566,7 @@ class Unpaper:
         hashref = self.options
         default = {}
         if option in options:
-            for key in re.split(r",", options[option]):
+            for key in re.split(r",", str(options[option])):
                 default[key] = True
 
         for key in hashref[option]["options"]:
@@ -583,7 +583,7 @@ class Unpaper:
         hashref = self.options
         default = []
         if option in options:
-            default = re.split(r",", options[option])
+            default = re.split(r",", str(options[option]))
 
         for key in sorted(hashref[option]["options"].keys()):
             if default:
