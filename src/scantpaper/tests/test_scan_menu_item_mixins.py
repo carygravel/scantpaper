@@ -32,7 +32,7 @@ def mock_scan_window(mocker: pytest.MockerFixture) -> object:
 
         slist = None
         post_process_progress = None
-        settings: ClassVar[dict] = {}
+        settings: dict
         _windows = None
         _scan_progress = None
         _rotate_controls = None
@@ -40,7 +40,7 @@ def mock_scan_window(mocker: pytest.MockerFixture) -> object:
         _scan_udt_hbox = None
         _scan_udt_button = None
         _unpaper = None
-        _dependencies: ClassVar[dict] = {}
+        _dependencies: dict
         session = None
         _ocr_engine: ClassVar[list] = [["tesseract", "Tesseract"]]
 

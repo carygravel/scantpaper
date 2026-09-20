@@ -13,7 +13,6 @@ from scantpaper.edit_menu_mixins import EditMenuMixins
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-    from typing import ClassVar
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -35,7 +34,7 @@ def mock_edit_window(
         post_process_progress = None
         t_canvas = None
         _actions = None
-        settings: ClassVar[dict] = {}
+        settings: dict
         _windowp = None
         _windowr = None
         _windows = None

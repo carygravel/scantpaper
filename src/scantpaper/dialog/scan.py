@@ -172,7 +172,6 @@ class Scan(PageControls):
         "clicked-scan-button": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
     _device = ""
-    _device_list: ClassVar[list] = []
     dir = GObject.Property(
         type=object, nick="Directory", blurb="Directory in which to store scans"
     )
@@ -228,8 +227,6 @@ class Scan(PageControls):
 
         signal = self.connect("changed-paper", do_changed_paper)
         self._set_paper(newval)
-
-    _paper_sizes: ClassVar[dict] = {}
 
     @GObject.Property(
         type=object,
@@ -421,6 +418,8 @@ class Scan(PageControls):
             profiles = kwargs.pop("profiles")
         super().__init__(*args, **kwargs)
 
+        self._paper_sizes: dict[str, dict[str, float]] = {}
+        self._device_list: list[SimpleNamespace] = []
         self.ignored_paper_sizes = []
         self.option_widgets = {}
         self._geometry_boxes = {}
