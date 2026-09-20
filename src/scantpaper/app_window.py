@@ -825,23 +825,21 @@ class ApplicationWindow(
 
     def _check_disk_space(self) -> None:
         """Warn if free space in the session directory is running low."""
-        df = shutil.disk_usage(self.session.name)
-        if df:
-            df = df.free / 1024 / 1024
-            logger.debug(
-                "Free space in %s (Mb): %s (warning at %s)",
-                self.session.name,
-                df,
-                self.settings["available-tmp-warning"],
+        df = shutil.disk_usage(self.session.name).free / 1024 / 1024
+        logger.debug(
+            "Free space in %s (Mb): %s (warning at %s)",
+            self.session.name,
+            df,
+            self.settings["available-tmp-warning"],
+        )
+        if df < self.settings["available-tmp-warning"]:
+            text = _("%dMb free in %s.") % (df, self.session.name)
+            self._show_message_dialog(
+                parent=self,
+                message_type="warning",
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=text,
             )
-            if df < self.settings["available-tmp-warning"]:
-                text = _("%dMb free in %s.") % (df, self.session.name)
-                self._show_message_dialog(
-                    parent=self,
-                    message_type="warning",
-                    buttons=Gtk.ButtonsType.CLOSE,
-                    text=text,
-                )
 
     def _notify_config_load_warnings(self) -> None:
         """Inform the user that settings could not be read in full."""

@@ -53,13 +53,13 @@ class BaseDocument(SimpleList):
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
         self.set_reorderable(True)
-        self.dir = None
+        self.dir: str | pathlib.Path | None = None
         self.clipboard = None
         self._context = {}
         self._suppress_delete = False
         for key, val in kwargs.items():
             setattr(self, key, val)
-        if not self.dir:
+        if self.dir is None:
             self.dir = self.thread.dir
         if isinstance(self.dir, str):
             self.dir = pathlib.Path(self.dir)

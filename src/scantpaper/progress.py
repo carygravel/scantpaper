@@ -92,7 +92,7 @@ class Progress(Gtk.Box):
 
             self._signal = self.connect("clicked", cancel_process)
 
-    def update(self, response: Response) -> None:
+    def update(self, response: Response | None) -> None:
         """Update progress bar from response."""
         if not response:
             return
@@ -124,7 +124,7 @@ class Progress(Gtk.Box):
             )
             self.show()
 
-    def finish(self, response: Response) -> None:
+    def finish(self, response: Response | None) -> None:
         """Hide progress bar and disconnect signals."""
         if not response or not response.pending:
             self.hide()
