@@ -1,0 +1,261 @@
+name: Build Fedora packages
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: fedora:43
+
+    steps:
+      - name: Install RPM build tools
+        run: |
+          dnf -y update
+          dnf -y install \
+            git \
+            rpm-build \
+            rpmdevtools \
+            dnf-plugins-core \
+            gcc \
+            gcc-c++ \
+            make \
+            pkgconf-pkg-config \
+            python3-devel \
+            python3-setuptools \
+            python3-pip \
+            python3-wheel \
+            python3-Cython \
+            pyproject-rpm-macros
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Prepare RPM build tree
+        run: |
+          mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+
+      # The dependency packages (cysignals, tesserocr, iso639, python3-sane)
+      # are only rebuilt when their own inputs change, i.e. when the cache
+      # key (a hash of the spec and any patch files) no longer exists. On a
+      # cache hit the build steps below are skipped and the packaged RPMs are
+      # restored from the cache; on a miss they are rebuilt and the cache
+      # action stores the new entries at the end of the job.
+      #
+      # The "fedora43" prefix is the cache-lifecycle key: bump it when the
+      # container image is changed (e.g. fedora:43 -> fedora:44) or when the
+      # system build dependencies change, to force a rebuild.
+
+      - name: Restore cysignals cache
+        id: cache-cysignals
+        uses: actions/cache@v6
+        with:
+          path: cache/cysignals
+          key: fedora43-cysignals-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-cysignals.spec') }}
+
+      - name: Restore tesserocr cache
+        id: cache-tesserocr
+        uses: actions/cache@v6
+        with:
+          path: cache/tesserocr
+          key: fedora43-tesserocr-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-tesserocr.spec') }}
+
+      - name: Restore python3-iso639 cache
+        id: cache-iso639
+        uses: actions/cache@v6
+        with:
+          path: cache/iso639
+          key: fedora43-iso639-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-iso639.spec') }}
+
+      - name: Restore python3-sane cache
+        id: cache-sane
+        uses: actions/cache@v6
+        with:
+          path: cache/sane
+          key: fedora43-sane-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-sane.spec', 'packaging/fedora/python3-sane-snap-params-cache.patch') }}
+
+      # Make cached RPMs available for the install steps below, which read
+      # from the conventional ~/rpmbuild/RPMS/<arch> locations.
+      - name: Restore dependency RPMs into build tree
+        run: |
+          for rpmfile in cache/*/*.rpm; do
+            [ -e "$rpmfile" ] || continue
+            arch=$(rpm -qp --qf '%{ARCH}\n' "$rpmfile")
+            mkdir -p ~/rpmbuild/RPMS/"$arch"
+            cp -f "$rpmfile" ~/rpmbuild/RPMS/"$arch"/
+          done
+
+      - name: Build cysignals
+        if: steps.cache-cysignals.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/fedora/python3-cysignals.spec \
+            ~/rpmbuild/SPECS/
+
+          spectool -g -R \
+            ~/rpmbuild/SPECS/python3-cysignals.spec
+
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-cysignals.spec
+
+          mkdir -p cache/cysignals
+          cp ~/rpmbuild/RPMS/*/python3-cysignals-*.rpm \
+            cache/cysignals/
+
+      - name: Install cysignals
+        run: |
+          dnf -y install \
+            ~/rpmbuild/RPMS/$(rpm --eval '%{_arch}')/python3-cysignals-*.rpm
+
+      - name: Install tesserocr build dependencies
+        run: |
+          dnf -y install \
+            gcc \
+            gcc-c++ \
+            make \
+            pkgconf-pkg-config \
+            python3-devel \
+            python3-setuptools \
+            python3-Cython \
+            tesseract-devel \
+            leptonica-devel
+
+      - name: Verify dependencies
+        run: |
+          rpm -q python3-cysignals
+          rpm -q tesseract-devel
+          rpm -q leptonica-devel
+
+      - name: Build tesserocr
+        if: steps.cache-tesserocr.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/fedora/python3-tesserocr.spec \
+            ~/rpmbuild/SPECS/
+
+          spectool -g -R \
+            ~/rpmbuild/SPECS/python3-tesserocr.spec
+
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-tesserocr.spec
+
+          mkdir -p cache/tesserocr
+          cp ~/rpmbuild/RPMS/*/python3-tesserocr-*.rpm \
+            cache/tesserocr/
+
+      - name: Install tesserocr
+        run: |
+          dnf -y install \
+            ~/rpmbuild/RPMS/$(rpm --eval '%{_arch}')/python3-tesserocr-*.rpm
+
+      - name: Build python3-iso639
+        if: steps.cache-iso639.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/fedora/python3-iso639.spec \
+            ~/rpmbuild/SPECS/
+
+          spectool -g -R \
+            ~/rpmbuild/SPECS/python3-iso639.spec
+
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-iso639.spec
+
+          mkdir -p cache/iso639
+          cp ~/rpmbuild/RPMS/*/python3-iso639-*.rpm \
+            cache/iso639/
+
+      - name: Install python3-iso639
+        run: |
+          dnf -y install \
+            ~/rpmbuild/RPMS/noarch/python3-iso639-*.rpm
+
+      - name: Install python3-sane build dependencies
+        run: |
+          dnf -y install \
+            sane-backends-devel \
+            sane-backends-libs
+
+      - name: Build python3-sane
+        if: steps.cache-sane.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/fedora/python3-sane.spec \
+            ~/rpmbuild/SPECS/
+
+          cp packaging/fedora/python3-sane-snap-params-cache.patch \
+            ~/rpmbuild/SOURCES/
+
+          spectool -g -R \
+            ~/rpmbuild/SPECS/python3-sane.spec
+
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-sane.spec
+
+          mkdir -p cache/sane
+          cp ~/rpmbuild/RPMS/*/python3-sane-*.rpm \
+            cache/sane/
+
+      - name: Install python3-sane
+        run: |
+          dnf -y install \
+            ~/rpmbuild/RPMS/$(rpm --eval '%{_arch}')/python3-sane-*.rpm
+
+      - name: Install scantpaper build dependencies
+        run: |
+          dnf -y install \
+            gtk3 \
+            gobject-introspection-devel \
+            cairo-devel \
+            python3-gobject \
+            python3-cairo \
+            ImageMagick \
+            libtiff-tools \
+            poppler-utils \
+            ocrmypdf \
+            pandoc \
+            gettext \
+            help2man \
+            python3-polib \
+            appstream \
+            ghostscript \
+            librsvg2 \
+            sane-backends
+
+      - name: Build scantpaper
+        run: |
+          cp packaging/fedora/scantpaper.spec ~/rpmbuild/SPECS/
+
+          mkdir -p ~/rpmbuild/SOURCES
+          spectool -g -R ~/rpmbuild/SPECS/scantpaper.spec
+          rpmbuild -ba ~/rpmbuild/SPECS/scantpaper.spec
+
+      - name: List RPMs
+        run: |
+          find ~/rpmbuild/RPMS \
+            -type f \
+            -name '*.rpm' \
+            -print
+
+      - name: Copy packages
+        run: |
+          mkdir -p artifacts
+
+          find ~/rpmbuild/RPMS \
+            -type f \
+            -name '*.rpm' \
+            -exec cp {} artifacts/ \;
+
+      - name: Upload RPMs
+        uses: actions/upload-artifact@v7
+        with:
+          name: scantpaper-fedora
+          path: artifacts/*.rpm
+
+      - name: Release RPMs
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: artifacts/*.rpm
