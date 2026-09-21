@@ -9,6 +9,11 @@
 * Enforce the locale's decimal and grouping separators strictly when typing
   numbers: in a comma locale a period is now rejected (`115.2` no longer
   silently passes) instead of being accepted alongside the comma.
+* Extend the same fractional entry to the page-properties resolution fields
+  and to the blank/dark-page and unpaper white/black thresholds: they accept
+  the locale's decimal separator, reject a non-locale separator or non-numeric
+  text at commit time (the previous value is restored), and display whole
+  values without trailing zeros (e.g. `300` dpi, `0,9` threshold).
 * Fixed cancel button in paper size editor
 
 

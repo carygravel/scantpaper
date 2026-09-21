@@ -13,6 +13,7 @@ from gi.repository import Gtk
 from scantpaper.dialog.sane import SaneScanDialog
 from scantpaper.frontend import enums
 from scantpaper.frontend.enums import TYPE_INT
+from scantpaper.helpers import configure_fractional_spinbutton
 from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
 
@@ -1552,6 +1553,62 @@ def test_spin_arrow_step_stays_whole(
     widget.spin(Gtk.SpinType.STEP_FORWARD, 1.0)
     assert widget.get_value() == 115.8
     assert widget.get_text() == "115,8"
+
+
+def test_helper_fractional_spinbutton_comma(
+    de_locale_process: str,
+) -> None:
+    """The shared helper trims digits and shows the locale separator."""
+    assert de_locale_process == ","
+    widget = Gtk.SpinButton.new_with_range(0, 500, 1)
+    widget.set_value(174.0)
+    configure_fractional_spinbutton(widget)
+    assert widget.get_numeric() is False
+    assert widget.get_text() == "174"
+    widget.set_value(115.2)
+    assert widget.get_text() == "115,2"
+
+
+def test_helper_fractional_spinbutton_dot(dot_locale: str) -> None:
+    """The shared helper shows a period in a dot locale."""
+    assert dot_locale == "."
+    widget = Gtk.SpinButton.new_with_range(0, 500, 1)
+    widget.set_value(174.0)
+    configure_fractional_spinbutton(widget)
+    assert widget.get_text() == "174"
+    widget.set_value(115.2)
+    assert widget.get_text() == "115.2"
+
+
+def test_helper_fractional_spinbutton_commits_locale_fraction(
+    de_locale_process: str,
+) -> None:
+    """A commit with the locale separator sets the canonical value."""
+    assert de_locale_process == ","
+    widget = Gtk.SpinButton.new_with_range(0, 500, 1)
+    widget.set_value(174.0)
+    configure_fractional_spinbutton(widget)
+    widget.get_buffer().set_text("115,9", -1)
+    widget.emit("focus-out-event", None)
+    assert widget.get_value() == 115.9
+
+
+def test_helper_fractional_spinbutton_rejects_non_locale(
+    de_locale_process: str,
+) -> None:
+    """A non-locale separator or non-numeric text reverts the field."""
+    assert de_locale_process == ","
+    widget = Gtk.SpinButton.new_with_range(0, 500, 1)
+    widget.set_value(174.0)
+    configure_fractional_spinbutton(widget)
+    widget.get_buffer().set_text("115.9", -1)
+    widget.emit("focus-out-event", None)
+    assert widget.get_value() == 174.0
+    assert widget.get_text() == "174"
+    widget.get_buffer().set_text("abc", -1)
+    widget.emit("activate")
+    assert widget.get_value() == 174.0
+    assert widget.get_text() == "174"
 
 
 def test_set_option_clamping(sane_scan_dialog: SaneScanDialog) -> None:

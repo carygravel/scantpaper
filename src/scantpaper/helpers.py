@@ -22,6 +22,11 @@ if TYPE_CHECKING:
     from os import PathLike
     from typing import TextIO
 
+    import gi
+
+    gi.require_version("Gtk", "3.0")
+    from gi.repository import Gtk
+
 logger = logging.getLogger(__name__)
 
 PROCESS_FAILED = -1
@@ -128,15 +133,43 @@ def spin_step(constraint: tuple[float, float, float]) -> int:
     return 1
 
 
-def fractional_digits(value: float) -> int:
-    """Display precision (0 to FRACTIONAL_DIGITS) for a numeric value.
+def fractional_digits(value: float, max_digits: int = FRACTIONAL_DIGITS) -> int:
+    """Display precision for a numeric value, at most ``max_digits``.
 
     Trailing zeros are trimmed, so a whole value renders with 0 fractional
     digits, a value with one non-zero fraction digit with 1, and so on up to
-    the configured maximum.
+    ``max_digits`` (``FRACTIONAL_DIGITS`` by default).
     """
-    fraction = f"{value:.{FRACTIONAL_DIGITS}f}".partition(".")[2]
+    fraction = f"{value:.{max_digits}f}".partition(".")[2]
     return len(fraction.rstrip("0"))
+
+
+def configure_fractional_spinbutton(
+    widget: Gtk.SpinButton, digits: int = FRACTIONAL_DIGITS
+) -> None:
+    """Make a spin button fractional, locale-correct and strictly validated.
+
+    Clears GTK's ``numeric`` filter so the locale decimal separator survives
+    typing, keeps the displayed digits value-driven (trailing zeros are
+    trimmed), and reverts any commit whose text is not a number written with
+    the locale's separators.
+    """
+    widget.set_numeric(False)
+    widget.set_digits(digits)
+
+    def value_changed_trim_cb(_widget: Gtk.SpinButton) -> None:
+        _widget.set_digits(fractional_digits(_widget.get_value(), digits))
+
+    def commit_validate_cb(_widget: Gtk.SpinButton, *_args: object) -> None:
+        try:
+            parse_number(_widget.get_text())
+        except ValueError:
+            _widget.set_value(_widget.get_value())
+
+    widget.connect("value-changed", value_changed_trim_cb)
+    widget.connect("focus-out-event", commit_validate_cb)
+    widget.connect("activate", commit_validate_cb)
+    widget.set_digits(fractional_digits(widget.get_value(), digits))
 
 
 def _weak_callback(obj: object, method_name: str) -> Callable[..., object | None]:

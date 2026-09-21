@@ -141,7 +141,10 @@ pages; the session is always cancelled at the end of the batch.
   without trailing zeros (`174` mm, not `174,00`), and step by whole units with
   the arrows while keeping the typed fraction. Only separators your locale
   actually uses are accepted when typing numbers; a period in a comma locale is
-  rejected rather than silently misinterpreted.
+  rejected rather than silently misinterpreted. The same fractional entry
+  applies to the page-properties resolution fields and to the
+  blank/dark-page and unpaper white/black thresholds, so e.g. `300` dpi and
+  `0,9` are shown exactly as typed.
 - **Save:** Save selected/all pages in multiple formats. Supports metadata. The
   Title, Author, Subject, and Keywords fields offer autocompletion, suggesting
   values from imported documents and values you have entered before. When saving

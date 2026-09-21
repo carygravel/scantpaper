@@ -9,7 +9,7 @@ import gi
 
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.dialog import Dialog
-from scantpaper.helpers import get_tmp_dir
+from scantpaper.helpers import configure_fractional_spinbutton, get_tmp_dir
 from scantpaper.i18n import _
 
 gi.require_version("Gtk", "3.0")
@@ -289,6 +289,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         self._spinbuttonb.set_tooltip_text(
             _("Threshold used for selecting blank pages")
         )
+        configure_fractional_spinbutton(self._spinbuttonb, digits=3)
         hbox.add(self._spinbuttonb)
 
         # Dark page mean threshold
@@ -299,6 +300,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         self._spinbuttond = Gtk.SpinButton.new_with_range(0, 1, UNIT_SLIDER_STEP)
         self._spinbuttond.set_value(self.settings["Dark threshold"])
         self._spinbuttond.set_tooltip_text(_("Threshold used for selecting dark pages"))
+        configure_fractional_spinbutton(self._spinbuttond, digits=3)
         hbox.add(self._spinbuttond)
 
         # OCR output

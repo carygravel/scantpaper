@@ -7,7 +7,7 @@ import re
 
 import gi
 
-from scantpaper.helpers import program_version
+from scantpaper.helpers import configure_fractional_spinbutton, program_version
 from scantpaper.i18n import _
 
 gi.require_version("Gtk", "3.0")
@@ -232,6 +232,7 @@ class Unpaper:
                 "max": 1,
                 "step": 0.01,
                 "default": 0.9,
+                "fractional": True,
             },
             "black-threshold": {
                 "type": "SpinButton",
@@ -245,6 +246,7 @@ class Unpaper:
                 "max": 1,
                 "step": 0.01,
                 "default": 0.33,
+                "fractional": True,
             },
         }
 
@@ -441,6 +443,8 @@ class Unpaper:
         widget.set_tooltip_text(hashref[option]["tooltip"])
         if option in default:
             widget.set_value(default[option])
+        if hashref[option].get("fractional"):
+            configure_fractional_spinbutton(widget)
         return widget
 
     def _add_spinbuttongroup(

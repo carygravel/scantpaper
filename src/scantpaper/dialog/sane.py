@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING
 
 from gi.repository import GObject, Gtk
 
-from scantpaper.const import EMPTY, FRACTIONAL_DIGITS
+from scantpaper.const import EMPTY
 from scantpaper.dialog.scan import Scan, _geometry_option, make_progress_string
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import SaneThread
 from scantpaper.helpers import (
+    configure_fractional_spinbutton,
     format_number_precise,
-    fractional_digits,
     parse_number,
     spin_step,
 )
@@ -295,19 +295,14 @@ class SaneScanDialog(Scan):
             opt.constraint[0], opt.constraint[1], step
         )
 
-        # Size fields take fractional values, with the locale's decimal
-        # separator and whole-unit arrow steps. numeric must be cleared or
-        # GTK would strip the decimal separator while typing.
-        if opt.type == enums.TYPE_FIXED:
-            widget.set_digits(FRACTIONAL_DIGITS)
-            widget.set_numeric(False)
-
         # Set the default
         if val is not None and not opt.cap & enums.CAP_INACTIVE:
             widget.set_value(val)
 
+        # Size fields take fractional values, with the locale's decimal
+        # separator, trimmed display and strict commit-time input.
         if opt.type == enums.TYPE_FIXED:
-            self._configure_fractional_spinbutton(widget)
+            configure_fractional_spinbutton(widget)
 
         last_forwarded: list[object] = [None]
 
@@ -323,24 +318,6 @@ class SaneScanDialog(Scan):
 
         widget.signal = widget.connect("value-changed", value_changed_spinbutton_cb)
         return widget
-
-    def _configure_fractional_spinbutton(self, widget: Gtk.SpinButton) -> None:
-        """Make a size spin button fractional, locale-correct and strictly input."""
-
-        def value_changed_trim_cb(_widget: Gtk.SpinButton) -> None:
-            _widget.set_digits(fractional_digits(_widget.get_value()))
-
-        def commit_validate_cb(_widget: Gtk.SpinButton, *_args: object) -> None:
-            try:
-                parse_number(_widget.get_text())
-            except ValueError:
-                # Not a number in this locale: revert to the last valid value.
-                _widget.set_value(_widget.get_value())
-
-        widget.connect("value-changed", value_changed_trim_cb)
-        widget.connect("focus-out-event", commit_validate_cb)
-        widget.connect("activate", commit_validate_cb)
-        widget.set_digits(fractional_digits(widget.get_value()))
 
     def _create_widget_combobox(self, opt: Option, val: object) -> Gtk.ComboBoxText:
         widget = Gtk.ComboBoxText()

@@ -45,6 +45,41 @@ def test_preferences_blacklist_setting() -> None:
     assert dialog._blacklist.get_text() == "scanner1|scanner2"
 
 
+def test_preferences_threshold_spins_fractional() -> None:
+    """Blank/dark threshold spins render fractional values exactly."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    dialog = PreferencesDialog(settings=settings)
+
+    blank = dialog._spinbuttonb
+    dark = dialog._spinbuttond
+    assert blank.get_numeric() is False
+    assert dark.get_numeric() is False
+    assert blank.get_value() == 0.005
+    assert blank.get_text() == "0.005"
+    assert dark.get_value() == 0.12
+    assert dark.get_text() == "0.12"
+
+
+def test_preferences_threshold_spins_reject_bad_input() -> None:
+    """Blank/dark threshold spins revert non-numeric or non-locale input."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    dialog = PreferencesDialog(settings=settings)
+
+    blank = dialog._spinbuttonb
+    blank.get_buffer().set_text("0,5", -1)
+    blank.emit("focus-out-event", None)
+    assert blank.get_value() == 0.005
+    assert blank.get_text() == "0.005"
+
+    dark = dialog._spinbuttond
+    dark.get_buffer().set_text("abc", -1)
+    dark.emit("activate")
+    assert dark.get_value() == 0.12
+    assert dark.get_text() == "0.12"
+
+
 @patch("scantpaper.dialog.preferences.Gtk.FileChooserDialog")
 @patch("scantpaper.dialog.preferences.get_tmp_dir")
 def test_choose_temp_dir(

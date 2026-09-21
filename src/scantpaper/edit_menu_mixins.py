@@ -12,6 +12,7 @@ import gi
 from scantpaper.const import _LOCAL_TZ, MAX_DPI
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.preferences import PreferencesDialog
+from scantpaper.helpers import configure_fractional_spinbutton
 from scantpaper.i18n import _, d_sane
 
 if TYPE_CHECKING:
@@ -65,7 +66,6 @@ class EditMenuMixins:
         label = Gtk.Label(label=d_sane("X Resolution"))
         hbox.pack_start(label, expand=False, fill=False, padding=0)
         xspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
-        xspinbutton.set_digits(1)
         hbox.pack_start(xspinbutton, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=_("dpi"))
         hbox.pack_end(label, expand=False, fill=False, padding=0)
@@ -74,13 +74,14 @@ class EditMenuMixins:
         label = Gtk.Label(label=d_sane("Y Resolution"))
         hbox.pack_start(label, expand=False, fill=False, padding=0)
         yspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
-        yspinbutton.set_digits(1)
         hbox.pack_start(yspinbutton, expand=True, fill=True, padding=0)
         label = Gtk.Label(label=_("dpi"))
         hbox.pack_end(label, expand=False, fill=False, padding=0)
         xresolution, yresolution = self.slist.get_selected_properties()
         xspinbutton.set_value(xresolution)
         yspinbutton.set_value(yresolution)
+        configure_fractional_spinbutton(xspinbutton)
+        configure_fractional_spinbutton(yspinbutton)
 
         def selection_changed_callback(_selection: Gtk.TreeSelection) -> None:
             xresolution, yresolution = self.slist.get_selected_properties()

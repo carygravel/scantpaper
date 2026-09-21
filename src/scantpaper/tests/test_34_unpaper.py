@@ -480,6 +480,40 @@ def test_unpaper_rtl(
     assert close(in_level[1], out_level[0]), "rtl"
 
 
+def test_unpaper_ui_fractional_thresholds() -> None:
+    """White/black threshold spins show locale fractions and reject bad input."""
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+
+    white = unpaper.options["white-threshold"]["widget"]
+    black = unpaper.options["black-threshold"]["widget"]
+
+    assert isinstance(white, Gtk.SpinButton)
+    assert isinstance(black, Gtk.SpinButton)
+    assert white.get_numeric() is False
+    assert black.get_numeric() is False
+    assert white.get_value() == 0.9
+    assert white.get_text() == "0.9"
+    assert black.get_value() == 0.33
+    assert black.get_text() == "0.33"
+
+    white.get_buffer().set_text("0.8", -1)
+    white.emit("focus-out-event", None)
+    assert white.get_value() == 0.8
+    assert white.get_text() == "0.8"
+
+    white.get_buffer().set_text("0,8", -1)
+    white.emit("focus-out-event", None)
+    assert white.get_value() == 0.8
+    assert white.get_text() == "0.8"
+
+    white.get_buffer().set_text("abc", -1)
+    white.emit("activate")
+    assert white.get_value() == 0.8
+    assert white.get_text() == "0.8"
+
+
 def test_unpaper_ui_toggles() -> None:
     """Test UI interaction and toggles in Unpaper."""
     unpaper = Unpaper()

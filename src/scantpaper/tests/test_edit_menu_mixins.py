@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime
 from typing import TYPE_CHECKING
-from unittest.mock import MagicMock
+from unittest.mock import ANY, MagicMock
 
 import gi
 import pytest
@@ -338,6 +338,8 @@ def test_properties_dialog(
     mock_x_spin = MagicMock()
     mock_y_spin = MagicMock()
     mock_spin_button.new_with_range.side_effect = [mock_x_spin, mock_y_spin]
+    mock_x_spin.get_value.return_value = 150
+    mock_y_spin.get_value.return_value = 150
 
     mock_edit_window.slist.get_selected_properties.return_value = (150, 150)
     mock_selection = MagicMock()
@@ -347,6 +349,17 @@ def test_properties_dialog(
 
     mock_dialog_cls.assert_called_once()
     mock_x_spin.set_value.assert_called_with(150)
+    mock_y_spin.set_value.assert_called_with(150)
+
+    # The DPI spin buttons must use the fractional entry pattern.
+    assert mock_x_spin.set_numeric.call_args[0] == (False,)
+    assert mock_y_spin.set_numeric.call_args[0] == (False,)
+    mock_x_spin.set_digits.assert_called()
+    mock_y_spin.set_digits.assert_called()
+    mock_x_spin.connect.assert_any_call("focus-out-event", ANY)
+    mock_x_spin.connect.assert_any_call("activate", ANY)
+    mock_y_spin.connect.assert_any_call("focus-out-event", ANY)
+    mock_y_spin.connect.assert_any_call("activate", ANY)
 
     # Test apply callback
     args, _kwargs = mock_dialog_instance.add_actions.call_args
@@ -402,6 +415,8 @@ def test_properties_selection_changed_callback(
     mock_x_spin = MagicMock()
     mock_y_spin = MagicMock()
     mock_spin_button.new_with_range.side_effect = [mock_x_spin, mock_y_spin]
+    mock_x_spin.get_value.return_value = 150
+    mock_y_spin.get_value.return_value = 150
 
     mock_edit_window.slist.get_selected_properties.return_value = (150, 150)
     mock_selection = MagicMock()
