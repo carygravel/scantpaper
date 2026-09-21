@@ -6,6 +6,7 @@ import io
 import pathlib
 import subprocess
 import tempfile
+from unittest.mock import patch
 
 import pytest
 from gi.repository import GdkPixbuf
@@ -170,6 +171,18 @@ def test_1(temp_pnm: object, temp_jpg: object) -> None:
         assert page._add_ann_to_djvu("file.djvu", dirname) is None, (
             "_add_ann_to_djvu() without bboxes"
         )
+
+        page.text_layer = "[]"
+        with patch.object(page, "export_djvu_txt", return_value=None):
+            assert page._add_txt_to_djvu("file.djvu", dirname) is None, (
+                "_add_txt_to_djvu() when export returns None"
+            )
+
+        page.annotations = "[]"
+        with patch.object(page, "export_djvu_ann", return_value=None):
+            assert page._add_ann_to_djvu("file.djvu", dirname) is None, (
+                "_add_ann_to_djvu() when export returns None"
+            )
 
 
 def test_2(temp_pnm: object) -> None:

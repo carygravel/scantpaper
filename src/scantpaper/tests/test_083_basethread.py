@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import gc
 import threading
-import time
 import weakref
 from unittest.mock import MagicMock, patch
 
@@ -561,7 +560,6 @@ def test_quit_all_live_threads_stops_dropped_thread() -> None:
         gc.collect()
         if thread_ref() is None:
             break
-        time.sleep(0.01)
     assert thread_ref() is None, "dropped worker ended by LiveThreads teardown"
 
 

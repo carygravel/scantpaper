@@ -1032,3 +1032,14 @@ def test_get_xy_resolution_zero_fallback() -> None:
         xres, yres = scan._get_xy_resolution()
     assert xres in (0, POINTS_PER_INCH)
     assert yres in (0, POINTS_PER_INCH)
+
+
+def test_get_xy_resolution_non_numeric_values() -> None:
+    """Test _get_xy_resolution treats non-numeric resolution values as 0."""
+    scan = MockScan()
+    scan._available_scan_options = MockOptions([])
+    scan.thread.get_option_value.return_value = "high"
+
+    xres, yres = scan._get_xy_resolution()
+    assert xres == POINTS_PER_INCH
+    assert yres == POINTS_PER_INCH
