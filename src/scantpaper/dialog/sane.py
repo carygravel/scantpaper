@@ -296,9 +296,11 @@ class SaneScanDialog(Scan):
         )
 
         # Size fields take fractional values, with the locale's decimal
-        # separator and whole-unit arrow steps.
+        # separator and whole-unit arrow steps. numeric must be cleared or
+        # GTK would strip the decimal separator while typing.
         if opt.type == enums.TYPE_FIXED:
             widget.set_digits(FRACTIONAL_DIGITS)
+            widget.set_numeric(False)
 
         # Set the default
         if val is not None and not opt.cap & enums.CAP_INACTIVE:

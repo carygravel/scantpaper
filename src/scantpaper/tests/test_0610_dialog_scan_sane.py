@@ -1489,6 +1489,23 @@ def test_spin_display_dot_locale(
     assert widget.get_text() == "174"
 
 
+def test_spin_typing_keeps_locale_separator(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    de_locale_process: str,
+) -> None:
+    """Typed text keeps the decimal separator (numeric filtering is off)."""
+    assert de_locale_process == ","
+    dialog = sane_scan_dialog
+    widget = _spin_dialog(dialog, mocker, 174.0)
+    assert widget.get_numeric() is False
+    dialog.set_option = MagicMock()
+    widget.get_buffer().set_text("174,2", -1)
+    widget.emit("focus-out-event", None)
+    assert widget.get_value() == 174.2
+    dialog.set_option.assert_called_with(_spin_option()[1], value=174.2)
+
+
 def test_spin_accepts_locale_fraction(
     mocker: pytest.MockerFixture,
     sane_scan_dialog: SaneScanDialog,
