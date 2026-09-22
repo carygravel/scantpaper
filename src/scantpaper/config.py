@@ -79,6 +79,7 @@ DEFAULTS = {
     "default-scan-options": None,
     "rotate facing": 0,
     "rotate reverse": 0,
+    "alternate rotation": False,
     "default filename": "%Da %DY-%Dm-%Dd.%De",
     "convert whitespace to underscores": False,
     "view files toggle": True,

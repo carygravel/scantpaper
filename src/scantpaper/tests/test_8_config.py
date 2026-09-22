@@ -658,3 +658,27 @@ def test_null_image_type_migration_logged_at_info(
             for r in caplog.records
             if r.levelno == logging.WARNING
         ), "no warning is logged for the migrated image type"
+
+
+def test_alternate_rotation_defaults_off_and_round_trips() -> None:
+    """The alternate rotation setting defaults to off and persists on write."""
+    config = dict(DEFAULTS)
+    assert config["alternate rotation"] is False, "defaults to off"
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text("{}", encoding="utf-8")
+
+        output = read_config(rc)
+        assert "alternate rotation" not in output, (
+            "the raw config does not invent the key"
+        )
+        add_defaults(output)
+        assert output["alternate rotation"] is False, "add_defaults fills the default"
+
+        config["alternate rotation"] = True
+        write_config(rc, config)
+        persisted = json.loads(slurp(rc))
+        assert persisted["alternate rotation"] is True, (
+            "the enabled toggle is written back"
+        )

@@ -205,6 +205,9 @@ class ScanMenuItemMixins:
         window.connect(
             "changed-scan-option", self._update_postprocessing_options_callback
         )
+        window.connect(
+            "changed-num-pages", self._update_postprocessing_options_callback
+        )
 
     def add_postprocessing_options(self, widget: SaneScanDialog) -> None:
         """Add post-processing options to the dialog window."""
@@ -221,6 +224,22 @@ class ScanMenuItemMixins:
             rotate_reverse=self.settings["rotate reverse"],
         )
         vboxp.pack_start(self._rotate_controls, expand=False, fill=False, padding=0)
+
+        # CheckButton for alternating rotation
+        abutton = Gtk.CheckButton(label=_("Alternate rotation every 2nd page"))
+        abutton.set_tooltip_text(
+            _(
+                "Rotate odd pages by the chosen angle and even pages by that "
+                "angle plus 180 degrees. Use when scanning a book where every "
+                "sheet is aligned to the same edge, so the back of each sheet "
+                "is rotated 180 degrees relative to its front."
+            )
+        )
+        if self.settings.get("alternate rotation", False):
+            abutton.set_active(is_active=True)
+        abutton.set_visible(False)
+        vboxp.pack_start(abutton, expand=False, fill=False, padding=0)
+        self._alternate_rotation_button = abutton
 
         # CheckButton for unpaper
         ubutton = self._add_postprocessing_unpaper(vboxp)
@@ -242,6 +261,9 @@ class ScanMenuItemMixins:
             self.settings["rotate reverse"] = self._rotate_controls.rotate_reverse
             logger.info("rotate facing %s", self.settings["rotate facing"])
             logger.info("rotate reverse %s", self.settings["rotate reverse"])
+            self.settings["alternate rotation"] = abutton.get_active()
+            logger.info("alternate rotation %s", self.settings["alternate rotation"])
+            self._alternate_flatbed_count = 0
             self.settings["unpaper on scan"] = ubutton.get_active()
             logger.info("unpaper %s", self.settings["unpaper on scan"])
             self.settings["udt_on_scan"] = udtbutton.get_active()
@@ -378,6 +400,29 @@ class ScanMenuItemMixins:
         else:
             self._windows = None
 
+    def _flatbed_batch_active(self, widget: SaneScanDialog | None) -> bool:
+        """Return whether the dialog is scanning a flatbed batch of > 1 pages."""
+        if widget is None or not isinstance(widget.allow_batch_flatbed, bool):
+            return False
+        if not widget.allow_batch_flatbed:
+            return False
+        num_pages = widget.num_pages
+        if not isinstance(num_pages, int) or num_pages <= 1:
+            return False
+        options = widget.available_scan_options
+        return bool(
+            options is not None
+            and widget.thread is not None
+            and options.flatbed_selected(widget.thread.get_option_value)
+        )
+
+    def _alternating_rotation_active(self) -> bool:
+        """Return whether parity-based rotation applies to the next scan."""
+        return bool(
+            self.settings.get("alternate rotation", False)
+            and self._flatbed_batch_active(self._windows)
+        )
+
     def _update_postprocessing_options_callback(
         self,
         widget: SaneScanDialog,
@@ -390,6 +435,9 @@ class ScanMenuItemMixins:
         options = widget.available_scan_options
         if options is not None:
             self._rotate_controls.can_duplex = options.can_duplex()
+        button = getattr(self, "_alternate_rotation_button", None)
+        if button is not None:
+            button.set_visible(self._flatbed_batch_active(widget))
 
     def _changed_progress_callback(
         self, _widget: Gtk.Widget, progress: float | None, message: str | None
@@ -429,6 +477,11 @@ class ScanMenuItemMixins:
             if side == "facing"
             else self.settings["rotate reverse"]
         )
+        if side == "facing" and self._alternating_rotation_active():
+            count = getattr(self, "_alternate_flatbed_count", 0) + 1
+            self._alternate_flatbed_count = count
+            if count % 2 == 0:
+                rotate = (rotate + 180) % 360
         options = {
             "dir": self.session.name,
             "rotate": rotate,

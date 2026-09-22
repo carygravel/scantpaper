@@ -127,11 +127,20 @@ For multi-page flatbed batches the behaviour follows gscan2pdf semantics: the
 flatbed** is enabled) controls whether the session is cancelled between flatbed
 pages; the session is always cancelled at the end of the batch.
 
+When scanning a book destructively (cutting off the binding and aligning every
+untorn outer edge to the same rim), enable **Alternate rotation every 2nd
+page** in the **Postprocessing** tab. Odd pages then use the configured
+rotation angle, even pages use that angle plus 180 degrees, so the flipped
+back of each sheet comes out upright too. The toggle is only visible for
+multi-page flatbed batches, and rotation still runs before OCR.
+
 ### Main Features
 
 - **Scan:** Options for device, page count, source document, side to scan, and
   device-dependent options (page size, mode, resolution, batch-scan, etc.).
-  Optionally OCR each page on scan. When applying a scan-options profile, the
+  Optionally rotate (including alternating by page parity for book flatbed
+  scans), clean up with unpaper, or run a user-defined tool on each page on
+  scan, and OCR each page. When applying a scan-options profile, the
   scanner driver may revert an option (some drivers couple or alias options,
   e.g. page size and scan area); such an option is then set at most twice and
   dropped for the rest of that apply, so the scan still proceeds instead of
@@ -570,6 +579,14 @@ It may not be supported by SANE or your scanner. If you see it in `scanimage --h
 ### How do I scan a multipage document with a flatbed scanner?
 
 Enable "Allow batch scanning from flatbed" in Preferences. Some scanners require additional settings.
+
+### How do I scan a book?
+
+Cut off the binding and scan every sheet one at a time, always aligning the
+untorn outer edge to the same rim. Scan in landscape to save time, set the
+rotation for the front pages in the **Postprocessing** tab, then tick
+**Alternate rotation every 2nd page** so the backs (which are rotated 180
+degrees relative to the fronts) can be scanned too without manual rotation.
 
 ### Why is option xyz ghosted out?
 

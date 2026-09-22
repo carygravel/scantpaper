@@ -305,10 +305,16 @@ def test_add_postprocessing_options_clicked_cb(
     mock_combo = mock_combo_cls.return_value
     mock_combo.get_active_text.return_value = "my_tool"
 
+    mock_alternate_btn = mocker.Mock()
     mock_unpaper_btn = mocker.Mock()
     mock_udt_btn = mocker.Mock()
-    scan_menu_item_mixins.Gtk.CheckButton.side_effect = [mock_unpaper_btn, mock_udt_btn]
+    scan_menu_item_mixins.Gtk.CheckButton.side_effect = [
+        mock_alternate_btn,
+        mock_unpaper_btn,
+        mock_udt_btn,
+    ]
 
+    mock_alternate_btn.get_active.return_value = True
     mock_unpaper_btn.get_active.return_value = True
     mock_udt_btn.get_active.return_value = True
 
@@ -322,6 +328,7 @@ def test_add_postprocessing_options_clicked_cb(
     # Assertions
     assert mock_scan_window.settings["rotate facing"] == 90
     assert mock_scan_window.settings["rotate reverse"] == 180
+    assert mock_scan_window.settings["alternate rotation"] is True
     assert mock_scan_window.settings["unpaper on scan"] is True
     assert mock_scan_window.settings["udt_on_scan"] is True
     assert mock_scan_window.settings["current_udt"] == "my_tool"
@@ -352,6 +359,42 @@ def test_add_postprocessing_options_ocr_fallback(
     callbacks["clicked-scan-button"](None)
 
     assert mock_scan_window.settings["ocr engine"] == "fallback_eng"
+
+
+def test_add_postprocessing_options_alternate_rotation_toggle(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """Test the alternate rotation toggle reflects the setting and persists."""
+    mock_widget = mocker.Mock()
+    mock_widget.notebook = mocker.Mock()
+    callbacks = {}
+    mock_widget.connect.side_effect = lambda s, c: callbacks.update({s: c})
+
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+    mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+
+    abutton = mocker.Mock()
+    mock_unpaper_btn = mocker.Mock()
+    mock_udt_btn = mocker.Mock()
+    scan_menu_item_mixins.Gtk.CheckButton.side_effect = [
+        abutton,
+        mock_unpaper_btn,
+        mock_udt_btn,
+    ]
+
+    # Setting enabled -> toggle is activated and initially hidden
+    mock_scan_window.settings["alternate rotation"] = True
+    mock_scan_window.add_postprocessing_options(mock_widget)
+    assert mock_scan_window._alternate_rotation_button is abutton
+    abutton.set_active.assert_called_with(is_active=True)
+    assert abutton.set_visible.call_args.args == (False,)
+    abutton.get_active.return_value = True
+
+    # Clicking the scan button persists the toggle and resets parity
+    mock_scan_window._alternate_flatbed_count = 2
+    callbacks["clicked-scan-button"](None)
+    assert mock_scan_window.settings["alternate rotation"] is True
+    assert mock_scan_window._alternate_flatbed_count == 0
 
 
 def test_add_postprocessing_unpaper_disabled(
@@ -516,6 +559,44 @@ def test_update_postprocessing_options_callback(mock_scan_window: object) -> Non
     assert mock_scan_window._rotate_controls.can_duplex is True
 
 
+def test_update_postprocessing_options_callback_alternate_visibility(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """Test the alternate rotation toggle is gated to flatbed batches."""
+    abutton = mocker.Mock()
+    mock_scan_window._alternate_rotation_button = abutton
+    mock_widget = mocker.Mock()
+    mock_options = mocker.Mock()
+    mock_widget.available_scan_options = mock_options
+    mock_widget.thread = mocker.Mock()
+    mock_widget.thread.get_option_value.return_value = "Flatbed"
+    mock_options.flatbed_selected.return_value = True
+    mock_options.can_duplex.return_value = False
+
+    # Flatbed batch with > 1 pages -> visible
+    mock_widget.allow_batch_flatbed = True
+    mock_widget.num_pages = 4
+    mock_scan_window._update_postprocessing_options_callback(mock_widget)
+    assert abutton.set_visible.call_args.args == (True,)
+
+    # Single page -> hidden
+    mock_widget.num_pages = 1
+    mock_scan_window._update_postprocessing_options_callback(mock_widget)
+    assert abutton.set_visible.call_args.args == (False,)
+
+    # Batch not allowed -> hidden
+    mock_widget.allow_batch_flatbed = False
+    mock_widget.num_pages = 4
+    mock_scan_window._update_postprocessing_options_callback(mock_widget)
+    assert abutton.set_visible.call_args.args == (False,)
+
+    # Flatbed not selected -> hidden
+    mock_widget.allow_batch_flatbed = True
+    mock_options.flatbed_selected.return_value = False
+    mock_scan_window._update_postprocessing_options_callback(mock_widget)
+    assert abutton.set_visible.call_args.args == (False,)
+
+
 def test_changed_progress_callback(mock_scan_window: object) -> None:
     """Test _changed_progress_callback."""
     # Normal update with progress > 0
@@ -616,6 +697,111 @@ def test_new_scan_callback_options(mock_scan_window: object) -> None:
     mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
     call_kwargs = mock_scan_window.slist.import_scan.call_args_list[1][1]
     assert call_kwargs["rotate"] == 180
+
+
+def test_new_scan_callback_alternate_rotation(
+    mock_scan_window: object,
+) -> None:
+    """Test rotation alternates by parity in an active flatbed batch."""
+    mock_image = MagicMock()
+    mock_scan_window.slist.import_scan = MagicMock()
+    mock_scan_window.settings["rotate facing"] = 270
+    mock_scan_window.settings["alternate rotation"] = True
+
+    mock_window = MagicMock()
+    mock_window.allow_batch_flatbed = True
+    mock_window.num_pages = 4
+    mock_options = MagicMock()
+    mock_window.available_scan_options = mock_options
+    mock_window.thread = MagicMock()
+    mock_options.flatbed_selected.return_value = True
+    mock_scan_window._windows = mock_window
+
+    for _ in range(3):
+        mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
+
+    rotates = [
+        call[1]["rotate"] for call in mock_scan_window.slist.import_scan.call_args_list
+    ]
+    assert rotates == [270, 90, 270]
+
+
+def test_new_scan_callback_alternate_rotation_resets_per_batch(
+    mock_scan_window: object,
+) -> None:
+    """Test a new batch restarts parity at odd pages."""
+    mock_image = MagicMock()
+    mock_scan_window.slist.import_scan = MagicMock()
+    mock_scan_window.settings["rotate facing"] = 180
+    mock_scan_window.settings["alternate rotation"] = True
+
+    mock_window = MagicMock()
+    mock_window.allow_batch_flatbed = True
+    mock_window.num_pages = 4
+    mock_options = MagicMock()
+    mock_window.available_scan_options = mock_options
+    mock_window.thread = MagicMock()
+    mock_options.flatbed_selected.return_value = True
+    mock_scan_window._windows = mock_window
+
+    # Simulate a stale counter from a previous batch
+    mock_scan_window._alternate_flatbed_count = 2
+    mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
+    rotate = mock_scan_window.slist.import_scan.call_args[1]["rotate"]
+    assert rotate == 180
+
+
+def test_new_scan_callback_no_alternate_when_disabled(
+    mock_scan_window: object,
+) -> None:
+    """Test rotation does not alternate when the toggle is off."""
+    mock_image = MagicMock()
+    mock_scan_window.slist.import_scan = MagicMock()
+    mock_scan_window.settings["rotate facing"] = 270
+
+    mock_window = MagicMock()
+    mock_window.allow_batch_flatbed = True
+    mock_window.num_pages = 4
+    mock_options = MagicMock()
+    mock_window.available_scan_options = mock_options
+    mock_window.thread = MagicMock()
+    mock_options.flatbed_selected.return_value = True
+    mock_scan_window._windows = mock_window
+
+    mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
+    mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
+
+    rotates = [
+        call[1]["rotate"] for call in mock_scan_window.slist.import_scan.call_args_list
+    ]
+    assert rotates == [270, 270]
+
+
+def test_new_scan_callback_no_alternate_on_adf(
+    mock_scan_window: object,
+) -> None:
+    """Test rotation does not alternate for a non-flatbed source."""
+    mock_image = MagicMock()
+    mock_scan_window.slist.import_scan = MagicMock()
+    mock_scan_window.settings["rotate facing"] = 270
+    mock_scan_window.settings["alternate rotation"] = True
+
+    mock_window = MagicMock()
+    mock_window.allow_batch_flatbed = True
+    mock_window.num_pages = 4
+    mock_options = MagicMock()
+    mock_window.available_scan_options = mock_options
+    mock_window.thread = MagicMock()
+    mock_options.flatbed_selected.return_value = False
+    mock_scan_window._windows = mock_window
+
+    mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
+    mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
+
+    rotates = [
+        call[1]["rotate"] for call in mock_scan_window.slist.import_scan.call_args_list
+    ]
+    assert rotates == [270, 270]
 
 
 def test_reloaded_scan_options_callback(

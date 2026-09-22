@@ -15,6 +15,12 @@
   text at commit time (the previous value is restored), and display whole
   values without trailing zeros (e.g. `300` dpi, `0,9` threshold).
 * Fixed cancel button in paper size editor
+* For people destructively scanning books - a new "Alternate rotation every 2nd
+  page" option in the scan dialog's Postprocessing tab for flatbed batches: odd
+  pages are rotated by the configured facing angle and even pages by that angle
+  plus 180 degrees, so the fronts and flipped-over backs of a destructively
+  scanned book all end up upright without rotating every other page by hand
+  afterwards.
 
 
 ## 3.0.19 (2026-09-19)
