@@ -11,8 +11,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora: [43, 44]
+
     container:
-      image: fedora:43
+      image: fedora:${{ matrix.fedora }}
 
     steps:
       - name: Install RPM build tools
@@ -43,42 +48,44 @@ jobs:
 
       # The dependency packages (cysignals, tesserocr, iso639, python3-sane)
       # are only rebuilt when their own inputs change, i.e. when the cache
-      # key (a hash of the spec and any patch files) no longer exists. On a
-      # cache hit the build steps below are skipped and the packaged RPMs are
-      # restored from the cache; on a miss they are rebuilt and the cache
-      # action stores the new entries at the end of the job.
+      # key (a hash of the Fedora version, the spec and any patch files) no
+      # longer exists. On a cache hit the build steps below are skipped and
+      # the packaged RPMs are restored from the cache; on a miss they are
+      # rebuilt and the cache action stores the new entries at the end of
+      # the job.
       #
-      # The "fedora43" prefix is the cache-lifecycle key: bump it when the
-      # container image is changed (e.g. fedora:43 -> fedora:44) or when the
-      # system build dependencies change, to force a rebuild.
+      # Each Fedora release has its own cache namespace (the "fedoraN"
+      # component of the key), since the built RPMs are only valid against
+      # the release they were compiled for. Bump the extra suffix (if any)
+      # when system build dependencies change to force a rebuild.
 
       - name: Restore cysignals cache
         id: cache-cysignals
         uses: actions/cache@v6
         with:
           path: cache/cysignals
-          key: fedora43-cysignals-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-cysignals.spec') }}
+          key: fedora${{ matrix.fedora }}-cysignals-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-cysignals.spec') }}
 
       - name: Restore tesserocr cache
         id: cache-tesserocr
         uses: actions/cache@v6
         with:
           path: cache/tesserocr
-          key: fedora43-tesserocr-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-tesserocr.spec') }}
+          key: fedora${{ matrix.fedora }}-tesserocr-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-tesserocr.spec') }}
 
       - name: Restore python3-iso639 cache
         id: cache-iso639
         uses: actions/cache@v6
         with:
           path: cache/iso639
-          key: fedora43-iso639-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-iso639.spec') }}
+          key: fedora${{ matrix.fedora }}-iso639-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-iso639.spec') }}
 
       - name: Restore python3-sane cache
         id: cache-sane
         uses: actions/cache@v6
         with:
           path: cache/sane
-          key: fedora43-sane-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-sane.spec', 'packaging/fedora/python3-sane-snap-params-cache.patch') }}
+          key: fedora${{ matrix.fedora }}-sane-cache-${{ runner.os }}-${{ hashFiles('packaging/fedora/python3-sane.spec', 'packaging/fedora/python3-sane-snap-params-cache.patch') }}
 
       # Make cached RPMs available for the install steps below, which read
       # from the conventional ~/rpmbuild/RPMS/<arch> locations.
@@ -251,7 +258,7 @@ jobs:
       - name: Upload RPMs
         uses: actions/upload-artifact@v7
         with:
-          name: scantpaper-fedora
+          name: scantpaper-fedora-${{ matrix.fedora }}
           path: artifacts/*.rpm
 
       - name: Release RPMs

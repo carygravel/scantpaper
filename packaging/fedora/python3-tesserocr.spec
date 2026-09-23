@@ -27,8 +27,12 @@ tesserocr is a simple Python wrapper around the Tesseract OCR API.
 It provides access to Tesseract's OCR engine from Python and releases
 the Python GIL while processing images.
 
-%generate_buildrequires
-%pyproject_buildrequires -r
+# The build and runtime dependencies are declared statically below rather
+# than generated with %pyproject_buildrequires, because tesserocr's build
+# backend requires Cython >= 3.0,<3.2 while Fedora 44 ships Cython 3.2.x;
+# on Fedora 44 rpmbuild enforces the generated requirement and the build
+# would fail. Cython 3.2 compiles tesserocr fine, so the constraint is
+# intentionally not carried over.
 
 %prep
 %autosetup -n tesserocr-%{version}

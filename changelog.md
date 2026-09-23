@@ -21,6 +21,7 @@
   plus 180 degrees, so the fronts and flipped-over backs of a destructively
   scanned book all end up upright without rotating every other page by hand
   afterwards.
+* + builds for Fedora 43 and 44 to CI/CD
 
 
 ## 3.0.19 (2026-09-19)
