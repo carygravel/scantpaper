@@ -63,6 +63,159 @@ def test_rotate(
     assert slist.data[0][1].get_width() == 65, "thumbnail width after rotation"
 
 
+@pytest.mark.parametrize("angle", [270, -270])
+def test_rotate_quarter_turn_swaps_page_and_thumbnail_dimensions(
+    rose_jpg: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    get_page_sync: Callable[..., object],
+    angle: int,
+) -> None:
+    """A quarter-turn rotation swaps page dims, resolution and thumbnail aspect."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_jpg])
+    set_saved_in_mainloop(slist, 1, saved=True)
+    assert slist.data[0][1].get_width() == 100, "thumbnail width before rotation"
+    assert slist.data[0][1].get_height() == 65, "thumbnail height before rotation"
+
+    pre_page = get_page_sync(slist.thread, id=1)
+    pre_width, pre_height = pre_page.get_size()
+    pre_resolution = tuple(pre_page.resolution)
+    assert (pre_width, pre_height) == (70, 46), "page size before rotation"
+
+    asserts = 0
+
+    def display_cb(_response: Response) -> None:
+        nonlocal asserts
+        assert True, "Triggered display callback"
+        asserts += 1
+
+    mlp = safe_mainloop(2000)
+    slist.rotate(
+        angle=angle,
+        page=slist.data[0][2],
+        display_callback=display_cb,
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    assert asserts == 1, "all callbacks run"
+    page = get_page_sync(slist.thread, id=1)
+    assert page.image_object.size == (pre_height, pre_width), "rotated pixel dimensions"
+    assert page.get_size() == (pre_height, pre_width), (
+        "page dimensions follow the rotated pixels"
+    )
+    assert page.resolution == (
+        pre_resolution[1],
+        pre_resolution[0],
+        pre_resolution[2],
+    ), "x/y resolution swapped"
+    assert slist.data[0][1].get_width() == 65, (
+        "thumbnail width follows the rotated page"
+    )
+    assert slist.data[0][1].get_height() == 100, (
+        "thumbnail height follows the rotated page"
+    )
+
+
+def test_rotate_quarter_turn_swaps_resolution(
+    rose_jpg: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    set_resolution_in_mainloop: Callable[[object, str, float, float], None],
+    get_page_sync: Callable[..., object],
+) -> None:
+    """A quarter-turn rotation swaps a non-uniform x/y resolution."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_jpg])
+    page_id = slist.data[0][2]
+    set_resolution_in_mainloop(slist, page_id, 300, 200)
+    set_saved_in_mainloop(slist, 1, saved=True)
+
+    pre_page = get_page_sync(slist.thread, id=1)
+    pre_width, pre_height = pre_page.get_size()
+    assert pre_page.resolution == (300, 200, "PixelsPerInch"), (
+        "non-uniform resolution set before rotation"
+    )
+
+    asserts = 0
+
+    def display_cb(_response: Response) -> None:
+        nonlocal asserts
+        assert True, "Triggered display callback"
+        asserts += 1
+
+    mlp = safe_mainloop(2000)
+    slist.rotate(
+        angle=270,
+        page=page_id,
+        display_callback=display_cb,
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    assert asserts == 1, "all callbacks run"
+    page = get_page_sync(slist.thread, id=1)
+    assert page.resolution == (200, 300, "PixelsPerInch"), (
+        "x/y resolution swapped after quarter-turn rotation"
+    )
+    assert page.get_size() == (pre_height, pre_width), (
+        "page dimensions swapped after quarter-turn rotation"
+    )
+
+
+def test_rotate_180_keeps_page_dimensions(
+    rose_jpg: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_saved_in_mainloop: Callable[..., None],
+    get_page_sync: Callable[..., object],
+) -> None:
+    """A 180-degree rotation leaves page dimensions, resolution and thumbnail unchanged."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_jpg])
+    set_saved_in_mainloop(slist, 1, saved=True)
+
+    pre_page = get_page_sync(slist.thread, id=1)
+    pre_width, pre_height = pre_page.get_size()
+    pre_resolution = tuple(pre_page.resolution)
+    pre_thumb_width = slist.data[0][1].get_width()
+    pre_thumb_height = slist.data[0][1].get_height()
+
+    asserts = 0
+
+    def display_cb(_response: Response) -> None:
+        nonlocal asserts
+        assert True, "Triggered display callback"
+        asserts += 1
+
+    mlp = safe_mainloop(2000)
+    slist.rotate(
+        angle=180,
+        page=slist.data[0][2],
+        display_callback=display_cb,
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    assert asserts == 1, "all callbacks run"
+    page = get_page_sync(slist.thread, id=1)
+    assert page.get_size() == (pre_width, pre_height), (
+        "page dimensions unchanged after 180 degrees"
+    )
+    assert tuple(page.resolution) == pre_resolution, (
+        "resolution unchanged after 180 degrees"
+    )
+    assert slist.data[0][1].get_width() == pre_thumb_width, (
+        "thumbnail width unchanged after 180 degrees"
+    )
+    assert slist.data[0][1].get_height() == pre_thumb_height, (
+        "thumbnail height unchanged after 180 degrees"
+    )
+
+
 def test_analyse_blank(
     import_in_mainloop: Callable[[object, list[str]], None],
     temp_db: object,

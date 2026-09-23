@@ -2,9 +2,7 @@
 
 Governs how page thumbnails are produced from a scanned page so that the
 thumbnail panel shows sharp, legible previews without slowing down bulk imports.
-
 ## Requirements
-
 ### Requirement: Thumbnails are generated with high-quality resampling
 When a thumbnail is generated for a page, the application SHALL downscale the
 page image using a decimation-then-resampling approach that produces a sharp,
@@ -45,6 +43,61 @@ x/y resolution of the source image, so the preview is not distorted.
   adjustment applied to the page's dimensions
 - **AND** the thumbnail SHALL fit within the configured thumbnail size box
 
+#### Scenario: Quarter-turn rotation keeps the page aspect ratio
+- **WHEN** a page is rotated by 90 or 270 degrees (in either direction)
+- **THEN** the application SHALL swap the page's width and height and its x/y
+  resolution to match the rotated pixel dimensions
+- **AND** the thumbnail regenerated for the page SHALL have the swapped aspect
+  ratio rather than being stretched or compressed to the pre-rotation shape
+
+### Requirement: Page metadata follows the rotated pixel dimensions
+After a rotation, the width, height and x/y resolution SHALL reflect the
+rotated pixel dimensions and orientation so that any use of the page's
+dimensions - thumbnail generation with a correct aspect ratio, aspect-correct
+previews and analysis - produces an undistorted result.
+
+#### Scenario: 270-degree rotation swaps the page dimensions
+- **WHEN** a landscape page is rotated by 270 degrees
+- **THEN** the stored width and height SHALL be swapped relative to the
+  pre-rotation page, and the x/y resolution SHALL be swapped likewise
+
+#### Scenario: 90-degree rotation swaps the page dimensions
+- **WHEN** a landscape page is rotated by 90 degrees
+- **THEN** the stored width and height SHALL be swapped relative to the
+  pre-rotation page, and the x/y resolution SHALL be swapped likewise
+
+#### Scenario: 180-degree rotation keeps the page dimensions
+- **WHEN** a page is rotated by 180 degrees
+- **THEN** the stored width, height and x/y resolution SHALL be unchanged
+
+#### Scenario: Quarter-turn rotation preserves the page aspect ratio
+- **WHEN** a page is rotated by 90 or 270 degrees (in either direction)
+- **THEN** the application SHALL swap the page's width and height and its x/y
+  resolution to match the rotated pixel dimensions
+- **AND** the thumbnail regenerated for the page SHALL have the swapped aspect
+  ratio rather than being stretched or compressed to the pre-rotation shape
+
+### Requirement: Rotation keeps the page aspect ratio consistent
+The width, height and x/y resolution stored for a page SHALL always reflect the
+rotated pixel dimensions after a rotation that changes the page orientation
+(90, 270, -90 or -270 degrees), so that any use of the page's dimensions -
+thumbnail generation, aspect-correct previews and analysis - produces an
+undistorted result.
+
+#### Scenario: 270-degree rotation swaps the stored dimensions
+- **WHEN** a landscape page is rotated by 270 degrees
+- **THEN** the stored width and height SHALL be swapped relative to the
+  pre-rotation page, and the stored x/y resolution SHALL be swapped likewise
+
+#### Scenario: 90-degree rotation swaps the stored dimensions
+- **WHEN** a landscape page is rotated by 90 degrees
+- **THEN** the stored width and height SHALL be swapped relative to the
+  pre-rotation page, and the stored x/y resolution SHALL be swapped likewise
+
+#### Scenario: 180-degree rotation keeps the stored dimensions
+- **WHEN** a page is rotated by 180 degrees
+- **THEN** the stored width, height and resolution SHALL be unchanged
+
 ### Requirement: Thumbnail generation does not block the UI
 Thumbnail generation SHALL run off the main thread so that generating
 thumbnails for many pages does not freeze the interface.
@@ -53,3 +106,4 @@ thumbnails for many pages does not freeze the interface.
 - **WHEN** a large set of pages is imported and thumbnails are generated for each
 - **THEN** the interface SHALL remain responsive while the thumbnails are
   generated in the background
+
