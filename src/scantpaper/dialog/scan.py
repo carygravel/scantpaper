@@ -6,7 +6,7 @@ import logging
 import re
 import weakref
 from copy import copy
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from gi.repository import Gdk, GObject, Gtk
 
@@ -418,7 +418,7 @@ class Scan(PageControls):
         """Initialise ."""
         profiles = {}
         if "profiles" in kwargs:
-            profiles = kwargs.pop("profiles")
+            profiles = cast("dict[str, object]", kwargs.pop("profiles"))
 
         self._paper_sizes: dict[str, dict[str, float]] = {}
         self._device_list: list[SimpleNamespace] = []

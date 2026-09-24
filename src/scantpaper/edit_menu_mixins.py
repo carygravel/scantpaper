@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime
 import logging
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 
@@ -409,7 +409,7 @@ class EditMenuMixins:
         for combobox in combobox_array:
             self._clear_combobox(combobox)
 
-        for tool in self.settings["user_defined_tools"]:
+        for tool in cast("list[str]", self.settings["user_defined_tools"]):
             for combobox in combobox_array:
                 if combobox is not None:
                     combobox.append_text(tool)

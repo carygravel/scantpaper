@@ -16,7 +16,7 @@ from gi.repository import (  # noqa: E402
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
 
 
 def scalar_cell_renderer(
@@ -397,7 +397,7 @@ class TiedList:
         """Iterate over the rows."""
         return iter(self.model)
 
-    def extend(self, values: object) -> None:
+    def extend(self, values: Iterable[object]) -> None:
         """Extend."""
         for row in values:
             self.model.append(row)

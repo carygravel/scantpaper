@@ -7,7 +7,7 @@ import sqlite3
 import subprocess
 import threading
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from gi.repository import GLib
@@ -1093,7 +1093,7 @@ def test_issue_74_ghost_page_mechanism(temp_db: object) -> None:
     thread.replace_page(edited, id_b)
 
     result = thread.do_undo(Request("undo", (), thread.responses))
-    ids = [row[2] for row in result["snapshot"]]
+    ids = [row[2] for row in cast("list[list[object]]", result["snapshot"])]
     assert ids == [
         id_a,
         id_b,
@@ -1121,7 +1121,7 @@ def test_undo_after_delete_all_has_no_ghost(temp_db: object) -> None:
     thread.replace_page(edited, id_b)
 
     result = thread.do_undo(Request("undo", (), thread.responses))
-    ids = [row[2] for row in result["snapshot"]]
+    ids = [row[2] for row in cast("list[list[object]]", result["snapshot"])]
     assert ids == [id_b], "undo after New File restores only unedited page B"
 
 

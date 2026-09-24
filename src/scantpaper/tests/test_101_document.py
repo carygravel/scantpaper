@@ -11,7 +11,7 @@ import sys
 import tempfile
 import threading
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, Mock, patch
 
 import gi
@@ -53,6 +53,11 @@ if TYPE_CHECKING:
 def get_page_index_all_callback(_uuid: object, _process: str, _message: str) -> None:
     """React to get_page_index for all pages."""
     assert True, "error in all"
+
+
+def page_number_rows(thread: DocThread) -> list[list[object]]:
+    """Return the page number table rows, explicitly typed."""
+    return cast("list[list[object]]", thread.page_number_table())
 
 
 def get_page_index_selected_callback(
@@ -699,15 +704,22 @@ def test_undo_redo_snapshot_page_numbers(temp_db: object) -> None:
     for _ in range(3):
         thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
 
-    page_ids = [row[2] for row in thread.page_number_table()]
+    page_ids = [row[2] for row in page_number_rows(thread)]
     request = Request("delete_pages", ({"page_ids": [page_ids[0]]},), thread.responses)
     thread.do_delete_pages(request)
 
     result = thread.do_undo(Request("undo", (), thread.responses))
-    assert [row[0] for row in result["snapshot"]] == [1, 2, 3], "undo"
+    assert [row[0] for row in cast("list[list[object]]", result["snapshot"])] == [
+        1,
+        2,
+        3,
+    ], "undo"
 
     result = thread.do_redo(Request("redo", (), thread.responses))
-    assert [row[0] for row in result["snapshot"]] == [1, 2], "redo"
+    assert [row[0] for row in cast("list[list[object]]", result["snapshot"])] == [
+        1,
+        2,
+    ], "redo"
 
 
 def test_do_quit_closes_database_connection(temp_db: object) -> None:
@@ -732,7 +744,7 @@ def test_reorder_pages(temp_db: object) -> None:
     for _ in range(5):
         thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
 
-    ids = [row[2] for row in thread.page_number_table()]
+    ids = [row[2] for row in page_number_rows(thread)]
 
     # image row count should be unchanged by a reorder
     thread._execute("SELECT COUNT(*) FROM image")
@@ -746,7 +758,7 @@ def test_reorder_pages(temp_db: object) -> None:
     )
     thread.do_reorder_pages(request)
 
-    after = [row[2] for row in thread.page_number_table()]
+    after = [row[2] for row in page_number_rows(thread)]
     assert after == [*ids[1:], ids[0]], "first page moved to the end"
 
     thread._execute("SELECT COUNT(*) FROM image")
@@ -755,7 +767,9 @@ def test_reorder_pages(temp_db: object) -> None:
 
     # a single undo restores the original order
     result = thread.do_undo(Request("undo", (), thread.responses))
-    assert [row[2] for row in result["snapshot"]] == ids, "single undo restores order"
+    assert [row[2] for row in cast("list[list[object]]", result["snapshot"])] == ids, (
+        "single undo restores order"
+    )
 
 
 def test_reorder_pages_block(temp_db: object) -> None:
@@ -767,7 +781,7 @@ def test_reorder_pages_block(temp_db: object) -> None:
     for _ in range(5):
         thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
 
-    ids = [row[2] for row in thread.page_number_table()]
+    ids = [row[2] for row in page_number_rows(thread)]
 
     # move the middle two pages to the end as a block
     request = Request(
@@ -777,7 +791,7 @@ def test_reorder_pages_block(temp_db: object) -> None:
     )
     thread.do_reorder_pages(request)
 
-    after = [row[2] for row in thread.page_number_table()]
+    after = [row[2] for row in page_number_rows(thread)]
     assert after == [ids[0], ids[3], ids[4], ids[1], ids[2]], "block preserved order"
 
 
@@ -790,7 +804,7 @@ def test_reorder_pages_consecutive_numbering(temp_db: object) -> None:
     for _ in range(4):
         thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
 
-    ids = [row[2] for row in thread.page_number_table()]
+    ids = [row[2] for row in page_number_rows(thread)]
 
     # move the last page to the front
     request = Request(
@@ -800,7 +814,7 @@ def test_reorder_pages_consecutive_numbering(temp_db: object) -> None:
     )
     thread.do_reorder_pages(request)
 
-    assert [row[0] for row in thread.page_number_table()] == [
+    assert [row[0] for row in page_number_rows(thread)] == [
         0,
         1,
         2,
@@ -817,8 +831,8 @@ def test_reorder_pages_unknown_id(temp_db: object) -> None:
     for _ in range(4):
         thread.add_page(Page(image_object=Image.new("RGB", (70, 46))))
 
-    ids = [row[2] for row in thread.page_number_table()]
-    before = [row[2] for row in thread.page_number_table()]
+    ids = [row[2] for row in page_number_rows(thread)]
+    before = [row[2] for row in page_number_rows(thread)]
 
     # the frontend asks to reorder an id that is gone from the database
     request = Request(
@@ -828,7 +842,7 @@ def test_reorder_pages_unknown_id(temp_db: object) -> None:
     )
     thread.do_reorder_pages(request)
 
-    after = [row[2] for row in thread.page_number_table()]
+    after = [row[2] for row in page_number_rows(thread)]
     assert after == before, "order unchanged when all ids are unknown"
     assert after == ids, "ordering matches the pre-reorder page order"
 

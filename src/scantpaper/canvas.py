@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
     import cairo
 
+    from scantpaper.bboxtree import BBox
+
 gi.require_version("Gdk", "3.0")
 gi.require_version("Gtk", "3.0")
 gi.require_version("Pango", "1.0")
@@ -230,12 +232,12 @@ class Bbox:
         self.text = kwargs.get("text", EMPTY)
         self.bbox = kwargs.get("bbox")
         self.canvas = kwargs.get("canvas")
-        self.transformation = kwargs.get("transformation", [0, 0, 0])
+        self.transformation: list[int] = kwargs.get("transformation", [0, 0, 0])
         self.confidence = kwargs.get("confidence")
         self.textangle = kwargs.get("textangle", 0)
         self.type = kwargs.get("type", "word")
         self.id = kwargs.get("id", EMPTY)
-        self.baseline = kwargs.get("baseline")
+        self.baseline: list[int | float] | None = kwargs.get("baseline")
         self.edit_callback = kwargs.get("edit_callback")
 
         parent = kwargs.get("parent")
@@ -694,7 +696,7 @@ class Canvas(Gtk.DrawingArea):
 
     def set_text(
         self,
-        bboxes: list[dict[str, object]],
+        bboxes: list[BBox],
         sorted_word_indices: list[int],
         **kwargs: object,
     ) -> None:

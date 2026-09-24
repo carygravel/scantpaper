@@ -7,7 +7,7 @@ import inspect
 import logging
 import tempfile
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 import tesserocr
@@ -398,7 +398,7 @@ class SessionMixins:
             flag = True
             if kwargs["stored-responses"]:
                 flag = False
-                for i in kwargs["stored-responses"]:
+                for i in cast("list[object]", kwargs["stored-responses"]):
                     if i == response:
                         flag = True
                         break

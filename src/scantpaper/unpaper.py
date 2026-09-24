@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from typing import cast
 
 import gi
 
@@ -486,7 +487,7 @@ class Unpaper:
         """Get option for combobox."""
         hashref = self.options
         i = hashref[option]["widget"].get_active()
-        for key in hashref[option]["options"]:
+        for key in cast("dict[str, dict[str, object]]", hashref[option]["options"]):
             if hashref[option]["options"][key]["index"] == i:
                 return str(key)
         return None
@@ -516,7 +517,7 @@ class Unpaper:
 
     def _spinbuttongroup_get_option(self, option: str) -> str:
         """Get option for spinbuttongroup."""
-        options = self.options[option]["options"]
+        options = cast("dict[str, dict[str, object]]", self.options[option]["options"])
         items = [str(options[key]["widget"].get_value()) for key in options]
         return ",".join(items) if items else ""
 
@@ -573,7 +574,7 @@ class Unpaper:
             for key in re.split(r",", str(options[option])):
                 default[key] = True
 
-        for key in hashref[option]["options"]:
+        for key in cast("dict[str, dict[str, object]]", hashref[option]["options"]):
             hashref[option]["options"][key]["widget"].set_active(key in default)
 
     def _spinbutton_set_option(self, option: str, options: dict[str, object]) -> None:

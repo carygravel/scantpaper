@@ -561,7 +561,7 @@ class SaveThread(Importhread):
         options = _options_from_request(request)
 
         string = ""
-        for page_id in options["list_of_pages"]:
+        for page_id in cast("list[int]", options["list_of_pages"]):
             page = self.get_page(id=page_id)
             string += page.export_text()
             self.check_cancelled()
@@ -586,7 +586,7 @@ class SaveThread(Importhread):
 
         with pathlib.Path(options["path"]).open("w", encoding="utf-8") as fhd:
             written_header = False
-            for page_id in options["list_of_pages"]:
+            for page_id in cast("list[int]", options["list_of_pages"]):
                 page = self.get_page(id=page_id)
                 hocr = page.export_hocr()
                 regex = re.search(

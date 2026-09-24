@@ -11,7 +11,7 @@ import signal
 import tempfile
 from collections import defaultdict
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 
@@ -406,7 +406,12 @@ class BaseDocument(SimpleList):
 
         self.thread.send(
             "clone_pages",
-            {"page_ids": [row[2] for row in kwargs["data"]], "dest": dest},
+            {
+                "page_ids": [
+                    row[2] for row in cast("list[list[object]]", kwargs["data"])
+                ],
+                "dest": dest,
+            },
             data_callback=_data_callback,
         )
 

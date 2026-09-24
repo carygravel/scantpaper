@@ -11,6 +11,8 @@ import gi
 from scantpaper.dialog.save import Save, filter_table
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import pytest
 
 gi.require_version("Gtk", "3.0")
@@ -206,9 +208,11 @@ def test_encrypt_clicked_callback(mocker: pytest.MockerFixture) -> None:
     mock_dialog.get_content_area.return_value = mock_box
 
     # Capture actions added to the dialog
-    actions = []
+    actions: list[tuple[str, Callable[..., object]]] = []
 
-    def mock_add_actions(act_list: object) -> None:
+    def mock_add_actions(
+        act_list: list[tuple[str, Callable[..., object]]],
+    ) -> None:
         nonlocal actions
         actions = act_list
 

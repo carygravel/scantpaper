@@ -7,7 +7,7 @@ import html
 import json
 import re
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, TypedDict
 
 from scantpaper.const import ANNOTATION_COLOR, HALF, POINTS_PER_INCH, VERSION
 
@@ -36,7 +36,22 @@ def unescape_utf8(text: str) -> str:
     return codecs.escape_decode(text)[0].decode("utf-8")
 
 
-def flatten_tree(oldbox: dict[str, object], newtree: list[object]) -> None:
+class BBox(TypedDict, total=False):
+    """An entry in a bounding box tree."""
+
+    type: str
+    depth: int
+    bbox: list[int]
+    text: str
+    contents: list[BBox]
+    id: str
+    baseline: list[int | float]
+    textangle: int
+    confidence: int
+    style: list[str]
+
+
+def flatten_tree(oldbox: BBox, newtree: list[object]) -> None:
     """Refactor a nested tree into a list."""
     # clone bbox without children
     newbox = dict(oldbox.items())
@@ -88,7 +103,7 @@ class Bboxtree:
             }
         )
 
-    def each_bbox(self) -> Iterator[dict[str, object]]:
+    def each_bbox(self) -> Iterator[BBox]:
         """Iterate over the parsed bboxes.
 
         Iterator returns bbox.
@@ -141,7 +156,7 @@ class Bboxtree:
             string += "\n"
         return string
 
-    def _resolve_bbox_type(self, bbox: dict[str, object]) -> str:
+    def _resolve_bbox_type(self, bbox: BBox) -> str:
         """Return the djVu type for the given bbox, mapping unknown types."""
         bbox_type = str(bbox["type"])
 
@@ -157,7 +172,7 @@ class Bboxtree:
             bbox_type = regex.group(1) if regex else "line"
         return bbox_type
 
-    def _bbox_is_leaf(self, bbox_list: list[dict[str, object]], i: int) -> bool:
+    def _bbox_is_leaf(self, bbox_list: list[BBox], i: int) -> bool:
         """Return True if the bbox at index i has no children."""
         bbox = bbox_list[i]
         return "text" in bbox and (
@@ -337,7 +352,7 @@ class Bboxtree:
 
         return self
 
-    def _walk_bboxes(self, bbox: dict[str, object], depth: int = 0) -> None:
+    def _walk_bboxes(self, bbox: BBox, depth: int = 0) -> None:
         """Walk the tree, executing the callback on each bounding box."""
         bbox["depth"] = depth
         depth += 1
@@ -497,14 +512,14 @@ class HOCRParser(HTMLParser):
             self.data["text"] = data
 
 
-def _hocr2boxes(hocr: str) -> list[dict[str, object]]:
+def _hocr2boxes(hocr: str) -> list[BBox]:
 
     parser = HOCRParser()
     parser.feed(hocr)
     return parser.boxes
 
 
-def _prune_empty_branches(boxes: list[dict[str, object]]) -> None:
+def _prune_empty_branches(boxes: list[BBox]) -> None:
     i = 0
     while i < len(boxes):
         child = boxes[i]
@@ -598,7 +613,7 @@ class PDFTextParser(HTMLParser):
 
 def _pdftotext2boxes(
     text: str, resolution: tuple[float, float, str], image_size: tuple[int, int]
-) -> list[dict[str, object]]:
+) -> list[BBox]:
     parser = PDFTextParser(resolution, image_size)
     parser.feed(text)
     return parser.boxes
@@ -609,9 +624,7 @@ def scale(value: float, resolution: float) -> int:
     return int(value * resolution // POINTS_PER_INCH + HALF)
 
 
-def _bbox_to_hocr(
-    bbox: dict[str, object], prev_depth: int, tags: list[str]
-) -> tuple[str, int]:
+def _bbox_to_hocr(bbox: BBox, prev_depth: int, tags: list[str]) -> tuple[str, int]:
 
     string = ""
     while prev_depth >= bbox["depth"] and len(tags):
@@ -628,7 +641,7 @@ def _bbox_to_hocr(
     return string, int(bbox["depth"])
 
 
-def _hocr_open_tag(bbox: dict[str, object]) -> tuple[str, str]:
+def _hocr_open_tag(bbox: BBox) -> tuple[str, str]:
     x_1, y_1, x_2, y_2 = bbox["bbox"]
     bbox_type = "ocr_" + bbox["type"]
     tag = "span"
@@ -661,7 +674,7 @@ def _hocr_open_tag(bbox: dict[str, object]) -> tuple[str, str]:
     return string, tag
 
 
-def _text2hocr(bbox: dict[str, object]) -> str:
+def _text2hocr(bbox: BBox) -> str:
     string = ""
     if "text" in bbox:
         if "style" in bbox:
@@ -671,7 +684,7 @@ def _text2hocr(bbox: dict[str, object]) -> str:
         string += html.escape(bbox["text"])
 
         if "style" in bbox:
-            for style in reversed(cast("list[str]", bbox["style"])):
+            for style in reversed(bbox["style"]):
                 string += f"</{style}>"
     return string
 

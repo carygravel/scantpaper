@@ -540,7 +540,9 @@ class Page:
             dir=cast("str | None", options.get("dir")), suffix=".tif"
         ) as infile:
             self.image_object.save(infile.name)
-            xresolution, yresolution, units = self.resolution
+            xresolution, yresolution, units = cast(
+                "tuple[float, float, str]", self.resolution
+            )
 
             # Convert to tiff
             depth = []

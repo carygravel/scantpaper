@@ -9,7 +9,7 @@ import re
 import sys
 from collections import defaultdict
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from scantpaper.basedocument import BaseDocument
 from scantpaper.bboxtree import unescape_utf8
@@ -315,7 +315,7 @@ class Document(BaseDocument):
 
     def ocr_pages(self, **kwargs: object) -> None:
         """Wrap the various OCR engines."""
-        for page in kwargs["pages"]:
+        for page in cast("list[object]", kwargs["pages"]):
             kwargs["page"] = page
             if kwargs["engine"] == "tesseract":
                 self.tesseract(**kwargs)

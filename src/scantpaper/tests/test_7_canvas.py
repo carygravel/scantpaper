@@ -12,7 +12,7 @@ import cairo
 import gi
 import pytest
 
-from scantpaper.bboxtree import Bboxtree
+from scantpaper.bboxtree import BBox, Bboxtree
 from scantpaper.canvas import (
     EMPTY_LIST,
     HOCR_HEADER,
@@ -124,7 +124,7 @@ def test_string2rgb() -> None:
 
 def get_bboxes_and_indices(
     json_string: str,
-) -> tuple[list[dict[str, object]], list[int]]:
+) -> tuple[list[BBox], list[int]]:
     """Simulate docthread parsing."""
     tree = Bboxtree(json_string)
     bboxes = list(tree.each_bbox())

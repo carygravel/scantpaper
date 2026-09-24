@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -13,6 +15,8 @@ from gi.repository import (  # noqa: E402
 
 class ComboBoxText(Gtk.ComboBoxText):
     """a ComboBoxText widget with an index."""
+
+    data: list[list[object]]
 
     index_column = GObject.Property(
         type=int,
@@ -39,9 +43,10 @@ class ComboBoxText(Gtk.ComboBoxText):
         super().__init__(*args, **kwargs)
         if data is not None:
             col = self.text_column
-            for row in data:
+            rows = cast("list[list[object]]", data)
+            for row in rows:
                 self.append_text(row[col])
-            self.data = data
+            self.data = rows
 
     def set_active_index(self, index: object) -> None:
         """Set the active item by index column."""

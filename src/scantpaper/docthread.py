@@ -1063,7 +1063,7 @@ class DocThread(SaveThread):
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
-        mean, std_dev = self._fetchone()
+        mean, std_dev = cast("tuple[object, ...]", self._fetchone())
         mean = json.loads(mean, strict=False)
         std_dev = json.loads(std_dev, strict=False)
         return mean, std_dev
