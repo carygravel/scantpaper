@@ -19,7 +19,7 @@ def test_basic() -> None:
     """Basic functionality tests for SimpleList."""
     slist = SimpleList(col1="text")
     assert isinstance(slist, SimpleList), "Created simplelist"
-    assert isinstance(slist.data, list), "simplelist data is a list"
+    assert list(slist.data) == [], "simplelist data converts to a list"
 
     slist.data.append(["row1"])
     model = slist.get_model()

@@ -570,7 +570,8 @@ def test_run_releases_sources_when_input_handler_raises(
     recorded_exceptions: list[BaseException] = []
 
     class ExplodingThread(BaseThread):
-        def input_handler(self, _request: Request) -> object:
+        def input_handler(self, request: Request) -> object:
+            del request
             msg = "boom"
             raise RuntimeError(msg)
 

@@ -23,9 +23,9 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
-    def now(cls, tz: tzinfo | None = None) -> datetime:
+    def now(cls, tz: tzinfo | None = None) -> MockedDateTime:
         """Now."""
-        return datetime(2018, 1, 1, 0, 0, 0, tzinfo=tz)
+        return cls(2018, 1, 1, 0, 0, 0, tzinfo=tz)
 
 
 def test_basic(mocker: pytest.MockerFixture) -> None:

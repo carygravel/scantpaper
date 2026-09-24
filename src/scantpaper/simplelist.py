@@ -295,7 +295,7 @@ class SimpleList(Gtk.TreeView):
         return column_types
 
 
-class TiedRow(list):
+class TiedRow:
     """TiedRow is the lowest-level tie, allowing you to treat a row as an array of column data."""
 
     def __init__(self, model: Gtk.TreeModel, itr: Gtk.TreeIter) -> None:
@@ -351,7 +351,7 @@ class TiedRow(list):
         raise NotImplementedError(msg)
 
 
-class TiedList(list):
+class TiedList:
     """TiedList is an array in which each element is a row in the liststore."""
 
     def __init__(self, model: Gtk.TreeModel) -> None:
@@ -401,6 +401,10 @@ class TiedList(list):
         """Extend."""
         for row in values:
             self.model.append(row)
+
+    def clear(self) -> None:
+        """Clear all rows."""
+        self.model.clear()
 
     def insert(self, position: int, row: object) -> None:
         """Insert."""

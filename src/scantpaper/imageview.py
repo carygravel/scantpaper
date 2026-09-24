@@ -33,16 +33,18 @@ class Tool:
         """Provide the base view accessor."""
         return self._view
 
-    def button_pressed(self, _event: Gdk.EventButton) -> bool:
+    def button_pressed(self, event: Gdk.EventButton) -> bool:
         """Provide the base button-pressed handler."""
+        del event
         return False
 
-    def button_released(self, _event: Gdk.EventButton) -> bool:
+    def button_released(self, event: Gdk.EventButton) -> None:
         """Provide the base button-released handler."""
-        return False
+        del event
 
-    def motion(self, _event: Gdk.EventMotion) -> None:
+    def motion(self, event: Gdk.EventMotion) -> None:
         """Provide the base motion handler."""
+        del event
 
     def cursor_at_point(self, ptx: float, pty: float) -> Gdk.Cursor | None:
         """Return the name of the cursor at the specified coords."""
@@ -52,8 +54,9 @@ class Tool:
             return Gdk.Cursor.new_from_name(display, cursor_type)
         return None
 
-    def cursor_type_at_point(self, _x: float, _y: float) -> str | None:
+    def cursor_type_at_point(self, x: float, y: float) -> str | None:
         """Provide the base cursor-type-at-point accessor."""
+        del x, y
         return None
 
     def connect(self, *args: object) -> int:

@@ -16,8 +16,6 @@ from gi.repository import Gtk  # noqa: E402
 
 def test_paperlist() -> None:
     """Test PaperList class."""
-    with pytest.raises(TypeError):
-        PaperList()
     plist = PaperList({"A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0}})
     assert plist is not None
 

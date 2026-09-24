@@ -59,9 +59,9 @@ class Importhread(BaseThread):
                 return args["pidfile"]
         return None
 
-    def _request_completed(self, request: Request) -> None:
+    def _request_completed(self, _request: Request) -> None:
         """Deregister the request's pidfile now that its handler has finished."""
-        pidfile = self._request_pidfile(request)
+        pidfile = self._request_pidfile(_request)
         if pidfile is not None:
             with self.lock:
                 self.running_pids.pop(pidfile, None)

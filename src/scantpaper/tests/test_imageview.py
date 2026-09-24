@@ -416,7 +416,7 @@ def test_tool_base_methods() -> None:
     tool = Tool(view)
     assert tool.view() == view
     assert tool.button_pressed(None) is False
-    assert tool.button_released(None) is False
+    assert tool.button_released(None) is None
     assert tool.motion(None) is None
     assert tool.cursor_type_at_point(0, 0) is None
     assert tool.cursor_at_point(0, 0) is None

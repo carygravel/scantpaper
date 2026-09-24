@@ -484,8 +484,9 @@ class HOCRParser(HTMLParser):
                 if class_name[1] == "page":
                     self.boxes.append(self.data)
 
-    def handle_endtag(self, _tag: str) -> None:
+    def handle_endtag(self, tag: str) -> None:
         """Handle endtag."""
+        del tag
         if self.stack:
             self.data = self.stack.pop()
 
@@ -582,8 +583,9 @@ class PDFTextParser(HTMLParser):
         if "bbox" in self.data:
             self.stack.append(self.data)
 
-    def handle_endtag(self, _tag: str) -> None:
+    def handle_endtag(self, tag: str) -> None:
         """Handle endtag."""
+        del tag
         if self.stack:
             self.data = self.stack.pop()
 

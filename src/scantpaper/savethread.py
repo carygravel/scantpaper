@@ -31,7 +31,6 @@ from scantpaper.page import Page
 if TYPE_CHECKING:
     import uuid
     from collections.abc import Callable
-    from types import TracebackType
     from typing import Self
 
 logger = logging.getLogger(__name__)
@@ -85,7 +84,7 @@ class SaveThreadProgressBar(ProgressBar):
         self.current = 0
         self.disable = disable
 
-    def update(self, n: int = 1, completed: int | None = None) -> None:
+    def update(self, n: float = 1, *, completed: float | None = None) -> None:
         """Update progress."""
         if self.disable:
             return
@@ -103,12 +102,7 @@ class SaveThreadProgressBar(ProgressBar):
         """Enter the context manager."""
         return self
 
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> bool:
+    def __exit__(self, *args: object) -> bool:
         """Exit the context manager."""
         return False
 
