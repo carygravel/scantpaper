@@ -444,6 +444,34 @@ In either case to remove scantpaper afterwards:
 sudo apt remove scantpaper
 ```
 
+#### From Fedora RPM packages
+
+Download the RPM files from
+[Github](https://github.com/carygravel/scantpaper/releases/) and install them
+all in a single transaction:
+
+```sh
+sudo dnf install *.rpm
+```
+
+The release provides scantpaper together with locally rebuilt versions of
+`python3-sane`, `python3-tesserocr`, `python3-cysignals` and `python3-iso639`
+(packaged as RPMs because the Fedora versions do not satisfy scantpaper's
+dependencies, and with a `python3-sane` patch for Epson `epsonscan2` scanners).
+scantpaper requires these packages by their `python3dist(...)` names, so they
+must be installed in the same transaction: installing scantpaper first fails
+with `nothing provides python3.14dist(...)`.
+
+To remove scantpaper afterwards:
+
+```sh
+sudo dnf remove scantpaper
+```
+
+Weak dependencies such as `qpdf` are installed by default, but can be skipped
+with `--setopt=install_weak_deps=0`, in which case the optional features they
+provide (e.g. PDF encryption) are disabled.
+
 #### From a wheel file
 
 Download `.whl` from [Github](https://github.com/carygravel/scantpaper/releases/).
