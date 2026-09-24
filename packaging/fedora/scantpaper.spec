@@ -37,6 +37,18 @@ BuildRequires:  poppler-utils
 BuildRequires:  ocrmypdf
 
 # Python runtime dependencies are generated automatically from pyproject.toml.
+# The tools invoked via subprocess (qpdf, convert, tiffcp, unpaper, ...) are
+# not covered by the Python METADATA auto-requires, so they are declared
+# explicitly, mirroring the Debian package's dependency lists:
+Requires:  ImageMagick
+Requires:  libtiff-tools
+Requires:  librsvg2
+Requires:  poppler-utils
+Recommends: djvulibre
+Recommends: qpdf
+Recommends: tesseract
+Recommends: unpaper
+Recommends: xdg-utils
 
 %description
 ScantPaper is a GUI application for scanning documents and producing
