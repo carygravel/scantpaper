@@ -5,6 +5,7 @@ from __future__ import annotations
 import gc
 import threading
 import weakref
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,6 +13,9 @@ from gi.repository import GLib
 
 from scantpaper.basethread import BaseThread, Request, Response, ResponseType
 from scantpaper.loop_helpers import safe_mainloop
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class MyThread(BaseThread):
@@ -173,7 +177,7 @@ def test_1() -> None:
 def test_mainloop_wrapper_getattr() -> None:
     """Test that __getattr__ proxies to the underlying GLib.MainLoop."""
     mlp = safe_mainloop(2000)
-    ctx = mlp.get_context()
+    ctx = cast("Callable[[], object]", mlp.get_context)()
     assert ctx is not None
 
 

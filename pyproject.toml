@@ -165,4 +165,3 @@ task-tags = ["TODO", "FIXME"]
 "invalid-assignment" = "ignore"
 "unresolved-import" = "ignore"
 "unsupported-operator" = "ignore"
-"call-non-callable" = "ignore"

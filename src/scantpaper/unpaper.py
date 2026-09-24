@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import gi
 
 from scantpaper.helpers import configure_fractional_spinbutton, program_version
 from scantpaper.i18n import _
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -477,7 +480,7 @@ class Unpaper:
             "SpinButtonGroup",
         ]:
             method_name = "_add_" + hashref[option]["type"].lower()
-            method = getattr(self, method_name, None)
+            method = cast("Callable[..., object]", getattr(self, method_name, None))
             widget = method(vbox, hashref, option)
 
         hashref[option]["widget"] = widget
@@ -533,7 +536,7 @@ class Unpaper:
             "SpinButtonGroup",
         ]:
             method_name = "_" + options[option]["type"].lower() + "_get_option"
-            method = getattr(self, method_name, None)
+            method = cast("Callable[..., object]", getattr(self, method_name, None))
             return method(option)
 
         if option in default:
@@ -608,7 +611,7 @@ class Unpaper:
                 "SpinButtonGroup",
             ]:
                 method_name = "_" + hashref[option]["type"].lower() + "_set_option"
-                method = getattr(self, method_name, None)
+                method = cast("Callable[..., object]", getattr(self, method_name, None))
                 method(option, options)
 
     def get_cmdline(self) -> list[str]:

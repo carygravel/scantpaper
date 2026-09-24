@@ -1021,7 +1021,9 @@ def test_import_files_encrypted() -> None:
         def get_file_info_side_effect(
             path: str, password: str | None, **kwargs: object
         ) -> None:
-            finished_callback = kwargs["finished_callback"]
+            finished_callback = cast(
+                "Callable[..., object]", kwargs["finished_callback"]
+            )
             response = MagicMock()
             response.info = {"encrypted": True, "path": path}
             if password == "secret":
@@ -1060,7 +1062,9 @@ def test_import_files_multiple_errors() -> None:
         def get_file_info_side_effect(
             path: str, _password: str | None, **kwargs: object
         ) -> None:
-            finished_callback = kwargs["finished_callback"]
+            finished_callback = cast(
+                "Callable[..., object]", kwargs["finished_callback"]
+            )
             response = MagicMock()
             if path == "file1":
                 response.info = {"format": "PDF", "pages": 1, "path": path}
@@ -1085,7 +1089,9 @@ def test_import_files_multiple_errors() -> None:
         def get_file_info_side_effect_2(
             path: str, _password: str | None, **kwargs: object
         ) -> None:
-            finished_callback = kwargs["finished_callback"]
+            finished_callback = cast(
+                "Callable[..., object]", kwargs["finished_callback"]
+            )
             response = MagicMock()
             if path == "file1":
                 response.info = {"format": "PDF", "pages": 1, "path": path}
@@ -1105,7 +1111,7 @@ def _make_page_callback_side_effect() -> Callable[..., None]:
     """Return a side_effect that fires updated_page_callback with a dummy page response."""
 
     def side_effect(**kwargs: object) -> None:
-        callback = kwargs["updated_page_callback"]
+        callback = cast("Callable[..., object]", kwargs["updated_page_callback"])
         response = MagicMock()
         response.info = {"type": "page", "row": [1, None, "uuid1"]}
         callback(response)
@@ -1130,7 +1136,7 @@ def test_post_process_chain() -> None:
 
         # 1. Rotate
         def import_page_side_effect(**kwargs: object) -> None:
-            data_callback = kwargs["data_callback"]
+            data_callback = cast("Callable[..., object]", kwargs["data_callback"])
             response = MagicMock()
             response.info = {"type": "page", "row": [1, None, "uuid1"]}
             data_callback(response)
@@ -1166,7 +1172,7 @@ def test_post_process_chain() -> None:
         doc.user_defined.reset_mock()
 
         def ocr_side_effect(**kwargs: object) -> None:
-            callback = kwargs["finished_callback"]
+            callback = cast("Callable[..., object]", kwargs["finished_callback"])
             callback(None)
 
         doc.ocr_pages.side_effect = ocr_side_effect
@@ -1192,7 +1198,7 @@ def test_split_page() -> None:
         doc.add_page = MagicMock()
 
         def split_page_side_effect(**kwargs: object) -> None:
-            data_callback = kwargs["data_callback"]
+            data_callback = cast("Callable[..., object]", kwargs["data_callback"])
             response = MagicMock()
             response.info = {"type": "page", "row": [1, None, "uuid1"]}
             data_callback(response)

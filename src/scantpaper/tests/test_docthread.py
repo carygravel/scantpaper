@@ -1292,7 +1292,7 @@ def test_page_number_table_error(mocker: pytest.MockerFixture) -> None:
     mock_send = mocker.patch.object(thread, "send")
 
     def send_side_effect(*_args: object, **kwargs: object) -> None:
-        error_callback = kwargs["error_callback"]
+        error_callback = cast("Callable[..., object]", kwargs["error_callback"])
         response = mocker.Mock()
         response.info = None
         GLib.idle_add(lambda: error_callback(response))

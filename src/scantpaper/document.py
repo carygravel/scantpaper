@@ -68,7 +68,11 @@ class Document(BaseDocument):
                 and response.info["encrypted"]
                 and "password_callback" in options
             ):
-                options["passwords"].append(options["password_callback"](path))
+                options["passwords"].append(
+                    cast("Callable[[object], object]", options["password_callback"])(
+                        path
+                    )
+                )
                 if (options["passwords"][i] is not None) and options["passwords"][
                     i
                 ] != EMPTY:
@@ -99,7 +103,7 @@ class Document(BaseDocument):
                     "Cannot open a session file at the same time as another file."
                 )
                 if options["error_callback"]:
-                    options["error_callback"](
+                    cast("Callable[..., object]", options["error_callback"])(
                         None,
                         "Open file",
                         _(
@@ -115,7 +119,7 @@ class Document(BaseDocument):
                     "Cannot import a multipage file at the same time as another file."
                 )
                 if options["error_callback"]:
-                    options["error_callback"](
+                    cast("Callable[..., object]", options["error_callback"])(
                         None,
                         "Open file",
                         _(
@@ -126,12 +130,14 @@ class Document(BaseDocument):
 
                 return
 
-        finished_callback = options["finished_callback"]
+        finished_callback = cast("Callable[..., object]", options["finished_callback"])
         del options["paths"]
         del options["finished_callback"]
         for i, item in enumerate(info):
             if "metadata_callback" in options:
-                options["metadata_callback"](_extract_metadata(item))
+                cast("Callable[..., object]", options["metadata_callback"])(
+                    _extract_metadata(item)
+                )
 
             if i == len(info) - 1:
 
@@ -156,12 +162,17 @@ class Document(BaseDocument):
 
         else:
             if options.get("metadata_callback"):
-                options["metadata_callback"](_extract_metadata(info[0]))
+                cast("Callable[..., object]", options["metadata_callback"])(
+                    _extract_metadata(info[0])
+                )
 
             first_page = 1
             last_page = info[0]["pages"]
             if options.get("pagerange_callback") and last_page > 1:
-                first_page, last_page = options["pagerange_callback"](info[0])
+                first_page, last_page = cast(
+                    "Callable[[object], tuple[object, object]]",
+                    options["pagerange_callback"],
+                )(info[0])
                 if first_page is None or last_page is None:
                     return
 
@@ -192,7 +203,7 @@ class Document(BaseDocument):
                 self.add_page(*response.info["row"])
             except (AttributeError, TypeError):
                 if "logger_callback" in kwargs:
-                    kwargs["logger_callback"](response)
+                    cast("Callable[..., object]", kwargs["logger_callback"])(response)
 
         kwargs["data_callback"] = _import_file_data_callback
         self.thread.import_file(**kwargs)
@@ -284,7 +295,7 @@ class Document(BaseDocument):
             return
 
         if options.get("finished_callback"):
-            options["finished_callback"](None)
+            cast("Callable[..., object]", options["finished_callback"])(None)
 
     def import_scan(self, **kwargs: object) -> None:
         """Take new scan, display it, and set off any post-processing chains."""

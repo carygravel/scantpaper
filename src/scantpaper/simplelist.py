@@ -16,7 +16,7 @@ from gi.repository import (  # noqa: E402
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator
+    from collections.abc import Callable, Iterable, Iterator
 
 
 def scalar_cell_renderer(
@@ -109,7 +109,10 @@ class SimpleList(Gtk.TreeView):
                     "title": name,
                     "type": column_types[typekey]["type"],
                     "renderer": (
-                        column_types[typekey]["renderer"]()
+                        cast(
+                            "Callable[[], object]",
+                            column_types[typekey]["renderer"],
+                        )()
                         if "renderer" in column_types[typekey]
                         and isinstance(column_types[typekey]["renderer"], type)
                         else (column_types[typekey].get("renderer", None))

@@ -19,6 +19,7 @@ from scantpaper.file_menu_mixins import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from unittest.mock import MagicMock
 
 gi.require_version("Gtk", "3.0")
@@ -1412,7 +1413,9 @@ class TestFileMenuMixins:
         app.slist.thread.send = unittest.mock.Mock()
         app.settings["post_save_hook"] = True
 
-        def mock_save_tiff(finished_callback: object, **_kwargs: object) -> None:
+        def mock_save_tiff(
+            finished_callback: Callable[..., object], **_kwargs: object
+        ) -> None:
             finished_callback(response)
 
         app.slist.save_tiff = mock_save_tiff
@@ -1432,7 +1435,9 @@ class TestFileMenuMixins:
         app.slist.thread.send = unittest.mock.Mock()
         app.settings["post_save_hook"] = True
 
-        def mock_save_text(finished_callback: object, **_kwargs: object) -> None:
+        def mock_save_text(
+            finished_callback: Callable[..., object], **_kwargs: object
+        ) -> None:
             finished_callback(response)
 
         app.slist.save_text = mock_save_text
@@ -1451,7 +1456,9 @@ class TestFileMenuMixins:
         app.slist.thread.send = unittest.mock.Mock()
         app.settings["post_save_hook"] = True
 
-        def mock_save_hocr(finished_callback: object, **_kwargs: object) -> None:
+        def mock_save_hocr(
+            finished_callback: Callable[..., object], **_kwargs: object
+        ) -> None:
             finished_callback(response)
 
         app.slist.save_hocr = mock_save_hocr
@@ -1484,7 +1491,9 @@ class TestFileMenuMixins:
 
         mock_os.access.return_value = True
 
-        def mock_save_image(finished_callback: object, **_kwargs: object) -> None:
+        def mock_save_image(
+            finished_callback: Callable[..., object], **_kwargs: object
+        ) -> None:
             finished_callback(response)
 
         # Single file

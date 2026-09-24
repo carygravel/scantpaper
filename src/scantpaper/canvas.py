@@ -7,7 +7,7 @@ import html
 import logging
 import math
 import re
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 import gi
 
@@ -704,7 +704,7 @@ class Canvas(Gtk.DrawingArea):
         if not bboxes:
             self.clear_text()
             if kwargs.get("finished_callback"):
-                kwargs["finished_callback"]()
+                cast("Callable[..., object]", kwargs["finished_callback"])()
             return
 
         self.position_index = None
@@ -734,7 +734,7 @@ class Canvas(Gtk.DrawingArea):
             self.confidence_index.index = EMPTY_LIST
 
             if original_callback:
-                original_callback()
+                cast("Callable[..., object]", original_callback)()
 
         options = {
             "iter": itr,
@@ -1084,7 +1084,7 @@ class Canvas(Gtk.DrawingArea):
                 options["idx"], options["box"] = next(options["iter"])
             except StopIteration:
                 if options["finished_callback"]:
-                    options["finished_callback"]()
+                    cast("Callable[..., object]", options["finished_callback"])()
                 self.queue_draw()
                 return GLib.SOURCE_REMOVE
 

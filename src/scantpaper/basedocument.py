@@ -237,7 +237,7 @@ class BaseDocument(SimpleList):
         except (OSError, PermissionError):
             logger.exception("Caught error writing to %s", self.dir)
             if "error_callback" in options:
-                options["error_callback"](
+                cast("Callable[..., object]", options["error_callback"])(
                     options.get("page"),
                     "create PID file",
                     f"Error: unable to write to {self.dir}.",
@@ -261,7 +261,7 @@ class BaseDocument(SimpleList):
             if post_process:
                 post_process(info["row"][2], options)
         elif "logger_callback" in options:
-            options["logger_callback"](response)
+            cast("Callable[..., object]", options["logger_callback"])(response)
 
     def find_page_by_uuid(self, uid: object) -> int | None:
         """Return page index given uuid."""
@@ -435,7 +435,7 @@ class BaseDocument(SimpleList):
 
         logger.info("Pasted %s pages at position %s", len(kwargs["data"]), dest)
         if "finished_callback" in kwargs:
-            kwargs["finished_callback"]()
+            cast("Callable[..., object]", kwargs["finished_callback"])()
 
     def delete_selection(
         self,
@@ -474,7 +474,7 @@ class BaseDocument(SimpleList):
                 self.renumber()
 
             if "finished_callback" in kwargs:
-                kwargs["finished_callback"]()
+                cast("Callable[..., object]", kwargs["finished_callback"])()
 
         model, paths = self.get_selection().get_selected_rows()
         page_ids = [model.get_value(model.get_iter(path), 2) for path in paths]
@@ -508,7 +508,7 @@ class BaseDocument(SimpleList):
                 self.renumber()
 
             if "finished_callback" in kwargs:
-                kwargs["finished_callback"]()
+                cast("Callable[..., object]", kwargs["finished_callback"])()
 
         page_ids = [row[2] for row in self.data]
         send_kwargs = kwargs.copy()
@@ -609,7 +609,7 @@ class BaseDocument(SimpleList):
             logger.info("Deleted %s pages", npages)
 
             if "finished_callback" in kwargs:
-                kwargs["finished_callback"]()
+                cast("Callable[..., object]", kwargs["finished_callback"])()
 
         self.delete_selection(finished_callback=_after_delete)
 
@@ -625,7 +625,7 @@ class BaseDocument(SimpleList):
         """Open session file."""
         if "db" not in kwargs:
             if kwargs["error_callback"]:
-                kwargs["error_callback"](
+                cast("Callable[..., object]", kwargs["error_callback"])(
                     None, "Open file", "Error: session file not defined"
                 )
             return
@@ -636,7 +636,7 @@ class BaseDocument(SimpleList):
             shutil.copy(db, str(self.dir) + ".sdb")
         except OSError:
             if kwargs["error_callback"]:
-                kwargs["error_callback"](
+                cast("Callable[..., object]", kwargs["error_callback"])(
                     None, "Open file", f"Error: Unable to read {db}"
                 )
             return
@@ -665,7 +665,9 @@ class BaseDocument(SimpleList):
         def on_error(response: Response) -> None:
             self._unblock_row_changed()
             if error_callback:
-                error_callback(None, "Open file", response.status)
+                cast("Callable[..., object]", error_callback)(
+                    None, "Open file", response.status
+                )
 
         self.thread.send(
             "open",

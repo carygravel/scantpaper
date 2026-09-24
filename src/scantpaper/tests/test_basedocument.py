@@ -9,7 +9,7 @@ import signal
 import tempfile
 import threading
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, Mock, patch
 
 import gi
@@ -54,9 +54,9 @@ def mock_thread(mocker: pytest.MockerFixture) -> MagicMock:
             if "data_callback" in kwargs:
                 response = MagicMock()
                 response.info = {"type": "page"}
-                kwargs["data_callback"](response)
+                cast("Callable[..., object]", kwargs["data_callback"])(response)
             if "finished_callback" in kwargs:
-                kwargs["finished_callback"](None)
+                cast("Callable[..., object]", kwargs["finished_callback"])(None)
             return False
 
         GLib.idle_add(run_callbacks)
@@ -158,7 +158,7 @@ def test_delete_selection_extra_edge_cases() -> None:
         for i in reversed(indices):
             del slist.data[i]
         if "finished_callback" in kwargs:
-            kwargs["finished_callback"]()
+            cast("Callable[..., object]", kwargs["finished_callback"])()
 
     slist.delete_selection = mock_delete_selection
 
@@ -200,9 +200,13 @@ def test_save_open_session() -> None:
         def mock_send(process: str, *_args: object, **kwargs: object) -> MagicMock:
             if process == "open":
                 if "finished_callback" in kwargs:
-                    kwargs["finished_callback"](MagicMock())
+                    cast("Callable[..., object]", kwargs["finished_callback"])(
+                        MagicMock()
+                    )
             elif process == "page_number_table" and "finished_callback" in kwargs:
-                kwargs["finished_callback"](MagicMock(info=[[1, None, 101]]))
+                cast("Callable[..., object]", kwargs["finished_callback"])(
+                    MagicMock(info=[[1, None, 101]])
+                )
             return MagicMock()
 
         slist2.thread.send = mock_send
@@ -318,7 +322,7 @@ def test_paste_selection_complex() -> None:
         if cmd == "clone_pages":
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[3, None, 103]]}
-            data_callback(response)
+            cast("Callable[[object], object]", data_callback)(response)
 
     slist.thread.send = mock_send
 
@@ -656,7 +660,7 @@ def test_paste_selection_default_dest() -> None:
         if cmd == "clone_pages":
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[2, None, 102]]}
-            data_callback(response)
+            cast("Callable[[object], object]", data_callback)(response)
 
     slist.thread.send = mock_send
 
@@ -807,7 +811,7 @@ def test_delete_selection_extra_reselect() -> None:
             model.remove(itr)
 
         if "finished_callback" in kwargs:
-            kwargs["finished_callback"]()
+            cast("Callable[..., object]", kwargs["finished_callback"])()
 
     slist.delete_selection = mock_delete_selection
 
@@ -897,7 +901,7 @@ def test_paste_selection_after_into_or_after() -> None:
         if cmd == "clone_pages":
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[2, None, 102]]}
-            data_callback(response)
+            cast("Callable[[object], object]", data_callback)(response)
 
     slist.thread.send = mock_send
 
@@ -1117,7 +1121,7 @@ def test_paste_selection_insert_after() -> None:
         if cmd == "clone_pages":
             response = MagicMock()
             response.info = {"type": "page", "new_pages": [[2, None, 102]]}
-            data_callback(response)
+            cast("Callable[[object], object]", data_callback)(response)
 
     slist.thread.send = mock_send
 
@@ -1173,7 +1177,7 @@ def test_open_session_error_callback() -> None:
             if "error_callback" in kwargs:
                 response = MagicMock()
                 response.status = "open failed"
-                kwargs["error_callback"](response)
+                cast("Callable[..., object]", kwargs["error_callback"])(response)
             return False
 
         GLib.idle_add(run_callbacks)

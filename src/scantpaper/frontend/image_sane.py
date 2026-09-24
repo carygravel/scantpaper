@@ -7,7 +7,7 @@ import logging
 import math
 import threading
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import sane
 
@@ -290,13 +290,15 @@ class SaneThread(BaseThread):
         if response.info is not None:
             self.num_pages_scanned += 1
             if kwargs["new_page_callback"] is not None:
-                kwargs["new_page_callback"](response.info)
+                cast("Callable[..., object]", kwargs["new_page_callback"])(
+                    response.info
+                )
         if response.status == "Document feeder out of documents" or (
             self.num_pages != 0 and self.num_pages_scanned >= self.num_pages
         ):
             self.cancel()
             if kwargs["finished_callback"] is not None:
-                kwargs["finished_callback"](response)
+                cast("Callable[..., object]", kwargs["finished_callback"])(response)
             return
         self.scan_page(
             cancel_between_pages=cancel_between_pages,
@@ -324,7 +326,7 @@ class SaneThread(BaseThread):
         # the queued "cancel" request terminates the device session via do_cancel;
         # the partial page was never handed to new_page_callback
         if kwargs["finished_callback"] is not None:
-            kwargs["finished_callback"](response)
+            cast("Callable[..., object]", kwargs["finished_callback"])(response)
 
     def scan_pages(
         self, *, cancel_between_pages: bool = False, **kwargs: object

@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import datetime
 import unittest.mock
+from typing import TYPE_CHECKING, cast
 
 from scantpaper.document import Document, _extract_metadata
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class MockResponse:
@@ -283,11 +287,11 @@ def test_undo_redo() -> None:
 
         def mock_send(process: str, *_args: object, **kwargs: object) -> None:
             if process == "undo":
-                kwargs["finished_callback"](
+                cast("Callable[..., object]", kwargs["finished_callback"])(
                     MockResponse({"snapshot": "new_data", "selection": [0]})
                 )
             elif process == "redo":
-                kwargs["finished_callback"](
+                cast("Callable[..., object]", kwargs["finished_callback"])(
                     MockResponse({"snapshot": "newer_data", "selection": [0]})
                 )
 
@@ -313,7 +317,7 @@ def test_undo_redo_with_error_callback() -> None:
         def mock_send(process: str, *_args: object, **kwargs: object) -> None:
             last_call.update(kwargs)
             if process in ("undo", "redo"):
-                kwargs["finished_callback"](
+                cast("Callable[..., object]", kwargs["finished_callback"])(
                     MockResponse({"snapshot": "new_data", "selection": [0]})
                 )
 

@@ -403,7 +403,7 @@ def slurp(file: str | PathLike[str] | TextIO) -> str:
     """Slurp file."""
     if hasattr(file, "read"):
         file.seek(0)
-        content = file.read()
+        content = cast("TextIO", file).read()
         if isinstance(content, bytes):
             return content.decode("utf-8", "replace")
         return content

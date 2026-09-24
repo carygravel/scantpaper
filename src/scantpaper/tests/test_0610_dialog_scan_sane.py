@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import locale
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import ANY, MagicMock
 
 import pytest
@@ -1039,7 +1039,7 @@ def test_sane_scan_dialog_errors(
         response = SimpleNamespace(
             status="Error opening device", info=None, type=SimpleNamespace(name="ERROR")
         )
-        kwargs["error_callback"](response)
+        cast("Callable[..., object]", kwargs["error_callback"])(response)
 
     mocker.patch(
         "scantpaper.frontend.image_sane.SaneThread.open_device", mocked_open_device
@@ -1063,7 +1063,7 @@ def test_sane_scan_dialog_errors(
         response = SimpleNamespace(
             status="OK", info=None, type=SimpleNamespace(name="FINISHED")
         )
-        kwargs["finished_callback"](response)
+        cast("Callable[..., object]", kwargs["finished_callback"])(response)
 
     def mocked_get_options_fail(_self: SaneThread, **kwargs: object) -> None:
         response = SimpleNamespace(
@@ -1071,7 +1071,7 @@ def test_sane_scan_dialog_errors(
             info=None,
             type=SimpleNamespace(name="ERROR"),
         )
-        kwargs["error_callback"](response)
+        cast("Callable[..., object]", kwargs["error_callback"])(response)
 
     mocker.patch(
         "scantpaper.frontend.image_sane.SaneThread.open_device",
@@ -1136,7 +1136,9 @@ def test_multiple_values_option(
         ):
             return True
         if hasattr(container, "get_children"):
-            for child in container.get_children():
+            for child in cast(
+                "list[object]", cast("Callable[[], object]", container.get_children)()
+            ):
                 if find_button(child):
                     return True
         return False
@@ -1682,7 +1684,7 @@ def test_scan_errors_and_clamping(
     # Case 2: scan error callback, and num_pages clamped to max_pages
     def mocked_scan_pages(**kwargs: object) -> None:
         response = SimpleNamespace(status="Error scanning", info=None)
-        kwargs["error_callback"](response)
+        cast("Callable[..., object]", kwargs["error_callback"])(response)
 
     mocker.patch.object(dialog.thread, "scan_pages", side_effect=mocked_scan_pages)
 

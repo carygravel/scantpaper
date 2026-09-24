@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import locale
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -174,7 +174,7 @@ def test_get_page_sync_error(get_page_sync: Callable[..., object]) -> None:
     thread = MagicMock()
 
     def send_side_effect(*_: object, **kwargs: object) -> None:
-        error_callback = kwargs["error_callback"]
+        error_callback = cast("Callable[..., object]", kwargs["error_callback"])
         GLib.idle_add(lambda: error_callback(SimpleNamespace(status="mock_error")))
 
     thread.send.side_effect = send_side_effect

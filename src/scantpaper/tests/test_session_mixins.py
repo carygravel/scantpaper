@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import pathlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
 
 import gi
@@ -441,7 +441,7 @@ def test_finished_process_callback(
     mock_session_window._ask_question = mocker.Mock(return_value=Gtk.ResponseType.OK)
 
     # idle_add needed because the callback runs inside it
-    def immediate_idle_add(f: object, *args: object) -> bool:
+    def immediate_idle_add(f: Callable[..., object], *args: object) -> bool:
         f(*args)
         return True
 
@@ -644,7 +644,7 @@ def test_error_callback(
 
     mock_session_window.post_process_progress = mocker.Mock()
 
-    def immediate_idle_add(f: object, *args: object) -> bool:
+    def immediate_idle_add(f: Callable[..., object], *args: object) -> bool:
         f(*args)
         return True
 
@@ -938,7 +938,7 @@ def test_create_txt_ann_canvas(
             "bboxes": [{"bbox": [0, 0, 100, 100]}],
             "sorted_word_indices": [],
         }
-        finished_callback(mock_result)
+        cast("Callable[[object], None]", finished_callback)(mock_result)
 
     mock_session_window.slist.thread.parse_bboxtree.side_effect = sync_parse
     mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
@@ -1183,7 +1183,7 @@ def test_error_callback_with_trace(
     mock_logger = mocker.patch("scantpaper.session_mixins.logger")
 
     # Mock idle_add to run the callback immediately
-    def immediate_idle_add(f: object, *args: object) -> bool:
+    def immediate_idle_add(f: Callable[..., object], *args: object) -> bool:
         f(*args)
         return True
 
