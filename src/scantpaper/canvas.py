@@ -16,8 +16,6 @@ from scantpaper.const import _100_PERCENT, EMPTY, EMPTY_LIST, NOT_FOUND, SPACE
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    import cairo
-
     from scantpaper.bboxtree import BBox
 
 gi.require_version("Gdk", "3.0")
@@ -755,11 +753,11 @@ class Canvas(Gtk.DrawingArea):
         }
         GLib.idle_add(self._boxed_text, options)
 
-    def _on_draw(self, _widget: Gtk.Widget, ctx: cairo.Context[Any]) -> None:
+    def _on_draw(self, _widget: Gtk.Widget, ctx: object) -> None:
         """GTK3 draw signal handler."""
         self._draw_scene(ctx)
 
-    def _draw_scene(self, ctx: cairo.Context[Any]) -> None:
+    def _draw_scene(self, ctx: object) -> None:
         """Draw the scene graph using Cairo."""
         if self._pixbuf_size is None:
             return
@@ -774,9 +772,7 @@ class Canvas(Gtk.DrawingArea):
 
         ctx.restore()
 
-    def _draw_tree(
-        self, ctx: cairo.Context[Any], item: _CanvasRoot | Bbox | None
-    ) -> None:
+    def _draw_tree(self, ctx: object, item: _CanvasRoot | Bbox | None) -> None:
         """Recursively draw bbox tree."""
         if item is None:
             return
@@ -785,7 +781,7 @@ class Canvas(Gtk.DrawingArea):
             self._draw_bbox(ctx, child)
             self._draw_tree(ctx, child)
 
-    def _draw_bbox(self, ctx: cairo.Context[Any], bbox: Bbox) -> None:
+    def _draw_bbox(self, ctx: object, bbox: Bbox) -> None:
         """Draw a single bbox using Cairo."""
         x = bbox.bbox.x
         y = bbox.bbox.y
@@ -849,7 +845,7 @@ class Canvas(Gtk.DrawingArea):
 
         ctx.restore()
 
-    def _create_pango_layout(self, ctx: cairo.Context[Any], bbox: Bbox) -> Pango.Layout:
+    def _create_pango_layout(self, ctx: object, bbox: Bbox) -> Pango.Layout:
         """Create a PangoLayout for a bbox's text."""
         layout = PangoCairo.create_layout(ctx)
         font_desc = Pango.FontDescription.from_string("Sans 10")

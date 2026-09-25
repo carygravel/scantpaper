@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, cast
+from typing import ClassVar, cast
 
 import cairo
 import gi
@@ -545,7 +545,7 @@ class ImageView(Gtk.DrawingArea):
         "/documentation/pycairo/3/reference/constants.html#cairo-filter",
     )
 
-    def do_draw(self, context: cairo.Context[Any], **_kwargs: object) -> bool:
+    def do_draw(self, context: object, **_kwargs: object) -> bool:
         """Respond to the draw signal."""
         allocation = self.get_allocation()
         style = self.get_style_context()
