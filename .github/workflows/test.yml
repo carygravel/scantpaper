@@ -61,7 +61,10 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
       - name: ty check
-        run: ty check .
+        # The runner's non-root `pip install` puts packages in the user site
+        # (~/.local), which ty does not scan by default. Add it to the module
+        # search path so ty can resolve the pip-installed runtime/test deps.
+        run: ty check --extra-search-path "$(python3 -m site --user-site)" .
       - name: Test
         run: pytest
 
@@ -92,7 +95,10 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
       - name: ty check
-        run: ty check .
+        # The runner's non-root `pip install` puts packages in the user site
+        # (~/.local), which ty does not scan by default. Add it to the module
+        # search path so ty can resolve the pip-installed runtime/test deps.
+        run: ty check --extra-search-path "$(python3 -m site --user-site)" .
       - name: Test
         run: pytest
 
@@ -130,7 +136,10 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
       - name: ty check
-        run: ty check .
+        # The runner's non-root `pip install` puts packages in the user site
+        # (~/.local), which ty does not scan by default. Add it to the module
+        # search path so ty can resolve the pip-installed runtime/test deps.
+        run: ty check --extra-search-path "$(python3 -m site --user-site)" .
       - name: Build wheel
         run: python3 -m build --wheel
       - uses: actions/upload-artifact@v7

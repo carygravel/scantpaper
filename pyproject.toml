@@ -158,8 +158,17 @@ task-tags = ["TODO", "FIXME"]
 # diagnostics stem from GTK3 (`gi.repository`) having no type stubs, which
 # makes almost every GTK object resolve to `Unknown` and cascades into hundreds
 # of member/index/call errors.
+[tool.ty.environment]
+# The code uses `typing.Self` and `contextlib.chdir`, which need Python 3.11.
+python-version = "3.11"
+
+[tool.ty.analysis]
+# `gi.repository` introspection modules are generated at runtime, and `_sane`
+# and `tesserocr` are compiled C extensions. None can be resolved or typed
+# usefully, so allow them by name.
+allowed-unresolved-imports = ["gi.repository.**", "_sane", "tesserocr.**"]
+
 [tool.ty.rules]
 "unresolved-attribute" = "ignore"
 "invalid-argument-type" = "ignore"
 "not-subscriptable" = "ignore"
-"unresolved-import" = "ignore"

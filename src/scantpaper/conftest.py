@@ -39,7 +39,7 @@ from gi.repository import (  # noqa: E402
     Gtk,
 )
 
-Image.MAX_IMAGE_PIXELS = None
+cast("Any", Image).MAX_IMAGE_PIXELS = None
 
 WHITE = 255
 
