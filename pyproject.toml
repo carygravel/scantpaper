@@ -169,4 +169,15 @@ python-version = "3.11"
 allowed-unresolved-imports = ["gi.repository.**", "_sane", "tesserocr.**"]
 
 [tool.ty.rules]
+all = "error"
+# Rules we have not yet ratcheted to zero; see AGENTS.md contribution notes.
 "unresolved-attribute" = "ignore"
+"disjoint-cast" = "ignore"
+"dynamic-function-decorator-return" = "ignore"
+"missing-override-decorator" = "ignore"
+"missing-type-argument" = "ignore"
+"possibly-unresolved-reference" = "ignore"
+"redundant-condition-strict" = "ignore"
+"unsound-assignment" = "ignore"
+"unsound-return-statement" = "ignore"
+

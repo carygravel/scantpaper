@@ -109,7 +109,7 @@ class Bboxtree:
         Iterator returns bbox.
         Example: ``for bbox in self.each_bbox(): ...``
         """
-        yield from self.bbox_tree
+        yield from cast("list[BBox]", self.bbox_tree)
 
     def to_djvu_txt(self) -> str:
         """Write bboxtree to string for djvu text."""

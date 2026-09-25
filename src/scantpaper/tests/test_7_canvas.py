@@ -1329,7 +1329,7 @@ def test_set_text_empty_generator() -> None:
     canvas = Canvas()
 
     def empty_gen() -> Generator[dict[str, object], None, None]:
-        yield from []
+        yield from cast("list[dict[str, object]]", [])
 
     # Generators are truthy even when empty, so this bypasses 'if not bboxes'
     # but triggers StopIteration on next(itr)
