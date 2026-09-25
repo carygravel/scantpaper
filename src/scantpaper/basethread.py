@@ -13,6 +13,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, NamedTuple
 
 from gi.repository import GLib
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -243,6 +244,7 @@ class BaseThread(threading.Thread):
         self._notify()
         return request.uuid
 
+    @override
     def run(self) -> None:
         """Override the threading run method. Not called directly here."""
         try:

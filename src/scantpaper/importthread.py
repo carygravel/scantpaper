@@ -11,6 +11,7 @@ import threading
 from typing import TYPE_CHECKING, Any, TextIO, cast
 
 from PIL import Image
+from typing_extensions import override
 
 from scantpaper.basethread import BaseThread, Request
 from scantpaper.helpers import exec_command, exec_command_run
@@ -59,6 +60,7 @@ class Importhread(BaseThread):
                 return cast("TextIO | None", args["pidfile"])
         return None
 
+    @override
     def _request_completed(self, _request: Request) -> None:
         """Deregister the request's pidfile now that its handler has finished."""
         pidfile = self._request_pidfile(_request)

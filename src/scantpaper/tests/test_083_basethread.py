@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from gi.repository import GLib
+from typing_extensions import override
 
 from scantpaper.basethread import BaseThread, Request, Response, ResponseType
 from scantpaper.loop_helpers import safe_mainloop
@@ -580,6 +581,7 @@ def test_run_releases_sources_when_input_handler_raises(
     recorded_exceptions: list[BaseException] = []
 
     class ExplodingThread(BaseThread):
+        @override
         def input_handler(self, request: Request) -> object:
             del request
             msg = "boom"

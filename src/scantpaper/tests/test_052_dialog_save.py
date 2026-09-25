@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta, tzinfo
 from typing import TYPE_CHECKING, Any, cast
 
 import gi
+from typing_extensions import override
 
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.save import Save
@@ -23,6 +24,7 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
+    @override
     def now(cls, tz: tzinfo | None = None) -> MockedDateTime:
         """Now."""
         return cls(2018, 1, 1, 0, 0, 0, tzinfo=tz)

@@ -7,6 +7,7 @@ import re
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from gi.repository import GObject
+from typing_extensions import override
 
 from scantpaper.const import EMPTY
 from scantpaper.frontend import enums
@@ -74,6 +75,7 @@ class Options(GObject.Object):
 
         self.parse_geometry()
 
+    @override
     def __str__(self) -> str:
         """Return a string representation of the options array."""
         return f"Options({self.array})"

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, cast
 from warnings import warn
 
 import gi
+from typing_extensions import override
 
 from scantpaper.helpers import _weak_callback, format_number, parse_number
 
@@ -384,10 +385,12 @@ class TiedList:
         """Return the number of items."""
         return len(self.model)
 
+    @override
     def __str__(self) -> str:
         """Return a string representation."""
         return str([list(x) for x in self.model])
 
+    @override
     def __eq__(self, other: object) -> bool:
         """Compare equality with another instance."""
         return [list(x) for x in self.model] == other

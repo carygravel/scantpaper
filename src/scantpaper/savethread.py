@@ -19,6 +19,7 @@ import pikepdf
 from ocrmypdf import hookimpl
 from ocrmypdf.pluginspec import ProgressBar
 from PIL import Image
+from typing_extensions import override
 
 from scantpaper.basethread import Request
 from scantpaper.bboxtree import Bboxtree
@@ -84,6 +85,7 @@ class SaveThreadProgressBar(ProgressBar):
         self.current = 0
         self.disable = disable
 
+    @override
     def update(self, n: float = 1, *, completed: float | None = None) -> None:
         """Update progress."""
         if self.disable:
@@ -98,10 +100,12 @@ class SaveThreadProgressBar(ProgressBar):
             self.request.data(min(1.0, self.current / self.total))
             self.request.data(self.desc)
 
+    @override
     def __enter__(self) -> Self:
         """Enter the context manager."""
         return self
 
+    @override
     def __exit__(self, *args: object) -> bool:
         """Exit the context manager."""
         return False

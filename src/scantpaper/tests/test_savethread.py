@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pikepdf
 import pytest
+from typing_extensions import override
 
 from scantpaper.basethread import Request
 from scantpaper.i18n import _
@@ -221,6 +222,7 @@ def test_save_pdf_hocr_error_fallback(
     class _EmptyError(Exception):
         """exception with empty str() like ocrmypdf errors."""
 
+        @override
         def __str__(self) -> str:
             return ""
 

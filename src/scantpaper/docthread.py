@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any, cast
 import gi
 import tesserocr
 from PIL import ImageChops, ImageEnhance, ImageFilter, ImageOps, ImageStat
+from typing_extensions import override
 
 from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import _LOCAL_TZ, APPLICATION_ID, THUMBNAIL, USER_VERSION
@@ -316,6 +317,7 @@ class DocThread(SaveThread):
         self._con.clear()
         self._cur.clear()
 
+    @override
     def do_quit(self, _request: Request) -> None:
         """Close the database connections before stopping."""
         self.close()

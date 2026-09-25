@@ -6,6 +6,7 @@ from typing import Any, ClassVar, cast
 
 import cairo
 import gi
+from typing_extensions import override
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
@@ -74,6 +75,7 @@ class Dragger(Tool):
     dnd_eligible = False
     button = 1
 
+    @override
     def button_pressed(self, event: Gdk.EventButton) -> bool:
         """React to button-press events from the view."""
         # Don't block context menu
@@ -89,12 +91,14 @@ class Dragger(Tool):
         self.view().update_cursor(event.x, event.y)
         return True
 
+    @override
     def button_released(self, event: Gdk.EventButton) -> None:
         """React to button-release events from the view."""
         self.dragging = False
         self.view().set_interacting(interacting=False)
         self.view().update_cursor(event.x, event.y)
 
+    @override
     def motion(self, event: Gdk.EventMotion) -> None:
         """React to motion events from the view."""
         if not self.dragging:
@@ -127,6 +131,7 @@ class Dragger(Tool):
         ) and self.view().emit("dnd-start", event.x, event.y, self.button):
             self.dragging = False
 
+    @override
     def cursor_type_at_point(self, x: float, y: float) -> str | None:
         """Given the coordinates, return the cursor type."""
         x, y = cast("tuple[float, float]", self.view().to_image_coords(x, y))
@@ -187,6 +192,7 @@ class Selector(Tool):
     h_edge = None
     v_edge = None
 
+    @override
     def button_pressed(self, event: Gdk.EventButton) -> bool:
         """React to button-press events from the view."""
         # Don't block context menu
@@ -199,11 +205,13 @@ class Selector(Tool):
         self._update_selection(event)
         return True
 
+    @override
     def button_released(self, event: Gdk.EventButton) -> None:
         """React to button_release events from the view."""
         self.dragging = False
         self.view().update_cursor(event.x, event.y)
 
+    @override
     def motion(self, event: Gdk.EventMotion) -> None:
         """React to motion events from the view."""
         if not self.dragging:
@@ -272,6 +280,7 @@ class Selector(Tool):
         )
         self.view().set_selection(sel)
 
+    @override
     def cursor_type_at_point(self, x: float, y: float) -> str:
         """Given the coordinates, return the cursor type."""
         selection = self.view().get_selection()
@@ -367,6 +376,7 @@ class SelectorDragger(Tool):
         self._dragger = Dragger(view)
         self._tool = self._selector
 
+    @override
     def button_pressed(self, event: Gdk.EventButton) -> bool:
         """React to button-press events from the view."""
         # left mouse button
@@ -378,15 +388,18 @@ class SelectorDragger(Tool):
             return False
         return self._tool.button_pressed(event)
 
+    @override
     def button_released(self, event: Gdk.EventButton) -> None:
         """React to button-release events from the view."""
         self._tool.button_released(event)
         self._tool = self._selector
 
+    @override
     def motion(self, event: Gdk.EventMotion) -> None:
         """React to motion events from the view."""
         self._tool.motion(event)
 
+    @override
     def cursor_type_at_point(self, x: float, y: float) -> str | None:
         """Given the coordinates, return the cursor type."""
         return self._tool.cursor_type_at_point(x, y)

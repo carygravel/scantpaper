@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 
 import sane
+from typing_extensions import override
 
 from scantpaper.basethread import BaseThread, Request, Response
 from scantpaper.frontend import enums
@@ -50,6 +51,7 @@ class SaneThread(BaseThread):
     _scan_active = False
     _cancel_requested = False
 
+    @override
     def handler_wrapper(
         self, request: Request, handler: Callable[[Request], object]
     ) -> bool:
@@ -80,6 +82,7 @@ class SaneThread(BaseThread):
                     self.cancel()
         return True
 
+    @override
     def do_quit(self, _request: Request) -> None:
         """Exit."""
         # Close the device handle properly before setting to None
@@ -359,6 +362,7 @@ class SaneThread(BaseThread):
         """Close device."""
         return self.send("close_device", **kwargs)
 
+    @override
     def quit(self, **kwargs: object) -> uuid.UUID:
         """Quit."""
         return self.send("quit", **kwargs)

@@ -11,6 +11,7 @@ dependencies = [
   "python-sane",
   "tesserocr",
   "tomli>=1.1.0;python_version<'3.11'",
+  "typing_extensions",
 ]
 requires-python = ">=3.10"
 authors = [
@@ -174,6 +175,5 @@ all = "error"
 "unresolved-attribute" = "ignore"
 "disjoint-cast" = "ignore"
 "dynamic-function-decorator-return" = "ignore"
-"missing-override-decorator" = "ignore"
 "unsound-return-statement" = "ignore"
 

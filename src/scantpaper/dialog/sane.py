@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any, cast
 
 from gi.repository import GObject, Gtk
+from typing_extensions import override
 
 from scantpaper.const import EMPTY
 from scantpaper.dialog.scan import Scan, _geometry_option, make_progress_string
@@ -54,6 +55,7 @@ class SaneScanDialog(Scan):
         self.geometry_boxes = None
         self._option_info = {}
 
+    @override
     def get_devices(self) -> None:
         """Run Sane.get_devices()."""
         self.cursor = "wait"
@@ -96,6 +98,7 @@ class SaneScanDialog(Scan):
             finished_callback=finished_callback,
         )
 
+    @override
     def scan_options(self, device: str | None = None) -> None:
         """Retrieve device-dependent scan options."""
         if device is None:
@@ -427,6 +430,7 @@ class SaneScanDialog(Scan):
         self._update_widget_value(option, val)
         self.emit("changed-scan-option", option.name, val, uuid)
 
+    @override
     def set_option(
         self, option: Option | None, value: object, uuid: object | None = None
     ) -> None:
@@ -508,6 +512,7 @@ class SaneScanDialog(Scan):
             error_callback=error_callback,
         )
 
+    @override
     def scan(self) -> None:
         """Scan."""
         self.cursor = "progress"

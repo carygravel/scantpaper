@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from PIL import Image
+from typing_extensions import override
 
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import SaneThread
@@ -96,6 +97,7 @@ class FakeBrscan5Device:
 class CancelRaisesDevice(FakeBrscan5Device):
     """emulate a backend whose cross-thread cancel() raises before cancelling."""
 
+    @override
     def cancel(self) -> None:
         """Cancel."""
         super().cancel()

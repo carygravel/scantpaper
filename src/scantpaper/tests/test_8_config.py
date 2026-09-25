@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
 from gi.repository import Gdk
+from typing_extensions import override
 
 from scantpaper.config import (
     DEFAULTS,
@@ -39,6 +40,7 @@ class MockedDateTime(datetime):
     """mock now."""
 
     @classmethod
+    @override
     def now(cls, tz: tzinfo | None = None) -> MockedDateTime:
         """Now."""
         return cls(2018, 1, 1, 0, 0, 0, tzinfo=tz)

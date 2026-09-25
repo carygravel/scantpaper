@@ -9,6 +9,8 @@ import re
 from html.parser import HTMLParser
 from typing import TYPE_CHECKING, TypedDict, cast
 
+from typing_extensions import override
+
 from scantpaper.const import ANNOTATION_COLOR, HALF, POINTS_PER_INCH, VERSION
 
 if TYPE_CHECKING:
@@ -373,6 +375,7 @@ class HOCRParser(HTMLParser):
         self.stack = []
         self.data: dict[str, object] = {}
 
+    @override
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Handle starttag."""
         token = dict(attrs)
@@ -497,12 +500,14 @@ class HOCRParser(HTMLParser):
                 if parts[1] == "page":
                     self.boxes.append(self.data)
 
+    @override
     def handle_endtag(self, tag: str) -> None:
         """Handle endtag."""
         del tag
         if self.stack:
             self.data = self.stack.pop()
 
+    @override
     def handle_data(self, data: str) -> None:
         """Handle data."""
         data = data.rstrip()
@@ -555,6 +560,7 @@ class PDFTextParser(HTMLParser):
         self.image_size = image_size
         self.x_offset = 0
 
+    @override
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Handle starttag."""
         token = dict(attrs)
@@ -596,12 +602,14 @@ class PDFTextParser(HTMLParser):
         if "bbox" in self.data:
             self.stack.append(self.data)
 
+    @override
     def handle_endtag(self, tag: str) -> None:
         """Handle endtag."""
         del tag
         if self.stack:
             self.data = self.stack.pop()
 
+    @override
     def handle_data(self, data: str) -> None:
         """Handle data."""
         data = data.rstrip()

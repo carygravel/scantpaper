@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 import gi
 from gi.repository import GObject, Gtk
+from typing_extensions import override
 
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.dialog.scan import (
@@ -152,6 +153,7 @@ class MockScan(Scan):
         """Mock emit method."""
         return GObject.GObject.emit(self, *args)
 
+    @override
     def save_current_profile(self, name: str) -> None:
         """Mock save_current_profile."""
         self.profiles[name] = Profile()

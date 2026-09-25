@@ -7,6 +7,7 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any, cast
 
 from gi.repository import GObject
+from typing_extensions import override
 
 from scantpaper.frontend import enums
 
@@ -70,10 +71,12 @@ class Profile(GObject.Object):
         """Return a shallow copy with deep-copied frontend and backend."""
         return Profile(frontend=self.frontend, backend=self.backend, uid=self.uuid)
 
+    @override
     def __str__(self) -> str:
         """Return a string representation of the profile."""
         return f"Profile(frontend={self.frontend}, backend={self.backend}, uuid={self.uuid})"
 
+    @override
     def __eq__(self, other: object) -> bool:
         """Compare profiles by frontend and backend dicts only."""
         return self.frontend == other.frontend and self.backend == other.backend

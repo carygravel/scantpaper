@@ -9,6 +9,7 @@ from copy import copy
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 from gi.repository import Gdk, GObject, Gtk
+from typing_extensions import override
 
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import POINTS_PER_INCH
@@ -315,6 +316,7 @@ class Scan(PageControls):
         return self._allow_batch_flatbed
 
     @allow_batch_flatbed.setter
+    @override
     def allow_batch_flatbed(self, newval: bool) -> None:
         self._allow_batch_flatbed = newval
         if not hasattr(self, "framen"):
@@ -345,6 +347,7 @@ class Scan(PageControls):
         return self._ignore_duplex_capabilities
 
     @ignore_duplex_capabilities.setter
+    @override
     def ignore_duplex_capabilities(self, newval: bool) -> None:
         self._ignore_duplex_capabilities = newval
         self._flatbed_or_duplex_callback()
@@ -359,6 +362,7 @@ class Scan(PageControls):
         return self._available_scan_options
 
     @available_scan_options.setter
+    @override
     def available_scan_options(self, newval: Options) -> None:
         self._available_scan_options = newval
         if hasattr(self, "framen") and self.thread is not None:
