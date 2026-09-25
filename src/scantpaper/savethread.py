@@ -305,14 +305,17 @@ class SaveThread(Importhread):
                 index += 1
                 pagewidth = imgwidthpdf = img2pdf.px_to_pt(imgwidthpx, xres)
                 pageheight = imgheightpdf = img2pdf.px_to_pt(imgheightpx, yres)
-                return pagewidth, pageheight, imgwidthpdf, imgheightpdf
+                return cast(
+                    "tuple[float, float, float, float]",
+                    (pagewidth, pageheight, imgwidthpdf, imgheightpdf),
+                )
 
             metadata["layout_fun"] = layout_fun
             request.data(_("Writing PDF"))
             fhd.write(img2pdf.convert(filenames, **metadata))
             for fname in filenames:
                 pathlib.Path(fname).unlink()
-        return list_of_pages
+        return cast("list[Page]", (list_of_pages))
 
     def _finalize_pdf(
         self,
@@ -731,11 +734,15 @@ def _options_from_request(request: Request) -> defaultdict[str, Any]:
 
 
 def _need_temp_pdf(options: dict[str, Any] | None) -> bool:
-    return options is not None and (
-        "prepend" in options
-        or "append" in options
-        or "ps" in options
-        or ("user-password" in options and options["user-password"] != "")
+    return cast(
+        "bool",
+        options is not None
+        and (
+            "prepend" in options
+            or "append" in options
+            or "ps" in options
+            or ("user-password" in options and options["user-password"] != "")
+        ),
     )
 
 

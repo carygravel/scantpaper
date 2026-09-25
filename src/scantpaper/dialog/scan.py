@@ -187,7 +187,7 @@ class Scan(PageControls):
     @property_(type=object, nick="Profile", blurb="Name of current profile")
     def profile(self) -> str | None:
         """Getter for profile attribute."""
-        return self._profile
+        return cast("str | None", (self._profile))
 
     @profile.setter
     def profile(self, newval: str | None) -> None:
@@ -242,7 +242,7 @@ class Scan(PageControls):
     )
     def paper_sizes(self) -> dict[str, dict[str, float]]:
         """Getter for paper_sizes attribute."""
-        return self._paper_sizes
+        return cast("dict[str, dict[str, float]]", (self._paper_sizes))
 
     @paper_sizes.setter
     def paper_sizes(self, newval: dict[str, dict[str, float]]) -> None:
@@ -298,7 +298,7 @@ class Scan(PageControls):
     )
     def device_list(self) -> list[SimpleNamespace]:
         """Getter for device_list attribute."""
-        return self._device_list
+        return cast("list[SimpleNamespace]", (self._device_list))
 
     @device_list.setter
     def device_list(self, newval: list[SimpleNamespace]) -> None:
@@ -1160,7 +1160,7 @@ class Scan(PageControls):
             return None
         if position < 1 or position > len(slist.data):
             return None
-        return slist.data[position - 1][2]
+        return cast("str | None", (slist.data[position - 1][2]))
 
     def _uuid_before_position(self, position: int) -> str | None:
         """Return the page id to insert after for a 1-based position, or None to append."""
@@ -1503,7 +1503,7 @@ class Scan(PageControls):
         hbox = widget.get_parent()
         for child in hbox.get_children():
             if isinstance(child, Gtk.Label):
-                return child.get_text()
+                return cast("str | None", (child.get_text()))
         return None
 
     def _changed_scan_option_callback(

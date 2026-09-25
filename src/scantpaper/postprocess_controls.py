@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
@@ -261,7 +263,7 @@ class OCRControls(Gtk.Box):
     )
     def engine(self) -> str | None:
         """Getter for engine attribute."""
-        return self._engine
+        return cast("str | None", (self._engine))
 
     @engine.setter
     def engine(self, newval: str | None) -> None:
@@ -277,7 +279,7 @@ class OCRControls(Gtk.Box):
     )
     def language(self) -> str | None:
         """Getter for language attribute."""
-        return self._language
+        return cast("str | None", (self._language))
 
     @language.setter
     def language(self, newval: str | None) -> None:

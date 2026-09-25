@@ -1,6 +1,6 @@
 """The crop dialog."""
 
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from gi.repository import Gdk, GObject, Gtk
 
@@ -81,7 +81,7 @@ class Crop(Dialog):
     )
     def page_width(self) -> int:
         """Getter for page_width attribute."""
-        return self._page_width
+        return cast("int", (self._page_width))
 
     @page_width.setter
     def page_width(self, newval: int) -> None:
@@ -101,7 +101,7 @@ class Crop(Dialog):
     )
     def page_height(self) -> int:
         """Getter for page_width attribute."""
-        return self._page_height
+        return cast("int", (self._page_height))
 
     @page_height.setter
     def page_height(self, newval: int) -> None:

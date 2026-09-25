@@ -203,7 +203,7 @@ def test_edit_paper_apply(mocker: pytest.MockerFixture) -> None:
                     apply_cb["callback"] = callback
 
             btn.connect.side_effect = connect
-        return btn
+        return cast("MagicMock", (btn))
 
     mock_gtk.Button.new_with_label.side_effect = mock_new_with_label
 

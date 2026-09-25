@@ -1218,7 +1218,7 @@ def test_init_timeout_logging(
         ms: int, callback: Callable[..., object], *args: object
     ) -> int:
         del ms
-        return original_timeout_add(1, callback, *args)
+        return cast("int", (original_timeout_add(1, callback, *args)))
 
     mocker.patch("gi.repository.GLib.timeout_add", side_effect=mock_timeout_add)
     # Mock send to do nothing so it times out

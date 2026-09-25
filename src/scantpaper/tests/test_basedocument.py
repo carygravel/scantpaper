@@ -64,7 +64,7 @@ def mock_thread(mocker: pytest.MockerFixture) -> MagicMock:
 
     mock_inst.send.side_effect = mock_send
 
-    return mock_inst
+    return cast("MagicMock", (mock_inst))
 
 
 def test_create_pidfile_error() -> None:
@@ -765,7 +765,7 @@ def test_drag_data_get_and_drop_callbacks(mocker: pytest.MockerFixture) -> None:
         callback: Callable[..., object],
     ) -> int:
         captured_callbacks[signal_name] = callback
-        return original_connect(self, signal_name, callback)
+        return cast("int", (original_connect(self, signal_name, callback)))
 
     mocker.patch("gi.repository.Gtk.TreeView.connect", mocked_connect)
     slist = Document()

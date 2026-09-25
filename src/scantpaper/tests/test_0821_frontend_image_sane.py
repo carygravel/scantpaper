@@ -457,7 +457,7 @@ def _make_test_options() -> dict[str, SimpleNamespace]:
 def _set_option_side_effect(index: int, _value: object) -> int:
     """Side effect for mock SANE set_option that triggers a reload."""
     del index
-    return enums.INFO_RELOAD_OPTIONS
+    return cast("int", (enums.INFO_RELOAD_OPTIONS))
 
 
 def test_6_mock_device() -> None:

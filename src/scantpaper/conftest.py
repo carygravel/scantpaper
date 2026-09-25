@@ -176,7 +176,7 @@ def sane_scan_mocks() -> SimpleNamespace:
             cast("Any", self.device_handle).br_y = 355.599990844727
             info = enums.INFO_RELOAD_OPTIONS
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return info
+        return cast("int", (info))
 
     def mocked_do_scan_page(self: SaneThread, _request: Request) -> Image.Image:
         """mocked_do_scan_page page."""
@@ -269,7 +269,7 @@ def inexact_scan_mocks(
             )
 
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return info
+        return cast("int", (info))
 
     def patch_all(mocker: pytest.MockerFixture) -> None:
         """Patch the SaneThread do_* methods used by the test_inexact family."""

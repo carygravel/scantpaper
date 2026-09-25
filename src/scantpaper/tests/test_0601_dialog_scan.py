@@ -721,7 +721,7 @@ def test_officejet_4620(
             info = enums.INFO_RELOAD_OPTIONS
 
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return info
+        return cast("int", (info))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option
@@ -766,7 +766,7 @@ def test_infinite_reloads(
         Trigger an infinite reload loop and test that the apply gives up
         per-option instead of hitting the reload-recursion-limit.
         """
-        return enums.INFO_RELOAD_OPTIONS
+        return cast("int", (enums.INFO_RELOAD_OPTIONS))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option

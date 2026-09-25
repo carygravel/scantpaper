@@ -496,7 +496,7 @@ class Unpaper:
 
     def _checkbutton_get_option(self, option: str) -> bool:
         """Get option for checkbutton."""
-        return self.options[option]["widget"].get_active()
+        return cast("bool", (self.options[option]["widget"].get_active()))
 
     def _checkbuttongroup_get_option(self, option: str) -> str | None:
         """Get option for checkbuttongroup."""
@@ -508,14 +508,14 @@ class Unpaper:
         ]
 
         if items:
-            return ",".join(items)
+            return cast("str | None", (",".join(items)))
         return None
 
     def _spinbutton_get_option(self, option: str) -> int | float:
         """Get option for spinbutton."""
         if cast("float", self.options[option]["step"]) >= 1:
-            return self.options[option]["widget"].get_value_as_int()
-        return self.options[option]["widget"].get_value()
+            return cast("float", (self.options[option]["widget"].get_value_as_int()))
+        return cast("float", (self.options[option]["widget"].get_value()))
 
     def _spinbuttongroup_get_option(self, option: str) -> str:
         """Get option for spinbuttongroup."""
@@ -636,7 +636,7 @@ class Unpaper:
             version = program_version("stdout", r"([\d.]+)", ["unpaper", "--version"])
             if version is not None:
                 self._version = version
-        return self._version
+        return cast("str | None", (self._version))
 
 
 def count_active_children(frame: Gtk.Frame) -> int:

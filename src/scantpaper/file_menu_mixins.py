@@ -231,7 +231,7 @@ class FileMenuMixins:
         text = entry.get_text()
         dialog.destroy()
         if response == Gtk.ResponseType.OK and text != EMPTY:
-            return text
+            return cast("str | None", (text))
         return None
 
     def _import_files_finished_callback(self, response: Response) -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 
@@ -67,7 +67,7 @@ class EntryCompletion(Gtk.Entry):
                 substring.append(text)
             else:
                 rest.append(text)
-        return exact + prefix + substring + rest
+        return cast("list[str]", (exact + prefix + substring + rest))
 
     def _refresh_model(self) -> None:
         key = self.get_text()

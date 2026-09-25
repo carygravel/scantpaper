@@ -112,7 +112,7 @@ class Page:
     def to_stored_bytes(self) -> bytes:
         """Return the image as bytes for SQLite, choosing a compact PDF-compatible format."""
         if self.image_object.format in ("JPEG", "PNG") and self._stored_bytes:
-            return self._stored_bytes
+            return cast("bytes", (self._stored_bytes))
         if self.image_object.mode == "1":
             return self._to_png_bytes()
         if self.image_object.mode in ("RGBA", "LA", "PA"):
@@ -218,7 +218,7 @@ class Page:
             self.width = self.image_object.width
             self.height = self.image_object.height
 
-        return self.width, self.height
+        return cast("tuple[int, int]", (self.width, self.height))
 
     def get_resolution(
         self, paper_sizes: dict[str, dict[str, float]] | None = None
@@ -227,7 +227,7 @@ class Page:
         if isinstance(self.resolution, (int, float)) or (
             isinstance(self.resolution, tuple) and self.resolution[0] is not None
         ):
-            return self.resolution
+            return cast("tuple[float, float, str]", (self.resolution))
 
         locale.setlocale(locale.LC_NUMERIC, "C")
         if self.size != (None, None, None):
@@ -280,7 +280,7 @@ class Page:
         # if no units for resolution, rewrite the resolution, which forces units
         # tested by test_1114_save_pdf_different_resolutions.py
         self.resolution = (xresolution, yresolution, units)
-        return self.resolution
+        return cast("tuple[float, float, str]", (self.resolution))
 
     def matching_paper_sizes(
         self, paper_sizes: dict[str, dict[str, float]] | None
@@ -383,7 +383,7 @@ class Page:
         """Return image depth based on mode provided by PIL."""
         if self._depth is None:
             self._depth = MODE2DEPTH[self.image_object.mode]
-        return self._depth
+        return cast("int", (self._depth))
 
     def _equalize_resolution(self) -> tuple[float, Image.Image]:
         """c44 and cjb2 do not support different resolutions in the x and y directions, so resample."""

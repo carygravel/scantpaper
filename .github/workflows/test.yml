@@ -50,7 +50,7 @@ jobs:
             xauth xvfb
           python3 -m pip install --upgrade pip
           pip install pytest pytest-cov pytest-mock pytest-timeout pytest-xvfb \
-            ruff==0.16.7 ty==0.0.82
+            ruff==0.16.7 ty==0.0.84
 
           # add locale, needed for a couple of tests
           sudo locale-gen de_DE.UTF-8
@@ -60,11 +60,14 @@ jobs:
         run: ruff check .
       - name: Ruff format check
         run: ruff format --check .
-      - name: ty check
-        # The runner's non-root `pip install` puts packages in the user site
-        # (~/.local), which ty does not scan by default. Add it to the module
-        # search path so ty can resolve the pip-installed runtime/test deps.
-        run: ty check --extra-search-path "$(python3 -m site --user-site)" .
+      # No ty check here: this job validates the PPA's system runtime packages,
+      # where the older system python3-pil (10.2.0 on noble) has no type hints.
+      # Type checking is already covered by the `latest` and `oldest` jobs using
+      # the modern pip Pillow.
+      # TODO: re-enable the ty check step once this job's base image ships
+      # python3-pil >= 11.0.0 (the first release with the `rotate` return
+      # annotation; resolute/26.04 ships 12.1.1). ubuntu-latest is switching to
+      # resolute soon, which will satisfy this.
       - name: Test
         run: pytest
 
@@ -83,7 +86,7 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install --upgrade pip setuptools wheel packaging build
           pip install .[test]
-          pip install ruff==0.16.7 ty==0.0.82
+          pip install ruff==0.16.7 ty==0.0.84
 
           # add locale, needed for a couple of tests
           sudo locale-gen de_DE.UTF-8
@@ -124,7 +127,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade pip setuptools wheel packaging build
           pip install .[test]
-          pip install ruff==0.16.5 ty==0.0.82
+          pip install ruff==0.16.5 ty==0.0.84
 
           # add locale, needed for a couple of tests
           sudo locale-gen de_DE.UTF-8

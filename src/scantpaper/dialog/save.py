@@ -110,7 +110,7 @@ class Save(Dialog):
                     )
                 except (ValueError, TypeError):
                     pass
-        return self._meta_datetime
+        return cast("datetime.date | None", (self._meta_datetime))
 
     def _resolve_meta_datetime(
         self, parsed: datetime.datetime
@@ -129,7 +129,7 @@ class Save(Dialog):
                     result = parsed
                 elif hasattr(existing, "day"):
                     result = parsed.date()
-        return result
+        return cast("datetime.date", (result))
 
     @meta_datetime.setter
     def meta_datetime(self, newval: datetime.datetime | datetime.date | None) -> None:
@@ -171,7 +171,7 @@ class Save(Dialog):
         """Title metadata."""
         if self._meta_title_widget is None:
             return self._meta_title
-        return self._meta_title_widget.get_text()
+        return cast("str", (self._meta_title_widget.get_text()))
 
     @meta_title.setter
     def meta_title(self, newval: str) -> None:
@@ -184,8 +184,8 @@ class Save(Dialog):
     def meta_title_suggestions(self) -> list[str]:
         """Array of title metadata suggestions, used by entry completion widget."""
         if self._meta_title_widget is None:
-            return self._meta_title_suggestions or []
-        return self._meta_title_widget.get_suggestions()
+            return cast("list[str]", (self._meta_title_suggestions or []))
+        return cast("list[str]", (self._meta_title_widget.get_suggestions()))
 
     @meta_title_suggestions.setter
     def meta_title_suggestions(self, newval: list[str]) -> None:
@@ -202,7 +202,7 @@ class Save(Dialog):
         """Return the author metadata."""
         if self._meta_author_widget is None:
             return self._meta_author
-        return self._meta_author_widget.get_text()
+        return cast("str", (self._meta_author_widget.get_text()))
 
     @meta_author.setter
     def meta_author(self, newval: str) -> None:
@@ -215,8 +215,8 @@ class Save(Dialog):
     def meta_author_suggestions(self) -> list[str]:
         """Array of author metadata suggestions, used by entry completion widget."""
         if self._meta_author_widget is None:
-            return self._meta_author_suggestions or []
-        return self._meta_author_widget.get_suggestions()
+            return cast("list[str]", (self._meta_author_suggestions or []))
+        return cast("list[str]", (self._meta_author_widget.get_suggestions()))
 
     @meta_author_suggestions.setter
     def meta_author_suggestions(self, newval: list[str]) -> None:
@@ -233,7 +233,7 @@ class Save(Dialog):
         """Subject metadata."""
         if self._meta_subject_widget is None:
             return self._meta_subject
-        return self._meta_subject_widget.get_text()
+        return cast("str", (self._meta_subject_widget.get_text()))
 
     @meta_subject.setter
     def meta_subject(self, newval: str) -> None:
@@ -246,8 +246,8 @@ class Save(Dialog):
     def meta_subject_suggestions(self) -> list[str]:
         """Array of subject metadata suggestions, used by entry completion widget."""
         if self._meta_subject_widget is None:
-            return self._meta_subject_suggestions or []
-        return self._meta_subject_widget.get_suggestions()
+            return cast("list[str]", (self._meta_subject_suggestions or []))
+        return cast("list[str]", (self._meta_subject_widget.get_suggestions()))
 
     @meta_subject_suggestions.setter
     def meta_subject_suggestions(self, newval: list[str]) -> None:
@@ -264,7 +264,7 @@ class Save(Dialog):
         """Keyword metadata."""
         if self._meta_keywords_widget is None:
             return self._meta_keywords
-        return self._meta_keywords_widget.get_text()
+        return cast("str", (self._meta_keywords_widget.get_text()))
 
     @meta_keywords.setter
     def meta_keywords(self, newval: str) -> None:
@@ -277,8 +277,8 @@ class Save(Dialog):
     def meta_keywords_suggestions(self) -> list[str]:
         """Array of keyword metadata suggestions, used by entry completion widget."""
         if self._meta_keywords_widget is None:
-            return self._meta_keywords_suggestions or []
-        return self._meta_keywords_widget.get_suggestions()
+            return cast("list[str]", (self._meta_keywords_suggestions or []))
+        return cast("list[str]", (self._meta_keywords_widget.get_suggestions()))
 
     @meta_keywords_suggestions.setter
     def meta_keywords_suggestions(self, newval: list[str]) -> None:

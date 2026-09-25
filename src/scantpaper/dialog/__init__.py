@@ -39,10 +39,12 @@ class Dialog(Gtk.Dialog):
         """Delete event."""
         if self.hide_on_delete:
             self.hide()
-            return Gdk.EVENT_STOP  # ensures that the window is not destroyed
+            return cast(
+                "bool", (Gdk.EVENT_STOP)
+            )  # ensures that the window is not destroyed
 
         self.destroy()
-        return Gdk.EVENT_PROPAGATE
+        return cast("bool", (Gdk.EVENT_PROPAGATE))
 
     def do_key_press_event(self, event: Gdk.EventKey) -> bool:
         """Key press event."""
@@ -51,9 +53,9 @@ class Dialog(Gtk.Dialog):
                 self.hide()
             else:
                 self.destroy()
-            return Gdk.EVENT_STOP
+            return cast("bool", (Gdk.EVENT_STOP))
         Gtk.Dialog.do_key_press_event(self, event)
-        return Gdk.EVENT_PROPAGATE
+        return cast("bool", (Gdk.EVENT_PROPAGATE))
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
@@ -268,7 +270,7 @@ class MultipleMessage(Dialog):
                         )
                     )
 
-        return messages
+        return cast("list[str]", (messages))
 
 
 def response_stored(text: str, responses: dict[str, dict[str, object]]) -> bool:
@@ -298,7 +300,7 @@ def munge_message(messages: str) -> str | list[str]:
     if out:
         if not re.search(r"^\s*$", messages, re.MULTILINE | re.DOTALL | re.VERBOSE):
             out.append(messages)
-        return out
+        return cast("str | list[str]", (out))
 
     if re.search(
         r"Exception[ ](?:400|445):[ ]memory[ ]allocation[ ]failed",

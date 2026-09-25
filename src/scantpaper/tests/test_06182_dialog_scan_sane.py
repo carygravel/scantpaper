@@ -239,7 +239,7 @@ def test_option_dependency(
                 raw_options[i] = raw_options[i]._replace(constraint=(0, 800, 0))
             info = enums.INFO_RELOAD_OPTIONS
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return info
+        return cast("int", (info))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_open_device", mocked_do_open_device
@@ -648,7 +648,7 @@ def test_combobox_on_reload(
             )
             info = enums.INFO_RELOAD_OPTIONS
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return info
+        return cast("int", (info))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_open_device",

@@ -179,7 +179,7 @@ class SimpleList(Gtk.TreeView):
 
     def __iter__(self, *args: object, **kwargs: object) -> Iterator[object]:
         """Iterate over the rows of the list model."""
-        return iter(self.get_model(), *args, **kwargs)
+        return cast("Iterator[object]", (iter(self.get_model(), *args, **kwargs)))
 
     @property
     def data(self) -> TiedList:
@@ -320,11 +320,11 @@ class TiedRow:
 
     def __len__(self) -> int:
         """Return the number of items."""
-        return self.model.get_n_columns()
+        return cast("int", (self.model.get_n_columns()))
 
     def __contains__(self, index: object) -> bool:
         """Check if the index is within range."""
-        return index < self.model.get_n_columns()
+        return cast("bool", (index < self.model.get_n_columns()))
 
     def __delitem__(self, _index: int) -> None:
         """Raise NotImplementedError — fixed-size row."""
@@ -403,7 +403,7 @@ class TiedList:
 
     def __iter__(self) -> Iterator[list[object]]:
         """Iterate over the rows."""
-        return iter(self.model)
+        return cast("Iterator[list[object]]", (iter(self.model)))
 
     def extend(self, values: Iterable[object]) -> None:
         """Extend."""
@@ -428,7 +428,7 @@ class TiedList:
             raise IndexError(msg)
         ret = list(model[itr])
         model.remove(itr)
-        return ret
+        return cast("list[object]", (ret))
 
     def __delitem__(self, index: int) -> None:
         """Raise NotImplementedError — fixed-size row."""

@@ -175,5 +175,4 @@ all = "error"
 # Rules we have not yet ratcheted to zero; see AGENTS.md contribution notes.
 "unresolved-attribute" = "ignore"
 "disjoint-cast" = "ignore"
-"unsound-return-statement" = "ignore"
 

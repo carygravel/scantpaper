@@ -6,6 +6,7 @@ import datetime
 import importlib.metadata
 import sys
 from pathlib import Path
+from typing import cast
 
 if sys.version_info >= (3, 11):  # jammy (22.04) still has 3.10
     import tomllib
@@ -24,7 +25,9 @@ def get_version() -> str:
     """Get version from pyproject.toml."""
     tomlfile_path = Path(__file__).resolve().parents[2] / "pyproject.toml"
     if tomlfile_path.is_file():
-        return tomllib.loads(tomlfile_path.read_text())["project"]["version"]
+        return cast(
+            "str", (tomllib.loads(tomlfile_path.read_text())["project"]["version"])
+        )
     return importlib.metadata.version(PROG_NAME)
 
 

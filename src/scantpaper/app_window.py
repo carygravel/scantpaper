@@ -645,9 +645,9 @@ class ApplicationWindow(
 
         # Let the keypress propagate
         if event.keyval != Gdk.KEY_Delete:
-            return Gdk.EVENT_PROPAGATE
+            return cast("bool", (Gdk.EVENT_PROPAGATE))
         self.delete_selection(None, None)
-        return Gdk.EVENT_STOP
+        return cast("bool", (Gdk.EVENT_STOP))
 
     _in_tool_change = False
 

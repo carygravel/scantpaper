@@ -172,7 +172,7 @@ class Bboxtree:
                 r"([A-Za-z]+)", str(bbox["id"]), re.MULTILINE | re.DOTALL | re.VERBOSE
             )
             bbox_type = regex.group(1) if regex else "line"
-        return bbox_type
+        return cast("str", (bbox_type))
 
     def _bbox_is_leaf(self, bbox_list: list[BBox], i: int) -> bool:
         """Return True if the bbox at index i has no children."""
@@ -332,7 +332,7 @@ class Bboxtree:
             prev_depth -= 1
 
         string += " </body>\n</html>\n"
-        return string
+        return cast("str", (string))
 
     def crop(self, left: int, top: int, width: int, height: int) -> Bboxtree:
         """Crop bboxtree."""
@@ -519,7 +519,7 @@ def _hocr2boxes(hocr: str) -> list[BBox]:
 
     parser = HOCRParser()
     parser.feed(hocr)
-    return parser.boxes
+    return cast("list[BBox]", (parser.boxes))
 
 
 def _prune_empty_branches(boxes: list[BBox]) -> None:
@@ -622,7 +622,7 @@ def _pdftotext2boxes(
 ) -> list[BBox]:
     parser = PDFTextParser(resolution, image_size)
     parser.feed(text)
-    return parser.boxes
+    return cast("list[BBox]", (parser.boxes))
 
 
 def scale(value: float, resolution: float) -> int:

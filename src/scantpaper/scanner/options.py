@@ -82,11 +82,14 @@ class Options(GObject.Object):
 
     def by_index(self, i: int) -> Option:
         """Return option by index."""
-        return self.array[i]
+        return cast("Option", (self.array[i]))
 
     def by_name(self, name: str | None) -> Option | None:
         """Return option by name."""
-        return self.hash[name] if name is not None and name in self.hash else None
+        return cast(
+            "Option | None",
+            (self.hash[name] if name is not None and name in self.hash else None),
+        )
 
     def num_options(self) -> int:
         """Return number of options."""

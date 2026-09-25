@@ -134,7 +134,7 @@ def test_infinite_reloads_due_to_tolerance(
             )
 
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return info
+        return cast("int", (info))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option

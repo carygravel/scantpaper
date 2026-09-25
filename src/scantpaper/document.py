@@ -436,7 +436,7 @@ class Document(BaseDocument):
                 break
 
         # round the value to a sensible number of significant figures
-        return xresolution, yresolution
+        return cast("tuple[float | None, float | None]", (xresolution, yresolution))
 
 
 def _is_placeholder_title(value: str) -> bool:

@@ -48,7 +48,7 @@ class MockSaveThread(SaveThread):
     def get_page(self, page_id: int | None = None, **kwargs: object) -> Page:
         """Mock get_page."""
         del page_id
-        return self.mock_pages[kwargs.get("id")]
+        return cast("Page", (self.mock_pages[kwargs.get("id")]))
 
     def do_set_saved(self, request: Request) -> None:
         """Mock do_set_saved."""

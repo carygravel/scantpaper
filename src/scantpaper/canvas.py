@@ -83,7 +83,7 @@ def rgb2hsv(rgb: Gdk.RGBA) -> dict[str, float]:
     if delta < COLOR_TOLERANCE:
         hsv["s"] = 0
         hsv["h"] = 0
-        return hsv
+        return cast("dict[str, float]", (hsv))
 
     hsv["s"] = delta / maxv
 
@@ -100,7 +100,7 @@ def rgb2hsv(rgb: Gdk.RGBA) -> dict[str, float]:
     if hsv["h"] < 0.0:
         hsv["h"] += _360_DEGREES
 
-    return hsv
+    return cast("dict[str, float]", (hsv))
 
 
 def string2hsv(spec: str) -> dict[str, float]:
@@ -276,7 +276,9 @@ class Bbox:
     def get_centroid(self) -> tuple[float, float]:
         """Return centroid of bbox."""
         bbox = self.bbox
-        return bbox.x + bbox.width / 2, bbox.y + bbox.height / 2
+        return cast(
+            "tuple[float, float]", (bbox.x + bbox.width / 2, bbox.y + bbox.height / 2)
+        )
 
     def get_position_index(self) -> int:
         """Return positional index of bbox."""
@@ -313,7 +315,7 @@ class Bbox:
 
     def confidence2color(self) -> str:
         """Convert confidence percentage into colour using pre-calculated lookup table."""
-        return self.canvas.get_color_for_confidence(self.confidence)
+        return cast("str", (self.canvas.get_color_for_confidence(self.confidence)))
 
     def update_box(self, text: str, selection: Gdk.Rectangle) -> None:
         """Set the text in the given bbox."""
@@ -459,7 +461,7 @@ class _CanvasRoot:
 
     def get_child(self, i: int) -> Bbox:
         """Return i-th child."""
-        return self.children[i]
+        return cast("Bbox", (self.children[i]))
 
     def get_n_children(self) -> int:
         """Return number of children."""
@@ -467,7 +469,7 @@ class _CanvasRoot:
 
     def get_children(self) -> list[Bbox]:
         """Return all children."""
-        return self.children
+        return cast("list[Bbox]", (self.children))
 
 
 class Canvas(Gtk.DrawingArea):
@@ -557,7 +559,7 @@ class Canvas(Gtk.DrawingArea):
     )
     def zoom(self) -> float:
         """Getter for zoom attribute."""
-        return self._zoom
+        return cast("float", (self._zoom))
 
     @zoom.setter
     def zoom(self, newval: float) -> None:
@@ -577,7 +579,7 @@ class Canvas(Gtk.DrawingArea):
     )
     def max_color(self) -> str:
         """Getter for max_color attribute."""
-        return self._max_color
+        return cast("str", (self._max_color))
 
     @max_color.setter
     def max_color(self, newval: str) -> None:
@@ -594,7 +596,7 @@ class Canvas(Gtk.DrawingArea):
     )
     def min_color(self) -> str:
         """Getter for min_color attribute."""
-        return self._min_color
+        return cast("str", (self._min_color))
 
     @min_color.setter
     def min_color(self, newval: str) -> None:
@@ -613,7 +615,7 @@ class Canvas(Gtk.DrawingArea):
     )
     def min_confidence(self) -> int:
         """Getter for min_confidence attribute."""
-        return self._min_confidence
+        return cast("int", (self._min_confidence))
 
     @min_confidence.setter
     def min_confidence(self, newval: int) -> None:
@@ -631,7 +633,7 @@ class Canvas(Gtk.DrawingArea):
     )
     def max_confidence(self) -> int:
         """Getter for max_confidence attribute."""
-        return self._max_confidence
+        return cast("int", (self._max_confidence))
 
     @max_confidence.setter
     def max_confidence(self, newval: int) -> None:
@@ -643,13 +645,13 @@ class Canvas(Gtk.DrawingArea):
         """Return the max hsv colour."""
         if self._max_color_hsv is None:
             self._max_color_hsv = string2hsv(self._max_color)
-        return self._max_color_hsv
+        return cast("dict[str, float]", (self._max_color_hsv))
 
     def get_min_color_hsv(self) -> dict[str, float]:
         """Return the min hsv colour."""
         if self._min_color_hsv is None:
             self._min_color_hsv = string2hsv(self._min_color)
-        return self._min_color_hsv
+        return cast("dict[str, float]", (self._min_color_hsv))
 
     def _build_color_lookup_table(self, num_bands: int = 10) -> None:
         self._color_lookup_table = []
@@ -695,7 +697,7 @@ class Canvas(Gtk.DrawingArea):
         band_width = (max_conf - min_conf) / num_bands
         band_index = int((confidence - min_conf) / band_width)
 
-        return self._color_lookup_table[band_index]
+        return cast("str", (self._color_lookup_table[band_index]))
 
     def set_text(
         self,
@@ -861,7 +863,7 @@ class Canvas(Gtk.DrawingArea):
             bbox = self.position_index.first_word()
 
         self.set_other_index(bbox)
-        return bbox
+        return cast("Bbox | None", (bbox))
 
     def get_previous_bbox(self) -> Bbox | None:
         """Return previous bbox, depending on which index is active."""
@@ -872,7 +874,7 @@ class Canvas(Gtk.DrawingArea):
             bbox = self.position_index.previous_word()
 
         self.set_other_index(bbox)
-        return bbox
+        return cast("Bbox | None", (bbox))
 
     def get_next_bbox(self) -> Bbox | None:
         """Return next bbox, depending on which index is active."""
@@ -883,7 +885,7 @@ class Canvas(Gtk.DrawingArea):
             bbox = self.position_index.next_word()
 
         self.set_other_index(bbox)
-        return bbox
+        return cast("Bbox | None", (bbox))
 
     def get_last_bbox(self) -> Bbox | None:
         """Return last bbox, depending on which index is active."""
@@ -894,7 +896,7 @@ class Canvas(Gtk.DrawingArea):
             bbox = self.position_index.last_word()
 
         self.set_other_index(bbox)
-        return bbox
+        return cast("Bbox | None", (bbox))
 
     def get_current_bbox(self) -> Bbox | None:
         """Return current bbox."""
@@ -906,7 +908,7 @@ class Canvas(Gtk.DrawingArea):
             bbox = self.position_index.get_current_bbox()
 
         self.set_other_index(bbox)
-        return bbox
+        return cast("Bbox | None", (bbox))
 
     def set_index_by_bbox(self, bbox: Bbox) -> None:
         """Set the index by bbox."""
@@ -928,7 +930,7 @@ class Canvas(Gtk.DrawingArea):
 
     def get_pixbuf_size(self) -> dict[str, int] | None:
         """Return the size of the associated pixbuf."""
-        return self._pixbuf_size
+        return cast("dict[str, int] | None", (self._pixbuf_size))
 
     def clear_text(self) -> None:
         """Clear the canvas."""
@@ -1096,10 +1098,10 @@ class Canvas(Gtk.DrawingArea):
                 if options["finished_callback"]:
                     cast("Callable[..., object]", options["finished_callback"])()
                 self.queue_draw()
-                return GLib.SOURCE_REMOVE
+                return cast("bool", (GLib.SOURCE_REMOVE))
 
         self.queue_draw()
-        return GLib.SOURCE_CONTINUE
+        return cast("bool", (GLib.SOURCE_CONTINUE))
 
     def hocr(self) -> str:
         """Convert the canvas into hocr."""
@@ -1216,7 +1218,7 @@ class Canvas(Gtk.DrawingArea):
 
     def get_root_item(self) -> _CanvasRoot:
         """Get the root item of the scene graph."""
-        return self._root_item
+        return cast("_CanvasRoot", (self._root_item))
 
 
 class ListIter:
@@ -1252,7 +1254,7 @@ class ListIter:
     def get_current_bbox(self) -> Bbox:
         """Return bbox currently selected."""
         if self.index > EMPTY_LIST:
-            return self.list[self.index][0]
+            return cast("Bbox", (self.list[self.index][0]))
         raise StopIteration
 
     def set_index_by_bbox(self, bbox: Bbox, value: float) -> int:
@@ -1368,7 +1370,7 @@ class TreeIter:
             child = current.get_child(i)
             self._bbox.append(child)
             self._iter.append(i)
-            return child
+            return cast("Bbox", (child))
 
         while len(self._bbox) > 1:
             self._bbox.pop()
@@ -1380,7 +1382,7 @@ class TreeIter:
                 sibling = parent.get_child(i)
                 self._bbox.append(sibling)
                 self._iter.append(i)
-                return sibling
+                return cast("Bbox", (sibling))
 
         self._bbox = old_bbox
         self._iter = old_iter
@@ -1414,7 +1416,7 @@ class TreeIter:
             self._bbox.append(sibling)
             self._iter.append(i)
             return self.last_leaf()
-        return parent
+        return cast("Bbox", (parent))
 
     def previous_word(self) -> Bbox:
         """Return previous word."""
@@ -1456,8 +1458,8 @@ class TreeIter:
             self._iter.append(n)
             self._bbox.append(child)
             return self.last_leaf()
-        return self._bbox[-1]
+        return cast("Bbox", (self._bbox[-1]))
 
     def get_current_bbox(self) -> Bbox:
         """Return bbox currently being viewed."""
-        return self._bbox[-1]
+        return cast("Bbox", (self._bbox[-1]))

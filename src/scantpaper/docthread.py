@@ -129,7 +129,7 @@ class DocThread(SaveThread):
             nonlocal timed_out
             timed_out = True
             mlp.quit()
-            return GLib.SOURCE_REMOVE
+            return cast("bool", (GLib.SOURCE_REMOVE))
 
         timeout_id = GLib.timeout_add(10000, on_timeout)  # to prevent it hanging
         self.send(
@@ -184,14 +184,14 @@ class DocThread(SaveThread):
         tid = threading.get_native_id()
         result = self._cur[tid].fetchone()
         logger.debug("_fetchone() in tid %s returned %s", tid, _loggerise(result))
-        return result
+        return cast("tuple[object, ...] | None", (result))
 
     def _fetchall(self) -> list[tuple[object, ...]]:
         """Fetch one row from the database."""
         tid = threading.get_native_id()
         result = self._cur[tid].fetchall()
         logger.debug("fetchall() in tid %s returned %s", tid, _loggerise(result))
-        return result
+        return cast("list[tuple[object, ...]]", (result))
 
     def _check_write_tid(self) -> None:
         tid = threading.get_native_id()
@@ -392,7 +392,7 @@ class DocThread(SaveThread):
         )
         tid = threading.get_native_id()
         self._con[tid].commit()
-        return self._cur[tid].lastrowid
+        return cast("int", (self._cur[tid].lastrowid))
 
     def _shift_row_ids(self, start_row_id: int, shift: int) -> None:
         """Shift the row_ids of all rows at or after start_row_id by the given amount."""
@@ -860,7 +860,7 @@ class DocThread(SaveThread):
         if pixbuf is None:
             return b""
         _success, buffer = pixbuf.save_to_bufferv("png", [], [])
-        return buffer
+        return cast("bytes", (buffer))
 
     def _bytes_to_pixbuf(self, blob: bytes) -> GdkPixbuf.Pixbuf:
         """Given a stream of bytes, return the equivalent pixbuf."""
@@ -920,7 +920,9 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         row_ids = self._fetchone()
-        return json.loads(cast("str", row_ids[0])) if row_ids else []
+        return cast(
+            "list[int]", (json.loads(cast("str", row_ids[0])) if row_ids else [])
+        )
 
     def do_set_selection(self, request: Request) -> None:
         """Set the selected row ids for the current action_id."""
@@ -1096,7 +1098,7 @@ class DocThread(SaveThread):
         mean, std_dev = cast("tuple[object, ...]", self._fetchone())
         mean = json.loads(cast("str", mean), strict=False)
         std_dev = json.loads(cast("str", std_dev), strict=False)
-        return mean, std_dev
+        return cast("tuple[list[float], list[float]]", (mean, std_dev))
 
     def do_set_mean_std_dev(self, request: Request) -> None:
         """Set the mean and std_dev for the given page."""
@@ -1690,8 +1692,11 @@ def _calculate_crop_tuples(
         width2 = width
         height2 = image.height - height
 
-    return (
-        (0, 0, width, height),
-        (right, bottom, right + width2, bottom + height2),
-        (right, bottom, width2, height2),
+    return cast(
+        "tuple[tuple[int, int, int, int], tuple[int, int, int, int], tuple[int, int, int, int]]",
+        (
+            (0, 0, width, height),
+            (right, bottom, right + width2, bottom + height2),
+            (right, bottom, width2, height2),
+        ),
     )

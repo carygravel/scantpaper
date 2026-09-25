@@ -200,7 +200,7 @@ class SaneThread(BaseThread):
             else None
         )
 
-        return info
+        return cast("int | None", (info))
 
     def do_scan_page(self, request: Request) -> object:
         """Scan page."""

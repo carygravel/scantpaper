@@ -88,7 +88,7 @@ def setup_coupled_scan_options(
             info = enums.INFO_RELOAD_OPTIONS
         else:
             setattr(self.device_handle, key.replace("-", "_"), value)
-        return info
+        return cast("int", (info))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option
@@ -144,7 +144,7 @@ def test_infinite_reloads(
         """
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return enums.INFO_RELOAD_OPTIONS
+        return cast("int", (enums.INFO_RELOAD_OPTIONS))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option
@@ -345,7 +345,7 @@ def test_changed_profile(
         """
         key, value = _request.args
         setattr(self.device_handle, key.replace("-", "_"), value)
-        return enums.INFO_RELOAD_OPTIONS
+        return cast("int", (enums.INFO_RELOAD_OPTIONS))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option
@@ -566,7 +566,7 @@ def test_button_press(
             info = enums.INFO_RELOAD_OPTIONS
         else:
             setattr(self.device_handle, key.replace("-", "_"), value)
-        return info
+        return cast("int", (info))
 
     mocker.patch(
         "scantpaper.dialog.sane.SaneThread.do_set_option", mocked_do_set_option

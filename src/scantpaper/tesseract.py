@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from typing import cast
 
 import iso639
 
@@ -181,7 +182,7 @@ def get_tesseract_codes() -> list[str]:
         _codes.pop(0)
     if _codes[-1] == "":
         _codes.pop()
-    return _codes
+    return cast("list[str]", (_codes))
 
 
 def code2name(code: str) -> str:

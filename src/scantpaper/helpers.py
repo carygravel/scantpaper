@@ -291,7 +291,7 @@ def _program_version(
 
     regex2 = re.search(regex, output) if output is not None else None
     if regex2:
-        return regex2.group(1)
+        return cast("str | None", (regex2.group(1)))
     if proc.returncode == PROCESS_FAILED:
         logger.info(proc.stderr)
         return None
@@ -362,7 +362,7 @@ def expand_metadata_pattern(**kwargs: object) -> str:
         kwargs["template"] = re.sub(
             r"\s", r"_", kwargs["template"], flags=re.MULTILINE | re.DOTALL
         )
-    return kwargs["template"]
+    return cast("str", (kwargs["template"]))
 
 
 def show_message_dialog(**options: object) -> None:

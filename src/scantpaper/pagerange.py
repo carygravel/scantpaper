@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 
@@ -76,7 +76,7 @@ class PageRange(Gtk.Box):
 
     def get_active(self) -> str:
         """Return active button."""
-        return self.active
+        return cast("str", (self.active))
 
     def set_active(self, active: str) -> None:
         """Set active button."""

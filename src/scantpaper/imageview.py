@@ -64,7 +64,7 @@ class Tool:
 
     def connect(self, *args: object) -> int:
         """Provide the base connection accessor."""
-        return self.view().connect(*args)
+        return cast("int", (self.view().connect(*args)))
 
     def disconnect(self, *args: object) -> None:
         """Provide the base disconnection accessor."""
@@ -638,7 +638,7 @@ class ImageView(Gtk.DrawingArea):
         """Return to high-quality rendering when the scroll burst stops."""
         self._scroll_timeout = None
         self.set_interacting(interacting=False)
-        return GLib.SOURCE_REMOVE
+        return cast("bool", (GLib.SOURCE_REMOVE))
 
     def do_scroll_event(self, event: Gdk.EventScroll, **_kwargs: object) -> None:
         """Respond to the scroll event."""
@@ -730,7 +730,7 @@ class ImageView(Gtk.DrawingArea):
             ctx.paint()
             self._cached_surface = surface
             self._cached_pixbuf_id = id(pixbuf)
-        return self._cached_surface
+        return cast("cairo.ImageSurface", (self._cached_surface))
 
     def _get_adaptive_filter(self) -> cairo.Filter:
         """Use faster filtering while interacting, better quality when static."""
@@ -756,7 +756,10 @@ class ImageView(Gtk.DrawingArea):
         ratio = self.get_resolution_ratio()
         offset = self.get_offset()
         factor = self.get_scale_factor()
-        return (x + offset.x) * zoom / factor / ratio, (y + offset.y) * zoom / factor
+        return cast(
+            "tuple[float, float]",
+            ((x + offset.x) * zoom / factor / ratio, (y + offset.y) * zoom / factor),
+        )
 
     def to_image_coords(
         self, x: float, y: float
@@ -768,14 +771,19 @@ class ImageView(Gtk.DrawingArea):
         if offset is None:
             return None, None
         factor = self.get_scale_factor()
-        return x * factor / zoom * ratio - offset.x, y * factor / zoom - offset.y
+        return cast(
+            "tuple[float, float] | tuple[None, None]",
+            (x * factor / zoom * ratio - offset.x, y * factor / zoom - offset.y),
+        )
 
     def to_image_distance(self, x: float, y: float) -> tuple[float, float]:
         """Convert x, y in widget distance to image distance."""
         zoom = self.get_zoom()
         ratio = self.get_resolution_ratio()
         factor = self.get_scale_factor()
-        return x * factor / zoom * ratio, y * factor / zoom
+        return cast(
+            "tuple[float, float]", (x * factor / zoom * ratio, y * factor / zoom)
+        )
 
     def _set_zoom_with_center(
         self, zoom: float, center_x: float, center_y: float
@@ -831,7 +839,7 @@ class ImageView(Gtk.DrawingArea):
 
     def getzoom_is_fit(self) -> bool:
         """Return value of zoom_to_fit property."""
-        return self.zoom_is_fit
+        return cast("bool", (self.zoom_is_fit))
 
     def zoom_in(self) -> None:
         """Zoom in one step."""
@@ -887,7 +895,7 @@ class ImageView(Gtk.DrawingArea):
 
     def get_tool(self) -> Tool:
         """Get current tool."""
-        return self.tool
+        return cast("Tool", (self.tool))
 
     def set_selection(self, selection: Gdk.Rectangle | None) -> None:
         """Set selection."""
@@ -927,7 +935,7 @@ class ImageView(Gtk.DrawingArea):
 
     def get_resolution_ratio(self) -> float:
         """Get ratio between x and y resolutions."""
-        return self.resolution_ratio
+        return cast("float", (self.resolution_ratio))
 
     def update_cursor(self, x: float, y: float) -> None:
         """Update cursor based on given coords."""
@@ -947,7 +955,7 @@ class ImageView(Gtk.DrawingArea):
 
     def get_interacting(self) -> bool:
         """Return whether the user is actively manipulating the view."""
-        return self._interacting
+        return cast("bool", (self._interacting))
 
     def set_interpolation(self, interpolation: cairo.Filter) -> None:
         """Set interpolation method."""
@@ -956,7 +964,7 @@ class ImageView(Gtk.DrawingArea):
 
     def get_interpolation(self) -> cairo.Filter:
         """Get current interpolation method."""
-        return self.interpolation
+        return cast("cairo.Filter", (self.interpolation))
 
 
 def _clamp_direction(offset: float, allocation: float, pixbuf_size: float) -> float:

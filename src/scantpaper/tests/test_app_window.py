@@ -150,7 +150,10 @@ def _setup_app_window_mocks(
     mock_mm.return_value.grid_rows = 1
     mock_mm.return_value.get_size.return_value = (400, 300)
 
-    return mock_selector, mock_dragger, mock_selector_dragger
+    return cast(
+        "tuple[MagicMock, MagicMock, MagicMock]",
+        (mock_selector, mock_dragger, mock_selector_dragger),
+    )
 
 
 def _create_test_app(
@@ -182,7 +185,7 @@ def mock_builder(mocker: pytest.MockerFixture) -> Generator[object, None, None]:
     builder = builder_cls.return_value
     # Return a MagicMock for any object requested
     builder.get_object.side_effect = lambda x: MagicMock(name=x)
-    return builder
+    return cast("Generator[object, None, None]", (builder))
 
 
 @pytest.fixture
@@ -210,7 +213,7 @@ def mock_config(mocker: pytest.MockerFixture) -> Generator[object, None, None]:
         "cache-device-list": False,
         "selection": None,
     }
-    return config
+    return cast("Generator[object, None, None]", (config))
 
 
 @pytest.fixture

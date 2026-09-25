@@ -10,7 +10,7 @@ import threading
 import uuid
 import weakref
 from enum import Enum
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 from gi.repository import GLib
 from typing_extensions import override
@@ -148,7 +148,7 @@ class BaseThread(threading.Thread):
                 os.close(self._notify_r)
             with contextlib.suppress(OSError):
                 os.close(self._notify_w)
-            return GLib.SOURCE_REMOVE
+            return cast("bool", (GLib.SOURCE_REMOVE))
 
         GLib.idle_add(_cleanup)
 
@@ -165,12 +165,12 @@ class BaseThread(threading.Thread):
         except BlockingIOError:
             pass
         self.monitor()
-        return GLib.SOURCE_CONTINUE
+        return cast("bool", (GLib.SOURCE_CONTINUE))
 
     def _tick(self) -> bool:
         """Periodic tick for running callbacks (progress reporting)."""
         self._execute_callbacks_for_stage("running", None)
-        return GLib.SOURCE_CONTINUE
+        return cast("bool", (GLib.SOURCE_CONTINUE))
 
     def quit(self) -> uuid.UUID:
         """Quit the thread."""
@@ -303,15 +303,15 @@ class BaseThread(threading.Thread):
         if not self.responses.empty():
             self._monitor_response()
             GLib.idle_add(self._drain_one)
-        return GLib.SOURCE_CONTINUE
+        return cast("bool", (GLib.SOURCE_CONTINUE))
 
     def _drain_one(self) -> bool:
         """Process one response from the queue, scheduling the next if needed."""
         self._execute_callbacks_for_stage("running", None)
         if not self.responses.empty():
             self._monitor_response()
-            return GLib.SOURCE_CONTINUE
-        return GLib.SOURCE_REMOVE
+            return cast("bool", (GLib.SOURCE_CONTINUE))
+        return cast("bool", (GLib.SOURCE_REMOVE))
 
     def _execute_callbacks_for_stage(self, stage: str, result: Response | None) -> None:
         """Run the callbacks associated with each stage."""
@@ -371,7 +371,7 @@ class BaseThread(threading.Thread):
         try:
             result = self.responses.get(False)
         except queue.Empty:
-            return GLib.SOURCE_CONTINUE
+            return cast("bool", (GLib.SOURCE_CONTINUE))
         stage = result.type.name.lower()
         callback = stage + "_callback"
         uid = result.request.uuid
@@ -399,5 +399,5 @@ class BaseThread(threading.Thread):
             else:  # finished, cancelled, error
                 del self.callbacks[uid]
                 self.num_completed_jobs += 1
-                return GLib.SOURCE_REMOVE
-        return GLib.SOURCE_CONTINUE
+                return cast("bool", (GLib.SOURCE_REMOVE))
+        return cast("bool", (GLib.SOURCE_CONTINUE))
