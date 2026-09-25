@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
@@ -113,9 +113,7 @@ def test_infinite_reloads_due_to_tolerance(
         limit is not hit.
         """
         key, value = _request.args
-        for opt in raw_options:
-            if opt.name == key:
-                break
+        opt = next((o for o in raw_options if o.name == key), None)
 
         info = 0
         if (key == "br-x" and value == 216) or (key == "br-y" and value == 279):
@@ -128,8 +126,8 @@ def test_infinite_reloads_due_to_tolerance(
             )
             logger.info(
                 "sane_set_option %s (%s) to %s returned info %s (%s)",
-                opt.index,
-                opt.name,
+                cast("Option", opt).index,
+                cast("Option", opt).name,
                 value,
                 info,
                 decode_info(info),

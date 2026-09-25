@@ -317,7 +317,7 @@ class BaseDocument(SimpleList):
                 i + 1,
                 page_id,
             )
-        elif "insert-after" in kwargs:
+        else:
             self.data.insert(i + 1, [number, thumb, page_id])
             new_index = i + 1
             logger.info(

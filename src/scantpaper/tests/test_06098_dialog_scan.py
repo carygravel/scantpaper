@@ -722,14 +722,12 @@ def mocked_do_get_options(_self: SaneThread, _request: Request) -> list[Option]:
 def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
     """Create tests for the widgets for all options types."""
     key, value = _request.args
-    for opt in raw_options:
-        if opt.name == key:
-            break
+    opt = next((o for o in raw_options if o.name == key), None)
     info = 0
     logger.info(
         "sane_set_option %s (%s) to %s returned info %s (%s)",
-        opt.index,
-        opt.name,
+        cast("Option", opt).index,
+        cast("Option", opt).name,
         value,
         info,
         decode_info(info),

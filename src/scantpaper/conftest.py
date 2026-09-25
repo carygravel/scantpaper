@@ -253,9 +253,7 @@ def inexact_scan_mocks(
     def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         """Reproduce fi-4220C2dj ignoring paper changes due to INFO_INEXACT."""
         key, value = _request.args
-        for opt in raw_options:
-            if opt.name == key:
-                break
+        opt = next((o for o in raw_options if o.name == key), None)
 
         info = 0
         if key in ["br-x", "br-y", "tl-x", "tl-y"]:
@@ -263,8 +261,8 @@ def inexact_scan_mocks(
             value = cast("float", value) - 0.5
             logger.info(
                 "sane_set_option %s (%s) to %s returned info %s (%s)",
-                opt.index,
-                opt.name,
+                cast("Option", opt).index,
+                cast("Option", opt).name,
                 value,
                 info,
                 decode_info(info),

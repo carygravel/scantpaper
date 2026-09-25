@@ -332,6 +332,7 @@ class DocThread(SaveThread):
         self._check_write_tid()
         bytes_image = page.to_stored_bytes()
         insert = True
+        thumb = cast("GdkPixbuf.Pixbuf", None)
         if if_different_from is not None:
             self._execute(
                 "SELECT image, thumb FROM image WHERE id = ?",
