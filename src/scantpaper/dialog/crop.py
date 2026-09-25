@@ -34,7 +34,9 @@ LAYOUT = [
 class Crop(Dialog):
     """The crop dialog."""
 
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[
+        dict[str, tuple[GObject.SignalFlags, object, tuple[object, ...]]]
+    ] = {
         "changed-selection": (GObject.SignalFlags.RUN_FIRST, None, (Gdk.Rectangle,)),
     }
     _sb_x = None  # created in _create_spinbuttons()

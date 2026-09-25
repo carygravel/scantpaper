@@ -55,7 +55,7 @@ def _loggerise(variables: object) -> object:
         tuple_flag = False
         if isinstance(variables, tuple):
             tuple_flag = True
-        logger_vars = list(cast("Iterable", variables))
+        logger_vars = list(cast("Iterable[object]", variables))
         for i, item in enumerate(logger_vars):
             if isinstance(item, (bytes, bytearray)):
                 logger_vars[i] = "binary data"
@@ -559,7 +559,7 @@ class DocThread(SaveThread):
             for row in self._fetchall()
         ]
 
-    def page_number_table(self) -> list | None:
+    def page_number_table(self) -> list[list[object]] | None:
         """Wrap do_page_number_table via send() synchronously."""
         result: list[object] = [None]
         mlp = GLib.MainLoop()
@@ -578,7 +578,7 @@ class DocThread(SaveThread):
             error_callback=on_error,
         )
         mlp.run()
-        return cast("list | None", result[0])
+        return cast("list[list[object]] | None", result[0])
 
     def get_page(self, **kwargs: object) -> Page:
         """Get a page from the database."""

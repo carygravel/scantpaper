@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from gi.repository import GObject, Gtk
 
@@ -83,7 +83,7 @@ class SaneScanDialog(Scan):
             device_list = response.info
             logger.info("sane.get_devices() returned: %s", device_list)
             self.device_list = device_list
-            if len(cast("list", device_list)) == 0:
+            if len(cast("list[object]", device_list)) == 0:
                 self.emit("process-error", "get_devices", _("No devices found"))
                 self.destroy()
 
@@ -321,7 +321,7 @@ class SaneScanDialog(Scan):
     def _create_widget_combobox(self, opt: Option, val: object) -> Gtk.ComboBoxText:
         widget = Gtk.ComboBoxText()
         index = 0
-        for i, constraint in enumerate(cast("list", opt.constraint)):
+        for i, constraint in enumerate(cast("list[Any]", opt.constraint)):
             if isinstance(constraint, (int, float)):
                 widget.append_text(format_number_precise(constraint))
             else:

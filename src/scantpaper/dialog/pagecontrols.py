@@ -17,7 +17,9 @@ MAX_INCREMENT = 99
 class PageControls(Dialog):
     """The page controls for the Scan dialog."""
 
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[
+        dict[str, tuple[GObject.SignalFlags, object, tuple[object, ...]]]
+    ] = {
         "changed-num-pages": (GObject.SignalFlags.RUN_FIRST, None, (int,)),
         "changed-page-number-start": (GObject.SignalFlags.RUN_FIRST, None, (int,)),
         "changed-page-number-increment": (GObject.SignalFlags.RUN_FIRST, None, (int,)),

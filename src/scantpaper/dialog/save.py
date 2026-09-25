@@ -872,6 +872,8 @@ class Save(Dialog):
                 setattr(self, f"meta_{name}", metadata[name])
 
 
-def filter_table(table: list[tuple[str, str, str]], types: list[str]) -> list:
+def filter_table(
+    table: list[tuple[str, str, str]], types: list[str]
+) -> list[tuple[str, str, str]]:
     """Filter table list by types."""
     return [row for row in table if row[0] in types]

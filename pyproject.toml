@@ -175,6 +175,5 @@ all = "error"
 "disjoint-cast" = "ignore"
 "dynamic-function-decorator-return" = "ignore"
 "missing-override-decorator" = "ignore"
-"missing-type-argument" = "ignore"
 "unsound-return-statement" = "ignore"
 

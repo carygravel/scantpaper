@@ -39,8 +39,8 @@ def mock_tool_window(
         post_process_progress = None
         _display_callback = None
         _error_callback = None
-        settings: ClassVar[dict] = {}
-        _dependencies: ClassVar[dict] = {}
+        settings: ClassVar[dict[str, object]] = {}
+        _dependencies: ClassVar[dict[str, object]] = {}
 
         # Attributes often used across tests, defined here to avoid AttributeError
         _windowc = None

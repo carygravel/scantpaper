@@ -6,7 +6,7 @@ import logging
 import re
 import weakref
 from copy import copy
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 from gi.repository import Gdk, GObject, Gtk
 
@@ -109,7 +109,9 @@ def _coerce_option_value(opt: Option, val: object) -> object:
 class Scan(PageControls):
     """Scan dialog."""
 
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[
+        dict[str, tuple[GObject.SignalFlags, object, tuple[object, ...]]]
+    ] = {
         "new-scan": (
             GObject.SignalFlags.RUN_FIRST,
             None,
@@ -841,7 +843,7 @@ class Scan(PageControls):
     ) -> None:
         widget.get_model().clear()
         index = 0
-        for i, entry in enumerate(cast("list", opt.constraint)):
+        for i, entry in enumerate(cast("list[Any]", opt.constraint)):
             if isinstance(entry, (int, float)):
                 widget.append_text(format_number_precise(entry))
             else:
@@ -1443,7 +1445,7 @@ class Scan(PageControls):
     def _set_combobox_value(
         self, widget: Gtk.ComboBoxText, opt: Option, val: object
     ) -> None:
-        constraint = cast("list", opt.constraint)
+        constraint = cast("list[Any]", opt.constraint)
         if constraint[widget.get_active()] != val:
             index = constraint.index(val)
             if index > NO_INDEX:

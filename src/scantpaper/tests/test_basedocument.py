@@ -621,7 +621,7 @@ def test_cut_selection() -> None:
     data = slist.cut_selection()
 
     assert len(cast("list[object]", data)) == 1
-    assert cast("list", data)[0][2] == 101
+    assert cast("list[list[object]]", data)[0][2] == 101
     slist.delete_selection_extra.assert_called_once()
 
 

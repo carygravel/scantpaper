@@ -427,7 +427,9 @@ class BaseDocument(SimpleList):
 
         # Select the new pages
         if kwargs.get("select_new_pages"):
-            selection = list(range(dest, dest + len(cast("list", kwargs["data"]))))
+            selection = list(
+                range(dest, dest + len(cast("list[object]", kwargs["data"])))
+            )
 
             self.get_selection().unselect_all()
             self.select(cast("list[int | None]", selection))
@@ -436,7 +438,9 @@ class BaseDocument(SimpleList):
             self.get_model().handler_unblock(self.row_changed_signal)
 
         logger.info(
-            "Pasted %s pages at position %s", len(cast("list", kwargs["data"])), dest
+            "Pasted %s pages at position %s",
+            len(cast("list[object]", kwargs["data"])),
+            dest,
         )
         if "finished_callback" in kwargs:
             cast("Callable[..., object]", kwargs["finished_callback"])()

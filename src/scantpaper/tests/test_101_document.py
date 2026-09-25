@@ -649,16 +649,18 @@ def test_db(temp_db: object) -> None:
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))))
     request = Request("delete_pages", ({"row_ids": [0]},), thread.responses)
     thread.do_delete_pages(request)
-    assert cast("list", thread.page_number_table())[0][0] == 0, "deleted page"
+    assert cast("list[list[object]]", thread.page_number_table())[0][0] == 0, (
+        "deleted page"
+    )
 
     page = thread.get_page(id=2)
     assert isinstance(page, Page), "get_page by id"
 
     result = thread.do_undo(Request("undo", (), thread.responses))
-    assert cast("list", result["snapshot"])[0][0] == 1, "undo"
+    assert cast("list[list[object]]", result["snapshot"])[0][0] == 1, "undo"
 
     result = thread.do_redo(Request("redo", (), thread.responses))
-    assert cast("list", result["snapshot"])[0][0] == 1, "redo"
+    assert cast("list[list[object]]", result["snapshot"])[0][0] == 1, "redo"
 
     thread.do_set_saved(Request("set_saved", (1, True), thread.responses))
     assert not thread.pages_saved(), "not all pages saved"
@@ -888,7 +890,7 @@ def test_document(rose_tif: str) -> None:
                     "selection changed to previous page"
                 )
                 slist.paste_selection(
-                    data=[cast("list", clipboard)[0]],
+                    data=[cast("list[object]", clipboard)[0]],
                     dest=0,
                     how=Gtk.TreeViewDropPosition.BEFORE,
                     finished_callback=step4,
@@ -924,7 +926,7 @@ def test_document(rose_tif: str) -> None:
                 slist.undo(finished_callback=after_undo)
 
             slist.paste_selection(
-                data=[cast("list", clipboard)[0]],
+                data=[cast("list[object]", clipboard)[0]],
                 dest=0,
                 how=Gtk.TreeViewDropPosition.AFTER,
                 select_new_pages=True,

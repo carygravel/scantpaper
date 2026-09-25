@@ -176,7 +176,7 @@ class SimpleList(Gtk.TreeView):
         )
         renderer.column = i
 
-    def __iter__(self, *args: object, **kwargs: object) -> Iterator:
+    def __iter__(self, *args: object, **kwargs: object) -> Iterator[object]:
         """Iterate over the rows of the list model."""
         return iter(self.get_model(), *args, **kwargs)
 
@@ -295,7 +295,7 @@ class SimpleList(Gtk.TreeView):
         column_types.update(cast("dict[str, dict[str, object]]", kwargs))
 
     @classmethod
-    def get_column_types(cls: type[SimpleList]) -> dict:
+    def get_column_types(cls: type[SimpleList]) -> dict[str, dict[str, object]]:
         """Return column types."""
         return column_types
 
@@ -398,7 +398,7 @@ class TiedList:
         """Append."""
         self.model.append(values)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[list[object]]:
         """Iterate over the rows."""
         return iter(self.model)
 

@@ -28,13 +28,15 @@ from gi.repository import (  # noqa: E402
 class PageRange(Gtk.Box):
     """pagerange widget."""
 
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[
+        dict[str, tuple[GObject.SignalFlags, object, tuple[object, ...]]]
+    ] = {
         "changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
     }
     active = GObject.Property(
         type=str, default="selected", nick="active", blurb="Either selected or all"
     )
-    widget_list: ClassVar[list] = []  # list of all PageRange widgets
+    widget_list: ClassVar[list[PageRange]] = []  # list of all PageRange widgets
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise PageRange."""

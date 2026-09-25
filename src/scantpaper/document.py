@@ -49,7 +49,7 @@ class Document(BaseDocument):
         """Avoid race conditions by running get_file_info on all files before importing."""
         info = []
         options["passwords"] = []
-        for i in range(len(cast("list", options["paths"]))):
+        for i in range(len(cast("list[object]", options["paths"]))):
             self._get_file_info_finished_callback1(i, info, options)
 
     def _get_file_info_finished_callback1(

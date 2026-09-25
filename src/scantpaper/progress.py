@@ -25,9 +25,9 @@ _PULSE_MIN_INTERVAL = 0.1  # seconds
 class Progress(Gtk.Box):
     """HBox with progress bar and cancel button."""
 
-    __gsignals__: ClassVar[dict] = {
-        "clicked": (GObject.SignalFlags.RUN_FIRST, None, ())
-    }
+    __gsignals__: ClassVar[
+        dict[str, tuple[GObject.SignalFlags, object, tuple[object, ...]]]
+    ] = {"clicked": (GObject.SignalFlags.RUN_FIRST, None, ())}
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise Progress."""

@@ -230,7 +230,7 @@ def exec_command_run(  # noqa: PLR0913 - mirrors subprocess.run()'s surface; key
     text: bool = True,
     shell: bool = False,
     **kwargs: object,
-) -> subprocess.CompletedProcess:
+) -> subprocess.CompletedProcess[str]:
     """Run a command like subprocess.run() but record the spawn pid for cancellation."""
     kwargs = dict(kwargs)
     if pidfile is not None:

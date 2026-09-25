@@ -1057,7 +1057,7 @@ def test_selection_drawing_coordinates() -> None:
 
     def capture_render_background(
         style_ctx: Gtk.StyleContext,
-        cr: cairo.Context,
+        cr: cairo.Context[Any],
         x: float,
         y: float,
         w: float,

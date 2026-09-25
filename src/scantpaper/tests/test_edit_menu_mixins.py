@@ -34,7 +34,7 @@ def mock_edit_window(
         post_process_progress = None
         t_canvas = None
         _actions = None
-        settings: dict
+        settings: dict[str, object]
         _windowp = None
         _windowr = None
         _windows = None

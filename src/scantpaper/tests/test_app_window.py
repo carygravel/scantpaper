@@ -33,7 +33,7 @@ from gi.repository import (  # noqa: E402
 class MockImageView(Gtk.DrawingArea):
     """Mock ImageView class."""
 
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[dict[str, tuple[Any, ...]]] = {
         "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
         "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
         "selection-changed": (GObject.SignalFlags.RUN_LAST, None, (object,)),
@@ -59,7 +59,7 @@ class MockImageView(Gtk.DrawingArea):
 class MockCanvas(Gtk.DrawingArea):
     """Mock Canvas class."""
 
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[dict[str, tuple[Any, ...]]] = {
         "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
         "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
     }

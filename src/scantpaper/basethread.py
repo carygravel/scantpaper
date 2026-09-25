@@ -47,7 +47,7 @@ class Request:
         self,
         process_name: str,
         process_args: tuple[object, ...],
-        return_queue: queue.Queue | None,
+        return_queue: queue.Queue[object] | None,
         *args: object,
         notify_cb: Callable[[], None] | None = None,
         **kwargs: object,

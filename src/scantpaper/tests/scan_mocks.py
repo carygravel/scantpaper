@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import cast
+from typing import Any, cast
 
 from scantpaper.frontend import enums
 from scantpaper.scanner.options import Option
@@ -23,7 +23,9 @@ def _number_of_options() -> Option:
     )
 
 
-def _geo(name: str, constraint: list | tuple | None, title: str, desc: str) -> Option:
+def _geo(
+    name: str, constraint: list[Any] | tuple[Any, ...] | None, title: str, desc: str
+) -> Option:
     """Build a 2D-geometry option (tl-x/tl-y/br-x/br-y)."""
     return Option(
         index=0,
@@ -39,7 +41,7 @@ def _geo(name: str, constraint: list | tuple | None, title: str, desc: str) -> O
 
 
 def _res(
-    constraint: list | tuple | None,
+    constraint: list[Any] | tuple[Any, ...] | None,
     title: str = "Scan resolution",
     desc: str = "Sets the resolution of the scanned image.",
     size: int = 1,

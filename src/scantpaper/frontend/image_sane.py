@@ -7,7 +7,7 @@ import logging
 import math
 import threading
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import sane
 
@@ -138,7 +138,7 @@ class SaneThread(BaseThread):
         name = request.args[0]
         return getattr(self.device_handle, name.replace("-", "_"))
 
-    def do_get_options(self, _request: Request) -> list:
+    def do_get_options(self, _request: Request) -> list[Any]:
         """Get options."""
         return self.device_handle.get_options()
 

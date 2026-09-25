@@ -26,7 +26,9 @@ UNIT_SLIDER_STEP = 0.001
 class PreferencesDialog(Dialog):
     """dialogue for setting preferences."""
 
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[
+        dict[str, tuple[GObject.SignalFlags, object, tuple[object, ...]]]
+    ] = {
         "changed-preferences": (
             GObject.SignalFlags.RUN_FIRST,
             None,

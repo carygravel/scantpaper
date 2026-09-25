@@ -10,7 +10,7 @@ import pathlib
 import re
 import shutil
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 import gi
 
@@ -158,7 +158,7 @@ def _version_tuple(version: str | None) -> tuple[int, ...]:
     return tuple(int(x) for x in re.findall(r"\d+", str(version))[:3])
 
 
-class ConfigDict(dict):
+class ConfigDict(dict[str, Any]):
     """A dict that carries warnings raised while loading the configuration."""
 
     def __init__(self, *args: object, **kwargs: object) -> None:

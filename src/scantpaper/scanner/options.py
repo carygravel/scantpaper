@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import re
-from typing import TYPE_CHECKING, NamedTuple, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from gi.repository import GObject
 
@@ -26,7 +26,7 @@ class Option(NamedTuple):
     unit: str
     size: int
     cap: int
-    constraint: list | tuple | None
+    constraint: list[Any] | tuple[Any, ...] | None
 
 
 class Options(GObject.Object):

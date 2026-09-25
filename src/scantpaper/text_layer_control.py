@@ -34,7 +34,9 @@ INDEX = [
 class TextLayerControls(Gtk.Box):
     """provide controls for editing the text layer."""
 
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[
+        dict[str, tuple[GObject.SignalFlags, object, tuple[object, ...]]]
+    ] = {
         "text-changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
         "bbox-changed": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
         "sort-changed": (GObject.SignalFlags.RUN_FIRST, None, (str,)),

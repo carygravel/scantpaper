@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from scantpaper.i18n import _
 from scantpaper.simplelist import SimpleList
@@ -82,7 +82,7 @@ class PaperList(SimpleList):
         path = int(path.to_string())
         for index, row in enumerate(self.data):
             if index != path and self.data[path][0] == row[0]:
-                name = row[0]
+                name = cast("str", row[0])
                 version = 2
                 regex = re.search(
                     r"""

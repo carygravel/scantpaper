@@ -33,10 +33,10 @@ def mock_session_window(
         """Test class to hold mixin."""
 
         slist = None
-        settings: dict
-        _dependencies: ClassVar[dict] = {}
-        _ocr_engine: ClassVar[list] = []
-        _actions: ClassVar[dict] = {}
+        settings: dict[str, object]
+        _dependencies: ClassVar[dict[str, object]] = {}
+        _ocr_engine: ClassVar[list[list[str]]] = []
+        _actions: ClassVar[dict[str, object]] = {}
         session = None
         _lockfd = None
         view = None

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import ClassVar, cast
+from typing import Any, ClassVar, cast
 
 import cairo
 import gi
@@ -401,7 +401,9 @@ class ImageView(Gtk.DrawingArea):
     """ImageView widget."""
 
     __gtype_name__ = "GtkImageView"
-    __gsignals__: ClassVar[dict] = {
+    __gsignals__: ClassVar[
+        dict[str, tuple[GObject.SignalFlags, object, tuple[object, ...]]]
+    ] = {
         "zoom-changed": (GObject.SignalFlags.RUN_FIRST, None, (float,)),
         "offset-changed": (
             GObject.SignalFlags.RUN_FIRST,
@@ -530,7 +532,7 @@ class ImageView(Gtk.DrawingArea):
         "/documentation/pycairo/3/reference/constants.html#cairo-filter",
     )
 
-    def do_draw(self, context: cairo.Context, **_kwargs: object) -> bool:
+    def do_draw(self, context: cairo.Context[Any], **_kwargs: object) -> bool:
         """Respond to the draw signal."""
         allocation = self.get_allocation()
         style = self.get_style_context()
