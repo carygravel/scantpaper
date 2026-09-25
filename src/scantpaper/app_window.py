@@ -11,6 +11,7 @@ import re
 import shutil
 import sqlite3
 import sys
+from typing import cast
 
 import gi
 import ocrmypdf
@@ -114,7 +115,7 @@ class ApplicationWindow(
 ):
     """ApplicationWindow class."""
 
-    settings = None
+    settings: dict[str, object]
     _configfile = None
     _current_page = None
     _current_ocr_bbox = None
@@ -832,7 +833,7 @@ class ApplicationWindow(
             df,
             self.settings["available-tmp-warning"],
         )
-        if df < self.settings["available-tmp-warning"]:
+        if df < cast("int", self.settings["available-tmp-warning"]):
             text = _("%dMb free in %s.") % (df, self.session.name)
             self._show_message_dialog(
                 parent=self,
@@ -910,7 +911,7 @@ class ApplicationWindow(
         error_name = "error opening device"
         response = None
         if (
-            error_name in self.settings["message"]
+            error_name in cast("dict[str, object]", self.settings["message"])
             and self.settings["message"][error_name]["response"] == "ignore"
         ):
             response = self.settings["message"][error_name]["response"]

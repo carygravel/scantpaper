@@ -216,7 +216,7 @@ def test_unpaper(
 
     def display_cb(response: Response) -> None:
         nonlocal asserts
-        if response.info and "row" in response.info:
+        if isinstance(response.info, dict) and "row" in response.info:
             assert True, "Triggered display callback"
             asserts += 1
 
@@ -291,7 +291,7 @@ def test_unpaper2(
 
     def display_cb(response: Response) -> None:
         nonlocal asserts
-        if response.info and "row" in response.info:
+        if isinstance(response.info, dict) and "row" in response.info:
             assert True, "Triggered display callback"
             asserts += 1
 
@@ -385,7 +385,7 @@ def test_unpaper3(
 
     def display_cb(response: Response) -> None:
         nonlocal asserts
-        if response.info and "row" in response.info:
+        if isinstance(response.info, dict) and "row" in response.info:
             assert True, "Triggered display callback"
             asserts += 1
 
@@ -447,7 +447,7 @@ def test_unpaper_rtl(
 
     def display_cb(response: Response) -> None:
         nonlocal asserts
-        if response.info and "row" in response.info:
+        if isinstance(response.info, dict) and "row" in response.info:
             assert True, "Triggered display callback"
             asserts += 1
 

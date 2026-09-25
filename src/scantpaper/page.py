@@ -390,8 +390,8 @@ class Page:
         width, height = self.width, self.height
         if xresolution != yresolution:
             resolution = max(xresolution, yresolution)
-            width *= resolution / xresolution
-            height *= resolution / yresolution
+            width = cast("float", width) * resolution / xresolution
+            height = cast("float", height) * resolution / yresolution
             logger.info("Upsampling to %sx%s %s", resolution, resolution, units)
             return resolution, self.image_object.resize(
                 (int(width), int(height)), resample=Image.BOX
@@ -417,14 +417,18 @@ class Page:
             return
         if (
             opts
-            and "downsample" in opts
+            and "downsample" in cast("dict[str, object]", opts)
             and opts["downsample"]
             and opts["downsample dpi"] < min(self.resolution[0], self.resolution[1])
         ):
             width = int(self.width * opts["downsample dpi"] // self.resolution[0])
             height = int(self.height * opts["downsample dpi"] // self.resolution[1])
             image = image.resize((width, height))
-        if opts and "compression" in opts and opts["compression"][0] == "g":  # g3 or g4
+        if (
+            opts
+            and "compression" in cast("dict[str, object]", opts)
+            and opts["compression"][0] == "g"
+        ):  # g3 or g4
             # Grayscale
             image = image.convert("L")
             # Threshold
@@ -546,7 +550,7 @@ class Page:
 
             # Convert to tiff
             depth = []
-            if "compression" in options["options"]:
+            if "compression" in cast("dict[str, object]", options["options"]):
                 if options["options"]["compression"] == "jpeg":
                     depth = ["-depth", "8"]
 

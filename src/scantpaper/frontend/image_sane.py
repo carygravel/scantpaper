@@ -294,7 +294,8 @@ class SaneThread(BaseThread):
                     response.info
                 )
         if response.status == "Document feeder out of documents" or (
-            self.num_pages != 0 and self.num_pages_scanned >= self.num_pages
+            self.num_pages != 0
+            and self.num_pages_scanned >= cast("int", self.num_pages)
         ):
             self.cancel()
             if kwargs["finished_callback"] is not None:

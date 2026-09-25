@@ -373,8 +373,8 @@ def test_save_pdf_with_hocr(
     page_width, page_height = None, None
     if regex:
         page_width, page_height = int(regex.group(1)), int(regex.group(2))
-    assert abs(page_width - width) < 2, "imported page width correct"
-    assert abs(page_height - height) < 2, "imported page height correct"
+    assert abs(cast("int", page_width) - width) < 2, "imported page width correct"
+    assert abs(cast("int", page_height) - height) < 2, "imported page height correct"
 
 
 @pytest.mark.xfail(
@@ -766,7 +766,9 @@ def test_save_import_without_title_roundtrip(
     asserts = 0
 
     def metadata_cb(response: object) -> None:
-        assert "title" not in response, "no title in re-imported metadata"
+        assert "title" not in cast("dict[str, object]", response), (
+            "no title in re-imported metadata"
+        )
         nonlocal asserts
         asserts += 1
 

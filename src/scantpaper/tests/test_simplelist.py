@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import gi
 import pytest
 
@@ -41,7 +43,7 @@ def test_basic() -> None:
 
     slist.data[0][0] = None
     assert len(slist.data[0]) == 1, "len(row)"
-    assert 0 in slist.data[0], "in (contains) row"
+    assert 0 in cast("list[object]", slist.data[0]), "in (contains) row"
 
     model[model.iter_nth_child(None, 0)][0] = "row2"
     assert slist.data[0][0] == "row2", "getitem"

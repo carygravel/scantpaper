@@ -10,7 +10,7 @@ import pathlib
 import subprocess
 import tempfile
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 import pytest
@@ -260,7 +260,7 @@ def inexact_scan_mocks(
         info = 0
         if key in ["br-x", "br-y", "tl-x", "tl-y"]:
             info = enums.INFO_RELOAD_PARAMS + enums.INFO_INEXACT
-            value -= 0.5
+            value = cast("float", value) - 0.5
             logger.info(
                 "sane_set_option %s (%s) to %s returned info %s (%s)",
                 opt.index,

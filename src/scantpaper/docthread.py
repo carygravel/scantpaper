@@ -256,7 +256,7 @@ class DocThread(SaveThread):
         self._execute("PRAGMA user_version")
         user_version = self._fetchone()
         if user_version:
-            if user_version[0] > USER_VERSION:
+            if cast("int", user_version[0]) > USER_VERSION:
                 logger.warning(
                     "%s was created by a newer version of scantpaper.", self._db
                 )
@@ -272,7 +272,7 @@ class DocThread(SaveThread):
         self._execute("SELECT MAX(action_id) FROM page_order")
         row = self._fetchone()
         if row:
-            self._action_id = row[0]
+            self._action_id = cast("int", row[0])
 
     def _migrate_page_order_schema(self) -> None:
         """Detect and rebuild a legacy page_order schema with a page_number column."""
@@ -392,7 +392,7 @@ class DocThread(SaveThread):
         for row_id, initial_page_id in self._fetchall():
             self._execute(
                 "UPDATE page_order SET row_id = ? WHERE initial_page_id = ? AND action_id = ?",
-                (row_id + shift, initial_page_id, self._action_id),
+                (cast("int", row_id) + shift, initial_page_id, self._action_id),
             )
 
     def _insert_page_order_after(self, initial_page_id: int, page_id: int) -> int:
@@ -405,7 +405,7 @@ class DocThread(SaveThread):
         if row is None:
             msg = f"Page {initial_page_id} does not exist"
             raise ValueError(msg)
-        position = row[0] + 1
+        position = cast("int", row[0]) + 1
         self._shift_row_ids(position, 1)
         self._execute(
             """INSERT INTO page_order (action_id, row_id, page_id, initial_page_id)
@@ -436,7 +436,7 @@ class DocThread(SaveThread):
                 "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
                 (self._action_id,),
             )
-            max_row_id = self._fetchone()[0]
+            max_row_id = cast("int | None", self._fetchone()[0])
             if max_row_id is None:
                 max_row_id = -1
             position = max_row_id + 1
@@ -636,7 +636,7 @@ class DocThread(SaveThread):
         )
         tid = threading.get_native_id()
         self._execute("SELECT last_insert_rowid()")
-        first_image_id = self._fetchone()[0] - len(pages) + 1
+        first_image_id = cast("int", self._fetchone()[0]) - len(pages) + 1
         for i, _page in enumerate(pages):
             pages[i] = list(pages[i])
             pages[i][0] = first_image_id + i  # new image id
@@ -647,7 +647,7 @@ class DocThread(SaveThread):
             pages,
         )
         self._execute("SELECT last_insert_rowid()")
-        first_page_id = self._fetchone()[0] - len(pages) + 1
+        first_page_id = cast("int", self._fetchone()[0]) - len(pages) + 1
         self._execute(
             "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
             (self._action_id,),
@@ -822,7 +822,9 @@ class DocThread(SaveThread):
         rows = []
         for record in self._fetchall():
             row = list(record)
-            row[0] += 1  # page numbers shown to the user are 1-based
+            row[0] = (
+                cast("int", row[0]) + 1
+            )  # page numbers shown to the user are 1-based
             row[1] = self._bytes_to_pixbuf(row[1])
             rows.append(row)
         return rows

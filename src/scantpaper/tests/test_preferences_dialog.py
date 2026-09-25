@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -264,9 +265,9 @@ def test_apply_callback_allows_valid_tool(mock_which: MagicMock) -> None:
     dialog = PreferencesDialog(settings=settings)
     dialog._apply_callback()
 
-    assert "convert %i -negate %o" in dialog.settings["user_defined_tools"], (
-        "Valid tool should be saved"
-    )
+    assert "convert %i -negate %o" in cast(
+        "list[object]", dialog.settings["user_defined_tools"]
+    ), "Valid tool should be saved"
 
 
 @pytest.mark.parametrize(

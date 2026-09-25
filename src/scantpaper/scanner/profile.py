@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from copy import deepcopy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from gi.repository import GObject
 
@@ -119,7 +119,7 @@ class Profile(GObject.Object):
             if key == name:
                 break
 
-        if i <= self.num_backend_options():
+        if cast("int", i) <= self.num_backend_options():
             del self.backend[i]
 
         self.uuid = str(uuid.uuid1())
@@ -179,7 +179,7 @@ class Profile(GObject.Object):
                 if _l is None:
                     _l = self.get_option_by_name("tl-x")
                 if _l is not None:
-                    val += _l
+                    val = cast("float", val) + cast("float", _l)
                 new.add_backend_option("br-x", val)
 
             elif name == "y":
@@ -187,7 +187,7 @@ class Profile(GObject.Object):
                 if _t is None:
                     _t = self.get_option_by_name("tl-y")
                 if _t is not None:
-                    val += _t
+                    val = cast("float", val) + cast("float", _t)
                 new.add_backend_option("br-y", val)
 
             else:
@@ -200,7 +200,7 @@ class Profile(GObject.Object):
         if offset is None:
             offset = self.get_option_by_name(name_to)
         if offset is not None:
-            val -= offset
+            val -= cast("float", offset)
         return val
 
     def _add_cli_option(
@@ -208,7 +208,10 @@ class Profile(GObject.Object):
     ) -> None:
         if options is not None:
             opt = options.by_name(name)
-            if "type" in opt and opt["type"] == enums.TYPE_BOOL:
+            if (
+                "type" in cast("dict[str, object]", opt)
+                and opt["type"] == enums.TYPE_BOOL
+            ):
                 val = "yes" if val else "no"
 
         new.add_backend_option(name, val)

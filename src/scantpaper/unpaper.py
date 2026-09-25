@@ -469,7 +469,10 @@ class Unpaper:
         """Add widget to unpaper dialog."""
         default = self.default
         widget = None
-        if "default" in hashref[option] and option not in default:
+        if (
+            "default" in cast("dict[str, object]", hashref[option])
+            and option not in default
+        ):
             default[option] = hashref[option]["default"]
 
         if hashref[option]["type"] in [
@@ -514,7 +517,7 @@ class Unpaper:
 
     def _spinbutton_get_option(self, option: str) -> int | float:
         """Get option for spinbutton."""
-        if self.options[option]["step"] >= 1:
+        if cast("float", self.options[option]["step"]) >= 1:
             return self.options[option]["widget"].get_value_as_int()
         return self.options[option]["widget"].get_value()
 

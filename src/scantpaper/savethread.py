@@ -538,7 +538,7 @@ class SaveThread(Importhread):
         for i, page_id in enumerate(options["list_of_pages"], start=1):
             page = self.get_page(id=page_id)
             if len(options["list_of_pages"]) > 1:
-                filename = options["path"] % (i)
+                filename = cast("str", options["path"]) % (i)
             else:
                 filename = options["path"]
             page.image_object.save(filename)
@@ -799,7 +799,7 @@ def _append_pdf(
 ) -> int | None:
     if options is None or "options" not in options or options["options"] is None:
         return None
-    if "prepend" in options["options"]:
+    if "prepend" in cast("dict[str, object]", options["options"]):
         file1 = filename
         file2 = options["options"]["prepend"] + ".bak"
         bak = file2
@@ -807,7 +807,7 @@ def _append_pdf(
         message = _("Error prepending PDF: %s")
         logger.info("Prepending PDF")
 
-    elif "append" in options["options"]:
+    elif "append" in cast("dict[str, object]", options["options"]):
         file2 = filename
         file1 = options["options"]["append"] + ".bak"
         bak = file1
@@ -869,7 +869,7 @@ def _post_save_hook(
 
 def _encrypt_pdf(filename: str, options: dict[str, object], request: Request) -> int:
     cmd = ["qpdf"]
-    if "user-password" in options["options"]:
+    if "user-password" in cast("dict[str, object]", options["options"]):
         # qpdf < 11 only accepts the positional --encrypt form
         # (user-password owner-password key-length); the
         # --owner-password/--user-password/--bits option style was added
@@ -884,7 +884,7 @@ def _encrypt_pdf(filename: str, options: dict[str, object], request: Request) ->
             "--allow-insecure",
             "--",
         ]
-    cmd += [filename, options["path"]]
+    cmd += [filename, cast("str", options["path"])]
 
     spo = exec_command_run(
         cmd,

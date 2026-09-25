@@ -5,7 +5,7 @@ from __future__ import annotations
 import pathlib
 import tempfile
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
 
 import gi
@@ -704,7 +704,7 @@ def test_officejet_4620(
     def mocked_do_set_option(self: SaneThread, _request: Request) -> int:
         key, value = _request.args
         info = 0
-        if key == "source" and value in "Flatbed":
+        if key == "source" and cast("str", value) in "Flatbed":
             raw_options[1] = Option(
                 index=1,
                 name="resolution",

@@ -1023,7 +1023,7 @@ def test_ann_text_new_no_layer(
     mock_session_window._ann_text_new(None)
 
     # Verify line 643 was hit (text became default)
-    assert "my-new-annotation" in page_data["annotations"]
+    assert "my-new-annotation" in cast("list[object]", page_data["annotations"])
     # Verify lines 671-672 were hit
     mock_session_window.a_canvas.get_first_bbox.assert_called()
     mock_session_window._edit_annotation.assert_called()

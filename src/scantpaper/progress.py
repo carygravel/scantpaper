@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 
@@ -68,8 +68,8 @@ class Progress(Gtk.Box):
         """Set up progress bar from queued response."""
         process_name, num_completed, total = (
             response.request.process,
-            response.num_completed_jobs,
-            response.total_jobs,
+            cast("int", response.num_completed_jobs),
+            cast("int", response.total_jobs),
         )
         if total and process_name is not None:
             self.set_text(
@@ -109,7 +109,7 @@ class Progress(Gtk.Box):
                 self.set_text(
                     _("Process %i of %i (%s)")
                     % (
-                        response.num_completed_jobs + 1,
+                        cast("int", response.num_completed_jobs) + 1,
                         response.total_jobs,
                         response.request.process,
                     )
@@ -117,10 +117,17 @@ class Progress(Gtk.Box):
             else:
                 self.set_text(
                     _("Process %i of %i")
-                    % (response.num_completed_jobs + 1, response.total_jobs)
+                    % (
+                        cast("int", response.num_completed_jobs) + 1,
+                        response.total_jobs,
+                    )
                 )
             self.set_fraction(
-                min(1.0, (response.num_completed_jobs + 0.5) / response.total_jobs)
+                min(
+                    1.0,
+                    (cast("float", response.num_completed_jobs) + 0.5)
+                    / cast("float", response.total_jobs),
+                )
             )
             self.show()
 

@@ -7,7 +7,7 @@ import html
 import json
 import re
 from html.parser import HTMLParser
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, TypedDict, cast
 
 from scantpaper.const import ANNOTATION_COLOR, HALF, POINTS_PER_INCH, VERSION
 
@@ -136,9 +136,9 @@ class Bboxtree:
             string += " " * bbox["depth"] * 2
             string += f"({bbox_type} %d %d %d %d" % (
                 x_1,
-                height - y_2,
+                cast("int", height) - y_2,
                 x_2,
-                height - y_1,
+                cast("int", height) - y_1,
             )
 
             # Only include text if the box does not have children
@@ -190,7 +190,7 @@ class Bboxtree:
                 x_1, y_1, x_2, y_2 = bbox["bbox"]
                 string += (
                     f'(maparea "" "{_escape_text(bbox["text"])}"'
-                    f" (rect {x_1} {height - y_2} {x_2 - x_1} {y_2 - y_1})"
+                    f" (rect {x_1} {cast('int', height) - y_2} {x_2 - x_1} {y_2 - y_1})"
                     f" (hilite #{ANNOTATION_COLOR}) (xor))\n"
                 )
 
@@ -277,9 +277,9 @@ class Bboxtree:
                     height = int(regex.group(6))
                 bbox["bbox"] = [
                     int(regex.group(3)),
-                    height - int(regex.group(6)),
+                    cast("int", height) - int(regex.group(6)),
                     int(regex.group(5)),
-                    height - int(regex.group(4)),
+                    cast("int", height) - int(regex.group(4)),
                 ]
                 text = regex.group(7)
                 if regex.group(8):

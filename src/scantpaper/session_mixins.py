@@ -244,7 +244,7 @@ class SessionMixins:
 
     def _display_callback(self, response: Response) -> None:
         """Find the page from the input uuid and display it."""
-        if response.info and "row" in response.info:
+        if isinstance(response.info, dict) and "row" in response.info:
             uuid = response.info["row"][2]
             i = self.slist.find_page_by_uuid(uuid)
             if i is None:

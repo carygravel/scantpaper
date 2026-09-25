@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from gi.repository import GObject, Gtk
 
@@ -136,7 +136,7 @@ class SaneScanDialog(Scan):
         self.emit(
             "process-error",
             "open_device",
-            _("Error opening device: ") + response.status,
+            _("Error opening device: ") + cast("str", response.status),
         )
         self.cursor = "default"
 
@@ -159,7 +159,7 @@ class SaneScanDialog(Scan):
             self.emit(
                 "process-error",
                 "find_scan_options",
-                _("Error retrieving scanner options: ") + response.status,
+                _("Error retrieving scanner options: ") + cast("str", response.status),
             )
             self.cursor = "default"
 
@@ -462,7 +462,7 @@ class SaneScanDialog(Scan):
             self.emit(
                 "process-error",
                 "set_option",
-                _("Error setting option: ") + response.status,
+                _("Error setting option: ") + cast("str", response.status),
             )
 
         self.thread.set_option(
@@ -500,7 +500,7 @@ class SaneScanDialog(Scan):
             self.emit(
                 "process-error",
                 "find_scan_options",
-                _("Error retrieving scanner options: ") + response.status,
+                _("Error retrieving scanner options: ") + cast("str", response.status),
             )
 
         self.thread.get_options(

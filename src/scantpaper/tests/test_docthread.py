@@ -1057,7 +1057,7 @@ def test_ocr_undo_redo(temp_db: object, mocker: pytest.MockerFixture) -> None:
     thread.do_tesseract(request)
 
     ocr_page = thread.get_page(id=page_id)
-    assert '"text": "hello"' in ocr_page.text_layer
+    assert '"text": "hello"' in cast("str", ocr_page.text_layer)
     assert thread.get_page(id=page_id).image_id == image_id_before, (
         "no new image inserted by OCR"
     )
@@ -1069,7 +1069,9 @@ def test_ocr_undo_redo(temp_db: object, mocker: pytest.MockerFixture) -> None:
 
     thread.do_redo(Request("redo", (), thread.responses))
     redone_page = thread.get_page(id=page_id)
-    assert '"text": "hello"' in redone_page.text_layer, "redo restores OCR text layer"
+    assert '"text": "hello"' in cast("str", redone_page.text_layer), (
+        "redo restores OCR text layer"
+    )
     assert thread.get_page(id=page_id).image_id == image_id_before, "redo keeps image"
 
 

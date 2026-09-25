@@ -256,7 +256,7 @@ class BaseDocument(SimpleList):
     ) -> None:
         """Add a page from a worker response, then log any errors."""
         info = response.info
-        if info and "type" in info and info["type"] == "page":
+        if isinstance(info, dict) and "type" in info and info["type"] == "page":
             self.add_page(*info["row"], **info)
             if post_process:
                 post_process(info["row"][2], options)
@@ -395,7 +395,7 @@ class BaseDocument(SimpleList):
         def _data_callback(response: Response) -> None:
             logger.debug("%s _data_callback(%s)", action, response)
             info = response.info
-            if info and "type" in info and info["type"] == "page":
+            if isinstance(info, dict) and "type" in info and info["type"] == "page":
                 new_pages = info["new_pages"]
                 if action == "extend":
                     self.data.extend(new_pages)
@@ -465,7 +465,7 @@ class BaseDocument(SimpleList):
 
         def _data_callback(response: Response) -> None:
             info = response.info
-            if info and "type" in info and info["type"] == "page":
+            if isinstance(info, dict) and "type" in info and info["type"] == "page":
                 # Reverse the rows in order not to invalid the iters
                 if paths:
                     for path in reversed(paths):
@@ -493,7 +493,7 @@ class BaseDocument(SimpleList):
 
         def _data_callback(response: Response) -> None:
             info = response.info
-            if info and "type" in info and info["type"] == "page":
+            if isinstance(info, dict) and "type" in info and info["type"] == "page":
                 # Block slist signals whilst updating
                 self.get_model().handler_block(self.row_changed_signal)
                 self.get_selection().handler_block(self.selection_changed_signal)
@@ -550,7 +550,7 @@ class BaseDocument(SimpleList):
 
         def _data_callback(response: Response) -> None:
             info = response.info
-            if info and "type" in info and info["type"] == "page":
+            if isinstance(info, dict) and "type" in info and info["type"] == "page":
                 self._reorder_data(page_ids, info["new_pages"])
 
         # The drag triggers drag-data-delete after the drop; suppress the

@@ -234,8 +234,8 @@ class Bbox:
         self.canvas = kwargs.get("canvas")
         self.transformation: list[int] = kwargs.get("transformation", [0, 0, 0])
         self.confidence = kwargs.get("confidence")
-        self.textangle = kwargs.get("textangle", 0)
-        self.type = kwargs.get("type", "word")
+        self.textangle: int = cast("int", kwargs.get("textangle", 0))
+        self.type: str = cast("str", kwargs.get("type", "word"))
         self.id = kwargs.get("id", EMPTY)
         self.baseline: list[int | float] | None = kwargs.get("baseline")
         self.edit_callback = kwargs.get("edit_callback")
@@ -1050,14 +1050,15 @@ class Canvas(Gtk.DrawingArea):
         """Draw text on the canvas with a box around it."""
         for _ in range(BATCH_SIZE):
             idx = options["idx"]
-            box = options["box"]
+            box = cast("dict[str, object]", options["box"])
+            depth = cast("int", box["depth"])
 
             transformations = options["transformations"]
             parents = options["parents"]
-            rotation, _, _ = transformations[box["depth"]]
+            rotation, _, _ = transformations[depth]
             textangle = box.get("textangle", 0)
 
-            options2 = {"parent": parents[box["depth"]]}
+            options2 = {"parent": parents[depth]}
             options2["edit_callback"] = options["edit_callback"]
             options2["text"] = box.get("text", "")
             options2["skip_confidence_index"] = options.get(
@@ -1068,14 +1069,14 @@ class Canvas(Gtk.DrawingArea):
                 if key in box:
                     options2[key] = box[key]
 
-            options2["bbox"] = Rectangle.from_bbox(*box["bbox"])
+            options2["bbox"] = Rectangle.from_bbox(*cast("list[int]", box["bbox"]))
             bbox = self.add_box(**options2)
             options["bbox_map"][idx] = bbox
 
-            if box["depth"] > len(parents) - 2:
+            if depth > len(parents) - 2:
                 parents.append(bbox)
             else:
-                parents[box["depth"] + 1] = bbox
+                parents[depth + 1] = bbox
 
             transformations.append(
                 [textangle + rotation, options2["bbox"].x, options2["bbox"].y]

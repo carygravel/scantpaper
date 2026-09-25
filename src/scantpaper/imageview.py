@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import cairo
 import gi
@@ -251,8 +251,18 @@ class Selector(Tool):
             if y2 is None:
                 y2 = y2_old
 
+        x, x2, y, y2 = (
+            cast("float", x),
+            cast("float", x2),
+            cast("float", y),
+            cast("float", y2),
+        )
+
         w, h = self.view().to_image_distance(abs(x2 - x), abs(y2 - y))
-        x, y = self.view().to_image_coords(min(x, x2), min(y, y2))
+        x, y = cast(
+            "tuple[float, float]",
+            self.view().to_image_coords(min(x, x2), min(y, y2)),
+        )
         sel = Gdk.Rectangle()
         sel.x, sel.y, sel.width, sel.height = (
             int(x + 0.5),
@@ -309,7 +319,7 @@ class Selector(Tool):
         edge = ("h" if direction == "x" else "v") + "_edge"
         if getattr(self, edge) == "lower":
             if direction in self.drag_start and self.drag_start[direction] is not None:
-                if s > self.drag_start[direction]:
+                if s > cast("float", self.drag_start[direction]):
                     setattr(self, edge, "upper")
                 else:
                     setattr(self, edge, "lower")
@@ -318,7 +328,7 @@ class Selector(Tool):
                 setattr(self, edge, "lower")
         elif getattr(self, edge) == "upper":
             if direction in self.drag_start and self.drag_start[direction] is not None:
-                if s < self.drag_start[direction]:
+                if s < cast("float", self.drag_start[direction]):
                     setattr(self, edge, "lower")
                 else:
                     setattr(self, edge, "upper")

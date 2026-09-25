@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -120,7 +121,7 @@ def test_save_profile_overwrite_dialog(mocker: pytest.MockerFixture) -> None:
     overwrite_dialog_mock.run.return_value = Gtk.ResponseType.OK
 
     def dialog_side_effect(*_args: object, **kwargs: object) -> object:
-        if "exists. Overwrite?" in kwargs.get("title", ""):
+        if "exists. Overwrite?" in cast("str", kwargs.get("title", "")):
             return overwrite_dialog_mock
         return name_dialog_mock
 

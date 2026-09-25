@@ -10,6 +10,7 @@ import pathlib
 import re
 import shutil
 from types import SimpleNamespace
+from typing import cast
 
 import gi
 
@@ -459,7 +460,9 @@ def remove_invalid_paper(hashref: dict[str, object]) -> None:
             del hashref[paper]
         else:
             for opt in ["x", "y", "t", "l"]:
-                if not isinstance(hashref[paper], dict) or opt not in hashref[paper]:
+                if not isinstance(hashref[paper], dict) or opt not in cast(
+                    "dict[str, object]", hashref[paper]
+                ):
                     del hashref[paper]
                     break
 

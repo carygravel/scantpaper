@@ -164,4 +164,3 @@ task-tags = ["TODO", "FIXME"]
 "not-subscriptable" = "ignore"
 "invalid-assignment" = "ignore"
 "unresolved-import" = "ignore"
-"unsupported-operator" = "ignore"

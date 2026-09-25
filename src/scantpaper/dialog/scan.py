@@ -1140,7 +1140,7 @@ class Scan(PageControls):
             return None, "facing"
         if self._batch_n == 0:
             return None, "reverse"
-        position = self._batch_start + self._batch_n - k
+        position = cast("int", self._batch_start) + self._batch_n - k
         return self._uuid_at_position(position), "reverse"
 
     def _uuid_at_position(self, position: int) -> str | None:

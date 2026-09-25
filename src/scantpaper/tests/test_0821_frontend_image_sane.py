@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import threading
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -343,7 +343,7 @@ def test_5_edge_cases_part_1() -> None:
     # 1. Read-only attribute
     def error_callback_readonly(response: Response) -> None:
         nonlocal asserts
-        assert "Read-only attribute: dev" in response.status
+        assert "Read-only attribute: dev" in cast("str", response.status)
         asserts += 1
         mlp.quit()
 
@@ -354,7 +354,7 @@ def test_5_edge_cases_part_1() -> None:
     # 2. Inactive option
     def error_callback_inactive(response: Response) -> None:
         nonlocal asserts
-        assert "Inactive option: three_pass" in response.status
+        assert "Inactive option: three_pass" in cast("str", response.status)
         asserts += 1
         mlp.quit()
 
@@ -486,7 +486,9 @@ def test_6_mock_device() -> None:
         # 1. Test Group Option (Line 103)
         def error_cb_group(response: Response) -> None:
             nonlocal asserts
-            assert "Groups don't have values: group_option" in response.status
+            assert "Groups don't have values: group_option" in cast(
+                "str", response.status
+            )
             asserts += 1
             mlp.quit()
 
@@ -496,8 +498,8 @@ def test_6_mock_device() -> None:
         # 2. Test Unsettable Option (Line 107)
         def error_cb_unsettable(response: Response) -> None:
             nonlocal asserts
-            assert (
-                "Option can't be set by software: unsettable_option" in response.status
+            assert "Option can't be set by software: unsettable_option" in cast(
+                "str", response.status
             )
             asserts += 1
             mlp.quit()

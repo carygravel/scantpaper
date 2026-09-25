@@ -8,7 +8,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import img2pdf
 import pytest
@@ -351,7 +351,9 @@ def test_import_pdf_with_placeholder_title(
     asserts = 0
 
     def metadata_cb(response: object) -> None:
-        assert "title" not in response, "placeholder title not imported"
+        assert "title" not in cast("dict[str, object]", response), (
+            "placeholder title not imported"
+        )
         nonlocal asserts
         asserts += 1
 

@@ -64,7 +64,8 @@ class Document(BaseDocument):
 
         def _select_next_finished_callback(response: Response) -> None:
             if (
-                "encrypted" in response.info
+                isinstance(response.info, dict)
+                and "encrypted" in response.info
                 and response.info["encrypted"]
                 and "password_callback" in options
             ):
@@ -114,7 +115,7 @@ class Document(BaseDocument):
 
                 return
 
-            if i["pages"] > 1:
+            if cast("int", i["pages"]) > 1:
                 logger.error(
                     "Cannot import a multipage file at the same time as another file."
                 )
@@ -167,7 +168,7 @@ class Document(BaseDocument):
                 )
 
             first_page = 1
-            last_page = info[0]["pages"]
+            last_page = cast("int", info[0]["pages"])
             if options.get("pagerange_callback") and last_page > 1:
                 first_page, last_page = cast(
                     "Callable[[object], tuple[object, object]]",
@@ -212,7 +213,7 @@ class Document(BaseDocument):
 
         def updated_page_callback(response: Response) -> None:
             info = response.info
-            if info and "type" in info and info["type"] == "page":
+            if isinstance(info, dict) and "type" in info and info["type"] == "page":
                 del options["rotate"]
                 self._post_process_scan(info["row"][2], options)
 
@@ -227,7 +228,7 @@ class Document(BaseDocument):
 
         def updated_page_callback(response: Response) -> None:
             info = response.info
-            if info and "type" in info and info["type"] == "page":
+            if isinstance(info, dict) and "type" in info and info["type"] == "page":
                 del options["unpaper"]
                 self._post_process_scan(info["row"][2], options)
 
@@ -245,7 +246,7 @@ class Document(BaseDocument):
 
         def updated_page_callback(response: Response) -> None:
             info = response.info
-            if info and "type" in info and info["type"] == "page":
+            if isinstance(info, dict) and "type" in info and info["type"] == "page":
                 del options["udt"]
                 self._post_process_scan(info["row"][2], options)
 
@@ -465,7 +466,7 @@ def _extract_metadata(info: dict[str, object]) -> dict[str, object]:
             elif re.search(
                 r"^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d$", str(info["datetime"])
             ):
-                info["datetime"] += ":00"
+                info["datetime"] = cast("str", info["datetime"]) + ":00"
         with contextlib.suppress(ValueError):
             metadata["datetime"] = datetime.datetime.fromisoformat(info["datetime"])
 

@@ -60,7 +60,7 @@ def test_process_chain(
 
     def display_cb(response: Response) -> None:
         nonlocal asserts
-        if response.info and "row" in response.info:
+        if isinstance(response.info, dict) and "row" in response.info:
             assert True, "Triggered display callback"
             asserts += 1
 

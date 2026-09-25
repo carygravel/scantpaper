@@ -25,7 +25,7 @@ class MyThread(BaseThread):
         """Test method."""
         arg1, arg2 = request.args
         request.data("arg1 / arg2")
-        return arg1 / arg2
+        return cast("float", arg1) / cast("float", arg2)
 
 
 EXPECTED = [

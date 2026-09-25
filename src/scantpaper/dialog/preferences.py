@@ -3,7 +3,7 @@
 import logging
 import pathlib
 import shutil
-from typing import ClassVar
+from typing import ClassVar, cast
 
 import gi
 
@@ -33,7 +33,7 @@ class PreferencesDialog(Dialog):
             (object,),
         ),
     }
-    settings = None
+    settings: dict[str, object]
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise PreferencesDialog."""
@@ -329,7 +329,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         self._vboxt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self._vboxt.set_border_width(self.get_border_width())
         frame.add(self._vboxt)
-        for tool in self.settings["user_defined_tools"]:
+        for tool in cast("list[object]", self.settings["user_defined_tools"]):
             self._add_user_defined_tool_entry(tool)
         abutton = Gtk.Button()
         abutton.set_image(Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
