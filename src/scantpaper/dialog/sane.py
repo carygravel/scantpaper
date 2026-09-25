@@ -99,7 +99,7 @@ class SaneScanDialog(Scan):
     def scan_options(self, device: str | None = None) -> None:
         """Retrieve device-dependent scan options."""
         if device is None:
-            device = self.device
+            device = cast("str | None", self.device)
 
         # Remove any existing pages
         while self.notebook.get_n_pages() > FIRST_OPTIONS_PAGE:

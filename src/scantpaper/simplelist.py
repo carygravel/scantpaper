@@ -260,7 +260,7 @@ class SimpleList(Gtk.TreeView):
         elif isinstance(indices, int):
             indices = [indices]
         model = self.get_model()
-        func = getattr(selection, func)
+        method = getattr(selection, func)
         for i in indices:
             # to avoid TypeError: Argument 3 does not allow None as a value from iter_nth_child()
             if i is None:
@@ -268,7 +268,7 @@ class SimpleList(Gtk.TreeView):
             itr = model.iter_nth_child(None, i)
             if not itr:
                 continue
-            func(itr)
+            method(itr)
 
     def select(self, indices: int | list[int | None]) -> None:
         """Select indices."""

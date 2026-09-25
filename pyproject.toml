@@ -178,6 +178,5 @@ all = "error"
 "missing-type-argument" = "ignore"
 "possibly-unresolved-reference" = "ignore"
 "redundant-condition-strict" = "ignore"
-"unsound-assignment" = "ignore"
 "unsound-return-statement" = "ignore"
 

@@ -411,7 +411,7 @@ class ToolsMenuMixins:
             return
 
         if not pagelist:
-            pagelist = self.slist.get_selected_indices()
+            pagelist = cast("list[int] | None", self.slist.get_selected_indices())
 
         if not pagelist:
             return

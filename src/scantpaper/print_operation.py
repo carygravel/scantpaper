@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import gi
 
 gi.require_version("Gtk", "3.0")
@@ -52,7 +54,7 @@ class PrintOperation(Gtk.PrintOperation):
     ) -> None:
         """Draw page."""
         if self.page_list is not None:
-            page_number = self.page_list[page_number]
+            page_number = cast("int", self.page_list[page_number])
         page = self.slist.thread.get_page(id=self.slist.data[page_number][2])
         cr = context.get_cairo_context()
 

@@ -410,13 +410,13 @@ def decode_info(info: int) -> str:
     while num > i:
         if info >= 2 ** (num - 1):
             this.append("?")
-            info -= 2 ** (num - 1)
+            info -= cast("int", 2 ** (num - 1))
         num -= 1
 
     while num > -1:
         if info >= 2**num:
             this.append(opts[num])
-            info -= 2**num
+            info -= cast("int", 2**num)
         num -= 1
 
     return " + ".join(this)
