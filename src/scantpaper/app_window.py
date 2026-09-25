@@ -11,7 +11,7 @@ import re
 import shutil
 import sqlite3
 import sys
-from typing import cast
+from typing import Any, cast
 
 import gi
 import ocrmypdf
@@ -115,7 +115,7 @@ class ApplicationWindow(
 ):
     """ApplicationWindow class."""
 
-    settings: dict[str, object]
+    settings: dict[str, Any]
     _configfile = None
     _current_page = None
     _current_ocr_bbox = None
@@ -911,7 +911,7 @@ class ApplicationWindow(
         error_name = "error opening device"
         response = None
         if (
-            error_name in cast("dict[str, object]", self.settings["message"])
+            error_name in cast("dict[str, Any]", self.settings["message"])
             and self.settings["message"][error_name]["response"] == "ignore"
         ):
             response = self.settings["message"][error_name]["response"]

@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 import threading
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import gi
 import tesserocr
@@ -436,7 +436,9 @@ class DocThread(SaveThread):
                 "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
                 (self._action_id,),
             )
-            max_row_id = cast("int | None", self._fetchone()[0])
+            max_row_id = cast(
+                "int | None", cast("tuple[object, ...]", self._fetchone())[0]
+            )
             if max_row_id is None:
                 max_row_id = -1
             position = max_row_id + 1
@@ -476,7 +478,7 @@ class DocThread(SaveThread):
             "SELECT row_id FROM page_order WHERE initial_page_id = ? AND action_id = ?",
             (initial_page_id, self._action_id),
         )
-        position = self._fetchone()[0]
+        position = cast("tuple[object, ...]", self._fetchone())[0]
         self._con[threading.get_native_id()].commit()
         return int(position), thumb, initial_page_id
 
@@ -487,7 +489,7 @@ class DocThread(SaveThread):
         """Delete a page from the database."""
         self._check_write_tid()
         self._take_snapshot()
-        kwargs = request.args[0]
+        kwargs = cast("dict[str, Any]", request.args[0])
 
         row_ids = kwargs.get("row_ids", [])
         page_ids = kwargs.get("page_ids", [])
@@ -600,14 +602,14 @@ class DocThread(SaveThread):
 
     def do_get_page(self, request: Request) -> Page:
         """Get a page from the database on the worker thread."""
-        kwargs = request.args[0]
+        kwargs = cast("dict[str, Any]", request.args[0])
         return self.get_page(**kwargs)
 
     def do_clone_pages(self, request: Request) -> list[int]:
         """Clone pages in the database."""
         self._check_write_tid()
         self._take_snapshot()
-        kwargs = request.args[0]
+        kwargs = cast("dict[str, Any]", request.args[0])
         page_ids = kwargs["page_ids"]
         dest = kwargs["dest"]
         self._execute(
@@ -636,7 +638,11 @@ class DocThread(SaveThread):
         )
         tid = threading.get_native_id()
         self._execute("SELECT last_insert_rowid()")
-        first_image_id = cast("int", self._fetchone()[0]) - len(pages) + 1
+        first_image_id = (
+            cast("int", cast("tuple[object, ...]", self._fetchone())[0])
+            - len(pages)
+            + 1
+        )
         for i, page in enumerate(pages):
             pages[i] = (first_image_id + i, *page[1:])
         self._executemany(
@@ -646,12 +652,16 @@ class DocThread(SaveThread):
             pages,
         )
         self._execute("SELECT last_insert_rowid()")
-        first_page_id = cast("int", self._fetchone()[0]) - len(pages) + 1
+        first_page_id = (
+            cast("int", cast("tuple[object, ...]", self._fetchone())[0])
+            - len(pages)
+            + 1
+        )
         self._execute(
             "SELECT MAX(row_id) FROM page_order WHERE action_id = ?",
             (self._action_id,),
         )
-        max_row_id = self._fetchone()[0]
+        max_row_id = cast("tuple[object, ...]", self._fetchone())[0]
 
         # if we are not adding the cloned pages to the end, shift the rows after dest
         if dest <= max_row_id:
@@ -693,7 +703,7 @@ class DocThread(SaveThread):
     def do_reorder_pages(self, request: Request) -> list[int]:
         """Reorder pages in the database."""
         self._check_write_tid()
-        kwargs = request.args[0]
+        kwargs = cast("dict[str, Any]", request.args[0])
         page_ids = kwargs["page_ids"]
         dest = kwargs["dest"]
         self._execute(
@@ -845,9 +855,9 @@ class DocThread(SaveThread):
     def can_undo(self) -> bool:
         """Check whether undo is possible."""
         self._execute("SELECT min(action_id) FROM page_order")
-        min_page = self._fetchone()[0]
+        min_page = cast("tuple[object, ...]", self._fetchone())[0]
         self._execute("SELECT min(action_id) FROM selection")
-        min_sel = self._fetchone()[0]
+        min_sel = cast("tuple[object, ...]", self._fetchone())[0]
         ids = [x for x in [min_page, min_sel] if x is not None]
         min_action_id = min(ids) if ids else None
         return min_action_id is not None and min_action_id <= self._action_id
@@ -855,9 +865,9 @@ class DocThread(SaveThread):
     def can_redo(self) -> bool:
         """Check whether redo is possible."""
         self._execute("SELECT max(action_id) FROM page_order")
-        max_page = self._fetchone()[0]
+        max_page = cast("tuple[object, ...]", self._fetchone())[0]
         self._execute("SELECT max(action_id) FROM selection")
-        max_sel = self._fetchone()[0]
+        max_sel = cast("tuple[object, ...]", self._fetchone())[0]
         ids = [x for x in [max_page, max_sel] if x is not None]
         max_action_id = max(ids) if ids else None
         return max_action_id is not None and max_action_id > self._action_id
@@ -938,7 +948,7 @@ class DocThread(SaveThread):
                 WHERE saved = 0 and page_id = id AND action_id = ?""",
             (self._action_id,),
         )
-        return self._fetchone()[0] == 0
+        return cast("tuple[object, ...]", self._fetchone())[0] == 0
 
     def get_thumb(self, page_id: int) -> GdkPixbuf.Pixbuf:
         """Get the thumbnail for the given page_id."""
@@ -947,7 +957,7 @@ class DocThread(SaveThread):
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
-        return self._bytes_to_pixbuf(self._fetchone()[0])
+        return self._bytes_to_pixbuf(cast("tuple[object, ...]", self._fetchone())[0])
 
     def get_text(self, page_id: int) -> str | None:
         """Get the text layer for the given page."""
@@ -956,7 +966,7 @@ class DocThread(SaveThread):
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
-        return cast("str | None", self._fetchone()[0])
+        return cast("str | None", cast("tuple[object, ...]", self._fetchone())[0])
 
     def parse_bboxtree(self, json_string: str, **kwargs: object) -> uuid.UUID:
         """Parse bboxtree in thread."""
@@ -1011,7 +1021,7 @@ class DocThread(SaveThread):
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
-        return cast("str | None", self._fetchone()[0])
+        return cast("str | None", cast("tuple[object, ...]", self._fetchone())[0])
 
     def do_set_annotations(self, request: Request) -> None:
         """Set the annotations layer for the given page."""
@@ -1094,7 +1104,7 @@ class DocThread(SaveThread):
 
     def do_rotate(self, request: Request) -> None:
         """Rotate page in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         page = self.get_page(id=options["page"])
         logger.info("Rotating %s by %s degrees", page.id, options["angle"])
         page.image_object = page.image_object.rotate(options["angle"], expand=True)
@@ -1104,10 +1114,11 @@ class DocThread(SaveThread):
         page.saved = False
         if options["angle"] in (-270, -90, 90, 270):
             page.width, page.height = page.height, page.width
+            resolution = cast("tuple[float, float, str]", page.resolution)
             page.resolution = (
-                page.resolution[1],
-                page.resolution[0],
-                page.resolution[2],
+                resolution[1],
+                resolution[0],
+                resolution[2],
             )
         request.data(
             {
@@ -1124,7 +1135,7 @@ class DocThread(SaveThread):
 
     def do_analyse(self, request: Request) -> None:
         """Analyse page in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         list_of_pages = options["list_of_pages"]
 
         i = 1
@@ -1168,7 +1179,7 @@ class DocThread(SaveThread):
 
     def do_threshold(self, request: Request) -> None:
         """Threshold page in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         page = self.get_page(id=options["page"])
         self.check_cancelled()
 
@@ -1202,7 +1213,7 @@ class DocThread(SaveThread):
 
     def do_brightness_contrast(self, request: Request) -> None:
         """Adjust brightness and contrast in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         brightness, contrast = options["brightness"], options["contrast"]
         page = self.get_page(id=options["page"])
         logger.info(
@@ -1236,7 +1247,7 @@ class DocThread(SaveThread):
 
     def do_negate(self, request: Request) -> None:
         """Negate page in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         page = self.get_page(id=options["page"])
 
         logger.info("Invert %s", page.id)
@@ -1262,7 +1273,7 @@ class DocThread(SaveThread):
 
     def do_unsharp(self, request: Request) -> None:
         """Run unsharp mask in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         page = self.get_page(id=options["page"])
         radius = options["radius"]
         percent = options["percent"]
@@ -1297,7 +1308,7 @@ class DocThread(SaveThread):
 
     def do_crop(self, request: Request) -> None:
         """Crop page in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         page = self.get_page(id=options["page"])
         left = options["x"]
         top = options["y"]
@@ -1335,7 +1346,7 @@ class DocThread(SaveThread):
 
     def do_split_page(self, request: Request) -> None:
         """Split page in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         page = self.get_page(id=options["page"])
         image = page.image_object
         image2 = image.copy()
@@ -1423,7 +1434,7 @@ class DocThread(SaveThread):
 
     def do_tesseract(self, request: Request) -> None:
         """Run tesseract in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         page = self.get_page(id=options["page"])
         if options["language"] is None:
             raise ValueError(_("No tesseract language specified"))
@@ -1481,7 +1492,7 @@ class DocThread(SaveThread):
         return self.send("unpaper", kwargs, **callbacks)
 
     def _run_unpaper_cmd(self, request: Request) -> tuple[object, object | None]:
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         # SIM115: cross-scope file handle used intentionally
         out = tempfile.NamedTemporaryFile(  # noqa: SIM115
             dir=options.get("dir"), suffix=".pnm"
@@ -1540,7 +1551,7 @@ class DocThread(SaveThread):
 
     def do_unpaper(self, request: Request) -> None:
         """Run unpaper in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         page = self.get_page(id=options["page"])
         try:
             image = page.image_object
@@ -1610,7 +1621,7 @@ class DocThread(SaveThread):
 
     def do_import_page(self, request: Request) -> None:
         """Import page from file or object."""
-        kwargs = request.args[0]
+        kwargs = cast("dict[str, Any]", request.args[0])
         insert_after = kwargs.pop("insert_after", None)
         page = Page(**kwargs)
         xresolution, yresolution, units = page.get_resolution()

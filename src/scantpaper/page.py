@@ -400,7 +400,7 @@ class Page:
         return xresolution, cast("Image.Image", self.image_object)
 
     def write_image_for_pdf(
-        self, filename: str, options: dict[str, object] | None
+        self, filename: str, options: dict[str, Any] | None
     ) -> None:
         """Write the image as a file suitable for embedding in a PDF."""
         image = self.image_object
@@ -416,18 +416,19 @@ class Page:
             with pathlib.Path(filename).open("wb") as fhd:
                 fhd.write(self._stored_bytes)
             return
+        resolution = cast("tuple[float, float, str]", self.resolution)
         if (
             opts
-            and "downsample" in cast("dict[str, object]", opts)
+            and "downsample" in cast("dict[str, Any]", opts)
             and opts["downsample"]
-            and opts["downsample dpi"] < min(self.resolution[0], self.resolution[1])
+            and opts["downsample dpi"] < min(resolution[0], resolution[1])
         ):
-            width = int(self.width * opts["downsample dpi"] // self.resolution[0])
-            height = int(self.height * opts["downsample dpi"] // self.resolution[1])
+            width = int(self.width * opts["downsample dpi"] // resolution[0])
+            height = int(self.height * opts["downsample dpi"] // resolution[1])
             image = image.resize((width, height))
         if (
             opts
-            and "compression" in cast("dict[str, object]", opts)
+            and "compression" in cast("dict[str, Any]", opts)
             and opts["compression"][0] == "g"
         ):  # g3 or g4
             # Grayscale
@@ -441,7 +442,7 @@ class Page:
         xresolution, yresolution, _units = self.get_resolution()
         image.save(filename, dpi=(xresolution, yresolution))
 
-    def write_image_for_djvu(self, filename: str, options: dict[str, object]) -> None:
+    def write_image_for_djvu(self, filename: str, options: dict[str, Any]) -> None:
         """Save the image as a DjVu file."""
         # Check the image depth to decide what sort of compression to use
 
@@ -539,7 +540,7 @@ class Page:
                     cmd, check=True, shell=False
                 )
 
-    def write_image_for_tiff(self, filename: str, options: dict[str, object]) -> None:
+    def write_image_for_tiff(self, filename: str, options: dict[str, Any]) -> None:
         """Save the image as a TIFF file."""
         with tempfile.NamedTemporaryFile(
             dir=cast("str | None", options.get("dir")), suffix=".tif"
@@ -551,7 +552,7 @@ class Page:
 
             # Convert to tiff
             depth = []
-            if "compression" in cast("dict[str, object]", options["options"]):
+            if "compression" in cast("dict[str, Any]", options["options"]):
                 if options["options"]["compression"] == "jpeg":
                     depth = ["-depth", "8"]
 

@@ -704,7 +704,7 @@ def test_do_threshold_colour(mocker: pytest.MockerFixture) -> None:
 
     out = page.image_object
     assert out.mode == "1", "output is 1-bit"
-    pix = out.load()
+    pix = cast("Any", out.load())
     assert [pix[x, 0] for x in range(4)] == [255, 255, 255, 255], "white stays white"
     assert [pix[x, 1] for x in range(4)] == [0, 0, 0, 0], "saturated colours kept"
     assert [pix[x, 2] for x in range(4)] == [0, 0, 0, 0], "light colours kept"
@@ -730,7 +730,7 @@ def test_do_threshold_percent(mocker: pytest.MockerFixture) -> None:
     request.args = [{"page": 1, "threshold": 20}]
     thread.do_threshold(request)
     assert page.image_object.mode == "1"
-    pix = page.image_object.load()
+    pix = cast("Any", page.image_object.load())
     assert [pix[x, 0] for x in range(len(values))] == [0, 0, 0, 0, 0, 255, 255, 255]
 
     img = Image.new("L", (len(values), 1))
@@ -739,7 +739,7 @@ def test_do_threshold_percent(mocker: pytest.MockerFixture) -> None:
     request.args = [{"page": 1, "threshold": 80}]
     thread.do_threshold(request)
     assert page.image_object.mode == "1"
-    pix = page.image_object.load()
+    pix = cast("Any", page.image_object.load())
     assert [pix[x, 0] for x in range(len(values))] == [
         0,
         0,
@@ -1162,10 +1162,10 @@ def test_open_migration_v1_to_v2(temp_db: object) -> None:
 
     # Check if migration was successful
     thread._execute("PRAGMA user_version")
-    assert thread._fetchone()[0] == USER_VERSION
+    assert cast("tuple[object, ...]", thread._fetchone())[0] == USER_VERSION
 
     thread._execute("SELECT initial_page_id FROM page_order WHERE page_id = 1")
-    assert thread._fetchone()[0] == 1
+    assert cast("tuple[object, ...]", thread._fetchone())[0] == 1
 
 
 def test_pixbuf_to_bytes() -> None:

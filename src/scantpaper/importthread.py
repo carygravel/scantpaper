@@ -8,7 +8,7 @@ import re
 import subprocess
 import tempfile
 import threading
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from PIL import Image
 
@@ -295,7 +295,7 @@ class Importhread(BaseThread):
 
     def do_import_file(self, request: Request) -> None:
         """Import file in thread."""
-        args = request.args[0]
+        args = cast("dict[str, Any]", request.args[0])
         if args["info"]["format"] == "DJVU":
             self._do_import_djvu(request)
 
@@ -378,7 +378,7 @@ class Importhread(BaseThread):
         return self.send("import_file", kwargs, **callbacks)
 
     def _do_import_djvu(self, request: Request) -> None:
-        args = request.args[0]
+        args = cast("dict[str, Any]", request.args[0])
         # Extract images from DjVu
         if args["last"] >= args["first"] and args["first"] > 0:
             for i in range(args["first"], args["last"] + 1):
@@ -457,7 +457,7 @@ class Importhread(BaseThread):
                     )
 
     def _do_import_pdf(self, request: Request) -> None:
-        args = request.args[0]
+        args = cast("dict[str, Any]", request.args[0])
 
         # Extract images from PDF
         warning_flag = False
@@ -541,7 +541,7 @@ class Importhread(BaseThread):
                 try:
                     page = Page(
                         filename=fname,
-                        dir=request.args[0]["dir"],
+                        dir=cast("dict[str, Any]", request.args[0])["dir"],
                         format=image_format[ext],
                         resolution=(xresolution, yresolution, "PixelsPerInch"),
                     )
@@ -558,7 +558,7 @@ class Importhread(BaseThread):
                     request.error(_("Error importing PDF"))
 
     def _extract_text_from_pdf(self, request: Request, i: int) -> str:
-        args = request.args[0]
+        args = cast("dict[str, Any]", request.args[0])
         with tempfile.NamedTemporaryFile(
             mode="w+t", dir=args["dir"], suffix=".html"
         ) as html:

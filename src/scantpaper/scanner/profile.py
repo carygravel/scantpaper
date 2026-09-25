@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from copy import deepcopy
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from gi.repository import GObject
 
@@ -213,7 +213,7 @@ class Profile(GObject.Object):
             opt = options.by_name(name)
             if (
                 "type" in cast("dict[str, object]", opt)
-                and opt["type"] == enums.TYPE_BOOL
+                and cast("Any", opt)["type"] == enums.TYPE_BOOL
             ):
                 val = "yes" if val else "no"
 

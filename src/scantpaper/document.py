@@ -9,7 +9,7 @@ import re
 import sys
 from collections import defaultdict
 from functools import partial
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from scantpaper.basedocument import BaseDocument
 from scantpaper.bboxtree import unescape_utf8
@@ -53,7 +53,7 @@ class Document(BaseDocument):
             self._get_file_info_finished_callback1(i, info, options)
 
     def _get_file_info_finished_callback1(
-        self, i: int, infolist: list[object], options: dict[str, object]
+        self, i: int, infolist: list[object], options: dict[str, Any]
     ) -> None:
         options = defaultdict(None, options)
         path = options["paths"][i]
@@ -96,7 +96,7 @@ class Document(BaseDocument):
         )
 
     def _get_file_info_finished_callback2_multiple_files(
-        self, info: list[dict[str, object]], options: dict[str, object]
+        self, info: list[dict[str, Any]], options: dict[str, Any]
     ) -> None:
         for i in info:
             if i["format"] == "session file":
@@ -153,7 +153,7 @@ class Document(BaseDocument):
             self.import_file(info=item, first_page=1, last_page=1, **options)
 
     def _get_file_info_finished_callback2(
-        self, info: list[dict[str, object]], options: dict[str, object]
+        self, info: list[dict[str, Any]], options: dict[str, Any]
     ) -> None:
         if len(info) > 1:
             self._get_file_info_finished_callback2_multiple_files(info, options)
@@ -201,7 +201,7 @@ class Document(BaseDocument):
 
         def _import_file_data_callback(response: Response) -> None:
             try:
-                self.add_page(*response.info["row"])
+                self.add_page(*cast("dict[str, Any]", response.info)["row"])
             except (AttributeError, TypeError):
                 if "logger_callback" in kwargs:
                     cast("Callable[..., object]", kwargs["logger_callback"])(response)
@@ -209,7 +209,7 @@ class Document(BaseDocument):
         kwargs["data_callback"] = _import_file_data_callback
         self.thread.import_file(**kwargs)
 
-    def _post_process_rotate(self, page_id: int, options: dict[str, object]) -> None:
+    def _post_process_rotate(self, page_id: int, options: dict[str, Any]) -> None:
 
         def updated_page_callback(response: Response) -> None:
             info = response.info
@@ -224,7 +224,7 @@ class Document(BaseDocument):
         del rotate_options["finished_callback"]
         self.rotate(**rotate_options)
 
-    def _post_process_unpaper(self, page_id: int, options: dict[str, object]) -> None:
+    def _post_process_unpaper(self, page_id: int, options: dict[str, Any]) -> None:
 
         def updated_page_callback(response: Response) -> None:
             info = response.info
@@ -242,7 +242,7 @@ class Document(BaseDocument):
         del unpaper_options["finished_callback"]
         self.unpaper(**unpaper_options)
 
-    def _post_process_udt(self, page_id: int, options: dict[str, object]) -> None:
+    def _post_process_udt(self, page_id: int, options: dict[str, Any]) -> None:
 
         def updated_page_callback(response: Response) -> None:
             info = response.info
@@ -256,7 +256,7 @@ class Document(BaseDocument):
         udt_options["updated_page_callback"] = updated_page_callback
         self.user_defined(**udt_options)
 
-    def _post_process_ocr(self, page_id: int, options: dict[str, object]) -> None:
+    def _post_process_ocr(self, page_id: int, options: dict[str, Any]) -> None:
 
         def ocr_finished_callback(_response: Response) -> None:
             del options["ocr"]
@@ -274,9 +274,7 @@ class Document(BaseDocument):
             display_callback=options.get("display_callback"),
         )
 
-    def _post_process_scan(
-        self, page_id: int | None, options: dict[str, object]
-    ) -> None:
+    def _post_process_scan(self, page_id: int | None, options: dict[str, Any]) -> None:
         options = defaultdict(None, options)
 
         if options.get("rotate"):
@@ -310,7 +308,7 @@ class Document(BaseDocument):
 
         import_scan_kwargs = kwargs.copy()
 
-        def _post_process(page_id: int, options: dict[str, object]) -> None:
+        def _post_process(page_id: int, options: dict[str, Any]) -> None:
             self._post_process_scan(page_id, options)
 
         import_scan_kwargs["data_callback"] = partial(
@@ -355,7 +353,7 @@ class Document(BaseDocument):
             self.get_model().handler_block(self.row_changed_signal)
             self.get_selection().handler_block(self.selection_changed_signal)
             self._block_signals = True
-            self.data = response.info["snapshot"]
+            self.data = cast("dict[str, Any]", response.info)["snapshot"]
             self._block_signals = False
 
             # Unblock slist signals now finished
@@ -363,7 +361,7 @@ class Document(BaseDocument):
             self.get_model().handler_unblock(self.row_changed_signal)
 
             # Reselect the pages to display the detail view
-            self.select(response.info["selection"])
+            self.select(cast("dict[str, Any]", response.info)["selection"])
 
             if finished_callback is not None:
                 finished_callback()
@@ -386,7 +384,7 @@ class Document(BaseDocument):
             self.get_model().handler_block(self.row_changed_signal)
             self.get_selection().handler_block(self.selection_changed_signal)
             self._block_signals = True
-            self.data = response.info["snapshot"]
+            self.data = cast("dict[str, Any]", response.info)["snapshot"]
             self._block_signals = False
 
             # Unblock slist signals now finished
@@ -394,7 +392,7 @@ class Document(BaseDocument):
             self.get_model().handler_unblock(self.row_changed_signal)
 
             # Reselect the pages to display the detail view
-            self.select(response.info["selection"])
+            self.select(cast("dict[str, Any]", response.info)["selection"])
 
             if finished_callback is not None:
                 finished_callback()
@@ -444,8 +442,8 @@ def _is_placeholder_title(value: str) -> bool:
     return value.strip().strip("'").strip().lower() == "untitled"
 
 
-def _extract_metadata(info: dict[str, object]) -> dict[str, object]:
-    metadata: dict[str, object] = {}
+def _extract_metadata(info: dict[str, Any]) -> dict[str, Any]:
+    metadata: dict[str, Any] = {}
     for key, value in info.items():
         if (
             re.search(

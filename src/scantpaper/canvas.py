@@ -7,7 +7,7 @@ import html
 import logging
 import math
 import re
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 import gi
 
@@ -541,7 +541,7 @@ class Canvas(Gtk.DrawingArea):
         allocation.width, allocation.height = self._to_image_distance(
             allocation.width, allocation.height
         )
-        pixbuf_size = self.get_pixbuf_size()
+        pixbuf_size = cast("dict[str, int]", self.get_pixbuf_size())
         newval.x = _clamp_direction(newval.x, allocation.width, pixbuf_size["width"])
         newval.y = _clamp_direction(newval.y, allocation.height, pixbuf_size["height"])
 
@@ -1023,10 +1023,10 @@ class Canvas(Gtk.DrawingArea):
 
     def _bbox_kwargs(
         self,
-        kwargs: dict[str, object],
+        kwargs: dict[str, Any],
         parent: Bbox | _CanvasRoot,
         transformation: list[int],
-    ) -> dict[str, object]:
+    ) -> dict[str, Any]:
         """Build the option dict for a new Bbox from the add_box kwargs."""
         options = {
             "canvas": self,
@@ -1050,11 +1050,11 @@ class Canvas(Gtk.DrawingArea):
         options["edit_callback"] = kwargs.get("edit_callback")
         return options
 
-    def _boxed_text(self, options: dict[str, object]) -> bool:
+    def _boxed_text(self, options: dict[str, Any]) -> bool:
         """Draw text on the canvas with a box around it."""
         for _ in range(BATCH_SIZE):
             idx = cast("int", options["idx"])
-            box = cast("dict[str, object]", options["box"])
+            box = cast("dict[str, Any]", options["box"])
             depth = cast("int", box["depth"])
 
             transformations = options["transformations"]

@@ -281,19 +281,18 @@ class SaneScanDialog(Scan):
     def _create_widget_spinbutton(
         self, opt: Option, val: object
     ) -> Gtk.SpinButton | None:
-        if opt.constraint[0] > opt.constraint[1]:
+        constraint = cast("tuple[float, float]", opt.constraint)
+        if constraint[0] > constraint[1]:
             logger.error(
                 _("Ignoring scan option '%s', minimum range (%s) > maximum (%s)"),
                 opt.name,
-                opt.constraint[0],
-                opt.constraint[1],
+                constraint[0],
+                constraint[1],
             )
             return None
-        step = spin_step(opt.constraint)
+        step = spin_step(constraint)
 
-        widget = Gtk.SpinButton.new_with_range(
-            opt.constraint[0], opt.constraint[1], step
-        )
+        widget = Gtk.SpinButton.new_with_range(constraint[0], constraint[1], step)
 
         # Set the default
         if val is not None and not opt.cap & enums.CAP_INACTIVE:

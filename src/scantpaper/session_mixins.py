@@ -512,8 +512,8 @@ class SessionMixins:
         else:
             logger.info("Creating new text layer with '%s'", text)
             cast("Any", self._current_page).text_layer = (
-                f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},'
-                f'{self._current_page["height"]}],"depth":0}},'
+                f'[{{"type":"page","bbox":[0,0,{cast("Any", self._current_page)["width"]},'
+                f'{cast("Any", self._current_page)["height"]}],"depth":0}},'
                 f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'
                 f"{selection['x'] + selection['width']},"
                 f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
@@ -565,8 +565,8 @@ class SessionMixins:
         else:
             logger.info("Creating new annotation canvas with '%s'", text)
             self._current_page["annotations"] = (
-                f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},'
-                f'{self._current_page["height"]}],"depth":0}},'
+                f'[{{"type":"page","bbox":[0,0,{cast("Any", self._current_page)["width"]},'
+                f'{cast("Any", self._current_page)["height"]}],"depth":0}},'
                 f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'
                 f"{selection['x'] + selection['width']},"
                 f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
@@ -632,8 +632,10 @@ class SessionMixins:
 
         def on_parsed(result: Response) -> None:
             self.t_canvas.set_text(
-                bboxes=result.info["bboxes"],
-                sorted_word_indices=result.info["sorted_word_indices"],
+                bboxes=cast("dict[str, Any]", result.info)["bboxes"],
+                sorted_word_indices=cast("dict[str, Any]", result.info)[
+                    "sorted_word_indices"
+                ],
                 edit_callback=self._edit_ocr_text,
                 finished_callback=finished_callback,
             )
@@ -657,8 +659,10 @@ class SessionMixins:
 
         def on_parsed(result: Response) -> None:
             self.a_canvas.set_text(
-                bboxes=result.info["bboxes"],
-                sorted_word_indices=result.info["sorted_word_indices"],
+                bboxes=cast("dict[str, Any]", result.info)["bboxes"],
+                sorted_word_indices=cast("dict[str, Any]", result.info)[
+                    "sorted_word_indices"
+                ],
                 edit_callback=self._edit_annotation,
                 finished_callback=finished_callback,
             )

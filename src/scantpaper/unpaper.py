@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import gi
 
@@ -27,12 +27,12 @@ class Unpaper:
 
     _version = None
 
-    def __init__(self, default: dict[str, object] | None = None) -> None:
+    def __init__(self, default: dict[str, Any] | None = None) -> None:
         """Initialise unpaper options from the defaults dict."""
         self.default = default if default is not None else {}
 
         # Set up hash for options
-        self.options = {
+        self.options: dict[str, dict[str, Any]] = {
             "layout": {
                 "type": "ComboBox",
                 "string": _("Layout"),
@@ -254,9 +254,7 @@ class Unpaper:
             },
         }
 
-    def _add_notebook_page_1(
-        self, vbox: Gtk.Box, options: dict[str, object]
-    ) -> Gtk.Box:
+    def _add_notebook_page_1(self, vbox: Gtk.Box, options: dict[str, Any]) -> Gtk.Box:
         vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox1.set_border_width(vbox.get_border_width())
         dsbutton = self.add_widget(vbox1, options, "no-deskew")
@@ -282,9 +280,7 @@ class Unpaper:
 
         return vbox1
 
-    def _add_notebook_page_2(
-        self, vbox: Gtk.Box, options: dict[str, object]
-    ) -> Gtk.Box:
+    def _add_notebook_page_2(self, vbox: Gtk.Box, options: dict[str, Any]) -> Gtk.Box:
         vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox2.set_border_width(vbox.get_border_width())
         bsbutton = self.add_widget(vbox2, options, "no-border-scan")
@@ -388,7 +384,7 @@ class Unpaper:
         self.set_options(self.default)
 
     def _add_combobox(
-        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+        self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.ComboBoxText:
         hbox = Gtk.Box()
         vbox.pack_start(hbox, expand=True, fill=True, padding=0)
@@ -412,7 +408,7 @@ class Unpaper:
         return widget
 
     def _add_checkbutton(
-        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+        self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.CheckButton:
         widget = Gtk.CheckButton(label=hashref[option]["string"])
         widget.set_tooltip_text(hashref[option]["tooltip"])
@@ -420,7 +416,7 @@ class Unpaper:
         return widget
 
     def _add_checkbuttongroup(
-        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+        self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.Frame:
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.pack_start(widget, expand=True, fill=True, padding=0)
@@ -433,7 +429,7 @@ class Unpaper:
         return widget
 
     def _add_spinbutton(
-        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+        self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.SpinButton:
         default = self.default
         hbox = Gtk.Box()
@@ -452,7 +448,7 @@ class Unpaper:
         return widget
 
     def _add_spinbuttongroup(
-        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+        self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.Frame:
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.pack_start(widget, expand=True, fill=True, padding=0)
@@ -464,13 +460,13 @@ class Unpaper:
         return widget
 
     def add_widget(
-        self, vbox: Gtk.Box, hashref: dict[str, object], option: str
+        self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.Widget | None:
         """Add widget to unpaper dialog."""
         default = self.default
         widget = None
         if (
-            "default" in cast("dict[str, object]", hashref[option])
+            "default" in cast("dict[str, Any]", hashref[option])
             and option not in default
         ):
             default[option] = hashref[option]["default"]
@@ -486,14 +482,14 @@ class Unpaper:
             method = cast("Callable[..., object]", getattr(self, method_name, None))
             widget = method(vbox, hashref, option)
 
-        cast("dict[str, object]", hashref[option])["widget"] = widget
+        cast("dict[str, Any]", hashref[option])["widget"] = widget
         return widget
 
     def _combobox_get_option(self, option: str) -> str | None:
         """Get option for combobox."""
         hashref = self.options
         i = hashref[option]["widget"].get_active()
-        for key in cast("dict[str, dict[str, object]]", hashref[option]["options"]):
+        for key in cast("dict[str, dict[str, Any]]", hashref[option]["options"]):
             if hashref[option]["options"][key]["index"] == i:
                 return str(key)
         return None
@@ -523,7 +519,7 @@ class Unpaper:
 
     def _spinbuttongroup_get_option(self, option: str) -> str:
         """Get option for spinbuttongroup."""
-        options = cast("dict[str, dict[str, object]]", self.options[option]["options"])
+        options = cast("dict[str, dict[str, Any]]", self.options[option]["options"])
         items = [str(options[key]["widget"].get_value()) for key in options]
         return ",".join(items) if items else ""
 
@@ -548,7 +544,7 @@ class Unpaper:
             return options[option]["default"]
         return None
 
-    def get_options(self) -> dict[str, object]:
+    def get_options(self) -> dict[str, Any]:
         """Return all options."""
         options = self.options
         default = self.default
@@ -559,19 +555,19 @@ class Unpaper:
 
         return default
 
-    def _combobox_set_option(self, option: str, options: dict[str, object]) -> None:
+    def _combobox_set_option(self, option: str, options: dict[str, Any]) -> None:
         """Set option for combobox."""
         hashref = self.options
         i = hashref[option]["options"][options[option]]["index"]
         if i is not None:
             hashref[option]["widget"].set_active(i)
 
-    def _checkbutton_set_option(self, option: str, options: dict[str, object]) -> None:
+    def _checkbutton_set_option(self, option: str, options: dict[str, Any]) -> None:
         """Set option for checkbutton."""
         self.options[option]["widget"].set_active(options[option])
 
     def _checkbuttongroup_set_option(
-        self, option: str, options: dict[str, object]
+        self, option: str, options: dict[str, Any]
     ) -> None:
         """Set option for checkbuttongroup."""
         hashref = self.options
@@ -580,16 +576,14 @@ class Unpaper:
             for key in re.split(r",", str(options[option])):
                 default[key] = True
 
-        for key in cast("dict[str, dict[str, object]]", hashref[option]["options"]):
+        for key in cast("dict[str, dict[str, Any]]", hashref[option]["options"]):
             hashref[option]["options"][key]["widget"].set_active(key in default)
 
-    def _spinbutton_set_option(self, option: str, options: dict[str, object]) -> None:
+    def _spinbutton_set_option(self, option: str, options: dict[str, Any]) -> None:
         """Set option for spinbutton."""
         self.options[option]["widget"].set_value(options[option])
 
-    def _spinbuttongroup_set_option(
-        self, option: str, options: dict[str, object]
-    ) -> None:
+    def _spinbuttongroup_set_option(self, option: str, options: dict[str, Any]) -> None:
         """Set option for spinbuttongroup."""
         hashref = self.options
         default = []
@@ -602,7 +596,7 @@ class Unpaper:
                     float(default.pop(0))
                 )
 
-    def set_options(self, options: dict[str, object]) -> None:
+    def set_options(self, options: dict[str, Any]) -> None:
         """Set options."""
         hashref = self.options
         for option in options:

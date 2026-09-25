@@ -8,7 +8,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -84,7 +84,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
         assert response.request.process in ["get_file_info", "import_file"]
         asserts += 1
 
-    def metadata_cb(response: object) -> None:
+    def metadata_cb(response: dict[str, Any]) -> None:
         assert response["datetime"] == datetime.datetime(
             2018, 12, 31, 13, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
         ), "datetime"

@@ -8,7 +8,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import img2pdf
 import pytest
@@ -316,7 +316,7 @@ def test_import_pdf_with_metadata(
 
     asserts = 0
 
-    def metadata_cb(response: object) -> None:
+    def metadata_cb(response: dict[str, Any]) -> None:
         assert response["datetime"] == datetime.datetime(
             2018, 12, 31, 12, 0, tzinfo=datetime.timezone.utc
         ), "datetime"
@@ -350,7 +350,7 @@ def test_import_pdf_with_placeholder_title(
 
     asserts = 0
 
-    def metadata_cb(response: object) -> None:
+    def metadata_cb(response: dict[str, Any]) -> None:
         assert "title" not in cast("dict[str, object]", response), (
             "placeholder title not imported"
         )

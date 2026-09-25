@@ -10,7 +10,7 @@ import pathlib
 import re
 import sys
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import gi
 
@@ -688,7 +688,7 @@ class FileMenuMixins:
             options["post_save_hook"] = self.settings["current_psh"]
 
         def save_djvu_finished_callback(response: Response) -> None:
-            filename = response.request.args[0]["path"]
+            filename = cast("dict[str, Any]", response.request.args[0])["path"]
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
             if self.settings.get("view files toggle"):
@@ -718,7 +718,7 @@ class FileMenuMixins:
             options["post_save_hook"] = self.settings["current_psh"]
 
         def save_tiff_finished_callback(response: Response) -> None:
-            filename = response.request.args[0]["path"]
+            filename = cast("dict[str, Any]", response.request.args[0])["path"]
             self.post_process_progress.finish(response)
             self.slist.thread.send("set_saved", uuids)
             file = ps if ps is not None else filename
@@ -887,7 +887,7 @@ class FileMenuMixins:
     def _save_image_finished_callback(
         self, response: Response, uuids: list[str]
     ) -> None:
-        filename = response.request.args[0]["path"]
+        filename = cast("dict[str, Any]", response.request.args[0])["path"]
         self.post_process_progress.finish(response)
         self.slist.thread.send("set_saved", uuids)
         if self.settings.get("view files toggle"):

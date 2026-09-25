@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 import subprocess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from scantpaper import config
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM, MM_PER_INCH
@@ -211,7 +211,9 @@ def test_udt_error(
 
     def logger_cb(response: Response) -> None:
         nonlocal asserts
-        assert re.search(r"error", response.info["info"]), "error_cb"
+        assert re.search(r"error", cast("dict[str, Any]", response.info)["info"]), (
+            "error_cb"
+        )
         asserts += 1
 
     mlp = safe_mainloop(5000)

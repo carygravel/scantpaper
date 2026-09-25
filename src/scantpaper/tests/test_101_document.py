@@ -640,16 +640,16 @@ def test_db(temp_db: object) -> None:
     thread.add_page(Page(image_object=Image.new("RGB", (210, 297))))
     request = Request("delete_pages", ({"row_ids": [0]},), thread.responses)
     thread.do_delete_pages(request)
-    assert thread.page_number_table()[0][0] == 0, "deleted page"
+    assert cast("list", thread.page_number_table())[0][0] == 0, "deleted page"
 
     page = thread.get_page(id=2)
     assert isinstance(page, Page), "get_page by id"
 
     result = thread.do_undo(Request("undo", (), thread.responses))
-    assert result["snapshot"][0][0] == 1, "undo"
+    assert cast("list", result["snapshot"])[0][0] == 1, "undo"
 
     result = thread.do_redo(Request("redo", (), thread.responses))
-    assert result["snapshot"][0][0] == 1, "redo"
+    assert cast("list", result["snapshot"])[0][0] == 1, "redo"
 
     thread.do_set_saved(Request("set_saved", (1, True), thread.responses))
     assert not thread.pages_saved(), "not all pages saved"
@@ -748,7 +748,7 @@ def test_reorder_pages(temp_db: object) -> None:
 
     # image row count should be unchanged by a reorder
     thread._execute("SELECT COUNT(*) FROM image")
-    image_count_before = thread._fetchone()[0]
+    image_count_before = cast("tuple[object, ...]", thread._fetchone())[0]
 
     # move the first page to the end (after the last page)
     request = Request(
@@ -762,7 +762,7 @@ def test_reorder_pages(temp_db: object) -> None:
     assert after == [*ids[1:], ids[0]], "first page moved to the end"
 
     thread._execute("SELECT COUNT(*) FROM image")
-    image_count_after = thread._fetchone()[0]
+    image_count_after = cast("tuple[object, ...]", thread._fetchone())[0]
     assert image_count_after == image_count_before, "no image duplication on reorder"
 
     # a single undo restores the original order
@@ -873,7 +873,7 @@ def test_document(rose_tif: str) -> None:
                     "selection changed to previous page"
                 )
                 slist.paste_selection(
-                    data=[clipboard[0]],
+                    data=[cast("list", clipboard)[0]],
                     dest=0,
                     how=Gtk.TreeViewDropPosition.BEFORE,
                     finished_callback=step4,
@@ -909,7 +909,7 @@ def test_document(rose_tif: str) -> None:
                 slist.undo(finished_callback=after_undo)
 
             slist.paste_selection(
-                data=[clipboard[0]],
+                data=[cast("list", clipboard)[0]],
                 dest=0,
                 how=Gtk.TreeViewDropPosition.AFTER,
                 select_new_pages=True,

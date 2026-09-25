@@ -823,10 +823,11 @@ class Scan(PageControls):
     def _set_spinbutton_widget(
         self, widget: Gtk.SpinButton, value: object, opt: Option
     ) -> None:
-        step = spin_step(opt.constraint)
+        constraint = cast("tuple[float, float]", opt.constraint)
+        step = spin_step(constraint)
         _, page = widget.get_increments()
 
-        widget.set_range(opt.constraint[0], opt.constraint[1])
+        widget.set_range(constraint[0], constraint[1])
         widget.set_increments(step, page)
         if _value_for_active_option(value, opt):
             widget.set_value(value)
@@ -1438,8 +1439,9 @@ class Scan(PageControls):
     def _set_combobox_value(
         self, widget: Gtk.ComboBoxText, opt: Option, val: object
     ) -> None:
-        if opt.constraint[widget.get_active()] != val:
-            index = opt.constraint.index(val)
+        constraint = cast("list", opt.constraint)
+        if constraint[widget.get_active()] != val:
+            index = constraint.index(val)
             if index > NO_INDEX:
                 widget.set_active(index_=index)
 

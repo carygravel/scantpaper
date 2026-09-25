@@ -11,7 +11,7 @@ import re
 import shutil
 import tempfile
 from collections import defaultdict
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import img2pdf
 import ocrmypdf
@@ -237,9 +237,9 @@ class SaveThread(Importhread):
     def _assemble_pdf(
         self,
         outdir: pathlib.Path,
-        options: dict[str, object],
+        options: dict[str, Any],
         request: Request,
-        metadata: dict[str, object],
+        metadata: dict[str, Any],
     ) -> list[Page]:
         """Convert each page to an image, write origin.pdf, and return the pages."""
         list_of_pages = []
@@ -313,11 +313,11 @@ class SaveThread(Importhread):
     def _finalize_pdf(
         self,
         filename: str,
-        options: dict[str, object],
+        options: dict[str, Any],
         request: Request,
         *,
         embed_ok: bool,
-        metadata: dict[str, object],
+        metadata: dict[str, Any],
     ) -> None:
         """Apply metadata, encryption, PS conversion, and post-save hooks."""
         # When embed fell back (embed_ok is False) the output PDF may be
@@ -389,7 +389,7 @@ class SaveThread(Importhread):
 
     def do_save_djvu(self, request: Request) -> None:
         """Save DjvU in thread."""
-        args = request.args[0]
+        args = cast("dict[str, Any]", request.args[0])
         filelist = []
         for i, page_id in enumerate(args["list_of_pages"], start=1):
             page = self.get_page(id=page_id)
@@ -424,7 +424,7 @@ class SaveThread(Importhread):
             Request("set_saved", (args["list_of_pages"], True), self.responses)
         )
 
-    def _add_metadata_to_djvu(self, options: dict[str, object]) -> None:
+    def _add_metadata_to_djvu(self, options: dict[str, Any]) -> None:
         if "metadata" in options and options["metadata"] is not None:
             metadata = prepare_output_metadata("DjVu", options["metadata"])
 
@@ -475,7 +475,7 @@ class SaveThread(Importhread):
 
     def do_save_tiff(self, request: Request) -> None:
         """Save TIFF in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
 
         filelist = []
         for i, page_id in enumerate(options["list_of_pages"]):
@@ -625,7 +625,7 @@ class SaveThread(Importhread):
 
     def do_user_defined(self, request: Request) -> None:
         """Run user defined command on page in thread."""
-        options = request.args[0]
+        options = cast("dict[str, Any]", request.args[0])
         try:
             with (
                 tempfile.NamedTemporaryFile(
@@ -719,14 +719,14 @@ class SaveThread(Importhread):
             )
 
 
-def _options_from_request(request: Request) -> defaultdict[str, object]:
+def _options_from_request(request: Request) -> defaultdict[str, Any]:
     """Return the options mapping from a save Request's first positional argument."""
     options = defaultdict(None)
-    options.update(cast("dict[str, object]", request.args[0]))
+    options.update(cast("dict[str, Any]", request.args[0]))
     return options
 
 
-def _need_temp_pdf(options: dict[str, object] | None) -> bool:
+def _need_temp_pdf(options: dict[str, Any] | None) -> bool:
     return options is not None and (
         "prepend" in options
         or "append" in options
@@ -736,7 +736,7 @@ def _need_temp_pdf(options: dict[str, object] | None) -> bool:
 
 
 def _estimate_page_pdf_size(
-    image: Image.Image, temp_filename: str, opts: dict[str, object]
+    image: Image.Image, temp_filename: str, opts: dict[str, Any]
 ) -> int:
     """Estimate a page's contribution to the output PDF size in bytes."""
     if (
@@ -757,7 +757,7 @@ def _fix_pdf_metadata(path: str, *, remove_title: bool) -> None:
     creator = f"scantpaper v{VERSION}"
     with pikepdf.open(path, allow_overwriting_input=True) as pdf:
         existing_creator = str(
-            cast("dict[str, object]", pdf.docinfo).get("/Creator", "")
+            cast("dict[str, Any]", pdf.docinfo).get("/Creator", "")
         ).strip()
         if existing_creator:
             creator = f"{creator} / {existing_creator}"
@@ -773,9 +773,7 @@ def _fix_pdf_metadata(path: str, *, remove_title: bool) -> None:
         pdf.save(path, preserve_pdfa=True, linearize=True)
 
 
-def prepare_output_metadata(
-    ftype: str, metadata: dict[str, object]
-) -> dict[str, object]:
+def prepare_output_metadata(ftype: str, metadata: dict[str, Any]) -> dict[str, Any]:
     """Format metadata for PDF or DjVu."""
     out = {}
     if metadata and ftype in ["PDF", "DjVu"]:
@@ -794,12 +792,10 @@ def prepare_output_metadata(
     return out
 
 
-def _append_pdf(
-    filename: str, options: dict[str, object], request: Request
-) -> int | None:
+def _append_pdf(filename: str, options: dict[str, Any], request: Request) -> int | None:
     if options is None or "options" not in options or options["options"] is None:
         return None
-    if "prepend" in cast("dict[str, object]", options["options"]):
+    if "prepend" in cast("dict[str, Any]", options["options"]):
         file1 = filename
         file2 = options["options"]["prepend"] + ".bak"
         bak = file2
@@ -807,7 +803,7 @@ def _append_pdf(
         message = _("Error prepending PDF: %s")
         logger.info("Prepending PDF")
 
-    elif "append" in cast("dict[str, object]", options["options"]):
+    elif "append" in cast("dict[str, Any]", options["options"]):
         file2 = filename
         file1 = options["options"]["append"] + ".bak"
         bak = file1
@@ -831,7 +827,7 @@ def _append_pdf(
     return proc.returncode
 
 
-def _set_timestamp(options: dict[str, object]) -> None:
+def _set_timestamp(options: dict[str, Any]) -> None:
     if (
         not options.get("options")
         or options["options"].get("set_timestamp") is None
@@ -855,7 +851,7 @@ def _set_timestamp(options: dict[str, object]) -> None:
 
 
 def _post_save_hook(
-    filename: str, options: dict[str, object] | None, pidfile: str | None = None
+    filename: str, options: dict[str, Any] | None, pidfile: str | None = None
 ) -> None:
     if options is not None and "post_save_hook" in options:
         args = options["post_save_hook"].split(" ")
@@ -867,9 +863,9 @@ def _post_save_hook(
         exec_command_run(args, pidfile, check=True)
 
 
-def _encrypt_pdf(filename: str, options: dict[str, object], request: Request) -> int:
+def _encrypt_pdf(filename: str, options: dict[str, Any], request: Request) -> int:
     cmd = ["qpdf"]
-    if "user-password" in cast("dict[str, object]", options["options"]):
+    if "user-password" in cast("dict[str, Any]", options["options"]):
         # qpdf < 11 only accepts the positional --encrypt form
         # (user-password owner-password key-length); the
         # --owner-password/--user-password/--bits option style was added
