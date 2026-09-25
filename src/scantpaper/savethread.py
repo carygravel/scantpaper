@@ -793,7 +793,7 @@ def prepare_output_metadata(ftype: str, metadata: dict[str, Any]) -> dict[str, A
 
 
 def _append_pdf(filename: str, options: dict[str, Any], request: Request) -> int | None:
-    if options is None or "options" not in options or options["options"] is None:
+    if "options" not in options or options["options"] is None:
         return None
     if "prepend" in cast("dict[str, Any]", options["options"]):
         file1 = filename

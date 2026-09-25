@@ -176,6 +176,5 @@ all = "error"
 "dynamic-function-decorator-return" = "ignore"
 "missing-override-decorator" = "ignore"
 "missing-type-argument" = "ignore"
-"redundant-condition-strict" = "ignore"
 "unsound-return-statement" = "ignore"
 

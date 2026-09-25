@@ -586,7 +586,10 @@ class FileMenuMixins:
             self.settings["cwd"] = str(pathlib.Path(filename).parent)
             self._save_with_filetype(filetype, filename, uuids)
 
-            if self._windowi is not None and self.settings["close_dialog_on_save"]:
+            if (
+                cast("SaveDialog | None", self._windowi) is not None
+                and self.settings["close_dialog_on_save"]
+            ):
                 self._windowi.hide()
 
         dialog.destroy()
@@ -842,7 +845,7 @@ class FileMenuMixins:
                 ),
                 error_callback=self._error_callback,
             )
-            if self._windowi is not None:
+            if cast("SaveDialog | None", self._windowi) is not None:
                 self._windowi.hide()
 
         file_chooser.destroy()
@@ -902,7 +905,7 @@ class FileMenuMixins:
 
     def _update_post_save_hooks(self) -> None:
         """Update the post-save hooks."""
-        if self._windowi is not None:
+        if cast("SaveDialog | None", self._windowi) is not None:
             if hasattr(self._windowi, "comboboxpsh"):
                 # empty combobox
                 for _i in range(1, self._windowi.comboboxpsh.get_num_rows() + 1):

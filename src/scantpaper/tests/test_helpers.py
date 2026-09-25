@@ -262,6 +262,7 @@ def test_exec_command_filenotfound(mocker: pytest.MockerFixture) -> None:
     res = exec_command(["nonexistent"])
     assert res.returncode == -1
     assert res.stdout is None
+    assert res.stderr is not None
     assert "not found" in res.stderr
 
 

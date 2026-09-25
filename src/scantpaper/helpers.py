@@ -191,7 +191,7 @@ class Proc:
 
     returncode: int
     stdout: str | None
-    stderr: str
+    stderr: str | None
 
 
 def exec_command(cmd: list[str], pidfile: TextIO | None = None) -> Proc:
@@ -420,6 +420,6 @@ def recursive_slurp(files: Iterable[str | PathLike[str]]) -> None:
             recursive_slurp(pathlib.Path(file).glob("*"))
         else:
             output = slurp(file)
-            if output is not None:
+            if cast("str | None", output) is not None:
                 output = output.rstrip()
                 logger.info(output)

@@ -386,7 +386,7 @@ class Scan(PageControls):
         return self._cursor
 
     @cursor.setter
-    def cursor(self, newval: str) -> None:
+    def cursor(self, newval: str | None) -> None:
         """Set the cursor."""
         win = self.get_window()
         if newval is None:
@@ -815,7 +815,7 @@ class Scan(PageControls):
             self._set_spinbutton_widget(widget, value, opt)
         elif isinstance(opt.constraint, list):
             self._set_combobox_widget(widget, value, opt)
-        elif opt.constraint is None and opt.type != enums.TYPE_BUTTON:
+        elif opt.type != enums.TYPE_BUTTON:
             self._set_entry_widget(widget, value, opt)
 
     def _set_switch_widget(
@@ -849,8 +849,7 @@ class Scan(PageControls):
             if entry == value:
                 index = i
 
-        if index is not None:
-            widget.set_active(index_=index)
+        widget.set_active(index_=index)
 
     def _set_entry_widget(self, widget: Gtk.Entry, value: object, opt: Option) -> None:
         if _value_for_active_option(value, opt):
@@ -939,8 +938,7 @@ class Scan(PageControls):
 
         for name in self.ignored_paper_sizes:
             if name == paper:
-                if logger is not None:
-                    logger.info("Ignoring unsupported paper %s", paper)
+                logger.info("Ignoring unsupported paper %s", paper)
                 return
 
         formats = self.paper_sizes
@@ -1103,7 +1101,7 @@ class Scan(PageControls):
             logger.error("Cannot add undefined profile")
             return
 
-        if not isinstance(profile, Profile):
+        if not isinstance(cast("object", profile), Profile):
             logger.error("%s is not a Profile object", type(profile))
             return
 
@@ -1151,7 +1149,7 @@ class Scan(PageControls):
     def _uuid_at_position(self, position: int) -> str | None:
         """Return the page id at the given 1-based position, or None."""
         slist = self.document
-        if slist is None or position is None:
+        if slist is None or cast("int | None", position) is None:
             return None
         if position < 1 or position > len(slist.data):
             return None
@@ -1159,7 +1157,7 @@ class Scan(PageControls):
 
     def _uuid_before_position(self, position: int) -> str | None:
         """Return the page id to insert after for a 1-based position, or None to append."""
-        if position is None or position < 1:
+        if cast("int | None", position) is None or position < 1:
             return None
         if position == 1:
             return INSERT_AT_START
@@ -1216,7 +1214,7 @@ class Scan(PageControls):
             logger.error("Cannot add undefined profile")
             return
 
-        if not isinstance(profile, Profile):
+        if not isinstance(cast("object", profile), Profile):
             logger.error("%s is not a Profile object", type(profile))
             return
 
@@ -1248,7 +1246,7 @@ class Scan(PageControls):
             logger.error("Cannot add undefined profile")
             return
 
-        if not isinstance(profile, Profile):
+        if not isinstance(cast("object", profile), Profile):
             logger.error("%s is not a Profile object", type(profile))
             return
 

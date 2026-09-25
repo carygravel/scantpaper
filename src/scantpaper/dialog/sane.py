@@ -330,8 +330,7 @@ class SaneScanDialog(Scan):
                 index = i
 
         # Set the default
-        if index is not None:
-            widget.set_active(index)
+        widget.set_active(index)
 
         def changed_combobox_cb(_arg: Gtk.ComboBoxText) -> None:
             self.num_reloads = 0  # num-reloads is read-only
@@ -385,7 +384,7 @@ class SaneScanDialog(Scan):
         # Label
         if opt.type != enums.TYPE_BUTTON:
             text = opt.title
-            if text is None or text == EMPTY:
+            if text == EMPTY:
                 text = opt.name
 
             label = Gtk.Label(label=d_sane(text))
@@ -400,7 +399,7 @@ class SaneScanDialog(Scan):
             widget = self._create_widget_spinbutton(opt, val)
         elif isinstance(opt.constraint, list):
             widget = self._create_widget_combobox(opt, val)
-        elif opt.constraint is None:
+        else:
             widget = self._create_widget_entry(opt, val)
         return widget
 

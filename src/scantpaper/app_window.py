@@ -872,17 +872,16 @@ class ApplicationWindow(
             self._message_dialog.show_all()
             response = self._message_dialog.run()
 
-        if self._message_dialog is not None:  # could be undefined for multiple calls
-            self._message_dialog.store_responses(
-                cast("str", response),
-                cast("dict[str, dict[str, object]]", self.settings["message"]),
-            )
-            (
-                self.settings["message_window_width"],
-                self.settings["message_window_height"],
-            ) = self._message_dialog.get_size()
-            self._message_dialog.destroy()
-            self._message_dialog = None
+        self._message_dialog.store_responses(
+            cast("str", response),
+            cast("dict[str, dict[str, object]]", self.settings["message"]),
+        )
+        (
+            self.settings["message_window_width"],
+            self.settings["message_window_height"],
+        ) = self._message_dialog.get_size()
+        self._message_dialog.destroy()
+        self._message_dialog = None
 
     def _process_error_callback(
         self, widget: Gtk.Widget, process: str, msg: str, signal: int | None

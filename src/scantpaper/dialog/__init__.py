@@ -90,7 +90,7 @@ class Dialog(Gtk.Dialog):
         self.set_default_response(Gtk.ResponseType.OK)
 
         def on_response(_widget: Gtk.Widget, response: int) -> None:
-            if response is not None and response in callbacks:
+            if response in callbacks:
                 callbacks[response]()
 
         self.connect("response", on_response)

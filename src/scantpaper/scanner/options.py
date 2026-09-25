@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import re
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 from gi.repository import GObject
 
@@ -47,7 +47,7 @@ class Options(GObject.Object):
         if isinstance(options, list):
             for i, option in enumerate(options):
                 opt = Option(*option)
-                if opt.name is None:
+                if cast("str | None", opt.name) is None:
                     opt = opt._replace(cap=0)
                 options[i] = opt
             self.array = options
@@ -66,7 +66,7 @@ class Options(GObject.Object):
             self.source = self.by_name("source")
         else:
             for option in self.array:
-                if option.name is not None and re.search(
+                if cast("str | None", option.name) is not None and re.search(
                     r"source", option.name, re.MULTILINE | re.DOTALL | re.VERBOSE
                 ):
                     self.source = option

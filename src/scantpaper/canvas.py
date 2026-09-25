@@ -1445,7 +1445,7 @@ class TreeIter:
     def last_word(self) -> Bbox | None:
         """Return last word."""
         bbox = self.last_bbox()
-        while bbox is not None and bbox.type != "word":
+        while bbox.type != "word":
             bbox = self.previous_bbox()
         return bbox
 

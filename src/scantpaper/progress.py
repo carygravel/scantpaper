@@ -71,7 +71,7 @@ class Progress(Gtk.Box):
             cast("int", response.num_completed_jobs),
             cast("int", response.total_jobs),
         )
-        if total and process_name is not None:
+        if total and cast("str | None", process_name) is not None:
             self.set_text(
                 _("Process %i of %i (%s)") % (num_completed + 1, total, process_name)
             )

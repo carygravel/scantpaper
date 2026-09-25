@@ -433,7 +433,7 @@ class PageControls(Dialog):
 
     def _flatbed_or_duplex_callback(self) -> None:
         options = self.available_scan_options
-        if options is not None and self.thread is not None and hasattr(self, "_vboxx"):
+        if self.thread is not None and hasattr(self, "_vboxx"):
             if options.flatbed_selected(self.thread.get_option_value) or (
                 options.can_duplex() and not self.ignore_duplex_capabilities
             ):

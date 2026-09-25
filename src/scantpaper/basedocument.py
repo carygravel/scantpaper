@@ -59,7 +59,7 @@ class BaseDocument(SimpleList):
         self._suppress_delete = False
         for key, val in kwargs.items():
             setattr(self, key, val)
-        if self.dir is None:
+        if getattr(self, "dir", None) is None:
             self.dir = self.thread.dir
         if isinstance(self.dir, str):
             self.dir = pathlib.Path(self.dir)
