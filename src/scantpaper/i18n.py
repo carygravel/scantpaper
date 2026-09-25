@@ -12,19 +12,20 @@ logger = logging.getLogger(__name__)
 _log_buffer = []
 
 # Try to find a translation in the package locale directory first, then
-# common system locale locations. Log which one we end up using so it's
-# easier to debug packaging/install issues.
+# common system locale locations. Log which one we end up using (and which
+# ones miss) at debug level so it's easier to diagnose packaging/install
+# issues, but only warn if no translation is found anywhere at all.
 TRANSLATE = None
 for ld in locales_to_try:
     try:
         t = gettext.translation("scantpaper", localedir=ld)
         TRANSLATE = t
         _log_buffer.append(
-            ("warning", "Loaded translations for 'scantpaper' from %s", ld)
+            ("debug", "Loaded translations for 'scantpaper' from %s", ld)
         )
         break
     except (FileNotFoundError, OSError):
-        _log_buffer.append(("warning", "No translations for 'scantpaper' in %s", ld))
+        _log_buffer.append(("debug", "No translations for 'scantpaper' in %s", ld))
 
 # Fallback to a null translation if none found
 if TRANSLATE is None:
