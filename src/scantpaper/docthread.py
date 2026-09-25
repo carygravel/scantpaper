@@ -29,6 +29,7 @@ from scantpaper.savethread import SaveThread
 
 if TYPE_CHECKING:
     import uuid
+    from collections.abc import Iterable, Sequence
 
     from PIL import Image
 
@@ -54,7 +55,7 @@ def _loggerise(variables: object) -> object:
         tuple_flag = False
         if isinstance(variables, tuple):
             tuple_flag = True
-        logger_vars = list(variables)
+        logger_vars = list(cast("Iterable", variables))
         for i, item in enumerate(logger_vars):
             if isinstance(item, (bytes, bytearray)):
                 logger_vars[i] = "binary data"
@@ -74,13 +75,16 @@ class DocThread(SaveThread):
     _db = None
     dir = None
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, **kwargs: object) -> None:
         """Initialise DocThread."""
         for key, attr in [("dir", "dir"), ("db", "_db")]:
             if key in kwargs:
                 setattr(self, attr, kwargs.pop(key))
-        super().__init__(*args, **kwargs)
-        self.dir, self._db = self._set_paths(self.dir, self._db)
+        super().__init__()
+        self.dir, self._db = self._set_paths(
+            cast("str | pathlib.Path | None", self.dir),
+            cast("str | pathlib.Path | None", self._db),
+        )
         self.db_files = [
             self._db,
             self.dir / pathlib.Path(self._db.name + "-wal"),
@@ -142,7 +146,9 @@ class DocThread(SaveThread):
         tid = threading.get_native_id()
         if tid not in self._con:
             logger.debug("Connecting to database %s in thread %s", self._db, tid)
-            self._con[tid] = sqlite3.connect(self._db, check_same_thread=False)
+            self._con[tid] = sqlite3.connect(
+                cast("str | pathlib.Path", self._db), check_same_thread=False
+            )
             self._con[tid].isolation_level = "IMMEDIATE"
             self._cur[tid] = self._con[tid].cursor()
 
@@ -161,7 +167,7 @@ class DocThread(SaveThread):
     def _executemany(
         self,
         query: str,
-        params: list[tuple[object, ...] | list[object]] | None = None,
+        params: Iterable[Sequence[object]] | None = None,
     ) -> None:
         """Execute a query on the database."""
         self._connect()
@@ -202,11 +208,14 @@ class DocThread(SaveThread):
         """Open a saved database."""
         self._check_write_tid()
         self._db = request.args[0]
-        if pathlib.Path(self._db).exists() and Path(self._db).stat().st_size:
+        if (
+            pathlib.Path(cast("str", self._db)).exists()
+            and Path(cast("str", self._db)).stat().st_size
+        ):
             logger.warning(
                 "Database %s already exists, not creating it again", self._db
             )
-            self.open(self._db)
+            self.open(cast("str | Path", self._db))
             return
         self._execute("PRAGMA journal_mode=WAL")
         self._execute(f"PRAGMA application_id={APPLICATION_ID}")
@@ -298,7 +307,7 @@ class DocThread(SaveThread):
 
     def do_open(self, request: Request) -> None:
         """Open a saved database on the worker thread."""
-        self.open(request.args[0])
+        self.open(cast("str | Path", request.args[0]))
 
     def close(self) -> None:
         """Close all database connections."""
@@ -334,7 +343,7 @@ class DocThread(SaveThread):
                 raise ValueError(msg)
             if row[0] == bytes_image:
                 insert = False
-                thumb = self._bytes_to_pixbuf(row[1])
+                thumb = self._bytes_to_pixbuf(cast("bytes", row[1]))
         if insert:
             thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
             self._execute(
@@ -355,7 +364,7 @@ class DocThread(SaveThread):
         if row is None:
             msg = f"Image id {image_id} not found"
             raise ValueError(msg)
-        return self._bytes_to_pixbuf(row[0])
+        return self._bytes_to_pixbuf(cast("bytes", row[0]))
 
     def _insert_page(self, page: Page, image_id: int) -> int:
         """Insert a page to the database."""
@@ -448,7 +457,7 @@ class DocThread(SaveThread):
                 (self._action_id, position, page_id, page_id),
             )
         else:
-            position = self._insert_page_order_after(insert_after, page_id)
+            position = self._insert_page_order_after(cast("int", insert_after), page_id)
         self._con[threading.get_native_id()].commit()
         return position, thumb, page_id
 
@@ -461,10 +470,10 @@ class DocThread(SaveThread):
 
         if reuse_image:
             image_id = page.image_id
-            thumb = self._reuse_image_thumb(image_id)
+            thumb = self._reuse_image_thumb(cast("int", image_id))
         else:
             image_id, thumb = self._insert_image(page, if_different_from=page.image_id)
-        page_id = self._insert_page(page, image_id)
+        page_id = self._insert_page(page, cast("int", image_id))
         self._execute(
             """UPDATE page_order SET page_id = ?
                WHERE initial_page_id = ? AND action_id = ?""",
@@ -480,7 +489,7 @@ class DocThread(SaveThread):
         )
         position = cast("tuple[object, ...]", self._fetchone())[0]
         self._con[threading.get_native_id()].commit()
-        return int(position), thumb, initial_page_id
+        return int(cast("int", position)), thumb, initial_page_id
 
     # TODO: Commit a95296e93b392b35285d00bc633a9aa94c76995c fixed a bug
     # seemingly deleting extra pages. Please write a test which passes after
@@ -545,7 +554,8 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         return [
-            [row[0], self._bytes_to_pixbuf(row[1]), row[2]] for row in self._fetchall()
+            [row[0], self._bytes_to_pixbuf(cast("bytes", row[1])), row[2]]
+            for row in self._fetchall()
         ]
 
     def page_number_table(self) -> list | None:
@@ -590,11 +600,15 @@ class DocThread(SaveThread):
             msg = f"Page id {kwargs['id']} not found"
             raise ValueError(msg)
         return Page.from_bytes(
-            row[0],
+            cast("bytes", row[0]),
             id=kwargs["id"],
             resolution=(row[1], row[2], "PixelsPerInch"),
-            mean=None if row[3] is None else json.loads(row[3], strict=False),
-            std_dev=None if row[4] is None else json.loads(row[4], strict=False),
+            mean=None
+            if row[3] is None
+            else json.loads(cast("str", row[3]), strict=False),
+            std_dev=None
+            if row[4] is None
+            else json.loads(cast("str", row[4]), strict=False),
             text_layer=row[5],
             annotations=row[6],
             image_id=row[8],
@@ -695,7 +709,7 @@ class DocThread(SaveThread):
         rows = []
         for record in self._fetchall():
             row = list(record)
-            row[1] = self._bytes_to_pixbuf(row[1])
+            row[1] = self._bytes_to_pixbuf(cast("bytes", row[1]))
             rows.append(row)
         request.data({"type": "page", "new_pages": rows})
         return [dest + i for i in range(len(pages))]
@@ -731,10 +745,10 @@ class DocThread(SaveThread):
             rows = []
             for record in self._fetchall():
                 row = list(record)
-                row[1] = self._bytes_to_pixbuf(row[1])
+                row[1] = self._bytes_to_pixbuf(cast("bytes", row[1]))
                 rows.append(row)
             request.data({"type": "page", "new_pages": rows})
-            return [int(row[0]) for row in rows]
+            return [int(cast("int", row[0])) for row in rows]
         self._take_snapshot()
         moved_set = set(moved)
         remaining = [pid for pid in current if pid not in moved_set]
@@ -767,10 +781,10 @@ class DocThread(SaveThread):
         rows = []
         for record in self._fetchall():
             row = list(record)
-            row[1] = self._bytes_to_pixbuf(row[1])
+            row[1] = self._bytes_to_pixbuf(cast("bytes", row[1]))
             rows.append(row)
         request.data({"type": "page", "new_pages": rows})
-        return [int(row[0]) for row in rows]
+        return [int(cast("int", row[0])) for row in rows]
 
     def _take_snapshot(self) -> None:
         """Take a snapshot of the current state of the document."""
@@ -834,7 +848,7 @@ class DocThread(SaveThread):
             row[0] = (
                 cast("int", row[0]) + 1
             )  # page numbers shown to the user are 1-based
-            row[1] = self._bytes_to_pixbuf(row[1])
+            row[1] = self._bytes_to_pixbuf(cast("bytes", row[1]))
             rows.append(row)
         return rows
 
@@ -859,7 +873,7 @@ class DocThread(SaveThread):
         self._execute("SELECT min(action_id) FROM selection")
         min_sel = cast("tuple[object, ...]", self._fetchone())[0]
         ids = [x for x in [min_page, min_sel] if x is not None]
-        min_action_id = min(ids) if ids else None
+        min_action_id = min(cast("list[int]", ids)) if ids else None
         return min_action_id is not None and min_action_id <= self._action_id
 
     def can_redo(self) -> bool:
@@ -869,7 +883,7 @@ class DocThread(SaveThread):
         self._execute("SELECT max(action_id) FROM selection")
         max_sel = cast("tuple[object, ...]", self._fetchone())[0]
         ids = [x for x in [max_page, max_sel] if x is not None]
-        max_action_id = max(ids) if ids else None
+        max_action_id = max(cast("list[int]", ids)) if ids else None
         return max_action_id is not None and max_action_id > self._action_id
 
     def do_undo(self, _request: Request) -> dict[str, object]:
@@ -903,7 +917,7 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         row_ids = self._fetchone()
-        return json.loads(row_ids[0]) if row_ids else []
+        return json.loads(cast("str", row_ids[0])) if row_ids else []
 
     def do_set_selection(self, request: Request) -> None:
         """Set the selected row ids for the current action_id."""
@@ -957,7 +971,9 @@ class DocThread(SaveThread):
                 WHERE page.id = page_id AND initial_page_id = ? AND action_id = ?""",
             (page_id, self._action_id),
         )
-        return self._bytes_to_pixbuf(cast("tuple[object, ...]", self._fetchone())[0])
+        return self._bytes_to_pixbuf(
+            cast("bytes", cast("tuple[object, ...]", self._fetchone())[0])
+        )
 
     def get_text(self, page_id: int) -> str | None:
         """Get the text layer for the given page."""
@@ -976,7 +992,7 @@ class DocThread(SaveThread):
     def do_parse_bboxtree(self, request: Request) -> dict[str, object]:
         """Parse bboxtree in thread."""
         json_string = request.args[0]
-        tree = Bboxtree(json_string)
+        tree = Bboxtree(cast("str | None", json_string))
         bboxes = list(tree.each_bbox())
         words = []
         for i, box in enumerate(bboxes):
@@ -1075,8 +1091,8 @@ class DocThread(SaveThread):
             (page_id, self._action_id),
         )
         mean, std_dev = cast("tuple[object, ...]", self._fetchone())
-        mean = json.loads(mean, strict=False)
-        std_dev = json.loads(std_dev, strict=False)
+        mean = json.loads(cast("str", mean), strict=False)
+        std_dev = json.loads(cast("str", std_dev), strict=False)
         return mean, std_dev
 
     def do_set_mean_std_dev(self, request: Request) -> None:
@@ -1123,7 +1139,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id),
+                "row": self.replace_page(page, cast("int", page.id)),
                 "replace": page.id,
             }
         )
@@ -1147,7 +1163,7 @@ class DocThread(SaveThread):
             i += 1
             self.check_cancelled()
 
-            stat = ImageStat.Stat(page.image_object)
+            stat = ImageStat.Stat(cast("Image.Image", page.image_object))
             # ImageStat seems to have a bug here. Working around it.
             if stat.count == [0]:
                 page.mean = [0.0]
@@ -1167,7 +1183,7 @@ class DocThread(SaveThread):
             request.data(
                 {
                     "type": "page",
-                    "row": self.replace_page(page, page.id),
+                    "row": self.replace_page(page, cast("int", page.id)),
                     "replace": page.id,
                 }
             )
@@ -1201,7 +1217,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id),
+                "row": self.replace_page(page, cast("int", page.id)),
                 "replace": page.id,
             }
         )
@@ -1224,9 +1240,9 @@ class DocThread(SaveThread):
         )
         self.check_cancelled()
 
-        page.image_object = ImageEnhance.Brightness(page.image_object).enhance(
-            brightness
-        )
+        page.image_object = ImageEnhance.Brightness(
+            cast("Image.Image", page.image_object)
+        ).enhance(brightness)
         page.image_object = ImageEnhance.Contrast(page.image_object).enhance(contrast)
         self.check_cancelled()
 
@@ -1235,7 +1251,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id),
+                "row": self.replace_page(page, cast("int", page.id)),
                 "replace": page.id,
             }
         )
@@ -1253,7 +1269,7 @@ class DocThread(SaveThread):
         logger.info("Invert %s", page.id)
         if page.image_object.mode in ("P", "RGBA"):
             page.image_object = page.image_object.convert("RGB")
-        page.image_object = ImageOps.invert(page.image_object)
+        page.image_object = ImageOps.invert(cast("Image.Image", page.image_object))
         self.check_cancelled()
 
         page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
@@ -1261,7 +1277,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id),
+                "row": self.replace_page(page, cast("int", page.id)),
                 "replace": page.id,
             }
         )
@@ -1296,7 +1312,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id),
+                "row": self.replace_page(page, cast("int", page.id)),
                 "replace": page.id,
             }
         )
@@ -1334,7 +1350,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id),
+                "row": self.replace_page(page, cast("int", page.id)),
                 "replace": page.id,
             }
         )
@@ -1359,7 +1375,7 @@ class DocThread(SaveThread):
             page.id,
         )
         # split the image
-        boxes = _calculate_crop_tuples(options, image)
+        boxes = _calculate_crop_tuples(options, cast("Image.Image", image))
         page.image_object = image.crop(boxes[0])
         image2 = image2.crop(boxes[1])
         self.check_cancelled()
@@ -1395,7 +1411,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id),
+                "row": self.replace_page(page, cast("int", page.id)),
                 "replace": page.id,
             }
         )
@@ -1454,7 +1470,11 @@ class DocThread(SaveThread):
             api.SetVariable("hocr_font_info", "T")
             image = page.image_object.convert("L")
             api.SetImageBytes(
-                image.tobytes(), image.width, image.height, 1, image.width
+                cast("str", image.tobytes()),
+                image.width,
+                image.height,
+                1,
+                image.width,
             )
             api.Recognize()
             # GetHOCRText returns only the body fragment, so wrap it in a
@@ -1481,7 +1501,7 @@ class DocThread(SaveThread):
         request.data(
             {
                 "type": "page",
-                "row": self.replace_page(page, page.id, reuse_image=True),
+                "row": self.replace_page(page, cast("int", page.id), reuse_image=True),
                 "replace": page.id,
             }
         )
@@ -1605,7 +1625,7 @@ class DocThread(SaveThread):
                 request.data(
                     {
                         "type": "page",
-                        "row": self.replace_page(new, page.id),
+                        "row": self.replace_page(new, cast("int", page.id)),
                         "replace": page.id,
                     }
                 )
@@ -1651,7 +1671,7 @@ def _calculate_crop_tuples(
     tuple[int, int, int, int],
     tuple[int, int, int, int],
 ]:
-    position = int(options["position"])
+    position = int(cast("int", options["position"]))
     if options["direction"] == "v":
         width = position
         height = image.height

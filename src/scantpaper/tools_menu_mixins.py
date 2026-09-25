@@ -6,7 +6,7 @@ import datetime
 import logging
 import re
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 
@@ -517,7 +517,11 @@ class ToolsMenuMixins:
                 (
                     "gtk-apply",
                     partial(
-                        self._split_apply_callback, windowsp, combob, sb_pos, direction
+                        self._split_apply_callback,
+                        windowsp,
+                        combob,
+                        sb_pos,
+                        cast("list[list[object]]", direction),
                     ),
                 ),
                 (

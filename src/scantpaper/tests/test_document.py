@@ -152,7 +152,7 @@ def test_post_process_rotate() -> None:
     doc = create_doc()
     doc.rotate = unittest.mock.Mock()
     options = {"rotate": 90, "finished_callback": unittest.mock.Mock()}
-    doc._post_process_rotate("uuid", options)
+    doc._post_process_rotate(cast("int", "uuid"), options)
     doc.rotate.assert_called()
 
     updated_page_callback = doc.rotate.call_args[1]["updated_page_callback"]
@@ -167,7 +167,7 @@ def test_post_process_unpaper() -> None:
     doc.unpaper = unittest.mock.Mock()
     unpaper_obj = unittest.mock.Mock()
     options = {"unpaper": unpaper_obj, "finished_callback": unittest.mock.Mock()}
-    doc._post_process_unpaper("uuid", options)
+    doc._post_process_unpaper(cast("int", "uuid"), options)
     doc.unpaper.assert_called()
 
     updated_page_callback = doc.unpaper.call_args[1]["updated_page_callback"]
@@ -181,7 +181,7 @@ def test_post_process_udt() -> None:
     doc = create_doc()
     doc.user_defined = unittest.mock.Mock()
     options = {"udt": "cmd", "finished_callback": unittest.mock.Mock()}
-    doc._post_process_udt("uuid", options)
+    doc._post_process_udt(cast("int", "uuid"), options)
     doc.user_defined.assert_called()
 
     updated_page_callback = doc.user_defined.call_args[1]["updated_page_callback"]
@@ -200,7 +200,7 @@ def test_post_process_ocr() -> None:
         "language": "l",
         "finished_callback": unittest.mock.Mock(),
     }
-    doc._post_process_ocr("uuid", options)
+    doc._post_process_ocr(cast("int", "uuid"), options)
     doc.ocr_pages.assert_called()
 
     ocr_finished_callback = doc.ocr_pages.call_args[1]["finished_callback"]

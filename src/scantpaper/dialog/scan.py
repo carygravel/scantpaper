@@ -96,11 +96,11 @@ def _coerce_option_value(opt: Option, val: object) -> object:
     if opt.type == enums.TYPE_INT:
         if isinstance(val, str):
             return parse_number(val, int, strict=False)
-        return int(val)
+        return int(cast("int", val))
     if opt.type == enums.TYPE_FIXED:
         if isinstance(val, str):
             return parse_number(val, strict=False)
-        return float(val)
+        return float(cast("float", val))
     if opt.type == enums.TYPE_BOOL:
         return bool(val)
     return val
@@ -465,14 +465,18 @@ class Scan(PageControls):
         icon = Gtk.Image.new_from_icon_name("document-save", Gtk.IconSize.BUTTON)
         vbutton = Gtk.Button()
         vbutton.set_image(icon)
-        vbutton.connect("clicked", lambda w: _save_profile_callback(w, ref()))
+        vbutton.connect(
+            "clicked", lambda w: _save_profile_callback(w, cast("Scan", ref()))
+        )
         hboxsp.pack_start(vbutton, expand=True, fill=True, padding=0)
 
         # Edit button
         icon = Gtk.Image.new_from_icon_name("document-edit", Gtk.IconSize.BUTTON)
         ebutton = Gtk.Button()
         ebutton.set_image(icon)
-        ebutton.connect("clicked", lambda w: _edit_profile_callback(w, ref()))
+        ebutton.connect(
+            "clicked", lambda w: _edit_profile_callback(w, cast("Scan", ref()))
+        )
         hboxsp.pack_start(ebutton, expand=False, fill=False, padding=0)
 
         # Delete button
@@ -632,10 +636,10 @@ class Scan(PageControls):
             widget.set_tooltip_text(d_sane(opt.desc))
 
             # Look-up to hide/show the box if necessary
-            if _geometry_option(opt):
+            if _geometry_option(cast("Option", opt)):
                 self._geometry_boxes[opt.name] = hbox
 
-            self._create_paper_widget(options, hboxp)
+            self._create_paper_widget(cast("Options", options), hboxp)
 
         else:
             logger.warning("Unknown type %s", opt.type)
@@ -823,7 +827,7 @@ class Scan(PageControls):
     def _set_spinbutton_widget(
         self, widget: Gtk.SpinButton, value: object, opt: Option
     ) -> None:
-        constraint = cast("tuple[float, float]", opt.constraint)
+        constraint = cast("tuple[float, float, float]", opt.constraint)
         step = spin_step(constraint)
         _, page = widget.get_increments()
 
@@ -837,7 +841,7 @@ class Scan(PageControls):
     ) -> None:
         widget.get_model().clear()
         index = 0
-        for i, entry in enumerate(opt.constraint):
+        for i, entry in enumerate(cast("list", opt.constraint)):
             if isinstance(entry, (int, float)):
                 widget.append_text(format_number_precise(entry))
             else:
@@ -851,7 +855,7 @@ class Scan(PageControls):
     def _set_entry_widget(self, widget: Gtk.Entry, value: object, opt: Option) -> None:
         if _value_for_active_option(value, opt):
             if opt.type in (enums.TYPE_INT, enums.TYPE_FIXED):
-                widget.set_text(format_number_precise(value))
+                widget.set_text(format_number_precise(cast("float", value)))
             else:
                 widget.set_text(str(value))
 
@@ -1292,7 +1296,9 @@ class Scan(PageControls):
 
         # Ignore option if value already within tolerance
         curval = self.thread.get_option_value(opt.name)
-        if within_tolerance(opt, curval, val, OPTION_TOLERANCE):
+        if within_tolerance(
+            opt, cast("float", curval), cast("float", val), OPTION_TOLERANCE
+        ):
             logger.info("No need to set option '%s': already within tolerance.", name)
             self._set_option_profile(profile, itr)
             return
@@ -1455,7 +1461,7 @@ class Scan(PageControls):
         if not options:
             return None, None
         resolution, xres, yres = [
-            _resolution_value(self.thread, name)
+            _resolution_value(cast("SaneThread", self.thread), name)
             for name in ("resolution", "x-resolution", "y-resolution")
         ]
 
@@ -1667,7 +1673,7 @@ def do_delete_profile_backend_item(_widget: Gtk.Button, data: list[object]) -> N
     profile.remove_backend_option_by_index(i)
     frameb.destroy()
     framef.destroy()
-    _build_profile_table(profile, options, vbox)
+    _build_profile_table(cast("Profile", profile), cast("Options", options), vbox)
 
 
 def _build_profile_table(profile: Profile, options: Options, vbox: Gtk.Box) -> None:

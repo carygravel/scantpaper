@@ -366,9 +366,9 @@ class Bboxtree:
 class HOCRParser(HTMLParser):
     """parser for HOCR string."""
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self) -> None:
         """Initialise HOCRParser."""
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self.boxes = []
         self.stack = []
         self.data: dict[str, object] = {}
@@ -391,8 +391,8 @@ class HOCRParser(HTMLParser):
 
     def _process_token(self, token: dict[str, str | None]) -> None:
         """Process a token carrying hOCR class and title attributes."""
-        self._parse_title(token["title"])
-        self._parse_class(token["class"])
+        self._parse_title(cast("str", token["title"]))
+        self._parse_class(cast("str", token["class"]))
 
         # pick up previous pointer to add style
         if "type" not in self.data:
@@ -545,11 +545,9 @@ class PDFTextParser(HTMLParser):
         self,
         resolution: tuple[float, float, str],
         image_size: tuple[int, int],
-        *args: object,
-        **kwargs: object,
     ) -> None:
         """Initialise PDFTextParser."""
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self.boxes = []
         self.stack = []
         self.data = {}
@@ -563,8 +561,8 @@ class PDFTextParser(HTMLParser):
         if tag == "page":
             self.data["type"] = tag
             if "width" in token and "height" in token:
-                width = scale(float(token["width"]), self.resolution[0])
-                height = scale(float(token["height"]), self.resolution[1])
+                width = scale(float(cast("str", token["width"])), self.resolution[0])
+                height = scale(float(cast("str", token["height"])), self.resolution[1])
 
                 # if we have a double-width page, assume the image is on the
                 # left and the text on the right.
@@ -579,10 +577,12 @@ class PDFTextParser(HTMLParser):
             self.data = {}
             self.data["type"] = tag
             self.data["bbox"] = [
-                scale(float(token["xmin"]), self.resolution[0]) - self.x_offset,
-                scale(float(token["ymin"]), self.resolution[1]),
-                scale(float(token["xmax"]), self.resolution[0]) - self.x_offset,
-                scale(float(token["ymax"]), self.resolution[1]),
+                scale(float(cast("str", token["xmin"])), self.resolution[0])
+                - self.x_offset,
+                scale(float(cast("str", token["ymin"])), self.resolution[1]),
+                scale(float(cast("str", token["xmax"])), self.resolution[0])
+                - self.x_offset,
+                scale(float(cast("str", token["ymax"])), self.resolution[1]),
             ]
 
         # if we have previous data, add the new data to the

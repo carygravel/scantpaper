@@ -204,7 +204,7 @@ def _coerce_int(value: object) -> int | None:
     if isinstance(value, float):
         return int(value) if value.is_integer() else None
     try:
-        return int(value)
+        return int(cast("str", value))
     except (TypeError, ValueError):
         return None
 
@@ -212,7 +212,7 @@ def _coerce_int(value: object) -> int | None:
 def _coerce_float(value: object) -> float | None:
     """Return a lossless float coercion of value, or None."""
     try:
-        return float(value)
+        return float(cast("str", value))
     except (TypeError, ValueError):
         return None
 

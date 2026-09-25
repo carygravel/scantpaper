@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import decode_info
@@ -32,7 +32,7 @@ raw_options = [
         title="Number of options",
         desc="Read-only option that specifies how many options a specific device supports.",
         type=1,
-        unit=0,
+        unit=cast("str", 0),
         size=4,
         cap=4,
         constraint=None,

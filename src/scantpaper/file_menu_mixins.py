@@ -569,7 +569,7 @@ class FileMenuMixins:
         self, dialog: Gtk.FileChooserDialog, response: int, data: list[object]
     ) -> None:
         """Handle file chooser dialog response."""
-        filetype, uuids = data
+        filetype, uuids = cast("tuple[str, list[str]]", data)
         suffix = self._normalize_filetype_suffix(filetype)
         if response == Gtk.ResponseType.OK:
             filename = dialog.get_filename()

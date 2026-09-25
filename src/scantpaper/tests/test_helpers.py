@@ -8,6 +8,7 @@ import locale
 import pathlib
 import subprocess
 from io import BytesIO
+from typing import TextIO, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -354,7 +355,7 @@ def test_program_version_helper_branches() -> None:
     assert _program_version("stdout", r"nomatch", proc) is None
 
     # None stdout/stderr
-    proc_none = Proc(0, None, None)
+    proc_none = Proc(0, None, cast("str", None))
     assert _program_version("stdout", r"(.*)", proc_none) == ""
 
 
@@ -368,7 +369,7 @@ def test_collate_metadata() -> None:
         "use_timezone": True,
     }
     now = datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
-    res = collate_metadata(settings, now)
+    res = collate_metadata(cast("dict[str, object]", settings), now)
     assert res["author"] == "me"
     assert res["title"] == "work"
     assert res["datetime"] == now + datetime.timedelta(days=1)
@@ -376,13 +377,13 @@ def test_collate_metadata() -> None:
     # Test branches without use_time and use_timezone
     settings.pop("use_time")
     settings.pop("use_timezone")
-    res = collate_metadata(settings, now)
+    res = collate_metadata(cast("dict[str, object]", settings), now)
     assert res["datetime"].hour == 0
     assert res["datetime"].tzinfo == datetime.timezone.utc
 
     # Test missing metadata keys
     settings = {"datetime offset": datetime.timedelta(0)}
-    res = collate_metadata(settings, now)
+    res = collate_metadata(cast("dict[str, object]", settings), now)
     assert "author" not in res
 
 
@@ -480,7 +481,7 @@ def test_slurp_file_object(tmp_path: pathlib.Path) -> None:
 def test_slurp_binary_file_object() -> None:
     """Test slurp decodes bytes read from a binary file object."""
     fhd = BytesIO(b"1234")
-    assert slurp(fhd) == "1234"
+    assert slurp(cast("TextIO", fhd)) == "1234"
 
 
 def test_recursive_slurp(tmp_path: pathlib.Path, mocker: pytest.MockerFixture) -> None:

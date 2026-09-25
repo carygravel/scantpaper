@@ -330,7 +330,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         self._vboxt.set_border_width(self.get_border_width())
         frame.add(self._vboxt)
         for tool in cast("list[object]", self.settings["user_defined_tools"]):
-            self._add_user_defined_tool_entry(tool)
+            self._add_user_defined_tool_entry(cast("str", tool))
         abutton = Gtk.Button()
         abutton.set_image(Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
         self._vboxt.pack_start(abutton, expand=True, fill=True, padding=0)

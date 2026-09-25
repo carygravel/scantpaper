@@ -11,7 +11,7 @@ import re
 import shutil
 import tempfile
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TextIO, cast
 
 import img2pdf
 import ocrmypdf
@@ -121,7 +121,7 @@ def get_progressbar_class() -> Callable[..., SaveThreadProgressBar]:
     ) -> SaveThreadProgressBar:
         """Accept all ocrmypdf progress bar parameters and return a progress bar."""
         del kwargs
-        request_instance = _current_request_for_progress[0]
+        request_instance = cast("Request", _current_request_for_progress[0])
         return SaveThreadProgressBar(
             request_instance, total, desc, unit, disable=disable
         )
@@ -151,7 +151,7 @@ class SaveThread(Importhread):
         try:
             ocrmypdf.api._hocr_to_ocr_pdf(  # noqa: SLF001 - no public API for the hOCR->PDF step alone
                 outdir,
-                filename,
+                pathlib.Path(filename),
                 optimize=0,
                 plugins=["scantpaper.savethread"],
             )
@@ -498,7 +498,7 @@ class SaveThread(Importhread):
         # Create the tiff
         request.data(1.0)
         cmd = ["tiffcp", *compression, *filelist, options["path"]]
-        exec_command_run(cmd, options.get("pidfile"), check=True)
+        exec_command_run(cast("list[str]", cmd), options.get("pidfile"), check=True)
         for filename in filelist:
             pathlib.Path(filename).unlink()
         self.check_cancelled()
@@ -860,7 +860,7 @@ def _post_save_hook(
                 "%i", filename, arg, flags=re.MULTILINE | re.DOTALL | re.VERBOSE
             )
         logger.info(args)
-        exec_command_run(args, pidfile, check=True)
+        exec_command_run(args, cast("TextIO | None", pidfile), check=True)
 
 
 def _encrypt_pdf(filename: str, options: dict[str, Any], request: Request) -> int:
@@ -907,8 +907,8 @@ def _bbox2markup(
     bbox: list[float],
 ) -> list[float]:
     for i in (0, 2):
-        bbox[i] = px2pt(bbox[i], xresolution)
-        bbox[i + 1] = height - px2pt(bbox[i + 1], yresolution)
+        bbox[i] = px2pt(cast("int", bbox[i]), xresolution)
+        bbox[i + 1] = height - px2pt(cast("int", bbox[i + 1]), yresolution)
 
     return [
         bbox[LEFT],
@@ -938,7 +938,9 @@ def _add_annotations_to_pdf(page: object, gs_page: object) -> None:
             annot = page.annotation()
             annot.markup(
                 box["text"],
-                _bbox2markup(xresolution, yresolution, height, box["bbox"]),
+                _bbox2markup(
+                    xresolution, yresolution, height, cast("list[float]", box["bbox"])
+                ),
                 "Highlight",
                 color=rgb,
                 opacity=0.5,

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
 
 import gi
@@ -15,6 +15,8 @@ from gi.repository import Gtk  # noqa: E402
 
 if TYPE_CHECKING:
     import pytest
+
+    from scantpaper.basethread import Response
 
 
 def test_progress_init() -> None:
@@ -396,7 +398,8 @@ def test_progress_update_none() -> None:
     """Test that update returns early on falsy response."""
     progress = Progress()
     progress.update(None)
-    progress.update(response=False)
+    response = False
+    progress.update(response=cast("Response | None", response))
 
 
 def test_progress_child_widgets_shown_after_init() -> None:

@@ -14,7 +14,7 @@ from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.dialog.sane import SaneScanDialog
 from scantpaper.dialog.scan import Scan, _build_profile_table, _coerce_option_value
 from scantpaper.frontend import enums
-from scantpaper.scanner.options import Option
+from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ from gi.repository import (  # noqa: E402
 class MockOptions:
     """A mock scan options collection."""
 
-    def __init__(self, options: list[Option]) -> None:
+    def __init__(self, options: list[Option | MockOption]) -> None:
         """Initialise MockOptions."""
         self.options = options
         self.options_dict = {o.name: o for o in options}
@@ -43,7 +43,7 @@ class MockOptions:
         """Return the number of options."""
         return len(self.options)
 
-    def by_index(self, i: int) -> Option:
+    def by_index(self, i: int) -> Option | MockOption:
         """Get option by index."""
         return self.options[i]
 
@@ -810,7 +810,13 @@ def test_paper_dimension_changed_unsets_paper(
         widgets[name] = widget
         hbox = mocker.Mock()
 
-        dialog._pack_widget(widget, (mock_options, opt, hbox, hboxp))
+        dialog._pack_widget(
+            widget,
+            cast(
+                "list[Options | Option | Gtk.Box | None]",
+                (mock_options, opt, hbox, hboxp),
+            ),
+        )
 
     # Now combobp should be created
     assert dialog.combobp is not None
@@ -969,7 +975,7 @@ def test_infinite_loop_reproduction(
     def tracked_set_option_profile(*args: object, **kwargs: object) -> None:
         nonlocal call_count
         call_count += 1
-        original_set_option_profile(*args, **kwargs)
+        original_set_option_profile(*cast("tuple[Profile, Any]", args), **kwargs)
 
     dialog._set_option_profile = cast("Any", tracked_set_option_profile)
 
@@ -1153,7 +1159,7 @@ def test_pack_widget_unknown_type(mocker: pytest.MockerFixture) -> None:
     opt.type = "unknown"
     data = (mocker.Mock(), opt, mocker.Mock(), mocker.Mock())
 
-    dialog._pack_widget(None, data)
+    dialog._pack_widget(None, cast("list[Options | Option | Gtk.Box | None]", data))
 
     mock_logger.warning.assert_called_with("Unknown type %s", "unknown")
 
@@ -1180,7 +1186,7 @@ def test_add_current_scan_options_with_error(mocker: pytest.MockerFixture) -> No
     mock_logger = mocker.patch("scantpaper.dialog.scan.logger")
 
     # Call _add_profile with None as the profile
-    dialog._add_current_scan_options({})
+    dialog._add_current_scan_options(cast("Profile | None", {}))
 
     # Verify logger.error was called with the expected message
     mock_logger.error.assert_called_once_with("%s is not a Profile object", type({}))
@@ -1225,7 +1231,7 @@ def test_update_options_error_return(mocker: pytest.MockerFixture) -> None:
 
     # We want to verify that it returns before setting self.available_scan_options
     initial_options = dialog.available_scan_options
-    dialog._update_options(mock_options)
+    dialog._update_options(cast("Options", mock_options))
 
     assert dialog.available_scan_options == initial_options
 

@@ -8,12 +8,13 @@ import pathlib
 import tempfile
 from datetime import datetime, timedelta, tzinfo
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from gi.repository import Gdk
 
 from scantpaper.config import (
     DEFAULTS,
+    ConfigDict,
     _coerce_bool,
     _coerce_float,
     _coerce_int,
@@ -55,13 +56,13 @@ def test_config() -> None:
     with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
     example = {"version": "1.3.3"}
-    output = read_config(rc)
+    output = read_config(str(rc))
     assert output == example, "Read JSON"
     assert output.load_warnings == [], "clean load reports no warnings"
 
     #########################
 
-    write_config(rc, example)
+    write_config(rc, cast("dict[str, object]", example))
 
     example = config.split("\n")
     output = slurp(rc).split("\n")
@@ -72,7 +73,7 @@ def test_config() -> None:
 
     output = {"version": "1.3.3"}
     output["non-existant-option"] = None
-    add_defaults(output)
+    add_defaults(cast("ConfigDict", output))
     example = DEFAULTS.copy()
     example["version"] = "1.3.3"
     example["viewer_tools"] = "tabbed"
@@ -81,7 +82,7 @@ def test_config() -> None:
     #########################
 
     output = {"Paper": {1: ["stuff"]}}
-    remove_invalid_paper(output["Paper"])
+    remove_invalid_paper(cast("dict[str, object]", output["Paper"]))
     example = {"Paper": {}}
     assert output == example, "remove_invalid_paper (contents)"
 
@@ -97,7 +98,7 @@ def test_config() -> None:
             }
         }
     }
-    remove_invalid_paper(output["Paper"])
+    remove_invalid_paper(cast("dict[str, object]", output["Paper"]))
     example = {"Paper": {}}
     assert output == example, "remove_invalid_paper (name)"
 
@@ -110,7 +111,7 @@ def test_config() -> None:
         fh.write(config)
 
     example = {"user_defined_tools": ["gimp %i"]}
-    output = read_config(rc)
+    output = read_config(str(rc))
 
     assert output == example, "force user_defined_tools to be an array"
 
@@ -127,7 +128,7 @@ def test_config() -> None:
         fh.write(config)
 
     example = {"profile": {}, "version": "1.7.3"}
-    output = read_config(rc)
+    output = read_config(str(rc))
 
     assert output == example, "remove undefined profiles"
 
@@ -141,7 +142,7 @@ def test_legacy_profile_gains_frontend_key() -> None:
             encoding="utf-8",
         )
 
-        output = read_config(rc)
+        output = read_config(str(rc))
         profile = output["profile"]["default"]
         assert "frontend" in profile, "legacy profile gains a frontend key"
         assert "backend" in profile, "legacy profile keeps its backend key"
@@ -161,7 +162,7 @@ def test_well_formed_profile_unaffected_by_migration() -> None:
             encoding="utf-8",
         )
 
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["profile"]["default"] == {
             "frontend": {"num_pages": 1},
             "backend": [{"mode": "Color"}],
@@ -178,7 +179,7 @@ def test_legacy_default_scan_options_gain_frontend_key() -> None:
             encoding="utf-8",
         )
 
-        output = read_config(rc)
+        output = read_config(str(rc))
         scan_options = output["default-scan-options"]
         assert "frontend" in scan_options, "legacy scan options gain a frontend key"
         assert "backend" in scan_options, "legacy scan options keep their backend key"
@@ -199,7 +200,7 @@ def test_corrupted_default_scan_options_repaired() -> None:
             encoding="utf-8",
         )
 
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["default-scan-options"] == {
             "frontend": {},
             "backend": [{"mode": "Binary"}],
@@ -216,7 +217,7 @@ def test_well_formed_default_scan_options_unaffected() -> None:
             encoding="utf-8",
         )
 
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["default-scan-options"] == {
             "frontend": {"num_pages": 1},
             "backend": [{"mode": "Color"}],
@@ -229,7 +230,7 @@ def test_non_dict_default_scan_options_ignored() -> None:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
         rc.write_text('{"default-scan-options": "broken"}', encoding="utf-8")
 
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["default-scan-options"] == "broken"
 
 
@@ -244,7 +245,7 @@ def test_config_string_conversion() -> None:
     with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
 
-    output = read_config(rc)
+    output = read_config(str(rc))
     add_defaults(output)
 
     assert isinstance(output["image_control_tool"], str), (
@@ -286,13 +287,13 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
         ],
         "version": "1.7.3",
     }
-    output = read_config(rc)
+    output = read_config(str(rc))
 
     assert output == example, "Deserialise device list"
 
     #########################
 
-    write_config(rc, example)
+    write_config(rc, cast("dict[str, object]", example))
     output = slurp(rc)
     assert output == config, "Serialise device list"
 
@@ -310,12 +311,12 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
     with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
     example = {"version": "1.7.3", "datetime offset": timedelta(seconds=0)}
-    output = read_config(rc)
+    output = read_config(str(rc))
     assert output == example, "Deserialise datetime offset"
 
     #########################
 
-    write_config(rc, example)
+    write_config(rc, cast("dict[str, object]", example))
 
     example = config.split("\n")
     output = slurp(rc).split("\n")
@@ -330,7 +331,9 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
         "title": "title",
         "datetime": datetime(2017, 12, 31, 0, 0, 0, tzinfo=_LOCAL_TZ),
     }
-    update_config_from_imported_metadata(config, metadata)
+    update_config_from_imported_metadata(
+        cast("ConfigDict", config), cast("dict[str, object]", metadata)
+    )
     example = {
         "datetime offset": timedelta(days=-1),
         "title": "title",
@@ -354,7 +357,7 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
     selection = Gdk.Rectangle()
     selection.x, selection.y, selection.width, selection.height = 1, 2, 3, 4
     example = {"version": "1.7.3", "selection": selection}
-    output = read_config(rc)
+    output = read_config(str(rc))
     assert output["selection"].x == 1, "Deserialise selection x"
     assert output["selection"].y == 2, "Deserialise selection y"
     assert output["selection"].width == 3, "Deserialise selection width"
@@ -378,7 +381,7 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
     with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
 
-    output = read_config(rc)
+    output = read_config(str(rc))
 
     assert output == {}, "deal with corrupt config"
 
@@ -395,19 +398,19 @@ def test_threshold_tool_migration() -> None:
         # config predating the change: value migrated to 100 - v
         with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
             fh.write('{"version": "3.0.15", "threshold tool": 80}')
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["threshold tool"] == 20, "legacy value migrated"
 
         # config written by the change version is not migrated again
         with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
             fh.write('{"version": "3.0.16", "threshold tool": 20}')
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["threshold tool"] == 20, "current version not migrated"
 
         # config without a version is treated as legacy
         with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
             fh.write('{"threshold tool": 60}')
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["threshold tool"] == 40, "absent version treated as legacy"
 
 
@@ -416,7 +419,7 @@ def test_threshold_tool_default() -> None:
     assert DEFAULTS["threshold tool"] == 20
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "config"
-        output = read_config(rc)
+        output = read_config(str(rc))
         add_defaults(output)
         assert output["threshold tool"] == 20, "default threshold tool is 20"
 
@@ -438,7 +441,7 @@ def test_read_non_existent_config() -> None:
     """Test reading a config file that doesn't exist."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "non_existent_config"
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output == {}, (
             "read_config should return empty dict for non-existent file"
         )
@@ -465,7 +468,7 @@ def test_rescue_config_from_unparseable_file(caplog: pytest.LogCaptureFixture) -
         )
 
         with caplog.at_level(logging.WARNING):
-            output = read_config(rc)
+            output = read_config(str(rc))
 
         assert output["rotate facing"] == 90, "first intact key rescued"
         assert output["rotate reverse"] == 270, "intact key rescued"
@@ -526,7 +529,7 @@ def test_wrong_typed_structural_settings_preserved() -> None:
             encoding="utf-8",
         )
 
-        output = read_config(rc)
+        output = read_config(str(rc))
 
         assert output["device list"] == "broken"
         assert output["profile"] == "broken"
@@ -540,7 +543,7 @@ def test_threshold_tool_wrong_type_not_migrated() -> None:
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
         rc.write_text('{"version": "3.0.15", "threshold tool": "80"}')
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["threshold tool"] == 80, "string coerced but not migrated"
 
 
@@ -556,7 +559,7 @@ def test_normalise_wrong_typed_scalar_settings(
         )
 
         with caplog.at_level(logging.INFO):
-            output = read_config(rc)
+            output = read_config(str(rc))
 
         assert output["rotate facing"] == 270, "lossless coercion applied"
         assert output["thumb panel"] == "garbage", "unusable value kept raw"
@@ -592,7 +595,7 @@ def test_write_config_is_copied_and_never_writes_old() -> None:
             "version": "1.7.3",
         }
 
-        write_config(rc, settings)
+        write_config(str(rc), cast("dict[str, object]", settings))
 
         assert isinstance(settings["device list"][0], SimpleNamespace), (
             "caller's device list left deserialised"
@@ -602,7 +605,7 @@ def test_write_config_is_copied_and_never_writes_old() -> None:
         )
         assert not pathlib.Path(f"{rc}.old").exists(), "never writes to *.old"
 
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert output["version"] == "1.7.3", "written file is still readable"
         assert output["device list"][0].name == "name", "device list round-trips"
         assert output["datetime offset"] == timedelta(seconds=60), (
@@ -616,7 +619,7 @@ def test_legacy_null_image_type_migrated_to_default() -> None:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
         rc.write_text('{"image type": null}', encoding="utf-8")
 
-        output = read_config(rc)
+        output = read_config(str(rc))
 
         assert output["image type"] == DEFAULTS["image type"], (
             "null image type is migrated to the default"
@@ -630,8 +633,8 @@ def test_null_image_type_round_trips_as_default() -> None:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
         rc.write_text('{"image type": null}', encoding="utf-8")
 
-        output = read_config(rc)
-        write_config(rc, output)
+        output = read_config(str(rc))
+        write_config(str(rc), output)
         persisted = json.loads(slurp(rc))
 
         assert persisted["image type"] == "pdf", "migrated value is stored, not null"
@@ -646,7 +649,7 @@ def test_null_image_type_migration_logged_at_info(
         rc.write_text('{"image type": null}', encoding="utf-8")
 
         with caplog.at_level(logging.INFO):
-            read_config(rc)
+            read_config(str(rc))
 
         info_messages = [r.message for r in caplog.records if r.levelno == logging.INFO]
         assert any(
@@ -669,7 +672,7 @@ def test_alternate_rotation_defaults_off_and_round_trips() -> None:
         rc = pathlib.Path(tmpdirname) / "scantpaperrc"
         rc.write_text("{}", encoding="utf-8")
 
-        output = read_config(rc)
+        output = read_config(str(rc))
         assert "alternate rotation" not in output, (
             "the raw config does not invent the key"
         )
@@ -677,7 +680,7 @@ def test_alternate_rotation_defaults_off_and_round_trips() -> None:
         assert output["alternate rotation"] is False, "add_defaults fills the default"
 
         config["alternate rotation"] = True
-        write_config(rc, config)
+        write_config(str(rc), cast("dict[str, object]", config))
         persisted = json.loads(slurp(rc))
         assert persisted["alternate rotation"] is True, (
             "the enabled toggle is written back"

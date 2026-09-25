@@ -346,7 +346,7 @@ def test_save_pdf_with_hocr(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, 1, page.text_layer)
+    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
 
     mlp = safe_mainloop(5000)
     slist.save_pdf(
@@ -394,7 +394,7 @@ def test_save_pdf_with_utf8(
 
     set_text_in_mainloop(
         slist,
-        1,
+        cast("str", 1),
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
@@ -447,7 +447,7 @@ def test_save_pdf_with_1bpp(
 
     #########################
 
-    clean_up_files(pathlib.Path().glob("x-000.p*m"))
+    clean_up_files(cast("list[str]", pathlib.Path().glob("x-000.p*m")))
 
 
 def test_save_pdf_g4(
@@ -477,7 +477,7 @@ def test_save_pdf_g4(
 
     #########################
 
-    clean_up_files(pathlib.Path().glob("x-000.p*m"))
+    clean_up_files(cast("list[str]", pathlib.Path().glob("x-000.p*m")))
 
 
 def test_save_pdf_g4_alpha(

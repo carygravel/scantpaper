@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 import subprocess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
 
 import gi
@@ -131,7 +131,7 @@ def test_rotate_quarter_turn_swaps_resolution(
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
     page_id = slist.data[0][2]
-    set_resolution_in_mainloop(slist, page_id, 300, 200)
+    set_resolution_in_mainloop(slist, cast("str", page_id), 300, 200)
     set_saved_in_mainloop(slist, 1, saved=True)
 
     pre_page = get_page_sync(slist.thread, id=1)
@@ -288,7 +288,7 @@ def test_threshold(
     set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
-        1,
+        cast("str", 1),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
@@ -341,7 +341,7 @@ def test_negate(
 ) -> None:
     """Test negate."""
     image = str(tmp_path / f"white.{suffix}")
-    im = Image.new(mode, [1, 1], color=white)
+    im = Image.new(mode, [1, 1], color=cast("str", white))
     im.save(image)
 
     slist = Document(db=temp_db.name)
@@ -350,7 +350,7 @@ def test_negate(
     set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
-        1,
+        cast("str", 1),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
@@ -399,7 +399,7 @@ def test_unsharp_mask(
     set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
-        1,
+        cast("str", 1),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
@@ -487,7 +487,7 @@ def test_crop(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, 1, page.text_layer)
+    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
 
     mlp = safe_mainloop(2000)
     slist.crop(
@@ -566,7 +566,7 @@ def test_split(
 </html>
 """
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, 1, page.text_layer)
+    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
 
     mlp = safe_mainloop(2000)
     slist.split_page(
@@ -645,7 +645,7 @@ def test_brightness_contrast(
     set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
-        1,
+        cast("str", 1),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',

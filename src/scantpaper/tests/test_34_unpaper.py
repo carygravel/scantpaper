@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 import pytest
@@ -205,7 +205,7 @@ def test_unpaper(
         check=True,
     )
     slist = Document(db=temp_db.name)
-    slist.set_paper_sizes(paper_sizes)
+    slist.set_paper_sizes(cast("dict[str, object] | None", paper_sizes))
 
     import_in_mainloop(slist, [temp_pbm.name])
 
@@ -272,7 +272,7 @@ def test_unpaper2(
         check=True,
     )
     slist = Document(db=temp_db.name)
-    slist.set_paper_sizes(paper_sizes)
+    slist.set_paper_sizes(cast("dict[str, object] | None", paper_sizes))
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -281,7 +281,7 @@ def test_unpaper2(
         "non-standard size pnm imports with 72 PPI"
     )
 
-    set_resolution_in_mainloop(slist, 1, 300, 300)
+    set_resolution_in_mainloop(slist, cast("str", 1), 300, 300)
     page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 300, (
         "simulated having imported non-standard pnm with 300 PPI"

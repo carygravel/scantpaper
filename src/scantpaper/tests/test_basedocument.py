@@ -80,7 +80,7 @@ def test_create_pidfile_error() -> None:
 
     options = {"error_callback": error_callback, "page": 1}
 
-    pidfile = slist.create_pidfile(options)
+    pidfile = slist.create_pidfile(cast("dict[str, object]", options))
     assert pidfile is None
     assert error_called
 
@@ -492,7 +492,7 @@ def test_reorder_data_moves_pages() -> None:
     slist.add_page(3, None, 103)
 
     # move page 101 to the end (worker returns 0-based positions)
-    slist._reorder_data([101], [[2, None, 101]])
+    slist._reorder_data([101], cast("list[tuple[int, object, int]]", [[2, None, 101]]))
 
     assert [row[2] for row in slist.data] == [102, 103, 101], "page moved to end"
     assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
@@ -620,7 +620,7 @@ def test_cut_selection() -> None:
     slist.select(0)
     data = slist.cut_selection()
 
-    assert len(data) == 1
+    assert len(cast("list[object]", data)) == 1
     assert cast("list", data)[0][2] == 101
     slist.delete_selection_extra.assert_called_once()
 
@@ -638,7 +638,7 @@ def test_set_paper_sizes(mock_thread: MagicMock) -> None:
     """Test set_paper_sizes."""
     slist = Document()
     sizes = {"A4": (A4_WIDTH_MM, A4_HEIGHT_MM)}
-    slist.set_paper_sizes(sizes)
+    slist.set_paper_sizes(cast("dict[str, object]", sizes))
 
     mock_thread.send.assert_called_with("set_paper_sizes", sizes)
 

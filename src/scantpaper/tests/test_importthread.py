@@ -6,7 +6,7 @@ import pathlib
 import subprocess
 import unittest.mock
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from PIL import Image
@@ -22,6 +22,8 @@ from scantpaper.importthread import (
 if TYPE_CHECKING:
     from collections.abc import Callable
     from unittest.mock import MagicMock
+
+    from scantpaper.importthread import Request
 
 _PDFIMAGES_LIST_HEADER = (
     "page   num  type   width height color comp bpc  enc interp"
@@ -102,7 +104,9 @@ def test_composite_over_white_opaque_and_transparent(tmp_path: pathlib.Path) -> 
     image.save(image_path)
     mask.save(mask_path)
 
-    assert _composite_over_white(image_path, mask_path) is True
+    assert (
+        _composite_over_white(cast("str", image_path), cast("str", mask_path)) is True
+    )
 
     result = Image.open(image_path)
     assert result.getpixel((0, 0)) == 200, "opaque mask keeps the image value"
@@ -116,7 +120,9 @@ def test_composite_over_white_half_alpha(tmp_path: pathlib.Path) -> None:
     Image.new("L", (1, 1), 200).save(image_path)
     Image.new("L", (1, 1), 128).save(mask_path)
 
-    assert _composite_over_white(image_path, mask_path) is True
+    assert (
+        _composite_over_white(cast("str", image_path), cast("str", mask_path)) is True
+    )
 
     result = Image.open(image_path)
     assert result.getpixel((0, 0)) == 227  # (200*128 + 255*127) // 255
@@ -129,7 +135,9 @@ def test_composite_over_white_color(tmp_path: pathlib.Path) -> None:
     Image.new("RGB", (1, 1), (10, 20, 30)).save(image_path)
     Image.new("L", (1, 1), 128).save(mask_path)
 
-    assert _composite_over_white(image_path, mask_path) is True
+    assert (
+        _composite_over_white(cast("str", image_path), cast("str", mask_path)) is True
+    )
 
     result = Image.open(image_path)
     assert result.getpixel((0, 0)) == (132, 137, 142)
@@ -144,7 +152,9 @@ def test_composite_over_white_size_mismatch(tmp_path: pathlib.Path) -> None:
     before_image = image_path.read_bytes()
     before_mask = mask_path.read_bytes()
 
-    assert _composite_over_white(image_path, mask_path) is False
+    assert (
+        _composite_over_white(cast("str", image_path), cast("str", mask_path)) is False
+    )
     assert image_path.read_bytes() == before_image, "image file untouched"
     assert mask_path.read_bytes() == before_mask, "mask file untouched"
 
@@ -158,7 +168,7 @@ def test_correlate_pdf_images_pairs_smask(mocker: pytest.MockerFixture) -> None:
         {"page": 1, "num": 1, "type": "smask", "x_ppi": 300.0, "y_ppi": 300.0},
     ]
 
-    result, warning = _correlate_pdf_images(entries)
+    result, warning = _correlate_pdf_images(cast("list[dict[str, object]]", entries))
 
     assert warning is False
     assert result == [("x-000.pnm", 300.0, 300.0, "x-001.pnm")]
@@ -176,7 +186,7 @@ def test_correlate_pdf_images_removes_unpaired_smask(
         {"page": 1, "num": 1, "type": "image", "x_ppi": 300.0, "y_ppi": 300.0},
     ]
 
-    result, warning = _correlate_pdf_images(entries)
+    result, warning = _correlate_pdf_images(cast("list[dict[str, object]]", entries))
 
     assert warning is False
     assert result == [("x-001.pnm", 300.0, 300.0, None)]
@@ -197,7 +207,7 @@ def test_get_file_info_session(mocker: pytest.MockerFixture, temp_db: object) ->
 
     # path, password
     request = SimpleNamespace(args=(temp_db.name, None))
-    info = thread.do_get_file_info(request)
+    info = thread.do_get_file_info(cast("Request", request))
 
     assert info["format"] == "session file"
     assert info["path"] == temp_db.name
@@ -209,7 +219,7 @@ def test_get_file_info_file_not_found() -> None:
 
     request = SimpleNamespace(args=("/non/existent/file", None))
     with pytest.raises(FileNotFoundError, match="File /non/existent/file not found"):
-        thread.do_get_file_info(request)
+        thread.do_get_file_info(cast("Request", request))
 
 
 def test_get_file_info_zero_length(
@@ -226,7 +236,7 @@ def test_get_file_info_zero_length(
 
     request = SimpleNamespace(args=(str(empty_file), None))
     with pytest.raises(RuntimeError, match="Error importing zero-length file"):
-        thread.do_get_file_info(request)
+        thread.do_get_file_info(cast("Request", request))
 
 
 def test_get_file_info_no_stdout(mocker: pytest.MockerFixture) -> None:
@@ -236,7 +246,7 @@ def test_get_file_info_no_stdout(mocker: pytest.MockerFixture) -> None:
     thread = Importhread()
     request = SimpleNamespace(args=("", None))
     with pytest.raises(RuntimeError, match="Error getting file info for : not found"):
-        thread.do_get_file_info(request)
+        thread.do_get_file_info(cast("Request", request))
 
 
 def test_get_djvu_info_no_djvudump(mocker: pytest.MockerFixture) -> None:
@@ -251,7 +261,7 @@ def test_get_djvu_info_no_djvudump(mocker: pytest.MockerFixture) -> None:
     with pytest.raises(
         RuntimeError, match="Please install djvulibre-bin in order to open DjVu files"
     ):
-        thread._get_djvu_info({}, None)
+        thread._get_djvu_info({}, cast("str", None))
 
 
 def test_get_djvu_info_no_djvused(mocker: pytest.MockerFixture) -> None:
@@ -269,7 +279,8 @@ def test_get_djvu_info_no_djvused(mocker: pytest.MockerFixture) -> None:
         RuntimeError, match="Please install djvulibre-bin in order to open DjVu files"
     ):
         thread._get_djvu_info(
-            {"pages": 1, "width": [100], "height": [100], "ppi": [300]}, None
+            {"pages": 1, "width": [100], "height": [100], "ppi": [300]},
+            cast("str", None),
         )
 
 
@@ -285,7 +296,7 @@ def test_get_tif_info_no_tiffinfo(mocker: pytest.MockerFixture) -> None:
     with pytest.raises(
         RuntimeError, match="Please install libtiff-tools in order to open TIFF files"
     ):
-        thread._get_tif_info({}, None, None)
+        thread._get_tif_info({}, cast("str", None), cast("Request", None))
 
 
 def test_get_djvu_info_corrupt(mocker: pytest.MockerFixture) -> None:
@@ -308,7 +319,7 @@ def test_get_djvu_info_corrupt(mocker: pytest.MockerFixture) -> None:
     )
     thread = Importhread()
     with pytest.raises(RuntimeError, match="Unknown DjVu file structure"):
-        thread._get_djvu_info({}, None)
+        thread._get_djvu_info({}, cast("str", None))
 
 
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
@@ -362,7 +373,7 @@ def test_get_pdf_info_error(mock_run: MagicMock) -> None:
     )
     thread = Importhread()
     mock_request = unittest.mock.Mock()
-    thread._get_pdf_info({}, None, None, mock_request)
+    thread._get_pdf_info({}, cast("str", None), None, mock_request)
     mock_request.error.assert_called_once_with("Permission denied")
 
 
@@ -712,7 +723,7 @@ def test_request_pidfile_from_attribute() -> None:
     thread = Importhread()
     pidfile = SimpleNamespace()
     request = SimpleNamespace(pidfile=pidfile, args=())
-    assert thread._request_pidfile(request) is pidfile
+    assert thread._request_pidfile(cast("Request", request)) is pidfile
 
 
 def test_request_pidfile_from_args_dict() -> None:
@@ -720,14 +731,14 @@ def test_request_pidfile_from_args_dict() -> None:
     thread = Importhread()
     pidfile = SimpleNamespace()
     request = SimpleNamespace(pidfile=None, args=({"pidfile": pidfile},))
-    assert thread._request_pidfile(request) is pidfile
+    assert thread._request_pidfile(cast("Request", request)) is pidfile
 
 
 def test_request_pidfile_none() -> None:
     """Test _request_pidfile returns None when no pidfile is present."""
     thread = Importhread()
     request = SimpleNamespace(pidfile=None, args=())
-    assert thread._request_pidfile(request) is None
+    assert thread._request_pidfile(cast("Request", request)) is None
 
 
 def test_request_completed_deregisters_pidfile() -> None:
@@ -736,7 +747,7 @@ def test_request_completed_deregisters_pidfile() -> None:
     pidfile = "pidfile"
     thread.running_pids[pidfile] = pidfile
     request = SimpleNamespace(pidfile=pidfile, args=())
-    thread._request_completed(request)
+    thread._request_completed(cast("Request", request))
     assert pidfile not in thread.running_pids
 
 
@@ -745,5 +756,5 @@ def test_request_completed_ignores_missing() -> None:
     thread = Importhread()
     pidfile = "pidfile"
     request = SimpleNamespace(pidfile=pidfile, args=())
-    thread._request_completed(request)
+    thread._request_completed(cast("Request", request))
     assert pidfile not in thread.running_pids

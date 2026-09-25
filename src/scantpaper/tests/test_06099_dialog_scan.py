@@ -169,10 +169,12 @@ class TestScanDialog:
         """
         opt_active = MockOption("opt", enums.TYPE_BOOL, cap=0)
         opt_inactive = MockOption("opt", enums.TYPE_BOOL, cap=enums.CAP_INACTIVE)
-        assert _value_for_active_option(value=True, opt=opt_active)
-        assert _value_for_active_option(value=False, opt=opt_active)
-        assert not _value_for_active_option(None, opt_active)
-        assert not _value_for_active_option(value=False, opt=opt_inactive)
+        assert _value_for_active_option(value=True, opt=cast("Option", opt_active))
+        assert _value_for_active_option(value=False, opt=cast("Option", opt_active))
+        assert not _value_for_active_option(None, cast("Option", opt_active))
+        assert not _value_for_active_option(
+            value=False, opt=cast("Option", opt_inactive)
+        )
 
     def test_do_profile_changed(self) -> None:
         """Test _do_profile_changed."""
@@ -202,7 +204,7 @@ class TestScanDialog:
         scan.combobd = unittest.mock.Mock()
         scan.combobd.get_num_rows.return_value = 1
 
-        scan.set_device_list([dev1, dev2, dev3])
+        scan.set_device_list(cast("list[SimpleNamespace]", [dev1, dev2, dev3]))
 
         assert "on dev1" in dev1.label
         assert "on dev2" in dev3.label
@@ -231,7 +233,11 @@ class TestScanDialog:
 
             with unittest.mock.patch("scantpaper.dialog.scan.Gtk.Label") as mocklabel:
                 scan._pack_widget(
-                    widget, (scan._available_scan_options, opt, hbox, hboxp)
+                    widget,
+                    cast(
+                        "list[Options | Option | Gtk.Box | None]",
+                        (scan._available_scan_options, opt, hbox, hboxp),
+                    ),
                 )
                 mocklabel.assert_called_with(label=text)
 
@@ -254,7 +260,7 @@ class TestScanDialog:
             mock_combo = mockcombobox.return_value
             mock_combo.get_active_text.return_value = "Manual"
 
-            scan._create_paper_widget(MockOptions([]), hboxp)
+            scan._create_paper_widget(cast("Options", MockOptions([])), hboxp)
             # Manually set because mockcombobox replaces the class,
             # returning a mock instance
             scan.combobp = mock_combo
@@ -285,7 +291,7 @@ class TestScanDialog:
             mock_combo = mockcombobox.return_value
             mock_combo.get_active_text.return_value = "Edit"
 
-            scan._create_paper_widget(MockOptions([]), hboxp)
+            scan._create_paper_widget(cast("Options", MockOptions([])), hboxp)
             scan.combobp = mock_combo
 
             args, _ = mock_combo.connect.call_args
@@ -301,7 +307,7 @@ class TestScanDialog:
         scan.reload_recursion_limit = 5
         scan.emit = unittest.mock.Mock()
 
-        scan._update_options(MockOptions([]))
+        scan._update_options(cast("Options", MockOptions([])))
 
         scan.emit.assert_called_with(
             "process-error", "update_options", unittest.mock.ANY
@@ -317,7 +323,7 @@ class TestScanDialog:
         scan.thread.device_handle.opt = False
 
         # _value_for_active_option(False, opt) -> True, so set_active(False) is called
-        scan._update_single_option(opt)
+        scan._update_single_option(cast("Option", opt))
         widget.set_active.assert_called_with(is_active=False)
 
     def test_update_single_option_entry(self) -> None:
@@ -329,7 +335,7 @@ class TestScanDialog:
         scan.option_widgets = {"opt": widget}
         scan.thread.device_handle.opt = ""  # Empty string is False-y
 
-        scan._update_single_option(opt)
+        scan._update_single_option(cast("Option", opt))
         widget.set_text.assert_called_with("")
 
     def test_update_single_option_entry_float(self) -> None:
@@ -341,7 +347,7 @@ class TestScanDialog:
         scan.option_widgets = {"opt": widget}
         scan.thread.device_handle.opt = 1.07818603515625
 
-        scan._update_single_option(opt)
+        scan._update_single_option(cast("Option", opt))
         widget.set_text.assert_called_with("1.07818603515625")
 
     def test_update_option_mismatch(self) -> None:
@@ -353,11 +359,11 @@ class TestScanDialog:
 
         # Mismatch name
         new_opt_name = MockOption("other", enums.TYPE_INT)
-        assert scan._update_option(opt, new_opt_name)
+        assert scan._update_option(cast("Option", opt), cast("Option", new_opt_name))
 
         # Mismatch type
         new_opt_type = MockOption("opt", enums.TYPE_BOOL)
-        assert scan._update_option(opt, new_opt_type)
+        assert scan._update_option(cast("Option", opt), cast("Option", new_opt_type))
 
     def test_set_paper_sizes_unsupported(self) -> None:
         """Test setting paper formats with unsupported paper."""
@@ -370,7 +376,7 @@ class TestScanDialog:
         options.supports_paper.return_value = False
         scan._available_scan_options = options
 
-        scan._set_paper_sizes(formats)
+        scan._set_paper_sizes(cast("dict[str, dict[str, float]]", formats))
 
         assert "A4" in scan.ignored_paper_sizes
 
@@ -416,14 +422,16 @@ class TestScanDialog:
         scan = MockScan()
         scan._add_profile(None, Profile())  # No name
         scan._add_profile("name", None)  # No profile
-        scan._add_profile("name", "not_a_profile")  # Invalid profile type
+        scan._add_profile(
+            "name", cast("Profile | None", "not_a_profile")
+        )  # Invalid profile type
         assert len(scan.profiles) == 0
 
     def test_set_current_scan_options_errors(self) -> None:
         """Test setting current scan options with invalid inputs."""
         scan = MockScan()
         scan.set_current_scan_options(None)
-        scan.set_current_scan_options("not_a_profile")
+        scan.set_current_scan_options(cast("Profile | None", "not_a_profile"))
         # Should just log errors and return
 
     def test_set_option_profile_errors(self) -> None:
@@ -472,7 +480,7 @@ class TestScanDialog:
         widget.get_active.return_value = False
         widget.signal = "signal"
         scan.option_widgets = {"bool": widget}
-        scan._update_widget_value(opt, val=True)
+        scan._update_widget_value(cast("Option", opt), val=True)
         widget.set_active.assert_called_with(is_active=True)
 
         # SpinButton
@@ -481,7 +489,7 @@ class TestScanDialog:
         widget.get_value.return_value = 5
         widget.signal = "signal"
         scan.option_widgets = {"int": widget}
-        scan._update_widget_value(opt, 10)
+        scan._update_widget_value(cast("Option", opt), 10)
         widget.set_value.assert_called_with(10)
 
         # ComboBox
@@ -490,7 +498,7 @@ class TestScanDialog:
         widget.get_active.return_value = 0  # "a"
         widget.signal = "signal"
         scan.option_widgets = {"combo": widget}
-        scan._update_widget_value(opt, "b")
+        scan._update_widget_value(cast("Option", opt), "b")
         widget.set_active.assert_called_with(index_=1)
 
     def test_get_xy_resolution_missing(self) -> None:
@@ -531,7 +539,7 @@ class TestScanDialog:
         scan = MockScan()
         dev = MockDevice("dev1", "model1", "vendor1")
         dev.vendor = "vendor1"
-        scan.set_device_list([dev])
+        scan.set_device_list(cast("list[SimpleNamespace]", [dev]))
         assert "vendor1 model1" in dev.label
 
     def test_pack_widget_button(self) -> None:
@@ -541,7 +549,13 @@ class TestScanDialog:
         widget = unittest.mock.Mock()
         hbox = unittest.mock.Mock()
         hboxp = unittest.mock.Mock()
-        scan._pack_widget(widget, (scan._available_scan_options, opt, hbox, hboxp))
+        scan._pack_widget(
+            widget,
+            cast(
+                "list[Options | Option | Gtk.Box | None]",
+                (scan._available_scan_options, opt, hbox, hboxp),
+            ),
+        )
         hbox.pack_end.assert_called_with(widget, expand=True, fill=True, padding=0)
 
     def test_update_widget_value_entry_empty(self) -> None:
@@ -551,7 +565,7 @@ class TestScanDialog:
         widget = unittest.mock.Mock(spec=Gtk.Entry)
         widget.signal = "signal"
         scan.option_widgets = {"opt": widget}
-        scan._update_widget_value(opt, "")
+        scan._update_widget_value(cast("Option", opt), "")
         widget.set_text.assert_called_with("")
 
     def test_new_val(self) -> None:
@@ -767,7 +781,7 @@ class TestScanDialog:
         options = MockOptions([MockOption("opt", enums.TYPE_INT)])
         vbox = unittest.mock.Mock()
         vbox.show_all = unittest.mock.Mock()
-        _build_profile_table(profile, options, vbox)
+        _build_profile_table(profile, cast("Options", options), vbox)
         vbox.show_all.assert_called()
 
     def test_set_paper_with_geometry(self) -> None:
@@ -838,7 +852,7 @@ def test_reproduce_bug(
             title="Number of options",
             desc="",
             type=1,
-            unit=0,
+            unit=cast("str", 0),
             size=4,
             cap=4,
             constraint=None,
@@ -849,7 +863,7 @@ def test_reproduce_bug(
             title="Top-left x",
             desc="",
             type=2,
-            unit=3,
+            unit=cast("str", 3),
             size=1,
             cap=5,
             constraint=(0, 215, 0),
@@ -860,7 +874,7 @@ def test_reproduce_bug(
             title="Top-left y",
             desc="",
             type=2,
-            unit=3,
+            unit=cast("str", 3),
             size=1,
             cap=5,
             constraint=(0, 297, 0),
@@ -871,7 +885,7 @@ def test_reproduce_bug(
             title="Bottom-right x",
             desc="",
             type=2,
-            unit=3,
+            unit=cast("str", 3),
             size=1,
             cap=5,
             constraint=(0, 215, 0),
@@ -882,7 +896,7 @@ def test_reproduce_bug(
             title="Bottom-right y",
             desc="",
             type=2,
-            unit=3,
+            unit=cast("str", 3),
             size=1,
             cap=5,
             constraint=(0, 297, 0),
@@ -988,7 +1002,7 @@ def test_uuid_at_position_edge_cases() -> None:
     """Test _uuid_at_position with None or out-of-range positions."""
     scan = MockScan()
 
-    result = scan._uuid_at_position(None)
+    result = scan._uuid_at_position(cast("int", None))
     assert result is None
 
     result = scan._uuid_at_position(0)
@@ -1004,7 +1018,7 @@ def test_uuid_before_position_edge_cases() -> None:
     """Test _uuid_before_position edge cases."""
     scan = MockScan()
 
-    result = scan._uuid_before_position(None)
+    result = scan._uuid_before_position(cast("int", None))
     assert result is None
 
     result = scan._uuid_before_position(0)

@@ -15,6 +15,7 @@ from scantpaper.basethread import BaseThread, Request, Response, ResponseType
 from scantpaper.loop_helpers import safe_mainloop
 
 if TYPE_CHECKING:
+    import uuid
     from collections.abc import Callable
 
 
@@ -31,7 +32,7 @@ class MyThread(BaseThread):
 EXPECTED = [
     Response(
         type=ResponseType.QUEUED,
-        request="",
+        request=cast("Request", ""),
         info=None,
         status=None,
         num_completed_jobs=0,
@@ -40,7 +41,7 @@ EXPECTED = [
     ),
     Response(
         type=ResponseType.STARTED,
-        request="",
+        request=cast("Request", ""),
         info=None,
         status=None,
         num_completed_jobs=0,
@@ -50,7 +51,7 @@ EXPECTED = [
     None,  # running
     Response(
         type=ResponseType.DATA,
-        request="",
+        request=cast("Request", ""),
         info="arg1 / arg2",
         status=None,
         num_completed_jobs=0,
@@ -60,7 +61,7 @@ EXPECTED = [
     None,  # running
     Response(
         type=ResponseType.FINISHED,
-        request="",
+        request=cast("Request", ""),
         info=0.5,
         status=None,
         num_completed_jobs=0,
@@ -69,7 +70,7 @@ EXPECTED = [
     ),
     Response(
         type=ResponseType.ERROR,
-        request="",
+        request=cast("Request", ""),
         info=None,
         status="division by zero",
         num_completed_jobs=1,
@@ -78,7 +79,7 @@ EXPECTED = [
     ),
     Response(
         type=ResponseType.ERROR,
-        request="",
+        request=cast("Request", ""),
         info=None,
         status="no handler for [nodiv]",
         num_completed_jobs=2,
@@ -87,7 +88,7 @@ EXPECTED = [
     ),
     Response(
         type=ResponseType.FINISHED,
-        request="",
+        request=cast("Request", ""),
         info=0.5,
         status=None,
         num_completed_jobs=3,
@@ -96,7 +97,7 @@ EXPECTED = [
     ),  # before_finished
     Response(
         type=ResponseType.FINISHED,
-        request="",
+        request=cast("Request", ""),
         info=0.5,
         status=None,
         num_completed_jobs=4,
@@ -117,7 +118,10 @@ def test_1() -> None:
             assert response == EXPECTED[n_callbacks], str(n_callbacks)
         else:
             actual = response._replace(
-                request="", num_completed_jobs=None, total_jobs=None, pending=None
+                request=cast("Request", ""),
+                num_completed_jobs=None,
+                total_jobs=None,
+                pending=None,
             )
             expected = EXPECTED[n_callbacks]._replace(
                 num_completed_jobs=None, total_jobs=None, pending=None
@@ -502,7 +506,9 @@ def test_stage_callback_exception_invokes_error_callback() -> None:
         "error_callback": error_callback,
     }
 
-    thread._execute_single_callback("finished_callback", "finished", uid, data)
+    thread._execute_single_callback(
+        "finished_callback", "finished", cast("uuid.UUID", uid), data
+    )
 
     error_callback.assert_called_once()
     assert error_callback.call_args[0][0].status == "boom"
@@ -583,7 +589,7 @@ def test_run_releases_sources_when_input_handler_raises(
     original_hook = threading.excepthook
 
     def record_excepthook(args: threading.ExceptHookArgs) -> None:
-        recorded_exceptions.append(args.exc_value)
+        recorded_exceptions.append(cast("BaseException", args.exc_value))
 
     threading.excepthook = record_excepthook
     try:

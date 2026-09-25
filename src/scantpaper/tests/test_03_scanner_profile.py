@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import unittest.mock
+from typing import cast
 
 import pytest
 
@@ -121,7 +122,7 @@ def test_profile_round_trip_legacy_default_scan_options() -> None:
         "frontend": {},
         "backend": [{"mode": "Binary"}, {"resolution": 600}],
     }
-    profile = Profile(scan_options)
+    profile = Profile(cast("dict[str, object]", scan_options))
     assert profile.get() == {
         "frontend": {},
         "backend": [("mode", "Binary"), ("resolution", 600)],

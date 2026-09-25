@@ -25,7 +25,10 @@ def test_filter_table() -> None:
     """Test filter_table function."""
     table = [("a", 1), ("b", 2), ("c", 3)]
     types = ["a", "c"]
-    assert filter_table(table, types) == [("a", 1), ("c", 3)]
+    assert filter_table(cast("list[tuple[str, str, str]]", table), types) == [
+        ("a", 1),
+        ("c", 3),
+    ]
 
 
 def test_metadata_properties() -> None:

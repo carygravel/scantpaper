@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from scantpaper.frontend import enums
 from scantpaper.scanner.options import Option
@@ -68,7 +68,7 @@ def test_impossible_options(
                 title="Number of options",
                 desc="Read-only option that specifies how many options a specific device supports.",
                 type=1,
-                unit=0,
+                unit=cast("str", 0),
                 size=4,
                 cap=4,
                 constraint=None,
@@ -79,7 +79,7 @@ def test_impossible_options(
                 index=1,
                 desc="Controls the brightness of the acquired image.",
                 constraint=(0, -444909896, 32648),
-                unit=0,
+                unit=cast("str", 0),
                 type=enums.TYPE_INT,
                 cap=37,
                 size=1,

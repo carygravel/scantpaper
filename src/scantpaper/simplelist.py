@@ -91,6 +91,7 @@ class SimpleList(Gtk.TreeView):
             raise TypeError(msg)
         column_info = []
         for name, typekey in columns.items():
+            typekey = cast("str", typekey)
             if typekey not in column_types:
                 raise TypeError(
                     f"unknown column type '{typekey}', use one of "
@@ -140,7 +141,7 @@ class SimpleList(Gtk.TreeView):
                 pass
 
             else:
-                attr = {col["attr"]: i}
+                attr = {cast("str", col["attr"]): i}
                 column = Gtk.TreeViewColumn(
                     col["title"],
                     col["renderer"],
@@ -188,7 +189,7 @@ class SimpleList(Gtk.TreeView):
     def data(self, new_data: object) -> None:
         """Setter for data property."""
         self.get_model().clear()
-        self.data.extend(new_data)
+        self.data.extend(cast("Iterable[object]", new_data))
 
     def do_toggled(self, renderer: Gtk.CellRendererToggle, row: str) -> None:
         """Handle toggled signal of boolean cell."""

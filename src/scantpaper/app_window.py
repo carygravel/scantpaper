@@ -873,7 +873,10 @@ class ApplicationWindow(
             response = self._message_dialog.run()
 
         if self._message_dialog is not None:  # could be undefined for multiple calls
-            self._message_dialog.store_responses(response, self.settings["message"])
+            self._message_dialog.store_responses(
+                cast("str", response),
+                cast("dict[str, dict[str, object]]", self.settings["message"]),
+            )
             (
                 self.settings["message_window_width"],
                 self.settings["message_window_height"],

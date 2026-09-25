@@ -150,7 +150,9 @@ class BaseDocument(SimpleList):
                 edited = i
                 break
         if edited is not None:
-            new_position = max(1, min(int(self.data[edited][0]), len(self.data)))
+            new_position = max(
+                1, min(int(cast("int", self.data[edited][0])), len(self.data))
+            )
             if new_position - 1 != edited:
                 model = self.get_model()
                 row = list(model[edited])
@@ -379,7 +381,7 @@ class BaseDocument(SimpleList):
         if kwargs.get("dest") is None:
             self._send_clone_pages(kwargs, len(self.data), "extend")
         else:
-            dest = int(kwargs["dest"])
+            dest = int(cast("int", kwargs["dest"]))
             if kwargs["how"] in (
                 Gtk.TreeViewDropPosition.AFTER,
                 Gtk.TreeViewDropPosition.INTO_OR_AFTER,
@@ -425,15 +427,17 @@ class BaseDocument(SimpleList):
 
         # Select the new pages
         if kwargs.get("select_new_pages"):
-            selection = list(range(dest, dest + len(kwargs["data"])))
+            selection = list(range(dest, dest + len(cast("list", kwargs["data"]))))
 
             self.get_selection().unselect_all()
-            self.select(selection)
+            self.select(cast("list[int | None]", selection))
 
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
 
-        logger.info("Pasted %s pages at position %s", len(kwargs["data"]), dest)
+        logger.info(
+            "Pasted %s pages at position %s", len(cast("list", kwargs["data"])), dest
+        )
         if "finished_callback" in kwargs:
             cast("Callable[..., object]", kwargs["finished_callback"])()
 
@@ -630,7 +634,7 @@ class BaseDocument(SimpleList):
                 )
             return
 
-        db = pathlib.Path(kwargs["db"])
+        db = pathlib.Path(cast("str", kwargs["db"]))
         self.thread.close()
         try:
             shutil.copy(db, str(self.dir) + ".sdb")

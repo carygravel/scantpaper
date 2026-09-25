@@ -113,9 +113,9 @@ class BaseThread(threading.Thread):
     # Every live thread, so tests can quit any that are not explicitly stopped.
     LiveThreads = weakref.WeakSet()
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self) -> None:
         """Initialise the daemon thread with request/response queues and a notify pipe."""
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self.daemon = True
         self.requests = queue.Queue()
         self.responses = queue.Queue()

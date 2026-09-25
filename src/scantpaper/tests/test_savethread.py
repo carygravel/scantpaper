@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+from typing import cast
 from unittest.mock import MagicMock, mock_open, patch
 
 import pikepdf
@@ -1039,7 +1040,7 @@ def test_savethread_progressbar_disabled() -> None:
 def test_savethread_progressbar_no_thread() -> None:
     """Test SaveThreadProgressBar when thread_instance is None."""
     progressbar = SaveThreadProgressBar(
-        request=None, total=10, desc="No thread test", unit="page"
+        request=cast("Request", None), total=10, desc="No thread test", unit="page"
     )
 
     # Should not raise error

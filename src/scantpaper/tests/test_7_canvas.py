@@ -210,7 +210,7 @@ def test_canvas_basics(rose_pnm: str) -> None:
         canvas = Canvas()
         canvas.sort_by_confidence()
         mlp = safe_mainloop(2000)
-        bboxes, indices = get_bboxes_and_indices(page.text_layer)
+        bboxes, indices = get_bboxes_and_indices(cast("str", page.text_layer))
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
@@ -220,7 +220,7 @@ def test_canvas_basics(rose_pnm: str) -> None:
 
         bbox = canvas.get_first_bbox()
         assert bbox.text == "The—", "get_first_bbox"
-        canvas.set_index_by_bbox(bbox)
+        canvas.set_index_by_bbox(cast("Bbox", bbox))
         bbox = canvas.get_next_bbox()
         assert bbox.text == "fox", "get_next_bbox"
         assert canvas.get_previous_bbox().text == "The—", "get_previous_text"
@@ -271,7 +271,7 @@ def test_canvas_basics2(rose_pnm: str) -> None:
         canvas = Canvas()
         canvas.sort_by_confidence()
         mlp = safe_mainloop(2000)
-        bboxes, indices = get_bboxes_and_indices(page.text_layer)
+        bboxes, indices = get_bboxes_and_indices(cast("str", page.text_layer))
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
@@ -462,7 +462,7 @@ def test_hocr(rose_pnm: str) -> None:
 
         canvas = Canvas()
         mlp = safe_mainloop(2000)
-        bboxes, indices = get_bboxes_and_indices(page.text_layer)
+        bboxes, indices = get_bboxes_and_indices(cast("str", page.text_layer))
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
@@ -552,7 +552,7 @@ def test_bbox_text_placement(rose_pnm: str) -> None:
         )
         canvas = Canvas()
         mlp = safe_mainloop(2000)
-        bboxes, indices = get_bboxes_and_indices(page.text_layer)
+        bboxes, indices = get_bboxes_and_indices(cast("str", page.text_layer))
         canvas.set_text(
             bboxes=bboxes,
             sorted_word_indices=indices,
@@ -603,7 +603,7 @@ def test_drag_text_layer(mocker: pytest.MockerFixture) -> None:
         type="page",
         transformation=[0, 0, 0],
     )
-    canvas.set_root_item(page)
+    canvas.set_root_item(cast("Any", page))
     canvas._pixbuf_size = {
         "width": 100,
         "height": 100,
@@ -1191,7 +1191,7 @@ def test_tree_iter_exceptions() -> None:
     """Test TreeIter exceptions."""
     # Init with non-Bbox
     with pytest.raises(TypeError):
-        TreeIter("not-a-bbox")
+        TreeIter(cast("Bbox", "not-a-bbox"))
 
     # Setup a simple tree
     canvas_obj = Canvas()
@@ -1333,7 +1333,7 @@ def test_set_text_empty_generator() -> None:
 
     # Generators are truthy even when empty, so this bypasses 'if not bboxes'
     # but triggers StopIteration on next(itr)
-    canvas.set_text(bboxes=empty_gen(), sorted_word_indices=[])
+    canvas.set_text(bboxes=cast("list[BBox]", empty_gen()), sorted_word_indices=[])
     # Should return early without crashing or scheduling idles
     assert (
         canvas.get_root_item() is None or canvas.get_root_item().get_n_children() == 0
@@ -1700,7 +1700,7 @@ def test_canvas_index_none() -> None:
 
     # Line 416: set_index_by_bbox raises IndexError if bbox is None
     with pytest.raises(IndexError):
-        canvas.set_index_by_bbox(None)
+        canvas.set_index_by_bbox(cast("Bbox", None))
 
     # Line 425: set_other_index returns early if bbox is None
     # We can check that it doesn't try to access self._current_index or similar
@@ -2054,7 +2054,7 @@ def test_draw_bbox_full(mocker: pytest.MockerFixture) -> None:
 
     def patched_create_pango_layout(ctx: object, bbox: Bbox) -> object:
         del ctx
-        return make_layout(bbox.text)
+        return make_layout(cast("str", bbox.text))
 
     cast("Any", canvas)._create_pango_layout = patched_create_pango_layout
 

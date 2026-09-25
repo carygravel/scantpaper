@@ -286,7 +286,7 @@ class SaneThread(BaseThread):
         self, response: Response, **kwargs: object
     ) -> None:
         _set_default_callbacks(kwargs)
-        cancel_between_pages = kwargs.get("cancel_between_pages", False)
+        cancel_between_pages = cast("bool", kwargs.get("cancel_between_pages", False))
         if response.info is not None:
             self.num_pages_scanned += 1
             if kwargs["new_page_callback"] is not None:

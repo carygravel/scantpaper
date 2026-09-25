@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import locale
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -65,7 +65,9 @@ def test_qbfox_fc_match_fallback() -> None:
         if path in KNOWN_FONT_PATHS:
             msg = "font not found"
             raise OSError(msg)
-        return original_truetype(KNOWN_FONT_PATHS[0], size, **kwargs)
+        return original_truetype(
+            KNOWN_FONT_PATHS[0], size, **cast("dict[str, Any]", kwargs)
+        )
 
     mock_result = MagicMock()
     mock_result.returncode = 0
@@ -87,7 +89,7 @@ def test_qbfox_load_default_with_size() -> None:
         if path in KNOWN_FONT_PATHS:
             msg = "font not found"
             raise OSError(msg)
-        return original_truetype(path, size, **kwargs)
+        return original_truetype(path, size, **cast("dict[str, Any]", kwargs))
 
     mock_result = MagicMock()
     mock_result.returncode = 1
@@ -109,7 +111,7 @@ def test_qbfox_load_default_bitmap() -> None:
         if path in KNOWN_FONT_PATHS:
             msg = "font not found"
             raise OSError(msg)
-        return original_truetype(path, size, **kwargs)
+        return original_truetype(path, size, **cast("dict[str, Any]", kwargs))
 
     mock_result = MagicMock()
     mock_result.returncode = 1

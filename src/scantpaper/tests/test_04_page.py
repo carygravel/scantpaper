@@ -6,6 +6,7 @@ import io
 import pathlib
 import subprocess
 import tempfile
+from typing import IO, TYPE_CHECKING, cast
 from unittest.mock import patch
 
 import pytest
@@ -22,6 +23,9 @@ from scantpaper.const import (
 )
 from scantpaper.helpers import Proc
 from scantpaper.page import Page, _prepare_scale
+
+if TYPE_CHECKING:
+    import os
 
 
 def test_1(temp_pnm: object, temp_jpg: object) -> None:
@@ -50,26 +54,29 @@ def test_1(temp_pnm: object, temp_jpg: object) -> None:
 
         #########################
 
-        paper_sizes = {
-            "A4": {
-                "x": 210,
-                "y": 297,
-                "l": 0,
-                "t": 0,
+        paper_sizes = cast(
+            "dict[str, dict[str, float]] | None",
+            {
+                "A4": {
+                    "x": 210,
+                    "y": 297,
+                    "l": 0,
+                    "t": 0,
+                },
+                "US Letter": {
+                    "x": 216,
+                    "y": 279,
+                    "l": 0,
+                    "t": 0,
+                },
+                "US Legal": {
+                    "x": 216,
+                    "y": 356,
+                    "l": 0,
+                    "t": 0,
+                },
             },
-            "US Letter": {
-                "x": 216,
-                "y": 279,
-                "l": 0,
-                "t": 0,
-            },
-            "US Legal": {
-                "x": 216,
-                "y": 356,
-                "l": 0,
-                "t": 0,
-            },
-        }
+        )
 
         page = Page(image_object=image_object, dir=dirname)
         assert page.matching_paper_sizes(paper_sizes) == {"A4": MM_PER_INCH}, (
@@ -497,10 +504,18 @@ def test_get_pixbuf_at_scale_downscales_before_save(
     original_save = Image.Image.save
 
     def spy_save(
-        self: Image.Image, fp: object, *args: object, **kwargs: object
+        self: Image.Image,
+        fp: object,
+        fmt: object = None,
+        **kwargs: object,
     ) -> None:
         saved_sizes.append(self.size)
-        return original_save(self, fp, *args, **kwargs)
+        return original_save(
+            self,
+            cast("str | bytes | os.PathLike[str] | os.PathLike[bytes] | IO[bytes]", fp),
+            cast("str | None", fmt),
+            **kwargs,
+        )
 
     mocker.patch.object(Image.Image, "save", spy_save)
     pixbuf = page.get_pixbuf_at_scale(100, 100)
@@ -560,10 +575,18 @@ def test_get_pixbuf_at_scale_antialiases_bilevel_source(
     original_save = Image.Image.save
 
     def spy_save(
-        self: Image.Image, fp: object, *args: object, **kwargs: object
+        self: Image.Image,
+        fp: object,
+        fmt: object = None,
+        **kwargs: object,
     ) -> None:
         saved.append(self)
-        return original_save(self, fp, *args, **kwargs)
+        return original_save(
+            self,
+            cast("str | bytes | os.PathLike[str] | os.PathLike[bytes] | IO[bytes]", fp),
+            cast("str | None", fmt),
+            **kwargs,
+        )
 
     mocker.patch.object(Image.Image, "save", spy_save)
     page.get_pixbuf_at_scale(100, 100)
@@ -583,10 +606,18 @@ def test_get_pixbuf_at_scale_antialiases_palette_source(
     original_save = Image.Image.save
 
     def spy_save(
-        self: Image.Image, fp: object, *args: object, **kwargs: object
+        self: Image.Image,
+        fp: object,
+        fmt: object = None,
+        **kwargs: object,
     ) -> None:
         saved.append(self)
-        return original_save(self, fp, *args, **kwargs)
+        return original_save(
+            self,
+            cast("str | bytes | os.PathLike[str] | os.PathLike[bytes] | IO[bytes]", fp),
+            cast("str | None", fmt),
+            **kwargs,
+        )
 
     mocker.patch.object(Image.Image, "save", spy_save)
     pixbuf = page.get_pixbuf_at_scale(100, 100)

@@ -8,7 +8,7 @@ import re
 import subprocess
 import tempfile
 import threading
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TextIO, cast
 
 from PIL import Image
 
@@ -49,14 +49,14 @@ class Importhread(BaseThread):
         self.cancel = False
         self.paper_sizes = {}
 
-    def _request_pidfile(self, request: Request) -> str | None:
+    def _request_pidfile(self, request: Request) -> TextIO | None:
         """Locate the pidfile attached to a request for this thread."""
-        pidfile = getattr(request, "pidfile", None)
+        pidfile = cast("TextIO | None", getattr(request, "pidfile", None))
         if pidfile is not None:
             return pidfile
         for args in request.args:
             if isinstance(args, dict) and "pidfile" in args:
-                return args["pidfile"]
+                return cast("TextIO | None", args["pidfile"])
         return None
 
     def _request_completed(self, _request: Request) -> None:
@@ -77,7 +77,7 @@ class Importhread(BaseThread):
 
     def do_get_file_info(self, request: Request) -> dict[str, object]:
         """Get file info."""
-        path, password = request.args
+        path, password = cast("tuple[str, str]", request.args)
         pidfile = getattr(request, "pidfile", None)
         info = {}
         if not pathlib.Path(path).exists():
@@ -123,7 +123,7 @@ class Importhread(BaseThread):
         return info
 
     def _get_djvu_info(
-        self, info: dict[str, object], path: str, pidfile: str | None = None
+        self, info: dict[str, object], path: str, pidfile: TextIO | None = None
     ) -> None:
         """Get DjVu info."""
         # Dig out the number of pages
@@ -189,7 +189,7 @@ class Importhread(BaseThread):
         path: str,
         password: str | None,
         request: Request,
-        pidfile: str | None = None,
+        pidfile: TextIO | None = None,
     ) -> None:
         """Get PDF info."""
         info["format"] = "Portable Document Format"
@@ -254,7 +254,7 @@ class Importhread(BaseThread):
         info: dict[str, object],
         path: str,
         request: Request,
-        pidfile: str | None = None,
+        pidfile: TextIO | None = None,
     ) -> None:
         """Get TIFF info."""
         info["format"] = "Tagged Image File Format"
@@ -659,8 +659,8 @@ def _correlate_pdf_images(
         # Unexpected structure: import every file and warn
         xresolution, yresolution = None, None
         if entries:
-            xresolution = float(entries[0]["x_ppi"])
-            yresolution = float(entries[0]["y_ppi"])
+            xresolution = float(cast("str", entries[0]["x_ppi"]))
+            yresolution = float(cast("str", entries[0]["y_ppi"]))
         return [(fname, xresolution, yresolution, None) for fname in images], True
     images_and_resolution = []
     paired_masks = set()
@@ -671,7 +671,12 @@ def _correlate_pdf_images(
                 mask_fname = images[i + 1]
                 paired_masks.add(images[i + 1])
             images_and_resolution.append(
-                (fname, float(entry["x_ppi"]), float(entry["y_ppi"]), mask_fname)
+                (
+                    fname,
+                    float(cast("str", entry["x_ppi"])),
+                    float(cast("str", entry["y_ppi"])),
+                    mask_fname,
+                )
             )
     for fname, entry in zip(images, entries, strict=False):
         if entry["type"] != "image" and fname not in paired_masks:

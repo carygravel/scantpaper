@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from scantpaper.frontend import enums
@@ -114,49 +116,61 @@ def test_within_tolerance() -> None:
         ]
     )
 
-    assert not within_tolerance(options.array[1], "value", "value"), (
-        "SANE_CONSTRAINT_NONE"
-    )
-    assert within_tolerance(options.by_name("mode"), "Gray", "Gray"), (
-        "SANE_CONSTRAINT_STRING_LIST positive"
-    )
-    assert within_tolerance(options.by_name("depth"), 8, 8), (
+    assert not within_tolerance(
+        options.array[1], cast("float", "value"), cast("float", "value")
+    ), "SANE_CONSTRAINT_NONE"
+    assert within_tolerance(
+        cast("Option", options.by_name("mode")),
+        cast("float", "Gray"),
+        cast("float", "Gray"),
+    ), "SANE_CONSTRAINT_STRING_LIST positive"
+    assert within_tolerance(cast("Option", options.by_name("depth")), 8, 8), (
         "SANE_CONSTRAINT_WORD_LIST positive"
     )
-    assert within_tolerance(options.by_name("resolution"), 50, 50), (
+    assert within_tolerance(cast("Option", options.by_name("resolution")), 50, 50), (
         "SANE_CONSTRAINT_RANGE exact"
     )
-    assert within_tolerance(options.by_name("resolution"), 50, 50.1), (
+    assert within_tolerance(cast("Option", options.by_name("resolution")), 50, 50.1), (
         "SANE_CONSTRAINT_RANGE inexact"
     )
-    assert not within_tolerance(options.by_name("mode"), "Gray", "gray"), (
-        "SANE_CONSTRAINT_STRING_LIST negative"
-    )
-    assert not within_tolerance(options.by_name("depth"), 8, 7), (
+    assert not within_tolerance(
+        cast("Option", options.by_name("mode")),
+        cast("float", "Gray"),
+        cast("float", "gray"),
+    ), "SANE_CONSTRAINT_STRING_LIST negative"
+    assert not within_tolerance(cast("Option", options.by_name("depth")), 8, 7), (
         "SANE_CONSTRAINT_WORD_LIST negative"
     )
-    assert not within_tolerance(options.by_name("resolution"), 50, 51.1), (
-        "SANE_CONSTRAINT_RANGE negative"
-    )
     assert not within_tolerance(
-        options.by_name("hand-scanner"), current_value=False, new_value=1
+        cast("Option", options.by_name("resolution")), 50, 51.1
+    ), "SANE_CONSTRAINT_RANGE negative"
+    assert not within_tolerance(
+        cast("Option", options.by_name("hand-scanner")),
+        current_value=False,
+        new_value=1,
     ), "SANE_TYPE_BOOL negative"
-    assert within_tolerance(options.by_name("int"), 20, 20), "SANE_TYPE_INT positive"
-    assert not within_tolerance(options.by_name("int"), 20, 21), (
+    assert within_tolerance(cast("Option", options.by_name("int")), 20, 20), (
+        "SANE_TYPE_INT positive"
+    )
+    assert not within_tolerance(cast("Option", options.by_name("int")), 20, 21), (
         "SANE_TYPE_INT negative"
     )
-    assert within_tolerance(options.by_name("fixed"), 20.5, 20.5), (
+    assert within_tolerance(cast("Option", options.by_name("fixed")), 20.5, 20.5), (
         "SANE_TYPE_FIXED positive"
     )
-    assert not within_tolerance(options.by_name("fixed"), 20.0, 21), (
+    assert not within_tolerance(cast("Option", options.by_name("fixed")), 20.0, 21), (
         "SANE_TYPE_FIXED negative"
     )
-    assert within_tolerance(options.by_name("string"), "20.5", "20.5"), (
-        "SANE_TYPE_STRING positive"
-    )
-    assert not within_tolerance(options.by_name("string"), "20.5", "21"), (
-        "SANE_TYPE_STRING negative"
-    )
+    assert within_tolerance(
+        cast("Option", options.by_name("string")),
+        cast("float", "20.5"),
+        cast("float", "20.5"),
+    ), "SANE_TYPE_STRING positive"
+    assert not within_tolerance(
+        cast("Option", options.by_name("string")),
+        cast("float", "20.5"),
+        cast("float", "21"),
+    ), "SANE_TYPE_STRING negative"
 
     option = Option(
         cap=enums.CAP_SOFT_SELECT + enums.CAP_SOFT_DETECT,
@@ -183,7 +197,7 @@ def test_options_constructor_errors(
 ) -> None:
     """Test that Options raises an error on invalid input."""
     with pytest.raises(exception):
-        Options(options)
+        Options(cast("list[Option] | None", options))
 
 
 def test_can_duplex() -> None:
@@ -252,7 +266,7 @@ def test_option_name_none() -> None:
             title="Number of options",
             desc="Read-only option that specifies how many options a specific device supports.",
             type=1,
-            unit=0,
+            unit=cast("str", 0),
             size=4,
             cap=4,
             constraint=None,
@@ -260,13 +274,13 @@ def test_option_name_none() -> None:
         Option(
             type=3,
             size=1,
-            name=None,
+            name=cast("str", None),
             constraint=["Flatbed", "ADF"],
             title="Scan source",
             desc="Selects the scan source (such as a document-feeder).",
             index=1,
             cap=5,
-            unit=0,
+            unit=cast("str", 0),
         ),
     ]
 

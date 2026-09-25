@@ -85,9 +85,9 @@ class Page:
             raise TypeError(msg)
 
         if "filename" in kwargs:
-            self.image_object = Image.open(kwargs["filename"])
+            self.image_object = Image.open(cast("str", kwargs["filename"]))
             if self.image_object.format in ("JPEG", "PNG"):
-                with pathlib.Path(kwargs["filename"]).open("rb") as fhd:
+                with pathlib.Path(cast("str", kwargs["filename"])).open("rb") as fhd:
                     self._stored_bytes = fhd.read()
 
         # set this before setting attributes from kwargs in order to reuse uuid
@@ -188,7 +188,7 @@ class Page:
         """Import text layer from PDF."""
         tree = Bboxtree()
         res = self.get_resolution()
-        tree.from_pdftotext(html, (res[0], res[1]), self.get_size())
+        tree.from_pdftotext(html, res, self.get_size())
         # Only set text_layer if there's actual content, not an empty tree
         json_text = tree.json()
         self.text_layer = None if json_text == "[]" else json_text
@@ -357,8 +357,8 @@ class Page:
                 image = image.convert("L")
             elif image.mode == "P":
                 image = image.convert("RGB")
-            width = max(1, int(width))
-            height = max(1, int(height))
+            width = max(1, int(cast("float", width)))
+            height = max(1, int(cast("float", height)))
             # Downscale with a cheap box-decimation to roughly twice the target,
             # then a high-quality LANCZOS resize to the exact size, so the
             # expensive pass runs on a small intermediate image. Small source

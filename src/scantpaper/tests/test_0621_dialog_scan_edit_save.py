@@ -14,7 +14,7 @@ from scantpaper.dialog.scan import (
     _edit_profile_callback,
     _save_profile_callback,
 )
-from scantpaper.scanner.options import Options
+from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
 
 
@@ -65,7 +65,7 @@ class TestScan(Scan):
 @pytest.fixture
 def available_scan_options() -> Options:
     """Fixture for available_scan_options."""
-    return Options(sane_mock.options)
+    return Options(cast("list[Option]", sane_mock.options))
 
 
 def test_edit_profile_dialog(

@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import threading
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
 
 from PIL import Image
@@ -19,6 +19,7 @@ from scantpaper.loop_helpers import safe_mainloop
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from typing import TextIO
 
 
 def test_import_tiff(
@@ -246,7 +247,9 @@ def test_cancel_kills_registered_pidfile_process(temp_db: object) -> None:
     result = {}
 
     def run_sleep() -> None:
-        result["proc"] = exec_command_run(["sleep", "30"], pidfile, check=False)
+        result["proc"] = exec_command_run(
+            ["sleep", "30"], cast("TextIO | None", pidfile), check=False
+        )
 
     worker = threading.Thread(target=run_sleep)
     worker.start()

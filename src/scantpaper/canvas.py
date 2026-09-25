@@ -415,7 +415,7 @@ class Bbox:
             string += (
                 SPACE * indent
                 + f"<{tag} class='{typestr}' {idn} {title}>"
-                + (html.escape(self.text) if (self.text != "") else "\n")
+                + (html.escape(cast("str", self.text)) if (self.text != "") else "\n")
             )
             childstr = EMPTY
             for bbox in self.get_children():
@@ -1009,13 +1009,19 @@ class Canvas(Gtk.DrawingArea):
         else:
             transformation = [0, 0, 0]
 
-        options2 = self._bbox_kwargs(kwargs, parent, transformation)
+        options2 = self._bbox_kwargs(
+            kwargs,
+            cast("Bbox | _CanvasRoot", parent),
+            cast("list[int]", transformation),
+        )
 
         bbox = Bbox(**options2)
         if self.position_index is None:
             self.position_index = TreeIter(bbox)
 
-        if len(kwargs["text"]) > 0 and not kwargs.get("skip_confidence_index", False):
+        if len(cast("str", kwargs["text"])) > 0 and not kwargs.get(
+            "skip_confidence_index", False
+        ):
             self.confidence_index.add_box_to_index(bbox, bbox.confidence)
 
         self.queue_draw()
@@ -1142,7 +1148,12 @@ class Canvas(Gtk.DrawingArea):
                     and hasattr(bbox, "edit_callback")
                     and bbox.edit_callback
                 ):
-                    button_press_callback(bbox, _widget, event, bbox.edit_callback)
+                    button_press_callback(
+                        bbox,
+                        _widget,
+                        event,
+                        cast("Callable[..., object]", bbox.edit_callback),
+                    )
             except ReferenceError:
                 pass
 
@@ -1330,7 +1341,7 @@ class TreeIter:
         while bbox.type != "page":
             parent = bbox.parent
             self._iter.insert(0, parent.get_child_ordinal(bbox))
-            self._bbox.insert(0, parent)
+            self._bbox.insert(0, cast("Bbox", parent))
             bbox = cast("Bbox", parent)
         self._iter.insert(0, 0)
 

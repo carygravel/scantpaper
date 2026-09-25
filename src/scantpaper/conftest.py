@@ -26,7 +26,7 @@ from scantpaper.loop_helpers import _MainLoopWrapper, safe_mainloop
 from scantpaper.tests.scan_mocks import build_scan_options
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Generator
+    from collections.abc import Callable, Generator, Iterable
 
     from scantpaper.basethread import Request, Response
     from scantpaper.frontend.image_sane import SaneThread
@@ -668,7 +668,7 @@ def _create_rose_image() -> Image.Image:
 
 def _load_default(**kwargs: object) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     """Call Pillow's load_default, tolerating its version-varying signature."""
-    return ImageFont.load_default(**kwargs)
+    return ImageFont.load_default(**cast("dict[str, float | None]", kwargs))
 
 
 def _create_qbfox_image() -> Image.Image:
@@ -726,7 +726,7 @@ def _create_qbfox_image() -> Image.Image:
     canvas.save("/tmp/qbfox_before_crop.png")
     # get_flattened_data was added in Pillow 12.1.0; fall back to getdata for older versions
     _get_data = getattr(canvas, "get_flattened_data", canvas.getdata)
-    pixels = list(_get_data())
+    pixels = list(cast("Iterable[int]", _get_data()))
     print(
         f"[conftest] _create_qbfox_image: pixel min={min(pixels)} max={max(pixels)} "
         f"non_white={sum(1 for p in pixels if p != WHITE)}",

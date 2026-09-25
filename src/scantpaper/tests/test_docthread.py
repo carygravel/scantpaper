@@ -251,7 +251,7 @@ def test_calculate_crop_tuples(mocker: pytest.MockerFixture) -> None:
 
     # Test vertical split
     options = {"direction": "v", "position": 40}
-    tuples = _calculate_crop_tuples(options, mock_image)
+    tuples = _calculate_crop_tuples(cast("dict[str, object]", options), mock_image)
     assert tuples == (
         (0, 0, 40, 200),
         (40, 0, 100, 200),
@@ -260,7 +260,7 @@ def test_calculate_crop_tuples(mocker: pytest.MockerFixture) -> None:
 
     # Test horizontal split
     options = {"direction": "h", "position": 50}
-    tuples = _calculate_crop_tuples(options, mock_image)
+    tuples = _calculate_crop_tuples(cast("dict[str, object]", options), mock_image)
     assert tuples == (
         (0, 0, 100, 50),
         (0, 50, 100, 200),
@@ -452,9 +452,9 @@ def test_do_parse_bboxtree() -> None:
         {"type": "word", "bbox": [30, 30, 40, 40], "text": "low", "confidence": 50, "depth": 1}
     ]
     """
-    request = Request("parse_bboxtree", [hocr], None)
+    request = Request("parse_bboxtree", cast("tuple[object, ...]", [hocr]), None)
     result = thread.do_parse_bboxtree(request)
-    assert len(result["bboxes"]) == 3
+    assert len(cast("list[object]", result["bboxes"])) == 3
     assert result["sorted_word_indices"] == [2, 1]
 
 

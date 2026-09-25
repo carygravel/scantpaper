@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Generator
     from typing import ClassVar
 
+    from scantpaper.imageview import ImageView
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
     Gdk,
@@ -924,7 +926,7 @@ def test_view_selection_changed_callback(app_window: ApplicationWindow) -> None:
     sel.copy.return_value = copied_sel
 
     app_window._windowc = MagicMock()
-    app_window._view_selection_changed_callback(None, sel)
+    app_window._view_selection_changed_callback(cast("ImageView", None), sel)
 
     assert app_window.settings["selection"] == copied_sel
 
@@ -932,7 +934,7 @@ def test_view_selection_changed_callback(app_window: ApplicationWindow) -> None:
 def test_view_selection_changed_callback_none(app_window: ApplicationWindow) -> None:
     """Test _view_selection_changed_callback with None."""
     with pytest.raises(AttributeError):
-        app_window._view_selection_changed_callback(None, None)
+        app_window._view_selection_changed_callback(cast("ImageView", None), None)
 
 
 def test_on_key_press(app_window: ApplicationWindow) -> None:
@@ -1324,7 +1326,7 @@ def test_populate_main_window_cwd_missing(
     original_pre_flight = ApplicationWindow._pre_flight
 
     def mock_pre_flight(self: object) -> None:
-        original_pre_flight(self)
+        original_pre_flight(cast("ApplicationWindow", self))
         del self.settings["cwd"]
 
     mocker.patch.object(

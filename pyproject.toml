@@ -170,4 +170,3 @@ allowed-unresolved-imports = ["gi.repository.**", "_sane", "tesserocr.**"]
 
 [tool.ty.rules]
 "unresolved-attribute" = "ignore"
-"invalid-argument-type" = "ignore"

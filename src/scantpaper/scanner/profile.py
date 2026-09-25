@@ -45,7 +45,9 @@ class Profile(GObject.Object):
             # if we have just pulled a profile from pre-v3 gscan2pdf config,
             # ensure num_pages is an int
             if "num_pages" in self.frontend:
-                self.frontend["num_pages"] = int(self.frontend["num_pages"])
+                self.frontend["num_pages"] = int(
+                    cast("str", self.frontend["num_pages"])
+                )
         if backend is None:
             self.backend = []
         else:
@@ -123,7 +125,7 @@ class Profile(GObject.Object):
                 break
 
         if cast("int", i) <= self.num_backend_options():
-            del self.backend[i]
+            del self.backend[cast("int", i)]
 
         self.uuid = str(uuid.uuid1())
 
@@ -231,10 +233,14 @@ class Profile(GObject.Object):
                 new.add_backend_option("t", val)
 
             elif name == "br-x":
-                new.add_backend_option("x", self._subtract_offset(val, "l", "tl-x"))
+                new.add_backend_option(
+                    "x", self._subtract_offset(cast("float", val), "l", "tl-x")
+                )
 
             elif name == "br-y":
-                new.add_backend_option("y", self._subtract_offset(val, "t", "tl-y"))
+                new.add_backend_option(
+                    "y", self._subtract_offset(cast("float", val), "t", "tl-y")
+                )
 
             else:
                 self._add_cli_option(options, new, name, val)

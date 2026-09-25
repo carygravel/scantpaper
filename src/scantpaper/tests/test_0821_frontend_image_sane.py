@@ -660,7 +660,7 @@ def test_get_option_value_timeout() -> None:
         patch.object(thread, "do_get_option_blocking", lambda _request: None),
         pytest.raises(TimeoutError),
     ):
-        thread.get_option_value("enable-test-options", timeout=0.05)
+        thread.get_option_value("enable-test-options", timeout=cast("int", 0.05))
     thread.send("quit")
     thread.join(timeout=1)
 
@@ -676,10 +676,10 @@ def _run_with_fake(
     errors = []
 
     def new_page(image: object) -> None:
-        pages.append(image)
+        pages.append(cast("int", image))
 
     def error(response: Response) -> None:
-        errors.append(response.status)
+        errors.append(cast("str", response.status))
         mlp.quit()
 
     def quit_mlp(_response: Response) -> None:
@@ -695,7 +695,10 @@ def _run_with_fake(
         new_page_callback=new_page,
         error_callback=error,
         finished_callback=quit_mlp,
-        **scan_kwargs,
+        cancel_between_pages=cast(
+            "bool", scan_kwargs.get("cancel_between_pages", False)
+        ),
+        **{k: v for k, v in scan_kwargs.items() if k != "cancel_between_pages"},
     )
     mlp.run()
 

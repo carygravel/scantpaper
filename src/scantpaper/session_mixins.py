@@ -178,6 +178,10 @@ class SessionMixins:
         ]
 
         for name, stream, regex, cmd in dependency_rules:
+            name = cast("str", name)
+            stream = cast("str", stream)
+            regex = cast("str", regex)
+            cmd = cast("list[str]", cmd)
             self._dependencies[name] = program_version(stream, regex, cmd)
             if (
                 not self._dependencies["imagemagick"]
@@ -308,12 +312,12 @@ class SessionMixins:
                 self._current_page.text_layer = None
 
         if self._current_page.text_layer:
-            self._create_txt_canvas(self._current_page)
+            self._create_txt_canvas(cast("Page", self._current_page))
         else:
             self.t_canvas.clear_text()
 
         if self._current_page.annotations:
-            self._create_ann_canvas(self._current_page)
+            self._create_ann_canvas(cast("Page", self._current_page))
         else:
             self.a_canvas.clear_text()
 
@@ -365,7 +369,7 @@ class SessionMixins:
     def _ask_question(self, **kwargs: object) -> object:
         """Display a message dialog, wait for a response, and return it."""
         # replace any numbers with metacharacters to compare to filter
-        text = filter_message(kwargs["text"])
+        text = filter_message(cast("str", kwargs["text"]))
         if response_stored(text, self.settings["message"]):
             logger.debug(
                 "Skipped MessageDialog with '%s', automatically replying '%s'",
@@ -523,7 +527,7 @@ class SessionMixins:
                 self._current_ocr_bbox = self.t_canvas.get_first_bbox()
                 self._edit_ocr_text(self._current_ocr_bbox)
 
-            self._create_txt_canvas(self._current_page, ocr_new_page)
+            self._create_txt_canvas(cast("Page", self._current_page), ocr_new_page)
         self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
 
     def _ocr_text_delete(self, _widget: Gtk.Button) -> None:
@@ -576,7 +580,7 @@ class SessionMixins:
                 self._current_ann_bbox = self.a_canvas.get_first_bbox()
                 self._edit_annotation(self._current_ann_bbox)
 
-            self._create_ann_canvas(self._current_page, ann_text_new_page)
+            self._create_ann_canvas(cast("Page", self._current_page), ann_text_new_page)
 
     def _ann_text_delete(self, _widget: Gtk.Button) -> None:
         self._current_ann_bbox.delete_box()

@@ -7,7 +7,7 @@ import pathlib
 import re
 import subprocess
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import img2pdf
 import pikepdf
@@ -37,7 +37,7 @@ def test_save_multipage_pdf(
     for i in range(num):
         set_text_in_mainloop(
             slist,
-            1,
+            cast("str", 1),
             '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
             '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
@@ -80,7 +80,7 @@ def test_save_multipage_pdf_with_utf8(
     for i in range(num):
         set_text_in_mainloop(
             slist,
-            1,
+            cast("str", 1),
             '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
             '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '

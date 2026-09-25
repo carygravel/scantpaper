@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import gi
 
 from scantpaper.dialog import Dialog, MultipleMessage
@@ -82,7 +84,7 @@ def test_multiple_message() -> None:
         "store_response": True,
         "stored_responses": ["ok"],
     }
-    dialog.add_message(row1)
+    dialog.add_message(cast("dict[str, object]", row1))
 
     # row with store_response=True and no stored_responses
     row2 = {
@@ -90,7 +92,7 @@ def test_multiple_message() -> None:
         "message_type": "warning",
         "store_response": True,
     }
-    dialog.add_message(row2)
+    dialog.add_message(cast("dict[str, object]", row2))
 
     # row with store_response=False
     row3 = {
@@ -98,7 +100,7 @@ def test_multiple_message() -> None:
         "message_type": "error",
         "store_response": False,
     }
-    dialog.add_message(row3)
+    dialog.add_message(cast("dict[str, object]", row3))
 
     # list_checkbuttons should return 2 buttons (for row1 and row2)
     # row 3 doesn't have a checkbutton because store_response=False
@@ -162,7 +164,7 @@ def test_multiple_message_none_text() -> None:
         "text": None,
         "message_type": "error",
     }
-    dialog.add_message(row)
+    dialog.add_message(cast("dict[str, object]", row))
     assert row["text"] == "", "None text converted to empty string"
 
 
@@ -173,7 +175,7 @@ def test_multiple_message_list_text() -> None:
         "text": "(gimp:123): message\nsomething else",
         "message_type": "error",
     }
-    dialog.add_message(row)
+    dialog.add_message(cast("dict[str, object]", row))
     # Check that 2 rows were added (plus header row, total 3 rows in grid)
     # However, MultipleMessage uses grid.insert_row(self.grid_rows) in add_row
     # And grid_rows starts at 1 (header is row 0)
@@ -203,5 +205,5 @@ def test_multiple_message_duplicate() -> None:
         "message_type": "error",
         "responses": responses,
     }
-    dialog.add_message(row)
+    dialog.add_message(cast("dict[str, object]", row))
     assert dialog.grid_rows == 1, "duplicate message not added"

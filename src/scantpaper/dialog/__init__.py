@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 
@@ -154,7 +154,11 @@ class MultipleMessage(Dialog):
         if "process" in row:
             self.grid.attach(Gtk.Label(label=row["process"]), 1, self.grid_rows, 1, 1)
         self.grid.attach(
-            Gtk.Label(label=TYPES[row["message_type"]]), 2, self.grid_rows, 1, 1
+            Gtk.Label(label=TYPES[cast("str", row["message_type"])]),
+            2,
+            self.grid_rows,
+            1,
+            1,
         )
         view = Gtk.TextView()
         buffer = view.get_buffer()
@@ -207,16 +211,18 @@ class MultipleMessage(Dialog):
         """Possibly split messages or explain them."""
         if row["text"] is None:
             row["text"] = ""
-        text = munge_message(row["text"])
+        text = munge_message(cast("str", row["text"]))
         if isinstance(text, list):
             for line in text:
                 row["text"] = filter_message(line)
                 if "responses" not in row or not response_stored(
-                    row["text"], row["responses"]
+                    row["text"],
+                    cast("dict[str, dict[str, object]]", row["responses"]),
                 ):
                     self.add_row(row)
         elif "responses" not in row or not response_stored(
-            filter_message(row["text"]), row["responses"]
+            filter_message(cast("str", row["text"])),
+            cast("dict[str, dict[str, object]]", row["responses"]),
         ):
             self.add_row(row)
 

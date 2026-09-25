@@ -83,7 +83,7 @@ class SaneScanDialog(Scan):
             device_list = response.info
             logger.info("sane.get_devices() returned: %s", device_list)
             self.device_list = device_list
-            if len(device_list) == 0:
+            if len(cast("list", device_list)) == 0:
                 self.emit("process-error", "get_devices", _("No devices found"))
                 self.destroy()
 
@@ -145,7 +145,7 @@ class SaneScanDialog(Scan):
             self.emit("started-process", _("Retrieving options"))
 
         def finished_callback(response: Response) -> None:
-            options = Options(response.info)
+            options = Options(cast("list[Option] | None", response.info))
             self._initialise_options(options)
             self.emit("finished-process", "find_scan_options")
 
@@ -281,7 +281,7 @@ class SaneScanDialog(Scan):
     def _create_widget_spinbutton(
         self, opt: Option, val: object
     ) -> Gtk.SpinButton | None:
-        constraint = cast("tuple[float, float]", opt.constraint)
+        constraint = cast("tuple[float, float, float]", opt.constraint)
         if constraint[0] > constraint[1]:
             logger.error(
                 _("Ignoring scan option '%s', minimum range (%s) > maximum (%s)"),
@@ -321,7 +321,7 @@ class SaneScanDialog(Scan):
     def _create_widget_combobox(self, opt: Option, val: object) -> Gtk.ComboBoxText:
         widget = Gtk.ComboBoxText()
         index = 0
-        for i, constraint in enumerate(opt.constraint):
+        for i, constraint in enumerate(cast("list", opt.constraint)):
             if isinstance(constraint, (int, float)):
                 widget.append_text(format_number_precise(constraint))
             else:
@@ -354,7 +354,7 @@ class SaneScanDialog(Scan):
 
         if val is not None and not opt.cap & enums.CAP_INACTIVE:
             if opt.type in (enums.TYPE_INT, enums.TYPE_FIXED):
-                widget.set_text(format_number_precise(val))
+                widget.set_text(format_number_precise(cast("float", val)))
             else:
                 widget.set_text(str(val))
 
@@ -492,7 +492,7 @@ class SaneScanDialog(Scan):
             self.emit("changed-progress", None, None)
 
         def finished_callback(data: Response) -> None:
-            self._update_options(Options(data.info))
+            self._update_options(Options(cast("list[Option] | None", data.info)))
             self._post_set_option_hook(option, value, uuid)
 
         def error_callback(response: Response) -> None:

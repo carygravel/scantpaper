@@ -989,7 +989,7 @@ def test_imageview_coverage_complex(rose_png: str, mock_view: ImageView) -> None
 
     # 5. Line 756: set_tool raise ValueError
     with pytest.raises(TypeError, match="invalid set_tool call"):
-        view.set_tool("Not a tool")
+        view.set_tool(cast("Tool", "Not a tool"))
 
     # 6. Line 770: set_selection return if pixbuf_size is None
     view.set_pixbuf(None)

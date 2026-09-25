@@ -37,7 +37,7 @@ def test_udt(
     )
 
     slist = Document(db=temp_db.name)
-    slist.set_paper_sizes(paper_sizes)
+    slist.set_paper_sizes(cast("dict[str, object] | None", paper_sizes))
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -46,7 +46,7 @@ def test_udt(
 
     set_text_in_mainloop(
         slist,
-        1,
+        cast("str", 1),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
@@ -127,7 +127,7 @@ def test_udt_page_size(
     )
 
     slist = Document(db=temp_db.name)
-    slist.set_paper_sizes(paper_sizes)
+    slist.set_paper_sizes(cast("dict[str, object] | None", paper_sizes))
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -176,7 +176,7 @@ def test_udt_resolution(
     slist = Document(db=temp_db.name)
 
     import_in_mainloop(slist, [temp_pnm.name])
-    set_resolution_in_mainloop(slist, 1, 10, 10)
+    set_resolution_in_mainloop(slist, cast("str", 1), 10, 10)
 
     mlp = safe_mainloop(5000)
     slist.user_defined(

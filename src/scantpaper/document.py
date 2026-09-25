@@ -49,7 +49,7 @@ class Document(BaseDocument):
         """Avoid race conditions by running get_file_info on all files before importing."""
         info = []
         options["passwords"] = []
-        for i in range(len(options["paths"])):
+        for i in range(len(cast("list", options["paths"]))):
             self._get_file_info_finished_callback1(i, info, options)
 
     def _get_file_info_finished_callback1(
@@ -82,7 +82,9 @@ class Document(BaseDocument):
 
             infolist.append(response.info)
             if i == len(options["paths"]) - 1:
-                self._get_file_info_finished_callback2(infolist, options)
+                self._get_file_info_finished_callback2(
+                    cast("list[dict[str, Any]]", infolist), options
+                )
 
         self.thread.get_file_info(
             path,
@@ -278,19 +280,19 @@ class Document(BaseDocument):
         options = defaultdict(None, options)
 
         if options.get("rotate"):
-            self._post_process_rotate(page_id, options)
+            self._post_process_rotate(cast("int", page_id), options)
             return
 
         if options.get("unpaper"):
-            self._post_process_unpaper(page_id, options)
+            self._post_process_unpaper(cast("int", page_id), options)
             return
 
         if options.get("udt"):
-            self._post_process_udt(page_id, options)
+            self._post_process_udt(cast("int", page_id), options)
             return
 
         if options.get("ocr"):
-            self._post_process_ocr(page_id, options)
+            self._post_process_ocr(cast("int", page_id), options)
             return
 
         if options.get("finished_callback"):

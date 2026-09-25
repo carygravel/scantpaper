@@ -64,7 +64,7 @@ def test_basic(mocker: pytest.MockerFixture) -> None:
         "datetime offset": timedelta(seconds=0),
         "other key": "other key",
     }
-    dialog.update_config_dict(config)
+    dialog.update_config_dict(cast("dict[str, object]", config))
     assert config == {
         "author": "author2",
         "author-suggestions": [
@@ -98,7 +98,7 @@ def test_basic(mocker: pytest.MockerFixture) -> None:
         "datetime": datetime(2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ),
         "other key": "other key",
     }
-    dialog.update_from_import_metadata(metadata)
+    dialog.update_from_import_metadata(cast("dict[str, object]", metadata))
     assert dialog.meta_datetime == datetime(2017, 1, 1, 23, 59, 5, tzinfo=_LOCAL_TZ), (
         "date"
     )

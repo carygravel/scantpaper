@@ -311,7 +311,7 @@ class Selector(Tool):
         else:
             self.h_edge, self.v_edge = ("mid", "mid")
 
-        return cursorhash[self.h_edge][self.v_edge]
+        return cursorhash[cast("str", self.h_edge)][cast("str", self.v_edge)]
 
     def _update_dragged_edge(
         self, direction: str, s: float, s1: float, s2: float
@@ -778,7 +778,9 @@ class ImageView(Gtk.DrawingArea):
         center_x, center_y = self.to_image_coords(
             allocation.width / 2, allocation.height / 2
         )
-        self._set_zoom_with_center(zoom, center_x, center_y)
+        self._set_zoom_with_center(
+            zoom, cast("float", center_x), cast("float", center_y)
+        )
 
     def setzoom_is_fit(self, *, zoom_to_fit: bool, limit: float | None = None) -> None:
         """Zoom to fit current pixbuf."""

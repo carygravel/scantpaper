@@ -186,7 +186,9 @@ def test_file_dates(temp_txt: object) -> None:
 def test_helpers() -> None:
     """Test helpers."""
     proc = exec_command([sys.executable, "-c", 'print("a" * 65537)'])
-    assert len(proc.stdout) == 65538, "exec_command returns more than 65536 bytes"
+    assert len(cast("str", proc.stdout)) == 65538, (
+        "exec_command returns more than 65536 bytes"
+    )
 
     #########################
 
@@ -391,13 +393,18 @@ def test_helpers() -> None:
 
     #########################
 
-    settings = {
-        "author": "a.n.other",
-        "title": "title",
-        "subject": "subject",
-        "keywords": "keywords",
-        "datetime offset": datetime.timedelta(days=2, hours=0, minutes=59, seconds=59),
-    }
+    settings = cast(
+        "dict[str, object]",
+        {
+            "author": "a.n.other",
+            "title": "title",
+            "subject": "subject",
+            "keywords": "keywords",
+            "datetime offset": datetime.timedelta(
+                days=2, hours=0, minutes=59, seconds=59
+            ),
+        },
+    )
     today_and_now = datetime.datetime(
         2016, 2, 10, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
     )
@@ -469,7 +476,9 @@ def test_helpers() -> None:
 
     assert (
         _program_version(
-            "stdout", r"file-(\d+\.\d+)", Proc(0, "file-5.22\nmagic file from", None)
+            "stdout",
+            r"file-(\d+\.\d+)",
+            Proc(0, "file-5.22\nmagic file from", cast("str", None)),
         )
         == "5.22"
     ), "file version"
@@ -477,7 +486,7 @@ def test_helpers() -> None:
         _program_version(
             "stdout",
             r"Version:\sImageMagick\s([\d.-]+)",
-            Proc(0, "Version: ImageMagick 6.9.0-3 Q16", None),
+            Proc(0, "Version: ImageMagick 6.9.0-3 Q16", cast("str", None)),
         )
         == "6.9.0-3"
     ), "imagemagick version"
@@ -485,7 +494,7 @@ def test_helpers() -> None:
         _program_version(
             "stdout",
             r"Version:\\sImageMagick\\s([\\d.-]+)",
-            Proc(0, "Version:ImageMagick 6.9.0-3 Q16", None),
+            Proc(0, "Version:ImageMagick 6.9.0-3 Q16", cast("str", None)),
         )
         is None
     ), "unable to parse version"
@@ -684,11 +693,15 @@ def test_db(temp_db: object) -> None:
     request = Request("clone_pages", ({"page_ids": [2], "dest": 1},), thread.responses)
     assert thread.do_clone_pages(request) == [1], "row_ids of cloned pages"
     assert thread.get_text(3) == "text", "text in cloned page"
-    assert len(thread.page_number_table()) == 2, "cloned page in page number table"
+    assert len(cast("list[object]", thread.page_number_table())) == 2, (
+        "cloned page in page number table"
+    )
 
     request = Request("clone_pages", ({"page_ids": [2], "dest": 0},), thread.responses)
     assert thread.do_clone_pages(request) == [0], "row_ids of inserted pages"
-    assert len(thread.page_number_table()) == 3, "inserted page in page number table"
+    assert len(cast("list[object]", thread.page_number_table())) == 3, (
+        "inserted page in page number table"
+    )
 
     request = Request("set_selection", ([2],), thread.responses)
     thread.do_set_selection(request)
@@ -865,7 +878,9 @@ def test_document(rose_tif: str) -> None:
                 assert slist.get_selected_indices() == [1], "pasted page selected"
                 dialog.page_number_start = 3
                 clipboard = slist.cut_selection(finished_callback=step3)
-                assert len(clipboard) == 1, "cut 1 page to clipboard"
+                assert len(cast("list[object]", clipboard)) == 1, (
+                    "cut 1 page to clipboard"
+                )
 
             def step3() -> None:
                 assert len(slist.data) == 1, "1 page left in list"
