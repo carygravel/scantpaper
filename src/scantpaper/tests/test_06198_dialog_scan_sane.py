@@ -65,7 +65,9 @@ def test_reloads_in_profile(
 
     def changed_profile_cb(_widget: Gtk.Widget, profile: str) -> None:
         assert profile == "my profile", "changed-profile"
-        assert dict(dialog.current_scan_options.get()["backend"]) == {
+        assert dict(
+            cast("dict[str, object]", dialog.current_scan_options.get()["backend"])
+        ) == {
             "y-resolution": 150,
             "source": "Automatic Document Feeder",
             "x-resolution": 150,

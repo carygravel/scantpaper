@@ -5,6 +5,7 @@ from __future__ import annotations
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
+from scantpaper.gobject import property_
 from scantpaper.i18n import _
 from scantpaper.tesseract import get_tesseract_codes, languages
 
@@ -52,7 +53,7 @@ class RotateControls(Gtk.Box):
     _recomputing = False
     _rotate_facing = 0
 
-    @GObject.Property(
+    @property_(
         type=int,
         nick="Rotate facing",
         blurb="Angle to rotate facing side",
@@ -70,7 +71,7 @@ class RotateControls(Gtk.Box):
 
     _rotate_reverse = 0
 
-    @GObject.Property(
+    @property_(
         type=int,
         nick="Rotate reverse",
         blurb="Angle to rotate reverse side",
@@ -88,7 +89,7 @@ class RotateControls(Gtk.Box):
 
     _can_duplex = True
 
-    @GObject.Property(
+    @property_(
         type=bool,
         default=True,
         nick="Can duplex",
@@ -252,7 +253,7 @@ class OCRControls(Gtk.Box):
     )
     _engine = None
 
-    @GObject.Property(
+    @property_(
         type=str,
         default=None,
         nick="OCR engine",
@@ -268,7 +269,7 @@ class OCRControls(Gtk.Box):
 
     _language = None
 
-    @GObject.Property(
+    @property_(
         type=str,
         default=None,
         nick="OCR language",
@@ -284,7 +285,7 @@ class OCRControls(Gtk.Box):
 
     _active = False
 
-    @GObject.Property(
+    @property_(
         type=bool,
         default=False,
         nick="Active",
@@ -302,7 +303,7 @@ class OCRControls(Gtk.Box):
 
     _threshold = False
 
-    @GObject.Property(
+    @property_(
         type=bool,
         default=False,
         nick="Threshold",
@@ -320,7 +321,7 @@ class OCRControls(Gtk.Box):
 
     _threshold_value = 20.0
 
-    @GObject.Property(
+    @property_(
         type=float,
         default=20.0,
         nick="Threshold value",

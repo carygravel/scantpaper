@@ -6,7 +6,7 @@ import logging
 import os
 import re
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from gi.repository import Gio, GLib
 
     from scantpaper.basethread import Response
+    from scantpaper.scanner.options import Options
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk  # noqa: E402
@@ -402,14 +403,16 @@ class ScanMenuItemMixins:
 
     def _flatbed_batch_active(self, widget: SaneScanDialog | None) -> bool:
         """Return whether the dialog is scanning a flatbed batch of > 1 pages."""
-        if widget is None or not isinstance(widget.allow_batch_flatbed, bool):
+        if widget is None or not isinstance(
+            cast("object", widget.allow_batch_flatbed), bool
+        ):
             return False
         if not widget.allow_batch_flatbed:
             return False
-        num_pages = widget.num_pages
+        num_pages = cast("object", widget.num_pages)
         if not isinstance(num_pages, int) or num_pages <= 1:
             return False
-        options = widget.available_scan_options
+        options = cast("Options | None", widget.available_scan_options)
         return bool(
             options is not None
             and widget.thread is not None
@@ -432,7 +435,7 @@ class ScanMenuItemMixins:
     ) -> None:
         """Update the visibility of post-processing options based on the widget's scan options."""
         # widget is windows
-        options = widget.available_scan_options
+        options = cast("Options | None", widget.available_scan_options)
         if options is not None:
             self._rotate_controls.can_duplex = options.can_duplex()
         button = getattr(self, "_alternate_rotation_button", None)

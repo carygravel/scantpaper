@@ -8,6 +8,8 @@ import cairo
 import gi
 from typing_extensions import override
 
+from scantpaper.gobject import property_
+
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 from gi.repository import (  # noqa: E402
@@ -447,9 +449,7 @@ class ImageView(Gtk.DrawingArea):
         type=GdkPixbuf.Pixbuf, nick="pixbuf", blurb="Pixbuf to be shown"
     )
 
-    @GObject.Property(
-        type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y"
-    )
+    @property_(type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y")
     def offset(self) -> Gdk.Rectangle | None:
         """Getter for offset attribute."""
         return self._offset
@@ -483,7 +483,7 @@ class ImageView(Gtk.DrawingArea):
 
     _zoom = 1.0
 
-    @GObject.Property(
+    @property_(
         type=float,
         default=1,
         nick="zoom",

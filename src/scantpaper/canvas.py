@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast
 import gi
 
 from scantpaper.const import _100_PERCENT, EMPTY, EMPTY_LIST, NOT_FOUND, SPACE
+from scantpaper.gobject import property_
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -524,9 +525,7 @@ class Canvas(Gtk.DrawingArea):
 
         self.set_name("scantpaper-ocr-canvas")
 
-    @GObject.Property(
-        type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y"
-    )
+    @property_(type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y")
     def offset(self) -> Gdk.Rectangle:
         """Getter for offset attribute."""
         return self._offset
@@ -550,7 +549,7 @@ class Canvas(Gtk.DrawingArea):
             self.queue_draw()
             self.emit("offset-changed", newval.x, newval.y)
 
-    @GObject.Property(
+    @property_(
         type=float,
         default=1,
         nick="zoom",
@@ -570,7 +569,7 @@ class Canvas(Gtk.DrawingArea):
             self.queue_draw()
             self.emit("zoom-changed", newval)
 
-    @GObject.Property(
+    @property_(
         type=str,
         default="black",
         nick="Maximum color",
@@ -587,7 +586,7 @@ class Canvas(Gtk.DrawingArea):
         self._max_color_hsv = string2hsv(self._max_color)
         self._color_lookup_table = None
 
-    @GObject.Property(
+    @property_(
         type=str,
         default="red",
         nick="Minimum color",
@@ -604,7 +603,7 @@ class Canvas(Gtk.DrawingArea):
         self._min_color_hsv = string2hsv(self._min_color)
         self._color_lookup_table = None
 
-    @GObject.Property(
+    @property_(
         type=int,
         minimum=0,
         maximum=_100_PERCENT,
@@ -622,7 +621,7 @@ class Canvas(Gtk.DrawingArea):
         self._min_confidence = newval
         self._color_lookup_table = None
 
-    @GObject.Property(
+    @property_(
         type=int,
         minimum=0,
         maximum=_100_PERCENT,

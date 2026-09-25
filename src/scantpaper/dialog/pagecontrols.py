@@ -6,6 +6,7 @@ from gi.repository import GObject, Gtk
 
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.dialog import Dialog
+from scantpaper.gobject import property_
 from scantpaper.i18n import _
 from scantpaper.scanner.options import Options
 from scantpaper.scanner.profile import Profile
@@ -53,7 +54,7 @@ class PageControls(Dialog):
         blurb="Select # pages = all on selecting ADF",
     )
 
-    @GObject.Property(
+    @property_(
         type=int,
         minimum=0,
         maximum=MAX_PAGES,
@@ -83,7 +84,7 @@ class PageControls(Dialog):
             self.current_scan_options.add_frontend_option("num_pages", newval)
             self.emit("changed-num-pages", newval)
 
-    @GObject.Property(
+    @property_(
         type=int,
         minimum=1,
         maximum=MAX_PAGES,
@@ -100,7 +101,7 @@ class PageControls(Dialog):
         self._page_number_start = newval
         self.emit("changed-page-number-start", newval)
 
-    @GObject.Property(
+    @property_(
         type=int,
         minimum=-MAX_INCREMENT,
         maximum=MAX_INCREMENT,
@@ -120,7 +121,7 @@ class PageControls(Dialog):
     # TODO: now we can use an enum here, now supported by the python bindings
     # GObject.TypeModule.register_enum( 'Scantpaper::Dialog::Scan::Sided',
     #         ["single","double"] )
-    @GObject.Property(
+    @property_(
         type=str, default="single", nick="Sided", blurb="Either single or double"
     )
     def sided(self) -> str:
@@ -141,9 +142,7 @@ class PageControls(Dialog):
     # TODO: now we can use an enum here, now supported by the python bindings
     # GObject.TypeModule.register_enum( 'Scantpaper::Dialog::Scan::Side',
     #         ["facing","reverse"] )
-    @GObject.Property(
-        type=object, nick="Side to scan", blurb="Either facing or reverse"
-    )
+    @property_(type=object, nick="Side to scan", blurb="Either facing or reverse")
     def side_to_scan(self) -> str:
         """Getter for side_to_scan attribute."""
         return self._side_to_scan
@@ -161,9 +160,7 @@ class PageControls(Dialog):
         else:
             self._fix_batch()
 
-    @GObject.Property(
-        type=object, nick="Document", blurb="Document object for new scans"
-    )
+    @property_(type=object, nick="Document", blurb="Document object for new scans")
     def document(self) -> object:
         """Getter for document attribute."""
         return self._document

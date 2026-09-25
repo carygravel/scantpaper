@@ -63,6 +63,7 @@ branch = true
 [tool.coverage.report]
 exclude_lines = [
     "if TYPE_CHECKING:",
+    "#\\s*pragma:\\s*no\\s*cover",
 ]
 show_missing = true
 
@@ -174,6 +175,5 @@ all = "error"
 # Rules we have not yet ratcheted to zero; see AGENTS.md contribution notes.
 "unresolved-attribute" = "ignore"
 "disjoint-cast" = "ignore"
-"dynamic-function-decorator-return" = "ignore"
 "unsound-return-statement" = "ignore"
 

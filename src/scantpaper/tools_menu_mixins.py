@@ -667,7 +667,7 @@ class ToolsMenuMixins:
 
         def ocr_apply_callback() -> None:
             self._run_ocr(
-                engine=ocr_controls.engine,
+                engine=cast("str", ocr_controls.engine),
                 tesslang=ocr_controls.language,
                 threshold_flag=ocr_controls.threshold,
                 threshold=ocr_controls.threshold_value,

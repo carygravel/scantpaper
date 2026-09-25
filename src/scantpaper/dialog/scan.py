@@ -18,6 +18,7 @@ from scantpaper.dialog.pagecontrols import MAX_PAGES, PageControls
 from scantpaper.dialog.paperlist import PaperList
 from scantpaper.docthread import INSERT_AT_START
 from scantpaper.frontend import enums
+from scantpaper.gobject import property_
 from scantpaper.helpers import (
     _weak_callback,
     format_number_precise,
@@ -183,7 +184,7 @@ class Scan(PageControls):
     )
     _profile = None
 
-    @GObject.Property(type=object, nick="Profile", blurb="Name of current profile")
+    @property_(type=object, nick="Profile", blurb="Name of current profile")
     def profile(self) -> str | None:
         """Getter for profile attribute."""
         return self._profile
@@ -203,7 +204,7 @@ class Scan(PageControls):
 
     _paper: str | None = ""
 
-    @GObject.Property(
+    @property_(
         type=str,
         default="",
         nick="Paper",
@@ -234,7 +235,7 @@ class Scan(PageControls):
         signal = self.connect("changed-paper", do_changed_paper)
         self._set_paper(newval)
 
-    @GObject.Property(
+    @property_(
         type=object,
         nick="Paper formats",
         blurb="Hash of arrays defining paper formats, e.g. A4, Letter, etc.",
@@ -280,7 +281,7 @@ class Scan(PageControls):
     _cursor = "default"
     _ignore_duplex_capabilities = False
 
-    @GObject.Property(type=str, default="", nick="Device", blurb="Device name")
+    @property_(type=str, default="", nick="Device", blurb="Device name")
     def device(self) -> str | None:
         """Getter for device attribute."""
         return self._device
@@ -292,7 +293,7 @@ class Scan(PageControls):
             self.set_device(newval)
             self.emit("changed-device", newval)
 
-    @GObject.Property(
+    @property_(
         type=object, nick="Device list", blurb="Array of hashes of available devices"
     )
     def device_list(self) -> list[SimpleNamespace]:
@@ -305,7 +306,7 @@ class Scan(PageControls):
         self.set_device_list(newval)
         self.emit("changed-device-list", newval)
 
-    @GObject.Property(
+    @property_(
         type=bool,
         default=False,
         nick="Allow batch scanning from flatbed",
@@ -324,7 +325,7 @@ class Scan(PageControls):
         if newval:
             self.framen.set_sensitive(sensitive=True)
         else:
-            options = self.available_scan_options
+            options = cast("Options | None", self.available_scan_options)
 
             # on startup, self.thread doesn't get set until later
             if (
@@ -336,7 +337,7 @@ class Scan(PageControls):
 
                 self.num_pages = 1
 
-    @GObject.Property(
+    @property_(
         type=bool,
         default=False,
         nick="Ignore duplex capabilities",
@@ -352,7 +353,7 @@ class Scan(PageControls):
         self._ignore_duplex_capabilities = newval
         self._flatbed_or_duplex_callback()
 
-    @GObject.Property(
+    @property_(
         type=object,
         nick="Scan options available",
         blurb="Scan options currently available, whether active, selected, or not",
@@ -386,7 +387,7 @@ class Scan(PageControls):
         self.reload_recursion_limit = 3 * num
         self.emit("reloaded-scan-options")
 
-    @GObject.Property(type=object, nick="Cursor", blurb="name of current cursor")
+    @property_(type=object, nick="Cursor", blurb="name of current cursor")
     def cursor(self) -> str:
         """Getter for cursor attribute."""
         return self._cursor
@@ -405,7 +406,7 @@ class Scan(PageControls):
 
         self.scan_button.set_sensitive(newval == "default")
 
-    @GObject.Property(
+    @property_(
         type=object,
         nick="Current scan options",
         blurb="Scan options making up current profile",
@@ -733,7 +734,7 @@ class Scan(PageControls):
 
     def _get_paper_by_geometry(self) -> str | None:
         """Return the paper size that matches the current geometry settings."""
-        formats = self.paper_sizes
+        formats = cast("dict[str, dict[str, float]] | None", self.paper_sizes)
         if formats is None:
             return None
         current = {
@@ -1483,12 +1484,12 @@ class Scan(PageControls):
             for i in current_scan_options.each_backend_option():
                 name, val = current_scan_options.get_backend_option_by_index(i)
                 if name == "resolution":
-                    xres = val
-                    yres = val
+                    xres = cast("float", val)
+                    yres = cast("float", val)
                 elif name == "x-resolution":
-                    xres = val
+                    xres = cast("float", val)
                 elif name == "y-resolution":
-                    yres = val
+                    yres = cast("float", val)
 
         if xres == 0:
             xres = POINTS_PER_INCH

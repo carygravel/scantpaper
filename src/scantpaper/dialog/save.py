@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import re
+from typing import cast
 
 import gi
 
@@ -11,6 +12,7 @@ from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import _LOCAL_TZ, MAX_DPI
 from scantpaper.dialog import Dialog
 from scantpaper.entry_completion import EntryCompletion
+from scantpaper.gobject import property_
 from scantpaper.i18n import _
 
 gi.require_version("Gdk", "3.0")
@@ -91,7 +93,7 @@ class Save(Dialog):
     _meta_datetime = None
     _meta_datetime_widget = None
 
-    @GObject.Property(type=object)
+    @property_(type=object)
     def meta_datetime(self) -> datetime.datetime | datetime.date | None:
         """Datetime object for document date."""
         if self.meta_now_widget.get_active():
@@ -149,7 +151,7 @@ class Save(Dialog):
     )
     _include_time = False
 
-    @GObject.Property(type=bool, default=False)
+    @property_(type=bool, default=False)
     def include_time(self) -> bool:
         """Whether to allow the time, as well as the date, to be entered."""
         return self._include_time
@@ -161,10 +163,10 @@ class Save(Dialog):
             self._include_time = newval
 
     _meta_title: str = ""
-    _meta_title_suggestions = None
     _meta_title_widget = None
+    _meta_title_suggestions = None
 
-    @GObject.Property(type=str, default="")
+    @property_(type=str, default="")
     def meta_title(self) -> str:
         """Title metadata."""
         if self._meta_title_widget is None:
@@ -178,11 +180,11 @@ class Save(Dialog):
             self._meta_title_widget.set_text(newval)
             self._meta_title_widget.add_to_suggestions([newval])
 
-    @GObject.Property(type=object)
-    def meta_title_suggestions(self) -> object:
+    @property_(type=object)
+    def meta_title_suggestions(self) -> list[str]:
         """Array of title metadata suggestions, used by entry completion widget."""
         if self._meta_title_widget is None:
-            return self._meta_title_suggestions
+            return self._meta_title_suggestions or []
         return self._meta_title_widget.get_suggestions()
 
     @meta_title_suggestions.setter
@@ -192,10 +194,10 @@ class Save(Dialog):
             self._meta_title_widget.set_suggestions(newval)
 
     _meta_author: str = ""
-    _meta_author_suggestions = None
     _meta_author_widget = None
+    _meta_author_suggestions = None
 
-    @GObject.Property(type=str, default="")
+    @property_(type=str, default="")
     def meta_author(self) -> str:
         """Return the author metadata."""
         if self._meta_author_widget is None:
@@ -209,11 +211,11 @@ class Save(Dialog):
             self._meta_author_widget.set_text(newval)
             self._meta_author_widget.add_to_suggestions([newval])
 
-    @GObject.Property(type=object)
-    def meta_author_suggestions(self) -> object:
+    @property_(type=object)
+    def meta_author_suggestions(self) -> list[str]:
         """Array of author metadata suggestions, used by entry completion widget."""
         if self._meta_author_widget is None:
-            return self._meta_author_suggestions
+            return self._meta_author_suggestions or []
         return self._meta_author_widget.get_suggestions()
 
     @meta_author_suggestions.setter
@@ -223,10 +225,10 @@ class Save(Dialog):
             self._meta_author_widget.set_suggestions(newval)
 
     _meta_subject: str = ""
-    _meta_subject_suggestions = None
     _meta_subject_widget = None
+    _meta_subject_suggestions = None
 
-    @GObject.Property(type=str, default="")
+    @property_(type=str, default="")
     def meta_subject(self) -> str:
         """Subject metadata."""
         if self._meta_subject_widget is None:
@@ -240,11 +242,11 @@ class Save(Dialog):
             self._meta_subject_widget.set_text(newval)
             self._meta_subject_widget.add_to_suggestions([newval])
 
-    @GObject.Property(type=object)
-    def meta_subject_suggestions(self) -> object:
+    @property_(type=object)
+    def meta_subject_suggestions(self) -> list[str]:
         """Array of subject metadata suggestions, used by entry completion widget."""
         if self._meta_subject_widget is None:
-            return self._meta_subject_suggestions
+            return self._meta_subject_suggestions or []
         return self._meta_subject_widget.get_suggestions()
 
     @meta_subject_suggestions.setter
@@ -254,10 +256,10 @@ class Save(Dialog):
             self._meta_subject_widget.set_suggestions(newval)
 
     _meta_keywords: str = ""
-    _meta_keywords_suggestions = None
     _meta_keywords_widget = None
+    _meta_keywords_suggestions = None
 
-    @GObject.Property(type=str, default="")
+    @property_(type=str, default="")
     def meta_keywords(self) -> str:
         """Keyword metadata."""
         if self._meta_keywords_widget is None:
@@ -271,11 +273,11 @@ class Save(Dialog):
             self._meta_keywords_widget.set_text(newval)
             self._meta_keywords_widget.add_to_suggestions([newval])
 
-    @GObject.Property(type=object)
-    def meta_keywords_suggestions(self) -> object:
+    @property_(type=object)
+    def meta_keywords_suggestions(self) -> list[str]:
         """Array of keyword metadata suggestions, used by entry completion widget."""
         if self._meta_keywords_widget is None:
-            return self._meta_keywords_suggestions
+            return self._meta_keywords_suggestions or []
         return self._meta_keywords_widget.get_suggestions()
 
     @meta_keywords_suggestions.setter
@@ -426,7 +428,7 @@ class Save(Dialog):
         if self.meta_datetime is not None and self.meta_datetime != "":
             self._meta_datetime_widget.get_buffer().set_text(
                 (
-                    self.meta_datetime.isoformat(sep=" ")
+                    cast("datetime.datetime", self.meta_datetime).isoformat(sep=" ")
                     if hasattr(self.meta_datetime, "hour")
                     else self.meta_datetime.isoformat()
                 ),

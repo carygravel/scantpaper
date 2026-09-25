@@ -102,7 +102,7 @@ class SaneScanDialog(Scan):
     def scan_options(self, device: str | None = None) -> None:
         """Retrieve device-dependent scan options."""
         if device is None:
-            device = cast("str | None", self.device)
+            device = self.device
 
         # Remove any existing pages
         while self.notebook.get_n_pages() > FIRST_OPTIONS_PAGE:
@@ -344,7 +344,9 @@ class SaneScanDialog(Scan):
             # tested by 06197_Dialog_Scan_Image_Sane
             options = self.available_scan_options
             updated_opt = options.by_name(opt.name)
-            self.set_option(updated_opt, value=updated_opt.constraint[i])
+            self.set_option(
+                updated_opt, value=cast("list[Any]", updated_opt.constraint)[i]
+            )
 
         widget.signal = widget.connect("changed", changed_combobox_cb)
         return widget

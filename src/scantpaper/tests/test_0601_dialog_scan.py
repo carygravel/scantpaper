@@ -130,7 +130,7 @@ def test_doc_interaction(
             "selecting reverse should automatically limit the max number of pages to scan"
         )
 
-        clean_up_files(pathlib.Path(tempdir).glob("*"))
+        clean_up_files([str(p) for p in pathlib.Path(tempdir).glob("*")])
 
 
 def test_profiles(

@@ -5,6 +5,7 @@ from typing import ClassVar
 from gi.repository import Gdk, GObject, Gtk
 
 from scantpaper.dialog import Dialog
+from scantpaper.gobject import property_
 from scantpaper.i18n import _
 
 LAYOUT = [
@@ -44,7 +45,7 @@ class Crop(Dialog):
     _sb_width = None
     _sb_height = None
 
-    @GObject.Property(
+    @property_(
         type=Gdk.Rectangle,
         nick="Selection",
         blurb="Current selection",
@@ -70,7 +71,7 @@ class Crop(Dialog):
         self._selection = newval
         self.emit("changed-selection", newval)
 
-    @GObject.Property(
+    @property_(
         type=int,
         minimum=0,
         maximum=99999,
@@ -90,7 +91,7 @@ class Crop(Dialog):
         self._update_sb_range("width")
         self._page_width = newval
 
-    @GObject.Property(
+    @property_(
         type=int,
         minimum=0,
         maximum=99999,
