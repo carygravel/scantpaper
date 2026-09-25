@@ -10,7 +10,7 @@ import pathlib
 import subprocess
 import tempfile
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import gi
 import pytest
@@ -169,11 +169,11 @@ def sane_scan_mocks() -> SimpleNamespace:
             raw_options[10] = raw_options[10]._replace(
                 constraint=(0, 215.899993896484, 0)
             )
-            self.device_handle.br_x = 215.899993896484
+            cast("Any", self.device_handle).br_x = 215.899993896484
             raw_options[11] = raw_options[11]._replace(
                 constraint=(0, 355.599990844727, 0)
             )
-            self.device_handle.br_y = 355.599990844727
+            cast("Any", self.device_handle).br_y = 355.599990844727
             info = enums.INFO_RELOAD_OPTIONS
         setattr(self.device_handle, key.replace("-", "_"), value)
         return info
@@ -652,7 +652,7 @@ def temp_txt() -> object:
 def _create_rose_image() -> Image.Image:
     """Create a 70x46 RGB image resembling the ImageMagick rose: sample."""
     img = Image.new("RGB", (70, 46))
-    pixels = img.load()
+    pixels = cast("Any", img.load())
     for y in range(46):
         for x in range(70):
             r = int(255 * (1 - ((x - 35) ** 2 + (y - 23) ** 2) / 2000))

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pathlib
 import uuid
 from itertools import cycle
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -649,7 +649,7 @@ def test_update_uimanager(app_window: ApplicationWindow) -> None:
     """Test _update_uimanager."""
     # Simulate no selection
     app_window.slist.get_selected_indices.return_value = []
-    app_window.slist.data = []
+    cast("Any", app_window.slist).data = []
 
     app_window._update_uimanager()
 
@@ -658,7 +658,7 @@ def test_update_uimanager(app_window: ApplicationWindow) -> None:
 
     # Simulate selection and data
     app_window.slist.get_selected_indices.return_value = [0]
-    app_window.slist.data = [MagicMock()]
+    cast("Any", app_window.slist).data = [MagicMock()]
 
     app_window._update_uimanager()
 
@@ -710,7 +710,7 @@ def test_update_uimanager_no_pages_hide_email_dialog(
     app_window: ApplicationWindow,
 ) -> None:
     """Test _update_uimanager hides email dialog if no pages."""
-    app_window.slist.data = []
+    cast("Any", app_window.slist).data = []
     app_window._dependencies["xdg"] = True
     app_window._windowe = MagicMock()
 
@@ -725,12 +725,12 @@ def test_update_uimanager_xdg_missing(app_window: ApplicationWindow) -> None:
     app_window._dependencies["xdg"] = False
 
     # case with pages
-    app_window.slist.data = [MagicMock()]
+    cast("Any", app_window.slist).data = [MagicMock()]
     app_window._update_uimanager()
     assert not app_window._actions["email"].get_enabled()
 
     # case without pages
-    app_window.slist.data = []
+    cast("Any", app_window.slist).data = []
     app_window._update_uimanager()
     assert not app_window._actions["email"].get_enabled()
 
@@ -739,7 +739,7 @@ def test_update_uimanager_no_pages_no_email_dialog(
     app_window: ApplicationWindow,
 ) -> None:
     """Test _update_uimanager does not hide email dialog if it is None."""
-    app_window.slist.data = []
+    cast("Any", app_window.slist).data = []
     app_window._dependencies["xdg"] = True
     app_window._windowe = None
     app_window._update_uimanager()
@@ -759,7 +759,7 @@ def test_update_uimanager_ghost_ocr_and_hide_email(
     """Test ghosting ocr and hiding email dialog in one go (covers 756 & 769)."""
     app_window._dependencies["ocr"] = False
     app_window._dependencies["xdg"] = True
-    app_window.slist.data = []
+    cast("Any", app_window.slist).data = []
     app_window._windowe = MagicMock()
 
     app_window._update_uimanager()
@@ -774,7 +774,9 @@ def test_process_error_reopen(
     """Test _process_error_callback with reopen response (covers 892)."""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
-    app_window.settings["message"]["error opening device"] = {"response": None}
+    cast("Any", app_window.settings)["message"]["error opening device"] = {
+        "response": None
+    }
 
     # Mock dialog to return 'reopen'
     mock_dialog_cls = mocker.patch("scantpaper.app_window.Gtk.MessageDialog")
@@ -811,7 +813,9 @@ def test_process_error_rescan(
     """Test _process_error_callback with rescan response (covers 900)."""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
-    app_window.settings["message"]["error opening device"] = {"response": None}
+    cast("Any", app_window.settings)["message"]["error opening device"] = {
+        "response": None
+    }
 
     # Mock dialog to return 'rescan'
     mock_dialog_cls = mocker.patch("scantpaper.app_window.Gtk.MessageDialog")
@@ -846,7 +850,9 @@ def test_process_error_ignore(
     """Test _process_error_callback with ignore response (covers 892)."""
     app_window._scan_progress = MagicMock()
     app_window.scan_dialog = MagicMock()
-    app_window.settings["message"]["error opening device"] = {"response": None}
+    cast("Any", app_window.settings)["message"]["error opening device"] = {
+        "response": None
+    }
 
     # Mock dialog to return something other than OK (e.g., CANCEL)
     mock_dialog_cls = mocker.patch("scantpaper.app_window.Gtk.MessageDialog")
@@ -974,7 +980,9 @@ def test_process_error_callback(
 
     # open_device error - ignore
     app_window._show_message_dialog.reset_mock()
-    app_window.settings["message"]["error opening device"] = {"response": "ignore"}
+    cast("Any", app_window.settings)["message"]["error opening device"] = {
+        "response": "ignore"
+    }
     app_window._process_error_callback(None, "open_device", "Device busy", None)
     app_window._show_message_dialog.assert_not_called()
 
@@ -1083,9 +1091,9 @@ def test_page_selection_changed_callback(app_window: ApplicationWindow) -> None:
 
     # With selection
     app_window.slist.get_selected_indices.return_value = [0]
-    app_window.slist.data = [[1, None, "page_id"]]
+    cast("Any", app_window.slist).data = [[1, None, "page_id"]]
     app_window.slist.get_column.return_value = MagicMock()
-    app_window.view.get_selection.return_value = None
+    cast("Any", app_window.view).get_selection.return_value = None
 
     app_window._page_selection_changed_callback(None)
     app_window._display_image.assert_called_with("page_id")
@@ -1098,9 +1106,9 @@ def test_page_selection_changed_with_value_error(
 ) -> None:
     """Test _page_selection_changed_callback handles ValueError (covers 690-691)."""
     app_window.slist.get_selected_indices.return_value = [0]
-    app_window.slist.data = [[1, None, "page_id"]]
+    cast("Any", app_window.slist).data = [[1, None, "page_id"]]
     app_window._display_image = mocker.Mock(side_effect=ValueError)
-    app_window.view.get_selection = mocker.Mock(return_value=None)
+    cast("Any", app_window.view).get_selection = mocker.Mock(return_value=None)
 
     # Should not raise ValueError
     app_window._page_selection_changed_callback(None)
@@ -1111,11 +1119,13 @@ def test_page_selection_changed_restore_selection(
 ) -> None:
     """Test _page_selection_changed_callback restores selection (covers 692-693)."""
     app_window.slist.get_selected_indices.return_value = [0]
-    app_window.slist.data = [[1, None, "page_id"]]
+    cast("Any", app_window.slist).data = [[1, None, "page_id"]]
     app_window._display_image = mocker.Mock()
     mock_selection = MagicMock()
-    app_window.view.get_selection = mocker.Mock(return_value=mock_selection)
-    app_window.view.set_selection = mocker.Mock()
+    cast("Any", app_window.view).get_selection = mocker.Mock(
+        return_value=mock_selection
+    )
+    cast("Any", app_window.view).set_selection = mocker.Mock()
 
     app_window._page_selection_changed_callback(None)
 

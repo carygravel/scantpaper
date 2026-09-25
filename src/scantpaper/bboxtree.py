@@ -371,7 +371,7 @@ class HOCRParser(HTMLParser):
         super().__init__(*args, **kwargs)
         self.boxes = []
         self.stack = []
-        self.data = {}
+        self.data: dict[str, object] = {}
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Handle starttag."""
@@ -423,16 +423,16 @@ class HOCRParser(HTMLParser):
         if self.stack and self.data != self.stack[-1] and "bbox" in self.data:
             if "contents" not in self.stack[-1]:
                 self.stack[-1]["contents"] = []
-            self.stack[-1]["contents"].append(self.data)
+            cast("list[object]", self.stack[-1]["contents"]).append(self.data)
 
     def _parse_style(self, tag: str) -> None:
         if self.data and tag in ["strong", "em"]:
             if "style" not in self.data:
                 self.data["style"] = []
-            self.data["style"].append(tag)
+            cast("list[str]", self.data["style"]).append(tag)
 
     def _parse_title(self, title: str) -> None:
-        data = {}
+        data: dict[str, object] = {}
 
         regex = re.search(
             rf"\bbbox\s+{BBOX_REGEX}", title, re.MULTILINE | re.DOTALL | re.VERBOSE
@@ -480,12 +480,10 @@ class HOCRParser(HTMLParser):
         self.data = data
 
     def _parse_class(self, class_name: str) -> None:
-        class_name = re.split("_", class_name)
-        if len(class_name) == CLASS_NAME_PARTS:
-            class_name[1] = (
-                class_name[1].replace("carea", "column").replace("par", "para")
-            )
-            if class_name[1] in [
+        parts = re.split("_", class_name)
+        if len(parts) == CLASS_NAME_PARTS:
+            parts[1] = parts[1].replace("carea", "column").replace("par", "para")
+            if parts[1] in [
                 "page",
                 "header",
                 "footer",
@@ -495,8 +493,8 @@ class HOCRParser(HTMLParser):
                 "line",
                 "word",
             ]:
-                self.data["type"] = class_name[1]
-                if class_name[1] == "page":
+                self.data["type"] = parts[1]
+                if parts[1] == "page":
                     self.boxes.append(self.data)
 
     def handle_endtag(self, tag: str) -> None:

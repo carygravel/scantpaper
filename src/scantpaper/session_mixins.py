@@ -7,7 +7,7 @@ import inspect
 import logging
 import tempfile
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import gi
 import tesserocr
@@ -511,7 +511,7 @@ class SessionMixins:
             self._edit_ocr_text(self._current_ocr_bbox)
         else:
             logger.info("Creating new text layer with '%s'", text)
-            self._current_page.text_layer = (
+            cast("Any", self._current_page).text_layer = (
                 f'[{{"type":"page","bbox":[0,0,{self._current_page["width"]},'
                 f'{self._current_page["height"]}],"depth":0}},'
                 f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'

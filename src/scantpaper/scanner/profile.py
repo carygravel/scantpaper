@@ -31,8 +31,11 @@ class Profile(GObject.Object):
         """Initialise the profile with deep-copied frontend and backend dicts."""
         super().__init__()
         if isinstance(frontend, dict) and "frontend" in frontend:
-            backend = frontend.get("backend", [])
-            frontend = frontend["frontend"]
+            backend = cast(
+                "list[tuple[str, object] | dict[str, object]]",
+                frontend.get("backend", []),
+            )
+            frontend = cast("dict[str, object]", frontend["frontend"])
 
         if frontend is None:
             self.frontend = {}

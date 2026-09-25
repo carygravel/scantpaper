@@ -989,7 +989,7 @@ def test_ann_text_new_no_layer(
     # and supports dict access
     mock_page = mocker.MagicMock()
     del mock_page.text_layer
-    page_data = {"width": 100, "height": 100}
+    page_data: dict[str, object] = {"width": 100, "height": 100}
 
     def getitem(key: str) -> object | None:
         return page_data.get(key)
@@ -1041,7 +1041,7 @@ def test_ocr_text_add_no_layer(
     # and supports dict access
     mock_page = mocker.MagicMock()
     del mock_page.text_layer
-    page_data = {"width": 100, "height": 100}
+    page_data: dict[str, object] = {"width": 100, "height": 100}
 
     def getitem(key: str) -> object | None:
         return page_data.get(key)

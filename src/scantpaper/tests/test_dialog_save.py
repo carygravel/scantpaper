@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock
 
 import gi
@@ -110,7 +110,7 @@ def test_insert_text_handler_inc_dec(mocker: pytest.MockerFixture) -> None:
     dialog._meta_specify_widget.set_active(True)
     entry = dialog._meta_datetime_widget
     entry.get_buffer().set_text("2023-01-01", -1)
-    entry.stop_emission_by_name = mocker.Mock()
+    cast("Any", entry).stop_emission_by_name = mocker.Mock()
 
     # Increment
     dialog._insert_text_handler(entry, "+", 1, 10)
@@ -129,7 +129,7 @@ def test_insert_text_handler_filtering(mocker: pytest.MockerFixture) -> None:
     dialog = Save()
     dialog.show_all()
     entry = dialog._meta_datetime_widget
-    entry.stop_emission_by_name = mocker.Mock()
+    cast("Any", entry).stop_emission_by_name = mocker.Mock()
 
     # Allow numbers and dashes for date
     dialog.include_time = False

@@ -7,7 +7,7 @@ import sqlite3
 import subprocess
 import threading
 import time
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 from gi.repository import GLib
@@ -685,7 +685,7 @@ def test_do_threshold_colour(mocker: pytest.MockerFixture) -> None:
     page.dirty_time = None
     page.saved = True
     img = Image.new("RGB", (4, 3))
-    pixels = img.load()
+    pixels = cast("Any", img.load())
     rows = [
         [(255, 255, 255), (250, 250, 250), (240, 240, 240), (255, 255, 255)],
         [(255, 0, 0), (255, 255, 0), (0, 0, 255), (0, 180, 0)],

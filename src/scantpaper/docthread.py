@@ -519,7 +519,7 @@ class DocThread(SaveThread):
         )
         page_order = self._fetchall()
         for i, page in enumerate(page_order):
-            page_order[i] = [i, page[1], self._action_id]
+            page_order[i] = (i, page[1], self._action_id)
         self._executemany(
             "UPDATE page_order SET row_id = ? WHERE initial_page_id = ? AND action_id = ?",
             page_order,
@@ -548,7 +548,7 @@ class DocThread(SaveThread):
 
     def page_number_table(self) -> list | None:
         """Wrap do_page_number_table via send() synchronously."""
-        result = [[]]
+        result: list[object] = [None]
         mlp = GLib.MainLoop()
 
         def on_finished(response: Response) -> None:
@@ -565,7 +565,7 @@ class DocThread(SaveThread):
             error_callback=on_error,
         )
         mlp.run()
-        return result[0]
+        return cast("list | None", result[0])
 
     def get_page(self, **kwargs: object) -> Page:
         """Get a page from the database."""
@@ -637,9 +637,8 @@ class DocThread(SaveThread):
         tid = threading.get_native_id()
         self._execute("SELECT last_insert_rowid()")
         first_image_id = cast("int", self._fetchone()[0]) - len(pages) + 1
-        for i, _page in enumerate(pages):
-            pages[i] = list(pages[i])
-            pages[i][0] = first_image_id + i  # new image id
+        for i, page in enumerate(pages):
+            pages[i] = (first_image_id + i, *page[1:])
         self._executemany(
             """INSERT INTO page (
                 id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)

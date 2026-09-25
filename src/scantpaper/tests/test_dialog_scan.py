@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 import time
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -871,7 +871,7 @@ def test_race_condition_device_switching(
     # 1. Mock device handle
     mock_handle = MagicMock()
     mock_handle.resolution = 100
-    dialog.thread.device_handle = mock_handle
+    cast("Any", dialog.thread).device_handle = mock_handle
 
     # 2. Setup options
     dialog.current_scan_options = Profile(backend=[("resolution", 100)])
@@ -888,7 +888,9 @@ def test_race_condition_device_switching(
     dialog.available_scan_options = mock_options
 
     # 3. Patch thread methods
-    dialog.thread.do_set_option = MagicMock(return_value=enums.INFO_RELOAD_OPTIONS)
+    cast("Any", dialog.thread).do_set_option = MagicMock(
+        return_value=enums.INFO_RELOAD_OPTIONS
+    )
 
     ready_to_crash = threading.Event()
 
@@ -942,7 +944,7 @@ def test_infinite_loop_reproduction(
     # 1. Setup initial state
     mock_handle = MagicMock()
     mock_handle.resolution = 100
-    dialog.thread.device_handle = mock_handle
+    cast("Any", dialog.thread).device_handle = mock_handle
 
     # Mock options
     mock_opt = MagicMock()
@@ -969,7 +971,7 @@ def test_infinite_loop_reproduction(
         call_count += 1
         original_set_option_profile(*args, **kwargs)
 
-    dialog._set_option_profile = tracked_set_option_profile
+    dialog._set_option_profile = cast("Any", tracked_set_option_profile)
 
     # 4. Mock thread to simulate null handle during operation
     ready_to_crash = threading.Event()

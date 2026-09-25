@@ -191,7 +191,7 @@ def button_press_callback(
 ) -> None:
     """Button press callback."""
     if event.button == 1:
-        canvas = bbox.canvas
+        canvas = cast("Canvas", bbox.canvas)
         if canvas:
             canvas.dragging = False
         edit_callback(bbox, _target)
@@ -232,12 +232,16 @@ class Bbox:
         self.text = kwargs.get("text", EMPTY)
         self.bbox = kwargs.get("bbox")
         self.canvas = kwargs.get("canvas")
-        self.transformation: list[int] = kwargs.get("transformation", [0, 0, 0])
+        self.transformation: list[int] = cast(
+            "list[int]", kwargs.get("transformation", [0, 0, 0])
+        )
         self.confidence = kwargs.get("confidence")
         self.textangle: int = cast("int", kwargs.get("textangle", 0))
         self.type: str = cast("str", kwargs.get("type", "word"))
         self.id = kwargs.get("id", EMPTY)
-        self.baseline: list[int | float] | None = kwargs.get("baseline")
+        self.baseline: list[int | float] | None = cast(
+            "list[int | float] | None", kwargs.get("baseline")
+        )
         self.edit_callback = kwargs.get("edit_callback")
 
         parent = kwargs.get("parent")
@@ -1049,12 +1053,12 @@ class Canvas(Gtk.DrawingArea):
     def _boxed_text(self, options: dict[str, object]) -> bool:
         """Draw text on the canvas with a box around it."""
         for _ in range(BATCH_SIZE):
-            idx = options["idx"]
+            idx = cast("int", options["idx"])
             box = cast("dict[str, object]", options["box"])
             depth = cast("int", box["depth"])
 
             transformations = options["transformations"]
-            parents = options["parents"]
+            parents = cast("list[Bbox]", options["parents"])
             rotation, _, _ = transformations[depth]
             textangle = box.get("textangle", 0)
 
@@ -1071,7 +1075,7 @@ class Canvas(Gtk.DrawingArea):
 
             options2["bbox"] = Rectangle.from_bbox(*cast("list[int]", box["bbox"]))
             bbox = self.add_box(**options2)
-            options["bbox_map"][idx] = bbox
+            cast("dict[int, Bbox]", options["bbox_map"])[idx] = bbox
 
             if depth > len(parents) - 2:
                 parents.append(bbox)
@@ -1327,7 +1331,7 @@ class TreeIter:
             parent = bbox.parent
             self._iter.insert(0, parent.get_child_ordinal(bbox))
             self._bbox.insert(0, parent)
-            bbox = parent
+            bbox = cast("Bbox", parent)
         self._iter.insert(0, 0)
 
     def first_bbox(self) -> Bbox:

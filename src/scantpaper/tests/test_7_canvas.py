@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import tempfile
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, patch
 
 import cairo
@@ -363,17 +363,17 @@ def test_canvas_basics2(rose_pnm: str) -> None:
 
         #########################
 
-        group.confidence = 100
+        cast("Bbox", group).confidence = 100
         canvas.max_confidence = 90
         canvas.min_confidence = 50
         assert group.confidence2color() == "black", "> max"
-        group.confidence = 70
+        cast("Bbox", group).confidence = 70
         # Lookup table quantizes colors into bands
         # Check it's a hex color (not min/max extremes)
         mid_color = group.confidence2color()
         assert mid_color.startswith("#"), "mid way should be hex color"
         assert mid_color not in ["black", "red"], "mid way should not be extreme"
-        group.confidence = 40
+        cast("Bbox", group).confidence = 40
         assert group.confidence2color() == "red", "< min"
 
         #########################
@@ -2056,7 +2056,7 @@ def test_draw_bbox_full(mocker: pytest.MockerFixture) -> None:
         del ctx
         return make_layout(bbox.text)
 
-    canvas._create_pango_layout = patched_create_pango_layout
+    cast("Any", canvas)._create_pango_layout = patched_create_pango_layout
 
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
     ctx = cairo.Context(surface)

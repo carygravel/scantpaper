@@ -486,7 +486,7 @@ class Unpaper:
             method = cast("Callable[..., object]", getattr(self, method_name, None))
             widget = method(vbox, hashref, option)
 
-        hashref[option]["widget"] = widget
+        cast("dict[str, object]", hashref[option])["widget"] = widget
         return widget
 
     def _combobox_get_option(self, option: str) -> str | None:

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, patch
 
 import cairo
@@ -109,7 +109,7 @@ def test_selection(rose_png: str) -> None:
     selection = Gdk.Rectangle()
     selection.x, selection.y, selection.width, selection.height = 10, 10, 10, 10
     view.set_selection(selection)
-    selection = view.get_selection()
+    selection = cast("Any", view.get_selection())
     assert selection.x == 10, "get_selection x"
     assert selection.y == 10, "get_selection y"
     assert selection.width == 10, "get_selection width"
@@ -124,7 +124,7 @@ def test_selection(rose_png: str) -> None:
 
     selection.x, selection.y, selection.width, selection.height = -10, -10, 20, 20
     view.set_selection(selection)
-    selection = view.get_selection()
+    selection = cast("Any", view.get_selection())
     assert selection.x == 0, "selection cannot overlap top left border x"
     assert selection.y == 0, "selection cannot overlap top left border y"
     assert selection.width == 10, "selection cannot overlap top left border width"

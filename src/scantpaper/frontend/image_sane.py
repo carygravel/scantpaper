@@ -334,7 +334,7 @@ class SaneThread(BaseThread):
     ) -> uuid.UUID:
         """Scan pages."""
         self.num_pages_scanned = 0
-        self.num_pages = kwargs["num_pages"]
+        self.num_pages = cast("int", kwargs["num_pages"])
         _set_default_callbacks(kwargs)
         return self.scan_page(
             cancel_between_pages=cancel_between_pages,

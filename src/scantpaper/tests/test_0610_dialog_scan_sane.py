@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import locale
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import ANY, MagicMock
 
 import pytest
@@ -1120,7 +1120,7 @@ def test_multiple_values_option(
     options = Options([group_opt, multi_opt])
 
     # Mock device_handle to have a list value for this option
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_multiple = [1, 2, 3]
 
     # Update d_sane to just return the input
@@ -1194,7 +1194,7 @@ def test_switch_and_button_widgets(
     options = Options([group_opt, bool_opt, button_opt])
 
     # Mock device_handle
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_bool = False
 
     dialog._initialise_options(options)
@@ -1245,7 +1245,7 @@ def test_entry_widget_activate(
     options = Options([group_opt, entry_opt])
 
     # Mock device_handle
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_entry = "initial value"
 
     dialog._initialise_options(options)
@@ -1340,7 +1340,7 @@ def _spin_dialog(
     """Create the spin-option widgets with the given device value."""
     mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
     group_opt, spin_opt = _spin_option()
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_spin = value
     dialog._initialise_options(Options([group_opt, spin_opt]))
     widget = dialog.option_widgets["test-spin"]
@@ -1366,7 +1366,7 @@ def test_combobox_items_comma_locale(
     dialog = sane_scan_dialog
     mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
     group_opt, combo_opt = _combo_option()
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_combo = 150
     dialog._initialise_options(Options([group_opt, combo_opt]))
     assert _combo_items(dialog) == ["150", "300", "215,9"]
@@ -1382,7 +1382,7 @@ def test_combobox_items_dot_locale(
     dialog = sane_scan_dialog
     mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
     group_opt, combo_opt = _combo_option()
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_combo = 150
     dialog._initialise_options(Options([group_opt, combo_opt]))
     assert _combo_items(dialog) == ["150", "300", "215.9"]
@@ -1398,7 +1398,7 @@ def test_entry_display_comma_locale(
     dialog = sane_scan_dialog
     mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
     group_opt, entry_opt = _entry_option()
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_entry = 115.2
     dialog._initialise_options(Options([group_opt, entry_opt]))
     widget = dialog.option_widgets["test-entry"]
@@ -1416,7 +1416,7 @@ def test_entry_activate_comma_locale(
     dialog = sane_scan_dialog
     mocker.patch("scantpaper.dialog.sane.d_sane", side_effect=lambda x: x)
     group_opt, entry_opt = _entry_option()
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_entry = 115.2
     dialog._initialise_options(Options([group_opt, entry_opt]))
     widget = dialog.option_widgets["test-entry"]
@@ -1448,7 +1448,7 @@ def test_entry_activate_int_type(sane_scan_dialog: SaneScanDialog) -> None:
         enums.CAP_SOFT_DETECT | enums.CAP_SOFT_SELECT,
         None,
     )
-    dialog.thread.device_handle = MagicMock()
+    cast("Any", dialog.thread).device_handle = MagicMock()
     dialog.thread.device_handle.test_int_entry = 150
     dialog._initialise_options(Options([group_opt, int_opt]))
     widget = dialog.option_widgets["test-int-entry"]
@@ -1631,7 +1631,7 @@ def test_set_option_clamping(sane_scan_dialog: SaneScanDialog) -> None:
     )
 
     # Mock thread.set_option to avoid actual thread interaction
-    dialog.thread.set_option = MagicMock()
+    cast("Any", dialog.thread).set_option = MagicMock()
 
     # Test clamping to minimum (Line 391)
     dialog.set_option(opt, 5)

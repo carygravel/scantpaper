@@ -5,7 +5,7 @@ from __future__ import annotations
 import pathlib
 import tempfile
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import Mock
 
 import gi
@@ -406,7 +406,7 @@ def test_scan_threads(
         """
         nonlocal asserts
         asserts += 1
-        self.device_handle.source = "Auto"
+        cast("Any", self.device_handle).source = "Auto"
         return [
             Option(
                 index=0,
@@ -503,7 +503,7 @@ def test_source_without_val(
         """
         nonlocal asserts
         asserts += 1
-        self.device_handle.source = None
+        cast("Any", self.device_handle).source = None
         return [
             Option(
                 index=0,
@@ -598,7 +598,7 @@ def test_no_source(
         The property allow-batch-flatbed had to be enabled to scan more than
         one page from the ADF. Override enough to test for this.
         """
-        self.device_handle.doc_source = "Auto"
+        cast("Any", self.device_handle).doc_source = "Auto"
         return [
             Option(
                 index=0,
@@ -716,8 +716,8 @@ def test_officejet_4620(
                 cap=5,
                 constraint=[75, 100, 200, 300, 600, 1200],
             )
-            self.device_handle.resolution = 75
-            self.device_handle.br_x = 215.900009155273
+            cast("Any", self.device_handle).resolution = 75
+            cast("Any", self.device_handle).br_x = 215.900009155273
             info = enums.INFO_RELOAD_OPTIONS
 
         setattr(self.device_handle, key.replace("-", "_"), value)

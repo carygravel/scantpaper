@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import unittest.mock
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 from gi.repository import GObject, Gtk
@@ -24,7 +24,7 @@ from scantpaper.dialog.scan import (
 )
 from scantpaper.docthread import INSERT_AT_START
 from scantpaper.frontend import enums
-from scantpaper.scanner.options import Option
+from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
 
 if TYPE_CHECKING:
@@ -141,7 +141,7 @@ class MockScan(Scan):
         self.combobp.get_num_rows.return_value = 0
         self.scan_options = unittest.mock.Mock()
 
-        self._available_scan_options = MockOptions([])
+        self._available_scan_options = cast("Options", MockOptions([]))
 
     # Mock methods that would otherwise interact with GUI or SANE
     def get_window(self) -> None:
@@ -496,10 +496,10 @@ class TestScanDialog:
     def test_get_xy_resolution_missing(self) -> None:
         """Test getting XY resolution when options are missing."""
         scan = MockScan()
-        scan._available_scan_options = None
+        scan._available_scan_options = cast("Options", None)
         assert scan._get_xy_resolution() == (None, None)
 
-        scan._available_scan_options = MockOptions([])
+        scan._available_scan_options = cast("Options", MockOptions([]))
         # val() raises AttributeError if not found
         # MockOptions.val returns 0 by default but here we test absence
 
@@ -510,7 +510,7 @@ class TestScanDialog:
         scan.adf_defaults_scan_all_pages = True
 
         options = MockOptions([MockOption("source", enums.TYPE_STRING)])
-        scan._available_scan_options = options
+        scan._available_scan_options = cast("Options", options)
 
         # Test ADF selection sets num_pages to 0
         bscannum = unittest.mock.Mock()
@@ -1037,7 +1037,7 @@ def test_get_xy_resolution_zero_fallback() -> None:
 def test_get_xy_resolution_non_numeric_values() -> None:
     """Test _get_xy_resolution treats non-numeric resolution values as 0."""
     scan = MockScan()
-    scan._available_scan_options = MockOptions([])
+    scan._available_scan_options = cast("Options", MockOptions([]))
     scan.thread.get_option_value.return_value = "high"
 
     xres, yres = scan._get_xy_resolution()

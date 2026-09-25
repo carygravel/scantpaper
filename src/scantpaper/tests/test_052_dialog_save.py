@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, tzinfo
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import gi
 
@@ -266,8 +266,8 @@ def test_date_entry_validation(mocker: pytest.MockerFixture) -> None:
 
     # Mock stop_emission_by_name and insert_text
     # We use mocker.patch.object to avoid RecursionError by keeping real block/unblock
-    entry.stop_emission_by_name = mocker.Mock()
-    entry.insert_text = mocker.Mock()
+    cast("Any", entry).stop_emission_by_name = mocker.Mock()
+    cast("Any", entry).insert_text = mocker.Mock()
 
     # Test valid date char
     mocker.patch.object(entry, "get_text", return_value="2020")
@@ -599,7 +599,7 @@ def test_date_entry_inc_dec(mocker: pytest.MockerFixture) -> None:
     entry.get_buffer().set_text("2020-01-01", -1)
 
     # Mock stop_emission_by_name but keep other behavior
-    entry.stop_emission_by_name = mocker.Mock()
+    cast("Any", entry).stop_emission_by_name = mocker.Mock()
 
     # Test + key
     dialog._insert_text_handler(entry, "+", 1, 10)
@@ -621,7 +621,7 @@ def test_date_entry_cursor_position(mocker: pytest.MockerFixture) -> None:
     entry.set_position(4)
 
     # Mock stop_emission_by_name
-    entry.stop_emission_by_name = mocker.Mock()
+    cast("Any", entry).stop_emission_by_name = mocker.Mock()
 
     # Simulate typing '-' at position 4
     dialog._insert_text_handler(entry, "-", 1, 4)

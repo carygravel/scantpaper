@@ -207,14 +207,15 @@ class SimpleList(Gtk.TreeView):
         """Handle edited signal of text cell."""
         path = Gtk.TreePath.new_from_string(text_path)
         model = self.get_model()
+        value: str | int | float = new_text
         if col_type is int:
-            new_text = int(new_text)
+            value = int(new_text)
         elif col_type is float:
             try:
-                new_text = parse_number(new_text)
+                value = parse_number(new_text)
             except ValueError:
                 return
-        model[model.get_iter(path)][renderer.column] = new_text
+        model[model.get_iter(path)][renderer.column] = value
 
     def set_column_editable(self, index: int, *, editable: bool) -> None:
         """Set whether a column can be edited."""
@@ -362,7 +363,7 @@ class TiedList:
         super().__init__()
         self.model = model
 
-    def __getitem__(self, index: int) -> object:
+    def __getitem__(self, index: int) -> TiedRow:
         """Return the item at the given index."""
         itr = self.model.iter_nth_child(None, index)
         if itr is None:

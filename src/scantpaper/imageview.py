@@ -129,7 +129,7 @@ class Dragger(Tool):
 
     def cursor_type_at_point(self, x: float, y: float) -> str | None:
         """Given the coordinates, return the cursor type."""
-        x, y = self.view().to_image_coords(x, y)
+        x, y = cast("tuple[float, float]", self.view().to_image_coords(x, y))
         pixbuf_size = self.view().get_pixbuf_size()
         if 0 < x < pixbuf_size.width and 0 < y < pixbuf_size.height:
             if self.dragging:

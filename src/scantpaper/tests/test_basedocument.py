@@ -9,7 +9,7 @@ import signal
 import tempfile
 import threading
 import uuid
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, Mock, patch
 
 import gi
@@ -160,7 +160,7 @@ def test_delete_selection_extra_edge_cases() -> None:
         if "finished_callback" in kwargs:
             cast("Callable[..., object]", kwargs["finished_callback"])()
 
-    slist.delete_selection = mock_delete_selection
+    cast("Any", slist).delete_selection = mock_delete_selection
 
     slist.select(2)  # select page 3
     slist.delete_selection_extra()
@@ -813,7 +813,7 @@ def test_delete_selection_extra_reselect() -> None:
         if "finished_callback" in kwargs:
             cast("Callable[..., object]", kwargs["finished_callback"])()
 
-    slist.delete_selection = mock_delete_selection
+    cast("Any", slist).delete_selection = mock_delete_selection
 
     # Delete the middle page (index 1, uuid 102)
     slist.get_selection().unselect_all()

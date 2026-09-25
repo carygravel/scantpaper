@@ -174,7 +174,7 @@ class Scan(PageControls):
         ),
         "clicked-scan-button": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
-    _device = ""
+    _device: str | None = ""
     dir = GObject.Property(
         type=object, nick="Directory", blurb="Directory in which to store scans"
     )
@@ -198,7 +198,7 @@ class Scan(PageControls):
         signal = self.connect("changed-profile", do_changed_profile)
         self.set_profile(newval)
 
-    _paper = ""
+    _paper: str | None = ""
 
     @GObject.Property(
         type=str,

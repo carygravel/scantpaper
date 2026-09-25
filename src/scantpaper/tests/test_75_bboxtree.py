@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
 from scantpaper.bboxtree import HOCR_HEADER, VERSION, Bboxtree
@@ -887,11 +889,11 @@ def test_from_pdftotext() -> None:
 
     tree = Bboxtree()
     tree.from_pdftotext(pdftext, (300, 300), (968.5, 244))
-    expected[0]["bbox"] = [0, 0, 968.5, 244]
-    expected[1]["bbox"] = [-964.5, 94, -604.5, 193]
-    expected[2]["bbox"] = [-531.5, 94, -42.5, 193]
-    expected[3]["bbox"] = [35.5, 94, 592.5, 193]
-    expected[4]["bbox"] = [668.5, 94, 951.5, 193]
+    cast("Any", expected[0])["bbox"] = [0, 0, 968.5, 244]
+    cast("Any", expected[1])["bbox"] = [-964.5, 94, -604.5, 193]
+    cast("Any", expected[2])["bbox"] = [-531.5, 94, -42.5, 193]
+    cast("Any", expected[3])["bbox"] = [35.5, 94, 592.5, 193]
+    cast("Any", expected[4])["bbox"] = [668.5, 94, 951.5, 193]
     assert tree.bbox_tree == expected, "from_pdftotext() double width"
 
     pdftext = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"

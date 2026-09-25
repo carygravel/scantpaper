@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.frontend import enums
@@ -79,12 +79,12 @@ def setup_coupled_scan_options(
         key, value = _request.args
         info = 0
         if key == "scan-area":
-            self.device_handle.scan_area = value
-            self.device_handle.quick_format = value
+            cast("Any", self.device_handle).scan_area = value
+            cast("Any", self.device_handle).quick_format = value
             info = enums.INFO_RELOAD_OPTIONS
         elif key == "quick-format":
-            self.device_handle.quick_format = value
-            self.device_handle.scan_area = value
+            cast("Any", self.device_handle).quick_format = value
+            cast("Any", self.device_handle).scan_area = value
             info = enums.INFO_RELOAD_OPTIONS
         else:
             setattr(self.device_handle, key.replace("-", "_"), value)

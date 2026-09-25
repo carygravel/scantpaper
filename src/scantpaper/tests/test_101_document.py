@@ -11,7 +11,7 @@ import sys
 import tempfile
 import threading
 from collections import defaultdict
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, Mock, patch
 
 import gi
@@ -1028,7 +1028,7 @@ def test_import_files_encrypted() -> None:
             response.info = {"encrypted": True, "path": path}
             if password == "secret":
                 response.info["encrypted"] = False
-                response.info["pages"] = 1
+                cast("Any", response.info)["pages"] = 1
                 response.info["format"] = "PDF"
 
             finished_callback(response)

@@ -11,7 +11,7 @@ import re
 import subprocess
 import tempfile
 import uuid
-from typing import cast
+from typing import Any, cast
 
 import gi
 from PIL import Image, ImageFile
@@ -21,7 +21,7 @@ from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import CM_PER_INCH, MM_PER_INCH, POINTS_PER_INCH
 from scantpaper.helpers import exec_command
 
-ImageFile.LOAD_TRUNCATED_IMAGES = True
+cast("Any", ImageFile).LOAD_TRUNCATED_IMAGES = True
 
 gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import (  # noqa: E402
@@ -67,6 +67,7 @@ class Page:
     image_id = None
     id = None
     _stored_bytes = None
+    image_object: Image.Image | None
 
     def __init__(self, **kwargs: object) -> None:
         """Initialise Page."""
@@ -396,7 +397,7 @@ class Page:
             return resolution, self.image_object.resize(
                 (int(width), int(height)), resample=Image.BOX
             )
-        return xresolution, self.image_object
+        return xresolution, cast("Image.Image", self.image_object)
 
     def write_image_for_pdf(
         self, filename: str, options: dict[str, object] | None
@@ -577,8 +578,8 @@ class Page:
 
 
 def _prepare_scale(
-    image_width: int,
-    image_height: int,
+    image_width: float,
+    image_height: float,
     res_ratio: float,
     max_width: int,
     max_height: int,
