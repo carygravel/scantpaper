@@ -1,1249 +1,431 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper-0.8.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-04-22 10:09+0200\n"
+"POT-Creation-Date: 2026-09-26 16:03+0200\n"
 "PO-Revision-Date: 2021-04-28 10:25+0000\n"
 "Last-Translator: rodroes <rodroes@hotmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2021-06-28 16:08+0000\n"
-"X-Generator: Launchpad (build c11083652ba158ce73cebdfd79e69cf6f7d05a73)\n"
 "Language: es\n"
-
-#: bin/scantpaper:483 bin/gscan2pdf:812
-msgid "Text layer"
-msgstr ""
-
-#: bin/scantpaper:489
-msgid "Go to least confident text"
-msgstr ""
-
-#: bin/scantpaper:496
-msgid "Go to previous text"
-msgstr "Ir a texto anterior"
-
-#: bin/scantpaper:503
-msgid "Sort by confidence"
-msgstr ""
-
-#: bin/scantpaper:504
-msgid "Sort OCR text boxes by confidence."
-msgstr ""
-
-#: bin/scantpaper:507
-msgid "Sort by position"
-msgstr "Ordenar por posición"
-
-#: bin/scantpaper:508
-msgid "Sort OCR text boxes by position."
-msgstr ""
-
-#: bin/scantpaper:512
-msgid "Select sort method for OCR boxes"
-msgstr ""
-
-#: bin/scantpaper:530
-msgid "Go to next text"
-msgstr "Ir al siguiente texto"
-
-#: bin/scantpaper:537
-msgid "Go to most confident text"
-msgstr ""
-
-#: bin/scantpaper:544 bin/gscan2pdf:655
-msgid "Accept corrections"
-msgstr "Aceptar correcciones"
-
-#: bin/scantpaper:560 bin/gscan2pdf:670
-msgid "Cancel corrections"
-msgstr "Cancelar correcciones"
-
-#: bin/scantpaper:570
-msgid "Duplicate text"
-msgstr "Duplicar texto"
-
-#: bin/scantpaper:583
-msgid "Add text"
-msgstr "Añadir texto"
-
-#: bin/scantpaper:589
-msgid "my-new-word"
-msgstr ""
-
-#: bin/scantpaper:624
-msgid "Delete text"
-msgstr "Eliminar texto"
-
-#: bin/scantpaper:649 bin/gscan2pdf:814
-msgid "Annotations"
-msgstr "Notas"
-
-#: bin/scantpaper:680
-msgid "Add annotation"
-msgstr "Agregar anotación"
-
-#: bin/scantpaper:685
-msgid "my-new-annotation"
-msgstr "mi-nueva-nota"
-
-#: bin/scantpaper:721
-msgid "Delete annotation"
-msgstr "Eliminar nota"
-
-#: bin/scantpaper:810
-msgid "Image"
-msgstr "Imagen"
-
-#: bin/scantpaper:892
-msgid "Error displaying help"
-msgstr "Error al mostrar la ayuda"
-
-#: bin/scantpaper:996 bin/gscan2pdf:1017
-#, perl-format
-msgid "Cannot read file: %s"
-msgstr "No se puede leer el archivo: %s"
-
-#: bin/scantpaper:1147
-msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
-msgstr ""
-"GraphicsMagick se está usando en modo de compatibilidad de ImageMagick."
-
-#: bin/scantpaper:1150
-msgid "Whilst this might work, it is not currently supported."
-msgstr "Mientras que podría funcionar, no está soportado actualmente"
-
-#: bin/scantpaper:1152
-msgid "Please switch to ImageMagick in case of problems."
-msgstr "Por favor, cambie a ImageMagick en caso de problemas"
-
-#: bin/scantpaper:1189
-msgid ""
-"pdftk is installed, but cannot access the directory used for temporary files."
-msgstr ""
-"pdftk está instalado, pero no puede acceder al directorio usado para "
-"archivos temporales."
-
-#: bin/scantpaper:1192
-msgid "One reason for this might be that pdftk was installed via snap."
-msgstr "Una razón para esto puede ser que pdftk fue instalado vía snap."
-
-#: bin/scantpaper:1195
-msgid ""
-"In this case, removing pdftk, and reinstalling without using snap would "
-"allow scantpaper to use pdftk."
-msgstr ""
-"En este caso, eliminar pdftk, y reinstalarlo sin usar snap puede permitir a "
-"scantpaper usar pdftk."
-
-#: bin/scantpaper:1198
-msgid ""
-"Another workaround would be to select a temporary directory under your home "
-"directory in Edit/Preferences."
-msgstr ""
-"Otra solución puede ser seleccionar, en Editar/Preferencias, un directorio "
-"temporal localizado en su carpeta /home."
-
-#: bin/scantpaper:1215
-msgid "GOCR"
-msgstr "GOCR"
-
-#: bin/scantpaper:1215
-msgid "Process image with GOCR."
-msgstr "Procesar imagen con GOCR."
-
-#: bin/scantpaper:1219
-msgid "Tesseract"
-msgstr "Tesseract"
-
-#: bin/scantpaper:1219
-msgid "Process image with Tesseract."
-msgstr "Procesar imagen con Tesseract."
-
-#: bin/scantpaper:1224
-msgid "Ocropus"
-msgstr "Ocropus"
-
-#: bin/scantpaper:1224
-msgid "Process image with Ocropus."
-msgstr "Procesar imagen con Ocropus."
-
-#: bin/scantpaper:1229
-msgid "Cuneiform"
-msgstr "Cuneiform"
-
-#: bin/scantpaper:1229
-msgid "Process image with Cuneiform."
-msgstr "Procesar imagen con Cuneiform."
-
-#: bin/scantpaper:1256
-msgid "_File"
-msgstr "_Archivo"
-
-#: bin/scantpaper:1259
-msgid "_New"
-msgstr "_Nuevo"
-
-#: bin/scantpaper:1260
-msgid "Clears all pages"
-msgstr "Elimina todas las páginas"
-
-#: bin/scantpaper:1264
-msgid "_Open"
-msgstr "_Abrir"
-
-#: bin/scantpaper:1265
-msgid "Open image file(s)"
-msgstr "Abrir archivo(s) de imagen"
-
-#: bin/scantpaper:1269
-msgid "Open c_rashed session"
-msgstr "Abrir sesión interrumpida"
-
-#: bin/scantpaper:1270 bin/gscan2pdf:2515
-msgid "Open crashed session"
-msgstr "Abrir sesión interrumpida"
-
-#: bin/scantpaper:1274
-msgid "S_can"
-msgstr "Escanear"
-
-#: bin/scantpaper:1275
-msgid "Scan document"
-msgstr "Escanear documento"
-
-#: bin/scantpaper:1278 bin/gscan2pdf:1279 bin/gscan2pdf:2932
-msgid "Save"
-msgstr "Guardar"
-
-#: bin/scantpaper:1283
-msgid "_Email as PDF"
-msgstr "_Enviar en correo como PDF"
-
-#: bin/scantpaper:1284
-msgid "Attach as PDF to a new email"
-msgstr "Adjuntar como PDF en un correo nuevo"
-
-#: bin/scantpaper:1287
-msgid "_Print"
-msgstr "_Imprimir"
-
-#: bin/scantpaper:1288
-msgid "Print"
-msgstr "Imprimir"
-
-#: bin/scantpaper:1292
-msgid "_Compress temporary files"
-msgstr "Comprimir archivos temporales"
-
-#: bin/scantpaper:1293
-msgid "Compress temporary files"
-msgstr "Comprimir archivos temporales"
-
-#: bin/scantpaper:1298
-msgid "_Quit"
-msgstr "_Salir"
-
-#: bin/scantpaper:1300
-msgid "Quit"
-msgstr "Salir"
-
-#: bin/scantpaper:1307
-msgid "_Edit"
-msgstr "_Editar"
-
-#: bin/scantpaper:1308
-msgid "_Undo"
-msgstr "_Deshacer"
-
-#: bin/scantpaper:1308
-msgid "Undo"
-msgstr "Deshacer"
-
-#: bin/scantpaper:1311
-msgid "_Redo"
-msgstr "_Restaurar"
-
-#: bin/scantpaper:1312
-msgid "Redo"
-msgstr "Restaurar"
-
-#: bin/scantpaper:1316
-msgid "Cu_t"
-msgstr "Cor_tar"
-
-#: bin/scantpaper:1317
-msgid "Cut selection"
-msgstr "Cortar selección"
-
-#: bin/scantpaper:1321
-msgid "_Copy"
-msgstr "_Copiar"
-
-#: bin/scantpaper:1322
-msgid "Copy selection"
-msgstr "Copia la selección"
-
-#: bin/scantpaper:1326
-msgid "_Paste"
-msgstr "_Pegar"
-
-#: bin/scantpaper:1327
-msgid "Paste selection"
-msgstr "Pega la selección"
-
-#: bin/scantpaper:1331
-msgid "_Delete"
-msgstr "_Eliminar"
-
-#: bin/scantpaper:1332
-msgid "Delete selected pages"
-msgstr "Eliminar las páginas seleccionadas"
-
-#: bin/scantpaper:1336
-msgid "_Renumber"
-msgstr "_Renumerar"
-
-#: bin/scantpaper:1337
-msgid "Renumber pages"
-msgstr "Renumerar páginas"
-
-#: bin/scantpaper:1339 bin/gscan2pdf:1521
-msgid "_Select"
-msgstr "_Seleccionar"
-
-#: bin/scantpaper:1342
-msgid "_All"
-msgstr "_Todas"
-
-#: bin/scantpaper:1343
-msgid "Select all pages"
-msgstr "Seleccionar todas las páginas"
-
-#: bin/scantpaper:1346
-msgid "_Odd"
-msgstr "_Impares"
-
-#: bin/scantpaper:1347
-msgid "Select all odd-numbered pages"
-msgstr "Selecciona todas las páginas impares"
-
-#: bin/scantpaper:1351
-msgid "_Even"
-msgstr "_Pares"
-
-#: bin/scantpaper:1352
-msgid "Select all evenly-numbered pages"
-msgstr "Selecciona todas las páginas pares"
-
-#: bin/scantpaper:1358
-msgid "_Blank"
-msgstr "_Blanco"
-
-#: bin/scantpaper:1360
-msgid "Select pages with low standard deviation"
-msgstr "Selecciona páginas con desviación estándar baja"
-
-#: bin/scantpaper:1365
-msgid "_Dark"
-msgstr "_Oscuro"
-
-#: bin/scantpaper:1366
-msgid "Select dark pages"
-msgstr "Seleccionar páginas oscuras"
-
-#: bin/scantpaper:1371
-msgid "_Modified"
-msgstr "_Modificado"
-
-#: bin/scantpaper:1373
-msgid "Select modified pages since last OCR"
-msgstr "Seleccionar páginas modificadas desde el último OCR"
-
-#: bin/scantpaper:1378
-msgid "_No OCR"
-msgstr "_No OCR"
-
-#: bin/scantpaper:1379
-msgid "Select pages with no OCR output"
-msgstr "Seleccionar páginas sin salida OCR"
-
-#: bin/scantpaper:1383
-msgid "_Clear OCR"
-msgstr "_Limpiar OCR"
-
-#: bin/scantpaper:1384
-msgid "Clear OCR output from selected pages"
-msgstr "Limpiar la salida OCR para las páginas seleccionadas"
-
-#: bin/scantpaper:1388
-msgid "Propert_ies"
-msgstr "Propie_dades"
-
-#: bin/scantpaper:1389
-msgid "Edit image properties"
-msgstr "Editar propiedades de imagen"
-
-#: bin/scantpaper:1393
-msgid "Prefere_nces"
-msgstr "Preferencias"
-
-#: bin/scantpaper:1394
-msgid "Edit preferences"
-msgstr "Editar preferencias"
-
-#: bin/scantpaper:1398
-msgid "_View"
-msgstr "_Vista"
-
-#: bin/scantpaper:1401
-msgid "Zoom _100%"
-msgstr "Zoom _100%"
-
-#: bin/scantpaper:1402
-msgid "Zoom to 100%"
-msgstr "Zoom al 100%"
-
-#: bin/scantpaper:1406
-msgid "Zoom to _fit"
-msgstr "Zoom hasta _ajustar"
-
-#: bin/scantpaper:1407
-msgid "Zoom to fit"
-msgstr "Zoom hasta ajustar"
-
-#: bin/scantpaper:1411
-msgid "Zoom _in"
-msgstr "Zoom acercar"
-
-#: bin/scantpaper:1412
-msgid "Zoom in"
-msgstr "Acercar"
-
-#: bin/scantpaper:1416
-msgid "Zoom _out"
-msgstr "Z_oom alejar"
-
-#: bin/scantpaper:1417
-msgid "Zoom out"
-msgstr "Alejar"
-
-#: bin/scantpaper:1422 bin/gscan2pdf:1424
-msgid "Rotate 90° clockwise"
-msgstr "Rotar 90º en sentido horario"
-
-#: bin/scantpaper:1433 bin/gscan2pdf:1435
-msgid "Rotate 180°"
-msgstr "Rotar 180°"
-
-#: bin/scantpaper:1444 bin/gscan2pdf:1446
-msgid "Rotate 90° anticlockwise"
-msgstr "Rotar 90º en sentido antihorario"
-
-#: bin/scantpaper:1454
-msgid "_Tools"
-msgstr "_Herramientas"
-
-#: bin/scantpaper:1456
-msgid "_Threshold"
-msgstr "U_mbral"
-
-#: bin/scantpaper:1457
-msgid "Change each pixel above this threshold to black"
-msgstr "Cambiar cada píxel sobre este umbral a negro"
-
-#: bin/scantpaper:1462
-msgid "_Brightness / Contrast"
-msgstr "Brillo / Contraste"
-
-#: bin/scantpaper:1463
-msgid "Change brightness & contrast"
-msgstr "Cambiar brillo y contraste"
-
-#: bin/scantpaper:1466
-msgid "_Negate"
-msgstr "_Anular"
-
-#: bin/scantpaper:1467
-msgid "Converts black to white and vice versa"
-msgstr "Convertir negro a blanco y viceversa"
-
-#: bin/scantpaper:1471
-msgid "_Unsharp Mask"
-msgstr "Deformar Máscara"
-
-#: bin/scantpaper:1472
-msgid "Apply an unsharp mask"
-msgstr "Aplicar una máscara para deformar"
-
-#: bin/scantpaper:1476 bin/gscan2pdf:1481
-msgid "_Crop"
-msgstr "_Recortar"
-
-#: bin/scantpaper:1477
-msgid "Crop pages"
-msgstr "Recortar páginas"
-
-#: bin/scantpaper:1482
-msgid "Crop selection"
-msgstr "Recortar selección"
-
-#: bin/scantpaper:1485
-msgid "_Clean up"
-msgstr "Limpiar"
-
-#: bin/scantpaper:1486 bin/gscan2pdf:4581
-msgid "Clean up scanned images with unpaper"
-msgstr "Limpiar las imágenes escaneadas con unpaper"
-
-#: bin/scantpaper:1489
-msgid "_Split"
-msgstr "_Dividir"
-
-#: bin/scantpaper:1490
-msgid "Split pages horizontally or vertically"
-msgstr ""
-
-#: bin/scantpaper:1494
-msgid "_OCR"
-msgstr "_OCR"
-
-#: bin/scantpaper:1495
-msgid "Optical Character Recognition"
-msgstr "Reconocimiento óptico de caracteres"
-
-#: bin/scantpaper:1499
-msgid "U_ser-defined"
-msgstr "Definido por el u_suario"
-
-#: bin/scantpaper:1500
-msgid "Process images with user-defined tool"
-msgstr "Procesar imágenes con herramienta definida por el usuario"
-
-#: bin/scantpaper:1505 bin/gscan2pdf:1507
-msgid "_Help"
-msgstr "_Ayuda"
-
-#: bin/scantpaper:1508
-msgid "Help"
-msgstr "Ayuda"
-
-#: bin/scantpaper:1510
-msgid "_About"
-msgstr "_Acerca de"
-
-#: bin/scantpaper:1516
-msgid "_Pan"
-msgstr ""
-
-#: bin/scantpaper:1517
-msgid "Use the pan tool"
-msgstr "Usar herramienta de desplazamiento"
-
-#: bin/scantpaper:1522
-msgid "Use the rectangular selection tool"
-msgstr "Usar herramienta de selección rectangular"
-
-#: bin/scantpaper:1526
-msgid "_Select & pan"
-msgstr "_Seleccionar y desplazar"
-
-#: bin/scantpaper:1527
-msgid "Use the combined select and pan tool"
-msgstr ""
-
-#: bin/scantpaper:1532
-msgid "_Tabbed"
-msgstr "_Tabulado"
-
-#: bin/scantpaper:1533
-msgid "Arrange image and OCR viewers in tabs"
-msgstr "Organizar imagen y visor OCR en pestañas"
-
-#: bin/scantpaper:1536
-msgid "_Split horizontally"
-msgstr "_Dividir horizontalmente"
-
-#: bin/scantpaper:1538
-msgid "Arrange image and OCR viewers in horizontally split screen"
-msgstr ""
-
-#: bin/scantpaper:1542
-msgid "_Split vertically"
-msgstr "_Dividir verticalmente"
-
-#: bin/scantpaper:1543
-msgid "Arrange image and OCR viewers in vertically split screen"
-msgstr ""
-
-#: bin/scantpaper:1550
-msgid "Edit text layer"
-msgstr "Editar capa de texto"
-
-#: bin/scantpaper:1551
-msgid "Show editing tools for text layer"
-msgstr "Mostrar herramientas de edición para capa de texto"
-
-#: bin/scantpaper:1556
-msgid "Edit annotations"
-msgstr "Editar notas"
-
-#: bin/scantpaper:1558
-msgid "Show editing tools for annotations"
-msgstr "Mostrar herramientas de edición para notas"
-
-#: bin/scantpaper:1762
-msgid "Save image and Save as PDF both require imagemagick\n"
-msgstr "Guardar imagen y Guardar como PDF ambos requieren imagemagick\n"
-
-#: bin/scantpaper:1767
-msgid "Save image requires libtiff\n"
-msgstr "Se requiere libtiff para guardar la imagen\n"
-
-#: bin/scantpaper:1772
-msgid "Save as DjVu requires djvulibre-bin\n"
-msgstr "Se requiere djvulibre-bin para guardar como DjVu\n"
-
-#: bin/scantpaper:1777
-msgid "Email as PDF requires xdg-email\n"
-msgstr "Email como PDF necesita xdg-email\n"
-
-#: bin/scantpaper:1810
-msgid ""
-"The rotating, crop, unsharp, split and unpaper tools require perlmagick\n"
-msgstr ""
-
-#: bin/scantpaper:1815
-msgid "unpaper missing\n"
-msgstr "unpaper no encontrado\n"
-
-#: bin/scantpaper:1828
-msgid "OCR requires gocr, tesseract, ocropus, or cuneiform\n"
-msgstr "OCR requiere gocr, tesseract, ocropus, o cuneiform\n"
-
-#: bin/scantpaper:1845
-msgid "PDF encryption requires pdftk\n"
-msgstr "La encriptación de PDF requiere pdftk\n"
-
-#: bin/scantpaper:1850
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Launchpad (build c11083652ba158ce73cebdfd79e69cf6f7d05a73)\n"
+"X-Launchpad-Export-Date: 2021-06-28 16:08+0000\n"
+
+#: app_window.py:516
+#, fuzzy
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr "Para guardar la imagen y en PDF se necesita ImageMagick"
+
+#: app_window.py:517
+#, fuzzy
+msgid "Save image requires libtiff"
+msgstr "Para guardar la imagen se necesita libtiff"
+
+#: app_window.py:518
+#, fuzzy
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "Para guardar en DjVu se necesita djvulibre-bin"
+
+#: app_window.py:519
+#, fuzzy
+msgid "Email as PDF requires xdg-email"
+msgstr "Para enviar el PDF por correo se necesita xdg-email"
+
+#: app_window.py:520
+#, fuzzy
+msgid "unpaper missing"
+msgstr "falta unpaper"
+
+#: app_window.py:528
+#, fuzzy
+msgid "OCR requires tesseract"
+msgstr "Para OCR se necesita tesseract"
+
+#: app_window.py:543
+#, fuzzy
+msgid "PDF encryption requires qpdf"
+msgstr "Para el cifrado de PDF se necesita qpdf"
+
+#: app_window.py:575
 msgid "Warning: missing packages"
 msgstr "Aviso: paquetes faltantes"
 
-#: bin/scantpaper:2117
-#, perl-format
-msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
-msgstr ""
-"Advertencia: No se pudo usar %s para almacenamiento temporal. Utilizando %s "
-"por defecto."
-
-#: bin/scantpaper:2164
-msgid "Crashed sessions"
-msgstr "Sesiones interrumpidas"
-
-#: bin/scantpaper:2172
-msgid "The following list of sessions cannot be restored."
-msgstr ""
-
-#: bin/scantpaper:2174
-msgid "Please retrieve any images you require from them."
-msgstr ""
-
-#: bin/scantpaper:2176
-msgid "Selected sessions will be deleted."
-msgstr "Las sesiones seleccionadas se eliminarán"
-
-#: bin/scantpaper:2178 bin/gscan2pdf:2215 lib/Gscan2pdf/Dialog/Save.pm:553
-msgid "Session"
-msgstr "Sesión"
-
-#: bin/scantpaper:2207 bin/gscan2pdf:2212
-msgid "Pick crashed session to restore"
-msgstr "Escoge la sesión que quieres restaurar"
-
-#: bin/scantpaper:2395
-msgid ""
-"Some pages have not been saved.\n"
-"Do you really want to clear all pages?"
-msgstr ""
-"Algunas páginas no han sido guardadas.\n"
-"¿Seguro que quiere eliminar todas las páginas?"
-
-#: bin/scantpaper:2552 bin/gscan2pdf:2584
-#, perl-format
-msgid "Process %i of %i (%s)"
-msgstr "Proceso %i de %i (%s)"
-
-#: bin/scantpaper:2591
-#, perl-format
-msgid "Process %i of %i"
-msgstr "Proceso %i de %i"
-
-#: bin/scantpaper:2619
-msgid "Open image"
-msgstr "Abrir imagen"
-
-#: bin/scantpaper:2627 bin/gscan2pdf:3161 bin/gscan2pdf:3405
-msgid "Image files"
-msgstr "Archivos de imagen"
-
-#: bin/scantpaper:2665
-#, perl-format
-msgid "Enter user password for PDF %s"
-msgstr "Introduzca contraseña de usuario para PDF %s"
-
-#: bin/scantpaper:2725
-msgid "Pages to extract"
-msgstr "Páginas a extraer"
-
-#: bin/scantpaper:2733
-msgid "First page to extract"
-msgstr "Primera página a extraer"
-
-#: bin/scantpaper:2740
-msgid "Last page to extract"
-msgstr "Última página a extraer"
-
-#: bin/scantpaper:2803
-#, perl-format
-msgid "%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime."
-msgstr "%04d-%02d-%02d %02d:%02d:%02d no es una fecha válida."
-
-#: bin/scantpaper:2971
-msgid "Post-save hook"
-msgstr "Gancho de pos-guardado"
-
-#: bin/scantpaper:2974
-#, perl-format
-msgid ""
-"Run command on saved file. The available commands are those user-defined "
-"tools that do not specify %o"
-msgstr ""
-"Ejecutar comando en archivo guardado. Los comandos disponibles son las "
-"herramientas definidas por el usuario que no especifican %o"
-
-#: bin/scantpaper:2989 bin/gscan2pdf:2990
-msgid "Close dialog on save"
-msgstr "Cerrar diálogo al guardar"
-
-#: bin/scantpaper:3058 bin/gscan2pdf:3082
-msgid "PDF filename"
-msgstr "Nombre del archivo PDF"
-
-#: bin/scantpaper:3088
-msgid "PDF files"
-msgstr "Archivos PDF"
-
-#: bin/scantpaper:3112
-msgid "DjVu filename"
-msgstr "DjVu nombre de archivo"
-
-#: bin/scantpaper:3134
-msgid "DjVu files"
-msgstr "Archivos DjVu"
-
-#: bin/scantpaper:3154
-msgid "TIFF filename"
-msgstr "Nombre del archivo TIFF"
-
-#: bin/scantpaper:3180
-msgid "Text filename"
-msgstr "Nombre de archivo de texto"
-
-#: bin/scantpaper:3188
-msgid "Text files"
-msgstr "Archivos de texto"
-
-#: bin/scantpaper:3205
-msgid "hOCR filename"
-msgstr "Nombre de archivo hOCR"
-
-#: bin/scantpaper:3213
-msgid "hOCR files"
-msgstr "Archivos hOCR"
-
-#: bin/scantpaper:3232
-msgid "PS filename"
-msgstr "Nombre de archivo PS"
-
-#: bin/scantpaper:3239
-msgid "Postscript files"
-msgstr "Archivos Postscript"
-
-#: bin/scantpaper:3257
-msgid "scantpaper session filename"
-msgstr "nombre de archivo de sesión scantpaper"
-
-#: bin/scantpaper:3264
-msgid "scantpaper session files"
-msgstr "Archivos de sesión de scantpaper"
-
-#: bin/scantpaper:3368
-#, perl-format
-msgid "Directory %s is read-only"
-msgstr "Directorio %s es de solo lectura"
-
-#: bin/scantpaper:3378
-#, perl-format
-msgid "File %s is read-only"
-msgstr "Archivo %s es de solo lectura"
-
-#: bin/scantpaper:3398
-msgid "Image filename"
-msgstr "Nombre de archivo de imagen"
-
-#: bin/scantpaper:3681
-msgid "Email as PDF"
-msgstr "Email como PDF"
-
-#: bin/scantpaper:3807
-msgid "Error creating email"
-msgstr "Error creando el email"
-
-#: bin/scantpaper:3845
-msgid "Scan Document"
-msgstr "Escanear documento"
-
-#: bin/scantpaper:4201
-msgid "Error opening the last device used."
-msgstr "Error accediendo al último dispositivo usado"
-
-#: bin/scantpaper:4204
-msgid "There was an error opening the last device used."
-msgstr "Hubo un error accediendo al último dispositivo usado"
-
-#: bin/scantpaper:4207
-msgid "Whoops! I forgot to turn it on. Try again now."
-msgstr "¡Ups! Olvidé encenderlo. Prueba otra vez"
-
-#: bin/scantpaper:4210 lib/Gscan2pdf/Dialog/Scan.pm:638
-msgid "Rescan for devices"
-msgstr "Buscar dispositivos nuevamente"
-
-#: bin/scantpaper:4213
-msgid "Restart scantpaper."
-msgstr "Reiniciar scantpaper"
-
-#: bin/scantpaper:4216
-msgid "Just ignore the error. I don't need the scanner yet."
-msgstr "Ignora el error. No necesito el escáner todavía"
-
-#: bin/scantpaper:4219 bin/gscan2pdf:7021
-msgid "Cache device list"
-msgstr ""
-
-#: bin/scantpaper:4223 bin/gscan2pdf:7594
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:56
-msgid "Don't show this message again"
-msgstr "No mostrar este mensaje otra vez"
-
-#: bin/scantpaper:4281
-msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr ""
-"Finalizado el escaneo del anverso de página. Escanear reverso de página?"
-
-#: bin/scantpaper:4286
-msgid "Finished scanning reverse pages. Scan facing pages?"
-msgstr ""
-"Finalizado el escaneo del reverso de página. Escanear anverso de página?"
-
-#: bin/scantpaper:4333 bin/gscan2pdf:4358
-msgid "Rotate"
-msgstr "Rotar"
-
-#: bin/scantpaper:4334 bin/gscan2pdf:4359
-msgid "Rotate image after scanning"
-msgstr "Rotar imagen luego de scanear"
-
-#: bin/scantpaper:4337
-msgid "Both sides"
-msgstr "Ambos lados"
-
-#: bin/scantpaper:4337
-msgid "Both sides."
-msgstr "Ambos lados."
-
-#: bin/scantpaper:4338
-msgid "Facing side"
-msgstr "Lado anverso"
-
-#: bin/scantpaper:4338
-msgid "Facing side."
-msgstr "Lado anverso."
-
-#: bin/scantpaper:4339
-msgid "Reverse side"
-msgstr "Lado reverso"
-
-#: bin/scantpaper:4339
-msgid "Reverse side."
-msgstr "Lado reverso."
-
-#: bin/scantpaper:4342 bin/gscan2pdf:4363
-msgid "Select side to rotate"
-msgstr "Selecciona lado a rotar"
-
-#: bin/scantpaper:4345
-msgid "90"
-msgstr "90"
-
-#: bin/scantpaper:4345
-msgid "Rotate image 90 degrees clockwise."
-msgstr "Rotar imagen 90 grados en sentido del reloj."
-
-#: bin/scantpaper:4346
-msgid "180"
-msgstr "180"
-
-#: bin/scantpaper:4346
-msgid "Rotate image 180 degrees clockwise."
-msgstr "Rotar imagen 180 grados en sentido del reloj."
-
-#: bin/scantpaper:4348
-msgid "270"
-msgstr "270"
-
-#: bin/scantpaper:4349
-msgid "Rotate image 90 degrees anticlockwise."
-msgstr "Rotar imagen 90 grados en sentido contrario al reloj."
-
-#: bin/scantpaper:4353 bin/gscan2pdf:4366
-msgid "Select direction of rotation"
-msgstr "Seleccione dirección de la rotación"
-
-#: bin/scantpaper:4442
-msgid "Process with user-defined tool"
-msgstr "Procesar con herramienta definida por el usuario"
-
-#: bin/scantpaper:4444
-msgid "Process scanned images with user-defined tool"
-msgstr "Procesar imágenes escaneadas con herramienta definida por el usuario"
-
-#: bin/scantpaper:4472 bin/gscan2pdf:4473
-msgid "OCR scanned pages"
-msgstr "Páginas escaneadas OCR"
-
-#: bin/scantpaper:4483
-msgid "Select OCR engine"
-msgstr "Selecciona motor OCR"
-
-#: bin/scantpaper:4532 bin/gscan2pdf:6313
-msgid "Threshold before OCR"
-msgstr "Umbral antes de OCR"
-
-#: bin/scantpaper:4535 bin/gscan2pdf:6316
-msgid ""
-"Threshold the image before performing OCR. This only affects the image "
-"passed to the OCR engine, and not the image stored."
-msgstr ""
-"Limita la imagen antes de ejecutar OCR. Esto sólo afecta a la imagen "
-"procesada por el motor OCR, y no a la imagen guardada."
-
-#: bin/scantpaper:4566
-msgid "Postprocessing"
-msgstr "Post-procesamiento"
-
-#: bin/scantpaper:4580
-msgid "Clean up images"
-msgstr "Limpiar imágenes"
-
-#: bin/scantpaper:4590
-msgid "Options"
-msgstr "Opciones"
-
-#: bin/scantpaper:4591
-msgid "Set unpaper options"
-msgstr "Configurar opciones de unpaper"
-
-#: bin/scantpaper:4597
-msgid "unpaper options"
-msgstr "opciones de unpaper"
-
-#: bin/scantpaper:5006
-msgid "To aid the scan-to-PDF process"
-msgstr "Para ayudar en el escaneo a PDF"
-
-#: bin/scantpaper:5007
-msgid "Copyright 2006--2021 Jeffrey Ratcliffe"
-msgstr ""
-
-#: bin/scantpaper:5260 bin/gscan2pdf:5270 bin/gscan2pdf:5529
-msgid "Threshold"
-msgstr "Umbral"
-
-#: bin/scantpaper:5339
-msgid "Brightness / Contrast"
-msgstr "Brillo y contraste"
-
-#: bin/scantpaper:5350
-msgid "Brightness"
-msgstr "Brillo"
-
-#: bin/scantpaper:5361
-msgid "Contrast"
-msgstr "Contraste"
-
-#: bin/scantpaper:5430
-msgid "Negate"
-msgstr "Negativo"
-
-#: bin/scantpaper:5492
-msgid "Unsharp mask"
-msgstr "Máscara de Unsharp"
-
-#: bin/scantpaper:5506
-msgid "Radius"
-msgstr "Radio"
-
-#: bin/scantpaper:5508 bin/gscan2pdf:5515 bin/gscan2pdf:5731
-msgid "pixels"
-msgstr "píxeles"
-
-#: bin/scantpaper:5511
-msgid ""
-"The radius of the Gaussian, in pixels, not counting the center pixel (0 = "
-"automatic)."
-msgstr ""
-"El radio de la Gaussiana, en píxeles, no contando el píxel central (0 = "
-"automático)."
-
-#: bin/scantpaper:5515
-msgid "Sigma"
-msgstr "Sigma"
-
-#: bin/scantpaper:5517
-msgid "The standard deviation of the Gaussian."
-msgstr "La desviación estándar de la Gaussiana."
-
-#: bin/scantpaper:5520
-msgid "Gain"
-msgstr "Ganancia"
-
-#: bin/scantpaper:5525
-msgid ""
-"The percentage of the difference between the original and the blur image "
-"that is added back into the original."
-msgstr ""
-"El porcentaje de la diferencia entre el original y la imagen difuminada que "
-"es agregada nuevamente dentro del original."
-
-#: bin/scantpaper:5534
-msgid ""
-"The threshold, as a fraction of QuantumRange, needed to apply the difference "
-"amount."
-msgstr ""
-"El umbral, como una fracción de QuantumRange, necesaria para aplicar la "
-"diferencia."
-
-#: bin/scantpaper:5689
-msgid "Crop"
-msgstr "Recortar"
-
-#: bin/scantpaper:5703
-msgid "x"
-msgstr "x"
-
-#: bin/scantpaper:5705
-msgid "The x-position of the left hand edge of the crop."
-msgstr "La posición x del borde de la izquierda del recorte."
-
-#: bin/scantpaper:5708
-msgid "y"
-msgstr "y"
-
-#: bin/scantpaper:5709
-msgid "The y-position of the top edge of the crop."
-msgstr "La posición y del borde superior del recorte."
-
-#: bin/scantpaper:5711 lib/Gscan2pdf/Dialog/Scan.pm:1737
-msgid "Width"
-msgstr "Anchura"
-
-#: bin/scantpaper:5711
-msgid "The width of the crop."
-msgstr "La anchura del recorte."
-
-#: bin/scantpaper:5712 lib/Gscan2pdf/Dialog/Scan.pm:1738
-msgid "Height"
-msgstr "Altura"
-
-#: bin/scantpaper:5712
-msgid "The height of the crop."
-msgstr "La altura del recorte."
-
-#: bin/scantpaper:5867
-msgid "Split"
-msgstr "Dividir"
-
-#: bin/scantpaper:5877
-msgid "Direction"
-msgstr "Dirección"
-
-#: bin/scantpaper:5881
-msgid "Vertically"
-msgstr "Verticalmente"
-
-#: bin/scantpaper:5882
-msgid "Split the page vertically into left and right pages."
-msgstr ""
-
-#: bin/scantpaper:5885
-msgid "Horizontally"
-msgstr "Horizontalmente"
-
-#: bin/scantpaper:5886
-msgid "Split the page horizontally into top and bottom pages."
-msgstr ""
-
-#: bin/scantpaper:5910
-msgid "Position"
-msgstr "Posición"
-
-#: bin/scantpaper:6026
-msgid "User-defined tools"
-msgstr "Herramientas definidas por el usuario"
-
-#: bin/scantpaper:6036
-msgid "Selected tool"
-msgstr "Herramienta seleccionada"
-
-#: bin/scantpaper:6157
-msgid "unpaper"
-msgstr "unpaper"
-
-#: bin/scantpaper:6208 bin/gscan2pdf:6236
-msgid "Language to recognise"
-msgstr "Lenguaje a reconocer"
-
-#: bin/scantpaper:6219
-msgid "English"
-msgstr "Inglés"
-
-#: bin/scantpaper:6262
-msgid "OCR"
-msgstr "OCR"
-
-#: bin/scantpaper:6273
-msgid "OCR Engine"
-msgstr "Motor OCR"
-
-#: bin/scantpaper:6338
-msgid "Start OCR"
-msgstr "Iniciar OCR"
-
-#: bin/scantpaper:6433
-msgid ""
-"Some pages have not been saved.\n"
-"Do you really want to quit?"
-msgstr ""
-"Algunas páginas no han sido guardadas.\n"
-"Realmente desea salir?"
-
-#: bin/scantpaper:6531
-#, perl-format
+#: app_window.py:593
+msgid "Image"
+msgstr "Imagen"
+
+#: app_window.py:594 text_layer_control.py:57
+#, fuzzy
+msgid "Text layer"
+msgstr "Capa de texto"
+
+#: app_window.py:596 session_mixins.py:446
+msgid "Annotations"
+msgstr "Notas"
+
+#: app_window.py:837
 msgid "%dMb free in %s."
 msgstr "%dMb libres en %s."
 
-#: bin/scantpaper:6667
-msgid "This operation cannot be undone. Are you sure?"
-msgstr "Esta operación no puede ser deshecha. ¿Está seguro?"
+#: app_window.py:861 helpers.py:372
+msgid "Messages"
+msgstr "Mensajes"
 
-#: bin/scantpaper:6724
+#: app_window.py:946
+msgid "Error opening the last device used."
+msgstr "Error accediendo al último dispositivo usado"
+
+#: app_window.py:948
+msgid "There was an error opening the last device used."
+msgstr "Hubo un error accediendo al último dispositivo usado"
+
+#: app_window.py:951
+msgid "Whoops! I forgot to turn it on. Try again now."
+msgstr "¡Ups! Olvidé encenderlo. Prueba otra vez"
+
+#: app_window.py:956 dialog/scan.py:517
+msgid "Rescan for devices"
+msgstr "Buscar dispositivos nuevamente"
+
+#: app_window.py:960
+msgid "Restart scantpaper."
+msgstr "Reiniciar scantpaper"
+
+#: app_window.py:965
+msgid "Just ignore the error. I don't need the scanner yet."
+msgstr "Ignora el error. No necesito el escáner todavía"
+
+#: app_window.py:968 dialog/preferences.py:162
+#, fuzzy
+msgid "Cache device list"
+msgstr "Guardar en caché la lista de dispositivos"
+
+#: app_window.py:971 dialog/__init__.py:135 session_mixins.py:392
+msgid "Don't show this message again"
+msgstr "No mostrar este mensaje otra vez"
+
+#: basedocument.py:48
+msgid "Thumbnails"
+msgstr "Miniaturas"
+
+#: basedocument.py:711
+msgid "No pages to process"
+msgstr "No hay páginas para procesar"
+
+#: basedocument.py:715
+msgid "No pages selected"
+msgstr "No hay páginas seleccionadas"
+
+#: config.py:107
+msgid "A3"
+msgstr "A3"
+
+#: config.py:113
+msgid "A4"
+msgstr "A4"
+
+#: config.py:119
+msgid "US Letter"
+msgstr "Carta de EE.UU."
+
+#: config.py:125
+msgid "US Legal"
+msgstr "Legal de EE.UU."
+
+#: config.py:262
+#, fuzzy
+msgid ""
+"The setting %s is %r and cannot be used as %s, so it has been left "
+"unchanged."
+msgstr ""
+"El valor de %s es %r y no se puede usar como %s, por lo que se ha dejado sin"
+" cambios."
+
+#: config.py:298
+#, fuzzy
+msgid ""
+"The settings file %s could not be read in full. The following settings were "
+"restored: %s. The rest were reset to their defaults. A backup of the "
+"original file has been saved as %s."
+msgstr ""
+"No se pudo leer por completo el archivo de configuración %s. Se restauraron "
+"los siguientes ajustes: %s. El resto se restableció a sus valores "
+"predeterminados. Se ha guardado una copia de seguridad del archivo original "
+"como %s."
+
+#: config.py:305
+#, fuzzy
+msgid ""
+"The settings file %s could not be read, so all settings have been reset to "
+"their defaults. A backup of the original file has been saved as %s."
+msgstr ""
+"No se pudo leer el archivo de configuración %s, por lo que todos los ajustes"
+" se han restablecido a sus valores predeterminados. Se ha guardado una copia"
+" de seguridad del archivo original como %s."
+
+#: dialog/__init__.py:67
+msgid "Page Range"
+msgstr "Rango de página"
+
+#: dialog/__init__.py:106
+msgid "Error"
+msgstr "Error"
+
+#: dialog/__init__.py:107
+msgid "Warning"
+msgstr "Aviso"
+
+#: dialog/__init__.py:108
+#, fuzzy
+msgid "Info"
+msgstr "Información"
+
+#: dialog/__init__.py:125
+msgid "Page"
+msgstr "Página"
+
+#: dialog/__init__.py:126
+msgid "Process"
+msgstr "Proceso"
+
+#: dialog/__init__.py:127
+msgid "Message type"
+msgstr "Tipo de mensaje"
+
+#: dialog/__init__.py:129
+msgid "Message"
+msgstr "Mensaje"
+
+#: dialog/__init__.py:132
+msgid "Hide"
+msgstr "Ocultar"
+
+#: dialog/__init__.py:193
+msgid "Don't show these messages again"
+msgstr "No muestre estos mensajes de nuevo."
+
+#: dialog/__init__.py:312
+msgid ""
+"This error is normally due to ImageMagick exceeding its resource limits."
+msgstr ""
+"Este error normalmente se debe a que ImageMagick ha excedido su límite de "
+"recursos."
+
+#: dialog/__init__.py:316
+msgid ""
+"These can be extended by editing its policy file, which on my system is "
+"found at /etc/ImageMagick-6/policy.xml"
+msgstr ""
+"Esto se puede extender editando los permisos del archivo, que en mi sistema "
+"se encuentra en  /etc/ImageMagick-6/policy.xml"
+
+#: dialog/__init__.py:321
+msgid ""
+"Please see https://imagemagick.org/script/resources.php for more information"
+msgstr ""
+"Por favor, consulte https://imagemagick.org/script/resources.php para más "
+"información."
+
+#: dialog/crop.py:14
+msgid "x"
+msgstr "x"
+
+#: dialog/crop.py:15
+msgid "The x-position of the left hand edge of the crop."
+msgstr "La posición x del borde de la izquierda del recorte."
+
+#: dialog/crop.py:19
+msgid "y"
+msgstr "y"
+
+#: dialog/crop.py:20
+msgid "The y-position of the top edge of the crop."
+msgstr "La posición y del borde superior del recorte."
+
+#: dialog/crop.py:24 dialog/paperlist.py:22
+msgid "Width"
+msgstr "Anchura"
+
+#: dialog/crop.py:25
+msgid "The width of the crop."
+msgstr "La anchura del recorte."
+
+#: dialog/crop.py:29 dialog/paperlist.py:23
+msgid "Height"
+msgstr "Altura"
+
+#: dialog/crop.py:30
+msgid "The height of the crop."
+msgstr "La altura del recorte."
+
+#: dialog/crop.py:116
+msgid "Crop"
+msgstr "Recortar"
+
+#: dialog/crop.py:154 tools_menu_mixins.py:277
+msgid "pixels"
+msgstr "píxeles"
+
+#: dialog/pagecontrols.py:188
+msgid "Page Options"
+msgstr "Opciones de página"
+
+#: dialog/pagecontrols.py:199
+msgid "# Pages"
+msgstr "# Páginas"
+
+#: dialog/pagecontrols.py:210 pagerange.py:47
+msgid "All"
+msgstr "Todas"
+
+#: dialog/pagecontrols.py:211
+msgid "Scan all pages"
+msgstr "Escanear todas las páginas"
+
+#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+msgid "Set number of pages to scan"
+msgstr "Número de páginas a escanear"
+
+#: dialog/pagecontrols.py:247
+msgid "Extended page numbering"
+msgstr "Numeración de página extendido"
+
+#: dialog/pagecontrols.py:260
+msgid "Page number"
+msgstr "Número de página"
+
+#: dialog/pagecontrols.py:271
+#, fuzzy
+msgid "Insert before page N"
+msgstr "Insertar antes de la página N"
+
+#: dialog/pagecontrols.py:274
+#, fuzzy
+msgid "Page number before which scans will be inserted"
+msgstr "Número de página antes del cual se insertarán los escaneos"
+
+#: dialog/pagecontrols.py:285
+#, fuzzy
+msgid "Position advance"
+msgstr "Avance de posición"
+
+#: dialog/pagecontrols.py:288
+#, fuzzy
+msgid ""
+"Position advance for each subsequent scan (0 = keep inserting before the "
+"same page)"
+msgstr ""
+"Avance de posición para cada escaneo posterior (0 = seguir insertando antes "
+"de la misma página)"
+
+#: dialog/pagecontrols.py:305
+msgid "Source document"
+msgstr "Fuente del documento"
+
+#: dialog/pagecontrols.py:313
+msgid "Single sided"
+msgstr "Una cara"
+
+#: dialog/pagecontrols.py:315
+msgid "Source document is single-sided"
+msgstr "El documento es a una cara"
+
+#: dialog/pagecontrols.py:321
+msgid "Double sided"
+msgstr "Doble cara"
+
+#: dialog/pagecontrols.py:323
+msgid "Source document is double-sided"
+msgstr "El documento está a doble cara"
+
+#: dialog/pagecontrols.py:329
+msgid "Side to scan"
+msgstr "Cara a escanear"
+
+#: dialog/pagecontrols.py:332
+msgid "Facing"
+msgstr "Anverso"
+
+#: dialog/pagecontrols.py:332
+msgid "Reverse"
+msgstr "Reverso"
+
+#: dialog/pagecontrols.py:337
+msgid "Sets which side of a double-sided document is scanned"
+msgstr "Determina la cara que está escaneada"
+
+#: dialog/paperlist.py:21
+msgid "Name"
+msgstr "Nombre"
+
+#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+msgid "Left"
+msgstr "Izquierda"
+
+#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+msgid "Top"
+msgstr "Superior"
+
+#: dialog/paperlist.py:26
+msgid "Units"
+msgstr "Unidades"
+
+#: dialog/paperlist.py:73 dialog/paperlist.py:115
+msgid "Cannot delete all paper sizes"
+msgstr "No es posible borrar todos los tamaños de papel"
+
+#: dialog/preferences.py:42
 msgid "Preferences"
 msgstr "Preferencias"
 
-#: bin/scantpaper:6741
+#: dialog/preferences.py:56
 msgid "Scan options"
 msgstr "Opciones de escaneo"
 
-#: bin/scantpaper:6751
+#: dialog/preferences.py:60
 msgid "General options"
 msgstr "Opciones generales"
 
-#: bin/scantpaper:6805
-msgid "Invalid regex. Try without special characters such as '*'"
-msgstr ""
-"Expresión regular inválida. Pruebe sin usar caracteres especiales como '*'"
-
-#: bin/scantpaper:6881
-msgid "Changes will only take effect after restarting scantpaper."
-msgstr "Los cambios surtirán efecto solamente después de reiniciar scantpaper"
-
-#: bin/scantpaper:6884
-msgid "Restart scantpaper now?"
-msgstr "¿Reiniciar scantpaper ahora?"
-
-#: bin/scantpaper:6904
+#: dialog/preferences.py:68
 msgid "Open scanner at program start"
 msgstr "Abrir escáner al inicio del programa"
 
-#: bin/scantpaper:6907
+#: dialog/preferences.py:70
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
 msgstr ""
 "Abrir automáticamente el diálogo de escaneo en segundo plano al iniciar el "
-"programa. Esto ahorra tiempo de hacer clic en el botón de escanear y esperar "
-"a que el programa encuentre la lista de escáneres"
+"programa. Esto ahorra tiempo de hacer clic en el botón de escanear y esperar"
+" a que el programa encuentre la lista de escáneres"
 
-#: bin/scantpaper:6920
-msgid "Frontend"
-msgstr "Interfaz"
-
-#: bin/scantpaper:6925
-msgid "libimage-sane-perl"
-msgstr "libimage-sane-perl"
-
-#: bin/scantpaper:6926
-msgid "Scan using the Perl bindings for SANE."
-msgstr "Escanear usando los bindings de Perl para SANE."
-
-#: bin/scantpaper:6929
-msgid "scanimage"
-msgstr "scanimage"
-
-#: bin/scantpaper:6930
-msgid "Scan using the scanimage frontend."
-msgstr "Escanee usando la interfaz scanimage."
-
-#: bin/scantpaper:6935
-msgid "scanadf"
-msgstr "scanadf"
-
-#: bin/scantpaper:6935
-msgid "Scan using the scanadf frontend."
-msgstr "Escanee usando la interfaz scanadf."
-
-#: bin/scantpaper:6938
-msgid "Interface used for scanner access"
-msgstr "Interfaz usada para el acceso al escáner"
-
-#: bin/scantpaper:6944
+#: dialog/preferences.py:83
 msgid "Device blacklist"
 msgstr "Lista negra de dispositivos"
 
-#: bin/scantpaper:6948
+#: dialog/preferences.py:87
 msgid "Device blacklist (regular expression)"
 msgstr "Lista negra de dispositivos (expresión regular)"
 
-#: bin/scantpaper:6956
+#: dialog/preferences.py:95
 msgid "Cycle SANE handle after scan"
 msgstr "Reutiliza el controlador SANE después de escanear"
 
-#: bin/scantpaper:6958
+#: dialog/preferences.py:97
 msgid "Some ADFs do not feed out the last page if this is not enabled"
 msgstr ""
 "Algunos ADF (alimentador automático de documentos) no expulsan la última "
 "página si no está activado"
 
-#: bin/scantpaper:6967
+#: dialog/preferences.py:105
 msgid "Allow batch scanning from flatbed"
 msgstr "Permitir escaneado en lotes desde flatbed"
 
-#: bin/scantpaper:6970
+#: dialog/preferences.py:108
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
@@ -1251,11 +433,11 @@ msgstr ""
 "Si no está seleccionado, cambiar a una fuente de escaneo plana forzará # "
 "páginas a 1 y a una cara."
 
-#: bin/scantpaper:6979
+#: dialog/preferences.py:118
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Ignorar las capacidades duplex del escáner"
 
-#: bin/scantpaper:6982
+#: dialog/preferences.py:121
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
@@ -1264,11 +446,11 @@ msgstr ""
 "los widgets de facing/volteado se muestran para permitir el numerado manual "
 "de páginas"
 
-#: bin/scantpaper:6991
+#: dialog/preferences.py:131
 msgid "Force new scan job between pages"
 msgstr "Forzar nuevo escaneado entre páginas"
 
-#: bin/scantpaper:6994
+#: dialog/preferences.py:134
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
@@ -1276,11 +458,11 @@ msgstr ""
 "Sino, otros escáneres Brother reportan sin más documentos, a pesar de "
 "escanear desde flatbed."
 
-#: bin/scantpaper:7010
+#: dialog/preferences.py:151
 msgid "Select # pages = all on selecting ADF"
 msgstr "Seleccionar # páginas = todas si se selecciona ADF"
 
-#: bin/scantpaper:7013
+#: dialog/preferences.py:154
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
@@ -1288,80 +470,35 @@ msgstr ""
 "Si esta opción está habilitada, cuando se cambie a fuente=ADF, # páginas = "
 "todas es seleccionado"
 
-#: bin/scantpaper:7024
+#: dialog/preferences.py:164
+#, fuzzy
 msgid ""
-"If this option is enabled, opening the scanner is quicker, as scantpaper does "
-"not first search for available devices."
+"If this option is enabled, opening the scanner is quicker, as scantpaper "
+"does not first search for available devices."
 msgstr ""
+"Si esta opción está activada, abrir el escáner es más rápido, ya que "
+"scantpaper no busca primero los dispositivos disponibles."
 
-#: bin/scantpaper:7027
+#: dialog/preferences.py:168
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
 "Esto sólo es efectivo si el nombre del dispositivo no cambia entre sesiones."
 
-#: bin/scantpaper:7036
-msgid "Scan command prefix"
-msgstr "Prefijo de comando de escaneo"
-
-#: bin/scantpaper:7046
-msgid "Cache device-dependent options"
-msgstr "Cachear opciones dependientes de dispositivo"
-
-#: bin/scantpaper:7052
-msgid "Clear device-dependent options cache"
-msgstr "Limpiar las opciones dependientes de dispositivo de la caché"
-
-#: bin/scantpaper:7064
-msgid "Option visibility & control"
-msgstr "Opciones de visibilidad y control"
-
-#: bin/scantpaper:7073 lib/Gscan2pdf/Dialog/Save.pm:449
-msgid "Title"
-msgstr "Título"
-
-#: bin/scantpaper:7074
-msgid "Type"
-msgstr "Tipo"
-
-#: bin/scantpaper:7075 bin/gscan2pdf:7082
-msgid "Show"
-msgstr "Mostrar"
-
-#: bin/scantpaper:7076
-msgid "Reload"
-msgstr "Actualizar"
-
-#: bin/scantpaper:7092 lib/Gscan2pdf/Dialog/MultipleMessage.pm:52
-msgid "Hide"
-msgstr "Ocultar"
-
-#: bin/scantpaper:7101
-msgid "List current options"
-msgstr "Listar opciones actuales"
-
-#: bin/scantpaper:7121
-msgid "No scanner currently open with command line frontend."
-msgstr ""
-"Ningún escáner se encuentra abierto con interfaz de línea de comando."
-
-#: bin/scantpaper:7129
-msgid "Show options not listed"
-msgstr "Mostrar opciones no listadas"
-
-#: bin/scantpaper:7175
+#: dialog/preferences.py:178
 msgid "Restore window settings on startup"
 msgstr "Restaurar configuraciones de ventana al iniciar"
 
-#: bin/scantpaper:7180
+#: dialog/preferences.py:183
 msgid "View files on saving"
 msgstr "Ver archivos al guardar"
 
-#: bin/scantpaper:7187
+#: dialog/preferences.py:190
 msgid "Default PDF & DjVu filename"
 msgstr "Nombre de archivo predeterminado PDF & DjVu"
 
-#: bin/scantpaper:7192
+#: dialog/preferences.py:194
+#, fuzzy
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -1378,46 +515,55 @@ msgid ""
 "%Dm\tdocument month\n"
 "%Dd\tdocument day\n"
 msgstr ""
+"Códigos strftime, p. ej.:\n"
+"%Y\taño actual\n"
+"\n"
+"con las siguientes adiciones:\n"
+"%Da\tautor\n"
+"%De\textensión del nombre de archivo\n"
+"%Dk\tpalabras clave\n"
+"%Ds\tasunto\n"
+"%Dt\ttítulo\n"
+"\n"
+"Todos los códigos de fecha de documento usan códigos strftime con una D inicial, p. ej.:\n"
+"%DY\taño del documento\n"
+"%Dm\tmes del documento\n"
+"%Dd\tdía del documento\n"
 
-#: bin/scantpaper:7213
+#: dialog/preferences.py:215
 msgid "Replace whitespace in filenames with underscores"
-msgstr ""
-"Reemplazar espacios en blanco en nombres de archivo con guiones bajos"
+msgstr "Reemplazar espacios en blanco en nombres de archivo con guiones bajos"
 
-#: bin/scantpaper:7219
+#: dialog/preferences.py:221
 msgid "Use timezone from locale"
 msgstr "Usar hora desde local"
 
-#: bin/scantpaper:7225
+#: dialog/preferences.py:226
 msgid "Specify time as well as date"
 msgstr "Especificar fecha y hora"
 
-#: bin/scantpaper:7231
+#: dialog/preferences.py:232
 msgid "Set access and modification times to metadata date"
 msgstr ""
 "Establecer tiempos de acceso y modificación en la fecha de la metadata"
 
-#: bin/scantpaper:7237
-msgid "Convert scanned images to PNG before further processing"
-msgstr "Convertir páginas escaneadas a PNG antes de seguir procesando"
-
-#: bin/scantpaper:7244
+#: dialog/preferences.py:240
 msgid "Temporary directory"
 msgstr "Directorio temporal"
 
-#: bin/scantpaper:7249
+#: dialog/preferences.py:245
 msgid "Browse"
 msgstr "Explorar"
 
-#: bin/scantpaper:7253
+#: dialog/preferences.py:251
 msgid "Select temporary directory"
 msgstr "Seleccionar directorio temporal"
 
-#: bin/scantpaper:7275
+#: dialog/preferences.py:273
 msgid "Warn if available space less than (Mb)"
 msgstr "Avisar si el espacio libre es menor de (Mb)"
 
-#: bin/scantpaper:7281
+#: dialog/preferences.py:278
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
@@ -1425,1094 +571,1380 @@ msgstr ""
 "Avisar si el espacio disponible en el directorio temporal es menor a este "
 "valor"
 
-#: bin/scantpaper:7289
+#: dialog/preferences.py:287
 msgid "Blank threshold"
 msgstr "Umbral de vacío"
 
-#: bin/scantpaper:7295
+#: dialog/preferences.py:292
 msgid "Threshold used for selecting blank pages"
 msgstr "Umbral utilizado para seleccionar páginas vacías"
 
-#: bin/scantpaper:7301
+#: dialog/preferences.py:300
 msgid "Dark threshold"
 msgstr "Umbral oscuro"
 
-#: bin/scantpaper:7307
+#: dialog/preferences.py:304
 msgid "Threshold used for selecting dark pages"
 msgstr "Umbral utilizado para seleccionar páginas oscuras"
 
-#: bin/scantpaper:7313
+#: dialog/preferences.py:311
 msgid "OCR output"
 msgstr "Salida de OCR"
 
-#: bin/scantpaper:7318
+#: dialog/preferences.py:316
 msgid "Replace"
 msgstr "Reemplazar"
 
-#: bin/scantpaper:7320
-msgid ""
-"Replace the contents of the text buffer with that from the OCR output."
+#: dialog/preferences.py:317
+msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr ""
 "Reemplazar el contenido del búfer de texto con aquel de la salida de OCR."
 
-#: bin/scantpaper:7324
+#: dialog/preferences.py:321
 msgid "Prepend"
 msgstr "Añadir al principio"
 
-#: bin/scantpaper:7325
+#: dialog/preferences.py:321
 msgid "Prepend the OCR output to the text buffer."
 msgstr "Añadir la salida del OCR al principio del búfer de texto."
 
-#: bin/scantpaper:7328
+#: dialog/preferences.py:322
 msgid "Append"
 msgstr "Añadir"
 
-#: bin/scantpaper:7329
+#: dialog/preferences.py:322
 msgid "Append the OCR output to the text buffer."
 msgstr "Añadir la salida del OCR al búfer de texto."
 
-#: bin/scantpaper:7337
+#: dialog/preferences.py:329
 msgid "Manage user-defined tools"
 msgstr "Administrar herramientas definidas por el usuario"
 
-#: bin/scantpaper:7417
+#: dialog/preferences.py:352
+#, fuzzy
 msgid ""
-"Use %i and %o for the input and output filenames respectively, or a single "
-"%i if the image is to be modified in-place.\n"
+"Use %i and %o for the input and output filenames respectively,\n"
+"or a single %i if the image is to be modified in-place.\n"
 "\n"
 "The other variable available is:\n"
-"\n"
 "%r resolution"
 msgstr ""
-"Use %i y %o para los nombres de los ficheros de entrada y salida "
-"respectivamente, o únicamente %i si va a modificar directamente la imagen.\n"
+"Usa %i y %o para los nombres de los archivos de entrada y salida, respectivamente,\n"
+"o un único %i si la imagen se va a modificar en el mismo sitio.\n"
 "\n"
 "La otra variable disponible es:\n"
-"\n"
 "%r resolución"
 
-#: bin/scantpaper:7469
-msgid "Properties"
-msgstr "Propiedades"
+#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+msgid "_Delete"
+msgstr "_Eliminar"
 
-#: bin/scantpaper:7481 bin/gscan2pdf:7491
-msgid "dpi"
-msgstr "ppp"
-
-#: bin/scantpaper:7626
-msgid "Messages"
-msgstr "Mensajes"
-
-#: lib/Gscan2pdf/Config.pm:326
-msgid "A3"
-msgstr "A3"
-
-#: lib/Gscan2pdf/Config.pm:332
-msgid "A4"
-msgstr "A4"
-
-#: lib/Gscan2pdf/Config.pm:338
-msgid "US Letter"
-msgstr "Carta de EE.UU."
-
-#: lib/Gscan2pdf/Config.pm:344
-msgid "US Legal"
-msgstr "Legal de EE.UU."
-
-#: lib/Gscan2pdf/Dialog.pm:72 lib/Gscan2pdf/Dialog/Renumber.pm:93
-msgid "Page Range"
-msgstr "Rango de página"
-
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:30
-msgid "Error"
-msgstr "Error"
-
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:31
-msgid "Warning"
-msgstr "Aviso"
-
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:43
-msgid "Page"
-msgstr "Página"
-
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:45
-msgid "Process"
-msgstr "Proceso"
-
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:47
-msgid "Message type"
-msgstr "Tipo de mensaje"
-
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:49
-msgid "Message"
-msgstr "Mensaje"
-
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:112
-msgid "Don't show these messages again"
-msgstr "No muestre estos mensajes de nuevo."
-
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:248
-msgid ""
-"This error is normally due to ImageMagick exceeding its resource limits."
+#: dialog/preferences.py:397
+#, fuzzy
+msgid "The following user-defined tools could not be found:\n"
 msgstr ""
-"Este error normalmente se debe a que ImageMagick ha excedido su límite de "
-"recursos."
+"No se encontraron las siguientes herramientas definidas por el usuario:\n"
 
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:252
-msgid ""
-"These can be extended by editing its policy file, which on my system is "
-"found at /etc/ImageMagick-6/policy.xml"
-msgstr ""
-"Esto se puede extender editando los permisos del archivo, que en mi sistema "
-"se encuentra en  /etc/ImageMagick-6/policy.xml"
+#: dialog/preferences.py:400
+#, fuzzy
+msgid "Please check that the command is installed and in your PATH."
+msgstr "Comprueba que el comando esté instalado y en tu PATH."
 
-#: lib/Gscan2pdf/Dialog/MultipleMessage.pm:256
-msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
-msgstr ""
-"Por favor, consulte https://imagemagick.org/script/resources.php para más "
-"información."
+#: dialog/preferences.py:402
+#, fuzzy
+msgid "User-defined tool not found"
+msgstr "No se encontró la herramienta definida por el usuario"
 
-#: lib/Gscan2pdf/Dialog/Renumber.pm:88 lib/Gscan2pdf/Dialog/Renumber.pm:187
-msgid "Renumber"
-msgstr "Renumerar"
+#: dialog/sane.py:71
+msgid "Fetching list of devices"
+msgstr "Consiguiendo lista de dispositivos"
 
-#: lib/Gscan2pdf/Dialog/Renumber.pm:112
-msgid "Page numbering"
-msgstr "Numeración de páginas"
+#: dialog/sane.py:89
+msgid "No devices found"
+msgstr "No se encontraron dispositivos"
 
-#: lib/Gscan2pdf/Dialog/Renumber.pm:121 lib/Gscan2pdf/Dialog/Scan.pm:427
-msgid "Start"
-msgstr "Comienzo"
+#: dialog/sane.py:129
+msgid "Opening device"
+msgstr "Abriendo dispositivo"
 
-#: lib/Gscan2pdf/Dialog/Renumber.pm:142 lib/Gscan2pdf/Dialog/Scan.pm:455
-msgid "Increment"
-msgstr "Incremento"
+#: dialog/sane.py:142
+msgid "Error opening device: "
+msgstr "Error al abrir el dispositivo: "
 
-#: lib/Gscan2pdf/Dialog/Renumber.pm:332
-msgid ""
-"The current settings would result in duplicate page numbers. Please select "
-"new start and increment values."
-msgstr ""
-"Las opciones actuales podrían resultar en números duplicados de página. Por "
-"favor, seleccione nuevos valores de comienzo e incremento."
+#: dialog/sane.py:148 dialog/sane.py:494
+msgid "Retrieving options"
+msgstr "Recuperando opciones"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:269 lib/Gscan2pdf/Dialog/Save.pm:319
-msgid "Now"
-msgstr "Ahora"
+#: dialog/sane.py:165 dialog/sane.py:507
+msgid "Error retrieving scanner options: "
+msgstr "Error al recuperar las opciones del escáner: "
 
-#: lib/Gscan2pdf/Dialog/Save.pm:271 lib/Gscan2pdf/Dialog/Save.pm:321
-msgid "Use current date and time"
-msgstr "Usar fecha y hora actuales."
+#: dialog/sane.py:207
+msgid "Scan Options"
+msgstr "Opciones de Escaneo"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:278 lib/Gscan2pdf/Dialog/Save.pm:414
-msgid "Today"
-msgstr "Hoy"
+#: dialog/sane.py:290
+#, fuzzy
+msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+msgstr "Se ignora la opción de escaneo «%s», rango mínimo (%s) > máximo (%s)"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:280
-msgid "Use today's date"
-msgstr "Usar la fecha de hoy"
+#: dialog/sane.py:450
+#, fuzzy
+msgid "Setting option %s"
+msgstr "Configurando la opción %s"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:296
-msgid "Document Metadata"
-msgstr "Metadatos del documento"
+#: dialog/sane.py:469
+#, fuzzy
+msgid "Error setting option: "
+msgstr "Error al configurar la opción: "
 
-#: lib/Gscan2pdf/Dialog/Save.pm:308
-msgid "Date/Time"
-msgstr "Fecha/Hora"
+#: dialog/sane.py:531
+msgid "Must scan facing pages first"
+msgstr "Se deben escanear las páginas de anverso primero"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:327
-msgid "Specify"
-msgstr "Especificar"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:328
-msgid "Specify date and time"
-msgstr "Especificar fecha y hora"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:351
-msgid "Year-Month-Day"
-msgstr "Año-Mes-Día"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:374
-msgid "Select Date"
-msgstr "Seleccionar una fecha"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:437
-msgid "Select date with calendar"
-msgstr "Seleccionar fecha con calendario"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:450
-msgid "Author"
-msgstr "Autor/a"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:451
-msgid "Subject"
-msgstr "Sujeto"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:452
-msgid "Keywords"
-msgstr "Palabras claves"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:537
-msgid "Document type"
-msgstr "Tipo de documento"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:541
+#: dialog/save.py:31
 msgid "PDF"
 msgstr "PDF"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:541
+#: dialog/save.py:31
 msgid "Portable Document Format"
 msgstr "Formato de documento portable"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:542
+#: dialog/save.py:32
 msgid "GIF"
 msgstr "GIF"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:542
+#: dialog/save.py:32
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe graphics interchange format"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:544 lib/Gscan2pdf/Dialog/Save.pm:612
-#: lib/Gscan2pdf/Dialog/Save.pm:808
-msgid "JPEG"
-msgstr "JPEG"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:545
+#: dialog/save.py:33
 msgid "Joint Photographic Experts Group JFIF format"
 msgstr "Joint Photographic Experts Group JFIF format"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:547
+#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+msgid "JPEG"
+msgstr "JPEG"
+
+#: dialog/save.py:34
 msgid "PNG"
 msgstr "PNG"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:547
+#: dialog/save.py:34
 msgid "Portable Network Graphics"
 msgstr "Portable Network Graphics"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:548
+#: dialog/save.py:35
 msgid "PNM"
 msgstr "PNM"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:548
+#: dialog/save.py:35
 msgid "Portable anymap"
 msgstr "Portable anymap"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:549
+#: dialog/save.py:36
 msgid "PS"
 msgstr "PS"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:549
+#: dialog/save.py:36
 msgid "Postscript"
 msgstr "Postscript"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:550
+#: dialog/save.py:37
 msgid "TIFF"
 msgstr "TIFF"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:550
+#: dialog/save.py:37
 msgid "Tagged Image File Format"
 msgstr "Tagged Image File Format"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:551
+#: dialog/save.py:38
 msgid "Text"
 msgstr "Texto"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:551
+#: dialog/save.py:38
 msgid "Plain text"
 msgstr "Texto plano"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:552
+#: dialog/save.py:39
 msgid "hOCR"
 msgstr "hOCR"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:552
+#: dialog/save.py:39
 msgid "hOCR markup language"
 msgstr "Lenguaje de anotaciones hOCR"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:553
-msgid "scantpaper session file"
-msgstr "archivo de sesión scantpaper"
+#: dialog/save.py:40
+#, fuzzy
+msgid "scantpaper session database"
+msgstr "Base de datos de sesión de scantpaper"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:555
+#: dialog/save.py:40 session_mixins.py:126
+msgid "Session"
+msgstr "Sesión"
+
+#: dialog/save.py:41
 msgid "Prepend to PDF"
 msgstr "Aduntar delante de PDF"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:555
+#: dialog/save.py:41
 msgid "Prepend to an existing PDF"
 msgstr "Adjuntar delante de un PDF existente"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:557
+#: dialog/save.py:42
 msgid "Append to PDF"
 msgstr "Adjuntar a PDF"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:557
+#: dialog/save.py:42
 msgid "Append to an existing PDF"
 msgstr "Adjuntar a PDF existente"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:558
+#: dialog/save.py:43
 msgid "DjVu"
 msgstr "DjVu"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:558
+#: dialog/save.py:43
 msgid "Deja Vu"
 msgstr "Deja Vu"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:570
-msgid "Postscript backend"
-msgstr "Backend de Postscript"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:574
-msgid "LibTIFF"
-msgstr "LibTIFF"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:575
-msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
-msgstr "Usar LibTIFF (tiff2ps) para crear archivos Postscript desde TIFF."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:579
-msgid "Ghostscript"
-msgstr "Ghostscript"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:580
-msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
-msgstr "Usar Ghostscript (pdf2ps) para crear archivos Postscript desde PDF."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:583
-msgid "Poppler"
-msgstr "Poppler"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:584
-msgid "Use Poppler (pdftops) to create Postscript files from PDF."
-msgstr "Usar Poppler (pdfrops) para crear archivos Postscript desde PDF."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:606 lib/Gscan2pdf/Dialog/Save.pm:802
-msgid "LZW"
-msgstr "LZW"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:607 lib/Gscan2pdf/Dialog/Save.pm:803
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "Comprimir salida con codificación Lempel-Ziv & Welch."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:609
-msgid "Zip"
-msgstr "Zip"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:609
-msgid "Compress output with deflate encoding."
-msgstr "Comprimir salida con codificación deflate."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:612
-msgid "Compress output with JPEG encoding."
-msgstr "Comprimir salida con codificación JPEG."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:614
-msgid "Packbits"
-msgstr "Packbits"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:615
-msgid "Compress output with Packbits encoding."
-msgstr "Comprimir salida con codificación Packbits."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:617 lib/Gscan2pdf/Dialog/Save.pm:805
-msgid "G3"
-msgstr "G3"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:617 lib/Gscan2pdf/Dialog/Save.pm:805
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr "Comprimir salida con codificación CCITT Group 3."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:618 lib/Gscan2pdf/Dialog/Save.pm:806
-msgid "G4"
-msgstr "G4"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:618 lib/Gscan2pdf/Dialog/Save.pm:806
-msgid "Compress output with CCITT Group 4 encoding."
-msgstr "Comprimir salida con codificación CCITT Group 4."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:619 lib/Gscan2pdf/Dialog/Save.pm:809
-msgid "None"
-msgstr "Ninguno"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:619 lib/Gscan2pdf/Dialog/Save.pm:809
-msgid "Use no compression algorithm on output."
-msgstr "No usar algoritmo de compresión para la salida."
-
-#: lib/Gscan2pdf/Dialog/Save.pm:625 lib/Gscan2pdf/Dialog/Save.pm:815
-msgid "Compression"
-msgstr "Compresión"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:754
-msgid "JPEG Quality"
-msgstr "Calidad del JPEG"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:773
-msgid "Downsample to"
-msgstr "Bajar ejemplo a"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:777
-msgid "PPI"
-msgstr "PPP"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:798
+#: dialog/save.py:48
 msgid "Automatic"
 msgstr "Automático"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:799
+#: dialog/save.py:49
 msgid "Let scantpaper which type of compression to use."
 msgstr "Permitir a scantpaper elegir el tipo de compresión a usar."
 
-#: lib/Gscan2pdf/Dialog/Save.pm:807
+#: dialog/save.py:51 dialog/save.py:76
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:51 dialog/save.py:76
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "Comprimir salida con codificación Lempel-Ziv & Welch."
+
+#: dialog/save.py:52 dialog/save.py:84
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:52 dialog/save.py:84
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "Comprimir salida con codificación CCITT Group 3."
+
+#: dialog/save.py:53 dialog/save.py:85
+msgid "G4"
+msgstr "G4"
+
+#: dialog/save.py:53 dialog/save.py:85
+msgid "Compress output with CCITT Group 4 encoding."
+msgstr "Comprimir salida con codificación CCITT Group 4."
+
+#: dialog/save.py:54
+#, fuzzy
 msgid "Flate"
-msgstr ""
+msgstr "Flate"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:807
+#: dialog/save.py:54
+#, fuzzy
 msgid "Compress output with flate encoding."
-msgstr ""
+msgstr "Comprimir la salida con codificación flate."
 
-#: lib/Gscan2pdf/Dialog/Save.pm:808
+#: dialog/save.py:55
+#, fuzzy
 msgid "Compress output with JPEG (DCT) encoding."
-msgstr ""
+msgstr "Comprimir la salida con codificación JPEG (DCT)."
 
-#: lib/Gscan2pdf/Dialog/Save.pm:844
-msgid "Position of OCR output"
-msgstr ""
+#: dialog/save.py:56 dialog/save.py:86
+msgid "None"
+msgstr "Ninguno"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:847
-msgid "Behind"
-msgstr "Detrás"
+#: dialog/save.py:56 dialog/save.py:86
+msgid "Use no compression algorithm on output."
+msgstr "No usar algoritmo de compresión para la salida."
 
-#: lib/Gscan2pdf/Dialog/Save.pm:847
-msgid "Put OCR output behind image."
-msgstr ""
+#: dialog/save.py:61
+msgid "LibTIFF"
+msgstr "LibTIFF"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:849 lib/Gscan2pdf/Unpaper.pm:164
-#: lib/Gscan2pdf/Unpaper.pm:193
-msgid "Right"
-msgstr "Derecha"
+#: dialog/save.py:62
+msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
+msgstr "Usar LibTIFF (tiff2ps) para crear archivos Postscript desde TIFF."
 
-#: lib/Gscan2pdf/Dialog/Save.pm:850
-msgid "Put OCR output to the right of the image."
-msgstr ""
+#: dialog/save.py:66
+msgid "Ghostscript"
+msgstr "Ghostscript"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:865
+#: dialog/save.py:67
+msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
+msgstr "Usar Ghostscript (pdf2ps) para crear archivos Postscript desde PDF."
+
+#: dialog/save.py:71
+msgid "Poppler"
+msgstr "Poppler"
+
+#: dialog/save.py:72
+msgid "Use Poppler (pdftops) to create Postscript files from PDF."
+msgstr "Usar Poppler (pdfrops) para crear archivos Postscript desde PDF."
+
+#: dialog/save.py:79
+msgid "Zip"
+msgstr "Zip"
+
+#: dialog/save.py:80
+msgid "Compress output with deflate encoding."
+msgstr "Comprimir salida con codificación deflate."
+
+#: dialog/save.py:82
+msgid "Compress output with JPEG encoding."
+msgstr "Comprimir salida con codificación JPEG."
+
+#: dialog/save.py:83
+msgid "Packbits"
+msgstr "Packbits"
+
+#: dialog/save.py:83
+msgid "Compress output with Packbits encoding."
+msgstr "Comprimir salida con codificación Packbits."
+
+#: dialog/save.py:360
+msgid "Document Metadata"
+msgstr "Metadatos del documento"
+
+#: dialog/save.py:374
+msgid "Date/Time"
+msgstr "Fecha/Hora"
+
+#: dialog/save.py:387 dialog/save.py:572
+msgid "Now"
+msgstr "Ahora"
+
+#: dialog/save.py:388 dialog/save.py:573
+msgid "Use current date and time"
+msgstr "Usar fecha y hora actuales."
+
+#: dialog/save.py:393
+msgid "Specify"
+msgstr "Especificar"
+
+#: dialog/save.py:395
+msgid "Specify date and time"
+msgstr "Especificar fecha y hora"
+
+#: dialog/save.py:403
+msgid "Year-Month-Day"
+msgstr "Año-Mes-Día"
+
+#: dialog/save.py:413
+msgid "Select date with calendar"
+msgstr "Seleccionar fecha con calendario"
+
+#: dialog/save.py:459
+msgid "Select Date"
+msgstr "Seleccionar una fecha"
+
+#: dialog/save.py:489 dialog/save.py:579
+msgid "Today"
+msgstr "Hoy"
+
+#: dialog/save.py:545
+msgid "Title"
+msgstr "Título"
+
+#: dialog/save.py:546
+msgid "Author"
+msgstr "Autor/a"
+
+#: dialog/save.py:547
+msgid "Subject"
+msgstr "Sujeto"
+
+#: dialog/save.py:548
+msgid "Keywords"
+msgstr "Palabras claves"
+
+#: dialog/save.py:580
+msgid "Use today's date"
+msgstr "Usar la fecha de hoy"
+
+#: dialog/save.py:590
+msgid "Document type"
+msgstr "Tipo de documento"
+
+#: dialog/save.py:598
+msgid "Postscript backend"
+msgstr "Backend de Postscript"
+
+#: dialog/save.py:614 dialog/save.py:754
+msgid "Compression"
+msgstr "Compresión"
+
+#: dialog/save.py:735
+msgid "JPEG Quality"
+msgstr "Calidad del JPEG"
+
+#: dialog/save.py:769
 msgid "Encrypt PDF"
 msgstr "Encriptar PDF"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:871
+#: dialog/save.py:785
+msgid "Downsample to"
+msgstr "Bajar ejemplo a"
+
+#: dialog/save.py:789
+msgid "PPI"
+msgstr "PPP"
+
+#: dialog/save.py:819
 msgid "Set password"
 msgstr "Establecer contraseña"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:880
+#: dialog/save.py:827
 msgid "User password"
 msgstr "Contraseña de usuario"
 
-#: lib/Gscan2pdf/Dialog/Save.pm:921
-msgid "Font for non-ASCII text"
-msgstr "Tipografía para el texto no-ASCII"
-
-#: lib/Gscan2pdf/Dialog/Save.pm:940
-msgid "Core"
-msgstr "Núcleo"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:326
-msgid "Page Options"
-msgstr "Opciones de página"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:335
-msgid "# Pages"
-msgstr "# Páginas"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:345 lib/Gscan2pdf/PageRange.pm:39
-msgid "All"
-msgstr "Todas"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:346
-msgid "Scan all pages"
-msgstr "Escanear todas las páginas"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:359 lib/Gscan2pdf/Dialog/Scan.pm:364
-msgid "Set number of pages to scan"
-msgstr "Número de páginas a escanear"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:411
-msgid "Extended page numbering"
-msgstr "Numeración de página extendido"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:418
-msgid "Page number"
-msgstr "Número de página"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:496
-msgid "Source document"
-msgstr "Fuente del documento"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:504
-msgid "Single sided"
-msgstr "Una cara"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:505
-msgid "Source document is single-sided"
-msgstr "El documento es a una cara"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:518
-msgid "Double sided"
-msgstr "Doble cara"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:519
-msgid "Source document is double-sided"
-msgstr "El documento está a doble cara"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:525
-msgid "Side to scan"
-msgstr "Cara a escanear"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:529
-msgid "Facing"
-msgstr "Anverso"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:529
-msgid "Reverse"
-msgstr "Reverso"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:550
-msgid "Sets which side of a double-sided document is scanned"
-msgstr "Determina la cara que está escaneada"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:577
-msgid "Scan profiles"
-msgstr "Perfiles de escaneo"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:613
-msgid "Scan"
-msgstr "Escanear"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:635
-msgid "Device"
-msgstr "Dispositivo"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:675
-msgid "Sets the device to be used for the scan"
-msgstr "Determina el dispositivo a utilizar para el escaneo"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:684 lib/Gscan2pdf/Dialog/Scan.pm:690
-msgid "Name of scan profile"
-msgstr "Nombre del perfil de escaneo"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:706
-#, perl-format
-msgid "Profile '%s' exists. Overwrite?"
-msgstr "El perfil '%s' ya existe. ¿Desea sobrescribirlo?"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:745
-msgid "Editing current scan options"
-msgstr "Editar opciones actuales de escáner"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:749
-#, perl-format
-msgid "Editing scan profile \"%s\""
-msgstr "Editando perfil de escaneado \"%s\""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:799
-msgid "Backend options"
-msgstr "Opciones del backend"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:800
-msgid "Frontend options"
-msgstr "Opciones de Inferfaz gráfica"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:982 lib/Gscan2pdf/Dialog/Scan.pm:1147
-#: lib/Gscan2pdf/Dialog/Scan.pm:1322 lib/Gscan2pdf/Dialog/Scan.pm:1335
-#: lib/Gscan2pdf/Dialog/Scan.pm:1617
+#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
+#: dialog/scan.py:933
 msgid "Manual"
 msgstr "Manual"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1175
-#, perl-format
+#: dialog/scan.py:446
+msgid "Scan profiles"
+msgstr "Perfiles de escaneo"
+
+#: dialog/scan.py:500
+msgid "Scan"
+msgstr "Escanear"
+
+#: dialog/scan.py:514
+msgid "Device"
+msgstr "Dispositivo"
+
+#: dialog/scan.py:552
+msgid "Sets the device to be used for the scan"
+msgstr "Determina el dispositivo a utilizar para el escaneo"
+
+#: dialog/scan.py:599
 msgid "Error: unknown device: %s"
 msgstr "Error: dispositivo desconocido: %s"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1241
+#: dialog/scan.py:657
 msgid "pel"
 msgstr "pel"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1244
+#: dialog/scan.py:658
 msgid "bit"
 msgstr "bit"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1247
+#: dialog/scan.py:659
 msgid "mm"
 msgstr "mm"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1250
+#: dialog/scan.py:660
 msgid "ppi"
 msgstr "ppp"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1253
+#: dialog/scan.py:661 tools_menu_mixins.py:284
 msgid "%"
 msgstr "%"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1256
+#: dialog/scan.py:662
 msgid "μs"
 msgstr "micras"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1318
+#: dialog/scan.py:686
 msgid "Paper size"
 msgstr "Tamaño del papel"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1323 lib/Gscan2pdf/Dialog/Scan.pm:1332
+#: dialog/scan.py:690 dialog/scan.py:707
 msgid "Edit"
 msgstr "Editar"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1325
+#: dialog/scan.py:691
 msgid "Selects or edits the paper size"
 msgstr "Selecciona o edita el tamaño del papel"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1439
-#, perl-format
+#: dialog/scan.py:769
+#, fuzzy
 msgid ""
-"Reload recursion limit (%d) exceeded. Please file a bug, attaching a log "
-"file reproducing the problem."
+"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
+" file a bug, attaching a log file reproducing the problem."
 msgstr ""
-"Recargar el límite de recursión (%d) excedido. Por favor, reporte un fallo, "
-"adjuntando un archivo de log explicando el problema."
+"Se superó el límite de recursión de recarga (%d): %d recargas para %d "
+"opciones de escaneo. Por favor, informa de un error adjuntando un archivo de"
+" registro que reproduzca el problema."
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1720
+#: dialog/scan.py:1024
 msgid "Edit paper size"
 msgstr "Editar tamaño de papel"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1736
-msgid "Name"
-msgstr "Nombre"
+#: dialog/scan.py:1051
+#, fuzzy
+msgid "Apply"
+msgstr "Aplicar"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:1739 lib/Gscan2pdf/Unpaper.pm:153
-#: lib/Gscan2pdf/Unpaper.pm:183
-msgid "Left"
-msgstr "Izquierda"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1740 lib/Gscan2pdf/Unpaper.pm:159
-#: lib/Gscan2pdf/Unpaper.pm:188
-msgid "Top"
-msgstr "Superior"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1741
-msgid "Units"
-msgstr "Unidades"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1793
-msgid "Cannot delete all paper sizes"
-msgstr "No es posible borrar todos los tamaños de papel"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1861
+#: dialog/scan.py:1068
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr ""
 "Los siguientes tamaños de papel son demasiado grandes para ser escaneados "
 "por el dispositivo seleccionado:"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:2022
-msgid ""
-"Multiple unconstrained values are not currently supported. Please file a bug."
-msgstr ""
-"No son soportados actualmente múltiples valores sin restricciones. Por "
-"favor, realice un informe sobre el bug."
+#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
+#, fuzzy
+msgid "Cancel"
+msgstr "Cancelar"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:2036
-msgid ""
-"Multiple non-numerical values are not currently supported. Please file a bug."
-msgstr ""
-"No son soportados actualmente múltiples valores no numéricos. Por favor, "
-"realice un informe sobre el bug."
+#: dialog/scan.py:1563 dialog/scan.py:1571
+msgid "Name of scan profile"
+msgstr "Nombre del perfil de escaneo"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:2525
-#, perl-format
+#: dialog/scan.py:1585
+msgid "Profile '%s' exists. Overwrite?"
+msgstr "El perfil '%s' ya existe. ¿Desea sobrescribirlo?"
+
+#: dialog/scan.py:1592 dialog/scan.py:1634
+#, fuzzy
+msgid "OK"
+msgstr "Aceptar"
+
+#: dialog/scan.py:1621
+msgid "Editing current scan options"
+msgstr "Editar opciones actuales de escáner"
+
+#: dialog/scan.py:1625
+msgid "Editing scan profile \"%s\""
+msgstr "Editando perfil de escaneado \"%s\""
+
+#: dialog/scan.py:1686
+msgid "Backend options"
+msgstr "Opciones del backend"
+
+#: dialog/scan.py:1687
+msgid "Frontend options"
+msgstr "Opciones de Inferfaz gráfica"
+
+#: dialog/scan.py:1752
 msgid "Scanning page %d of %d"
 msgstr "Escaneando la página %d de %d"
 
-#: lib/Gscan2pdf/Dialog/Scan.pm:2527
-#, perl-format
+#: dialog/scan.py:1753
 msgid "Scanning page %d"
 msgstr "Escaneando la página %d"
 
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:134
-#: lib/Gscan2pdf/Dialog/Scan/Image_Sane.pm:93
-msgid "Fetching list of devices"
-msgstr "Consiguiendo lista de dispositivos"
+#: docthread.py:1167
+msgid "Analysing page %i of %i"
+msgstr "Analizando página %i de %i"
 
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:150
-#: lib/Gscan2pdf/Dialog/Scan/Image_Sane.pm:111
-msgid "No devices found"
-msgstr "No se encontraron dispositivos"
+#: docthread.py:1461
+#, fuzzy
+msgid "No tesseract language specified"
+msgstr "No se ha especificado ningún idioma de tesseract"
 
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:262 lib/Gscan2pdf/Dialog/Scan/CLI.pm:674
-msgid "Updating options"
-msgstr "Actualizando opciones"
+#: docthread.py:1470
+#, fuzzy
+msgid "tessdata directory not found"
+msgstr "No se encontró el directorio tessdata"
 
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:360
-#: lib/Gscan2pdf/Dialog/Scan/Image_Sane.pm:225
-msgid "Scan Options"
-msgstr "Opciones de Escaneo"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:850
-msgid "Must scan facing pages first"
-msgstr "Se deben escanear las páginas de anverso primero"
-
-#: lib/Gscan2pdf/Dialog/Scan/Image_Sane.pm:143
-msgid "Opening device"
-msgstr "Abriendo dispositivo"
-
-#: lib/Gscan2pdf/Dialog/Scan/Image_Sane.pm:156
-msgid "Retrieving options"
-msgstr "Recuperando opciones"
-
-#: lib/Gscan2pdf/Dialog/Scan/Image_Sane.pm:180
-msgid "Error retrieving scanner options: "
-msgstr "Error al recuperar las opciones del escáner: "
-
-#: lib/Gscan2pdf/Dialog/Scan/Image_Sane.pm:188
-msgid "Error opening device: "
-msgstr "Error al abrir el dispositivo: "
-
-#: lib/Gscan2pdf/Document.pm:141
-msgid "Thumbnails"
-msgstr "Miniaturas"
-
-#: lib/Gscan2pdf/Document.pm:407
+#: document.py:110
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr ""
 "Error: no se pudo abrir un archivo de sesión al mismo tiempo que otro "
 "archivo."
 
-#: lib/Gscan2pdf/Document.pm:422
+#: document.py:126
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr ""
 "Error: importando un archivo de varias páginas a la vez que otro archivo."
 
-#: lib/Gscan2pdf/Document.pm:754
-msgid "Unable to load image"
-msgstr "No es posible cargar la imagen"
+#: edit_menu_mixins.py:60
+msgid "Properties"
+msgstr "Propiedades"
 
-#: lib/Gscan2pdf/Document.pm:1978
-#, perl-format
-msgid "Error importing page %d. Ignoring."
-msgstr "Error al importar la página %d. Omitiendo."
+#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
+msgid "dpi"
+msgstr "ppp"
 
-#: lib/Gscan2pdf/Document.pm:2093
-msgid "No pages to process"
-msgstr "No hay páginas para procesar"
+#: edit_menu_mixins.py:362
+msgid "Invalid regex. Try without special characters such as '*'"
+msgstr ""
+"Expresión regular inválida. Pruebe sin usar caracteres especiales como '*'"
 
-#: lib/Gscan2pdf/Document.pm:2100
-msgid "No pages selected"
-msgstr "No hay páginas seleccionadas"
+#: edit_menu_mixins.py:394
+msgid "Changes will only take effect after restarting scantpaper."
+msgstr "Los cambios surtirán efecto solamente después de reiniciar scantpaper"
 
-#: lib/Gscan2pdf/Document.pm:2822
-#, perl-format
+#: edit_menu_mixins.py:396
+msgid "Restart scantpaper now?"
+msgstr "¿Reiniciar scantpaper ahora?"
+
+#: file_menu_mixins.py:104
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to clear all pages?"
+msgstr ""
+"Algunas páginas no han sido guardadas.\n"
+"¿Seguro que quiere eliminar todas las páginas?"
+
+#: file_menu_mixins.py:129
+msgid "Open image"
+msgstr "Abrir imagen"
+
+#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
+msgid "Image files"
+msgstr "Archivos de imagen"
+
+#: file_menu_mixins.py:180
+msgid "Pages to extract"
+msgstr "Páginas a extraer"
+
+#: file_menu_mixins.py:194
+msgid "First page to extract"
+msgstr "Primera página a extraer"
+
+#: file_menu_mixins.py:200
+msgid "Last page to extract"
+msgstr "Última página a extraer"
+
+#: file_menu_mixins.py:214
+msgid "Enter user password for PDF %s"
+msgstr "Introduzca contraseña de usuario para PDF %s"
+
+#: file_menu_mixins.py:281
+msgid "Open crashed session"
+msgstr "Abrir sesión interrumpida"
+
+#: file_menu_mixins.py:336
+msgid "Save"
+msgstr "Guardar"
+
+#: file_menu_mixins.py:367
+msgid "Post-save hook"
+msgstr "Gancho de pos-guardado"
+
+#: file_menu_mixins.py:369
+msgid ""
+"Run command on saved file. The available commands are those user-defined "
+"tools that do not specify %o"
+msgstr ""
+"Ejecutar comando en archivo guardado. Los comandos disponibles son las "
+"herramientas definidas por el usuario que no especifican %o"
+
+#: file_menu_mixins.py:392 file_menu_mixins.py:393
+msgid "Close dialog on save"
+msgstr "Cerrar diálogo al guardar"
+
+#: file_menu_mixins.py:465
+msgid "PDF filename"
+msgstr "Nombre del archivo PDF"
+
+#: file_menu_mixins.py:466
+msgid "PDF files"
+msgstr "Archivos PDF"
+
+#: file_menu_mixins.py:469
+msgid "DjVu filename"
+msgstr "DjVu nombre de archivo"
+
+#: file_menu_mixins.py:470
+msgid "DjVu files"
+msgstr "Archivos DjVu"
+
+#: file_menu_mixins.py:473
+msgid "TIFF filename"
+msgstr "Nombre del archivo TIFF"
+
+#: file_menu_mixins.py:477
+msgid "Text filename"
+msgstr "Nombre de archivo de texto"
+
+#: file_menu_mixins.py:478
+msgid "Text files"
+msgstr "Archivos de texto"
+
+#: file_menu_mixins.py:481
+msgid "hOCR filename"
+msgstr "Nombre de archivo hOCR"
+
+#: file_menu_mixins.py:482
+msgid "hOCR files"
+msgstr "Archivos hOCR"
+
+#: file_menu_mixins.py:485
+msgid "PS filename"
+msgstr "Nombre de archivo PS"
+
+#: file_menu_mixins.py:486
+msgid "Postscript files"
+msgstr "Archivos Postscript"
+
+#: file_menu_mixins.py:489
+msgid "scantpaper session filename"
+msgstr "nombre de archivo de sesión scantpaper"
+
+#: file_menu_mixins.py:490
+msgid "scantpaper session files"
+msgstr "Archivos de sesión de scantpaper"
+
+#: file_menu_mixins.py:601
+msgid "Directory %s is read-only"
+msgstr "Directorio %s es de solo lectura"
+
+#: file_menu_mixins.py:611
+msgid "File %s is read-only"
+msgstr "Archivo %s es de solo lectura"
+
+#: file_menu_mixins.py:802
+msgid "Image filename"
+msgstr "Nombre de archivo de imagen"
+
+#: file_menu_mixins.py:862
+#, fuzzy
+msgid "This operation would overwrite %s"
+msgstr "Esta operación sobrescribiría %s"
+
+#: file_menu_mixins.py:945
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to quit?"
+msgstr ""
+"Algunas páginas no han sido guardadas.\n"
+"Realmente desea salir?"
+
+#: importthread.py:86
 msgid "File %s not found"
 msgstr "Archivo %s no encontrado"
 
-#: lib/Gscan2pdf/Document.pm:2841
-#, perl-format
+#: importthread.py:92
+#, fuzzy
+msgid "Error getting file info for %s: %s"
+msgstr "Error al obtener la información del archivo %s: %s"
+
+#: importthread.py:97
 msgid "Error importing zero-length file %s."
 msgstr "Error importando archivo de longitud cero %s."
 
-#: lib/Gscan2pdf/Document.pm:2871
-msgid "Please install djvulibre-bin in order to open DjVu files."
-msgstr "Por favor, instale djvulibre-bin para poder abrir archivos DjVu"
+#: importthread.py:135 importthread.py:178
+#, fuzzy
+msgid "Please install djvulibre-bin in order to open DjVu files: %s"
+msgstr "Instala djvulibre-bin para poder abrir archivos DjVu: %s"
 
-#: lib/Gscan2pdf/Document.pm:2903
+#: importthread.py:166
 msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Archivo DjVu sin estructura conocida. Por favor, contacte al autor."
 
-#: lib/Gscan2pdf/Document.pm:3015 lib/Gscan2pdf/Document.pm:3028
-#, perl-format
-msgid "%s is not a recognised image type"
-msgstr "%s no es un tipo de imagen reconocido"
+#: importthread.py:266
+#, fuzzy
+msgid "Please install libtiff-tools in order to open TIFF files: %s"
+msgstr "Instala libtiff-tools para poder abrir archivos TIFF: %s"
 
-#: lib/Gscan2pdf/Document.pm:3083 lib/Gscan2pdf/Document.pm:3190
-#: lib/Gscan2pdf/Document.pm:3215
-#, perl-format
+#: importthread.py:328 importthread.py:388
 msgid "Importing page %i of %i"
 msgstr "Importando página %i de %i"
 
-#: lib/Gscan2pdf/Document.pm:3380
+#: importthread.py:509
 msgid "Error extracting images from PDF"
 msgstr "Error al extraer las imágenes del PDF"
 
-#: lib/Gscan2pdf/Document.pm:3397
-msgid "Error extracting text layer from PDF"
-msgstr "Error extrayendo capa de texto desde PDF"
+#: importthread.py:520
+#, fuzzy
+msgid ""
+"Warning: scantpaper expects one image per page, but this was not satisfied. "
+"It is probable that the PDF has not been correctly imported. If you wish to "
+"add scans to an existing PDF, use the prepend/append to PDF options in the "
+"Save dialogue."
+msgstr ""
+"Advertencia: scantpaper espera una imagen por página, pero no se ha "
+"cumplido. Es probable que el PDF no se haya importado correctamente. Si "
+"deseas añadir escaneos a un PDF existente, usa las opciones de "
+"anteponer/añadir al PDF en el diálogo de guardado."
 
-#: lib/Gscan2pdf/Document.pm:3429
+#: importthread.py:560
 msgid "Error importing PDF"
 msgstr "Error importando PDF"
 
-#: lib/Gscan2pdf/Document.pm:3437
-msgid ""
-"Warning: scantpaper expects one image per page, but this was not satisfied. "
-"It is probable that the PDF has not been correctly imported.\n"
-"\n"
-"If you wish to add scans to an existing PDF, use the prepend/append to PDF "
-"options in the Save dialogue.\n"
-msgstr ""
-"Aviso: scantpaper espera una imagen por página, pero esto no fue satisfecho. "
-"Es probable que el PDF no fue correctamente importado.\n"
-"\n"
-"Si desea agregar escaneos a un PDF existente, use las opciones "
-"anteponer/agregar a PDF en el diálogo de Guardar.\n"
+#: importthread.py:587
+msgid "Error extracting text layer from PDF"
+msgstr "Error extrayendo capa de texto desde PDF"
 
-#: lib/Gscan2pdf/Document.pm:3460
-msgid "Setting up PDF"
-msgstr "Configurando PDF"
-
-#: lib/Gscan2pdf/Document.pm:3472
-#, perl-format
-msgid "Caught error creating PDF %s: %s"
-msgstr "Detectado error creando PDF %s: %s"
-
-#: lib/Gscan2pdf/Document.pm:3487
-#, perl-format
-msgid "Unable to find font '%s'. Defaulting to core font."
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:3511
-#, perl-format
-msgid "Saving page %i of %i"
-msgstr "Guardando página %i de %i"
-
-#: lib/Gscan2pdf/Document.pm:3518
-msgid "Closing PDF"
-msgstr "Cerrando el PDF"
-
-#: lib/Gscan2pdf/Document.pm:3536 lib/Gscan2pdf/Document.pm:4484
-msgid "Converting to PS"
-msgstr "Convirtiendo a PS"
-
-#: lib/Gscan2pdf/Document.pm:3546
-#, perl-format
-msgid "Error converting PDF to PS: %s"
-msgstr "Error al convertir PDF a PS: %s"
-
-#: lib/Gscan2pdf/Document.pm:3583
-#, perl-format
-msgid "Error prepending PDF: %s"
-msgstr "Error añadiendo PDF adelante: %s"
-
-#: lib/Gscan2pdf/Document.pm:3591
-#, perl-format
-msgid "Error appending PDF: %s"
-msgstr "Error añadiendo PDF: %s"
-
-#: lib/Gscan2pdf/Document.pm:3597
-msgid "Error creating backup of PDF"
-msgstr "Error al crear copia de seguridad de PDF"
-
-#: lib/Gscan2pdf/Document.pm:3622
-#, perl-format
-msgid "Error encrypting PDF: %s"
-msgstr "Error encriptando PDF: %s"
-
-#: lib/Gscan2pdf/Document.pm:3661
-msgid "Unable to set file timestamp for dates prior to 1970"
-msgstr ""
-"Incapaz de configurar tiempo de archivo para fechas anteriores a 1970"
-
-#: lib/Gscan2pdf/Document.pm:3771
-#, perl-format
-msgid "Error creating PDF image object: %s"
-msgstr "Error al crear el objeto de imagen PDF: %s"
-
-#: lib/Gscan2pdf/Document.pm:3783
-#, perl-format
-msgid "Error embedding file image in %s format to PDF: %s"
-msgstr "Error al incrustar el archivo de imagen en formato %s al PDF: %s"
-
-#: lib/Gscan2pdf/Document.pm:3885 lib/Gscan2pdf/Document.pm:4480
-#, perl-format
-msgid "Error compressing image: %s"
-msgstr "Error al comprimir la imagen: %s"
-
-#: lib/Gscan2pdf/Document.pm:3961
-#, perl-format
-msgid "Core font '%s' cannot encode character '%s', and no TTF font defined."
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:3975
-#, perl-format
-msgid "Neither '%s' nor '%s' can encode character '%s' in '%s'"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:4121
-#, perl-format
-msgid "Writing page %i of %i"
-msgstr "Escribiendo página %i de %i"
-
-#: lib/Gscan2pdf/Document.pm:4151
-msgid "Error writing DjVu"
-msgstr "Error al escribir DjVu"
-
-#: lib/Gscan2pdf/Document.pm:4161
-msgid "Merging DjVu"
-msgstr "Fusionando DjVu"
-
-#: lib/Gscan2pdf/Document.pm:4169
-msgid "Error merging DjVu"
-msgstr "Error fusionando DjVu"
-
-#: lib/Gscan2pdf/Document.pm:4275
-#, perl-format
-msgid "Can't write to file: %s"
-msgstr "No se puede escribir al archivo: %s"
-
-#: lib/Gscan2pdf/Document.pm:4291 lib/Gscan2pdf/Document.pm:4325
-#: lib/Gscan2pdf/Document.pm:4356 lib/Gscan2pdf/Document.pm:4656
-#: lib/Gscan2pdf/Document.pm:4681
-#, perl-format
-msgid "Can't open file: %s"
-msgstr "No se puede abrir el archivo: %s"
-
-#: lib/Gscan2pdf/Document.pm:4295 lib/Gscan2pdf/Document.pm:4329
-#: lib/Gscan2pdf/Document.pm:4376 lib/Gscan2pdf/Document.pm:4662
-#: lib/Gscan2pdf/Document.pm:4706
-#, perl-format
-msgid "Can't close file: %s"
-msgstr "No se puede cerrar archivo: %s"
-
-#: lib/Gscan2pdf/Document.pm:4307
-msgid "Error adding text layer to DjVu"
-msgstr "Error al añadir la capa de texto al DjVu"
-
-#: lib/Gscan2pdf/Document.pm:4341
-msgid "Error adding annotations to DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:4387
-msgid "Error adding metadata to DjVu"
-msgstr "Error añadiendo metadatos a DjVu"
-
-#: lib/Gscan2pdf/Document.pm:4404
-#, perl-format
-msgid "Converting image %i of %i to TIFF"
-msgstr "Convirtiendo imagen %i de %i a TIFF"
-
-#: lib/Gscan2pdf/Document.pm:4453
-msgid "Error writing TIFF"
-msgstr "Error escribiendo TIFF"
-
-#: lib/Gscan2pdf/Document.pm:4472
-msgid "Concatenating TIFFs"
-msgstr "Concatenando TIFFs"
-
-#: lib/Gscan2pdf/Document.pm:4491
-#, perl-format
-msgid "Error converting TIFF to PS: %s"
-msgstr "Error convirtiendo TIFF a PS: %s"
-
-#: lib/Gscan2pdf/Document.pm:4608 lib/Gscan2pdf/Document.pm:4630
-msgid "Error saving image"
-msgstr "Error guardando la imagen"
-
-#: lib/Gscan2pdf/Document.pm:4726
-#, perl-format
-msgid "Analysing page %i of %i"
-msgstr "Analizando página %i de %i"
-
-#: lib/Gscan2pdf/Document.pm:5694
-msgid "Error copying page"
-msgstr "Error copiando la página"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:181
-#, perl-format
-msgid "Scanning %i pages..."
-msgstr "Escaneando %i páginas…"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:187
-#, perl-format
-msgid "Scanning page %i..."
-msgstr "Escaneado página %i..."
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:215 lib/Gscan2pdf/Frontend/CLI.pm:429
-msgid "Scanner warming up"
-msgstr "Calentando el escáner"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:226
-msgid "Document feeder out of documents"
-msgstr "Alimentador de documentos sin documentos"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:251 lib/Gscan2pdf/Frontend/CLI.pm:467
-msgid "Device busy"
-msgstr "Dispositivo ocupado"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:259 lib/Gscan2pdf/Frontend/CLI.pm:476
-msgid "Operation cancelled"
-msgstr "Operación cancelada"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:265 lib/Gscan2pdf/Frontend/CLI.pm:483
-msgid "Unknown message: "
-msgstr "Mensaje desconocido: "
-
-#: lib/Gscan2pdf/Page.pm:88 lib/Gscan2pdf/Page.pm:93
-#, perl-format
-msgid "Error importing image %s: %s"
-msgstr "Error al importar la imagen %s: %s"
-
-#: lib/Gscan2pdf/Page.pm:140
-#, perl-format
-msgid "Error copying image %s: %s"
-msgstr "Error copiando imagen %s: %s"
-
-#: lib/Gscan2pdf/PageRange.pm:38
+#: pagerange.py:46
 msgid "Selected"
 msgstr "Seleccionado"
 
-#: lib/Gscan2pdf/Tesseract.pm:140 lib/Gscan2pdf/Tesseract.pm:154
-#: lib/Gscan2pdf/Tesseract.pm:160
-#, perl-format
-msgid "You are using locale '%s'."
-msgstr ""
+#: postprocess_controls.py:21
+msgid "Both sides"
+msgstr "Ambos lados"
 
-#: lib/Gscan2pdf/Tesseract.pm:142
+#: postprocess_controls.py:21
+msgid "Both sides."
+msgstr "Ambos lados."
+
+#: postprocess_controls.py:22
+msgid "Facing side"
+msgstr "Lado anverso"
+
+#: postprocess_controls.py:22
+msgid "Facing side."
+msgstr "Lado anverso."
+
+#: postprocess_controls.py:23
+msgid "Reverse side"
+msgstr "Lado reverso"
+
+#: postprocess_controls.py:23
+msgid "Reverse side."
+msgstr "Lado reverso."
+
+#: postprocess_controls.py:26
+#, fuzzy
+msgid "90°"
+msgstr "90°"
+
+#: postprocess_controls.py:26
+msgid "Rotate image 90 degrees clockwise."
+msgstr "Rotar imagen 90 grados en sentido del reloj."
+
+#: postprocess_controls.py:27
+#, fuzzy
+msgid "180°"
+msgstr "180°"
+
+#: postprocess_controls.py:27
+msgid "Rotate image 180 degrees clockwise."
+msgstr "Rotar imagen 180 grados en sentido del reloj."
+
+#: postprocess_controls.py:28
+#, fuzzy
+msgid "270°"
+msgstr "270°"
+
+#: postprocess_controls.py:28
+msgid "Rotate image 90 degrees anticlockwise."
+msgstr "Rotar imagen 90 grados en sentido contrario al reloj."
+
+#: postprocess_controls.py:38
+msgid "Rotate"
+msgstr "Rotar"
+
+#: postprocess_controls.py:39
+msgid "Rotate image after scanning"
+msgstr "Rotar imagen luego de scanear"
+
+#: postprocess_controls.py:42
+msgid "Select side to rotate"
+msgstr "Selecciona lado a rotar"
+
+#: postprocess_controls.py:45
+#, fuzzy
+msgid "Select angle of rotation"
+msgstr "Seleccionar el ángulo de rotación"
+
+#: postprocess_controls.py:48
+#, fuzzy
+msgid "Anticlockwise"
+msgstr "En sentido antihorario"
+
+#: postprocess_controls.py:349 postprocess_controls.py:350
+msgid "OCR scanned pages"
+msgstr "Páginas escaneadas OCR"
+
+#: postprocess_controls.py:377
+msgid "Threshold before OCR"
+msgstr "Umbral antes de OCR"
+
+#: postprocess_controls.py:379
 msgid ""
-"scantpaper does not currently know which tesseract language package would be "
-"necessary for that locale."
+"Threshold the image before performing OCR. This only affects the image "
+"passed to the OCR engine, and not the image stored."
 msgstr ""
+"Limita la imagen antes de ejecutar OCR. Esto sólo afecta a la imagen "
+"procesada por el motor OCR, y no a la imagen guardada."
 
-#: lib/Gscan2pdf/Tesseract.pm:145
+#: postprocess_controls.py:390 tools_menu_mixins.py:113
+#, fuzzy
+msgid ""
+"Pixels that differ from the paper colour by more than this percentage are "
+"rendered black. Higher values only keep stronger marks."
+msgstr ""
+"Los píxeles que difieren del color del papel en más de este porcentaje se "
+"muestran en negro. Los valores más altos solo conservan las marcas más "
+"fuertes."
+
+#: postprocess_controls.py:427
+msgid "Language to recognise"
+msgstr "Lenguaje a reconocer"
+
+#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
+#, fuzzy
+msgid "_Cancel"
+msgstr "_Cancelar"
+
+#: progress.py:76 progress.py:110
+msgid "Process %i of %i (%s)"
+msgstr "Proceso %i de %i (%s)"
+
+#: progress.py:119
+msgid "Process %i of %i"
+msgstr "Proceso %i de %i"
+
+#: savethread.py:83
+#, fuzzy
+msgid "Processing PDF"
+msgstr "Procesando el PDF"
+
+#: savethread.py:148
+#, fuzzy
+msgid "Embedding text layer"
+msgstr "Incrustando la capa de texto"
+
+#: savethread.py:195
+msgid "Setting up PDF"
+msgstr "Configurando PDF"
+
+#: savethread.py:264 savethread.py:405
+msgid "Writing page %i of %i"
+msgstr "Escribiendo página %i de %i"
+
+#: savethread.py:290
+#, fuzzy
+msgid ""
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+msgstr ""
+"El tamaño estimado del PDF (%.1f GiB) supera los 2 GiB. Guarda menos "
+"páginas."
+
+#: savethread.py:314 tests/test_savethread.py:1240
+#, fuzzy
+msgid "Writing PDF"
+msgstr "Escribiendo el PDF"
+
+#: savethread.py:363
+msgid "Converting to PS"
+msgstr "Convirtiendo a PS"
+
+#: savethread.py:374
+msgid "Error converting PDF to PS: %s"
+msgstr "Error al convertir PDF a PS: %s"
+
+#: savethread.py:418
+msgid "Merging DjVu"
+msgstr "Fusionando DjVu"
+
+#: savethread.py:425
+#, fuzzy
+msgid "Error merging DjVu: %s"
+msgstr "Error al fusionar DjVu: %s"
+
+#: savethread.py:519
+msgid "Error converting TIFF to PS: %s"
+msgstr "Error convirtiendo TIFF a PS: %s"
+
+#: savethread.py:664
+msgid "Error copying page"
+msgstr "Error copiando la página"
+
+#: savethread.py:814
+msgid "Error prepending PDF: %s"
+msgstr "Error añadiendo PDF adelante: %s"
+
+#: savethread.py:822
+msgid "Error appending PDF: %s"
+msgstr "Error añadiendo PDF: %s"
+
+#: savethread.py:831
+msgid "Error creating backup of PDF"
+msgstr "Error al crear copia de seguridad de PDF"
+
+#: savethread.py:905
+msgid "Error encrypting PDF: %s"
+msgstr "Error encriptando PDF: %s"
+
+#: scan_menu_item_mixins.py:72
+#, fuzzy
+msgid "Really cache libusb device names?"
+msgstr "¿Guardar realmente en caché los nombres de dispositivos libusb?"
+
+#: scan_menu_item_mixins.py:75
+#, fuzzy
+msgid ""
+"Caching device list with libusb devices included is not recommended as they "
+"can change between reboots."
+msgstr ""
+"No se recomienda guardar en caché la lista de dispositivos con los "
+"dispositivos libusb incluidos, ya que pueden cambiar entre reinicios."
+
+#: scan_menu_item_mixins.py:78
+#, fuzzy
+msgid "Are you sure you want to do this?"
+msgstr "¿Seguro que quieres hacer esto?"
+
+#: scan_menu_item_mixins.py:114
+msgid "Scan Document"
+msgstr "Escanear documento"
+
+#: scan_menu_item_mixins.py:216
+msgid "Postprocessing"
+msgstr "Post-procesamiento"
+
+#: scan_menu_item_mixins.py:230
+#, fuzzy
+msgid "Alternate rotation every 2nd page"
+msgstr "Alternar la rotación cada 2 páginas"
+
+#: scan_menu_item_mixins.py:232
+#, fuzzy
+msgid ""
+"Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
+"degrees. Use when scanning a book where every sheet is aligned to the same "
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
+msgstr ""
+"Rota las páginas impares con el ángulo elegido y las pares con ese ángulo "
+"más 180 grados. Úsalo al escanear un libro en el que cada hoja esté alineada"
+" con el mismo borde, de modo que el reverso de cada hoja quede rotado 180 "
+"grados respecto a su anverso."
+
+#: scan_menu_item_mixins.py:298
+msgid "Clean up images"
+msgstr "Limpiar imágenes"
+
+#: scan_menu_item_mixins.py:299
+msgid "Clean up scanned images with unpaper"
+msgstr "Limpiar las imágenes escaneadas con unpaper"
+
+#: scan_menu_item_mixins.py:307
+msgid "Options"
+msgstr "Opciones"
+
+#: scan_menu_item_mixins.py:308
+msgid "Set unpaper options"
+msgstr "Configurar opciones de unpaper"
+
+#: scan_menu_item_mixins.py:316
+msgid "unpaper options"
+msgstr "opciones de unpaper"
+
+#: scan_menu_item_mixins.py:339
+msgid "Process with user-defined tool"
+msgstr "Procesar con herramienta definida por el usuario"
+
+#: scan_menu_item_mixins.py:340
+msgid "Process scanned images with user-defined tool"
+msgstr "Procesar imágenes escaneadas con herramienta definida por el usuario"
+
+#: session_mixins.py:73
+msgid ""
+"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+msgstr ""
+"Advertencia: No se pudo usar %s para almacenamiento temporal. Utilizando %s "
+"por defecto."
+
+#: session_mixins.py:118 session_mixins.py:123
+msgid "Pick crashed session to restore"
+msgstr "Escoge la sesión que quieres restaurar"
+
+#: session_mixins.py:191
+msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
+msgstr ""
+"GraphicsMagick se está usando en modo de compatibilidad de ImageMagick."
+
+#: session_mixins.py:193
+msgid "Whilst this might work, it is not currently supported."
+msgstr "Mientras que podría funcionar, no está soportado actualmente"
+
+#: session_mixins.py:195
+msgid "Please switch to ImageMagick in case of problems."
+msgstr "Por favor, cambie a ImageMagick en caso de problemas"
+
+#: session_mixins.py:212
+msgid "Tesseract"
+msgstr "Tesseract"
+
+#: session_mixins.py:212
+msgid "Process image with Tesseract."
+msgstr "Procesar imagen con Tesseract."
+
+#: session_mixins.py:229
+msgid "Finished scanning facing pages. Scan reverse pages?"
+msgstr ""
+"Finalizado el escaneo del anverso de página. Escanear reverso de página?"
+
+#: session_mixins.py:232
+msgid "Finished scanning reverse pages. Scan facing pages?"
+msgstr ""
+"Finalizado el escaneo del reverso de página. Escanear anverso de página?"
+
+#: session_mixins.py:448
+#, fuzzy
+msgid "_Ok"
+msgstr "_Aceptar"
+
+#: session_mixins.py:449 text_layer_control.py:80
+msgid "Accept corrections"
+msgstr "Aceptar correcciones"
+
+#: session_mixins.py:452 text_layer_control.py:83
+msgid "Cancel corrections"
+msgstr "Cancelar correcciones"
+
+#: session_mixins.py:458
+msgid "Add annotation"
+msgstr "Agregar anotación"
+
+#: session_mixins.py:461
+msgid "Delete annotation"
+msgstr "Eliminar nota"
+
+#: session_mixins.py:505
+#, fuzzy
+msgid "my-new-word"
+msgstr "mi-nueva-palabra"
+
+#: session_mixins.py:560
+msgid "my-new-annotation"
+msgstr "mi-nueva-nota"
+
+#: tesseract.py:232 tesseract.py:246 tesseract.py:258
+#, fuzzy
+msgid "You are using locale '%s'."
+msgstr "Estás usando la configuración regional «%s»."
+
+#: tesseract.py:234
+#, fuzzy
+msgid ""
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
+msgstr ""
+"scantpaper actualmente no sabe qué paquete de idioma de tesseract sería "
+"necesario para esa configuración regional."
+
+#: tesseract.py:239
+#, fuzzy
 msgid "Please contact the developers to add support for that locale."
 msgstr ""
+"Por favor, contacta con los desarrolladores para añadir soporte para esa "
+"configuración regional."
 
-#: lib/Gscan2pdf/Tesseract.pm:156
-#, perl-format
+#: tesseract.py:249
+#, fuzzy
 msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
 msgstr ""
+"Instala el paquete de tesseract «tesseract-ocr-%s» y reinicia scantpaper "
+"para el OCR de %s con tesseract."
 
-#: lib/Gscan2pdf/Tesseract.pm:161
-#, perl-format
+#: tesseract.py:260
+#, fuzzy
 msgid "There is no tesseract package for %s"
-msgstr ""
+msgstr "No hay ningún paquete de tesseract para %s"
 
-#: lib/Gscan2pdf/Tesseract.pm:163
+#: tesseract.py:262
+#, fuzzy
 msgid "If this is in error, please contact the scantpaper developers."
-msgstr ""
+msgstr "Si esto es un error, contacta con los desarrolladores de scantpaper."
 
-#: lib/Gscan2pdf/Unpaper.pm:46
+#: tests/test_savethread.py:1230
+#, fuzzy
+msgid "Writing page"
+msgstr "Escribiendo la página"
+
+#: text_layer_control.py:27
+#, fuzzy
+msgid "Sort by confidence"
+msgstr "Ordenar por confianza"
+
+#: text_layer_control.py:28
+#, fuzzy
+msgid "Sort OCR text boxes by confidence."
+msgstr "Ordenar los cuadros de texto OCR por confianza."
+
+#: text_layer_control.py:30
+msgid "Sort by position"
+msgstr "Ordenar por posición"
+
+#: text_layer_control.py:30
+#, fuzzy
+msgid "Sort OCR text boxes by position."
+msgstr "Ordenar los cuadros de texto OCR por posición."
+
+#: text_layer_control.py:61
+#, fuzzy
+msgid "Go to least confident text"
+msgstr "Ir al texto menos fiable"
+
+#: text_layer_control.py:64
+msgid "Go to previous text"
+msgstr "Ir a texto anterior"
+
+#: text_layer_control.py:67
+#, fuzzy
+msgid "Select sort method for OCR boxes"
+msgstr "Seleccionar el método de ordenación de los cuadros OCR"
+
+#: text_layer_control.py:73
+msgid "Go to next text"
+msgstr "Ir al siguiente texto"
+
+#: text_layer_control.py:75
+#, fuzzy
+msgid "Go to most confident text"
+msgstr "Ir al texto más fiable"
+
+#: text_layer_control.py:77
+msgid "Add text"
+msgstr "Añadir texto"
+
+#: text_layer_control.py:80
+#, fuzzy
+msgid "_OK"
+msgstr "_Aceptar"
+
+#: text_layer_control.py:86
+msgid "_Copy"
+msgstr "_Copiar"
+
+#: text_layer_control.py:86
+msgid "Duplicate text"
+msgstr "Duplicar texto"
+
+#: text_layer_control.py:89
+msgid "Delete text"
+msgstr "Eliminar texto"
+
+#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
+msgid "Threshold"
+msgstr "Umbral"
+
+#: tools_menu_mixins.py:106
+#, fuzzy
+msgid "Ink strength"
+msgstr "Intensidad de la tinta"
+
+#: tools_menu_mixins.py:159
+msgid "Brightness / Contrast"
+msgstr "Brillo y contraste"
+
+#: tools_menu_mixins.py:170
+msgid "Brightness"
+msgstr "Brillo"
+
+#: tools_menu_mixins.py:181
+msgid "Contrast"
+msgstr "Contraste"
+
+#: tools_menu_mixins.py:227
+msgid "Negate"
+msgstr "Negativo"
+
+#: tools_menu_mixins.py:264
+msgid "Unsharp mask"
+msgstr "Máscara de Unsharp"
+
+#: tools_menu_mixins.py:275
+msgid "Radius"
+msgstr "Radio"
+
+#: tools_menu_mixins.py:279
+#, fuzzy
+msgid "Blur Radius."
+msgstr "Radio de desenfoque."
+
+#: tools_menu_mixins.py:282
+#, fuzzy
+msgid "Percentage"
+msgstr "Porcentaje"
+
+#: tools_menu_mixins.py:286
+#, fuzzy
+msgid "Unsharp strength, in percent."
+msgstr "Intensidad del enfoque, en porcentaje."
+
+#: tools_menu_mixins.py:293
+#, fuzzy
+msgid ""
+"Threshold controls the minimum brightness change that will be sharpened."
+msgstr "El umbral controla el cambio mínimo de brillo que se enfocará."
+
+#: tools_menu_mixins.py:444
+msgid "Split"
+msgstr "Dividir"
+
+#: tools_menu_mixins.py:453
+msgid "Direction"
+msgstr "Dirección"
+
+#: tools_menu_mixins.py:458
+msgid "Vertically"
+msgstr "Verticalmente"
+
+#: tools_menu_mixins.py:459
+#, fuzzy
+msgid "Split the page vertically into left and right pages."
+msgstr "Dividir la página verticalmente en páginas izquierda y derecha."
+
+#: tools_menu_mixins.py:463
+msgid "Horizontally"
+msgstr "Horizontalmente"
+
+#: tools_menu_mixins.py:464
+#, fuzzy
+msgid "Split the page horizontally into top and bottom pages."
+msgstr "Dividir la página horizontalmente en páginas superior e inferior."
+
+#: tools_menu_mixins.py:487
+msgid "Position"
+msgstr "Posición"
+
+#: tools_menu_mixins.py:590
+msgid "unpaper"
+msgstr "unpaper"
+
+#: tools_menu_mixins.py:649
+msgid "OCR"
+msgstr "OCR"
+
+#: tools_menu_mixins.py:730
+msgid "User-defined tools"
+msgstr "Herramientas definidas por el usuario"
+
+#: tools_menu_mixins.py:739
+msgid "Selected tool"
+msgstr "Herramienta seleccionada"
+
+#: tools_menu_mixins.py:782
+msgid "Email as PDF"
+msgstr "Email como PDF"
+
+#: tools_menu_mixins.py:861
+msgid "Error creating email"
+msgstr "Error creando el email"
+
+#: tools_menu_mixins.py:917
+msgid "To aid the scan-to-PDF process"
+msgstr "Para ayudar en el escaneo a PDF"
+
+#: tools_menu_mixins.py:918
+#, fuzzy
+msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
+msgstr "Copyright 2006--2026 Jeffrey Ratcliffe"
+
+#: unpaper.py:38
 msgid "Layout"
 msgstr "Diseño"
 
-#: lib/Gscan2pdf/Unpaper.pm:49
+#: unpaper.py:41
 msgid "Single"
 msgstr "Sencillo"
 
-#: lib/Gscan2pdf/Unpaper.pm:51
+#: unpaper.py:42
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Una página por hoja, orientada hacia arriba sin rotación."
 
-#: lib/Gscan2pdf/Unpaper.pm:55
+#: unpaper.py:47
 msgid "Double"
 msgstr "Doble"
 
-#: lib/Gscan2pdf/Unpaper.pm:57
+#: unpaper.py:48
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -2520,111 +1952,111 @@ msgstr ""
 "Dos páginas por hoja, orientación apaisada (una hoja en la parte izquierda, "
 "una hoja en la parte derecha)."
 
-#: lib/Gscan2pdf/Unpaper.pm:65
+#: unpaper.py:58
 msgid "# Output pages"
 msgstr "Nº de páginas de salida"
 
-#: lib/Gscan2pdf/Unpaper.pm:66
+#: unpaper.py:59
 msgid "Number of pages to output."
 msgstr "Número de páginas a generar."
 
-#: lib/Gscan2pdf/Unpaper.pm:74
+#: unpaper.py:67
 msgid "Writing system"
 msgstr "Escribiendo sistema"
 
-#: lib/Gscan2pdf/Unpaper.pm:77
+#: unpaper.py:70
 msgid "Left-to-right"
 msgstr "De izquierda a derecha"
 
-#: lib/Gscan2pdf/Unpaper.pm:79
+#: unpaper.py:71
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
 msgstr "Mayoría de alfabetos, p. e. Latín, Griego, Cirílico."
 
-#: lib/Gscan2pdf/Unpaper.pm:82
+#: unpaper.py:76
 msgid "Right-to-left"
 msgstr "De derecha a izquierda"
 
-#: lib/Gscan2pdf/Unpaper.pm:83
+#: unpaper.py:77
 msgid "Scripts like Arabic or Hebrew."
 msgstr "Scripts como Arábico o Hebreo."
 
-#: lib/Gscan2pdf/Unpaper.pm:91
+#: unpaper.py:85
 msgid "No deskew"
 msgstr "No restablecer"
 
-#: lib/Gscan2pdf/Unpaper.pm:92
+#: unpaper.py:86
 msgid "Disable deskewing."
 msgstr "Desactivar restablecimiento."
 
-#: lib/Gscan2pdf/Unpaper.pm:97
+#: unpaper.py:91
 msgid "No mask scan"
 msgstr "Sin máscara de escaneo"
 
-#: lib/Gscan2pdf/Unpaper.pm:98
+#: unpaper.py:92
 msgid "Disable mask detection."
 msgstr "Deshabilitar detección de máscara."
 
-#: lib/Gscan2pdf/Unpaper.pm:103
+#: unpaper.py:97
 msgid "No mask centering"
 msgstr "Centrado sin máscara"
 
-#: lib/Gscan2pdf/Unpaper.pm:104
+#: unpaper.py:98
 msgid "Disable mask centering."
 msgstr "Desactivar centrado de máscara."
 
-#: lib/Gscan2pdf/Unpaper.pm:109
+#: unpaper.py:103
 msgid "No black filter"
 msgstr "Sin filtro negro"
 
-#: lib/Gscan2pdf/Unpaper.pm:110
+#: unpaper.py:104
 msgid "Disable black area scan."
 msgstr "Desactivar el escaneado de la zona negra."
 
-#: lib/Gscan2pdf/Unpaper.pm:115
+#: unpaper.py:109
 msgid "No gray filter"
 msgstr "Sin filtro gris"
 
-#: lib/Gscan2pdf/Unpaper.pm:116
+#: unpaper.py:110
 msgid "Disable gray area scan."
 msgstr "Desactivar el escaneado de la zona gris."
 
-#: lib/Gscan2pdf/Unpaper.pm:121
+#: unpaper.py:115
 msgid "No noise filter"
 msgstr "Sin filtro de ruido"
 
-#: lib/Gscan2pdf/Unpaper.pm:122
+#: unpaper.py:116
 msgid "Disable noise filter."
 msgstr "Desactivar el filtro de ruido."
 
-#: lib/Gscan2pdf/Unpaper.pm:127
+#: unpaper.py:121
 msgid "No blur filter"
 msgstr "Sin filtro de difuminado"
 
-#: lib/Gscan2pdf/Unpaper.pm:128
+#: unpaper.py:122
 msgid "Disable blur filter."
 msgstr "Desactivar filtro de difuminado."
 
-#: lib/Gscan2pdf/Unpaper.pm:133
+#: unpaper.py:127
 msgid "No border scan"
 msgstr "No escanear bordes"
 
-#: lib/Gscan2pdf/Unpaper.pm:134
+#: unpaper.py:128
 msgid "Disable border scanning."
 msgstr "Desactivar el escaneado de bordes."
 
-#: lib/Gscan2pdf/Unpaper.pm:139
+#: unpaper.py:133
 msgid "No border align"
 msgstr "No alinear al borde"
 
-#: lib/Gscan2pdf/Unpaper.pm:141
+#: unpaper.py:134
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "Deshabilitar alineado al área detectada por el escaneo de bordes."
 
-#: lib/Gscan2pdf/Unpaper.pm:146
+#: unpaper.py:141
 msgid "Deskew to edge"
 msgstr "Deskew hasta el borde"
 
-#: lib/Gscan2pdf/Unpaper.pm:148
+#: unpaper.py:142
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
@@ -2636,106 +2068,772 @@ msgstr ""
 "especificados, el valor promedio será utilizado, salvo que la desviación "
 "estadística exceda --deskew-scan-deviation."
 
-#: lib/Gscan2pdf/Unpaper.pm:155
+#: unpaper.py:152
 msgid "Use 'left' for scanning from the left edge."
 msgstr "Usa 'Izquierda' para escanear desde el borde izquierdo."
 
-#: lib/Gscan2pdf/Unpaper.pm:160
+#: unpaper.py:157
 msgid "Use 'top' for scanning from the top edge."
 msgstr "Usa 'Arriba' para escanear desde el borde superior."
 
-#: lib/Gscan2pdf/Unpaper.pm:166
+#: unpaper.py:161 unpaper.py:189
+msgid "Right"
+msgstr "Derecha"
+
+#: unpaper.py:162
 msgid "Use 'right' for scanning from the right edge."
 msgstr "Usa 'Derecho' para escanear desde el borde derecho."
 
-#: lib/Gscan2pdf/Unpaper.pm:170 lib/Gscan2pdf/Unpaper.pm:198
+#: unpaper.py:166 unpaper.py:194
 msgid "Bottom"
 msgstr "Abajo"
 
-#: lib/Gscan2pdf/Unpaper.pm:171
+#: unpaper.py:167
 msgid "Use 'bottom' for scanning from the bottom."
 msgstr "Usa 'Abajo' para escanear desde el borde inferior."
 
-#: lib/Gscan2pdf/Unpaper.pm:178
+#: unpaper.py:174
 msgid "Align to edge"
 msgstr "Alinear al borde"
 
-#: lib/Gscan2pdf/Unpaper.pm:179
+#: unpaper.py:175
 msgid "Edge to which to align the page."
 msgstr "Borde hacia el cual alinear la página."
 
-#: lib/Gscan2pdf/Unpaper.pm:184
+#: unpaper.py:180
 msgid "Use 'left' to align to the left edge."
 msgstr "Use 'izquierda' para alinear a la izquierda."
 
-#: lib/Gscan2pdf/Unpaper.pm:189
+#: unpaper.py:185
 msgid "Use 'top' to align to the top edge."
 msgstr "Use 'arriba' para alinear arriba."
 
-#: lib/Gscan2pdf/Unpaper.pm:194
+#: unpaper.py:190
 msgid "Use 'right' to align to the right edge."
 msgstr "Use 'derecha' para alinear a la derecha."
 
-#: lib/Gscan2pdf/Unpaper.pm:199
+#: unpaper.py:195
 msgid "Use 'bottom' to align to the bottom."
 msgstr "Usa 'abajo' para alinear abajo."
 
-#: lib/Gscan2pdf/Unpaper.pm:205
+#: unpaper.py:201
 msgid "Border margin"
 msgstr "Margen del borde"
 
-#: lib/Gscan2pdf/Unpaper.pm:209
+#: unpaper.py:205
 msgid "Vertical margin"
 msgstr "Margen vertical"
 
-#: lib/Gscan2pdf/Unpaper.pm:211
+#: unpaper.py:206
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Distancia vertical a mantener desde el borde de la hoja cuando se alinea un "
 "área de borde."
 
-#: lib/Gscan2pdf/Unpaper.pm:220
+#: unpaper.py:217
 msgid "Horizontal margin"
 msgstr "Margen horizontal"
 
-#: lib/Gscan2pdf/Unpaper.pm:222
+#: unpaper.py:218
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Distancia horizontal a mantener desde el borde de la hoja cuando se alinea "
 "un área de borde."
 
-#: lib/Gscan2pdf/Unpaper.pm:233
+#: unpaper.py:231
 msgid "White threshold"
 msgstr "Umbral blanco"
 
-#: lib/Gscan2pdf/Unpaper.pm:235
+#: unpaper.py:232
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "Proporción de brillo sobre del cual un píxel es considerado blanco."
 
-#: lib/Gscan2pdf/Unpaper.pm:243
+#: unpaper.py:243
 msgid "Black threshold"
 msgstr "Umbral negro"
 
-#: lib/Gscan2pdf/Unpaper.pm:245
+#: unpaper.py:244
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
 msgstr ""
 "Proporción de brillo debajo del cual un píxel es considerado negro (no "
 "gris). Esto es usado por el filtro de grises. Este valor es usado cuando se "
 "convierte una imagen en escala de grises a modo blanco y negro."
 
-#: lib/Gscan2pdf/Unpaper.pm:289
+#: unpaper.py:355
 msgid "Deskew"
 msgstr "Deskew"
 
-#: lib/Gscan2pdf/Unpaper.pm:322
+#: unpaper.py:359
 msgid "Border"
 msgstr "Borde"
 
-#: lib/Gscan2pdf/Unpaper.pm:382
+#: unpaper.py:364
 msgid "Filters"
 msgstr "Filtros"
+
+#~ msgid "Error displaying help"
+#~ msgstr "Error al mostrar la ayuda"
+
+#, perl-format
+#~ msgid "Cannot read file: %s"
+#~ msgstr "No se puede leer el archivo: %s"
+
+#~ msgid ""
+#~ "pdftk is installed, but cannot access the directory used for temporary "
+#~ "files."
+#~ msgstr ""
+#~ "pdftk está instalado, pero no puede acceder al directorio usado para "
+#~ "archivos temporales."
+
+#~ msgid "One reason for this might be that pdftk was installed via snap."
+#~ msgstr "Una razón para esto puede ser que pdftk fue instalado vía snap."
+
+#~ msgid ""
+#~ "In this case, removing pdftk, and reinstalling without using snap would "
+#~ "allow scantpaper to use pdftk."
+#~ msgstr ""
+#~ "En este caso, eliminar pdftk, y reinstalarlo sin usar snap puede permitir a "
+#~ "scantpaper usar pdftk."
+
+#~ msgid ""
+#~ "Another workaround would be to select a temporary directory under your home "
+#~ "directory in Edit/Preferences."
+#~ msgstr ""
+#~ "Otra solución puede ser seleccionar, en Editar/Preferencias, un directorio "
+#~ "temporal localizado en su carpeta /home."
+
+#~ msgid "GOCR"
+#~ msgstr "GOCR"
+
+#~ msgid "Process image with GOCR."
+#~ msgstr "Procesar imagen con GOCR."
+
+#~ msgid "Ocropus"
+#~ msgstr "Ocropus"
+
+#~ msgid "Process image with Ocropus."
+#~ msgstr "Procesar imagen con Ocropus."
+
+#~ msgid "Cuneiform"
+#~ msgstr "Cuneiform"
+
+#~ msgid "Process image with Cuneiform."
+#~ msgstr "Procesar imagen con Cuneiform."
+
+#~ msgid "_File"
+#~ msgstr "_Archivo"
+
+#~ msgid "_New"
+#~ msgstr "_Nuevo"
+
+#~ msgid "Clears all pages"
+#~ msgstr "Elimina todas las páginas"
+
+#~ msgid "_Open"
+#~ msgstr "_Abrir"
+
+#~ msgid "Open image file(s)"
+#~ msgstr "Abrir archivo(s) de imagen"
+
+#~ msgid "Open c_rashed session"
+#~ msgstr "Abrir sesión interrumpida"
+
+#~ msgid "S_can"
+#~ msgstr "Escanear"
+
+#~ msgid "Scan document"
+#~ msgstr "Escanear documento"
+
+#~ msgid "_Email as PDF"
+#~ msgstr "_Enviar en correo como PDF"
+
+#~ msgid "Attach as PDF to a new email"
+#~ msgstr "Adjuntar como PDF en un correo nuevo"
+
+#~ msgid "_Print"
+#~ msgstr "_Imprimir"
+
+#~ msgid "Print"
+#~ msgstr "Imprimir"
+
+#~ msgid "_Compress temporary files"
+#~ msgstr "Comprimir archivos temporales"
+
+#~ msgid "Compress temporary files"
+#~ msgstr "Comprimir archivos temporales"
+
+#~ msgid "_Quit"
+#~ msgstr "_Salir"
+
+#~ msgid "Quit"
+#~ msgstr "Salir"
+
+#~ msgid "_Edit"
+#~ msgstr "_Editar"
+
+#~ msgid "_Undo"
+#~ msgstr "_Deshacer"
+
+#~ msgid "Undo"
+#~ msgstr "Deshacer"
+
+#~ msgid "_Redo"
+#~ msgstr "_Restaurar"
+
+#~ msgid "Redo"
+#~ msgstr "Restaurar"
+
+#~ msgid "Cu_t"
+#~ msgstr "Cor_tar"
+
+#~ msgid "Cut selection"
+#~ msgstr "Cortar selección"
+
+#~ msgid "Copy selection"
+#~ msgstr "Copia la selección"
+
+#~ msgid "_Paste"
+#~ msgstr "_Pegar"
+
+#~ msgid "Paste selection"
+#~ msgstr "Pega la selección"
+
+#~ msgid "Delete selected pages"
+#~ msgstr "Eliminar las páginas seleccionadas"
+
+#~ msgid "_Renumber"
+#~ msgstr "_Renumerar"
+
+#~ msgid "Renumber pages"
+#~ msgstr "Renumerar páginas"
+
+#~ msgid "_Select"
+#~ msgstr "_Seleccionar"
+
+#~ msgid "_All"
+#~ msgstr "_Todas"
+
+#~ msgid "Select all pages"
+#~ msgstr "Seleccionar todas las páginas"
+
+#~ msgid "_Odd"
+#~ msgstr "_Impares"
+
+#~ msgid "Select all odd-numbered pages"
+#~ msgstr "Selecciona todas las páginas impares"
+
+#~ msgid "_Even"
+#~ msgstr "_Pares"
+
+#~ msgid "Select all evenly-numbered pages"
+#~ msgstr "Selecciona todas las páginas pares"
+
+#~ msgid "_Blank"
+#~ msgstr "_Blanco"
+
+#~ msgid "Select pages with low standard deviation"
+#~ msgstr "Selecciona páginas con desviación estándar baja"
+
+#~ msgid "_Dark"
+#~ msgstr "_Oscuro"
+
+#~ msgid "Select dark pages"
+#~ msgstr "Seleccionar páginas oscuras"
+
+#~ msgid "_Modified"
+#~ msgstr "_Modificado"
+
+#~ msgid "Select modified pages since last OCR"
+#~ msgstr "Seleccionar páginas modificadas desde el último OCR"
+
+#~ msgid "_No OCR"
+#~ msgstr "_No OCR"
+
+#~ msgid "Select pages with no OCR output"
+#~ msgstr "Seleccionar páginas sin salida OCR"
+
+#~ msgid "_Clear OCR"
+#~ msgstr "_Limpiar OCR"
+
+#~ msgid "Clear OCR output from selected pages"
+#~ msgstr "Limpiar la salida OCR para las páginas seleccionadas"
+
+#~ msgid "Propert_ies"
+#~ msgstr "Propie_dades"
+
+#~ msgid "Edit image properties"
+#~ msgstr "Editar propiedades de imagen"
+
+#~ msgid "Prefere_nces"
+#~ msgstr "Preferencias"
+
+#~ msgid "Edit preferences"
+#~ msgstr "Editar preferencias"
+
+#~ msgid "_View"
+#~ msgstr "_Vista"
+
+#~ msgid "Zoom _100%"
+#~ msgstr "Zoom _100%"
+
+#~ msgid "Zoom to 100%"
+#~ msgstr "Zoom al 100%"
+
+#~ msgid "Zoom to _fit"
+#~ msgstr "Zoom hasta _ajustar"
+
+#~ msgid "Zoom to fit"
+#~ msgstr "Zoom hasta ajustar"
+
+#~ msgid "Zoom _in"
+#~ msgstr "Zoom acercar"
+
+#~ msgid "Zoom in"
+#~ msgstr "Acercar"
+
+#~ msgid "Zoom _out"
+#~ msgstr "Z_oom alejar"
+
+#~ msgid "Zoom out"
+#~ msgstr "Alejar"
+
+#~ msgid "Rotate 90° clockwise"
+#~ msgstr "Rotar 90º en sentido horario"
+
+#~ msgid "Rotate 180°"
+#~ msgstr "Rotar 180°"
+
+#~ msgid "Rotate 90° anticlockwise"
+#~ msgstr "Rotar 90º en sentido antihorario"
+
+#~ msgid "_Tools"
+#~ msgstr "_Herramientas"
+
+#~ msgid "_Threshold"
+#~ msgstr "U_mbral"
+
+#~ msgid "Change each pixel above this threshold to black"
+#~ msgstr "Cambiar cada píxel sobre este umbral a negro"
+
+#~ msgid "_Brightness / Contrast"
+#~ msgstr "Brillo / Contraste"
+
+#~ msgid "Change brightness & contrast"
+#~ msgstr "Cambiar brillo y contraste"
+
+#~ msgid "_Negate"
+#~ msgstr "_Anular"
+
+#~ msgid "Converts black to white and vice versa"
+#~ msgstr "Convertir negro a blanco y viceversa"
+
+#~ msgid "_Unsharp Mask"
+#~ msgstr "Deformar Máscara"
+
+#~ msgid "Apply an unsharp mask"
+#~ msgstr "Aplicar una máscara para deformar"
+
+#~ msgid "_Crop"
+#~ msgstr "_Recortar"
+
+#~ msgid "Crop pages"
+#~ msgstr "Recortar páginas"
+
+#~ msgid "Crop selection"
+#~ msgstr "Recortar selección"
+
+#~ msgid "_Clean up"
+#~ msgstr "Limpiar"
+
+#~ msgid "_Split"
+#~ msgstr "_Dividir"
+
+#~ msgid "_OCR"
+#~ msgstr "_OCR"
+
+#~ msgid "Optical Character Recognition"
+#~ msgstr "Reconocimiento óptico de caracteres"
+
+#~ msgid "U_ser-defined"
+#~ msgstr "Definido por el u_suario"
+
+#~ msgid "Process images with user-defined tool"
+#~ msgstr "Procesar imágenes con herramienta definida por el usuario"
+
+#~ msgid "_Help"
+#~ msgstr "_Ayuda"
+
+#~ msgid "Help"
+#~ msgstr "Ayuda"
+
+#~ msgid "_About"
+#~ msgstr "_Acerca de"
+
+#~ msgid "Use the pan tool"
+#~ msgstr "Usar herramienta de desplazamiento"
+
+#~ msgid "Use the rectangular selection tool"
+#~ msgstr "Usar herramienta de selección rectangular"
+
+#~ msgid "_Select & pan"
+#~ msgstr "_Seleccionar y desplazar"
+
+#~ msgid "_Tabbed"
+#~ msgstr "_Tabulado"
+
+#~ msgid "Arrange image and OCR viewers in tabs"
+#~ msgstr "Organizar imagen y visor OCR en pestañas"
+
+#~ msgid "_Split horizontally"
+#~ msgstr "_Dividir horizontalmente"
+
+#~ msgid "_Split vertically"
+#~ msgstr "_Dividir verticalmente"
+
+#~ msgid "Edit text layer"
+#~ msgstr "Editar capa de texto"
+
+#~ msgid "Show editing tools for text layer"
+#~ msgstr "Mostrar herramientas de edición para capa de texto"
+
+#~ msgid "Edit annotations"
+#~ msgstr "Editar notas"
+
+#~ msgid "Show editing tools for annotations"
+#~ msgstr "Mostrar herramientas de edición para notas"
+
+#~ msgid "Save image and Save as PDF both require imagemagick\n"
+#~ msgstr "Guardar imagen y Guardar como PDF ambos requieren imagemagick\n"
+
+#~ msgid "Save image requires libtiff\n"
+#~ msgstr "Se requiere libtiff para guardar la imagen\n"
+
+#~ msgid "Save as DjVu requires djvulibre-bin\n"
+#~ msgstr "Se requiere djvulibre-bin para guardar como DjVu\n"
+
+#~ msgid "Email as PDF requires xdg-email\n"
+#~ msgstr "Email como PDF necesita xdg-email\n"
+
+#~ msgid "unpaper missing\n"
+#~ msgstr "unpaper no encontrado\n"
+
+#~ msgid "OCR requires gocr, tesseract, ocropus, or cuneiform\n"
+#~ msgstr "OCR requiere gocr, tesseract, ocropus, o cuneiform\n"
+
+#~ msgid "PDF encryption requires pdftk\n"
+#~ msgstr "La encriptación de PDF requiere pdftk\n"
+
+#~ msgid "Crashed sessions"
+#~ msgstr "Sesiones interrumpidas"
+
+#~ msgid "Selected sessions will be deleted."
+#~ msgstr "Las sesiones seleccionadas se eliminarán"
+
+#, perl-format
+#~ msgid "%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime."
+#~ msgstr "%04d-%02d-%02d %02d:%02d:%02d no es una fecha válida."
+
+#~ msgid "90"
+#~ msgstr "90"
+
+#~ msgid "180"
+#~ msgstr "180"
+
+#~ msgid "270"
+#~ msgstr "270"
+
+#~ msgid "Select direction of rotation"
+#~ msgstr "Seleccione dirección de la rotación"
+
+#~ msgid "Select OCR engine"
+#~ msgstr "Selecciona motor OCR"
+
+#~ msgid ""
+#~ "The radius of the Gaussian, in pixels, not counting the center pixel (0 = "
+#~ "automatic)."
+#~ msgstr ""
+#~ "El radio de la Gaussiana, en píxeles, no contando el píxel central (0 = "
+#~ "automático)."
+
+#~ msgid "Sigma"
+#~ msgstr "Sigma"
+
+#~ msgid "The standard deviation of the Gaussian."
+#~ msgstr "La desviación estándar de la Gaussiana."
+
+#~ msgid "Gain"
+#~ msgstr "Ganancia"
+
+#~ msgid ""
+#~ "The percentage of the difference between the original and the blur image "
+#~ "that is added back into the original."
+#~ msgstr ""
+#~ "El porcentaje de la diferencia entre el original y la imagen difuminada que "
+#~ "es agregada nuevamente dentro del original."
+
+#~ msgid ""
+#~ "The threshold, as a fraction of QuantumRange, needed to apply the difference"
+#~ " amount."
+#~ msgstr ""
+#~ "El umbral, como una fracción de QuantumRange, necesaria para aplicar la "
+#~ "diferencia."
+
+#~ msgid "English"
+#~ msgstr "Inglés"
+
+#~ msgid "OCR Engine"
+#~ msgstr "Motor OCR"
+
+#~ msgid "Start OCR"
+#~ msgstr "Iniciar OCR"
+
+#~ msgid "This operation cannot be undone. Are you sure?"
+#~ msgstr "Esta operación no puede ser deshecha. ¿Está seguro?"
+
+#~ msgid "Frontend"
+#~ msgstr "Interfaz"
+
+#~ msgid "libimage-sane-perl"
+#~ msgstr "libimage-sane-perl"
+
+#~ msgid "Scan using the Perl bindings for SANE."
+#~ msgstr "Escanear usando los bindings de Perl para SANE."
+
+#~ msgid "scanimage"
+#~ msgstr "scanimage"
+
+#~ msgid "Scan using the scanimage frontend."
+#~ msgstr "Escanee usando la interfaz scanimage."
+
+#~ msgid "scanadf"
+#~ msgstr "scanadf"
+
+#~ msgid "Scan using the scanadf frontend."
+#~ msgstr "Escanee usando la interfaz scanadf."
+
+#~ msgid "Interface used for scanner access"
+#~ msgstr "Interfaz usada para el acceso al escáner"
+
+#~ msgid "Scan command prefix"
+#~ msgstr "Prefijo de comando de escaneo"
+
+#~ msgid "Cache device-dependent options"
+#~ msgstr "Cachear opciones dependientes de dispositivo"
+
+#~ msgid "Clear device-dependent options cache"
+#~ msgstr "Limpiar las opciones dependientes de dispositivo de la caché"
+
+#~ msgid "Option visibility & control"
+#~ msgstr "Opciones de visibilidad y control"
+
+#~ msgid "Type"
+#~ msgstr "Tipo"
+
+#~ msgid "Show"
+#~ msgstr "Mostrar"
+
+#~ msgid "Reload"
+#~ msgstr "Actualizar"
+
+#~ msgid "List current options"
+#~ msgstr "Listar opciones actuales"
+
+#~ msgid "No scanner currently open with command line frontend."
+#~ msgstr "Ningún escáner se encuentra abierto con interfaz de línea de comando."
+
+#~ msgid "Show options not listed"
+#~ msgstr "Mostrar opciones no listadas"
+
+#~ msgid "Convert scanned images to PNG before further processing"
+#~ msgstr "Convertir páginas escaneadas a PNG antes de seguir procesando"
+
+#~ msgid ""
+#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
+#~ "\n"
+#~ "The other variable available is:\n"
+#~ "\n"
+#~ "%r resolution"
+#~ msgstr ""
+#~ "Use %i y %o para los nombres de los ficheros de entrada y salida respectivamente, o únicamente %i si va a modificar directamente la imagen.\n"
+#~ "\n"
+#~ "La otra variable disponible es:\n"
+#~ "\n"
+#~ "%r resolución"
+
+#~ msgid "Renumber"
+#~ msgstr "Renumerar"
+
+#~ msgid "Page numbering"
+#~ msgstr "Numeración de páginas"
+
+#~ msgid "Start"
+#~ msgstr "Comienzo"
+
+#~ msgid "Increment"
+#~ msgstr "Incremento"
+
+#~ msgid ""
+#~ "The current settings would result in duplicate page numbers. Please select "
+#~ "new start and increment values."
+#~ msgstr ""
+#~ "Las opciones actuales podrían resultar en números duplicados de página. Por "
+#~ "favor, seleccione nuevos valores de comienzo e incremento."
+
+#~ msgid "scantpaper session file"
+#~ msgstr "archivo de sesión scantpaper"
+
+#~ msgid "Behind"
+#~ msgstr "Detrás"
+
+#~ msgid "Font for non-ASCII text"
+#~ msgstr "Tipografía para el texto no-ASCII"
+
+#~ msgid "Core"
+#~ msgstr "Núcleo"
+
+#, perl-format
+#~ msgid ""
+#~ "Reload recursion limit (%d) exceeded. Please file a bug, attaching a log "
+#~ "file reproducing the problem."
+#~ msgstr ""
+#~ "Recargar el límite de recursión (%d) excedido. Por favor, reporte un fallo, "
+#~ "adjuntando un archivo de log explicando el problema."
+
+#~ msgid ""
+#~ "Multiple unconstrained values are not currently supported. Please file a "
+#~ "bug."
+#~ msgstr ""
+#~ "No son soportados actualmente múltiples valores sin restricciones. Por "
+#~ "favor, realice un informe sobre el bug."
+
+#~ msgid ""
+#~ "Multiple non-numerical values are not currently supported. Please file a "
+#~ "bug."
+#~ msgstr ""
+#~ "No son soportados actualmente múltiples valores no numéricos. Por favor, "
+#~ "realice un informe sobre el bug."
+
+#~ msgid "Updating options"
+#~ msgstr "Actualizando opciones"
+
+#~ msgid "Unable to load image"
+#~ msgstr "No es posible cargar la imagen"
+
+#, perl-format
+#~ msgid "Error importing page %d. Ignoring."
+#~ msgstr "Error al importar la página %d. Omitiendo."
+
+#~ msgid "Please install djvulibre-bin in order to open DjVu files."
+#~ msgstr "Por favor, instale djvulibre-bin para poder abrir archivos DjVu"
+
+#, perl-format
+#~ msgid "%s is not a recognised image type"
+#~ msgstr "%s no es un tipo de imagen reconocido"
+
+#~ msgid ""
+#~ "Warning: scantpaper expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.\n"
+#~ "\n"
+#~ "If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.\n"
+#~ msgstr ""
+#~ "Aviso: scantpaper espera una imagen por página, pero esto no fue satisfecho. Es probable que el PDF no fue correctamente importado.\n"
+#~ "\n"
+#~ "Si desea agregar escaneos a un PDF existente, use las opciones anteponer/agregar a PDF en el diálogo de Guardar.\n"
+
+#, perl-format
+#~ msgid "Caught error creating PDF %s: %s"
+#~ msgstr "Detectado error creando PDF %s: %s"
+
+#, perl-format
+#~ msgid "Saving page %i of %i"
+#~ msgstr "Guardando página %i de %i"
+
+#~ msgid "Closing PDF"
+#~ msgstr "Cerrando el PDF"
+
+#~ msgid "Unable to set file timestamp for dates prior to 1970"
+#~ msgstr "Incapaz de configurar tiempo de archivo para fechas anteriores a 1970"
+
+#, perl-format
+#~ msgid "Error creating PDF image object: %s"
+#~ msgstr "Error al crear el objeto de imagen PDF: %s"
+
+#, perl-format
+#~ msgid "Error embedding file image in %s format to PDF: %s"
+#~ msgstr "Error al incrustar el archivo de imagen en formato %s al PDF: %s"
+
+#, perl-format
+#~ msgid "Error compressing image: %s"
+#~ msgstr "Error al comprimir la imagen: %s"
+
+#~ msgid "Error writing DjVu"
+#~ msgstr "Error al escribir DjVu"
+
+#~ msgid "Error merging DjVu"
+#~ msgstr "Error fusionando DjVu"
+
+#, perl-format
+#~ msgid "Can't write to file: %s"
+#~ msgstr "No se puede escribir al archivo: %s"
+
+#, perl-format
+#~ msgid "Can't open file: %s"
+#~ msgstr "No se puede abrir el archivo: %s"
+
+#, perl-format
+#~ msgid "Can't close file: %s"
+#~ msgstr "No se puede cerrar archivo: %s"
+
+#~ msgid "Error adding text layer to DjVu"
+#~ msgstr "Error al añadir la capa de texto al DjVu"
+
+#~ msgid "Error adding metadata to DjVu"
+#~ msgstr "Error añadiendo metadatos a DjVu"
+
+#, perl-format
+#~ msgid "Converting image %i of %i to TIFF"
+#~ msgstr "Convirtiendo imagen %i de %i a TIFF"
+
+#~ msgid "Error writing TIFF"
+#~ msgstr "Error escribiendo TIFF"
+
+#~ msgid "Concatenating TIFFs"
+#~ msgstr "Concatenando TIFFs"
+
+#~ msgid "Error saving image"
+#~ msgstr "Error guardando la imagen"
+
+#, perl-format
+#~ msgid "Scanning %i pages..."
+#~ msgstr "Escaneando %i páginas…"
+
+#, perl-format
+#~ msgid "Scanning page %i..."
+#~ msgstr "Escaneado página %i..."
+
+#~ msgid "Scanner warming up"
+#~ msgstr "Calentando el escáner"
+
+#~ msgid "Document feeder out of documents"
+#~ msgstr "Alimentador de documentos sin documentos"
+
+#~ msgid "Device busy"
+#~ msgstr "Dispositivo ocupado"
+
+#~ msgid "Operation cancelled"
+#~ msgstr "Operación cancelada"
+
+#~ msgid "Unknown message: "
+#~ msgstr "Mensaje desconocido: "
+
+#, perl-format
+#~ msgid "Error importing image %s: %s"
+#~ msgstr "Error al importar la imagen %s: %s"
+
+#, perl-format
+#~ msgid "Error copying image %s: %s"
+#~ msgstr "Error copiando imagen %s: %s"
