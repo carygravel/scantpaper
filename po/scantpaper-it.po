@@ -1019,7 +1019,7 @@ msgstr "Seleziona la periferica da utilizzare  per l'acquisizione"
 #: dialog/scan.py:599
 #, python-format
 msgid "Error: unknown device: %s"
-msgstr "Errore: dispositivo sconosciuto:% s"
+msgstr "Errore: dispositivo sconosciuto: %s"
 
 #: dialog/scan.py:657
 msgid "pel"
@@ -1095,7 +1095,7 @@ msgstr "Nome del profilo di scansione"
 #: dialog/scan.py:1585
 #, python-format
 msgid "Profile '%s' exists. Overwrite?"
-msgstr "Il profilo '% s' esiste.Sovrascrivere?"
+msgstr "Il profilo '%s' esiste.Sovrascrivere?"
 
 #: dialog/scan.py:1592 dialog/scan.py:1634
 #, fuzzy
@@ -1109,7 +1109,7 @@ msgstr "Modifica delle opzioni di scansione correnti"
 #: dialog/scan.py:1625
 #, python-format
 msgid "Editing scan profile \"%s\""
-msgstr "Modifica profilo di scansione \"% s\""
+msgstr "Modifica profilo di scansione \"%s\""
 
 #: dialog/scan.py:1686
 msgid "Backend options"
@@ -1122,17 +1122,17 @@ msgstr "Opzioni di frontend"
 #: dialog/scan.py:1752
 #, python-format
 msgid "Scanning page %d of %d"
-msgstr "Scansione della pagina% d di% d"
+msgstr "Scansione della pagina %d di %d"
 
 #: dialog/scan.py:1753
 #, python-format
 msgid "Scanning page %d"
-msgstr "Pagina di scansione% d"
+msgstr "Pagina di scansione %d"
 
 #: docthread.py:1167
 #, python-format
 msgid "Analysing page %i of %i"
-msgstr "Analisi della pagina% i di% i"
+msgstr "Analisi della pagina %i di %i"
 
 #: docthread.py:1461
 #, fuzzy
@@ -1289,7 +1289,7 @@ msgstr "Files di sessione di scantpaper"
 #: file_menu_mixins.py:601
 #, python-format
 msgid "Directory %s is read-only"
-msgstr "La directory% s è di sola lettura"
+msgstr "La directory %s è di sola lettura"
 
 #: file_menu_mixins.py:611
 #, python-format
@@ -1316,7 +1316,7 @@ msgstr ""
 #: importthread.py:86
 #, python-format
 msgid "File %s not found"
-msgstr "File% s non trovato"
+msgstr "File %s non trovato"
 
 #: importthread.py:92
 #, fuzzy, python-format
@@ -1326,7 +1326,7 @@ msgstr "Errore durante il recupero delle informazioni sul file %s: %s"
 #: importthread.py:97
 #, python-format
 msgid "Error importing zero-length file %s."
-msgstr "Errore durante l'importazione del file a lunghezza zero% s."
+msgstr "Errore durante l'importazione del file a lunghezza zero %s."
 
 #: importthread.py:135 importthread.py:178
 #, fuzzy, python-format
@@ -1531,7 +1531,7 @@ msgstr "Convertendo in PS"
 #: savethread.py:374
 #, python-format
 msgid "Error converting PDF to PS: %s"
-msgstr "Errore durante la conversione da PDF a PS:% s"
+msgstr "Errore durante la conversione da PDF a PS: %s"
 
 #: savethread.py:418
 msgid "Merging DjVu"
@@ -1545,7 +1545,7 @@ msgstr "Errore durante l'unione dei DjVu: %s"
 #: savethread.py:519
 #, python-format
 msgid "Error converting TIFF to PS: %s"
-msgstr "Errore durante la conversione di TIFF in PS:% s"
+msgstr "Errore durante la conversione di TIFF in PS: %s"
 
 #: savethread.py:664
 msgid "Error copying page"
@@ -1554,12 +1554,12 @@ msgstr "Errore nella copia della pagina"
 #: savethread.py:814
 #, python-format
 msgid "Error prepending PDF: %s"
-msgstr "Errore durante la preparazione del PDF:% s"
+msgstr "Errore durante la preparazione del PDF: %s"
 
 #: savethread.py:822
 #, python-format
 msgid "Error appending PDF: %s"
-msgstr "Errore durante l'aggiunta del PDF:% s"
+msgstr "Errore durante l'aggiunta del PDF: %s"
 
 #: savethread.py:831
 msgid "Error creating backup of PDF"
@@ -1568,7 +1568,7 @@ msgstr "Errore durante la creazione del backup del PDF"
 #: savethread.py:905
 #, python-format
 msgid "Error encrypting PDF: %s"
-msgstr "Errore durante la crittografia del PDF:% s"
+msgstr "Errore durante la crittografia del PDF: %s"
 
 #: scan_menu_item_mixins.py:72
 #, fuzzy
