@@ -172,6 +172,12 @@ allowed-unresolved-imports = ["gi.repository.**", "_sane", "tesserocr.**"]
 
 [tool.ty.rules]
 all = "error"
-# Rules we have not yet ratcheted to zero; see AGENTS.md contribution notes.
+# unresolved-attribute is disabled: ty infers `None | Unknown` for attributes
+# that are declared `= None` at class level and later assigned a GTK/GObject
+# widget, whose concrete type ty cannot resolve. It therefore flags essentially
+# every attribute access on those widgets (~3,000 diagnostics), nearly all of
+# them false positives where the widget is provably assigned before use. The
+# genuine NoneType-AttributeError sites it would catch are a small subset that
+# cannot be distinguished from the noise without annotating the GTK attribute
+# types.
 "unresolved-attribute" = "ignore"
-
