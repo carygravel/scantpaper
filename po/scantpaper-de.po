@@ -2358,22 +2358,18 @@ msgid "_About"
 msgstr "_Über"
 
 #: app.ui.h:58
-#, fuzzy
 msgid "Cut"
 msgstr "Aus_schneiden"
 
 #: app.ui.h:59
-#, fuzzy
 msgid "Copy"
 msgstr "_Kopieren"
 
 #: app.ui.h:60
-#, fuzzy
 msgid "Paste"
 msgstr "E_infügen"
 
 #: app.ui.h:61
-#, fuzzy
 msgid "Delete"
 msgstr "_Löschen"
 
@@ -2382,27 +2378,22 @@ msgid "Print"
 msgstr "Drucken"
 
 #: app.ui.h:65
-#, fuzzy
 msgid "Select All"
-msgstr "_Auswählen"
+msgstr "Alle auswählen"
 
 #: app.ui.h:66
-#, fuzzy
 msgid "Select Odd"
-msgstr "Ausgewählte"
+msgstr "Ungerade auswählen"
 
 #: app.ui.h:67
-#, fuzzy
 msgid "Select Even"
-msgstr "Ausgewählte"
+msgstr "Gerade auswählen"
 
 #: app.ui.h:68
-#, fuzzy
 msgid "Invert selection"
-msgstr "Auswahl ausschneiden"
+msgstr "Auswahl invertieren"
 
 #: app.ui.h:69
-#, fuzzy
 msgid "Clear OCR"
 msgstr "_Texterkennung leeren"
 
@@ -2488,9 +2479,8 @@ msgid "Quit"
 msgstr "Beenden"
 
 #: menu.ui.h:5
-#, fuzzy
 msgid "_Save"
-msgstr "Speichern"
+msgstr "_Speichern"
 
 #~ msgid "Error displaying help"
 #~ msgstr "Fehler beim Anzeigen der Hilfe"
