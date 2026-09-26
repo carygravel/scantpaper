@@ -605,8 +605,17 @@ In either of the above two cases, just delete the source directory to remove it.
 
 ## Translations
 
-scantpaper is partly translated into several languages. Contribute via
-[Launchpad Rosetta](https://translations.launchpad.net/scantpaper).
+scantpaper is partly translated into several languages. We'd like to
+organise the translations on
+[Launchpad Rosetta](https://translations.launchpad.net/scantpaper) — but if
+that's too much effort for you, attaching a `.po` file to an
+[issue](https://github.com/carygravel/scantpaper/issues) or a merge request
+is just as welcome.
+
+Missing strings are seeded as `#, fuzzy` (needs review) entries and fall
+back to English until a translator confirms them, so only confirmed
+translations reach users. The catalogs live in `po/` as
+`scantpaper-<language>.po`.
 
 - Scanner option translations come from sane-backends. Contribute via the
 [sane-devel mailing list](mailto:sane-devel@lists.alioth.debian.org) or
