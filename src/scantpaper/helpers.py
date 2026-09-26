@@ -20,7 +20,7 @@ from scantpaper.i18n import _
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
     from os import PathLike
-    from typing import TextIO
+    from typing import BinaryIO, TextIO
 
     import gi
 
@@ -401,11 +401,11 @@ def get_tmp_dir(dirname: str | None, pattern: str) -> str | None:
     return dirname
 
 
-def slurp(file: str | PathLike[str] | TextIO) -> str:
+def slurp(file: str | PathLike[str] | TextIO | BinaryIO) -> str:
     """Slurp file."""
     if hasattr(file, "read"):
         file.seek(0)
-        content = cast("TextIO", file).read()
+        content = cast("TextIO | BinaryIO", file).read()
         if isinstance(content, bytes):
             return content.decode("utf-8", "replace")
         return content

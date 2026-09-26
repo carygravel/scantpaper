@@ -54,29 +54,26 @@ def test_1(temp_pnm: object, temp_jpg: object) -> None:
 
         #########################
 
-        paper_sizes = cast(
-            "dict[str, dict[str, float]] | None",
-            {
-                "A4": {
-                    "x": 210,
-                    "y": 297,
-                    "l": 0,
-                    "t": 0,
-                },
-                "US Letter": {
-                    "x": 216,
-                    "y": 279,
-                    "l": 0,
-                    "t": 0,
-                },
-                "US Legal": {
-                    "x": 216,
-                    "y": 356,
-                    "l": 0,
-                    "t": 0,
-                },
+        paper_sizes: dict[str, dict[str, float]] | None = {
+            "A4": {
+                "x": 210,
+                "y": 297,
+                "l": 0,
+                "t": 0,
             },
-        )
+            "US Letter": {
+                "x": 216,
+                "y": 279,
+                "l": 0,
+                "t": 0,
+            },
+            "US Legal": {
+                "x": 216,
+                "y": 356,
+                "l": 0,
+                "t": 0,
+            },
+        }
 
         page = Page(image_object=image_object, dir=dirname)
         assert page.matching_paper_sizes(paper_sizes) == {"A4": MM_PER_INCH}, (

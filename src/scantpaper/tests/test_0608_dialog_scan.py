@@ -58,7 +58,7 @@ def setup_coupled_scan_options(
             title="Quick format",
             desc="Quick format",
             type=enums.TYPE_STRING,
-            unit=cast("str", 0),
+            unit=cast("str", cast("object", 0)),
             size=1,
             cap=5,
             constraint=["Maximum", "A4", "A5 Landscape"],
@@ -413,7 +413,7 @@ def test_source_default(
                 title="Number of options",
                 desc="Read-only option that specifies how many options a specific device supports.",
                 type=1,
-                unit=cast("str", 0),
+                unit=cast("str", cast("object", 0)),
                 size=4,
                 cap=4,
                 constraint=None,
@@ -424,7 +424,7 @@ def test_source_default(
                 title="Scan source",
                 desc="Selects the scan source (such as a document-feeder).",
                 type=3,
-                unit=cast("str", 0),
+                unit=cast("str", cast("object", 0)),
                 size=1,
                 cap=53,
                 constraint=["Flatbed"],
@@ -676,12 +676,12 @@ def test_get_invalid_option(
 
     assert dlg.available_scan_options.by_index(7) == Option(
         cap=0,
-        name=cast("str", None),  # "select-detect"
-        title=cast("str", None),
-        desc=cast("str", None),
+        name=cast("str", cast("object", None)),  # "select-detect"
+        title=cast("str", cast("object", None)),
+        desc=cast("str", cast("object", None)),
         constraint=None,
         size=1,
         type=enums.TYPE_BOOL,
-        unit=cast("str", None),
+        unit=cast("str", cast("object", None)),
         index=7,
     ), "make options that throw an error undetectable and unselectable"

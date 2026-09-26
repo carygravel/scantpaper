@@ -664,9 +664,11 @@ def _create_rose_image() -> Image.Image:
     return img
 
 
-def _load_default(**kwargs: object) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+def _load_default(
+    **kwargs: float | None,
+) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     """Call Pillow's load_default, tolerating its version-varying signature."""
-    return ImageFont.load_default(**cast("dict[str, float | None]", kwargs))
+    return ImageFont.load_default(**kwargs)
 
 
 def _create_qbfox_image() -> Image.Image:

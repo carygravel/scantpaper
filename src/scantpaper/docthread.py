@@ -875,8 +875,8 @@ class DocThread(SaveThread):
         min_page = cast("tuple[object, ...]", self._fetchone())[0]
         self._execute("SELECT min(action_id) FROM selection")
         min_sel = cast("tuple[object, ...]", self._fetchone())[0]
-        ids = [x for x in [min_page, min_sel] if x is not None]
-        min_action_id = min(cast("list[int]", ids)) if ids else None
+        ids = [x for x in [min_page, min_sel] if isinstance(x, int)]
+        min_action_id = min(ids) if ids else None
         return min_action_id is not None and min_action_id <= self._action_id
 
     def can_redo(self) -> bool:
@@ -885,8 +885,8 @@ class DocThread(SaveThread):
         max_page = cast("tuple[object, ...]", self._fetchone())[0]
         self._execute("SELECT max(action_id) FROM selection")
         max_sel = cast("tuple[object, ...]", self._fetchone())[0]
-        ids = [x for x in [max_page, max_sel] if x is not None]
-        max_action_id = max(cast("list[int]", ids)) if ids else None
+        ids = [x for x in [max_page, max_sel] if isinstance(x, int)]
+        max_action_id = max(ids) if ids else None
         return max_action_id is not None and max_action_id > self._action_id
 
     def do_undo(self, _request: Request) -> dict[str, object]:
@@ -1475,7 +1475,7 @@ class DocThread(SaveThread):
             api.SetVariable("hocr_font_info", "T")
             image = page.image_object.convert("L")
             api.SetImageBytes(
-                cast("str", image.tobytes()),
+                cast("str", cast("object", image.tobytes())),
                 image.width,
                 image.height,
                 1,

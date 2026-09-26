@@ -527,7 +527,9 @@ class SessionMixins:
                 self._current_ocr_bbox = self.t_canvas.get_first_bbox()
                 self._edit_ocr_text(self._current_ocr_bbox)
 
-            self._create_txt_canvas(cast("Page", self._current_page), ocr_new_page)
+            self._create_txt_canvas(
+                cast("Page", cast("object", self._current_page)), ocr_new_page
+            )
         self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
 
     def _ocr_text_delete(self, _widget: Gtk.Button) -> None:
@@ -580,7 +582,9 @@ class SessionMixins:
                 self._current_ann_bbox = self.a_canvas.get_first_bbox()
                 self._edit_annotation(self._current_ann_bbox)
 
-            self._create_ann_canvas(cast("Page", self._current_page), ann_text_new_page)
+            self._create_ann_canvas(
+                cast("Page", cast("object", self._current_page)), ann_text_new_page
+            )
 
     def _ann_text_delete(self, _widget: Gtk.Button) -> None:
         self._current_ann_bbox.delete_box()

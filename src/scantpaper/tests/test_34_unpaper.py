@@ -177,7 +177,7 @@ def test_unpaper(
 ) -> None:
     """Test unpaper."""
     unpaper = Unpaper()
-    paper_sizes = {
+    paper_sizes: dict[str, object] = {
         "A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0},
         "US Letter": {"x": 216, "y": 279, "l": 0, "t": 0},
         "US Legal": {"x": 216, "y": 356, "l": 0, "t": 0},
@@ -205,7 +205,7 @@ def test_unpaper(
         check=True,
     )
     slist = Document(db=temp_db.name)
-    slist.set_paper_sizes(cast("dict[str, object] | None", paper_sizes))
+    slist.set_paper_sizes(paper_sizes)
 
     import_in_mainloop(slist, [temp_pbm.name])
 
@@ -244,7 +244,7 @@ def test_unpaper2(
 ) -> None:
     """Test unpaper."""
     unpaper = Unpaper()
-    paper_sizes = {
+    paper_sizes: dict[str, object] = {
         "A4": {"x": A4_WIDTH_MM, "y": A4_HEIGHT_MM, "l": 0, "t": 0},
         "US Letter": {"x": 216, "y": 279, "l": 0, "t": 0},
         "US Legal": {"x": 216, "y": 356, "l": 0, "t": 0},
@@ -272,7 +272,7 @@ def test_unpaper2(
         check=True,
     )
     slist = Document(db=temp_db.name)
-    slist.set_paper_sizes(cast("dict[str, object] | None", paper_sizes))
+    slist.set_paper_sizes(paper_sizes)
 
     import_in_mainloop(slist, [temp_pnm.name])
 
@@ -281,7 +281,7 @@ def test_unpaper2(
         "non-standard size pnm imports with 72 PPI"
     )
 
-    set_resolution_in_mainloop(slist, cast("str", 1), 300, 300)
+    set_resolution_in_mainloop(slist, cast("str", cast("object", 1)), 300, 300)
     page = get_page_sync(slist.thread, id=1)
     assert page.resolution[0] == 300, (
         "simulated having imported non-standard pnm with 300 PPI"

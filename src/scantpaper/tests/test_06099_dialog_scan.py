@@ -206,7 +206,9 @@ class TestScanDialog:
         scan.combobd = unittest.mock.Mock()
         scan.combobd.get_num_rows.return_value = 1
 
-        scan.set_device_list(cast("list[SimpleNamespace]", [dev1, dev2, dev3]))
+        scan.set_device_list(
+            cast("list[SimpleNamespace]", cast("object", [dev1, dev2, dev3]))
+        )
 
         assert "on dev1" in dev1.label
         assert "on dev2" in dev3.label
@@ -238,7 +240,9 @@ class TestScanDialog:
                     widget,
                     cast(
                         "list[Options | Option | Gtk.Box | None]",
-                        (scan._available_scan_options, opt, hbox, hboxp),
+                        cast(
+                            "object", (scan._available_scan_options, opt, hbox, hboxp)
+                        ),
                     ),
                 )
                 mocklabel.assert_called_with(label=text)
@@ -378,7 +382,9 @@ class TestScanDialog:
         options.supports_paper.return_value = False
         scan._available_scan_options = options
 
-        scan._set_paper_sizes(cast("dict[str, dict[str, float]]", formats))
+        scan._set_paper_sizes(
+            cast("dict[str, dict[str, float]]", cast("object", formats))
+        )
 
         assert "A4" in scan.ignored_paper_sizes
 
@@ -425,7 +431,7 @@ class TestScanDialog:
         scan._add_profile(None, Profile())  # No name
         scan._add_profile("name", None)  # No profile
         scan._add_profile(
-            "name", cast("Profile | None", "not_a_profile")
+            "name", cast("Profile | None", cast("object", "not_a_profile"))
         )  # Invalid profile type
         assert len(scan.profiles) == 0
 
@@ -433,7 +439,9 @@ class TestScanDialog:
         """Test setting current scan options with invalid inputs."""
         scan = MockScan()
         scan.set_current_scan_options(None)
-        scan.set_current_scan_options(cast("Profile | None", "not_a_profile"))
+        scan.set_current_scan_options(
+            cast("Profile | None", cast("object", "not_a_profile"))
+        )
         # Should just log errors and return
 
     def test_set_option_profile_errors(self) -> None:
@@ -506,7 +514,7 @@ class TestScanDialog:
     def test_get_xy_resolution_missing(self) -> None:
         """Test getting XY resolution when options are missing."""
         scan = MockScan()
-        scan._available_scan_options = cast("Options", None)
+        scan._available_scan_options = cast("Options", cast("object", None))
         assert scan._get_xy_resolution() == (None, None)
 
         scan._available_scan_options = cast("Options", MockOptions([]))
@@ -541,7 +549,7 @@ class TestScanDialog:
         scan = MockScan()
         dev = MockDevice("dev1", "model1", "vendor1")
         dev.vendor = "vendor1"
-        scan.set_device_list(cast("list[SimpleNamespace]", [dev]))
+        scan.set_device_list(cast("list[SimpleNamespace]", cast("object", [dev])))
         assert "vendor1 model1" in dev.label
 
     def test_pack_widget_button(self) -> None:
@@ -555,7 +563,7 @@ class TestScanDialog:
             widget,
             cast(
                 "list[Options | Option | Gtk.Box | None]",
-                (scan._available_scan_options, opt, hbox, hboxp),
+                cast("object", (scan._available_scan_options, opt, hbox, hboxp)),
             ),
         )
         hbox.pack_end.assert_called_with(widget, expand=True, fill=True, padding=0)
@@ -854,7 +862,7 @@ def test_reproduce_bug(
             title="Number of options",
             desc="",
             type=1,
-            unit=cast("str", 0),
+            unit=cast("str", cast("object", 0)),
             size=4,
             cap=4,
             constraint=None,
@@ -865,7 +873,7 @@ def test_reproduce_bug(
             title="Top-left x",
             desc="",
             type=2,
-            unit=cast("str", 3),
+            unit=cast("str", cast("object", 3)),
             size=1,
             cap=5,
             constraint=(0, 215, 0),
@@ -876,7 +884,7 @@ def test_reproduce_bug(
             title="Top-left y",
             desc="",
             type=2,
-            unit=cast("str", 3),
+            unit=cast("str", cast("object", 3)),
             size=1,
             cap=5,
             constraint=(0, 297, 0),
@@ -887,7 +895,7 @@ def test_reproduce_bug(
             title="Bottom-right x",
             desc="",
             type=2,
-            unit=cast("str", 3),
+            unit=cast("str", cast("object", 3)),
             size=1,
             cap=5,
             constraint=(0, 215, 0),
@@ -898,7 +906,7 @@ def test_reproduce_bug(
             title="Bottom-right y",
             desc="",
             type=2,
-            unit=cast("str", 3),
+            unit=cast("str", cast("object", 3)),
             size=1,
             cap=5,
             constraint=(0, 297, 0),
@@ -1004,7 +1012,7 @@ def test_uuid_at_position_edge_cases() -> None:
     """Test _uuid_at_position with None or out-of-range positions."""
     scan = MockScan()
 
-    result = scan._uuid_at_position(cast("int", None))
+    result = scan._uuid_at_position(cast("int", cast("object", None)))
     assert result is None
 
     result = scan._uuid_at_position(0)
@@ -1020,7 +1028,7 @@ def test_uuid_before_position_edge_cases() -> None:
     """Test _uuid_before_position edge cases."""
     scan = MockScan()
 
-    result = scan._uuid_before_position(cast("int", None))
+    result = scan._uuid_before_position(cast("int", cast("object", None)))
     assert result is None
 
     result = scan._uuid_before_position(0)

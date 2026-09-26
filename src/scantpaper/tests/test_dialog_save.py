@@ -23,11 +23,11 @@ _LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
 
 def test_filter_table() -> None:
     """Test filter_table function."""
-    table = [("a", 1), ("b", 2), ("c", 3)]
+    table = [("a", "A", "alpha"), ("b", "B", "beta"), ("c", "C", "gamma")]
     types = ["a", "c"]
-    assert filter_table(cast("list[tuple[str, str, str]]", table), types) == [
-        ("a", 1),
-        ("c", 3),
+    assert filter_table(table, types) == [
+        ("a", "A", "alpha"),
+        ("c", "C", "gamma"),
     ]
 
 

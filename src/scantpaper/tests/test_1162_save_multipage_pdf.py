@@ -37,7 +37,7 @@ def test_save_multipage_pdf(
     for i in range(num):
         set_text_in_mainloop(
             slist,
-            cast("str", 1),
+            cast("str", cast("object", 1)),
             '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
             '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
@@ -80,7 +80,7 @@ def test_save_multipage_pdf_with_utf8(
     for i in range(num):
         set_text_in_mainloop(
             slist,
-            cast("str", 1),
+            cast("str", cast("object", 1)),
             '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
             '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
             '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '

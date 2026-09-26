@@ -1191,7 +1191,7 @@ def test_tree_iter_exceptions() -> None:
     """Test TreeIter exceptions."""
     # Init with non-Bbox
     with pytest.raises(TypeError):
-        TreeIter(cast("Bbox", "not-a-bbox"))
+        TreeIter(cast("Bbox", cast("object", "not-a-bbox")))
 
     # Setup a simple tree
     canvas_obj = Canvas()
@@ -1700,7 +1700,7 @@ def test_canvas_index_none() -> None:
 
     # Line 416: set_index_by_bbox raises IndexError if bbox is None
     with pytest.raises(IndexError):
-        canvas.set_index_by_bbox(cast("Bbox", None))
+        canvas.set_index_by_bbox(cast("Bbox", cast("object", None)))
 
     # Line 425: set_other_index returns early if bbox is None
     # We can check that it doesn't try to access self._current_index or similar

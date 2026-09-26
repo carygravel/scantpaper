@@ -4,17 +4,13 @@ from __future__ import annotations
 
 import uuid
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from gi.repository import GObject
 from typing_extensions import override
 
-from scantpaper.frontend import enums
-
 if TYPE_CHECKING:
     from collections.abc import Iterator
-
-    from scantpaper.scanner.options import Options
 
 
 class Profile(GObject.Object):
@@ -201,56 +197,6 @@ class Profile(GObject.Object):
             else:
                 new.add_backend_option(name, val)
         self.backend = deepcopy(new.backend)
-
-    def _subtract_offset(self, val: float, name_from: str, name_to: str) -> float:
-        """Subtract the geometry origin from a width or height value."""
-        offset = self.get_option_by_name(name_from)
-        if offset is None:
-            offset = self.get_option_by_name(name_to)
-        if offset is not None:
-            val -= cast("float", offset)
-        return val
-
-    def _add_cli_option(
-        self, options: Options | None, new: Profile, name: str, val: object
-    ) -> None:
-        if options is not None:
-            opt = options.by_name(name)
-            if (
-                "type" in cast("dict[str, object]", opt)
-                and cast("Any", opt)["type"] == enums.TYPE_BOOL
-            ):
-                val = "yes" if val else "no"
-
-        new.add_backend_option(name, val)
-
-    def map_to_cli(self, options: Options | None) -> Profile:
-        """Map backend geometry options to the scanimage and scanadf (CLI) geometry names."""
-        new = Profile()
-        for i in self.each_backend_option():
-            name, val = self.get_backend_option_by_index(i)
-            if name == "tl-x":
-                new.add_backend_option("l", val)
-
-            elif name == "tl-y":
-                new.add_backend_option("t", val)
-
-            elif name == "br-x":
-                new.add_backend_option(
-                    "x", self._subtract_offset(cast("float", val), "l", "tl-x")
-                )
-
-            elif name == "br-y":
-                new.add_backend_option(
-                    "y", self._subtract_offset(cast("float", val), "t", "tl-y")
-                )
-
-            else:
-                self._add_cli_option(options, new, name, val)
-
-        new.frontend = deepcopy(self.frontend)
-
-        return new
 
     def get_option_by_name(self, name: str) -> object | None:
         """Extract a option value from a profile."""

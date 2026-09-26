@@ -291,9 +291,9 @@ class SimpleList(Gtk.TreeView):
         return list(self.get_model()[index])
 
     @classmethod
-    def add_column_type(cls: type[SimpleList], **kwargs: object) -> None:
+    def add_column_type(cls: type[SimpleList], **kwargs: dict[str, object]) -> None:
         """Add column type."""
-        column_types.update(cast("dict[str, dict[str, object]]", kwargs))
+        column_types.update(kwargs)
 
     @classmethod
     def get_column_types(cls: type[SimpleList]) -> dict[str, dict[str, object]]:

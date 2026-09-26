@@ -104,7 +104,7 @@ def test_legacy_default_scan_options_applied_and_saved(
             '{"backend": [{"mode": "Color"}, {"resolution": 600}]}}',
             encoding="utf-8",
         )
-        settings = read_config(cast("str", rc))
+        settings = read_config(str(rc))
 
         assert "frontend" in settings["default-scan-options"], (
             "legacy scan options gain a frontend key on load"
@@ -151,7 +151,7 @@ def test_legacy_default_scan_options_applied_and_saved(
         )
 
         settings["default-scan-options"] = dialog.current_scan_options.get()
-        write_config(cast("str", rc), settings)
+        write_config(str(rc), settings)
         saved = json.loads(rc.read_text(encoding="utf-8"))
         assert set(saved["default-scan-options"]) == {"frontend", "backend"}, (
             "saved scan options keep both keys"

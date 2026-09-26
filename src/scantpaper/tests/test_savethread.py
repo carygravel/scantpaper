@@ -1042,7 +1042,10 @@ def test_savethread_progressbar_disabled() -> None:
 def test_savethread_progressbar_no_thread() -> None:
     """Test SaveThreadProgressBar when thread_instance is None."""
     progressbar = SaveThreadProgressBar(
-        request=cast("Request", None), total=10, desc="No thread test", unit="page"
+        request=cast("Request", cast("object", None)),
+        total=10,
+        desc="No thread test",
+        unit="page",
     )
 
     # Should not raise error

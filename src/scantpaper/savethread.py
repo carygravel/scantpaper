@@ -495,17 +495,17 @@ class SaveThread(Importhread):
                 self.check_cancelled()
                 filelist.append(out.name)
 
-        compression = []
+        compression: list[str] = []
         if "compression" in options["options"]:
-            compression = ["-c", options["options"]["compression"]]
+            compression = ["-c", str(options["options"]["compression"])]
             if options["options"]["compression"] == "jpeg":
                 compression[1] += f":{options['options']['quality']}"
-                compression.append(["-r", "16"])
+                compression += ["-r", "16"]
 
         # Create the tiff
         request.data(1.0)
-        cmd = ["tiffcp", *compression, *filelist, options["path"]]
-        exec_command_run(cast("list[str]", cmd), options.get("pidfile"), check=True)
+        cmd = ["tiffcp", *compression, *filelist, str(options["path"])]
+        exec_command_run(cmd, options.get("pidfile"), check=True)
         for filename in filelist:
             pathlib.Path(filename).unlink()
         self.check_cancelled()
@@ -915,22 +915,14 @@ def _bbox2markup(
     xresolution: float,
     yresolution: float,
     height: float,
-    bbox: list[float],
+    bbox: list[int],
 ) -> list[float]:
-    for i in (0, 2):
-        bbox[i] = px2pt(cast("int", bbox[i]), xresolution)
-        bbox[i + 1] = height - px2pt(cast("int", bbox[i + 1]), yresolution)
+    left = px2pt(bbox[LEFT], xresolution)
+    right = px2pt(bbox[RIGHT], xresolution)
+    top = height - px2pt(bbox[TOP], yresolution)
+    bottom = height - px2pt(bbox[BOTTOM], yresolution)
 
-    return [
-        bbox[LEFT],
-        bbox[BOTTOM],
-        bbox[RIGHT],
-        bbox[BOTTOM],
-        bbox[LEFT],
-        bbox[TOP],
-        bbox[RIGHT],
-        bbox[TOP],
-    ]
+    return [left, bottom, right, bottom, left, top, right, top]
 
 
 # https://py-pdf.github.io/fpdf2/Annotations.html
@@ -949,9 +941,7 @@ def _add_annotations_to_pdf(page: object, gs_page: object) -> None:
             annot = page.annotation()
             annot.markup(
                 box["text"],
-                _bbox2markup(
-                    xresolution, yresolution, height, cast("list[float]", box["bbox"])
-                ),
+                _bbox2markup(xresolution, yresolution, height, box["bbox"]),
                 "Highlight",
                 color=rgb,
                 opacity=0.5,

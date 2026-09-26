@@ -521,7 +521,7 @@ class ToolsMenuMixins:
                         windowsp,
                         combob,
                         sb_pos,
-                        cast("list[list[object]]", direction),
+                        direction,
                     ),
                 ),
                 (
@@ -537,7 +537,7 @@ class ToolsMenuMixins:
         windowsp: Dialog,
         combob: ComboBoxText,
         sb_pos: Gtk.SpinButton,
-        direction: list[list[object]],
+        direction: list[list[str]],
     ) -> None:
         """Apply the split to the selected pages."""
         self.settings["split-direction"] = direction[combob.get_active()][0]

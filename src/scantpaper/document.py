@@ -47,13 +47,13 @@ class Document(BaseDocument):
 
     def import_files(self, **options: object) -> None:
         """Avoid race conditions by running get_file_info on all files before importing."""
-        info = []
+        info: list[dict[str, Any]] = []
         options["passwords"] = []
         for i in range(len(cast("list[object]", options["paths"]))):
             self._get_file_info_finished_callback1(i, info, options)
 
     def _get_file_info_finished_callback1(
-        self, i: int, infolist: list[object], options: dict[str, Any]
+        self, i: int, infolist: list[dict[str, Any]], options: dict[str, Any]
     ) -> None:
         options = defaultdict(None, options)
         path = options["paths"][i]
@@ -80,11 +80,9 @@ class Document(BaseDocument):
                     self._get_file_info_finished_callback1(i, infolist, options)
                 return
 
-            infolist.append(response.info)
+            infolist.append(cast("dict[str, Any]", response.info))
             if i == len(options["paths"]) - 1:
-                self._get_file_info_finished_callback2(
-                    cast("list[dict[str, Any]]", infolist), options
-                )
+                self._get_file_info_finished_callback2(infolist, options)
 
         self.thread.get_file_info(
             path,

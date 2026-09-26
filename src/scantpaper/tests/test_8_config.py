@@ -64,7 +64,7 @@ def test_config() -> None:
 
     #########################
 
-    write_config(rc, cast("dict[str, object]", example))
+    write_config(rc, cast("dict[str, object]", cast("object", example)))
 
     example = config.split("\n")
     output = slurp(rc).split("\n")
@@ -84,7 +84,7 @@ def test_config() -> None:
     #########################
 
     output = {"Paper": {1: ["stuff"]}}
-    remove_invalid_paper(cast("dict[str, object]", output["Paper"]))
+    remove_invalid_paper(cast("dict[str, object]", cast("object", output["Paper"])))
     example = {"Paper": {}}
     assert output == example, "remove_invalid_paper (contents)"
 
@@ -100,7 +100,7 @@ def test_config() -> None:
             }
         }
     }
-    remove_invalid_paper(cast("dict[str, object]", output["Paper"]))
+    remove_invalid_paper(cast("dict[str, object]", cast("object", output["Paper"])))
     example = {"Paper": {}}
     assert output == example, "remove_invalid_paper (name)"
 
@@ -295,7 +295,7 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
 
     #########################
 
-    write_config(rc, cast("dict[str, object]", example))
+    write_config(rc, cast("dict[str, object]", cast("object", example)))
     output = slurp(rc)
     assert output == config, "Serialise device list"
 
@@ -318,7 +318,7 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
 
     #########################
 
-    write_config(rc, cast("dict[str, object]", example))
+    write_config(rc, cast("dict[str, object]", cast("object", example)))
 
     example = config.split("\n")
     output = slurp(rc).split("\n")
@@ -334,7 +334,7 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
         "datetime": datetime(2017, 12, 31, 0, 0, 0, tzinfo=_LOCAL_TZ),
     }
     update_config_from_imported_metadata(
-        cast("ConfigDict", config), cast("dict[str, object]", metadata)
+        cast("ConfigDict", config), cast("dict[str, object]", cast("object", metadata))
     )
     example = {
         "datetime offset": timedelta(days=-1),
@@ -597,7 +597,7 @@ def test_write_config_is_copied_and_never_writes_old() -> None:
             "version": "1.7.3",
         }
 
-        write_config(str(rc), cast("dict[str, object]", settings))
+        write_config(str(rc), cast("dict[str, object]", cast("object", settings)))
 
         assert isinstance(settings["device list"][0], SimpleNamespace), (
             "caller's device list left deserialised"
@@ -682,7 +682,7 @@ def test_alternate_rotation_defaults_off_and_round_trips() -> None:
         assert output["alternate rotation"] is False, "add_defaults fills the default"
 
         config["alternate rotation"] = True
-        write_config(str(rc), cast("dict[str, object]", config))
+        write_config(str(rc), cast("dict[str, object]", cast("object", config)))
         persisted = json.loads(slurp(rc))
         assert persisted["alternate rotation"] is True, (
             "the enabled toggle is written back"

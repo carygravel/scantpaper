@@ -304,6 +304,8 @@ def test_handle_exception(mocker: pytest.MockerFixture) -> None:
     mock_critical.reset_mock()
     with patch("sys.__excepthook__") as mock_orig_hook:
         exc_type = KeyboardInterrupt
-        app_module._handle_exception(exc_type, cast("BaseException", None), None)
+        app_module._handle_exception(
+            exc_type, cast("BaseException", cast("object", None)), None
+        )
         mock_orig_hook.assert_called_once()
         mock_critical.assert_not_called()

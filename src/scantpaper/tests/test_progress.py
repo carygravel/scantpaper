@@ -399,7 +399,7 @@ def test_progress_update_none() -> None:
     progress = Progress()
     progress.update(None)
     response = False
-    progress.update(response=cast("Response | None", response))
+    progress.update(cast("Response | None", cast("object", response)))
 
 
 def test_progress_child_widgets_shown_after_init() -> None:

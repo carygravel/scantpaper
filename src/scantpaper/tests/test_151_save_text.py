@@ -28,7 +28,7 @@ def test_save_text(
 
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
@@ -95,7 +95,7 @@ def test_save_utf8(
 
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
@@ -153,7 +153,7 @@ def test_save_hocr_as_text(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
 
     mlp = safe_mainloop(2000)
     slist.save_text(
@@ -205,7 +205,7 @@ def test_save_hocr(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
 
     with tempfile.NamedTemporaryFile(suffix=".txt") as temp_txt2:
         mlp = safe_mainloop(2000)
@@ -272,7 +272,7 @@ def test_save_hocr_with_encoding(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
 
     mlp = safe_mainloop(2000)
     slist.save_hocr(
@@ -324,8 +324,8 @@ def test_save_multipage_hocr(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
-    set_text_in_mainloop(slist, cast("str", 2), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 2)), page.text_layer)
 
     mlp = safe_mainloop(2000)
     slist.save_hocr(
@@ -441,7 +441,7 @@ def test_save_hocr_structure(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
 
     mlp = safe_mainloop(2000)
     slist.save_hocr(

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import cast
-
 import gi
 
 from scantpaper.dialog import Dialog, MultipleMessage
@@ -78,29 +76,29 @@ def test_multiple_message() -> None:
     dialog = MultipleMessage()
 
     # row with store_response=True and stored_responses
-    row1 = {
+    row1: dict[str, object] = {
         "text": "message 1",
         "message_type": "error",
         "store_response": True,
         "stored_responses": ["ok"],
     }
-    dialog.add_message(cast("dict[str, object]", row1))
+    dialog.add_message(row1)
 
     # row with store_response=True and no stored_responses
-    row2 = {
+    row2: dict[str, object] = {
         "text": "message 2",
         "message_type": "warning",
         "store_response": True,
     }
-    dialog.add_message(cast("dict[str, object]", row2))
+    dialog.add_message(row2)
 
     # row with store_response=False
-    row3 = {
+    row3: dict[str, object] = {
         "text": "message 3",
         "message_type": "error",
         "store_response": False,
     }
-    dialog.add_message(cast("dict[str, object]", row3))
+    dialog.add_message(row3)
 
     # list_checkbuttons should return 2 buttons (for row1 and row2)
     # row 3 doesn't have a checkbutton because store_response=False
@@ -160,22 +158,22 @@ def test_add_actions_limit() -> None:
 def test_multiple_message_none_text() -> None:
     """Test MultipleMessage with None text."""
     dialog = MultipleMessage()
-    row = {
+    row: dict[str, object] = {
         "text": None,
         "message_type": "error",
     }
-    dialog.add_message(cast("dict[str, object]", row))
+    dialog.add_message(row)
     assert row["text"] == "", "None text converted to empty string"
 
 
 def test_multiple_message_list_text() -> None:
     """Test MultipleMessage with text that gets munged into a list."""
     dialog = MultipleMessage()
-    row = {
+    row: dict[str, object] = {
         "text": "(gimp:123): message\nsomething else",
         "message_type": "error",
     }
-    dialog.add_message(cast("dict[str, object]", row))
+    dialog.add_message(row)
     # Check that 2 rows were added (plus header row, total 3 rows in grid)
     # However, MultipleMessage uses grid.insert_row(self.grid_rows) in add_row
     # And grid_rows starts at 1 (header is row 0)
@@ -200,10 +198,10 @@ def test_multiple_message_duplicate() -> None:
     """Test MultipleMessage skipping duplicate message."""
     dialog = MultipleMessage()
     responses = {"message": {"response": "ok"}}
-    row = {
+    row: dict[str, object] = {
         "text": "message",
         "message_type": "error",
         "responses": responses,
     }
-    dialog.add_message(cast("dict[str, object]", row))
+    dialog.add_message(row)
     assert dialog.grid_rows == 1, "duplicate message not added"

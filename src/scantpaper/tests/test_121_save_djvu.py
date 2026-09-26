@@ -69,7 +69,7 @@ def test_save_djvu_text_layer(
 
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
@@ -131,9 +131,9 @@ def test_save_djvu_with_hocr(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
     page.import_annotations(hocr)
-    set_annotations_in_mainloop(slist, cast("str", 1), page.annotations)
+    set_annotations_in_mainloop(slist, cast("str", cast("object", 1)), page.annotations)
     slist.save_djvu(
         path=temp_djvu.name,
         list_of_pages=[slist.data[0][2]],
@@ -171,7 +171,7 @@ def test_cancel_save_djvu(
 
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '
@@ -276,7 +276,7 @@ def test_save_djvu_with_float_resolution(
     """Test saving a djvu with resolution as float."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_png])
-    set_resolution_in_mainloop(slist, cast("str", 1), 299.72, 299.72)
+    set_resolution_in_mainloop(slist, cast("str", cast("object", 1)), 299.72, 299.72)
 
     slist.save_djvu(
         path=temp_djvu.name,

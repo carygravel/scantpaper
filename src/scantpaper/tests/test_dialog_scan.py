@@ -814,7 +814,7 @@ def test_paper_dimension_changed_unsets_paper(
             widget,
             cast(
                 "list[Options | Option | Gtk.Box | None]",
-                (mock_options, opt, hbox, hboxp),
+                cast("object", (mock_options, opt, hbox, hboxp)),
             ),
         )
 
@@ -1159,7 +1159,9 @@ def test_pack_widget_unknown_type(mocker: pytest.MockerFixture) -> None:
     opt.type = "unknown"
     data = (mocker.Mock(), opt, mocker.Mock(), mocker.Mock())
 
-    dialog._pack_widget(None, cast("list[Options | Option | Gtk.Box | None]", data))
+    dialog._pack_widget(
+        None, cast("list[Options | Option | Gtk.Box | None]", cast("object", data))
+    )
 
     mock_logger.warning.assert_called_with("Unknown type %s", "unknown")
 

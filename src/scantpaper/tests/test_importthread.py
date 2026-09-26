@@ -104,9 +104,7 @@ def test_composite_over_white_opaque_and_transparent(tmp_path: pathlib.Path) -> 
     image.save(image_path)
     mask.save(mask_path)
 
-    assert (
-        _composite_over_white(cast("str", image_path), cast("str", mask_path)) is True
-    )
+    assert _composite_over_white(str(image_path), str(mask_path)) is True
 
     result = Image.open(image_path)
     assert result.getpixel((0, 0)) == 200, "opaque mask keeps the image value"
@@ -120,9 +118,7 @@ def test_composite_over_white_half_alpha(tmp_path: pathlib.Path) -> None:
     Image.new("L", (1, 1), 200).save(image_path)
     Image.new("L", (1, 1), 128).save(mask_path)
 
-    assert (
-        _composite_over_white(cast("str", image_path), cast("str", mask_path)) is True
-    )
+    assert _composite_over_white(str(image_path), str(mask_path)) is True
 
     result = Image.open(image_path)
     assert result.getpixel((0, 0)) == 227  # (200*128 + 255*127) // 255
@@ -135,9 +131,7 @@ def test_composite_over_white_color(tmp_path: pathlib.Path) -> None:
     Image.new("RGB", (1, 1), (10, 20, 30)).save(image_path)
     Image.new("L", (1, 1), 128).save(mask_path)
 
-    assert (
-        _composite_over_white(cast("str", image_path), cast("str", mask_path)) is True
-    )
+    assert _composite_over_white(str(image_path), str(mask_path)) is True
 
     result = Image.open(image_path)
     assert result.getpixel((0, 0)) == (132, 137, 142)
@@ -152,9 +146,7 @@ def test_composite_over_white_size_mismatch(tmp_path: pathlib.Path) -> None:
     before_image = image_path.read_bytes()
     before_mask = mask_path.read_bytes()
 
-    assert (
-        _composite_over_white(cast("str", image_path), cast("str", mask_path)) is False
-    )
+    assert _composite_over_white(str(image_path), str(mask_path)) is False
     assert image_path.read_bytes() == before_image, "image file untouched"
     assert mask_path.read_bytes() == before_mask, "mask file untouched"
 
@@ -163,12 +155,12 @@ def test_correlate_pdf_images_pairs_smask(mocker: pytest.MockerFixture) -> None:
     """Test that an image entry is paired with the smask that follows it."""
     mocker.patch.object(pathlib.Path, "glob", return_value=["x-000.pnm", "x-001.pnm"])
     remove = mocker.patch.object(pathlib.Path, "unlink", autospec=True)
-    entries = [
+    entries: list[dict[str, object]] = [
         {"page": 1, "num": 0, "type": "image", "x_ppi": 300.0, "y_ppi": 300.0},
         {"page": 1, "num": 1, "type": "smask", "x_ppi": 300.0, "y_ppi": 300.0},
     ]
 
-    result, warning = _correlate_pdf_images(cast("list[dict[str, object]]", entries))
+    result, warning = _correlate_pdf_images(entries)
 
     assert warning is False
     assert result == [("x-000.pnm", 300.0, 300.0, "x-001.pnm")]
@@ -181,12 +173,12 @@ def test_correlate_pdf_images_removes_unpaired_smask(
     """Test that an smask without a preceding image is removed."""
     mocker.patch.object(pathlib.Path, "glob", return_value=["x-000.pnm", "x-001.pnm"])
     remove = mocker.patch.object(pathlib.Path, "unlink", autospec=True)
-    entries = [
+    entries: list[dict[str, object]] = [
         {"page": 1, "num": 0, "type": "smask", "x_ppi": 300.0, "y_ppi": 300.0},
         {"page": 1, "num": 1, "type": "image", "x_ppi": 300.0, "y_ppi": 300.0},
     ]
 
-    result, warning = _correlate_pdf_images(cast("list[dict[str, object]]", entries))
+    result, warning = _correlate_pdf_images(entries)
 
     assert warning is False
     assert result == [("x-001.pnm", 300.0, 300.0, None)]
@@ -261,7 +253,7 @@ def test_get_djvu_info_no_djvudump(mocker: pytest.MockerFixture) -> None:
     with pytest.raises(
         RuntimeError, match="Please install djvulibre-bin in order to open DjVu files"
     ):
-        thread._get_djvu_info({}, cast("str", None))
+        thread._get_djvu_info({}, cast("str", cast("object", None)))
 
 
 def test_get_djvu_info_no_djvused(mocker: pytest.MockerFixture) -> None:
@@ -280,7 +272,7 @@ def test_get_djvu_info_no_djvused(mocker: pytest.MockerFixture) -> None:
     ):
         thread._get_djvu_info(
             {"pages": 1, "width": [100], "height": [100], "ppi": [300]},
-            cast("str", None),
+            cast("str", cast("object", None)),
         )
 
 
@@ -296,7 +288,9 @@ def test_get_tif_info_no_tiffinfo(mocker: pytest.MockerFixture) -> None:
     with pytest.raises(
         RuntimeError, match="Please install libtiff-tools in order to open TIFF files"
     ):
-        thread._get_tif_info({}, cast("str", None), cast("Request", None))
+        thread._get_tif_info(
+            {}, cast("str", cast("object", None)), cast("Request", cast("object", None))
+        )
 
 
 def test_get_djvu_info_corrupt(mocker: pytest.MockerFixture) -> None:
@@ -319,7 +313,7 @@ def test_get_djvu_info_corrupt(mocker: pytest.MockerFixture) -> None:
     )
     thread = Importhread()
     with pytest.raises(RuntimeError, match="Unknown DjVu file structure"):
-        thread._get_djvu_info({}, cast("str", None))
+        thread._get_djvu_info({}, cast("str", cast("object", None)))
 
 
 @unittest.mock.patch("scantpaper.importthread.exec_command_run")
@@ -373,7 +367,7 @@ def test_get_pdf_info_error(mock_run: MagicMock) -> None:
     )
     thread = Importhread()
     mock_request = unittest.mock.Mock()
-    thread._get_pdf_info({}, cast("str", None), None, mock_request)
+    thread._get_pdf_info({}, cast("str", cast("object", None)), None, mock_request)
     mock_request.error.assert_called_once_with("Permission denied")
 
 

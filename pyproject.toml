@@ -174,5 +174,4 @@ allowed-unresolved-imports = ["gi.repository.**", "_sane", "tesserocr.**"]
 all = "error"
 # Rules we have not yet ratcheted to zero; see AGENTS.md contribution notes.
 "unresolved-attribute" = "ignore"
-"disjoint-cast" = "ignore"
 

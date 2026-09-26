@@ -346,7 +346,7 @@ def test_save_pdf_with_hocr(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
 
     mlp = safe_mainloop(5000)
     slist.save_pdf(
@@ -394,7 +394,7 @@ def test_save_pdf_with_utf8(
 
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox": [0, 0, 422, 61], "type": "page", "depth": 0}, '
         '{"bbox": [1, 14, 420, 59], "type": "column", "depth": 1}, '
         '{"bbox": [1, 14, 420, 59], "type": "line", "depth": 2}, '

@@ -65,7 +65,7 @@ class TestScan(Scan):
 @pytest.fixture
 def available_scan_options() -> Options:
     """Fixture for available_scan_options."""
-    return Options(cast("list[Option]", sane_mock.options))
+    return Options(cast("list[Option]", cast("object", sane_mock.options)))
 
 
 def test_edit_profile_dialog(

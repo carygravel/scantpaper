@@ -393,18 +393,13 @@ def test_helpers() -> None:
 
     #########################
 
-    settings = cast(
-        "dict[str, object]",
-        {
-            "author": "a.n.other",
-            "title": "title",
-            "subject": "subject",
-            "keywords": "keywords",
-            "datetime offset": datetime.timedelta(
-                days=2, hours=0, minutes=59, seconds=59
-            ),
-        },
-    )
+    settings: dict[str, object] = {
+        "author": "a.n.other",
+        "title": "title",
+        "subject": "subject",
+        "keywords": "keywords",
+        "datetime offset": datetime.timedelta(days=2, hours=0, minutes=59, seconds=59),
+    }
     today_and_now = datetime.datetime(
         2016, 2, 10, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
     )
@@ -478,7 +473,7 @@ def test_helpers() -> None:
         _program_version(
             "stdout",
             r"file-(\d+\.\d+)",
-            Proc(0, "file-5.22\nmagic file from", cast("str", None)),
+            Proc(0, "file-5.22\nmagic file from", cast("str", cast("object", None))),
         )
         == "5.22"
     ), "file version"
@@ -486,7 +481,9 @@ def test_helpers() -> None:
         _program_version(
             "stdout",
             r"Version:\sImageMagick\s([\d.-]+)",
-            Proc(0, "Version: ImageMagick 6.9.0-3 Q16", cast("str", None)),
+            Proc(
+                0, "Version: ImageMagick 6.9.0-3 Q16", cast("str", cast("object", None))
+            ),
         )
         == "6.9.0-3"
     ), "imagemagick version"
@@ -494,7 +491,9 @@ def test_helpers() -> None:
         _program_version(
             "stdout",
             r"Version:\\sImageMagick\\s([\\d.-]+)",
-            Proc(0, "Version:ImageMagick 6.9.0-3 Q16", cast("str", None)),
+            Proc(
+                0, "Version:ImageMagick 6.9.0-3 Q16", cast("str", cast("object", None))
+            ),
         )
         is None
     ), "unable to parse version"
@@ -695,13 +694,13 @@ def test_db(temp_db: object) -> None:
     request = Request("clone_pages", ({"page_ids": [2], "dest": 1},), thread.responses)
     assert thread.do_clone_pages(request) == [1], "row_ids of cloned pages"
     assert thread.get_text(3) == "text", "text in cloned page"
-    assert len(cast("list[object]", thread.page_number_table())) == 2, (
+    assert len(thread.page_number_table() or []) == 2, (
         "cloned page in page number table"
     )
 
     request = Request("clone_pages", ({"page_ids": [2], "dest": 0},), thread.responses)
     assert thread.do_clone_pages(request) == [0], "row_ids of inserted pages"
-    assert len(cast("list[object]", thread.page_number_table())) == 3, (
+    assert len(thread.page_number_table() or []) == 3, (
         "inserted page in page number table"
     )
 
@@ -880,9 +879,7 @@ def test_document(rose_tif: str) -> None:
                 assert slist.get_selected_indices() == [1], "pasted page selected"
                 dialog.page_number_start = 3
                 clipboard = slist.cut_selection(finished_callback=step3)
-                assert len(cast("list[object]", clipboard)) == 1, (
-                    "cut 1 page to clipboard"
-                )
+                assert len(cast("list[Any]", clipboard)) == 1, "cut 1 page to clipboard"
 
             def step3() -> None:
                 assert len(slist.data) == 1, "1 page left in list"
@@ -890,7 +887,7 @@ def test_document(rose_tif: str) -> None:
                     "selection changed to previous page"
                 )
                 slist.paste_selection(
-                    data=[cast("list[object]", clipboard)[0]],
+                    data=[cast("list[Any]", clipboard)[0]],
                     dest=0,
                     how=Gtk.TreeViewDropPosition.BEFORE,
                     finished_callback=step4,
@@ -926,7 +923,7 @@ def test_document(rose_tif: str) -> None:
                 slist.undo(finished_callback=after_undo)
 
             slist.paste_selection(
-                data=[cast("list[object]", clipboard)[0]],
+                data=[cast("list[Any]", clipboard)[0]],
                 dest=0,
                 how=Gtk.TreeViewDropPosition.AFTER,
                 select_new_pages=True,

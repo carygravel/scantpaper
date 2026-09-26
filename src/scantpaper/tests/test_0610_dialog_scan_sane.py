@@ -330,7 +330,9 @@ def test_5(
 
         # resolution=50 is the default, so it doesn't appear in current-scan-options
         assert dialog.current_scan_options == Profile(
-            backend=cast("list[tuple[str, object] | dict[str, object]]", backend)
+            backend=cast(
+                "list[tuple[str, object] | dict[str, object]]", cast("object", backend)
+            )
         ), "CLI geometry option names"
         nonlocal callbacks
         callbacks += 1

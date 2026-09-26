@@ -117,12 +117,14 @@ def test_within_tolerance() -> None:
     )
 
     assert not within_tolerance(
-        options.array[1], cast("float", "value"), cast("float", "value")
+        options.array[1],
+        cast("float", cast("object", "value")),
+        cast("float", cast("object", "value")),
     ), "SANE_CONSTRAINT_NONE"
     assert within_tolerance(
         cast("Option", options.by_name("mode")),
-        cast("float", "Gray"),
-        cast("float", "Gray"),
+        cast("float", cast("object", "Gray")),
+        cast("float", cast("object", "Gray")),
     ), "SANE_CONSTRAINT_STRING_LIST positive"
     assert within_tolerance(cast("Option", options.by_name("depth")), 8, 8), (
         "SANE_CONSTRAINT_WORD_LIST positive"
@@ -135,8 +137,8 @@ def test_within_tolerance() -> None:
     )
     assert not within_tolerance(
         cast("Option", options.by_name("mode")),
-        cast("float", "Gray"),
-        cast("float", "gray"),
+        cast("float", cast("object", "Gray")),
+        cast("float", cast("object", "gray")),
     ), "SANE_CONSTRAINT_STRING_LIST negative"
     assert not within_tolerance(cast("Option", options.by_name("depth")), 8, 7), (
         "SANE_CONSTRAINT_WORD_LIST negative"
@@ -163,13 +165,13 @@ def test_within_tolerance() -> None:
     )
     assert within_tolerance(
         cast("Option", options.by_name("string")),
-        cast("float", "20.5"),
-        cast("float", "20.5"),
+        cast("float", cast("object", "20.5")),
+        cast("float", cast("object", "20.5")),
     ), "SANE_TYPE_STRING positive"
     assert not within_tolerance(
         cast("Option", options.by_name("string")),
-        cast("float", "20.5"),
-        cast("float", "21"),
+        cast("float", cast("object", "20.5")),
+        cast("float", cast("object", "21")),
     ), "SANE_TYPE_STRING negative"
 
     option = Option(
@@ -266,7 +268,7 @@ def test_option_name_none() -> None:
             title="Number of options",
             desc="Read-only option that specifies how many options a specific device supports.",
             type=1,
-            unit=cast("str", 0),
+            unit=cast("str", cast("object", 0)),
             size=4,
             cap=4,
             constraint=None,
@@ -274,13 +276,13 @@ def test_option_name_none() -> None:
         Option(
             type=3,
             size=1,
-            name=cast("str", None),
+            name=cast("str", cast("object", None)),
             constraint=["Flatbed", "ADF"],
             title="Scan source",
             desc="Selects the scan source (such as a document-feeder).",
             index=1,
             cap=5,
-            unit=cast("str", 0),
+            unit=cast("str", cast("object", 0)),
         ),
     ]
 

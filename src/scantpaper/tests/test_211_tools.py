@@ -288,7 +288,7 @@ def test_threshold(
     set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
@@ -350,7 +350,7 @@ def test_negate(
     set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
@@ -399,7 +399,7 @@ def test_unsharp_mask(
     set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',
@@ -487,7 +487,7 @@ def test_crop(
 """
     page = get_page_sync(slist.thread, id=1)
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
 
     mlp = safe_mainloop(2000)
     slist.crop(
@@ -566,7 +566,7 @@ def test_split(
 </html>
 """
     page.import_hocr(hocr)
-    set_text_in_mainloop(slist, cast("str", 1), page.text_layer)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
 
     mlp = safe_mainloop(2000)
     slist.split_page(
@@ -645,7 +645,7 @@ def test_brightness_contrast(
     set_saved_in_mainloop(slist, 1, saved=True)
     set_text_in_mainloop(
         slist,
-        cast("str", 1),
+        cast("str", cast("object", 1)),
         '[{"bbox":["0","0","783","1057"],"id":"page_1",'
         '"type":"page","depth":0},{"depth":1,"id":"word_1_2","type":"word",'
         '"confidence":"93","text":"ACCOUNT","bbox":["218","84","401","109"]}]',

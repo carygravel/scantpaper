@@ -188,7 +188,7 @@ class Page:
         """Import text layer from PDF."""
         tree = Bboxtree()
         res = self.get_resolution()
-        tree.from_pdftotext(html, res, self.get_size())
+        tree.from_pdftotext(html, res[:2], self.get_size())
         # Only set text_layer if there's actual content, not an empty tree
         json_text = tree.json()
         self.text_layer = None if json_text == "[]" else json_text

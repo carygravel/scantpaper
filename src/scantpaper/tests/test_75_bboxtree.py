@@ -824,7 +824,7 @@ def test_from_pdftotext() -> None:
     tree = Bboxtree()
     tree.from_pdftotext(
         pdftext,
-        cast("tuple[float, float, str]", (POINTS_PER_INCH, POINTS_PER_INCH)),
+        (POINTS_PER_INCH, POINTS_PER_INCH),
         (59, 465),
     )
     assert tree.bbox_tree == expected, "from_pdftotext() basic functionality"
@@ -888,16 +888,14 @@ def test_from_pdftotext() -> None:
         },
     ]
     tree = Bboxtree()
-    tree.from_pdftotext(
-        pdftext, cast("tuple[float, float, str]", (300, 300)), (244, 1937)
-    )
+    tree.from_pdftotext(pdftext, (300, 300), (244, 1937))
     assert tree.bbox_tree == expected, "from_pdftotext() with resolution"
 
     tree = Bboxtree()
     tree.from_pdftotext(
         pdftext,
-        cast("tuple[float, float, str]", (300, 300)),
-        cast("tuple[int, int]", (968.5, 244)),
+        (300, 300),
+        (968.5, 244),
     )
     cast("Any", expected[0])["bbox"] = [0, 0, 968.5, 244]
     cast("Any", expected[1])["bbox"] = [-964.5, 94, -604.5, 193]
@@ -918,7 +916,7 @@ def test_from_pdftotext() -> None:
     tree = Bboxtree()
     tree.from_pdftotext(
         pdftext,
-        cast("tuple[float, float, str]", (POINTS_PER_INCH, POINTS_PER_INCH)),
+        (POINTS_PER_INCH, POINTS_PER_INCH),
         (59, 465),
     )
     assert tree.bbox_tree == [], "from_pdftotext() no body"
@@ -937,7 +935,7 @@ def test_from_pdftotext() -> None:
     tree = Bboxtree()
     tree.from_pdftotext(
         pdftext,
-        cast("tuple[float, float, str]", (POINTS_PER_INCH, POINTS_PER_INCH)),
+        (POINTS_PER_INCH, POINTS_PER_INCH),
         (59, 465),
     )
     assert tree.bbox_tree == [], "from_pdftotext() no boxes"
@@ -962,7 +960,7 @@ def test_from_pdftotext() -> None:
     tree = Bboxtree()
     tree.from_pdftotext(
         pdftext,
-        cast("tuple[float, float, str]", (POINTS_PER_INCH, POINTS_PER_INCH)),
+        (POINTS_PER_INCH, POINTS_PER_INCH),
         (59, 465),
     )
     assert tree.bbox_tree == expected, "from_pdftotext() invalid page"

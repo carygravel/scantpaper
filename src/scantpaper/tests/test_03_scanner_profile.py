@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import copy
-import unittest.mock
-from typing import cast
 
 import pytest
 
-from scantpaper.frontend import enums
 from scantpaper.scanner.profile import Profile, _synonyms
 
 
@@ -118,11 +115,11 @@ def test_profile_init_combined_dict_missing_backend() -> None:
 
 def test_profile_round_trip_legacy_default_scan_options() -> None:
     """A normalised legacy default-scan-options value round-trips via Profile."""
-    scan_options = {
+    scan_options: dict[str, object] = {
         "frontend": {},
         "backend": [{"mode": "Binary"}, {"resolution": 600}],
     }
-    profile = Profile(cast("dict[str, object]", scan_options))
+    profile = Profile(scan_options)
     assert profile.get() == {
         "frontend": {},
         "backend": [("mode", "Binary"), ("resolution", 600)],
@@ -226,52 +223,3 @@ def test_add_frontend_option_errors() -> None:
         p1.add_frontend_option(None, 1)
     with pytest.raises(ValueError, match="Error: no option name"):
         p1.add_frontend_option("", 1)
-
-
-def test_map_to_cli() -> None:
-    """Test map_to_cli."""
-    p4 = Profile(
-        backend=[("tl-x", 1), ("tl-y", 2), ("br-x", 11), ("br-y", 12), ("other", 5)]
-    )
-    options = unittest.mock.Mock()
-    options.by_name.return_value = {"type": enums.TYPE_INT}
-    p5 = p4.map_to_cli(options)
-    assert p5.get_option_by_name("l") == 1
-    assert p5.get_option_by_name("t") == 2
-    assert p5.get_option_by_name("x") == 10
-    assert p5.get_option_by_name("y") == 10
-    assert p5.get_option_by_name("other") == 5
-
-    # map_to_cli with l/t present manually (to bypass map_from_cli in __init__)
-    p_cli_manual = Profile()
-    p_cli_manual.add_backend_option("l", 1)
-    p_cli_manual.add_backend_option("t", 2)
-    p_cli_manual.add_backend_option("br-x", 11)
-    p_cli_manual.add_backend_option("br-y", 12)
-    p5_manual = p_cli_manual.map_to_cli(options)
-    assert p5_manual.get_option_by_name("x") == 10
-    assert p5_manual.get_option_by_name("y") == 10
-
-    # map_to_cli without any tl-x/l/tl-y/t
-    p_no_coords = Profile(backend=[("br-x", 11), ("br-y", 12)])
-    p5_no_coords = p_no_coords.map_to_cli(options)
-    assert p5_no_coords.get_option_by_name("x") == 11
-    assert p5_no_coords.get_option_by_name("y") == 12
-
-
-def test_map_to_cli_variants() -> None:
-    """Test map_to_cli boolean and None options."""
-    p6 = Profile(backend=[("bool-opt", True)])
-    options = unittest.mock.Mock()
-    options.by_name.return_value = {"type": enums.TYPE_BOOL}
-    p7 = p6.map_to_cli(options)
-    assert p7.get_option_by_name("bool-opt") == "yes"
-
-    p6 = Profile(backend=[("bool-opt", False)])
-    p7 = p6.map_to_cli(options)
-    assert p7.get_option_by_name("bool-opt") == "no"
-
-    # map_to_cli with None options
-    p4 = Profile(backend=[("tl-x", 1)])
-    p8 = p4.map_to_cli(None)
-    assert p8.get_option_by_name("l") == 1

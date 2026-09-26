@@ -929,7 +929,9 @@ def test_view_selection_changed_callback(app_window: ApplicationWindow) -> None:
     sel.copy.return_value = copied_sel
 
     app_window._windowc = MagicMock()
-    app_window._view_selection_changed_callback(cast("ImageView", None), sel)
+    app_window._view_selection_changed_callback(
+        cast("ImageView", cast("object", None)), sel
+    )
 
     assert app_window.settings["selection"] == copied_sel
 
@@ -937,7 +939,9 @@ def test_view_selection_changed_callback(app_window: ApplicationWindow) -> None:
 def test_view_selection_changed_callback_none(app_window: ApplicationWindow) -> None:
     """Test _view_selection_changed_callback with None."""
     with pytest.raises(AttributeError):
-        app_window._view_selection_changed_callback(cast("ImageView", None), None)
+        app_window._view_selection_changed_callback(
+            cast("ImageView", cast("object", None)), None
+        )
 
 
 def test_on_key_press(app_window: ApplicationWindow) -> None:

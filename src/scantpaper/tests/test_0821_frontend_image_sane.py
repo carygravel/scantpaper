@@ -662,7 +662,9 @@ def test_get_option_value_timeout() -> None:
         patch.object(thread, "do_get_option_blocking", lambda _request: None),
         pytest.raises(TimeoutError),
     ):
-        thread.get_option_value("enable-test-options", timeout=cast("int", 0.05))
+        thread.get_option_value(
+            "enable-test-options", timeout=cast("int", cast("object", 0.05))
+        )
     thread.send("quit")
     thread.join(timeout=1)
 

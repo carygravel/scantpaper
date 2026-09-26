@@ -33,7 +33,7 @@ class MyThread(BaseThread):
 EXPECTED = [
     Response(
         type=ResponseType.QUEUED,
-        request=cast("Request", ""),
+        request=cast("Request", cast("object", "")),
         info=None,
         status=None,
         num_completed_jobs=0,
@@ -42,7 +42,7 @@ EXPECTED = [
     ),
     Response(
         type=ResponseType.STARTED,
-        request=cast("Request", ""),
+        request=cast("Request", cast("object", "")),
         info=None,
         status=None,
         num_completed_jobs=0,
@@ -52,7 +52,7 @@ EXPECTED = [
     None,  # running
     Response(
         type=ResponseType.DATA,
-        request=cast("Request", ""),
+        request=cast("Request", cast("object", "")),
         info="arg1 / arg2",
         status=None,
         num_completed_jobs=0,
@@ -62,7 +62,7 @@ EXPECTED = [
     None,  # running
     Response(
         type=ResponseType.FINISHED,
-        request=cast("Request", ""),
+        request=cast("Request", cast("object", "")),
         info=0.5,
         status=None,
         num_completed_jobs=0,
@@ -71,7 +71,7 @@ EXPECTED = [
     ),
     Response(
         type=ResponseType.ERROR,
-        request=cast("Request", ""),
+        request=cast("Request", cast("object", "")),
         info=None,
         status="division by zero",
         num_completed_jobs=1,
@@ -80,7 +80,7 @@ EXPECTED = [
     ),
     Response(
         type=ResponseType.ERROR,
-        request=cast("Request", ""),
+        request=cast("Request", cast("object", "")),
         info=None,
         status="no handler for [nodiv]",
         num_completed_jobs=2,
@@ -89,7 +89,7 @@ EXPECTED = [
     ),
     Response(
         type=ResponseType.FINISHED,
-        request=cast("Request", ""),
+        request=cast("Request", cast("object", "")),
         info=0.5,
         status=None,
         num_completed_jobs=3,
@@ -98,7 +98,7 @@ EXPECTED = [
     ),  # before_finished
     Response(
         type=ResponseType.FINISHED,
-        request=cast("Request", ""),
+        request=cast("Request", cast("object", "")),
         info=0.5,
         status=None,
         num_completed_jobs=4,
@@ -119,7 +119,7 @@ def test_1() -> None:
             assert response == EXPECTED[n_callbacks], str(n_callbacks)
         else:
             actual = response._replace(
-                request=cast("Request", ""),
+                request=cast("Request", cast("object", "")),
                 num_completed_jobs=None,
                 total_jobs=None,
                 pending=None,
@@ -508,7 +508,7 @@ def test_stage_callback_exception_invokes_error_callback() -> None:
     }
 
     thread._execute_single_callback(
-        "finished_callback", "finished", cast("uuid.UUID", uid), data
+        "finished_callback", "finished", cast("uuid.UUID", cast("object", uid)), data
     )
 
     error_callback.assert_called_once()

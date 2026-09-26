@@ -301,8 +301,8 @@ class Bboxtree:
     def from_pdftotext(
         self,
         text: str,
-        resolution: tuple[float, float, str],
-        image_size: tuple[int, int],
+        resolution: tuple[float, float],
+        image_size: tuple[float, float],
     ) -> None:
         """Create bboxtree from PDF text layer."""
         if not re.search(
@@ -548,8 +548,8 @@ class PDFTextParser(HTMLParser):
 
     def __init__(
         self,
-        resolution: tuple[float, float, str],
-        image_size: tuple[int, int],
+        resolution: tuple[float, float],
+        image_size: tuple[float, float],
     ) -> None:
         """Initialise PDFTextParser."""
         super().__init__()
@@ -618,7 +618,7 @@ class PDFTextParser(HTMLParser):
 
 
 def _pdftotext2boxes(
-    text: str, resolution: tuple[float, float, str], image_size: tuple[int, int]
+    text: str, resolution: tuple[float, float], image_size: tuple[float, float]
 ) -> list[BBox]:
     parser = PDFTextParser(resolution, image_size)
     parser.feed(text)

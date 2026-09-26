@@ -427,12 +427,12 @@ class BaseDocument(SimpleList):
 
         # Select the new pages
         if kwargs.get("select_new_pages"):
-            selection = list(
+            selection: list[int | None] = list(
                 range(dest, dest + len(cast("list[object]", kwargs["data"])))
             )
 
             self.get_selection().unselect_all()
-            self.select(cast("list[int | None]", selection))
+            self.select(selection)
 
         if self.row_changed_signal is not None:
             self.get_model().handler_unblock(self.row_changed_signal)
