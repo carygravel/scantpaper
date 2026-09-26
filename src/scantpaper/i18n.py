@@ -46,6 +46,7 @@ def log_i18n_status() -> None:
 
 
 _ = TRANSLATE.gettext
+ngettext = TRANSLATE.ngettext
 
 # sane-backends translations are usually provided by the system; try to load
 # them from the default locations and otherwise fall back silently.

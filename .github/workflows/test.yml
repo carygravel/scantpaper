@@ -43,6 +43,7 @@ jobs:
           # once the base image ships python3-coverage >= 7.7.0 (Resolute/
           # 26.04 ships 7.13.5).
           sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
+            gettext \
             gir1.2-gtk-3.0 gobject-introspection imagemagick img2pdf \
             libtiff-tools ocrmypdf poppler-utils python3-gi python3-gi-cairo \
             python3-iso639 python3-polib python3-sane python3-tesserocr \
@@ -80,6 +81,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
+            gettext \
             gobject-introspection gir1.2-gtk-3.0 imagemagick libtiff-tools \
             poppler-utils python3-gi python3-gi-cairo python3-sane \
             python3-tesserocr qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper
@@ -121,6 +123,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
+            gettext \
             gir1.2-gtk-3.0 gobject-introspection imagemagick libtiff-tools \
             poppler-utils python3-gi python3-gi-cairo python3-sane \
             python3-tesserocr qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper

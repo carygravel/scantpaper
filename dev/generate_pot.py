@@ -1,4 +1,4 @@
-"""Create pot for translation strings. Requires intltool package."""
+"""Create pot for translation strings. Requires gettext and intltool."""
 
 from __future__ import annotations
 
@@ -26,13 +26,44 @@ def main() -> None:
         ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))
         for x in ui_sources:
             subprocess.run(["intltool-extract", "--type=gettext/glade", x], check=True)
-        uih_sources = [x + ".h" for x in ui_sources]
+        uih_sources = sorted(x + ".h" for x in ui_sources)
         py_sources = sorted(str(x) for x in Path().rglob("*.py"))
-        out = subprocess.check_output(
-            ["pygettext3", "-o", "-", "-kN_", "-k_", *uih_sources, *py_sources],
-            text=True,
+
+        py_pot = "_py_tmp.pot"
+        subprocess.run(
+            [
+                "xgettext",
+                "--language=Python",
+                "--from-code=UTF-8",
+                "-o",
+                py_pot,
+                "--keyword=_",
+                "--keyword=N_",
+                *py_sources,
+            ],
+            check=True,
         )
-        for x in uih_sources:
+
+        tmp_pots = [py_pot]
+        if uih_sources:
+            c_pot = "_c_tmp.pot"
+            subprocess.run(
+                [
+                    "xgettext",
+                    "--language=C",
+                    "--from-code=UTF-8",
+                    "-o",
+                    c_pot,
+                    "--keyword=_",
+                    "--keyword=N_",
+                    *uih_sources,
+                ],
+                check=True,
+            )
+            tmp_pots.append(c_pot)
+
+        out = subprocess.check_output(["msgcat", "--use-first", *tmp_pots], text=True)
+        for x in uih_sources + tmp_pots:
             Path(x).unlink()
 
     local_tz = datetime.datetime.now().astimezone().tzinfo

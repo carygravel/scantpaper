@@ -28,3 +28,22 @@ def test_compile_po_files(tmp_path: Path) -> None:
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_check_po_files() -> None:
+    """All .po files pass deterministic catalog checks, as done in CI."""
+    src = REPO_ROOT / "po"
+
+    result = subprocess.run(
+        [
+            "python3",
+            str(REPO_ROOT / "dev" / "check_po.py"),
+            "--src",
+            str(src),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr

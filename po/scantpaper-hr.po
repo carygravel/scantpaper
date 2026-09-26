@@ -6,12 +6,13 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2026-09-26 16:03+0200\n"
+"Report-Msgid-Bugs-To: jffry@posteo.net\n"
+"POT-Creation-Date: 2026-09-26 20:13+0200\n"
 "PO-Revision-Date: 2009-01-19 11:00+0000\n"
 "Last-Translator: DarioSeparovic <Unknown>\n"
 "Language-Team: Croatian <hr@li.org>\n"
 "Language: hr\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -73,52 +74,55 @@ msgstr "Tekstualni sloj"
 msgid "Annotations"
 msgstr "Anotacije"
 
-#: app_window.py:837
-#, fuzzy
+#: app_window.py:838
+#, fuzzy, python-format
 msgid "%dMb free in %s."
-msgstr "%d MB slobodno u %s."
+msgid_plural "%dMb free in %s."
+msgstr[0] "%d MB slobodno u %s."
+msgstr[1] "%d MB slobodno u %s."
+msgstr[2] "%d MB slobodno u %s."
 
-#: app_window.py:861 helpers.py:372
+#: app_window.py:863 helpers.py:372
 #, fuzzy
 msgid "Messages"
 msgstr "Poruke"
 
-#: app_window.py:946
+#: app_window.py:948
 #, fuzzy
 msgid "Error opening the last device used."
 msgstr "Pogreška pri otvaranju posljednjeg korištenog uređaja."
 
-#: app_window.py:948
+#: app_window.py:950
 #, fuzzy
 msgid "There was an error opening the last device used."
 msgstr "Došlo je do pogreške pri otvaranju posljednjeg korištenog uređaja."
 
-#: app_window.py:951
+#: app_window.py:953
 #, fuzzy
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Ups! Zaboravio sam ga uključiti. Pokušajte ponovno sada."
 
-#: app_window.py:956 dialog/scan.py:517
+#: app_window.py:958 dialog/scan.py:517
 #, fuzzy
 msgid "Rescan for devices"
 msgstr "Ponovno skeniraj uređaje"
 
-#: app_window.py:960
+#: app_window.py:962
 #, fuzzy
 msgid "Restart scantpaper."
 msgstr "Ponovno pokrenite scantpaper."
 
-#: app_window.py:965
+#: app_window.py:967
 #, fuzzy
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Samo zanemarite pogrešku. Skener mi još nije potreban."
 
-#: app_window.py:968 dialog/preferences.py:162
+#: app_window.py:970 dialog/preferences.py:162
 #, fuzzy
 msgid "Cache device list"
 msgstr "Spremi popis uređaja u predmemoriju"
 
-#: app_window.py:971 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:973 dialog/__init__.py:135 session_mixins.py:392
 #, fuzzy
 msgid "Don't show this message again"
 msgstr "Ne prikazuj ponovno ovu poruku"
@@ -155,17 +159,16 @@ msgstr "US Letter"
 msgid "US Legal"
 msgstr "US Legal"
 
-#: config.py:262
-#, fuzzy
+#: config.py:263
+#, fuzzy, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left "
-"unchanged."
+"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
 msgstr ""
 "Postavka %s je %r i ne može se koristiti kao %s, pa je ostavljena "
 "nepromijenjena."
 
-#: config.py:298
-#, fuzzy
+#: config.py:299
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read in full. The following settings were "
 "restored: %s. The rest were reset to their defaults. A backup of the "
@@ -175,8 +178,8 @@ msgstr ""
 "postavke vraćene: %s. Ostale su vraćene na zadane vrijednosti. Sigurnosna "
 "kopija izvorne datoteke spremljena je kao %s."
 
-#: config.py:305
-#, fuzzy
+#: config.py:306
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read, so all settings have been reset to "
 "their defaults. A backup of the original file has been saved as %s."
@@ -234,15 +237,14 @@ msgstr "Sakrij"
 msgid "Don't show these messages again"
 msgstr "Ne prikazuj ponovno ove poruke"
 
-#: dialog/__init__.py:312
+#: dialog/__init__.py:313
 #, fuzzy
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
-"Ova pogreška obično nastaje kada ImageMagick prekorači svoje granice "
-"resursa."
+"Ova pogreška obično nastaje kada ImageMagick prekorači svoje granice resursa."
 
-#: dialog/__init__.py:316
+#: dialog/__init__.py:317
 #, fuzzy
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
@@ -251,7 +253,7 @@ msgstr ""
 "One se mogu proširiti uređivanjem njegove datoteke pravila, koja se na mom "
 "sustavu nalazi na /etc/ImageMagick-6/policy.xml"
 
-#: dialog/__init__.py:321
+#: dialog/__init__.py:322
 #, fuzzy
 msgid ""
 "Please see https://imagemagick.org/script/resources.php for more information"
@@ -351,7 +353,7 @@ msgstr "Broj stranice prije koje će se skenovi umetnuti"
 msgid "Position advance"
 msgstr "Napredak položaja"
 
-#: dialog/pagecontrols.py:288
+#: dialog/pagecontrols.py:289
 #, fuzzy
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
@@ -445,7 +447,7 @@ msgstr "Opće opcije"
 msgid "Open scanner at program start"
 msgstr "Otvori skener pri pokretanju programa"
 
-#: dialog/preferences.py:70
+#: dialog/preferences.py:71
 #, fuzzy
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
@@ -481,21 +483,21 @@ msgstr "Neki ADF-ovi ne izbacuju posljednju stranicu ako ovo nije omogućeno"
 msgid "Allow batch scanning from flatbed"
 msgstr "Dopusti skupno skeniranje s ravnog stakla"
 
-#: dialog/preferences.py:108
+#: dialog/preferences.py:109
 #, fuzzy
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 msgstr ""
-"Ako nije postavljeno, prebacivanje na ravni skener prisilit će # stranica na"
-" 1 i jednostrani način rada."
+"Ako nije postavljeno, prebacivanje na ravni skener prisilit će # stranica na "
+"1 i jednostrani način rada."
 
 #: dialog/preferences.py:118
 #, fuzzy
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Zanemari mogućnosti dvostranog skeniranja skenera"
 
-#: dialog/preferences.py:121
+#: dialog/preferences.py:122
 #, fuzzy
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
@@ -510,21 +512,21 @@ msgstr ""
 msgid "Force new scan job between pages"
 msgstr "Prisili novi posao skeniranja između stranica"
 
-#: dialog/preferences.py:134
+#: dialog/preferences.py:135
 #, fuzzy
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
 msgstr ""
-"Inače, neki Brother skeneri javljaju da nema dokumenata, unatoč skeniranju s"
-" ravnog stakla."
+"Inače, neki Brother skeneri javljaju da nema dokumenata, unatoč skeniranju s "
+"ravnog stakla."
 
 #: dialog/preferences.py:151
 #, fuzzy
 msgid "Select # pages = all on selecting ADF"
 msgstr "Odaberi # stranica = sve pri odabiru ADF-a"
 
-#: dialog/preferences.py:154
+#: dialog/preferences.py:155
 #, fuzzy
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
@@ -533,7 +535,7 @@ msgstr ""
 "Ako je ova opcija omogućena, pri prebacivanju na source=ADF odabire se # "
 "stranica = sve"
 
-#: dialog/preferences.py:164
+#: dialog/preferences.py:165
 #, fuzzy
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
@@ -542,7 +544,7 @@ msgstr ""
 "Ako je ova opcija omogućena, otvaranje skenera je brže jer scantpaper prvo "
 "ne traži dostupne uređaje."
 
-#: dialog/preferences.py:168
+#: dialog/preferences.py:169
 #, fuzzy
 msgid ""
 "This is only effective if the device names do not change between sessions."
@@ -637,7 +639,7 @@ msgstr "Odaberi privremeni direktorij"
 msgid "Warn if available space less than (Mb)"
 msgstr "Upozori ako je dostupno manje od (Mb) prostora"
 
-#: dialog/preferences.py:278
+#: dialog/preferences.py:279
 #, fuzzy
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
@@ -676,7 +678,7 @@ msgstr "OCR izlaz"
 msgid "Replace"
 msgstr "Zamijeni"
 
-#: dialog/preferences.py:317
+#: dialog/preferences.py:318
 #, fuzzy
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr "Zamijeni sadržaj tekstualnog međuspremnika sadržajem iz OCR izlaza."
@@ -707,7 +709,7 @@ msgid "Manage user-defined tools"
 msgstr "Upravljaj alatima koje je definirao korisnik"
 
 #: dialog/preferences.py:352
-#, fuzzy
+#, fuzzy, python-format
 msgid ""
 "Use %i and %o for the input and output filenames respectively,\n"
 "or a single %i if the image is to be modified in-place.\n"
@@ -776,14 +778,13 @@ msgid "Scan Options"
 msgstr "Opcije skeniranja"
 
 #: dialog/sane.py:290
-#, fuzzy
+#, fuzzy, python-format
 msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
 msgstr ""
-"Zanemarivanje opcije skeniranja '%s', minimalni raspon (%s) > maksimalni "
-"(%s)"
+"Zanemarivanje opcije skeniranja '%s', minimalni raspon (%s) > maksimalni (%s)"
 
 #: dialog/sane.py:450
-#, fuzzy
+#, fuzzy, python-format
 msgid "Setting option %s"
 msgstr "Postavljanje opcije %s"
 
@@ -814,14 +815,14 @@ msgstr "GIF"
 msgid "CompuServe graphics interchange format"
 msgstr "Format za razmjenu grafike CompuServe"
 
+#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+msgid "JPEG"
+msgstr "JPEG"
+
 #: dialog/save.py:33
 #, fuzzy
 msgid "Joint Photographic Experts Group JFIF format"
 msgstr "JFIF format Joint Photographic Experts Group"
-
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
-msgid "JPEG"
-msgstr "JPEG"
 
 #: dialog/save.py:34
 msgid "PNG"
@@ -875,14 +876,14 @@ msgstr "hOCR"
 msgid "hOCR markup language"
 msgstr "Jezik označavanja hOCR"
 
+#: dialog/save.py:40 session_mixins.py:126
+msgid "Session"
+msgstr "Sesija"
+
 #: dialog/save.py:40
 #, fuzzy
 msgid "scantpaper session database"
 msgstr "Baza podataka sesije scantpaper"
-
-#: dialog/save.py:40 session_mixins.py:126
-msgid "Session"
-msgstr "Sesija"
 
 #: dialog/save.py:41
 #, fuzzy
@@ -1167,7 +1168,7 @@ msgid "Sets the device to be used for the scan"
 msgstr "Odaberi uređaj za skeniranje"
 
 #: dialog/scan.py:599
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error: unknown device: %s"
 msgstr "Pogreška: nepoznati uređaj: %s"
 
@@ -1214,11 +1215,11 @@ msgstr "Uredi"
 msgid "Selects or edits the paper size"
 msgstr "Odabire ili uređuje veličinu papira"
 
-#: dialog/scan.py:769
-#, fuzzy
+#: dialog/scan.py:770
+#, fuzzy, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
-" file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
+"file a bug, attaching a log file reproducing the problem."
 msgstr ""
 "Prekoračena je granica rekurzije ponovnog učitavanja (%d): %d ponovnih "
 "učitavanja za %d opcija skeniranja. Prijavite grešku, prilažući datoteku "
@@ -1234,7 +1235,7 @@ msgstr "Uredi veličinu papira"
 msgid "Apply"
 msgstr "Primijeni"
 
-#: dialog/scan.py:1068
+#: dialog/scan.py:1069
 #, fuzzy
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
@@ -1252,7 +1253,7 @@ msgid "Name of scan profile"
 msgstr "Naziv profila skeniranja"
 
 #: dialog/scan.py:1585
-#, fuzzy
+#, fuzzy, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "Profil '%s' postoji. Želite li ga prebrisati?"
 
@@ -1267,7 +1268,7 @@ msgid "Editing current scan options"
 msgstr "Uređivanje trenutnih opcija skeniranja"
 
 #: dialog/scan.py:1625
-#, fuzzy
+#, fuzzy, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "Uređivanje profila skeniranja \"%s\""
 
@@ -1282,17 +1283,17 @@ msgid "Frontend options"
 msgstr "Opcije sučelja"
 
 #: dialog/scan.py:1752
-#, fuzzy
+#, fuzzy, python-format
 msgid "Scanning page %d of %d"
 msgstr "Skeniranje stranice %d od %d"
 
 #: dialog/scan.py:1753
-#, fuzzy
+#, fuzzy, python-format
 msgid "Scanning page %d"
 msgstr "Skeniranje stranice %d"
 
 #: docthread.py:1167
-#, fuzzy
+#, fuzzy, python-format
 msgid "Analysing page %i of %i"
 msgstr "Analiziranje stranice %i od %i"
 
@@ -1306,14 +1307,13 @@ msgstr "Nije naveden tesseract jezik"
 msgid "tessdata directory not found"
 msgstr "Direktorij tessdata nije pronađen"
 
-#: document.py:110
+#: document.py:111
 #, fuzzy
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr ""
-"Pogreška: ne može se otvoriti datoteka sesije istovremeno s drugom "
-"datotekom."
+"Pogreška: ne može se otvoriti datoteka sesije istovremeno s drugom datotekom."
 
-#: document.py:126
+#: document.py:127
 #, fuzzy
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr "Pogreška: uvoz višestranične datoteke istovremeno s drugom datotekom."
@@ -1379,7 +1379,7 @@ msgid "Last page to extract"
 msgstr "Posljednja stranica za izdvajanje"
 
 #: file_menu_mixins.py:214
-#, fuzzy
+#, fuzzy, python-format
 msgid "Enter user password for PDF %s"
 msgstr "Unesite korisničku lozinku za PDF %s"
 
@@ -1397,8 +1397,8 @@ msgstr "Spremi"
 msgid "Post-save hook"
 msgstr "Radnja nakon spremanja"
 
-#: file_menu_mixins.py:369
-#, fuzzy
+#: file_menu_mixins.py:370
+#, fuzzy, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
@@ -1477,12 +1477,12 @@ msgid "scantpaper session files"
 msgstr "Datoteke sesije scantpaper"
 
 #: file_menu_mixins.py:601
-#, fuzzy
+#, fuzzy, python-format
 msgid "Directory %s is read-only"
 msgstr "Direktorij %s je samo za čitanje"
 
 #: file_menu_mixins.py:611
-#, fuzzy
+#, fuzzy, python-format
 msgid "File %s is read-only"
 msgstr "Datoteka %s je samo za čitanje"
 
@@ -1492,7 +1492,7 @@ msgid "Image filename"
 msgstr "Naziv datoteke slike"
 
 #: file_menu_mixins.py:862
-#, fuzzy
+#, fuzzy, python-format
 msgid "This operation would overwrite %s"
 msgstr "Ova bi operacija prebrisala %s"
 
@@ -1505,22 +1505,22 @@ msgstr ""
 "Da li želite izaći iz programa?"
 
 #: importthread.py:86
-#, fuzzy
+#, fuzzy, python-format
 msgid "File %s not found"
 msgstr "Datoteka %s nije pronađena"
 
 #: importthread.py:92
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error getting file info for %s: %s"
 msgstr "Pogreška pri dohvaćanju informacija o datoteci za %s: %s"
 
 #: importthread.py:97
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error importing zero-length file %s."
 msgstr "Pogreška pri uvozu datoteke nulte duljine %s."
 
 #: importthread.py:135 importthread.py:178
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr "Instalirajte djvulibre-bin za otvaranje DjVu datoteka: %s"
 
@@ -1530,12 +1530,12 @@ msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Nepoznata struktura DjVu datoteke. Obratite se autoru."
 
 #: importthread.py:266
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "Instalirajte libtiff-tools za otvaranje TIFF datoteka: %s"
 
 #: importthread.py:328 importthread.py:388
-#, fuzzy
+#, fuzzy, python-format
 msgid "Importing page %i of %i"
 msgstr "Uvoz stranice %i od %i"
 
@@ -1544,7 +1544,7 @@ msgstr "Uvoz stranice %i od %i"
 msgid "Error extracting images from PDF"
 msgstr "Pogreška pri izdvajanju slika iz PDF-a"
 
-#: importthread.py:520
+#: importthread.py:521
 #, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
@@ -1665,7 +1665,7 @@ msgstr "OCR skeniranih stranica"
 msgid "Threshold before OCR"
 msgstr "Prag prije OCR-a"
 
-#: postprocess_controls.py:379
+#: postprocess_controls.py:380
 #, fuzzy
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
@@ -1674,7 +1674,7 @@ msgstr ""
 "Primijeni prag na sliku prije izvođenja OCR-a. To utječe samo na sliku "
 "proslijeđenu OCR motoru, a ne na spremljenu sliku."
 
-#: postprocess_controls.py:390 tools_menu_mixins.py:113
+#: postprocess_controls.py:391 tools_menu_mixins.py:114
 #, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
@@ -1694,12 +1694,12 @@ msgid "_Cancel"
 msgstr "_Odustani"
 
 #: progress.py:76 progress.py:110
-#, fuzzy
+#, fuzzy, python-format
 msgid "Process %i of %i (%s)"
 msgstr "Obrada %i od %i (%s)"
 
 #: progress.py:119
-#, fuzzy
+#, fuzzy, python-format
 msgid "Process %i of %i"
 msgstr "Obrada %i od %i"
 
@@ -1719,12 +1719,12 @@ msgid "Setting up PDF"
 msgstr "Priprema PDF-a"
 
 #: savethread.py:264 savethread.py:405
-#, fuzzy
+#, fuzzy, python-format
 msgid "Writing page %i of %i"
 msgstr "Zapisivanje stranice %i od %i"
 
-#: savethread.py:290
-#, fuzzy
+#: savethread.py:291
+#, fuzzy, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
@@ -1742,7 +1742,7 @@ msgid "Converting to PS"
 msgstr "Pretvaranje u PS"
 
 #: savethread.py:374
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "Pogreška pri pretvaranju PDF-a u PS: %s"
 
@@ -1752,12 +1752,12 @@ msgid "Merging DjVu"
 msgstr "Spajanje DjVu-a"
 
 #: savethread.py:425
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Pogreška pri spajanju DjVu-a: %s"
 
 #: savethread.py:519
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "Pogreška pri pretvaranju TIFF-a u PS: %s"
 
@@ -1766,12 +1766,12 @@ msgid "Error copying page"
 msgstr "Greška kopiranja stranice"
 
 #: savethread.py:814
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error prepending PDF: %s"
 msgstr "Pogreška pri dodavanju ispred PDF-a: %s"
 
 #: savethread.py:822
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error appending PDF: %s"
 msgstr "Pogreška pri dodavanju iza PDF-a: %s"
 
@@ -1781,7 +1781,7 @@ msgid "Error creating backup of PDF"
 msgstr "Pogreška pri stvaranju sigurnosne kopije PDF-a"
 
 #: savethread.py:905
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "Pogreška pri šifriranju PDF-a: %s"
 
@@ -1790,14 +1790,14 @@ msgstr "Pogreška pri šifriranju PDF-a: %s"
 msgid "Really cache libusb device names?"
 msgstr "Doista spremiti nazive libusb uređaja u predmemoriju?"
 
-#: scan_menu_item_mixins.py:75
+#: scan_menu_item_mixins.py:76
 #, fuzzy
 msgid ""
 "Caching device list with libusb devices included is not recommended as they "
 "can change between reboots."
 msgstr ""
-"Spremanje popisa uređaja s libusb uređajima u predmemoriju se ne preporučuje"
-" jer se oni mogu promijeniti između ponovnih pokretanja."
+"Spremanje popisa uređaja s libusb uređajima u predmemoriju se ne preporučuje "
+"jer se oni mogu promijeniti između ponovnih pokretanja."
 
 #: scan_menu_item_mixins.py:78
 #, fuzzy
@@ -1818,13 +1818,12 @@ msgstr "Naknadna obrada"
 msgid "Alternate rotation every 2nd page"
 msgstr "Izmjenjuj rotaciju svake 2. stranice"
 
-#: scan_menu_item_mixins.py:232
+#: scan_menu_item_mixins.py:233
 #, fuzzy
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its "
-"front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its front."
 msgstr ""
 "Zarotiraj neparne stranice za odabrani kut, a parne za taj kut plus 180 "
 "stupnjeva. Koristite pri skeniranju knjige u kojoj je svaki list poravnat s "
@@ -1864,8 +1863,8 @@ msgstr "Obradi alatom koji je definirao korisnik"
 msgid "Process scanned images with user-defined tool"
 msgstr "Obradi skenirane slike alatom koji je definirao korisnik"
 
-#: session_mixins.py:73
-#, fuzzy
+#: session_mixins.py:74
+#, fuzzy, python-format
 msgid ""
 "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
 msgstr ""
@@ -1905,14 +1904,12 @@ msgstr "Obradi sliku s Tesseractom."
 #: session_mixins.py:229
 #, fuzzy
 msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr ""
-"Završeno je skeniranje prednjih stranica. Skenirati stražnje stranice?"
+msgstr "Završeno je skeniranje prednjih stranica. Skenirati stražnje stranice?"
 
 #: session_mixins.py:232
 #, fuzzy
 msgid "Finished scanning reverse pages. Scan facing pages?"
-msgstr ""
-"Završeno je skeniranje stražnjih stranica. Skenirati prednje stranice?"
+msgstr "Završeno je skeniranje stražnjih stranica. Skenirati prednje stranice?"
 
 #: session_mixins.py:448
 #, fuzzy
@@ -1950,15 +1947,15 @@ msgid "my-new-annotation"
 msgstr "my-new-annotation"
 
 #: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, fuzzy
+#, fuzzy, python-format
 msgid "You are using locale '%s'."
 msgstr "Koristite regionalne postavke '%s'."
 
-#: tesseract.py:234
+#: tesseract.py:235
 #, fuzzy
 msgid ""
-"scantpaper does not currently know which tesseract language package would be"
-" necessary for that locale."
+"scantpaper does not currently know which tesseract language package would be "
+"necessary for that locale."
 msgstr ""
 "scantpaper trenutno ne zna koji bi tesseract jezični paket bio potreban za "
 "te regionalne postavke."
@@ -1969,8 +1966,8 @@ msgid "Please contact the developers to add support for that locale."
 msgstr ""
 "Obratite se programerima kako bi dodali podršku za te regionalne postavke."
 
-#: tesseract.py:249
-#, fuzzy
+#: tesseract.py:250
+#, fuzzy, python-format
 msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
@@ -1979,7 +1976,7 @@ msgstr ""
 "scantpaper za OCR za %s s tesseractom."
 
 #: tesseract.py:260
-#, fuzzy
+#, fuzzy, python-format
 msgid "There is no tesseract package for %s"
 msgstr "Ne postoji tesseract paket za %s"
 
@@ -2115,7 +2112,7 @@ msgstr "Postotak"
 msgid "Unsharp strength, in percent."
 msgstr "Jačina neoštrenja, u postocima."
 
-#: tools_menu_mixins.py:293
+#: tools_menu_mixins.py:294
 #, fuzzy
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
@@ -2203,7 +2200,7 @@ msgstr "Prikaz"
 msgid "Single"
 msgstr "Jednostruko"
 
-#: unpaper.py:42
+#: unpaper.py:43
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Jedna stranica po listu, orijentacija naviše bez rotacije"
 
@@ -2211,7 +2208,7 @@ msgstr "Jedna stranica po listu, orijentacija naviše bez rotacije"
 msgid "Double"
 msgstr "Dvostruko"
 
-#: unpaper.py:48
+#: unpaper.py:49
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -2239,7 +2236,7 @@ msgstr "Sustav pisanja"
 msgid "Left-to-right"
 msgstr "S lijeva na desno"
 
-#: unpaper.py:71
+#: unpaper.py:72
 #, fuzzy
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
 msgstr "Većina sustava pisanja, npr. latinica, grčko, ćirilica."
@@ -2339,7 +2336,7 @@ msgstr "Onemogući skeniranje rubova."
 msgid "No border align"
 msgstr "Bez poravnavanja rubova"
 
-#: unpaper.py:134
+#: unpaper.py:135
 #, fuzzy
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "Onemogući poravnavanje područja otkrivenog skeniranjem rubova."
@@ -2349,7 +2346,7 @@ msgstr "Onemogući poravnavanje područja otkrivenog skeniranjem rubova."
 msgid "Deskew to edge"
 msgstr "Ispravi nagib do ruba"
 
-#: unpaper.py:142
+#: unpaper.py:143
 #, fuzzy
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
@@ -2429,7 +2426,7 @@ msgstr "Margina ruba"
 msgid "Vertical margin"
 msgstr "Okomita margina"
 
-#: unpaper.py:206
+#: unpaper.py:207
 #, fuzzy
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
@@ -2442,7 +2439,7 @@ msgstr ""
 msgid "Horizontal margin"
 msgstr "Vodoravna margina"
 
-#: unpaper.py:218
+#: unpaper.py:219
 #, fuzzy
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
@@ -2455,7 +2452,7 @@ msgstr ""
 msgid "White threshold"
 msgstr "Prag za bijelo"
 
-#: unpaper.py:232
+#: unpaper.py:233
 #, fuzzy
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "Omjer svjetline iznad kojeg se piksel smatra bijelim."
@@ -2465,15 +2462,15 @@ msgstr "Omjer svjetline iznad kojeg se piksel smatra bijelim."
 msgid "Black threshold"
 msgstr "Prag za crno"
 
-#: unpaper.py:244
+#: unpaper.py:245
 #, fuzzy
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is"
-" used by the gray-filter. This value is also used when converting a "
-"grayscale image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is "
+"used by the gray-filter. This value is also used when converting a grayscale "
+"image to black-and-white mode."
 msgstr ""
-"Omjer svjetline ispod kojeg se piksel smatra crnim (ne-sivim). To se koristi"
-" u sivom filtru. Ta se vrijednost također koristi pri pretvaranju sivkaste "
+"Omjer svjetline ispod kojeg se piksel smatra crnim (ne-sivim). To se koristi "
+"u sivom filtru. Ta se vrijednost također koristi pri pretvaranju sivkaste "
 "slike u crno-bijeli način rada."
 
 #: unpaper.py:355
@@ -2489,32 +2486,379 @@ msgstr "Rub"
 msgid "Filters"
 msgstr "Filteri"
 
+#: app.ui.h:1 menu.ui.h:1
+msgid "_File"
+msgstr "_Datoteka"
+
+#: app.ui.h:2 menu.ui.h:2
+msgid "_New"
+msgstr "_Novi"
+
+#: app.ui.h:3 menu.ui.h:3
+msgid "_Open"
+msgstr "_Otvori"
+
+#: app.ui.h:4
+#, fuzzy
+msgid "Open c_rashed session"
+msgstr "Otvori prekinutu sesiju"
+
+#: app.ui.h:5 menu.ui.h:4
+msgid "S_can"
+msgstr "U stanju"
+
+#: app.ui.h:7 menu.ui.h:6
+msgid "_Email as PDF"
+msgstr "e-pošta kao PDF"
+
+#: app.ui.h:8 menu.ui.h:7
+#, fuzzy
+msgid "_Print"
+msgstr "_Ispis"
+
+#: app.ui.h:9 menu.ui.h:8
+msgid "_Quit"
+msgstr "_Izlaz"
+
+#: app.ui.h:10 menu.ui.h:9
+msgid "_Edit"
+msgstr "_Uredi"
+
+#: app.ui.h:11 menu.ui.h:10
+msgid "_Undo"
+msgstr "_Vrati"
+
+#: app.ui.h:12 menu.ui.h:11
+msgid "_Redo"
+msgstr "_Ponovi"
+
+#: app.ui.h:13 menu.ui.h:12
+msgid "Cu_t"
+msgstr "Iz_reži"
+
+#: app.ui.h:15 menu.ui.h:14
+msgid "_Paste"
+msgstr "_Zalijepi"
+
+#: app.ui.h:17 menu.ui.h:16
+msgid "_Select"
+msgstr "_Odaberi"
+
+#: app.ui.h:18 menu.ui.h:17
+#, fuzzy
+msgid "_All"
+msgstr "_Sve"
+
+#: app.ui.h:19 menu.ui.h:18
+#, fuzzy
+msgid "_Odd"
+msgstr "_Neparne"
+
+#: app.ui.h:20 menu.ui.h:19
+#, fuzzy
+msgid "_Even"
+msgstr "_Parne"
+
+#: app.ui.h:21 menu.ui.h:20
+#, fuzzy
+msgid "_Invert"
+msgstr "_Invertiraj"
+
+#: app.ui.h:22 menu.ui.h:21
+#, fuzzy
+msgid "_Blank"
+msgstr "_Prazne"
+
+#: app.ui.h:23 menu.ui.h:22
+#, fuzzy
+msgid "_Dark"
+msgstr "_Tamne"
+
+#: app.ui.h:24 menu.ui.h:23
+#, fuzzy
+msgid "_Modified"
+msgstr "_Izmijenjene"
+
+#: app.ui.h:25 menu.ui.h:24
+#, fuzzy
+msgid "_No OCR"
+msgstr "Bez _OCR-a"
+
+#: app.ui.h:26 menu.ui.h:25
+#, fuzzy
+msgid "_Clear OCR"
+msgstr "_Počisti"
+
+#: app.ui.h:27 menu.ui.h:26
+msgid "Propert_ies"
+msgstr "Postavke"
+
+#: app.ui.h:28 menu.ui.h:27
+msgid "Prefere_nces"
+msgstr "Postavke"
+
+#: app.ui.h:29 menu.ui.h:28
+msgid "_View"
+msgstr "_Prikaz"
+
+#: app.ui.h:30
+#, fuzzy
+msgid "_Pan"
+msgstr "_Pomicanje"
+
+#: app.ui.h:31
+#, fuzzy
+msgid "_Select & pan"
+msgstr "_Odaberi"
+
+#: app.ui.h:32
+#, fuzzy
+msgid "_Tabbed"
+msgstr "_Kartice"
+
+#: app.ui.h:33
+#, fuzzy
+msgid "_Split horizontally"
+msgstr "Vodoravno"
+
+#: app.ui.h:34
+#, fuzzy
+msgid "_Split vertically"
+msgstr "Okomito"
+
+#: app.ui.h:35
+#, fuzzy
+msgid "Edit text layer"
+msgstr "Ugrađivanje tekstualnog sloja"
+
+#: app.ui.h:36
+#, fuzzy
+msgid "Edit annotations"
+msgstr "Dodaj anotaciju"
+
+#: app.ui.h:38 menu.ui.h:30
+#, no-c-format
+msgid "Zoom _100%"
+msgstr "Zumiraj  _100%"
+
+#: app.ui.h:39 menu.ui.h:31
+msgid "Zoom to _fit"
+msgstr "Prilagođeno _uvećanje"
+
+#: app.ui.h:40 menu.ui.h:32
+msgid "Zoom _in"
+msgstr "Uvećaj_"
+
+#: app.ui.h:41 menu.ui.h:33
+msgid "Zoom _out"
+msgstr "Umanji_"
+
+#: app.ui.h:42 menu.ui.h:34
+msgid "Rotate 90° clockwise"
+msgstr "Rotiraj 90 u smjeru kazaljke"
+
+#: app.ui.h:43 menu.ui.h:35
+msgid "Rotate 180°"
+msgstr "Rotiraj 180"
+
+#: app.ui.h:44 menu.ui.h:36
+msgid "Rotate 90° anticlockwise"
+msgstr "Rotiraj 90 udesno"
+
+#: app.ui.h:45 menu.ui.h:37
+msgid "_Tools"
+msgstr "_Alati"
+
+#: app.ui.h:46 menu.ui.h:38
+msgid "_Threshold"
+msgstr "Prag:"
+
+#: app.ui.h:47 menu.ui.h:39
+#, fuzzy
+msgid "_Brightness / Contrast"
+msgstr "Svjetlina / Kontrast"
+
+#: app.ui.h:48 menu.ui.h:40
+msgid "_Negate"
+msgstr "_Odricati"
+
+#: app.ui.h:49 menu.ui.h:41
+#, fuzzy
+msgid "_Unsharp Mask"
+msgstr "Neizoštrena maska"
+
+#: app.ui.h:50 menu.ui.h:42
+msgid "_Crop"
+msgstr "_Izreži"
+
+#: app.ui.h:51 menu.ui.h:43
+msgid "_Clean up"
+msgstr "_Počisti"
+
+#: app.ui.h:52 menu.ui.h:44
+#, fuzzy
+msgid "_Split"
+msgstr "Razdijeli"
+
+#: app.ui.h:53 menu.ui.h:45
+msgid "_OCR"
+msgstr "_OCR"
+
+#: app.ui.h:54 menu.ui.h:46
+#, fuzzy
+msgid "U_ser-defined"
+msgstr "Alati koje je definirao korisnik"
+
+#: app.ui.h:55 menu.ui.h:47
+msgid "_Help"
+msgstr "_Pomoć"
+
+#: app.ui.h:56 menu.ui.h:48
+msgid "_About"
+msgstr "_O"
+
+#: app.ui.h:58
+#, fuzzy
+msgid "Cut"
+msgstr "Iz_reži"
+
+#: app.ui.h:59
+#, fuzzy
+msgid "Copy"
+msgstr "_Kopiraj"
+
+#: app.ui.h:60
+#, fuzzy
+msgid "Paste"
+msgstr "_Zalijepi"
+
+#: app.ui.h:61
+#, fuzzy
+msgid "Delete"
+msgstr "_Obriši"
+
+#: app.ui.h:64
+#, fuzzy
+msgid "Print"
+msgstr "Ispis"
+
+#: app.ui.h:65
+#, fuzzy
+msgid "Select All"
+msgstr "_Odaberi"
+
+#: app.ui.h:66
+#, fuzzy
+msgid "Select Odd"
+msgstr "Odabrano"
+
+#: app.ui.h:67
+#, fuzzy
+msgid "Select Even"
+msgstr "Odabrano"
+
+#: app.ui.h:68
+#, fuzzy
+msgid "Invert selection"
+msgstr "Izreži izabrano"
+
+#: app.ui.h:69
+#, fuzzy
+msgid "Clear OCR"
+msgstr "Očisti OCR"
+
+#: app.ui.h:70
+msgid "Clears all pages"
+msgstr "Brisanje svi stranica"
+
+#: app.ui.h:71
+#, fuzzy
+msgid "Open image file(s)"
+msgstr "Otvori sliku"
+
+#: app.ui.h:72
+msgid "Scan document"
+msgstr "Učitavanje dokumenta"
+
+#: app.ui.h:73
+msgid "Attach as PDF to a new email"
+msgstr "Pridruži PDF u novi e-mail"
+
+#: app.ui.h:74
+msgid "Undo"
+msgstr "Vrati"
+
+#: app.ui.h:75
+msgid "Redo"
+msgstr "Ponovi"
+
+#: app.ui.h:76
+msgid "Cut selection"
+msgstr "Izreži izabrano"
+
+#: app.ui.h:77
+msgid "Copy selection"
+msgstr "Kopiraj izabrano"
+
+#: app.ui.h:78
+msgid "Paste selection"
+msgstr "Umetni odabrano"
+
+#: app.ui.h:79
+msgid "Delete selected pages"
+msgstr "Obriši slektirane stranice"
+
+#: app.ui.h:80
+msgid "Select all pages"
+msgstr "Označi sve stranice"
+
+#: app.ui.h:81
+#, fuzzy
+msgid "Use the pan tool"
+msgstr "Koristi ručni alat"
+
+#: app.ui.h:82
+msgid "Use the rectangular selection tool"
+msgstr "Koristi pravokutni odabira alata"
+
+#: app.ui.h:83
+#, fuzzy
+msgid "Use the combined select and pan tool"
+msgstr "Koristi pravokutni odabira alata"
+
+#: app.ui.h:85
+#, no-c-format
+msgid "Zoom to 100%"
+msgstr "Zumiraj na 100%"
+
+#: app.ui.h:86
+msgid "Zoom to fit"
+msgstr "Prilagođeno uvećanje"
+
+#: app.ui.h:87
+msgid "Zoom in"
+msgstr "Uvećaj"
+
+#: app.ui.h:88
+msgid "Zoom out"
+msgstr "Umanji"
+
+#: app.ui.h:89
+#, fuzzy
+msgid "Crop selection"
+msgstr "Kopiraj izabrano"
+
+#: app.ui.h:90
+msgid "Quit"
+msgstr "Izlaz"
+
+#: menu.ui.h:5
+#, fuzzy
+msgid "_Save"
+msgstr "Spremi"
+
 #~ msgid "GOCR"
 #~ msgstr "GOCR"
-
-#~ msgid "_File"
-#~ msgstr "_Datoteka"
-
-#~ msgid "_New"
-#~ msgstr "_Novi"
-
-#~ msgid "Clears all pages"
-#~ msgstr "Brisanje svi stranica"
-
-#~ msgid "_Open"
-#~ msgstr "_Otvori"
-
-#~ msgid "S_can"
-#~ msgstr "U stanju"
-
-#~ msgid "Scan document"
-#~ msgstr "Učitavanje dokumenta"
-
-#~ msgid "_Email as PDF"
-#~ msgstr "e-pošta kao PDF"
-
-#~ msgid "Attach as PDF to a new email"
-#~ msgstr "Pridruži PDF u novi e-mail"
 
 #~ msgid "_Compress temporary files"
 #~ msgstr "_Sažmi privremene datoteke"
@@ -2522,140 +2866,23 @@ msgstr "Filteri"
 #~ msgid "Compress temporary files"
 #~ msgstr "Sažmi privremene datoteke"
 
-#~ msgid "_Quit"
-#~ msgstr "_Izlaz"
-
-#~ msgid "Quit"
-#~ msgstr "Izlaz"
-
-#~ msgid "_Edit"
-#~ msgstr "_Uredi"
-
-#~ msgid "_Undo"
-#~ msgstr "_Vrati"
-
-#~ msgid "Undo"
-#~ msgstr "Vrati"
-
-#~ msgid "_Redo"
-#~ msgstr "_Ponovi"
-
-#~ msgid "Redo"
-#~ msgstr "Ponovi"
-
-#~ msgid "Cu_t"
-#~ msgstr "Iz_reži"
-
-#~ msgid "Cut selection"
-#~ msgstr "Izreži izabrano"
-
-#~ msgid "Copy selection"
-#~ msgstr "Kopiraj izabrano"
-
-#~ msgid "_Paste"
-#~ msgstr "_Zalijepi"
-
-#~ msgid "Paste selection"
-#~ msgstr "Umetni odabrano"
-
-#~ msgid "Delete selected pages"
-#~ msgstr "Obriši slektirane stranice"
-
 #~ msgid "_Renumber"
 #~ msgstr "_Pobroji"
-
-#~ msgid "_Select"
-#~ msgstr "_Odaberi"
-
-#~ msgid "Select all pages"
-#~ msgstr "Označi sve stranice"
-
-#~ msgid "Propert_ies"
-#~ msgstr "Postavke"
-
-#~ msgid "Prefere_nces"
-#~ msgstr "Postavke"
 
 #~ msgid "Edit preferences"
 #~ msgstr "Uredi postavke"
 
-#~ msgid "_View"
-#~ msgstr "_Prikaz"
-
-#~ msgid "Zoom _100%"
-#~ msgstr "Zumiraj  _100%"
-
-#~ msgid "Zoom to 100%"
-#~ msgstr "Zumiraj na 100%"
-
-#~ msgid "Zoom to _fit"
-#~ msgstr "Prilagođeno _uvećanje"
-
-#~ msgid "Zoom to fit"
-#~ msgstr "Prilagođeno uvećanje"
-
-#~ msgid "Zoom _in"
-#~ msgstr "Uvećaj_"
-
-#~ msgid "Zoom in"
-#~ msgstr "Uvećaj"
-
-#~ msgid "Zoom _out"
-#~ msgstr "Umanji_"
-
-#~ msgid "Zoom out"
-#~ msgstr "Umanji"
-
-#~ msgid "Rotate 90° clockwise"
-#~ msgstr "Rotiraj 90 u smjeru kazaljke"
-
-#~ msgid "Rotate 180°"
-#~ msgstr "Rotiraj 180"
-
-#~ msgid "Rotate 90° anticlockwise"
-#~ msgstr "Rotiraj 90 udesno"
-
-#~ msgid "_Tools"
-#~ msgstr "_Alati"
-
-#~ msgid "_Threshold"
-#~ msgstr "Prag:"
-
 #~ msgid "Change each pixel above this threshold to black"
 #~ msgstr "Promjeni svaki pixel do razine crno"
-
-#~ msgid "_Negate"
-#~ msgstr "_Odricati"
-
-#~ msgid "_Crop"
-#~ msgstr "_Izreži"
-
-#~ msgid "_Clean up"
-#~ msgstr "_Počisti"
-
-#~ msgid "_OCR"
-#~ msgstr "_OCR"
 
 #~ msgid "Optical Character Recognition"
 #~ msgstr "Optičko prepoznavanje znakova (OCR)"
 
-#~ msgid "_Help"
-#~ msgstr "_Pomoć"
-
 #~ msgid "Help"
 #~ msgstr "Pomoć"
 
-#~ msgid "_About"
-#~ msgstr "_O"
-
 #~ msgid "_Drag"
 #~ msgstr "_Dovuci"
-
-#~ msgid "Use the hand tool"
-#~ msgstr "Koristi ručni alat"
-
-#~ msgid "Use the rectangular selection tool"
-#~ msgstr "Koristi pravokutni odabira alata"
 
 #~ msgid "_Paint"
 #~ msgstr "_Bojati"

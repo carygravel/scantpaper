@@ -8,12 +8,13 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
-"Report-Msgid-Bugs-To: csola48@gmail.com\n"
-"POT-Creation-Date: 2026-09-26 16:03+0200\n"
+"Report-Msgid-Bugs-To: jffry@posteo.net\n"
+"POT-Creation-Date: 2026-09-26 20:13+0200\n"
 "PO-Revision-Date: 2024-08-02 09:08+0200\n"
 "Last-Translator: csola48 <csola48@gmail.com>\n"
 "Language-Team: magyar\n"
 "Language: hu\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -71,44 +72,46 @@ msgstr "Szöveges réteg"
 msgid "Annotations"
 msgstr "Megjegyzések"
 
-#: app_window.py:837
+#: app_window.py:838
+#, fuzzy, python-format
 msgid "%dMb free in %s."
-msgstr "%d Mb szabad. Rendelkezésre áll: %s."
+msgid_plural "%dMb free in %s."
+msgstr[0] "%d Mb szabad. Rendelkezésre áll: %s."
+msgstr[1] "%d Mb szabad. Rendelkezésre áll: %s."
 
-#: app_window.py:861 helpers.py:372
+#: app_window.py:863 helpers.py:372
 msgid "Messages"
 msgstr "Üzenetek"
 
-#: app_window.py:946
+#: app_window.py:948
 msgid "Error opening the last device used."
 msgstr "Hiba az utoljára használt eszköz megnyitásakor."
 
-#: app_window.py:948
+#: app_window.py:950
 msgid "There was an error opening the last device used."
 msgstr "Hiba történt az utoljára használt eszköz megnyitásakor."
 
-#: app_window.py:951
+#: app_window.py:953
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Hoppá! Elfelejtettem bekapcsolni. Próbáld újra."
 
-#: app_window.py:956 dialog/scan.py:517
+#: app_window.py:958 dialog/scan.py:517
 msgid "Rescan for devices"
 msgstr "Eszközök keresése"
 
-#: app_window.py:960
+#: app_window.py:962
 msgid "Restart scantpaper."
 msgstr "Indítsa újra a scantpaper fájlt."
 
-#: app_window.py:965
+#: app_window.py:967
 msgid "Just ignore the error. I don't need the scanner yet."
-msgstr ""
-"Csak hagyja figyelmen kívül a hibát. Még nincs szükségem a szkennerre."
+msgstr "Csak hagyja figyelmen kívül a hibát. Még nincs szükségem a szkennerre."
 
-#: app_window.py:968 dialog/preferences.py:162
+#: app_window.py:970 dialog/preferences.py:162
 msgid "Cache device list"
 msgstr "Gyorsítótár-eszközök listája"
 
-#: app_window.py:971 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:973 dialog/__init__.py:135 session_mixins.py:392
 msgid "Don't show this message again"
 msgstr "Ne mutassa ezt az üzenetet újra"
 
@@ -140,28 +143,27 @@ msgstr "US Letter"
 msgid "US Legal"
 msgstr "US Legal"
 
-#: config.py:262
-#, fuzzy
+#: config.py:263
+#, fuzzy, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left "
-"unchanged."
+"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
 msgstr ""
 "A %s beállítás értéke %r, és nem használható %s-ként, ezért változatlanul "
 "hagytuk."
 
-#: config.py:298
-#, fuzzy
+#: config.py:299
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read in full. The following settings were "
 "restored: %s. The rest were reset to their defaults. A backup of the "
 "original file has been saved as %s."
 msgstr ""
-"A %s beállításfájlt nem sikerült teljesen beolvasni. A következő beállítások"
-" visszaállításra kerültek: %s. A többi az alapértelmezett értékére állt "
+"A %s beállításfájlt nem sikerült teljesen beolvasni. A következő beállítások "
+"visszaállításra kerültek: %s. A többi az alapértelmezett értékére állt "
 "vissza. Az eredeti fájl biztonsági másolata ide került mentésre: %s."
 
-#: config.py:305
-#, fuzzy
+#: config.py:306
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read, so all settings have been reset to "
 "their defaults. A backup of the original file has been saved as %s."
@@ -211,22 +213,22 @@ msgstr "Elrejt"
 msgid "Don't show these messages again"
 msgstr "Ne jelenítse meg újra ezeket az üzeneteket"
 
-#: dialog/__init__.py:312
+#: dialog/__init__.py:313
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
 "Ez a hiba általában akkor jelentkezik, ha az ImageMagick meghaladja az "
 "erőforráshatárokat."
 
-#: dialog/__init__.py:316
+#: dialog/__init__.py:317
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
 msgstr ""
-"Ezeket a házirendfájl szerkesztésével bővítheti, amely a rendszer az "
-"/etc/ImageMagick-6/policy.xml címen található"
+"Ezeket a házirendfájl szerkesztésével bővítheti, amely a rendszer az /etc/"
+"ImageMagick-6/policy.xml címen található"
 
-#: dialog/__init__.py:321
+#: dialog/__init__.py:322
 msgid ""
 "Please see https://imagemagick.org/script/resources.php for more information"
 msgstr ""
@@ -315,7 +317,7 @@ msgstr "Oldalszám, amely elé a beolvasások beszúrásra kerülnek"
 msgid "Position advance"
 msgstr "Pozíció eltolása"
 
-#: dialog/pagecontrols.py:288
+#: dialog/pagecontrols.py:289
 #, fuzzy
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
@@ -396,15 +398,15 @@ msgstr "Általános opciók"
 msgid "Open scanner at program start"
 msgstr "Nyissa meg a szkennert a program indításakor"
 
-#: dialog/preferences.py:70
+#: dialog/preferences.py:71
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
 msgstr ""
 "A szkennelés dialogus a háttérben automatikusan megnyitva a program "
-"indításakor. Ez elmenti az időt a szkennelés gombra való kattintáskor és vár"
-" a programra, hogy megkeresse a szkennert"
+"indításakor. Ez elmenti az időt a szkennelés gombra való kattintáskor és vár "
+"a programra, hogy megkeresse a szkennert"
 
 #: dialog/preferences.py:83
 msgid "Device blacklist"
@@ -428,7 +430,7 @@ msgstr ""
 msgid "Allow batch scanning from flatbed"
 msgstr "Kötegelt szkennelés megengedett"
 
-#: dialog/preferences.py:108
+#: dialog/preferences.py:109
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
@@ -440,7 +442,7 @@ msgstr ""
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Hagyja figyelmen kívül a szkenner duplex képességeit"
 
-#: dialog/preferences.py:121
+#: dialog/preferences.py:122
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
@@ -452,7 +454,7 @@ msgstr ""
 msgid "Force new scan job between pages"
 msgstr "Az új szkennelési munka új oldalak közötti kényszerítése"
 
-#: dialog/preferences.py:134
+#: dialog/preferences.py:135
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
@@ -464,7 +466,7 @@ msgstr ""
 msgid "Select # pages = all on selecting ADF"
 msgstr "Válassza a # oldal = mind lehetőséget az ADF kiválasztása során"
 
-#: dialog/preferences.py:154
+#: dialog/preferences.py:155
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
@@ -472,15 +474,15 @@ msgstr ""
 "Ha ez az opció engedélyezve van, amikor a forrás = ADF-re vált, akkor az # "
 "oldal = mind van kiválasztva"
 
-#: dialog/preferences.py:164
+#: dialog/preferences.py:165
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
 msgstr ""
-"Ha ez az opció engedélyezve van, a szkenner gyorsabban nyitható meg, mivel a"
-" scantpaper nem először keresi a rendelkezésre álló eszközöket."
+"Ha ez az opció engedélyezve van, a szkenner gyorsabban nyitható meg, mivel a "
+"scantpaper nem először keresi a rendelkezésre álló eszközöket."
 
-#: dialog/preferences.py:168
+#: dialog/preferences.py:169
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
@@ -562,7 +564,7 @@ msgstr "Ideiglenes könyvtár választása"
 msgid "Warn if available space less than (Mb)"
 msgstr "Figyelmeztetés, ha a használható hely kevesebb, mint (Mb)"
 
-#: dialog/preferences.py:278
+#: dialog/preferences.py:279
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
@@ -594,7 +596,7 @@ msgstr "OCR kimenet"
 msgid "Replace"
 msgstr "Csere"
 
-#: dialog/preferences.py:317
+#: dialog/preferences.py:318
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr "A szöveg puffer tartalmának cseréje az OCR kimenetével."
 
@@ -619,7 +621,7 @@ msgid "Manage user-defined tools"
 msgstr "Felhasználó által meghatározott eszközök"
 
 #: dialog/preferences.py:352
-#, fuzzy
+#, fuzzy, python-format
 msgid ""
 "Use %i and %o for the input and output filenames respectively,\n"
 "or a single %i if the image is to be modified in-place.\n"
@@ -682,13 +684,14 @@ msgid "Scan Options"
 msgstr "Szkennelési beállítások"
 
 #: dialog/sane.py:290
+#, python-format
 msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
 msgstr ""
 "A „%s” vizsgálati beállítás figyelmen kívül hagyása, minimális tartomány "
 "(%s) > maximum (%s)"
 
 #: dialog/sane.py:450
-#, fuzzy
+#, fuzzy, python-format
 msgid "Setting option %s"
 msgstr "%s beállítás beállítása"
 
@@ -717,13 +720,13 @@ msgstr "GIF"
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe GIF formátum"
 
-#: dialog/save.py:33
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr "JPEG JPG JPE JFIF JFI formátum"
-
 #: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
 msgid "JPEG"
 msgstr "JPEG"
+
+#: dialog/save.py:33
+msgid "Joint Photographic Experts Group JFIF format"
+msgstr "JPEG JPG JPE JFIF JFI formátum"
 
 #: dialog/save.py:34
 msgid "PNG"
@@ -773,14 +776,14 @@ msgstr "hOCR"
 msgid "hOCR markup language"
 msgstr "hOCR jelölő nyelv"
 
+#: dialog/save.py:40 session_mixins.py:126
+msgid "Session"
+msgstr "Munkamenet"
+
 #: dialog/save.py:40
 #, fuzzy
 msgid "scantpaper session database"
 msgstr "scantpaper munkamenet-adatbázis"
-
-#: dialog/save.py:40 session_mixins.py:126
-msgid "Session"
-msgstr "Munkamenet"
 
 #: dialog/save.py:41
 msgid "Prepend to PDF"
@@ -874,8 +877,8 @@ msgstr "Ghostscript"
 #: dialog/save.py:67
 msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
 msgstr ""
-"A Ghostscript (pdf2ps) segítségével létrehozhatunk Postscript fájlokat a "
-"PDF-ből."
+"A Ghostscript (pdf2ps) segítségével létrehozhatunk Postscript fájlokat a PDF-"
+"ből."
 
 #: dialog/save.py:71
 msgid "Poppler"
@@ -1025,6 +1028,7 @@ msgid "Sets the device to be used for the scan"
 msgstr "Beállítja a lapolvasáshoz használt eszközt"
 
 #: dialog/scan.py:599
+#, python-format
 msgid "Error: unknown device: %s"
 msgstr "Hiba: ismeretlen eszköz: %s"
 
@@ -1064,11 +1068,11 @@ msgstr "Szerkesztés"
 msgid "Selects or edits the paper size"
 msgstr "Papírméret kiválasztása vagy szerkesztése"
 
-#: dialog/scan.py:769
-#, fuzzy
+#: dialog/scan.py:770
+#, fuzzy, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
-" file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
+"file a bug, attaching a log file reproducing the problem."
 msgstr ""
 "Az újratöltés rekurziós korlátja (%d) túllépve: %d újratöltés %d beolvasási "
 "beállításhoz. Kérjük, jelentsd a hibát, és csatolj egy naplófájlt, amely "
@@ -1083,7 +1087,7 @@ msgstr "Papírméret állítása"
 msgid "Apply"
 msgstr "Alkalmaz"
 
-#: dialog/scan.py:1068
+#: dialog/scan.py:1069
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr "A következő papírméretek túl nagyok ehhez az eszközhöz:"
@@ -1098,6 +1102,7 @@ msgid "Name of scan profile"
 msgstr "Szkennelési profil neve"
 
 #: dialog/scan.py:1585
+#, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "'%s' profil már létezik. Felülírja?"
 
@@ -1111,6 +1116,7 @@ msgid "Editing current scan options"
 msgstr "Az aktuális szkennelési beállítások szerkesztése"
 
 #: dialog/scan.py:1625
+#, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "Szkennelési profil szerkesztése \"%s\""
 
@@ -1123,14 +1129,17 @@ msgid "Frontend options"
 msgstr "Frontend lehetőségek"
 
 #: dialog/scan.py:1752
+#, python-format
 msgid "Scanning page %d of %d"
 msgstr "Szkennelt oldal: %d / %d"
 
 #: dialog/scan.py:1753
+#, python-format
 msgid "Scanning page %d"
 msgstr "Szkennelt oldal %d"
 
 #: docthread.py:1167
+#, python-format
 msgid "Analysing page %i of %i"
 msgstr "Lap analizálása: %i összesen: %i"
 
@@ -1144,11 +1153,11 @@ msgstr "Nincs tesseract-nyelv megadva"
 msgid "tessdata directory not found"
 msgstr "A tessdata könyvtár nem található"
 
-#: document.py:110
+#: document.py:111
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr "Hiba: nem lehet egy munkamenetben több megnyitott fájl."
 
-#: document.py:126
+#: document.py:127
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr "Hiba: többoldalas fájl importálása egy másik fájllal egy időben."
 
@@ -1201,6 +1210,7 @@ msgid "Last page to extract"
 msgstr "Utolsó oldal kibontása"
 
 #: file_menu_mixins.py:214
+#, python-format
 msgid "Enter user password for PDF %s"
 msgstr "Adja meg a felhasználói jelszót a %s PDF fájlhoz"
 
@@ -1216,7 +1226,8 @@ msgstr "Mentés"
 msgid "Post-save hook"
 msgstr "Utófeldolgozás"
 
-#: file_menu_mixins.py:369
+#: file_menu_mixins.py:370
+#, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
@@ -1281,10 +1292,12 @@ msgid "scantpaper session files"
 msgstr "scantpaper munkamenetfájlok"
 
 #: file_menu_mixins.py:601
+#, python-format
 msgid "Directory %s is read-only"
 msgstr "A(z) %s könyvtár csak olvasható"
 
 #: file_menu_mixins.py:611
+#, python-format
 msgid "File %s is read-only"
 msgstr "A(z) %s fájl csak olvasható"
 
@@ -1293,6 +1306,7 @@ msgid "Image filename"
 msgstr "Képfájl neve"
 
 #: file_menu_mixins.py:862
+#, python-format
 msgid "This operation would overwrite %s"
 msgstr "Ez a művelet felülírná a következőt: %s"
 
@@ -1305,20 +1319,22 @@ msgstr ""
 "Biztosan kilép?"
 
 #: importthread.py:86
+#, python-format
 msgid "File %s not found"
 msgstr "%s fájl nem található"
 
 #: importthread.py:92
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error getting file info for %s: %s"
 msgstr "Hiba a fájlinformációk lekérésekor ehhez: %s: %s"
 
 #: importthread.py:97
+#, python-format
 msgid "Error importing zero-length file %s."
 msgstr "Nulla hosszúságú fájl importálása hiba %s."
 
 #: importthread.py:135 importthread.py:178
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr "A DjVu-fájlok megnyitásához telepítsd a djvulibre-bin csomagot: %s"
 
@@ -1327,11 +1343,12 @@ msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Ismeretlen DjVu fájl szerkezet. Kérjük keresse a szerzőjét."
 
 #: importthread.py:266
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "A TIFF-fájlok megnyitásához telepítsd a libtiff-tools csomagot: %s"
 
 #: importthread.py:328 importthread.py:388
+#, python-format
 msgid "Importing page %i of %i"
 msgstr "Lap importálása: %i Összesen: %i"
 
@@ -1339,7 +1356,7 @@ msgstr "Lap importálása: %i Összesen: %i"
 msgid "Error extracting images from PDF"
 msgstr "Hiba a képek PDF-ből kibontása során"
 
-#: importthread.py:520
+#: importthread.py:521
 #, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
@@ -1347,10 +1364,10 @@ msgid ""
 "add scans to an existing PDF, use the prepend/append to PDF options in the "
 "Save dialogue."
 msgstr ""
-"Figyelmeztetés: a scantpaper oldalanként egy képet vár, de ez nem teljesült."
-" Valószínűleg a PDF nem lett helyesen importálva. Ha beolvasásokat szeretnél"
-" hozzáadni egy meglévő PDF-hez, használd a Mentés párbeszédablak „Hozzáfűzés"
-" elejére“/„Hozzáfűzés végére“ opcióit."
+"Figyelmeztetés: a scantpaper oldalanként egy képet vár, de ez nem teljesült. "
+"Valószínűleg a PDF nem lett helyesen importálva. Ha beolvasásokat szeretnél "
+"hozzáadni egy meglévő PDF-hez, használd a Mentés párbeszédablak „Hozzáfűzés "
+"elejére“/„Hozzáfűzés végére“ opcióit."
 
 #: importthread.py:560
 msgid "Error importing PDF"
@@ -1445,7 +1462,7 @@ msgstr "OCR felismert oldalak"
 msgid "Threshold before OCR"
 msgstr "Küszöbérték OCR folyamat előtt"
 
-#: postprocess_controls.py:379
+#: postprocess_controls.py:380
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
@@ -1453,7 +1470,7 @@ msgstr ""
 "A kép küszöbértéke az OCR futása előtt. Ez nem befolyásolja a kép OCR-en "
 "való áthaladását, de a kép nem lesz tárolva."
 
-#: postprocess_controls.py:390 tools_menu_mixins.py:113
+#: postprocess_controls.py:391 tools_menu_mixins.py:114
 #, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
@@ -1473,10 +1490,12 @@ msgid "_Cancel"
 msgstr "_Mégse"
 
 #: progress.py:76 progress.py:110
+#, python-format
 msgid "Process %i of %i (%s)"
 msgstr "Folyamat: %i / %i (%s)"
 
 #: progress.py:119
+#, python-format
 msgid "Process %i of %i"
 msgstr "Folyamat: %i / %i"
 
@@ -1495,11 +1514,12 @@ msgid "Setting up PDF"
 msgstr "PDF fájl beállítása"
 
 #: savethread.py:264 savethread.py:405
+#, python-format
 msgid "Writing page %i of %i"
 msgstr "Lap írása: %i Összesen: %i"
 
-#: savethread.py:290
-#, fuzzy
+#: savethread.py:291
+#, fuzzy, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
@@ -1516,6 +1536,7 @@ msgid "Converting to PS"
 msgstr "Konvertálás PS-be"
 
 #: savethread.py:374
+#, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "Hibás a PDF konvertálása PS-be: %s"
 
@@ -1524,11 +1545,12 @@ msgid "Merging DjVu"
 msgstr "DjVu összefűzése"
 
 #: savethread.py:425
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Hiba a DjVu egyesítésekor: %s"
 
 #: savethread.py:519
+#, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "Hibás a TIFF konvertálása PS-be: %s"
 
@@ -1537,10 +1559,12 @@ msgid "Error copying page"
 msgstr "Hiba az oldal másolásánál"
 
 #: savethread.py:814
+#, python-format
 msgid "Error prepending PDF: %s"
 msgstr "Hiba a PDF fájl elé fűzésekor: %s"
 
 #: savethread.py:822
+#, python-format
 msgid "Error appending PDF: %s"
 msgstr "Hiba a PDF fájl után fűzésekor: %s"
 
@@ -1549,6 +1573,7 @@ msgid "Error creating backup of PDF"
 msgstr "Hiba a PDF fájl biztonsági mentésekor"
 
 #: savethread.py:905
+#, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "Hiba a PDF  titkosításakor: %s"
 
@@ -1557,7 +1582,7 @@ msgstr "Hiba a PDF  titkosításakor: %s"
 msgid "Really cache libusb device names?"
 msgstr "Tényleg eltároljuk a libusb eszközneveket?"
 
-#: scan_menu_item_mixins.py:75
+#: scan_menu_item_mixins.py:76
 #, fuzzy
 msgid ""
 "Caching device list with libusb devices included is not recommended as they "
@@ -1584,13 +1609,12 @@ msgstr "Utófeldolgozás"
 msgid "Alternate rotation every 2nd page"
 msgstr "Forgatás váltogatása minden második oldalon"
 
-#: scan_menu_item_mixins.py:232
+#: scan_menu_item_mixins.py:233
 #, fuzzy
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its "
-"front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its front."
 msgstr ""
 "A páratlan oldalakat a kiválasztott szöggel, a párosakat pedig azzal a "
 "szöggel plusz 180 fokkal forgasd el. Akkor használd, ha olyan könyvet "
@@ -1625,7 +1649,8 @@ msgstr "Munkamenet a felhasználó által meghatározva"
 msgid "Process scanned images with user-defined tool"
 msgstr "Szkennelési folyamat felhasználó által meghatározva"
 
-#: session_mixins.py:73
+#: session_mixins.py:74
+#, python-format
 msgid ""
 "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
 msgstr ""
@@ -1694,24 +1719,26 @@ msgid "my-new-annotation"
 msgstr "új-megjegyzéseim"
 
 #: tesseract.py:232 tesseract.py:246 tesseract.py:258
+#, python-format
 msgid "You are using locale '%s'."
 msgstr "Ön helyi beállításokat használ '%s'."
 
-#: tesseract.py:234
+#: tesseract.py:235
 msgid ""
-"scantpaper does not currently know which tesseract language package would be"
-" necessary for that locale."
+"scantpaper does not currently know which tesseract language package would be "
+"necessary for that locale."
 msgstr ""
-"a scantpaper jelenleg nem tudja, hogy melyik tesseract nyelvi csomagra lenne"
-" szükség az adott nyelvhez."
+"a scantpaper jelenleg nem tudja, hogy melyik tesseract nyelvi csomagra lenne "
+"szükség az adott nyelvhez."
 
 #: tesseract.py:239
 msgid "Please contact the developers to add support for that locale."
 msgstr ""
-"Kérjük, vegye fel a kapcsolatot a fejlesztőkkel, hogy támogatást nyújtson az"
-" adott nyelvhez."
+"Kérjük, vegye fel a kapcsolatot a fejlesztőkkel, hogy támogatást nyújtson az "
+"adott nyelvhez."
 
-#: tesseract.py:249
+#: tesseract.py:250
+#, python-format
 msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
@@ -1720,6 +1747,7 @@ msgstr ""
 "használatával indítsa újra a scantpaper fájlt az OCR művelethez."
 
 #: tesseract.py:260
+#, python-format
 msgid "There is no tesseract package for %s"
 msgstr "Nincs tesseract csomag ehhez %s"
 
@@ -1837,7 +1865,7 @@ msgstr "Százalék"
 msgid "Unsharp strength, in percent."
 msgstr "Élesítés erőssége százalékban."
 
-#: tools_menu_mixins.py:293
+#: tools_menu_mixins.py:294
 #, fuzzy
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
@@ -1912,7 +1940,7 @@ msgstr "Elrendezés"
 msgid "Single"
 msgstr "Egyszeres"
 
-#: unpaper.py:42
+#: unpaper.py:43
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Egy lap / oldal, forgatás nélküli."
 
@@ -1920,7 +1948,7 @@ msgstr "Egy lap / oldal, forgatás nélküli."
 msgid "Double"
 msgstr "Dupla"
 
-#: unpaper.py:48
+#: unpaper.py:49
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -1944,7 +1972,7 @@ msgstr "Írásrendszer"
 msgid "Left-to-right"
 msgstr "Balról jobbra"
 
-#: unpaper.py:71
+#: unpaper.py:72
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
 msgstr "A leggyakoribb írásrendszerek, pld. latin, görög, cirill."
 
@@ -2024,7 +2052,7 @@ msgstr "Keret felismerés letiltása."
 msgid "No border align"
 msgstr "Nincs keret elrendezés"
 
-#: unpaper.py:134
+#: unpaper.py:135
 msgid "Disable aligning of the area detected by border scanning."
 msgstr ""
 "Terület elrendezés tiltása, amely a keret felismerésnél lett megtalálva."
@@ -2033,7 +2061,7 @@ msgstr ""
 msgid "Deskew to edge"
 msgstr "Kiegyenesítés a szélén"
 
-#: unpaper.py:142
+#: unpaper.py:143
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
@@ -2101,7 +2129,7 @@ msgstr "Határ margó"
 msgid "Vertical margin"
 msgstr "Függőleges margó"
 
-#: unpaper.py:206
+#: unpaper.py:207
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr ""
@@ -2112,7 +2140,7 @@ msgstr ""
 msgid "Horizontal margin"
 msgstr "Vízszintes margó"
 
-#: unpaper.py:218
+#: unpaper.py:219
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
@@ -2123,7 +2151,7 @@ msgstr ""
 msgid "White threshold"
 msgstr "Fehér küszöbszint"
 
-#: unpaper.py:232
+#: unpaper.py:233
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "Fényerő arány, amely fölött egy pixel fehér."
 
@@ -2131,11 +2159,11 @@ msgstr "Fényerő arány, amely fölött egy pixel fehér."
 msgid "Black threshold"
 msgstr "Fekete küszöbszint"
 
-#: unpaper.py:244
+#: unpaper.py:245
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is"
-" used by the gray-filter. This value is also used when converting a "
-"grayscale image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is "
+"used by the gray-filter. This value is also used when converting a grayscale "
+"image to black-and-white mode."
 msgstr ""
 "Fényerő arány, amely alatt a pixel fekete (nem szürke). Ezt a szürke szűrő "
 "használja. Ezt az értéket akkor is használják, amikor szürkeárnyalatos kép "
@@ -2152,6 +2180,349 @@ msgstr "Keret"
 #: unpaper.py:364
 msgid "Filters"
 msgstr "Szűrők"
+
+#: app.ui.h:1 menu.ui.h:1
+msgid "_File"
+msgstr "_Fájl"
+
+#: app.ui.h:2 menu.ui.h:2
+msgid "_New"
+msgstr "_Új"
+
+#: app.ui.h:3 menu.ui.h:3
+msgid "_Open"
+msgstr "_Megnyitás"
+
+#: app.ui.h:4
+msgid "Open c_rashed session"
+msgstr "Megtört f_olyamat megnyítása"
+
+#: app.ui.h:5 menu.ui.h:4
+msgid "S_can"
+msgstr "_Digitalizálás"
+
+#: app.ui.h:7 menu.ui.h:6
+msgid "_Email as PDF"
+msgstr "PDF küldése  _emailben"
+
+#: app.ui.h:8 menu.ui.h:7
+msgid "_Print"
+msgstr "_Nyomtatás"
+
+#: app.ui.h:9 menu.ui.h:8
+msgid "_Quit"
+msgstr "_Kilépés"
+
+#: app.ui.h:10 menu.ui.h:9
+msgid "_Edit"
+msgstr "_Szerkesztés"
+
+#: app.ui.h:11 menu.ui.h:10
+msgid "_Undo"
+msgstr "_Visszavonás"
+
+#: app.ui.h:12 menu.ui.h:11
+msgid "_Redo"
+msgstr "_Újra"
+
+#: app.ui.h:13 menu.ui.h:12
+msgid "Cu_t"
+msgstr "_Kivágás"
+
+#: app.ui.h:15 menu.ui.h:14
+msgid "_Paste"
+msgstr "_Beillesztés"
+
+#: app.ui.h:17 menu.ui.h:16
+msgid "_Select"
+msgstr "_Kijelölés"
+
+#: app.ui.h:18 menu.ui.h:17
+msgid "_All"
+msgstr "_Mind"
+
+#: app.ui.h:19 menu.ui.h:18
+msgid "_Odd"
+msgstr "_Páratlan"
+
+#: app.ui.h:20 menu.ui.h:19
+msgid "_Even"
+msgstr "_Páros"
+
+#: app.ui.h:21 menu.ui.h:20
+msgid "_Invert"
+msgstr "_Megfordít"
+
+#: app.ui.h:22 menu.ui.h:21
+msgid "_Blank"
+msgstr "_Üres"
+
+#: app.ui.h:23 menu.ui.h:22
+msgid "_Dark"
+msgstr "_Sötét"
+
+#: app.ui.h:24 menu.ui.h:23
+msgid "_Modified"
+msgstr "_Módosított"
+
+#: app.ui.h:25 menu.ui.h:24
+msgid "_No OCR"
+msgstr "_Nincs szövegfelismerő"
+
+#: app.ui.h:26 menu.ui.h:25
+msgid "_Clear OCR"
+msgstr "_OCR szöveg törlése"
+
+#: app.ui.h:27 menu.ui.h:26
+msgid "Propert_ies"
+msgstr "_Tulajdonságok"
+
+#: app.ui.h:28 menu.ui.h:27
+msgid "Prefere_nces"
+msgstr "_Beállítások"
+
+#: app.ui.h:29 menu.ui.h:28
+msgid "_View"
+msgstr "_Nézet"
+
+#: app.ui.h:30
+msgid "_Pan"
+msgstr "_Pásztáz"
+
+#: app.ui.h:31
+msgid "_Select & pan"
+msgstr "_Válassza ki és pásztáz"
+
+#: app.ui.h:32
+msgid "_Tabbed"
+msgstr "_Fül"
+
+#: app.ui.h:33
+msgid "_Split horizontally"
+msgstr "_Osztás  vízszintesen"
+
+#: app.ui.h:34
+msgid "_Split vertically"
+msgstr "_Osztás függőlegesen"
+
+#: app.ui.h:35
+msgid "Edit text layer"
+msgstr "Szöveges réteg szerkesztése"
+
+#: app.ui.h:36
+msgid "Edit annotations"
+msgstr "Megjegyzés szerkesztése"
+
+#: app.ui.h:38 menu.ui.h:30
+#, no-c-format
+msgid "Zoom _100%"
+msgstr "Nagyítás _100%"
+
+#: app.ui.h:39 menu.ui.h:31
+msgid "Zoom to _fit"
+msgstr "Ablakmérethez _igazítás"
+
+#: app.ui.h:40 menu.ui.h:32
+msgid "Zoom _in"
+msgstr "_Nagyítás"
+
+#: app.ui.h:41 menu.ui.h:33
+msgid "Zoom _out"
+msgstr "_Kicsinyítés"
+
+#: app.ui.h:42 menu.ui.h:34
+msgid "Rotate 90° clockwise"
+msgstr "Elforgatás 90°-al óramutató járása szerint"
+
+#: app.ui.h:43 menu.ui.h:35
+msgid "Rotate 180°"
+msgstr "Elforgatás 180°-al"
+
+#: app.ui.h:44 menu.ui.h:36
+msgid "Rotate 90° anticlockwise"
+msgstr "Elforgatás 90°-al óramutató járásával ellentétesen"
+
+#: app.ui.h:45 menu.ui.h:37
+msgid "_Tools"
+msgstr "_Eszközök"
+
+#: app.ui.h:46 menu.ui.h:38
+msgid "_Threshold"
+msgstr "_Küszöbérték"
+
+#: app.ui.h:47 menu.ui.h:39
+msgid "_Brightness / Contrast"
+msgstr "_Fényesség / Kontraszt"
+
+#: app.ui.h:48 menu.ui.h:40
+msgid "_Negate"
+msgstr "_Tagadás"
+
+#: app.ui.h:49 menu.ui.h:41
+msgid "_Unsharp Mask"
+msgstr "_Elmosás maszk"
+
+#: app.ui.h:50 menu.ui.h:42
+msgid "_Crop"
+msgstr "_Kivágás"
+
+#: app.ui.h:51 menu.ui.h:43
+msgid "_Clean up"
+msgstr "_Tisztitás"
+
+#: app.ui.h:52 menu.ui.h:44
+msgid "_Split"
+msgstr "Ha_sítás"
+
+#: app.ui.h:53 menu.ui.h:45
+msgid "_OCR"
+msgstr "_OCR"
+
+#: app.ui.h:54 menu.ui.h:46
+msgid "U_ser-defined"
+msgstr "_Felhasználói_meghatározás"
+
+#: app.ui.h:55 menu.ui.h:47
+msgid "_Help"
+msgstr "_Súgó"
+
+#: app.ui.h:56 menu.ui.h:48
+msgid "_About"
+msgstr "_Névjegy"
+
+#: app.ui.h:58
+#, fuzzy
+msgid "Cut"
+msgstr "_Kivágás"
+
+#: app.ui.h:59
+#, fuzzy
+msgid "Copy"
+msgstr "_Másolás"
+
+#: app.ui.h:60
+#, fuzzy
+msgid "Paste"
+msgstr "_Beillesztés"
+
+#: app.ui.h:61
+#, fuzzy
+msgid "Delete"
+msgstr "_Törlés"
+
+#: app.ui.h:64
+msgid "Print"
+msgstr "Nyomtatás"
+
+#: app.ui.h:65
+#, fuzzy
+msgid "Select All"
+msgstr "_Kijelölés"
+
+#: app.ui.h:66
+#, fuzzy
+msgid "Select Odd"
+msgstr "Kijelölt"
+
+#: app.ui.h:67
+#, fuzzy
+msgid "Select Even"
+msgstr "Kijelölt"
+
+#: app.ui.h:68
+msgid "Invert selection"
+msgstr "Fordított kijelölés"
+
+#: app.ui.h:69
+#, fuzzy
+msgid "Clear OCR"
+msgstr "_OCR szöveg törlése"
+
+#: app.ui.h:70
+msgid "Clears all pages"
+msgstr "Összes oldal törlése"
+
+#: app.ui.h:71
+msgid "Open image file(s)"
+msgstr "Képfájlok megnyitása"
+
+#: app.ui.h:72
+msgid "Scan document"
+msgstr "Dokumentum digitalizálása"
+
+#: app.ui.h:73
+msgid "Attach as PDF to a new email"
+msgstr "PDF csatolása egy új emailhez"
+
+#: app.ui.h:74
+msgid "Undo"
+msgstr "Visszavonás"
+
+#: app.ui.h:75
+msgid "Redo"
+msgstr "Újra"
+
+#: app.ui.h:76
+msgid "Cut selection"
+msgstr "Kijelölés kivágása"
+
+#: app.ui.h:77
+msgid "Copy selection"
+msgstr "Kijelölés másolása"
+
+#: app.ui.h:78
+msgid "Paste selection"
+msgstr "Kijelölés beillesztése"
+
+#: app.ui.h:79
+msgid "Delete selected pages"
+msgstr "Kijelölt oldalak törlése"
+
+#: app.ui.h:80
+msgid "Select all pages"
+msgstr "Minden oldal kijelölése"
+
+#: app.ui.h:81
+msgid "Use the pan tool"
+msgstr "Használja a pásztázás eszközt"
+
+#: app.ui.h:82
+msgid "Use the rectangular selection tool"
+msgstr "Használja a téglalap alakú kijelölő eszközt"
+
+#: app.ui.h:83
+msgid "Use the combined select and pan tool"
+msgstr "Használja a kombinált kijelölés és pásztázás eszközt"
+
+#: app.ui.h:85
+#, no-c-format
+msgid "Zoom to 100%"
+msgstr "Nagyítás 100%"
+
+#: app.ui.h:86
+msgid "Zoom to fit"
+msgstr "Ablakmérethez igazítás"
+
+#: app.ui.h:87
+msgid "Zoom in"
+msgstr "Nagyítás"
+
+#: app.ui.h:88
+msgid "Zoom out"
+msgstr "Kicsinyítés"
+
+#: app.ui.h:89
+msgid "Crop selection"
+msgstr "Kivágás választás"
+
+#: app.ui.h:90
+msgid "Quit"
+msgstr "Kilépés"
+
+#: menu.ui.h:5
+#, fuzzy
+msgid "_Save"
+msgstr "Mentés"
 
 #~ msgid "Error displaying help"
 #~ msgstr "Hiba a súgó megjelenítésekor"
@@ -2172,21 +2543,24 @@ msgstr "Szűrők"
 #~ "pdftk is installed, but cannot access the directory used for temporary "
 #~ "files."
 #~ msgstr ""
-#~ "pdftk telepítve van, de nem férhet hozzá az ideiglenes fájlok könyvtárához."
+#~ "pdftk telepítve van, de nem férhet hozzá az ideiglenes fájlok "
+#~ "könyvtárához."
 
 #~ msgid "One reason for this might be that pdftk was installed via snap."
-#~ msgstr "Ennek egyik oka lehet, hogy a pdftk-t snap segítségével telepítették."
+#~ msgstr ""
+#~ "Ennek egyik oka lehet, hogy a pdftk-t snap segítségével telepítették."
 
 #~ msgid ""
 #~ "In this case, removing pdftk, and reinstalling without using snap would "
 #~ "allow scantpaper to use pdftk."
 #~ msgstr ""
 #~ "Ebben az esetben a pdftk eltávolítása és a snap használata nélkül történő "
-#~ "újratelepítése lehetővé tenné a scantpaper használatát a pdftk használatára."
+#~ "újratelepítése lehetővé tenné a scantpaper használatát a pdftk "
+#~ "használatára."
 
 #~ msgid ""
-#~ "Another workaround would be to select a temporary directory under your home "
-#~ "directory in Edit/Preferences."
+#~ "Another workaround would be to select a temporary directory under your "
+#~ "home directory in Edit/Preferences."
 #~ msgstr ""
 #~ "Egy másik megoldás az lenne, ha egy ideiglenes könyvtárat választana az "
 #~ "otthoni könyvtár alatt a Szerkesztés / Beállítások között."
@@ -2203,86 +2577,11 @@ msgstr "Szűrők"
 #~ msgid "Process image with Cuneiform."
 #~ msgstr "Kép feldolgozása Cuneiformmal."
 
-#~ msgid "_File"
-#~ msgstr "_Fájl"
-
-#~ msgid "_New"
-#~ msgstr "_Új"
-
-#~ msgid "Clears all pages"
-#~ msgstr "Összes oldal törlése"
-
-#~ msgid "_Open"
-#~ msgstr "_Megnyitás"
-
-#~ msgid "Open image file(s)"
-#~ msgstr "Képfájlok megnyitása"
-
-#~ msgid "Open c_rashed session"
-#~ msgstr "Megtört f_olyamat megnyítása"
-
-#~ msgid "S_can"
-#~ msgstr "_Digitalizálás"
-
-#~ msgid "Scan document"
-#~ msgstr "Dokumentum digitalizálása"
-
-#~ msgid "_Email as PDF"
-#~ msgstr "PDF küldése  _emailben"
-
-#~ msgid "Attach as PDF to a new email"
-#~ msgstr "PDF csatolása egy új emailhez"
-
-#~ msgid "_Print"
-#~ msgstr "_Nyomtatás"
-
-#~ msgid "Print"
-#~ msgstr "Nyomtatás"
-
 #~ msgid "_Compress temporary files"
 #~ msgstr "Átmeneti állományok _tömörítése"
 
 #~ msgid "Compress temporary files"
 #~ msgstr "Átmeneti állományok tömörítése"
-
-#~ msgid "_Quit"
-#~ msgstr "_Kilépés"
-
-#~ msgid "Quit"
-#~ msgstr "Kilépés"
-
-#~ msgid "_Edit"
-#~ msgstr "_Szerkesztés"
-
-#~ msgid "_Undo"
-#~ msgstr "_Visszavonás"
-
-#~ msgid "Undo"
-#~ msgstr "Visszavonás"
-
-#~ msgid "_Redo"
-#~ msgstr "_Újra"
-
-#~ msgid "Redo"
-#~ msgstr "Újra"
-
-#~ msgid "Cu_t"
-#~ msgstr "_Kivágás"
-
-#~ msgid "Cut selection"
-#~ msgstr "Kijelölés kivágása"
-
-#~ msgid "Copy selection"
-#~ msgstr "Kijelölés másolása"
-
-#~ msgid "_Paste"
-#~ msgstr "_Beillesztés"
-
-#~ msgid "Paste selection"
-#~ msgstr "Kijelölés beillesztése"
-
-#~ msgid "Delete selected pages"
-#~ msgstr "Kijelölt oldalak törlése"
 
 #~ msgid "_Renumber"
 #~ msgstr "_Újra számozás"
@@ -2290,219 +2589,72 @@ msgstr "Szűrők"
 #~ msgid "Renumber pages"
 #~ msgstr "Oldalak újra számozása"
 
-#~ msgid "_Select"
-#~ msgstr "_Kijelölés"
-
-#~ msgid "_All"
-#~ msgstr "_Mind"
-
-#~ msgid "Select all pages"
-#~ msgstr "Minden oldal kijelölése"
-
-#~ msgid "_Odd"
-#~ msgstr "_Páratlan"
-
 #~ msgid "Select all odd-numbered pages"
 #~ msgstr "Összes páratlan oldal kijelölése"
-
-#~ msgid "_Even"
-#~ msgstr "_Páros"
 
 #~ msgid "Select all evenly-numbered pages"
 #~ msgstr "Minden \"x\"-edik oldal kijelölése"
 
-#~ msgid "_Invert"
-#~ msgstr "_Megfordít"
-
-#~ msgid "Invert selection"
-#~ msgstr "Fordított kijelölés"
-
-#~ msgid "_Blank"
-#~ msgstr "_Üres"
-
 #~ msgid "Select pages with low standard deviation"
 #~ msgstr "Alacsony szórású oldalak kijelölése"
-
-#~ msgid "_Dark"
-#~ msgstr "_Sötét"
 
 #~ msgid "Select dark pages"
 #~ msgstr "Sötét oldalak kijelölése"
 
-#~ msgid "_Modified"
-#~ msgstr "_Módosított"
-
 #~ msgid "Select modified pages since last OCR"
 #~ msgstr "Módosított oldalak kijelölése az utolsó OCR felismerés óta"
-
-#~ msgid "_No OCR"
-#~ msgstr "_Nincs szövegfelismerő"
 
 #~ msgid "Select pages with no OCR output"
 #~ msgstr "OCR felismerés nélküli oldalak kiválasztása"
 
-#~ msgid "_Clear OCR"
-#~ msgstr "_OCR szöveg törlése"
-
 #~ msgid "Clear OCR output from selected pages"
 #~ msgstr "OCR szöveg törlése a kijelölt oldalakról"
-
-#~ msgid "Propert_ies"
-#~ msgstr "_Tulajdonságok"
 
 #~ msgid "Edit image properties"
 #~ msgstr "Kép tulajdonságainak módosítása"
 
-#~ msgid "Prefere_nces"
-#~ msgstr "_Beállítások"
-
 #~ msgid "Edit preferences"
 #~ msgstr "Beállítások szerkesztése"
-
-#~ msgid "_View"
-#~ msgstr "_Nézet"
-
-#~ msgid "Zoom _100%"
-#~ msgstr "Nagyítás _100%"
-
-#~ msgid "Zoom to 100%"
-#~ msgstr "Nagyítás 100%"
-
-#~ msgid "Zoom to _fit"
-#~ msgstr "Ablakmérethez _igazítás"
-
-#~ msgid "Zoom to fit"
-#~ msgstr "Ablakmérethez igazítás"
-
-#~ msgid "Zoom _in"
-#~ msgstr "_Nagyítás"
-
-#~ msgid "Zoom in"
-#~ msgstr "Nagyítás"
-
-#~ msgid "Zoom _out"
-#~ msgstr "_Kicsinyítés"
-
-#~ msgid "Zoom out"
-#~ msgstr "Kicsinyítés"
-
-#~ msgid "Rotate 90° clockwise"
-#~ msgstr "Elforgatás 90°-al óramutató járása szerint"
-
-#~ msgid "Rotate 180°"
-#~ msgstr "Elforgatás 180°-al"
-
-#~ msgid "Rotate 90° anticlockwise"
-#~ msgstr "Elforgatás 90°-al óramutató járásával ellentétesen"
-
-#~ msgid "_Tools"
-#~ msgstr "_Eszközök"
-
-#~ msgid "_Threshold"
-#~ msgstr "_Küszöbérték"
 
 #~ msgid "Change each pixel above this threshold to black"
 #~ msgstr ""
 #~ "Minden képpont módosítása feketére, amely ezen küszöb érték felett van"
 
-#~ msgid "_Brightness / Contrast"
-#~ msgstr "_Fényesség / Kontraszt"
-
 #~ msgid "Change brightness & contrast"
 #~ msgstr "Fényesség & kontraszt cseréje"
-
-#~ msgid "_Negate"
-#~ msgstr "_Tagadás"
 
 #~ msgid "Converts black to white and vice versa"
 #~ msgstr "Fekete fehérré alakítása és fordítva"
 
-#~ msgid "_Unsharp Mask"
-#~ msgstr "_Elmosás maszk"
-
 #~ msgid "Apply an unsharp mask"
 #~ msgstr "Elmosás maszk elfogadása"
-
-#~ msgid "_Crop"
-#~ msgstr "_Kivágás"
 
 #~ msgid "Crop pages"
 #~ msgstr "Oldalak kivágása"
 
-#~ msgid "Crop selection"
-#~ msgstr "Kivágás választás"
-
-#~ msgid "_Clean up"
-#~ msgstr "_Tisztitás"
-
-#~ msgid "_Split"
-#~ msgstr "Ha_sítás"
-
 #~ msgid "Split pages horizontally or vertically"
 #~ msgstr "Oldalak felosztása vízszintesen vagy függőlegesen"
-
-#~ msgid "_OCR"
-#~ msgstr "_OCR"
 
 #~ msgid "Optical Character Recognition"
 #~ msgstr "Optikai karakterfelismerés (OCR)"
 
-#~ msgid "U_ser-defined"
-#~ msgstr "_Felhasználói_meghatározás"
-
 #~ msgid "Process images with user-defined tool"
 #~ msgstr "Képkezelés a felhasználó által meghatározott folyamattal"
-
-#~ msgid "_Help"
-#~ msgstr "_Súgó"
 
 #~ msgid "Help"
 #~ msgstr "Súgó"
 
-#~ msgid "_About"
-#~ msgstr "_Névjegy"
-
-#~ msgid "_Pan"
-#~ msgstr "_Pásztáz"
-
-#~ msgid "Use the pan tool"
-#~ msgstr "Használja a pásztázás eszközt"
-
-#~ msgid "Use the rectangular selection tool"
-#~ msgstr "Használja a téglalap alakú kijelölő eszközt"
-
-#~ msgid "_Select & pan"
-#~ msgstr "_Válassza ki és pásztáz"
-
-#~ msgid "Use the combined select and pan tool"
-#~ msgstr "Használja a kombinált kijelölés és pásztázás eszközt"
-
-#~ msgid "_Tabbed"
-#~ msgstr "_Fül"
-
 #~ msgid "Arrange image and OCR viewers in tabs"
 #~ msgstr "A kép- és OCR-nézőket lapokba rendez"
-
-#~ msgid "_Split horizontally"
-#~ msgstr "_Osztás  vízszintesen"
 
 #~ msgid "Arrange image and OCR viewers in horizontally split screen"
 #~ msgstr "Rendezze el a kép- és OCR-nézőket vízszintesen osztott képernyőn"
 
-#~ msgid "_Split vertically"
-#~ msgstr "_Osztás függőlegesen"
-
 #~ msgid "Arrange image and OCR viewers in vertically split screen"
 #~ msgstr "Rendezze el a kép- és OCR-nézőket függőlegesen osztott képernyőn"
 
-#~ msgid "Edit text layer"
-#~ msgstr "Szöveges réteg szerkesztése"
-
 #~ msgid "Show editing tools for text layer"
 #~ msgstr "Szerkesztőeszközök megjelenítése a szövegréteghez"
-
-#~ msgid "Edit annotations"
-#~ msgstr "Megjegyzés szerkesztése"
 
 #~ msgid "Show editing tools for annotations"
 #~ msgstr "Szerkesztőeszközök megjelenítése a kommentárokhoz"
@@ -2522,14 +2674,15 @@ msgstr "Szűrők"
 #~ msgid ""
 #~ "The rotating, crop, unsharp, split and unpaper tools require perlmagick\n"
 #~ msgstr ""
-#~ "A forgó, a levágott, az éles, az osztott és a papír eltávolításhoz szükséges"
-#~ " eszközök ImageMagickot igényelnek\n"
+#~ "A forgó, a levágott, az éles, az osztott és a papír eltávolításhoz "
+#~ "szükséges eszközök ImageMagickot igényelnek\n"
 
 #~ msgid "unpaper missing\n"
 #~ msgstr "unpaper program hiányzik\n"
 
 #~ msgid "OCR requires gocr, tesseract, or cuneiform\n"
-#~ msgstr "OCR felismeréshez gocr, tesseract vagy cuneiform csomagok szükségesek\n"
+#~ msgstr ""
+#~ "OCR felismeréshez gocr, tesseract vagy cuneiform csomagok szükségesek\n"
 
 #~ msgid "PDF encryption requires pdftk\n"
 #~ msgstr "A PDF titkosításhoz pdftk program telepítése szükséges\n"
@@ -2588,12 +2741,12 @@ msgstr "Szűrők"
 #~ "The percentage of the difference between the original and the blur image "
 #~ "that is added back into the original."
 #~ msgstr ""
-#~ "Az eredeti és az elmosódott kép közötti különbség százalékos aránya, amely "
-#~ "visszaadja az eredeti képet."
+#~ "Az eredeti és az elmosódott kép közötti különbség százalékos aránya, "
+#~ "amely visszaadja az eredeti képet."
 
 #~ msgid ""
-#~ "The threshold, as a fraction of QuantumRange, needed to apply the difference"
-#~ " amount."
+#~ "The threshold, as a fraction of QuantumRange, needed to apply the "
+#~ "difference amount."
 #~ msgstr ""
 #~ "A küszöbérték, mint a QuantumRange töredékéért, a különbözetet kellett "
 #~ "alkalmazni."
@@ -2666,16 +2819,19 @@ msgstr "Szűrők"
 
 #~ msgid "Convert scanned images to PNG before further processing"
 #~ msgstr ""
-#~ "Konvertálja a beolvasott képeket PNG formátumra a további feldolgozás előtt"
+#~ "Konvertálja a beolvasott képeket PNG formátumra a további feldolgozás "
+#~ "előtt"
 
 #~ msgid ""
-#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
+#~ "Use %i and %o for the input and output filenames respectively, or a "
+#~ "single %i if the image is to be modified in-place.\n"
 #~ "\n"
 #~ "The other variable available is:\n"
 #~ "\n"
 #~ "%r resolution"
 #~ msgstr ""
-#~ "Használja %i és %o a bemeneti és a kimeneti fájlneveket, vagy egy %i, ha a képet helyben kell módosítani.\n"
+#~ "Használja %i és %o a bemeneti és a kimeneti fájlneveket, vagy egy %i, ha "
+#~ "a képet helyben kell módosítani.\n"
 #~ "\n"
 #~ "A másik elérhető változó: \n"
 #~ "\n"
@@ -2694,8 +2850,8 @@ msgstr "Szűrők"
 #~ msgstr "Növekmény"
 
 #~ msgid ""
-#~ "The current settings would result in duplicate page numbers. Please select "
-#~ "new start and increment values."
+#~ "The current settings would result in duplicate page numbers. Please "
+#~ "select new start and increment values."
 #~ msgstr ""
 #~ "Az aktuális beállítások duplikált oldalszámot eredményeznek. Kérjük, "
 #~ "válasszon új kezdési és növekményértékeket."
@@ -2726,15 +2882,15 @@ msgstr "Szűrők"
 #~ "Reload recursion limit (%d) exceeded. Please file a bug, attaching a log "
 #~ "file reproducing the problem."
 #~ msgstr ""
-#~ "A rekurzió korlátjának újratöltése (%d) túllépve. Kérjük, csatoljon fájlt a "
-#~ "hibával és a problémát reprodukáló naplófájlt."
+#~ "A rekurzió korlátjának újratöltése (%d) túllépve. Kérjük, csatoljon fájlt "
+#~ "a hibával és a problémát reprodukáló naplófájlt."
 
 #~ msgid ""
 #~ "Multiple unconstrained values are not currently supported. Please file a "
 #~ "bug."
 #~ msgstr ""
-#~ "A beállítási értékek jelenleg nincsenek támogatva. A fájl valószínűleg egy "
-#~ "hiba."
+#~ "A beállítási értékek jelenleg nincsenek támogatva. A fájl valószínűleg "
+#~ "egy hiba."
 
 #~ msgid ""
 #~ "Multiple non-numerical values are not currently supported. Please file a "
@@ -2760,13 +2916,18 @@ msgstr "Szűrők"
 #~ msgstr "%s nem felismert képtípus"
 
 #~ msgid ""
-#~ "Warning: scantpaper expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.\n"
+#~ "Warning: scantpaper expects one image per page, but this was not "
+#~ "satisfied. It is probable that the PDF has not been correctly imported.\n"
 #~ "\n"
-#~ "If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.\n"
+#~ "If you wish to add scans to an existing PDF, use the prepend/append to "
+#~ "PDF options in the Save dialogue.\n"
 #~ msgstr ""
-#~ "Figyelmeztetés: A scantpaper oldalanként egy képet vár, de ez nem teljesült. Valószínű, hogy a PDF-dokumentum nem lett megfelelően importálva.\n"
+#~ "Figyelmeztetés: A scantpaper oldalanként egy képet vár, de ez nem "
+#~ "teljesült. Valószínű, hogy a PDF-dokumentum nem lett megfelelően "
+#~ "importálva.\n"
 #~ "\n"
-#~ "Ha meg szeretné adni a beolvasást egy meglévő PDF-fájlba, használja a párbeszédpanel Mentés opcióját a PDF-hez való hozzáfűzéshez.\n"
+#~ "Ha meg szeretné adni a beolvasást egy meglévő PDF-fájlba, használja a "
+#~ "párbeszédpanel Mentés opcióját a PDF-hez való hozzáfűzéshez.\n"
 
 #, perl-format
 #~ msgid "Caught error creating PDF %s: %s"
@@ -2801,7 +2962,8 @@ msgstr "Szűrők"
 #~ msgstr "Hiba a %s kép tömörítésekor"
 
 #, perl-format
-#~ msgid "Core font '%s' cannot encode character '%s', and no TTF font defined."
+#~ msgid ""
+#~ "Core font '%s' cannot encode character '%s', and no TTF font defined."
 #~ msgstr ""
 #~ "A(z) '%s' törzs betűtípus nem kódolhatja a(z) '%s' karaktert és nincs "
 #~ "meghatározva TTF betűtípus."

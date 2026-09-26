@@ -6,12 +6,13 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2026-09-26 16:03+0200\n"
+"Report-Msgid-Bugs-To: jffry@posteo.net\n"
+"POT-Creation-Date: 2026-09-26 20:13+0200\n"
 "PO-Revision-Date: 2022-03-31 07:34+0000\n"
 "Last-Translator: Alexandre NICOLADIE <Unknown>\n"
 "Language-Team: French <fr@li.org>\n"
 "Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -69,52 +70,54 @@ msgstr "Calque du texte"
 msgid "Annotations"
 msgstr "Notes"
 
-#: app_window.py:837
-#, fuzzy
+#: app_window.py:838
+#, fuzzy, python-format
 msgid "%dMb free in %s."
-msgstr "%d Mo libres dans %s."
+msgid_plural "%dMb free in %s."
+msgstr[0] "%d Mo libres dans %s."
+msgstr[1] "%d Mo libres dans %s."
 
-#: app_window.py:861 helpers.py:372
+#: app_window.py:863 helpers.py:372
 msgid "Messages"
 msgstr "Messages"
 
-#: app_window.py:946
+#: app_window.py:948
 #, fuzzy
 msgid "Error opening the last device used."
 msgstr "Erreur lors de l'ouverture du dernier périphérique utilisé."
 
-#: app_window.py:948
+#: app_window.py:950
 #, fuzzy
 msgid "There was an error opening the last device used."
 msgstr ""
 "Une erreur s'est produite lors de l'ouverture du dernier périphérique "
 "utilisé."
 
-#: app_window.py:951
+#: app_window.py:953
 #, fuzzy
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Oups ! J'ai oublié de l'allumer. Réessayez maintenant."
 
-#: app_window.py:956 dialog/scan.py:517
+#: app_window.py:958 dialog/scan.py:517
 msgid "Rescan for devices"
 msgstr "Chercher à nouveau des périphériques de numérisation"
 
-#: app_window.py:960
+#: app_window.py:962
 #, fuzzy
 msgid "Restart scantpaper."
 msgstr "Redémarrez scantpaper."
 
-#: app_window.py:965
+#: app_window.py:967
 #, fuzzy
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Ignorez simplement l'erreur. Je n'ai pas encore besoin du scanner."
 
-#: app_window.py:968 dialog/preferences.py:162
+#: app_window.py:970 dialog/preferences.py:162
 #, fuzzy
 msgid "Cache device list"
 msgstr "Mettre en cache la liste des périphériques"
 
-#: app_window.py:971 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:973 dialog/__init__.py:135 session_mixins.py:392
 msgid "Don't show this message again"
 msgstr "Ne pas réafficher ce message"
 
@@ -147,29 +150,28 @@ msgstr "Lettre US"
 msgid "US Legal"
 msgstr "Légal US"
 
-#: config.py:262
-#, fuzzy
+#: config.py:263
+#, fuzzy, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left "
-"unchanged."
+"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
 msgstr ""
 "La valeur du paramètre %s est %r et ne peut pas être utilisée comme %s ; "
 "elle a donc été laissée inchangée."
 
-#: config.py:298
-#, fuzzy
+#: config.py:299
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read in full. The following settings were "
 "restored: %s. The rest were reset to their defaults. A backup of the "
 "original file has been saved as %s."
 msgstr ""
 "Le fichier de configuration %s n'a pas pu être lu entièrement. Les "
-"paramètres suivants ont été restaurés : %s. Les autres ont été réinitialisés"
-" à leurs valeurs par défaut. Une copie de sauvegarde du fichier original a "
+"paramètres suivants ont été restaurés : %s. Les autres ont été réinitialisés "
+"à leurs valeurs par défaut. Une copie de sauvegarde du fichier original a "
 "été enregistrée sous %s."
 
-#: config.py:305
-#, fuzzy
+#: config.py:306
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read, so all settings have been reset to "
 "their defaults. A backup of the original file has been saved as %s."
@@ -221,7 +223,7 @@ msgstr "Masquer"
 msgid "Don't show these messages again"
 msgstr "Ne plus afficher ces messages"
 
-#: dialog/__init__.py:312
+#: dialog/__init__.py:313
 #, fuzzy
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
@@ -229,7 +231,7 @@ msgstr ""
 "Cette erreur est normalement due au dépassement des limites de ressources "
 "d'ImageMagick."
 
-#: dialog/__init__.py:316
+#: dialog/__init__.py:317
 #, fuzzy
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
@@ -238,7 +240,7 @@ msgstr ""
 "Elles peuvent être étendues en modifiant son fichier de politique, qui sur "
 "mon système se trouve dans /etc/ImageMagick-6/policy.xml"
 
-#: dialog/__init__.py:321
+#: dialog/__init__.py:322
 #, fuzzy
 msgid ""
 "Please see https://imagemagick.org/script/resources.php for more information"
@@ -333,7 +335,7 @@ msgstr "Numéro de page avant lequel les numérisations seront insérées"
 msgid "Position advance"
 msgstr "Avance de position"
 
-#: dialog/pagecontrols.py:288
+#: dialog/pagecontrols.py:289
 #, fuzzy
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
@@ -415,7 +417,7 @@ msgstr "Options globales"
 msgid "Open scanner at program start"
 msgstr "Ouvrir le scanner au démarrage du programme"
 
-#: dialog/preferences.py:70
+#: dialog/preferences.py:71
 #, fuzzy
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
@@ -453,21 +455,21 @@ msgstr ""
 msgid "Allow batch scanning from flatbed"
 msgstr "Autoriser la numérisation par lots depuis le plateau"
 
-#: dialog/preferences.py:108
+#: dialog/preferences.py:109
 #, fuzzy
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 msgstr ""
-"Si elle n'est pas définie, le passage à un scanner à plateau forcera # pages"
-" à 1 et le mode recto."
+"Si elle n'est pas définie, le passage à un scanner à plateau forcera # pages "
+"à 1 et le mode recto."
 
 #: dialog/preferences.py:118
 #, fuzzy
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Ignorer les capacités recto-verso du scanner"
 
-#: dialog/preferences.py:121
+#: dialog/preferences.py:122
 #, fuzzy
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
@@ -482,7 +484,7 @@ msgstr ""
 msgid "Force new scan job between pages"
 msgstr "Forcer une nouvelle tâche de numérisation entre les pages"
 
-#: dialog/preferences.py:134
+#: dialog/preferences.py:135
 #, fuzzy
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
@@ -496,7 +498,7 @@ msgstr ""
 msgid "Select # pages = all on selecting ADF"
 msgstr "Sélectionner # pages = toutes lors de la sélection de l'ADF"
 
-#: dialog/preferences.py:154
+#: dialog/preferences.py:155
 #, fuzzy
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
@@ -505,7 +507,7 @@ msgstr ""
 "Si cette option est activée, lors du passage à source=ADF, # pages = toutes "
 "est sélectionné"
 
-#: dialog/preferences.py:164
+#: dialog/preferences.py:165
 #, fuzzy
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
@@ -514,7 +516,7 @@ msgstr ""
 "Si cette option est activée, l'ouverture du scanner est plus rapide, car "
 "scantpaper ne recherche pas d'abord les périphériques disponibles."
 
-#: dialog/preferences.py:168
+#: dialog/preferences.py:169
 #, fuzzy
 msgid ""
 "This is only effective if the device names do not change between sessions."
@@ -563,7 +565,8 @@ msgstr ""
 "%Ds\tsujet\n"
 "%Dt\ttitre\n"
 "\n"
-"Tous les codes de date de document utilisent des codes strftime précédés d'un D, par exemple :\n"
+"Tous les codes de date de document utilisent des codes strftime précédés "
+"d'un D, par exemple :\n"
 "%DY\tanée du document\n"
 "%Dm\tmois du document\n"
 "%Dd\tjour du document\n"
@@ -606,14 +609,14 @@ msgstr "Sélectionner le dossier temporaire"
 msgid "Warn if available space less than (Mb)"
 msgstr "Avertir si l'espace disponible est inférieur à (Mo)"
 
-#: dialog/preferences.py:278
+#: dialog/preferences.py:279
 #, fuzzy
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
 msgstr ""
-"Avertir si l'espace disponible dans le répertoire temporaire est inférieur à"
-" cette valeur"
+"Avertir si l'espace disponible dans le répertoire temporaire est inférieur à "
+"cette valeur"
 
 #: dialog/preferences.py:287
 #, fuzzy
@@ -643,7 +646,7 @@ msgstr "Résultat ROC"
 msgid "Replace"
 msgstr "Remplacer"
 
-#: dialog/preferences.py:317
+#: dialog/preferences.py:318
 #, fuzzy
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr "Remplacer le contenu du tampon de texte par celui de la sortie OCR."
@@ -672,7 +675,7 @@ msgid "Manage user-defined tools"
 msgstr "Gérer les outils définis par l'utilisateur"
 
 #: dialog/preferences.py:352
-#, fuzzy
+#, fuzzy, python-format
 msgid ""
 "Use %i and %o for the input and output filenames respectively,\n"
 "or a single %i if the image is to be modified in-place.\n"
@@ -680,7 +683,8 @@ msgid ""
 "The other variable available is:\n"
 "%r resolution"
 msgstr ""
-"Utilisez %i et %o pour les noms des fichiers d'entrée et de sortie, respectivement,\n"
+"Utilisez %i et %o pour les noms des fichiers d'entrée et de sortie, "
+"respectivement,\n"
 "ou un seul %i si l'image doit être modifiée sur place.\n"
 "\n"
 "L'autre variable disponible est :\n"
@@ -738,13 +742,13 @@ msgid "Scan Options"
 msgstr "Options de numérisation"
 
 #: dialog/sane.py:290
-#, fuzzy
+#, fuzzy, python-format
 msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
 msgstr ""
 "Option de numérisation « %s » ignorée, plage minimale (%s) > maximale (%s)"
 
 #: dialog/sane.py:450
-#, fuzzy
+#, fuzzy, python-format
 msgid "Setting option %s"
 msgstr "Définition de l'option %s"
 
@@ -773,12 +777,12 @@ msgstr "GIF"
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe graphics interchange format (GIF)"
 
-#: dialog/save.py:33
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr "JPEG"
-
 #: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
 msgid "JPEG"
+msgstr "JPEG"
+
+#: dialog/save.py:33
+msgid "Joint Photographic Experts Group JFIF format"
 msgstr "JPEG"
 
 #: dialog/save.py:34
@@ -830,14 +834,14 @@ msgstr "hOCR"
 msgid "hOCR markup language"
 msgstr "Langage de balisage hOCR"
 
+#: dialog/save.py:40 session_mixins.py:126
+msgid "Session"
+msgstr "Session"
+
 #: dialog/save.py:40
 #, fuzzy
 msgid "scantpaper session database"
 msgstr "Base de données de session scantpaper"
-
-#: dialog/save.py:40 session_mixins.py:126
-msgid "Session"
-msgstr "Session"
 
 #: dialog/save.py:41
 #, fuzzy
@@ -941,8 +945,8 @@ msgstr "Ghostscript"
 #, fuzzy
 msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
 msgstr ""
-"Utiliser Ghostscript (pdf2ps) pour créer des fichiers Postscript à partir de"
-" PDF."
+"Utiliser Ghostscript (pdf2ps) pour créer des fichiers Postscript à partir de "
+"PDF."
 
 #: dialog/save.py:71
 msgid "Poppler"
@@ -1098,6 +1102,7 @@ msgid "Sets the device to be used for the scan"
 msgstr "Indiquer le périphérique utilisé pour la numérisation"
 
 #: dialog/scan.py:599
+#, python-format
 msgid "Error: unknown device: %s"
 msgstr "Erreur: périphérique inconnu: %s"
 
@@ -1138,11 +1143,11 @@ msgstr "Édition"
 msgid "Selects or edits the paper size"
 msgstr "Sélectionne ou modifie la taille du papier"
 
-#: dialog/scan.py:769
-#, fuzzy
+#: dialog/scan.py:770
+#, fuzzy, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
-" file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
+"file a bug, attaching a log file reproducing the problem."
 msgstr ""
 "Limite de récursivité de rechargement (%d) dépassée : %d rechargements pour "
 "%d options de numérisation. Veuillez signaler un bogue en joignant un "
@@ -1157,7 +1162,7 @@ msgstr "Choisir la taille du papier"
 msgid "Apply"
 msgstr "Appliquer"
 
-#: dialog/scan.py:1068
+#: dialog/scan.py:1069
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr ""
@@ -1174,7 +1179,7 @@ msgid "Name of scan profile"
 msgstr "Nom du profil de scan"
 
 #: dialog/scan.py:1585
-#, fuzzy
+#, fuzzy, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "Le profil « %s » existe. Écraser ?"
 
@@ -1189,7 +1194,7 @@ msgid "Editing current scan options"
 msgstr "Modification des options de numérisation actuelles"
 
 #: dialog/scan.py:1625
-#, fuzzy
+#, fuzzy, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "Modification du profil de numérisation « %s »"
 
@@ -1203,15 +1208,17 @@ msgid "Frontend options"
 msgstr "Options du frontal"
 
 #: dialog/scan.py:1752
+#, python-format
 msgid "Scanning page %d of %d"
 msgstr "Numérisation de la page %d sur %d"
 
 #: dialog/scan.py:1753
+#, python-format
 msgid "Scanning page %d"
 msgstr "Numérisation page %d"
 
 #: docthread.py:1167
-#, fuzzy
+#, fuzzy, python-format
 msgid "Analysing page %i of %i"
 msgstr "Analyse de la page %i sur %i"
 
@@ -1225,14 +1232,14 @@ msgstr "Aucune langue tesseract spécifiée"
 msgid "tessdata directory not found"
 msgstr "Répertoire tessdata introuvable"
 
-#: document.py:110
+#: document.py:111
 #, fuzzy
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr ""
-"Erreur : impossible d'ouvrir un fichier de session en même temps qu'un autre"
-" fichier."
+"Erreur : impossible d'ouvrir un fichier de session en même temps qu'un autre "
+"fichier."
 
-#: document.py:126
+#: document.py:127
 #, fuzzy
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr ""
@@ -1251,8 +1258,8 @@ msgstr "ppp"
 #, fuzzy
 msgid "Invalid regex. Try without special characters such as '*'"
 msgstr ""
-"Expression rationnelle invalide. Essayez sans caractères spéciaux tels que «"
-" * »"
+"Expression rationnelle invalide. Essayez sans caractères spéciaux tels que "
+"« * »"
 
 #: edit_menu_mixins.py:394
 #, fuzzy
@@ -1294,6 +1301,7 @@ msgid "Last page to extract"
 msgstr "Dernière page à extraire"
 
 #: file_menu_mixins.py:214
+#, python-format
 msgid "Enter user password for PDF %s"
 msgstr "Entrer le mot de passe pour le PDF %s"
 
@@ -1310,8 +1318,8 @@ msgstr "Enregistrer"
 msgid "Post-save hook"
 msgstr "Crochet post-enregistrement"
 
-#: file_menu_mixins.py:369
-#, fuzzy
+#: file_menu_mixins.py:370
+#, fuzzy, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
@@ -1376,10 +1384,12 @@ msgid "scantpaper session files"
 msgstr "Fichiers de sessions scantpaper"
 
 #: file_menu_mixins.py:601
+#, python-format
 msgid "Directory %s is read-only"
 msgstr "Le dossier %s est en lecture seulement"
 
 #: file_menu_mixins.py:611
+#, python-format
 msgid "File %s is read-only"
 msgstr "Le fichier %s est en lecture seul"
 
@@ -1388,7 +1398,7 @@ msgid "Image filename"
 msgstr "Nom du fichier"
 
 #: file_menu_mixins.py:862
-#, fuzzy
+#, fuzzy, python-format
 msgid "This operation would overwrite %s"
 msgstr "Cette opération écraserait %s"
 
@@ -1399,21 +1409,22 @@ msgid ""
 msgstr "Voulez vous vraiment quitter ?"
 
 #: importthread.py:86
+#, python-format
 msgid "File %s not found"
 msgstr "Fichier %s non trouvé"
 
 #: importthread.py:92
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error getting file info for %s: %s"
 msgstr "Erreur lors de l'obtention des informations sur le fichier %s : %s"
 
 #: importthread.py:97
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error importing zero-length file %s."
 msgstr "Erreur lors de l'importation du fichier de longueur nulle %s."
 
 #: importthread.py:135 importthread.py:178
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr "Veuillez installer djvulibre-bin pour ouvrir les fichiers DjVu : %s"
 
@@ -1422,11 +1433,12 @@ msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Structure du fichier DjVu inconnue. Veuillez contacter l'auteur"
 
 #: importthread.py:266
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "Veuillez installer libtiff-tools pour ouvrir les fichiers TIFF : %s"
 
 #: importthread.py:328 importthread.py:388
+#, python-format
 msgid "Importing page %i of %i"
 msgstr "Importer la page %i sur %i"
 
@@ -1434,7 +1446,7 @@ msgstr "Importer la page %i sur %i"
 msgid "Error extracting images from PDF"
 msgstr "Erreur d'extraction des images du PDF"
 
-#: importthread.py:520
+#: importthread.py:521
 #, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
@@ -1546,7 +1558,7 @@ msgstr ""
 msgid "Threshold before OCR"
 msgstr "Délimiter avant OCR"
 
-#: postprocess_controls.py:379
+#: postprocess_controls.py:380
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
@@ -1554,7 +1566,7 @@ msgstr ""
 "Délimiter l'image avant le traitement OCR. Ceci ne concerne que l'image "
 "envoyée au système OCR."
 
-#: postprocess_controls.py:390 tools_menu_mixins.py:113
+#: postprocess_controls.py:391 tools_menu_mixins.py:114
 #, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
@@ -1574,10 +1586,12 @@ msgid "_Cancel"
 msgstr "_Annuler"
 
 #: progress.py:76 progress.py:110
+#, python-format
 msgid "Process %i of %i (%s)"
 msgstr "Processus  %i sur %i (%s)"
 
 #: progress.py:119
+#, python-format
 msgid "Process %i of %i"
 msgstr "Processus %i sur %i"
 
@@ -1596,11 +1610,12 @@ msgid "Setting up PDF"
 msgstr "Configuration du PDF"
 
 #: savethread.py:264 savethread.py:405
+#, python-format
 msgid "Writing page %i of %i"
 msgstr "Écriture de la page %i sur %i"
 
-#: savethread.py:290
-#, fuzzy
+#: savethread.py:291
+#, fuzzy, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
@@ -1617,7 +1632,7 @@ msgid "Converting to PS"
 msgstr "Conversion en PS"
 
 #: savethread.py:374
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "Erreur lors de la conversion du PDF en PS : %s"
 
@@ -1626,12 +1641,12 @@ msgid "Merging DjVu"
 msgstr "Fusionner DjVu"
 
 #: savethread.py:425
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Erreur lors de la fusion des DjVu : %s"
 
 #: savethread.py:519
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "Erreur lors de la conversion du TIFF en PS : %s"
 
@@ -1640,12 +1655,12 @@ msgid "Error copying page"
 msgstr "Erreur de copie de page"
 
 #: savethread.py:814
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error prepending PDF: %s"
 msgstr "Erreur lors du préfixage du PDF : %s"
 
 #: savethread.py:822
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error appending PDF: %s"
 msgstr "Erreur lors de l'ajout au PDF : %s"
 
@@ -1655,7 +1670,7 @@ msgid "Error creating backup of PDF"
 msgstr "Erreur lors de la création de la copie de sauvegarde du PDF"
 
 #: savethread.py:905
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "Erreur lors du chiffrement du PDF : %s"
 
@@ -1664,7 +1679,7 @@ msgstr "Erreur lors du chiffrement du PDF : %s"
 msgid "Really cache libusb device names?"
 msgstr "Vraiment mettre en cache les noms des périphériques libusb ?"
 
-#: scan_menu_item_mixins.py:75
+#: scan_menu_item_mixins.py:76
 #, fuzzy
 msgid ""
 "Caching device list with libusb devices included is not recommended as they "
@@ -1693,13 +1708,12 @@ msgstr "Post-traitement"
 msgid "Alternate rotation every 2nd page"
 msgstr "Alterner la rotation toutes les 2 pages"
 
-#: scan_menu_item_mixins.py:232
+#: scan_menu_item_mixins.py:233
 #, fuzzy
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its "
-"front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its front."
 msgstr ""
 "Faites pivoter les pages impaires de l'angle choisi et les pages paires de "
 "cet angle plus 180 degrés. À utiliser lors de la numérisation d'un livre où "
@@ -1734,7 +1748,8 @@ msgstr "Traiter avec les outils personnalisés"
 msgid "Process scanned images with user-defined tool"
 msgstr "Traiter les images numérisées avec les outils personnalisés"
 
-#: session_mixins.py:73
+#: session_mixins.py:74
+#, python-format
 msgid ""
 "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
 msgstr ""
@@ -1806,15 +1821,15 @@ msgid "my-new-annotation"
 msgstr "ma-nouvelle-note"
 
 #: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, fuzzy
+#, fuzzy, python-format
 msgid "You are using locale '%s'."
 msgstr "Vous utilisez la locale « %s »."
 
-#: tesseract.py:234
+#: tesseract.py:235
 #, fuzzy
 msgid ""
-"scantpaper does not currently know which tesseract language package would be"
-" necessary for that locale."
+"scantpaper does not currently know which tesseract language package would be "
+"necessary for that locale."
 msgstr ""
 "scantpaper ne sait actuellement pas quel paquet de langue tesseract serait "
 "nécessaire pour cette locale."
@@ -1823,11 +1838,11 @@ msgstr ""
 #, fuzzy
 msgid "Please contact the developers to add support for that locale."
 msgstr ""
-"Veuillez contacter les développeurs pour ajouter la prise en charge de cette"
-" locale."
+"Veuillez contacter les développeurs pour ajouter la prise en charge de cette "
+"locale."
 
-#: tesseract.py:249
-#, fuzzy
+#: tesseract.py:250
+#, fuzzy, python-format
 msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
@@ -1836,7 +1851,7 @@ msgstr ""
 "scantpaper pour l'OCR de %s avec tesseract."
 
 #: tesseract.py:260
-#, fuzzy
+#, fuzzy, python-format
 msgid "There is no tesseract package for %s"
 msgstr "Il n'existe aucun paquet tesseract pour %s"
 
@@ -1956,7 +1971,7 @@ msgstr "Pourcentage"
 msgid "Unsharp strength, in percent."
 msgstr "Intensité du renforcement, en pourcentage."
 
-#: tools_menu_mixins.py:293
+#: tools_menu_mixins.py:294
 #, fuzzy
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
@@ -2040,7 +2055,7 @@ msgstr "Disposition"
 msgid "Single"
 msgstr "simple"
 
-#: unpaper.py:42
+#: unpaper.py:43
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Une page par feuille, orienté verticalement sans rotation."
 
@@ -2048,7 +2063,7 @@ msgstr "Une page par feuille, orienté verticalement sans rotation."
 msgid "Double"
 msgstr "Double"
 
-#: unpaper.py:48
+#: unpaper.py:49
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -2073,7 +2088,7 @@ msgstr "Système d'écriture"
 msgid "Left-to-right"
 msgstr "De gauche à droite"
 
-#: unpaper.py:71
+#: unpaper.py:72
 #, fuzzy
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
 msgstr "La plupart des systèmes d'écriture, p. ex. latin, grec, cyrillique."
@@ -2159,7 +2174,7 @@ msgstr "Désactive la détection automatique des bords"
 msgid "No border align"
 msgstr "Pas d'alignement des bords"
 
-#: unpaper.py:134
+#: unpaper.py:135
 msgid "Disable aligning of the area detected by border scanning."
 msgstr ""
 "Désactive l'alignement automatique de l'aire scannée par détection des bords"
@@ -2168,7 +2183,7 @@ msgstr ""
 msgid "Deskew to edge"
 msgstr "Auto-rotation de l'image"
 
-#: unpaper.py:142
+#: unpaper.py:143
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
@@ -2236,7 +2251,7 @@ msgstr "Taille des bordures"
 msgid "Vertical margin"
 msgstr "Marges verticales"
 
-#: unpaper.py:206
+#: unpaper.py:207
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr "Taille verticale de la bordure à aligner avec les côtés de la feuille"
@@ -2245,7 +2260,7 @@ msgstr "Taille verticale de la bordure à aligner avec les côtés de la feuille
 msgid "Horizontal margin"
 msgstr "Marges horizontales"
 
-#: unpaper.py:218
+#: unpaper.py:219
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
@@ -2255,7 +2270,7 @@ msgstr ""
 msgid "White threshold"
 msgstr "Seuil pour les blancs"
 
-#: unpaper.py:232
+#: unpaper.py:233
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr ""
 "Rapport de luminosité au dessus duquel un pixel est considéré comme blanc."
@@ -2264,11 +2279,11 @@ msgstr ""
 msgid "Black threshold"
 msgstr "Seuil pour les noirs"
 
-#: unpaper.py:244
+#: unpaper.py:245
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is"
-" used by the gray-filter. This value is also used when converting a "
-"grayscale image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is "
+"used by the gray-filter. This value is also used when converting a grayscale "
+"image to black-and-white mode."
 msgstr ""
 "Rapport de luminosité en dessous duquel un pixel est considéré comme noir "
 "(non gris). Cette valeur est utilisée par le filtre des gris et pour "
@@ -2286,6 +2301,351 @@ msgstr "Bords"
 msgid "Filters"
 msgstr "Filtres"
 
+#: app.ui.h:1 menu.ui.h:1
+msgid "_File"
+msgstr "_Fichier"
+
+#: app.ui.h:2 menu.ui.h:2
+msgid "_New"
+msgstr "_Nouveau"
+
+#: app.ui.h:3 menu.ui.h:3
+msgid "_Open"
+msgstr "_Ouvrir"
+
+#: app.ui.h:4
+msgid "Open c_rashed session"
+msgstr "Ouvrir la session c_rashed"
+
+#: app.ui.h:5 menu.ui.h:4
+msgid "S_can"
+msgstr "Numériser"
+
+#: app.ui.h:7 menu.ui.h:6
+msgid "_Email as PDF"
+msgstr "_Envoyer le PDF par courriel"
+
+#: app.ui.h:8 menu.ui.h:7
+msgid "_Print"
+msgstr "Im_primer"
+
+#: app.ui.h:9 menu.ui.h:8
+msgid "_Quit"
+msgstr "_Quitter"
+
+#: app.ui.h:10 menu.ui.h:9
+msgid "_Edit"
+msgstr "É_dition"
+
+#: app.ui.h:11 menu.ui.h:10
+msgid "_Undo"
+msgstr "Annuler"
+
+#: app.ui.h:12 menu.ui.h:11
+msgid "_Redo"
+msgstr "_Rétablir"
+
+#: app.ui.h:13 menu.ui.h:12
+msgid "Cu_t"
+msgstr "C_ouper"
+
+#: app.ui.h:15 menu.ui.h:14
+msgid "_Paste"
+msgstr "_Coller"
+
+#: app.ui.h:17 menu.ui.h:16
+msgid "_Select"
+msgstr "_Sélectionner"
+
+#: app.ui.h:18 menu.ui.h:17
+msgid "_All"
+msgstr "_Tout"
+
+#: app.ui.h:19 menu.ui.h:18
+msgid "_Odd"
+msgstr "_Impaires"
+
+#: app.ui.h:20 menu.ui.h:19
+msgid "_Even"
+msgstr "_Paires"
+
+#: app.ui.h:21 menu.ui.h:20
+#, fuzzy
+msgid "_Invert"
+msgstr "_Inverser"
+
+#: app.ui.h:22 menu.ui.h:21
+msgid "_Blank"
+msgstr "_Blanc"
+
+#: app.ui.h:23 menu.ui.h:22
+msgid "_Dark"
+msgstr "_Sombre"
+
+#: app.ui.h:24 menu.ui.h:23
+msgid "_Modified"
+msgstr "_Modifié"
+
+#: app.ui.h:25 menu.ui.h:24
+msgid "_No OCR"
+msgstr "Pas de _numérisation"
+
+#: app.ui.h:26 menu.ui.h:25
+msgid "_Clear OCR"
+msgstr "_Effacer la ROC"
+
+#: app.ui.h:27 menu.ui.h:26
+msgid "Propert_ies"
+msgstr "Propr_iétés"
+
+#: app.ui.h:28 menu.ui.h:27
+msgid "Prefere_nces"
+msgstr "Préfére_nces"
+
+#: app.ui.h:29 menu.ui.h:28
+msgid "_View"
+msgstr "_Affichage"
+
+#: app.ui.h:30
+msgid "_Pan"
+msgstr "_Translater"
+
+#: app.ui.h:31
+msgid "_Select & pan"
+msgstr "_Sélectionner & translater"
+
+#: app.ui.h:32
+msgid "_Tabbed"
+msgstr "À_onglet"
+
+#: app.ui.h:33
+msgid "_Split horizontally"
+msgstr "Diviser _horizontalement"
+
+#: app.ui.h:34
+msgid "_Split vertically"
+msgstr "_Diviser verticalement"
+
+#: app.ui.h:35
+msgid "Edit text layer"
+msgstr "Éditer le calque du texte"
+
+#: app.ui.h:36
+msgid "Edit annotations"
+msgstr "Éditer les annotations"
+
+#: app.ui.h:38 menu.ui.h:30
+#, no-c-format
+msgid "Zoom _100%"
+msgstr "Zoom _100%"
+
+#: app.ui.h:39 menu.ui.h:31
+msgid "Zoom to _fit"
+msgstr "_Adapter le zoom à la taille de la fenètre"
+
+#: app.ui.h:40 menu.ui.h:32
+msgid "Zoom _in"
+msgstr "Zoom a_vant"
+
+#: app.ui.h:41 menu.ui.h:33
+msgid "Zoom _out"
+msgstr "Zoom a_rrière"
+
+#: app.ui.h:42 menu.ui.h:34
+msgid "Rotate 90° clockwise"
+msgstr "Rotation de 90° antihoraire"
+
+#: app.ui.h:43 menu.ui.h:35
+msgid "Rotate 180°"
+msgstr "Rotation de 180°"
+
+#: app.ui.h:44 menu.ui.h:36
+msgid "Rotate 90° anticlockwise"
+msgstr "Rotation 90° antihoraire"
+
+#: app.ui.h:45 menu.ui.h:37
+msgid "_Tools"
+msgstr "_Outils"
+
+#: app.ui.h:46 menu.ui.h:38
+msgid "_Threshold"
+msgstr "_Seuil"
+
+#: app.ui.h:47 menu.ui.h:39
+msgid "_Brightness / Contrast"
+msgstr "_Luminosité / Contraste"
+
+#: app.ui.h:48 menu.ui.h:40
+msgid "_Negate"
+msgstr "_Inverser"
+
+#: app.ui.h:49 menu.ui.h:41
+msgid "_Unsharp Mask"
+msgstr "_Masque Flou"
+
+#: app.ui.h:50 menu.ui.h:42
+msgid "_Crop"
+msgstr "_Rogner"
+
+#: app.ui.h:51 menu.ui.h:43
+msgid "_Clean up"
+msgstr "_Nettoyer"
+
+#: app.ui.h:52 menu.ui.h:44
+msgid "_Split"
+msgstr "_Scinder"
+
+#: app.ui.h:53 menu.ui.h:45
+msgid "_OCR"
+msgstr "R_OC"
+
+#: app.ui.h:54 menu.ui.h:46
+msgid "U_ser-defined"
+msgstr "Défini par l'usager"
+
+#: app.ui.h:55 menu.ui.h:47
+msgid "_Help"
+msgstr "_Aide"
+
+#: app.ui.h:56 menu.ui.h:48
+msgid "_About"
+msgstr "_À propos"
+
+#: app.ui.h:58
+#, fuzzy
+msgid "Cut"
+msgstr "C_ouper"
+
+#: app.ui.h:59
+#, fuzzy
+msgid "Copy"
+msgstr "_Copier"
+
+#: app.ui.h:60
+#, fuzzy
+msgid "Paste"
+msgstr "_Coller"
+
+#: app.ui.h:61
+#, fuzzy
+msgid "Delete"
+msgstr "_Supprimer"
+
+#: app.ui.h:64
+msgid "Print"
+msgstr "Imprimer"
+
+#: app.ui.h:65
+#, fuzzy
+msgid "Select All"
+msgstr "_Sélectionner"
+
+#: app.ui.h:66
+#, fuzzy
+msgid "Select Odd"
+msgstr "Sélectionné"
+
+#: app.ui.h:67
+#, fuzzy
+msgid "Select Even"
+msgstr "Sélectionné"
+
+#: app.ui.h:68
+#, fuzzy
+msgid "Invert selection"
+msgstr "Coupe la sélection"
+
+#: app.ui.h:69
+#, fuzzy
+msgid "Clear OCR"
+msgstr "_Effacer la ROC"
+
+#: app.ui.h:70
+msgid "Clears all pages"
+msgstr "Efface toutes les pages"
+
+#: app.ui.h:71
+msgid "Open image file(s)"
+msgstr "Ouvrir le(s) image(s)"
+
+#: app.ui.h:72
+msgid "Scan document"
+msgstr "Numériser le document"
+
+#: app.ui.h:73
+msgid "Attach as PDF to a new email"
+msgstr "Joindre comme PDF dans un nouveau courriel"
+
+#: app.ui.h:74
+msgid "Undo"
+msgstr "Annuler"
+
+#: app.ui.h:75
+msgid "Redo"
+msgstr "Rétablir"
+
+#: app.ui.h:76
+msgid "Cut selection"
+msgstr "Coupe la sélection"
+
+#: app.ui.h:77
+msgid "Copy selection"
+msgstr "Copie la sélection"
+
+#: app.ui.h:78
+msgid "Paste selection"
+msgstr "Colle la sélection"
+
+#: app.ui.h:79
+msgid "Delete selected pages"
+msgstr "Supprimer les pages sélectionnées"
+
+#: app.ui.h:80
+msgid "Select all pages"
+msgstr "Sélectionnez toutes les pages"
+
+#: app.ui.h:81
+msgid "Use the pan tool"
+msgstr "Utiliser l'outil de translation"
+
+#: app.ui.h:82
+msgid "Use the rectangular selection tool"
+msgstr "Utilisez l'outil de sélection rectangulaire"
+
+#: app.ui.h:83
+msgid "Use the combined select and pan tool"
+msgstr "Utilisez l'outil combiné de sélection et de translation"
+
+#: app.ui.h:85
+#, no-c-format
+msgid "Zoom to 100%"
+msgstr "Zoomer à 100 %"
+
+#: app.ui.h:86
+msgid "Zoom to fit"
+msgstr "Zoom ajusté"
+
+#: app.ui.h:87
+msgid "Zoom in"
+msgstr "Zoom avant"
+
+#: app.ui.h:88
+msgid "Zoom out"
+msgstr "Zoom arrière"
+
+#: app.ui.h:89
+msgid "Crop selection"
+msgstr "Sélection de la partie à recadrer"
+
+#: app.ui.h:90
+msgid "Quit"
+msgstr "Quitter"
+
+#: menu.ui.h:5
+#, fuzzy
+msgid "_Save"
+msgstr "Enregistrer"
+
 #~ msgid "Error displaying help"
 #~ msgstr "Une erreur est survenue lors de l'affichage de l'aide"
 
@@ -2297,11 +2657,12 @@ msgstr "Filtres"
 #~ "pdftk is installed, but cannot access the directory used for temporary "
 #~ "files."
 #~ msgstr ""
-#~ "pdftk est installé, mais ne peut pas accéder au répertoire utilisé pour les "
-#~ "fichiers temporaires."
+#~ "pdftk est installé, mais ne peut pas accéder au répertoire utilisé pour "
+#~ "les fichiers temporaires."
 
 #~ msgid "One reason for this might be that pdftk was installed via snap."
-#~ msgstr "Une raison pour cela pourrait être que pdftk a été installé via snap."
+#~ msgstr ""
+#~ "Une raison pour cela pourrait être que pdftk a été installé via snap."
 
 #~ msgid ""
 #~ "In this case, removing pdftk, and reinstalling without using snap would "
@@ -2311,8 +2672,8 @@ msgstr "Filtres"
 #~ "snap permettrait à scantpaper d'utiliser pdftk."
 
 #~ msgid ""
-#~ "Another workaround would be to select a temporary directory under your home "
-#~ "directory in Edit/Preferences."
+#~ "Another workaround would be to select a temporary directory under your "
+#~ "home directory in Edit/Preferences."
 #~ msgstr ""
 #~ "Une autre solution consiste à sélectionner un répertoire temporaire sous "
 #~ "votre répertoire d'origine dans Édition/Préférences."
@@ -2329,86 +2690,11 @@ msgstr "Filtres"
 #~ msgid "Process image with Cuneiform."
 #~ msgstr "Traiter l'image avec Cuneiform"
 
-#~ msgid "_File"
-#~ msgstr "_Fichier"
-
-#~ msgid "_New"
-#~ msgstr "_Nouveau"
-
-#~ msgid "Clears all pages"
-#~ msgstr "Efface toutes les pages"
-
-#~ msgid "_Open"
-#~ msgstr "_Ouvrir"
-
-#~ msgid "Open image file(s)"
-#~ msgstr "Ouvrir le(s) image(s)"
-
-#~ msgid "Open c_rashed session"
-#~ msgstr "Ouvrir la session c_rashed"
-
-#~ msgid "S_can"
-#~ msgstr "Numériser"
-
-#~ msgid "Scan document"
-#~ msgstr "Numériser le document"
-
-#~ msgid "_Email as PDF"
-#~ msgstr "_Envoyer le PDF par courriel"
-
-#~ msgid "Attach as PDF to a new email"
-#~ msgstr "Joindre comme PDF dans un nouveau courriel"
-
-#~ msgid "_Print"
-#~ msgstr "Im_primer"
-
-#~ msgid "Print"
-#~ msgstr "Imprimer"
-
 #~ msgid "_Compress temporary files"
 #~ msgstr "_Compresser les fichiers temporaires"
 
 #~ msgid "Compress temporary files"
 #~ msgstr "Compresser les fichiers temporaires"
-
-#~ msgid "_Quit"
-#~ msgstr "_Quitter"
-
-#~ msgid "Quit"
-#~ msgstr "Quitter"
-
-#~ msgid "_Edit"
-#~ msgstr "É_dition"
-
-#~ msgid "_Undo"
-#~ msgstr "Annuler"
-
-#~ msgid "Undo"
-#~ msgstr "Annuler"
-
-#~ msgid "_Redo"
-#~ msgstr "_Rétablir"
-
-#~ msgid "Redo"
-#~ msgstr "Rétablir"
-
-#~ msgid "Cu_t"
-#~ msgstr "C_ouper"
-
-#~ msgid "Cut selection"
-#~ msgstr "Coupe la sélection"
-
-#~ msgid "Copy selection"
-#~ msgstr "Copie la sélection"
-
-#~ msgid "_Paste"
-#~ msgstr "_Coller"
-
-#~ msgid "Paste selection"
-#~ msgstr "Colle la sélection"
-
-#~ msgid "Delete selected pages"
-#~ msgstr "Supprimer les pages sélectionnées"
 
 #~ msgid "_Renumber"
 #~ msgstr "_Renuméroter"
@@ -2416,224 +2702,83 @@ msgstr "Filtres"
 #~ msgid "Renumber pages"
 #~ msgstr "Renuméroter les pages"
 
-#~ msgid "_Select"
-#~ msgstr "_Sélectionner"
-
-#~ msgid "_All"
-#~ msgstr "_Tout"
-
-#~ msgid "Select all pages"
-#~ msgstr "Sélectionnez toutes les pages"
-
-#~ msgid "_Odd"
-#~ msgstr "_Impaires"
-
 #~ msgid "Select all odd-numbered pages"
 #~ msgstr "Sélectionner toutes les pages impaires"
-
-#~ msgid "_Even"
-#~ msgstr "_Paires"
 
 #~ msgid "Select all evenly-numbered pages"
 #~ msgstr "Sélectionner toutes les pages paires"
 
-#~ msgid "_Blank"
-#~ msgstr "_Blanc"
-
 #~ msgid "Select pages with low standard deviation"
 #~ msgstr "Sélectionner les pages à faible écart type"
-
-#~ msgid "_Dark"
-#~ msgstr "_Sombre"
 
 #~ msgid "Select dark pages"
 #~ msgstr "Sélectionnez les pages sombres"
 
-#~ msgid "_Modified"
-#~ msgstr "_Modifié"
-
 #~ msgid "Select modified pages since last OCR"
 #~ msgstr "Sélectionner les pages modifiées depuis la dernière ROC"
-
-#~ msgid "_No OCR"
-#~ msgstr "Pas de _numérisation"
 
 #~ msgid "Select pages with no OCR output"
 #~ msgstr "Sélectionner les pages sans détection des caractères"
 
-#~ msgid "_Clear OCR"
-#~ msgstr "_Effacer la ROC"
-
 #~ msgid "Clear OCR output from selected pages"
 #~ msgstr "Effacer la ROC des pages sélectionnées"
-
-#~ msgid "Propert_ies"
-#~ msgstr "Propr_iétés"
 
 #~ msgid "Edit image properties"
 #~ msgstr "Modifier les propriétés de l'image"
 
-#~ msgid "Prefere_nces"
-#~ msgstr "Préfére_nces"
-
 #~ msgid "Edit preferences"
 #~ msgstr "Modifier les préférences"
-
-#~ msgid "_View"
-#~ msgstr "_Affichage"
-
-#~ msgid "Zoom _100%"
-#~ msgstr "Zoom _100%"
-
-#~ msgid "Zoom to 100%"
-#~ msgstr "Zoomer à 100 %"
-
-#~ msgid "Zoom to _fit"
-#~ msgstr "_Adapter le zoom à la taille de la fenètre"
-
-#~ msgid "Zoom to fit"
-#~ msgstr "Zoom ajusté"
-
-#~ msgid "Zoom _in"
-#~ msgstr "Zoom a_vant"
-
-#~ msgid "Zoom in"
-#~ msgstr "Zoom avant"
-
-#~ msgid "Zoom _out"
-#~ msgstr "Zoom a_rrière"
-
-#~ msgid "Zoom out"
-#~ msgstr "Zoom arrière"
-
-#~ msgid "Rotate 90° clockwise"
-#~ msgstr "Rotation de 90° antihoraire"
-
-#~ msgid "Rotate 180°"
-#~ msgstr "Rotation de 180°"
-
-#~ msgid "Rotate 90° anticlockwise"
-#~ msgstr "Rotation 90° antihoraire"
-
-#~ msgid "_Tools"
-#~ msgstr "_Outils"
-
-#~ msgid "_Threshold"
-#~ msgstr "_Seuil"
 
 #~ msgid "Change each pixel above this threshold to black"
 #~ msgstr "Rendre chaque pixel au dessus de ce seuil noir"
 
-#~ msgid "_Brightness / Contrast"
-#~ msgstr "_Luminosité / Contraste"
-
 #~ msgid "Change brightness & contrast"
 #~ msgstr "Modifier la luminosité & le contraste"
-
-#~ msgid "_Negate"
-#~ msgstr "_Inverser"
 
 #~ msgid "Converts black to white and vice versa"
 #~ msgstr "Convertir en Noir et Blanc et vice versa"
 
-#~ msgid "_Unsharp Mask"
-#~ msgstr "_Masque Flou"
-
 #~ msgid "Apply an unsharp mask"
 #~ msgstr "Appliquer un masque flou"
-
-#~ msgid "_Crop"
-#~ msgstr "_Rogner"
 
 #~ msgid "Crop pages"
 #~ msgstr "Rogner les pages"
 
-#~ msgid "Crop selection"
-#~ msgstr "Sélection de la partie à recadrer"
-
-#~ msgid "_Clean up"
-#~ msgstr "_Nettoyer"
-
-#~ msgid "_Split"
-#~ msgstr "_Scinder"
-
 #~ msgid "Split pages horizontally or vertically"
 #~ msgstr "Diviser les pages horizontalement ou verticalement"
-
-#~ msgid "_OCR"
-#~ msgstr "R_OC"
 
 #~ msgid "Optical Character Recognition"
 #~ msgstr "Reconnaissance optique de caractères"
 
-#~ msgid "U_ser-defined"
-#~ msgstr "Défini par l'usager"
-
 #~ msgid "Process images with user-defined tool"
 #~ msgstr "Traiter les images avec les outils personnalisés"
-
-#~ msgid "_Help"
-#~ msgstr "_Aide"
 
 #~ msgid "Help"
 #~ msgstr "Aide"
 
-#~ msgid "_About"
-#~ msgstr "_À propos"
-
-#~ msgid "_Pan"
-#~ msgstr "_Translater"
-
-#~ msgid "Use the pan tool"
-#~ msgstr "Utiliser l'outil de translation"
-
-#~ msgid "Use the rectangular selection tool"
-#~ msgstr "Utilisez l'outil de sélection rectangulaire"
-
-#~ msgid "_Select & pan"
-#~ msgstr "_Sélectionner & translater"
-
-#~ msgid "Use the combined select and pan tool"
-#~ msgstr "Utilisez l'outil combiné de sélection et de translation"
-
-#~ msgid "_Tabbed"
-#~ msgstr "À_onglet"
-
 #~ msgid "Arrange image and OCR viewers in tabs"
 #~ msgstr "Organiser les visionneuses d'images et d'OCR en onglets"
-
-#~ msgid "_Split horizontally"
-#~ msgstr "Diviser _horizontalement"
 
 #~ msgid "Arrange image and OCR viewers in horizontally split screen"
 #~ msgstr ""
 #~ "Organiser les visionneuses d'images et d'OCR dans un écran divisé "
 #~ "horizontalement."
 
-#~ msgid "_Split vertically"
-#~ msgstr "_Diviser verticalement"
-
 #~ msgid "Arrange image and OCR viewers in vertically split screen"
 #~ msgstr ""
 #~ "Organiser les visionneuses d'images et d'OCR dans un écran divisé "
 #~ "verticalement."
 
-#~ msgid "Edit text layer"
-#~ msgstr "Éditer le calque du texte"
-
 #~ msgid "Show editing tools for text layer"
 #~ msgstr "Afficher les outils d'édition pour le calque du texte"
-
-#~ msgid "Edit annotations"
-#~ msgstr "Éditer les annotations"
 
 #~ msgid "Show editing tools for annotations"
 #~ msgstr "Afficher les outils d'édition pour les annotations"
 
 #~ msgid "Save image and Save as PDF both require imagemagick\n"
 #~ msgstr ""
-#~ "La sauvegarde d'une image et la sauvegarde au format PDF nécessitent toutes "
-#~ "deux imagemagick\n"
+#~ "La sauvegarde d'une image et la sauvegarde au format PDF nécessitent "
+#~ "toutes deux imagemagick\n"
 
 #~ msgid "Save image requires libtiff\n"
 #~ msgstr "La sauvegarde d'une image nécessite libtiff\n"
@@ -2697,8 +2842,8 @@ msgstr "Filtres"
 #~ "The percentage of the difference between the original and the blur image "
 #~ "that is added back into the original."
 #~ msgstr ""
-#~ "Le pourcentage de différence entre l'image originale et l'image atténuée qui"
-#~ " est ajoutée à l'originale."
+#~ "Le pourcentage de différence entre l'image originale et l'image atténuée "
+#~ "qui est ajoutée à l'originale."
 
 #~ msgid "English"
 #~ msgstr "Anglais"

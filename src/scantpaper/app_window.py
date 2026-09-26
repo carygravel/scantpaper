@@ -34,7 +34,7 @@ from scantpaper.document import Document
 from scantpaper.edit_menu_mixins import EditMenuMixins
 from scantpaper.file_menu_mixins import FileMenuMixins
 from scantpaper.helpers import recursive_slurp
-from scantpaper.i18n import _
+from scantpaper.i18n import _, ngettext
 from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger
 from scantpaper.progress import Progress
 from scantpaper.scan_menu_item_mixins import ScanMenuItemMixins
@@ -834,7 +834,10 @@ class ApplicationWindow(
             self.settings["available-tmp-warning"],
         )
         if df < cast("int", self.settings["available-tmp-warning"]):
-            text = _("%dMb free in %s.") % (df, self.session.name)
+            text = ngettext("%dMb free in %s.", "%dMb free in %s.", int(df)) % (
+                int(df),
+                self.session.name,
+            )
             self._show_message_dialog(
                 parent=self,
                 message_type="warning",

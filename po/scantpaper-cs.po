@@ -6,12 +6,13 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2026-09-26 16:03+0200\n"
+"Report-Msgid-Bugs-To: jffry@posteo.net\n"
+"POT-Creation-Date: 2026-09-26 20:13+0200\n"
 "PO-Revision-Date: 2023-07-11 10:31+0000\n"
 "Last-Translator: Jan Lochman <Unknown>\n"
 "Language-Team: Czech <cs@li.org>\n"
 "Language: cs\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -70,49 +71,53 @@ msgstr "Textová vrstva"
 msgid "Annotations"
 msgstr "Anotace"
 
-#: app_window.py:837
+#: app_window.py:838
+#, fuzzy, python-format
 msgid "%dMb free in %s."
-msgstr "%dMB volných v %s."
+msgid_plural "%dMb free in %s."
+msgstr[0] "%dMB volných v %s."
+msgstr[1] "%dMB volných v %s."
+msgstr[2] "%dMB volných v %s."
 
-#: app_window.py:861 helpers.py:372
+#: app_window.py:863 helpers.py:372
 msgid "Messages"
 msgstr "Zprávy"
 
-#: app_window.py:946
+#: app_window.py:948
 #, fuzzy
 msgid "Error opening the last device used."
 msgstr "Chyba při otevírání posledního použitého zařízení."
 
-#: app_window.py:948
+#: app_window.py:950
 #, fuzzy
 msgid "There was an error opening the last device used."
 msgstr "Při otevírání posledního použitého zařízení došlo k chybě."
 
-#: app_window.py:951
+#: app_window.py:953
 #, fuzzy
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Jejda! Zapomněl jsem ho zapnout. Zkus to znovu."
 
-#: app_window.py:956 dialog/scan.py:517
+#: app_window.py:958 dialog/scan.py:517
 msgid "Rescan for devices"
 msgstr "Opakovat hledání zařízení"
 
-#: app_window.py:960
+#: app_window.py:962
 #, fuzzy
 msgid "Restart scantpaper."
 msgstr "Restartujte scantpaper."
 
-#: app_window.py:965
+#: app_window.py:967
 #, fuzzy
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Chybu prostě ignorujte. Skener zatím nepotřebuji."
 
-#: app_window.py:968 dialog/preferences.py:162
+#: app_window.py:970 dialog/preferences.py:162
 #, fuzzy
 msgid "Cache device list"
 msgstr "Ukládat seznam zařízení do mezipaměti"
 
-#: app_window.py:971 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:973 dialog/__init__.py:135 session_mixins.py:392
 msgid "Don't show this message again"
 msgstr "Tuto zprávu znovu nezobrazovat"
 
@@ -144,17 +149,16 @@ msgstr "US Letter"
 msgid "US Legal"
 msgstr "US Legal"
 
-#: config.py:262
-#, fuzzy
+#: config.py:263
+#, fuzzy, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left "
-"unchanged."
+"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
 msgstr ""
 "Nastavení %s má hodnotu %r a nelze jej použít jako %s, proto bylo ponecháno "
 "beze změny."
 
-#: config.py:298
-#, fuzzy
+#: config.py:299
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read in full. The following settings were "
 "restored: %s. The rest were reset to their defaults. A backup of the "
@@ -164,8 +168,8 @@ msgstr ""
 "byla obnovena: %s. Zbytek byl vrácen na výchozí hodnoty. Záložní kopie "
 "původního souboru byla uložena jako %s."
 
-#: config.py:305
-#, fuzzy
+#: config.py:306
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read, so all settings have been reset to "
 "their defaults. A backup of the original file has been saved as %s."
@@ -215,14 +219,14 @@ msgstr "Skrýt"
 msgid "Don't show these messages again"
 msgstr "Tuto zprávu už příště nezobrazovat"
 
-#: dialog/__init__.py:312
+#: dialog/__init__.py:313
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
 "Tato chyba obyčejně bývá kvůli tomu, že ImageMagick překročí svůj limit "
 "prostředků."
 
-#: dialog/__init__.py:316
+#: dialog/__init__.py:317
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
@@ -230,7 +234,7 @@ msgstr ""
 "Tyto je možné rozšířit úpravou jeho souboru se zásadami, který se na mém "
 "systému nachází v /etc/ImageMagick-6/policy.xml"
 
-#: dialog/__init__.py:321
+#: dialog/__init__.py:322
 msgid ""
 "Please see https://imagemagick.org/script/resources.php for more information"
 msgstr ""
@@ -319,7 +323,7 @@ msgstr "Číslo stránky, před kterou budou skeny vloženy"
 msgid "Position advance"
 msgstr "Posun pozice"
 
-#: dialog/pagecontrols.py:288
+#: dialog/pagecontrols.py:289
 #, fuzzy
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
@@ -399,7 +403,7 @@ msgstr "Obecná nastavení"
 msgid "Open scanner at program start"
 msgstr "Otevřít skener při spouštění aplikace"
 
-#: dialog/preferences.py:70
+#: dialog/preferences.py:71
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
@@ -431,33 +435,33 @@ msgstr ""
 msgid "Allow batch scanning from flatbed"
 msgstr "Umožnit dávkové skenování z osvitové desky"
 
-#: dialog/preferences.py:108
+#: dialog/preferences.py:109
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 msgstr ""
-"Pokud není nastaveno, přepnutí na deskový skener vynutí počet stránek na 1 a"
-" jednostranný režim."
+"Pokud není nastaveno, přepnutí na deskový skener vynutí počet stránek na 1 a "
+"jednostranný režim."
 
 #: dialog/preferences.py:118
 #, fuzzy
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Ignorovat funkce oboustranného skenování skeneru"
 
-#: dialog/preferences.py:121
+#: dialog/preferences.py:122
 #, fuzzy
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
 msgstr ""
-"Je-li nastaveno, jsou funkce oboustranného skenování ignorovány a zobrazí se"
-" prvky pro lícovou/rubovou stranu, aby bylo možné stránky ručně prokládat."
+"Je-li nastaveno, jsou funkce oboustranného skenování ignorovány a zobrazí se "
+"prvky pro lícovou/rubovou stranu, aby bylo možné stránky ručně prokládat."
 
 #: dialog/preferences.py:131
 msgid "Force new scan job between pages"
 msgstr "Vynutit novou skenovací úlohu mezi stránkami"
 
-#: dialog/preferences.py:134
+#: dialog/preferences.py:135
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
@@ -470,7 +474,7 @@ msgid "Select # pages = all on selecting ADF"
 msgstr ""
 "Vybrat počet stránek = vše pokud je vybrán automatický podavač dokumentů"
 
-#: dialog/preferences.py:154
+#: dialog/preferences.py:155
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
@@ -478,7 +482,7 @@ msgstr ""
 "Když je tato volba zapnutá, pak při přepnutí zdroje na automatický podavač "
 "dokumentů je vybrán počet stránek vše."
 
-#: dialog/preferences.py:164
+#: dialog/preferences.py:165
 #, fuzzy
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
@@ -487,7 +491,7 @@ msgstr ""
 "Je-li tato možnost zapnuta, otevírání skeneru je rychlejší, protože "
 "scantpaper nejprve nehledá dostupná zařízení."
 
-#: dialog/preferences.py:168
+#: dialog/preferences.py:169
 #, fuzzy
 msgid ""
 "This is only effective if the device names do not change between sessions."
@@ -571,7 +575,7 @@ msgstr "Vybrat dočasný adresář"
 msgid "Warn if available space less than (Mb)"
 msgstr "Varovat, pokud zbývá volného méně než (MB)"
 
-#: dialog/preferences.py:278
+#: dialog/preferences.py:279
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
@@ -602,7 +606,7 @@ msgstr "Výstup OCR"
 msgid "Replace"
 msgstr "Nahradit"
 
-#: dialog/preferences.py:317
+#: dialog/preferences.py:318
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr "Nahradit obsah textové vyrovnávací paměti obsahem výstupu OCR."
 
@@ -627,7 +631,7 @@ msgid "Manage user-defined tools"
 msgstr "Spravovat uživatelem určené nástroje"
 
 #: dialog/preferences.py:352
-#, fuzzy
+#, fuzzy, python-format
 msgid ""
 "Use %i and %o for the input and output filenames respectively,\n"
 "or a single %i if the image is to be modified in-place.\n"
@@ -689,13 +693,13 @@ msgid "Scan Options"
 msgstr "Možnosti skenování"
 
 #: dialog/sane.py:290
-#, fuzzy
+#, fuzzy, python-format
 msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
 msgstr ""
 "Volba skenování „%s“ se ignoruje, minimální rozsah (%s) > maximální (%s)"
 
 #: dialog/sane.py:450
-#, fuzzy
+#, fuzzy, python-format
 msgid "Setting option %s"
 msgstr "Nastavuji volbu %s"
 
@@ -724,13 +728,13 @@ msgstr "GIF"
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe graphics interchange format"
 
-#: dialog/save.py:33
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr "Joint Photographic Experts Group JFIF format"
-
 #: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
 msgid "JPEG"
 msgstr "JPEG"
+
+#: dialog/save.py:33
+msgid "Joint Photographic Experts Group JFIF format"
+msgstr "Joint Photographic Experts Group JFIF format"
 
 #: dialog/save.py:34
 msgid "PNG"
@@ -780,14 +784,14 @@ msgstr "hOCR"
 msgid "hOCR markup language"
 msgstr "hOCR značkovací jazyk"
 
+#: dialog/save.py:40 session_mixins.py:126
+msgid "Session"
+msgstr "Sezení"
+
 #: dialog/save.py:40
 #, fuzzy
 msgid "scantpaper session database"
 msgstr "Databáze relace scantpaper"
-
-#: dialog/save.py:40 session_mixins.py:126
-msgid "Session"
-msgstr "Sezení"
 
 #: dialog/save.py:41
 msgid "Prepend to PDF"
@@ -1033,6 +1037,7 @@ msgid "Sets the device to be used for the scan"
 msgstr "Nastaví zařízení pro skenování"
 
 #: dialog/scan.py:599
+#, python-format
 msgid "Error: unknown device: %s"
 msgstr "Chyba: neznámé zařízení: %s"
 
@@ -1074,15 +1079,15 @@ msgstr "Editovat"
 msgid "Selects or edits the paper size"
 msgstr "Vybírá nebo upravuje rozměry stránek"
 
-#: dialog/scan.py:769
-#, fuzzy
+#: dialog/scan.py:770
+#, fuzzy, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
-" file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
+"file a bug, attaching a log file reproducing the problem."
 msgstr ""
-"Překročen limit rekurze při znovunačítání (%d): %d znovunačtení pro %d voleb"
-" skenování. Nahlaste prosím chybu a přiložte soubor protokolu, který problém"
-" reprodukuje."
+"Překročen limit rekurze při znovunačítání (%d): %d znovunačtení pro %d voleb "
+"skenování. Nahlaste prosím chybu a přiložte soubor protokolu, který problém "
+"reprodukuje."
 
 #: dialog/scan.py:1024
 msgid "Edit paper size"
@@ -1093,7 +1098,7 @@ msgstr "Upravit velikost papíru"
 msgid "Apply"
 msgstr "Použít"
 
-#: dialog/scan.py:1068
+#: dialog/scan.py:1069
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr ""
@@ -1110,6 +1115,7 @@ msgid "Name of scan profile"
 msgstr "Jméno profilu skenování"
 
 #: dialog/scan.py:1585
+#, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "Profil „%s“ už existuje. Přepsat?"
 
@@ -1123,6 +1129,7 @@ msgid "Editing current scan options"
 msgstr "Upravují se předvolby stávajícího skenování"
 
 #: dialog/scan.py:1625
+#, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "Upravit profil skenování „%s“"
 
@@ -1135,14 +1142,17 @@ msgid "Frontend options"
 msgstr "Předvolby pro nadstavbu"
 
 #: dialog/scan.py:1752
+#, python-format
 msgid "Scanning page %d of %d"
 msgstr "Probíhá skenování strany %d z %d"
 
 #: dialog/scan.py:1753
+#, python-format
 msgid "Scanning page %d"
 msgstr "Probíhá skenování strany %d"
 
 #: docthread.py:1167
+#, python-format
 msgid "Analysing page %i of %i"
 msgstr "Analyzuje se stránka %i z %i"
 
@@ -1156,11 +1166,11 @@ msgstr "Není zadán jazyk tesseractu"
 msgid "tessdata directory not found"
 msgstr "Adresář tessdata nebyl nalezen"
 
-#: document.py:110
+#: document.py:111
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr "Chyba: nelze otevřít soubor relace souběžně s jiným souborem."
 
-#: document.py:126
+#: document.py:127
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr "Chyba: import vícestránkového souboru současně s jiným souborem."
 
@@ -1217,6 +1227,7 @@ msgid "Last page to extract"
 msgstr "Poslední stránka k rozbalení"
 
 #: file_menu_mixins.py:214
+#, python-format
 msgid "Enter user password for PDF %s"
 msgstr "Zadejte uživatelské heslo pro PDF %s"
 
@@ -1232,7 +1243,8 @@ msgstr "Uložit"
 msgid "Post-save hook"
 msgstr "Háček po uložení"
 
-#: file_menu_mixins.py:369
+#: file_menu_mixins.py:370
+#, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
@@ -1297,10 +1309,12 @@ msgid "scantpaper session files"
 msgstr "soubory relací scantpaper"
 
 #: file_menu_mixins.py:601
+#, python-format
 msgid "Directory %s is read-only"
 msgstr "Složka %s je pouze pro čtení"
 
 #: file_menu_mixins.py:611
+#, python-format
 msgid "File %s is read-only"
 msgstr "Soubor %s je jen pro čtení"
 
@@ -1309,7 +1323,7 @@ msgid "Image filename"
 msgstr "Jméno souboru s obrázkem"
 
 #: file_menu_mixins.py:862
-#, fuzzy
+#, fuzzy, python-format
 msgid "This operation would overwrite %s"
 msgstr "Tato operace přepíše %s"
 
@@ -1322,20 +1336,22 @@ msgstr ""
 "Opravdu chcete odejít?"
 
 #: importthread.py:86
+#, python-format
 msgid "File %s not found"
 msgstr "Soubor %s nebyl nalezen"
 
 #: importthread.py:92
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error getting file info for %s: %s"
 msgstr "Chyba při získávání informací o souboru %s: %s"
 
 #: importthread.py:97
+#, python-format
 msgid "Error importing zero-length file %s."
 msgstr "Chyba při importu prázdného souboru %s."
 
 #: importthread.py:135 importthread.py:178
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr "Pro otevírání souborů DjVu nainstalujte djvulibre-bin: %s"
 
@@ -1344,11 +1360,12 @@ msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Neznámá struktura souboru DjVu. Prosím kontaktujte autora."
 
 #: importthread.py:266
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "Pro otevírání souborů TIFF nainstalujte libtiff-tools: %s"
 
 #: importthread.py:328 importthread.py:388
+#, python-format
 msgid "Importing page %i of %i"
 msgstr "Importování stránky %i z %i"
 
@@ -1356,7 +1373,7 @@ msgstr "Importování stránky %i z %i"
 msgid "Error extracting images from PDF"
 msgstr "Chyba při xtrahování obrázků z PDF"
 
-#: importthread.py:520
+#: importthread.py:521
 #, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
@@ -1462,15 +1479,15 @@ msgstr "OCR na oskenované stránky"
 msgid "Threshold before OCR"
 msgstr "Práh před OCR"
 
-#: postprocess_controls.py:379
+#: postprocess_controls.py:380
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
 msgstr ""
-"Práh obrázku před provedením rozpoznávání znaků. Toto se týká pouze obrázků,"
-" předaných OCR engine a ne uložených obrázků."
+"Práh obrázku před provedením rozpoznávání znaků. Toto se týká pouze obrázků, "
+"předaných OCR engine a ne uložených obrázků."
 
-#: postprocess_controls.py:390 tools_menu_mixins.py:113
+#: postprocess_controls.py:391 tools_menu_mixins.py:114
 #, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
@@ -1489,10 +1506,12 @@ msgid "_Cancel"
 msgstr "_Zrušit"
 
 #: progress.py:76 progress.py:110
+#, python-format
 msgid "Process %i of %i (%s)"
 msgstr "Zpracování %i z %i (%s)"
 
 #: progress.py:119
+#, python-format
 msgid "Process %i of %i"
 msgstr "Zpracování %i z %i"
 
@@ -1511,11 +1530,12 @@ msgid "Setting up PDF"
 msgstr "Nastavování PDF"
 
 #: savethread.py:264 savethread.py:405
+#, python-format
 msgid "Writing page %i of %i"
 msgstr "Zápis stránky %i z %i"
 
-#: savethread.py:290
-#, fuzzy
+#: savethread.py:291
+#, fuzzy, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
@@ -1532,6 +1552,7 @@ msgid "Converting to PS"
 msgstr "Převod do PS"
 
 #: savethread.py:374
+#, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "Chyba při převodu PDF na PS. %s."
 
@@ -1540,11 +1561,12 @@ msgid "Merging DjVu"
 msgstr "Spojování DjVu"
 
 #: savethread.py:425
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Chyba při slučování DjVu: %s"
 
 #: savethread.py:519
+#, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "Chyba při převádění TIFF na PS: %s"
 
@@ -1553,10 +1575,12 @@ msgid "Error copying page"
 msgstr "Chyba při kopírování stránky"
 
 #: savethread.py:814
+#, python-format
 msgid "Error prepending PDF: %s"
 msgstr "Chyba při připojování na začátek PDF: %s"
 
 #: savethread.py:822
+#, python-format
 msgid "Error appending PDF: %s"
 msgstr "Chyba při přidávání k PDF: %s"
 
@@ -1565,6 +1589,7 @@ msgid "Error creating backup of PDF"
 msgstr "Chyba při pořizování zálohy PDF"
 
 #: savethread.py:905
+#, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "Chyba šifrování PDF: %s"
 
@@ -1573,7 +1598,7 @@ msgstr "Chyba šifrování PDF: %s"
 msgid "Really cache libusb device names?"
 msgstr "Opravdu uložit názvy zařízení libusb do mezipaměti?"
 
-#: scan_menu_item_mixins.py:75
+#: scan_menu_item_mixins.py:76
 #, fuzzy
 msgid ""
 "Caching device list with libusb devices included is not recommended as they "
@@ -1601,13 +1626,12 @@ msgstr "Následné zpracování"
 msgid "Alternate rotation every 2nd page"
 msgstr "Střídat otočení na každé druhé stránce"
 
-#: scan_menu_item_mixins.py:232
+#: scan_menu_item_mixins.py:233
 #, fuzzy
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its "
-"front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its front."
 msgstr ""
 "Otočte liché stránky o zvolený úhel a sudé o tento úhel plus 180 stupňů. "
 "Použijte při skenování knihy, kde je každý list zarovnán ke stejné hraně, "
@@ -1641,7 +1665,8 @@ msgstr "Zpracovat pomocí uživatelem určeného nástroje"
 msgid "Process scanned images with user-defined tool"
 msgstr "Zpracovat naskenované obrázky pomocí uživatelem určeného nástroje"
 
-#: session_mixins.py:73
+#: session_mixins.py:74
+#, python-format
 msgid ""
 "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
 msgstr ""
@@ -1716,15 +1741,15 @@ msgid "my-new-annotation"
 msgstr "moje-nová-anotace"
 
 #: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, fuzzy
+#, fuzzy, python-format
 msgid "You are using locale '%s'."
 msgstr "Používáte národní prostředí „%s“."
 
-#: tesseract.py:234
+#: tesseract.py:235
 #, fuzzy
 msgid ""
-"scantpaper does not currently know which tesseract language package would be"
-" necessary for that locale."
+"scantpaper does not currently know which tesseract language package would be "
+"necessary for that locale."
 msgstr ""
 "scantpaper v současnosti neví, který jazykový balíček tesseractu by byl pro "
 "toto národní prostředí potřebný."
@@ -1734,8 +1759,8 @@ msgstr ""
 msgid "Please contact the developers to add support for that locale."
 msgstr "Požádejte vývojáře o přidání podpory pro toto národní prostředí."
 
-#: tesseract.py:249
-#, fuzzy
+#: tesseract.py:250
+#, fuzzy, python-format
 msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
@@ -1744,7 +1769,7 @@ msgstr ""
 "pro OCR jazyka %s s tesseractem."
 
 #: tesseract.py:260
-#, fuzzy
+#, fuzzy, python-format
 msgid "There is no tesseract package for %s"
 msgstr "Pro %s neexistuje balíček tesseractu"
 
@@ -1875,7 +1900,7 @@ msgstr "Procento"
 msgid "Unsharp strength, in percent."
 msgstr "Síla doostření v procentech."
 
-#: tools_menu_mixins.py:293
+#: tools_menu_mixins.py:294
 #, fuzzy
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
@@ -1957,7 +1982,7 @@ msgstr "Formát"
 msgid "Single"
 msgstr "Jednotlivé"
 
-#: unpaper.py:42
+#: unpaper.py:43
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Jedna stránka na list, orientovaná na výšku bez rotace."
 
@@ -1965,7 +1990,7 @@ msgstr "Jedna stránka na list, orientovaná na výšku bez rotace."
 msgid "Double"
 msgstr "Dvojité"
 
-#: unpaper.py:48
+#: unpaper.py:49
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -1989,7 +2014,7 @@ msgstr "systém zápisu"
 msgid "Left-to-right"
 msgstr "Zleva doprava"
 
-#: unpaper.py:71
+#: unpaper.py:72
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
 msgstr "Většina písem, např. latinka, řečtina, cyrilice."
 
@@ -2069,7 +2094,7 @@ msgstr "Zakázat skenování ohraničení"
 msgid "No border align"
 msgstr "Bez zarovnání kraje"
 
-#: unpaper.py:134
+#: unpaper.py:135
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "Zakázat zarovnání oblasti detekované skenováním okrajů."
 
@@ -2077,7 +2102,7 @@ msgstr "Zakázat zarovnání oblasti detekované skenováním okrajů."
 msgid "Deskew to edge"
 msgstr "Deskew k okraji"
 
-#: unpaper.py:142
+#: unpaper.py:143
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
@@ -2144,7 +2169,7 @@ msgstr "Mez okraje"
 msgid "Vertical margin"
 msgstr "Svislý okraj"
 
-#: unpaper.py:206
+#: unpaper.py:207
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr ""
@@ -2154,7 +2179,7 @@ msgstr ""
 msgid "Horizontal margin"
 msgstr "Vodorovný okraj"
 
-#: unpaper.py:218
+#: unpaper.py:219
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
@@ -2165,7 +2190,7 @@ msgstr ""
 msgid "White threshold"
 msgstr "Práh bílé"
 
-#: unpaper.py:232
+#: unpaper.py:233
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "Poměr jasu, nad který je pixel považován za bílý."
 
@@ -2173,11 +2198,11 @@ msgstr "Poměr jasu, nad který je pixel považován za bílý."
 msgid "Black threshold"
 msgstr "Práh černé"
 
-#: unpaper.py:244
+#: unpaper.py:245
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is"
-" used by the gray-filter. This value is also used when converting a "
-"grayscale image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is "
+"used by the gray-filter. This value is also used when converting a grayscale "
+"image to black-and-white mode."
 msgstr ""
 "Poměr jasu, nad který je pixel považován za bílý (ne šedý). Je to používáno "
 "filtrem šedé. Tato hodnota je také používána při konverzi šedého obrázku do "
@@ -2195,6 +2220,360 @@ msgstr "Ohraničení"
 msgid "Filters"
 msgstr "Filtry"
 
+#: app.ui.h:1 menu.ui.h:1
+msgid "_File"
+msgstr "_Soubor"
+
+#: app.ui.h:2 menu.ui.h:2
+msgid "_New"
+msgstr "_Nový"
+
+#: app.ui.h:3 menu.ui.h:3
+msgid "_Open"
+msgstr "_Otevřít"
+
+#: app.ui.h:4
+msgid "Open c_rashed session"
+msgstr "Otevřít neočekávaně ukončenou _relaci"
+
+#: app.ui.h:5 menu.ui.h:4
+msgid "S_can"
+msgstr "S_kenovat"
+
+#: app.ui.h:7 menu.ui.h:6
+msgid "_Email as PDF"
+msgstr "Zaslat _emailem jako PDF"
+
+#: app.ui.h:8 menu.ui.h:7
+msgid "_Print"
+msgstr "_Tisk"
+
+#: app.ui.h:9 menu.ui.h:8
+msgid "_Quit"
+msgstr "_Ukončit"
+
+#: app.ui.h:10 menu.ui.h:9
+msgid "_Edit"
+msgstr "Ú_pravy"
+
+#: app.ui.h:11 menu.ui.h:10
+msgid "_Undo"
+msgstr "V_rátit"
+
+#: app.ui.h:12 menu.ui.h:11
+msgid "_Redo"
+msgstr "Zn_ovu"
+
+#: app.ui.h:13 menu.ui.h:12
+msgid "Cu_t"
+msgstr "_Vyjmout"
+
+#: app.ui.h:15 menu.ui.h:14
+msgid "_Paste"
+msgstr "_Vložit"
+
+#: app.ui.h:17 menu.ui.h:16
+msgid "_Select"
+msgstr "Vy_brat"
+
+#: app.ui.h:18 menu.ui.h:17
+msgid "_All"
+msgstr "_Vše"
+
+#: app.ui.h:19 menu.ui.h:18
+msgid "_Odd"
+msgstr "_Liché"
+
+#: app.ui.h:20 menu.ui.h:19
+msgid "_Even"
+msgstr "S_udé"
+
+#: app.ui.h:21 menu.ui.h:20
+#, fuzzy
+msgid "_Invert"
+msgstr "_Invertovat"
+
+#: app.ui.h:22 menu.ui.h:21
+msgid "_Blank"
+msgstr "_Čistý"
+
+#: app.ui.h:23 menu.ui.h:22
+msgid "_Dark"
+msgstr "_Tmavé"
+
+#: app.ui.h:24 menu.ui.h:23
+msgid "_Modified"
+msgstr "_Změněno"
+
+#: app.ui.h:25 menu.ui.h:24
+msgid "_No OCR"
+msgstr "_Bez OCR"
+
+#: app.ui.h:26 menu.ui.h:25
+msgid "_Clear OCR"
+msgstr "_Vyčistit OCR"
+
+#: app.ui.h:27 menu.ui.h:26
+msgid "Propert_ies"
+msgstr "_Vlastnosti"
+
+#: app.ui.h:28 menu.ui.h:27
+msgid "Prefere_nces"
+msgstr "_Nastavení"
+
+#: app.ui.h:29 menu.ui.h:28
+msgid "_View"
+msgstr "_Zobrazit"
+
+#: app.ui.h:30
+#, fuzzy
+msgid "_Pan"
+msgstr "_Posun"
+
+#: app.ui.h:31
+#, fuzzy
+msgid "_Select & pan"
+msgstr "Vy_brat"
+
+#: app.ui.h:32
+msgid "_Tabbed"
+msgstr "S kar_tami"
+
+#: app.ui.h:33
+#, fuzzy
+msgid "_Split horizontally"
+msgstr "Vodorovně"
+
+#: app.ui.h:34
+#, fuzzy
+msgid "_Split vertically"
+msgstr "Svisle"
+
+#: app.ui.h:35
+#, fuzzy
+msgid "Edit text layer"
+msgstr "Vkládám textovou vrstvu"
+
+#: app.ui.h:36
+#, fuzzy
+msgid "Edit annotations"
+msgstr "Přidat anotaci"
+
+#: app.ui.h:38 menu.ui.h:30
+#, no-c-format
+msgid "Zoom _100%"
+msgstr "Velikost _100%"
+
+#: app.ui.h:39 menu.ui.h:31
+msgid "Zoom to _fit"
+msgstr "Př_izpůsobit"
+
+#: app.ui.h:40 menu.ui.h:32
+msgid "Zoom _in"
+msgstr "Z_většit"
+
+#: app.ui.h:41 menu.ui.h:33
+msgid "Zoom _out"
+msgstr "Z_menšit"
+
+#: app.ui.h:42 menu.ui.h:34
+msgid "Rotate 90° clockwise"
+msgstr "Otočit o 90° doprava"
+
+#: app.ui.h:43 menu.ui.h:35
+msgid "Rotate 180°"
+msgstr "Otočit o 180°"
+
+#: app.ui.h:44 menu.ui.h:36
+msgid "Rotate 90° anticlockwise"
+msgstr "Otočit o 90° doleva"
+
+#: app.ui.h:45 menu.ui.h:37
+msgid "_Tools"
+msgstr "_Nástroje"
+
+#: app.ui.h:46 menu.ui.h:38
+msgid "_Threshold"
+msgstr "_Práh:"
+
+#: app.ui.h:47 menu.ui.h:39
+msgid "_Brightness / Contrast"
+msgstr "_Jas/kontrast"
+
+#: app.ui.h:48 menu.ui.h:40
+msgid "_Negate"
+msgstr "N_egovat"
+
+#: app.ui.h:49 menu.ui.h:41
+msgid "_Unsharp Mask"
+msgstr "_Maska rozostření"
+
+#: app.ui.h:50 menu.ui.h:42
+msgid "_Crop"
+msgstr "_Oříznout"
+
+#: app.ui.h:51 menu.ui.h:43
+msgid "_Clean up"
+msgstr "_Vyčistit"
+
+#: app.ui.h:52 menu.ui.h:44
+msgid "_Split"
+msgstr "_Rozdělit"
+
+#: app.ui.h:53 menu.ui.h:45
+msgid "_OCR"
+msgstr "_OCR"
+
+#: app.ui.h:54 menu.ui.h:46
+msgid "U_ser-defined"
+msgstr "Už_ivatelem určené"
+
+#: app.ui.h:55 menu.ui.h:47
+msgid "_Help"
+msgstr "_Nápověda"
+
+#: app.ui.h:56 menu.ui.h:48
+msgid "_About"
+msgstr "_O programu"
+
+#: app.ui.h:58
+#, fuzzy
+msgid "Cut"
+msgstr "_Vyjmout"
+
+#: app.ui.h:59
+#, fuzzy
+msgid "Copy"
+msgstr "_Kopírovat"
+
+#: app.ui.h:60
+#, fuzzy
+msgid "Paste"
+msgstr "_Vložit"
+
+#: app.ui.h:61
+#, fuzzy
+msgid "Delete"
+msgstr "_Smazat"
+
+#: app.ui.h:64
+msgid "Print"
+msgstr "Vytisknout"
+
+#: app.ui.h:65
+#, fuzzy
+msgid "Select All"
+msgstr "Vy_brat"
+
+#: app.ui.h:66
+#, fuzzy
+msgid "Select Odd"
+msgstr "Vybrané"
+
+#: app.ui.h:67
+#, fuzzy
+msgid "Select Even"
+msgstr "Vybrané"
+
+#: app.ui.h:68
+#, fuzzy
+msgid "Invert selection"
+msgstr "Vyjmout výběr"
+
+#: app.ui.h:69
+#, fuzzy
+msgid "Clear OCR"
+msgstr "_Vyčistit OCR"
+
+#: app.ui.h:70
+msgid "Clears all pages"
+msgstr "Smazat všechny stránky"
+
+#: app.ui.h:71
+msgid "Open image file(s)"
+msgstr "Otevřít soubor(y) s obrázkem"
+
+#: app.ui.h:72
+msgid "Scan document"
+msgstr "Skenovat dokument"
+
+#: app.ui.h:73
+msgid "Attach as PDF to a new email"
+msgstr "Připojit jako PDF k novému emailu"
+
+#: app.ui.h:74
+msgid "Undo"
+msgstr "Zpět"
+
+#: app.ui.h:75
+msgid "Redo"
+msgstr "Znovu"
+
+#: app.ui.h:76
+msgid "Cut selection"
+msgstr "Vyjmout výběr"
+
+#: app.ui.h:77
+msgid "Copy selection"
+msgstr "Kopírovat výběr"
+
+#: app.ui.h:78
+msgid "Paste selection"
+msgstr "Vložit výběr"
+
+#: app.ui.h:79
+msgid "Delete selected pages"
+msgstr "Smazat vybrané stránky"
+
+#: app.ui.h:80
+msgid "Select all pages"
+msgstr "Vybrat všechny stránky"
+
+#: app.ui.h:81
+#, fuzzy
+msgid "Use the pan tool"
+msgstr "Použít nástroj posunu"
+
+#: app.ui.h:82
+#, fuzzy
+msgid "Use the rectangular selection tool"
+msgstr "Použít nástroj obdélníkového výběru"
+
+#: app.ui.h:83
+#, fuzzy
+msgid "Use the combined select and pan tool"
+msgstr "Použít kombinovaný nástroj výběru a posunu"
+
+#: app.ui.h:85
+#, no-c-format
+msgid "Zoom to 100%"
+msgstr "Zvětšit na 100%"
+
+#: app.ui.h:86
+msgid "Zoom to fit"
+msgstr "Přizpůsobit"
+
+#: app.ui.h:87
+msgid "Zoom in"
+msgstr "Zvětšit"
+
+#: app.ui.h:88
+msgid "Zoom out"
+msgstr "Zmenšit"
+
+#: app.ui.h:89
+msgid "Crop selection"
+msgstr "Oříznout výběr"
+
+#: app.ui.h:90
+msgid "Quit"
+msgstr "Konec"
+
+#: menu.ui.h:5
+#, fuzzy
+msgid "_Save"
+msgstr "Uložit"
+
 #~ msgid "Error displaying help"
 #~ msgstr "Nepodařilo se zobrazit nápovědu"
 
@@ -2210,7 +2589,8 @@ msgstr "Filtry"
 #~ "dočasné soubory."
 
 #~ msgid "One reason for this might be that pdftk was installed via snap."
-#~ msgstr "Jedním z důvodů tohoto může být, že pdftk je nainstalované jako snap."
+#~ msgstr ""
+#~ "Jedním z důvodů tohoto může být, že pdftk je nainstalované jako snap."
 
 #~ msgid ""
 #~ "In this case, removing pdftk, and reinstalling without using snap would "
@@ -2220,8 +2600,8 @@ msgstr "Filtry"
 #~ "klasického .deb balíčku."
 
 #~ msgid ""
-#~ "Another workaround would be to select a temporary directory under your home "
-#~ "directory in Edit/Preferences."
+#~ "Another workaround would be to select a temporary directory under your "
+#~ "home directory in Edit/Preferences."
 #~ msgstr ""
 #~ "Dalším obejitím problému by bylo zvolení dočasné složky ve své domovské "
 #~ "složce v Úpravy->Předvolby."
@@ -2238,86 +2618,11 @@ msgstr "Filtry"
 #~ msgid "Process image with Cuneiform."
 #~ msgstr "Zpracovat obrázk pomocí Cuneiform."
 
-#~ msgid "_File"
-#~ msgstr "_Soubor"
-
-#~ msgid "_New"
-#~ msgstr "_Nový"
-
-#~ msgid "Clears all pages"
-#~ msgstr "Smazat všechny stránky"
-
-#~ msgid "_Open"
-#~ msgstr "_Otevřít"
-
-#~ msgid "Open image file(s)"
-#~ msgstr "Otevřít soubor(y) s obrázkem"
-
-#~ msgid "Open c_rashed session"
-#~ msgstr "Otevřít neočekávaně ukončenou _relaci"
-
-#~ msgid "S_can"
-#~ msgstr "S_kenovat"
-
-#~ msgid "Scan document"
-#~ msgstr "Skenovat dokument"
-
-#~ msgid "_Email as PDF"
-#~ msgstr "Zaslat _emailem jako PDF"
-
-#~ msgid "Attach as PDF to a new email"
-#~ msgstr "Připojit jako PDF k novému emailu"
-
-#~ msgid "_Print"
-#~ msgstr "_Tisk"
-
-#~ msgid "Print"
-#~ msgstr "Vytisknout"
-
 #~ msgid "_Compress temporary files"
 #~ msgstr "_Kompresovat dočasné soubory"
 
 #~ msgid "Compress temporary files"
 #~ msgstr "Kompresovat dočasné soubory"
-
-#~ msgid "_Quit"
-#~ msgstr "_Ukončit"
-
-#~ msgid "Quit"
-#~ msgstr "Konec"
-
-#~ msgid "_Edit"
-#~ msgstr "Ú_pravy"
-
-#~ msgid "_Undo"
-#~ msgstr "V_rátit"
-
-#~ msgid "Undo"
-#~ msgstr "Zpět"
-
-#~ msgid "_Redo"
-#~ msgstr "Zn_ovu"
-
-#~ msgid "Redo"
-#~ msgstr "Znovu"
-
-#~ msgid "Cu_t"
-#~ msgstr "_Vyjmout"
-
-#~ msgid "Cut selection"
-#~ msgstr "Vyjmout výběr"
-
-#~ msgid "Copy selection"
-#~ msgstr "Kopírovat výběr"
-
-#~ msgid "_Paste"
-#~ msgstr "_Vložit"
-
-#~ msgid "Paste selection"
-#~ msgstr "Vložit výběr"
-
-#~ msgid "Delete selected pages"
-#~ msgstr "Smazat vybrané stránky"
 
 #~ msgid "_Renumber"
 #~ msgstr "_Přečíslovat"
@@ -2325,170 +2630,56 @@ msgstr "Filtry"
 #~ msgid "Renumber pages"
 #~ msgstr "Přečíslovat stránky"
 
-#~ msgid "_Select"
-#~ msgstr "Vy_brat"
-
-#~ msgid "_All"
-#~ msgstr "_Vše"
-
-#~ msgid "Select all pages"
-#~ msgstr "Vybrat všechny stránky"
-
-#~ msgid "_Odd"
-#~ msgstr "_Liché"
-
 #~ msgid "Select all odd-numbered pages"
 #~ msgstr "Vybrat všechny stránky s lichým číslováním"
-
-#~ msgid "_Even"
-#~ msgstr "S_udé"
 
 #~ msgid "Select all evenly-numbered pages"
 #~ msgstr "Vybrat všechny stránky se sudým číslováním"
 
-#~ msgid "_Blank"
-#~ msgstr "_Čistý"
-
 #~ msgid "Select pages with low standard deviation"
 #~ msgstr "Vybrat stránky s malou standardní odchylkou"
-
-#~ msgid "_Dark"
-#~ msgstr "_Tmavé"
 
 #~ msgid "Select dark pages"
 #~ msgstr "Vybrat tmavé stránky"
 
-#~ msgid "_Modified"
-#~ msgstr "_Změněno"
-
 #~ msgid "Select modified pages since last OCR"
 #~ msgstr "Vybrat změněné stránky od posledního OCR"
-
-#~ msgid "_No OCR"
-#~ msgstr "_Bez OCR"
 
 #~ msgid "Select pages with no OCR output"
 #~ msgstr "Vybrat stránky bez výstupu OCR"
 
-#~ msgid "_Clear OCR"
-#~ msgstr "_Vyčistit OCR"
-
 #~ msgid "Clear OCR output from selected pages"
 #~ msgstr "Vyčistit výstup OCR ze zvolených stránek"
-
-#~ msgid "Propert_ies"
-#~ msgstr "_Vlastnosti"
 
 #~ msgid "Edit image properties"
 #~ msgstr "Upravit vlastnosti obrázku"
 
-#~ msgid "Prefere_nces"
-#~ msgstr "_Nastavení"
-
 #~ msgid "Edit preferences"
 #~ msgstr "Upravit nastavení"
-
-#~ msgid "_View"
-#~ msgstr "_Zobrazit"
-
-#~ msgid "Zoom _100%"
-#~ msgstr "Velikost _100%"
-
-#~ msgid "Zoom to 100%"
-#~ msgstr "Zvětšit na 100%"
-
-#~ msgid "Zoom to _fit"
-#~ msgstr "Př_izpůsobit"
-
-#~ msgid "Zoom to fit"
-#~ msgstr "Přizpůsobit"
-
-#~ msgid "Zoom _in"
-#~ msgstr "Z_většit"
-
-#~ msgid "Zoom in"
-#~ msgstr "Zvětšit"
-
-#~ msgid "Zoom _out"
-#~ msgstr "Z_menšit"
-
-#~ msgid "Zoom out"
-#~ msgstr "Zmenšit"
-
-#~ msgid "Rotate 90° clockwise"
-#~ msgstr "Otočit o 90° doprava"
-
-#~ msgid "Rotate 180°"
-#~ msgstr "Otočit o 180°"
-
-#~ msgid "Rotate 90° anticlockwise"
-#~ msgstr "Otočit o 90° doleva"
-
-#~ msgid "_Tools"
-#~ msgstr "_Nástroje"
-
-#~ msgid "_Threshold"
-#~ msgstr "_Práh:"
 
 #~ msgid "Change each pixel above this threshold to black"
 #~ msgstr "Změnit každý pixel nad tento práh na černou"
 
-#~ msgid "_Brightness / Contrast"
-#~ msgstr "_Jas/kontrast"
-
 #~ msgid "Change brightness & contrast"
 #~ msgstr "Změnit jas a kontrast"
-
-#~ msgid "_Negate"
-#~ msgstr "N_egovat"
 
 #~ msgid "Converts black to white and vice versa"
 #~ msgstr "Konvertovat černou na bílou a obráceně"
 
-#~ msgid "_Unsharp Mask"
-#~ msgstr "_Maska rozostření"
-
 #~ msgid "Apply an unsharp mask"
 #~ msgstr "Aplikovat masku rozostření"
-
-#~ msgid "_Crop"
-#~ msgstr "_Oříznout"
 
 #~ msgid "Crop pages"
 #~ msgstr "Oříznout stránky"
 
-#~ msgid "Crop selection"
-#~ msgstr "Oříznout výběr"
-
-#~ msgid "_Clean up"
-#~ msgstr "_Vyčistit"
-
-#~ msgid "_Split"
-#~ msgstr "_Rozdělit"
-
-#~ msgid "_OCR"
-#~ msgstr "_OCR"
-
 #~ msgid "Optical Character Recognition"
 #~ msgstr "Optické rozpoznávání znaků"
-
-#~ msgid "U_ser-defined"
-#~ msgstr "Už_ivatelem určené"
 
 #~ msgid "Process images with user-defined tool"
 #~ msgstr "Zpracovat obrázky uživatelem určeným nástrojem"
 
-#~ msgid "_Help"
-#~ msgstr "_Nápověda"
-
 #~ msgid "Help"
 #~ msgstr "Nápověda"
-
-#~ msgid "_About"
-#~ msgstr "_O programu"
-
-#~ msgid "_Tabbed"
-#~ msgstr "S kar_tami"
 
 #~ msgid "Arrange image and OCR viewers in tabs"
 #~ msgstr "Uspořádat prohlížeče obrázků a OCR do karet"
@@ -2532,7 +2723,8 @@ msgstr "Filtry"
 #~ msgid ""
 #~ "The radius of the Gaussian, in pixels, not counting the center pixel (0 = "
 #~ "automatic)."
-#~ msgstr "Rádius Gaussianu, v pixelech bez středového pixelu (0 = automaticky)."
+#~ msgstr ""
+#~ "Rádius Gaussianu, v pixelech bez středového pixelu (0 = automaticky)."
 
 #~ msgid "Sigma"
 #~ msgstr "Sigma"
@@ -2547,12 +2739,12 @@ msgstr "Filtry"
 #~ "The percentage of the difference between the original and the blur image "
 #~ "that is added back into the original."
 #~ msgstr ""
-#~ "Procento rozdílu mezi původním a rozmazaným obrázkem, který je přidán zpátky"
-#~ " do původního."
+#~ "Procento rozdílu mezi původním a rozmazaným obrázkem, který je přidán "
+#~ "zpátky do původního."
 
 #~ msgid ""
-#~ "The threshold, as a fraction of QuantumRange, needed to apply the difference"
-#~ " amount."
+#~ "The threshold, as a fraction of QuantumRange, needed to apply the "
+#~ "difference amount."
 #~ msgstr "Práh, zlomek kvantového rozsahu, potřebný k použití výše rozdílu."
 
 #~ msgid "English"
@@ -2623,16 +2815,19 @@ msgstr "Filtry"
 #~ msgstr "Zobrazit nevypsané předvolby"
 
 #~ msgid "Convert scanned images to PNG before further processing"
-#~ msgstr "Před dalším zpracováváním převést naskenované obrázky do formátu PNG"
+#~ msgstr ""
+#~ "Před dalším zpracováváním převést naskenované obrázky do formátu PNG"
 
 #~ msgid ""
-#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
+#~ "Use %i and %o for the input and output filenames respectively, or a "
+#~ "single %i if the image is to be modified in-place.\n"
 #~ "\n"
 #~ "The other variable available is:\n"
 #~ "\n"
 #~ "%r resolution"
 #~ msgstr ""
-#~ "Použijte %i a %o pro názvy souborů výstupu a vstupu, nebo jedno %i pokud má být obrázek upravován na místě..\n"
+#~ "Použijte %i a %o pro názvy souborů výstupu a vstupu, nebo jedno %i pokud "
+#~ "má být obrázek upravován na místě..\n"
 #~ "\n"
 #~ "Další dostupná proměnná je:\n"
 #~ "\n"
@@ -2651,11 +2846,11 @@ msgstr "Filtry"
 #~ msgstr "Přírůstek"
 
 #~ msgid ""
-#~ "The current settings would result in duplicate page numbers. Please select "
-#~ "new start and increment values."
+#~ "The current settings would result in duplicate page numbers. Please "
+#~ "select new start and increment values."
 #~ msgstr ""
-#~ "Současné nastavení by vedlo k duplicitním číslům stran. Zvolte jiný počátek "
-#~ "a přírůstek."
+#~ "Současné nastavení by vedlo k duplicitním číslům stran. Zvolte jiný "
+#~ "počátek a přírůstek."
 
 #~ msgid "scantpaper session file"
 #~ msgstr "soubor sezení scantpaper"
@@ -2679,8 +2874,8 @@ msgstr "Filtry"
 #~ "Multiple unconstrained values are not currently supported. Please file a "
 #~ "bug."
 #~ msgstr ""
-#~ "Vícero neomezených hodnot není v tuto chvíli podporováno. Nahlaste to prosím"
-#~ " jako chybu."
+#~ "Vícero neomezených hodnot není v tuto chvíli podporováno. Nahlaste to "
+#~ "prosím jako chybu."
 
 #~ msgid ""
 #~ "Multiple non-numerical values are not currently supported. Please file a "
@@ -2704,13 +2899,17 @@ msgstr "Filtry"
 #~ msgstr "%s není rozpoznávaný typ obrázku"
 
 #~ msgid ""
-#~ "Warning: scantpaper expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.\n"
+#~ "Warning: scantpaper expects one image per page, but this was not "
+#~ "satisfied. It is probable that the PDF has not been correctly imported.\n"
 #~ "\n"
-#~ "If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.\n"
+#~ "If you wish to add scans to an existing PDF, use the prepend/append to "
+#~ "PDF options in the Save dialogue.\n"
 #~ msgstr ""
-#~ "Varování: scantpaper očekává jeden obrázek na stránku, ale toto nebylo dodrženo. Je pravděpodobné, že PDF nebylo správně importováno.\n"
+#~ "Varování: scantpaper očekává jeden obrázek na stránku, ale toto nebylo "
+#~ "dodrženo. Je pravděpodobné, že PDF nebylo správně importováno.\n"
 #~ "\n"
-#~ "Pokud si přejete přidat skeny k existujícím PDF, použijte volbu připojit před/za v dialogu ukládání.\n"
+#~ "Pokud si přejete přidat skeny k existujícím PDF, použijte volbu připojit "
+#~ "před/za v dialogu ukládání.\n"
 
 #, perl-format
 #~ msgid "Caught error creating PDF %s: %s"

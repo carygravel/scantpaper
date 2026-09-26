@@ -6,12 +6,13 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2026-09-26 16:03+0200\n"
+"Report-Msgid-Bugs-To: jffry@posteo.net\n"
+"POT-Creation-Date: 2026-09-26 20:13+0200\n"
 "PO-Revision-Date: 2023-03-14 10:15+0000\n"
 "Last-Translator: Kimmo Kujansuu <Unknown>\n"
 "Language-Team: Finnish <fi@li.org>\n"
 "Language: fi\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -69,43 +70,46 @@ msgstr "Teksti taso"
 msgid "Annotations"
 msgstr "Huomautukset"
 
-#: app_window.py:837
+#: app_window.py:838
+#, fuzzy, python-format
 msgid "%dMb free in %s."
-msgstr "%dMb vapaata  %s."
+msgid_plural "%dMb free in %s."
+msgstr[0] "%dMb vapaata  %s."
+msgstr[1] "%dMb vapaata  %s."
 
-#: app_window.py:861 helpers.py:372
+#: app_window.py:863 helpers.py:372
 msgid "Messages"
 msgstr "Viestit"
 
-#: app_window.py:946
+#: app_window.py:948
 msgid "Error opening the last device used."
 msgstr "Virhe avattaessa viimeksi käytettyä laitetta."
 
-#: app_window.py:948
+#: app_window.py:950
 msgid "There was an error opening the last device used."
 msgstr "Määriteltyjä asetuksia ei voida käyttää."
 
-#: app_window.py:951
+#: app_window.py:953
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Whoops! Määriteltyjä asetuksia ei voida käyttää."
 
-#: app_window.py:956 dialog/scan.py:517
+#: app_window.py:958 dialog/scan.py:517
 msgid "Rescan for devices"
 msgstr "Etsi laitteita uudelleen"
 
-#: app_window.py:960
+#: app_window.py:962
 msgid "Restart scantpaper."
 msgstr "Uudelleen käynnistä scantpaper."
 
-#: app_window.py:965
+#: app_window.py:967
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Jätä virhe huomioimatta. En tarvitse skanneria vielä."
 
-#: app_window.py:968 dialog/preferences.py:162
+#: app_window.py:970 dialog/preferences.py:162
 msgid "Cache device list"
 msgstr "Välimuistilaiteluettelo"
 
-#: app_window.py:971 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:973 dialog/__init__.py:135 session_mixins.py:392
 msgid "Don't show this message again"
 msgstr "Älä näytä tätä viestiä uudestaan"
 
@@ -137,17 +141,15 @@ msgstr "US letter"
 msgid "US Legal"
 msgstr "US legal"
 
-#: config.py:262
-#, fuzzy
+#: config.py:263
+#, fuzzy, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left "
-"unchanged."
+"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
 msgstr ""
-"Asetus %s on %r eikä sitä voida käyttää %s:nä, joten se on jätetty "
-"ennalleen."
+"Asetus %s on %r eikä sitä voida käyttää %s:nä, joten se on jätetty ennalleen."
 
-#: config.py:298
-#, fuzzy
+#: config.py:299
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read in full. The following settings were "
 "restored: %s. The rest were reset to their defaults. A backup of the "
@@ -157,8 +159,8 @@ msgstr ""
 "palautettiin: %s. Loput palautettiin oletusarvoihinsa. Alkuperäisestä "
 "tiedostosta on tallennettu varmuuskopio kohteeseen %s."
 
-#: config.py:305
-#, fuzzy
+#: config.py:306
+#, fuzzy, python-format
 msgid ""
 "The settings file %s could not be read, so all settings have been reset to "
 "their defaults. A backup of the original file has been saved as %s."
@@ -208,13 +210,13 @@ msgstr "Piilota"
 msgid "Don't show these messages again"
 msgstr "Älä näytä tätä viestiä uudelleen"
 
-#: dialog/__init__.py:312
+#: dialog/__init__.py:313
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
 "Tämä virhe johtuu yleensä siitä, että ImageMagick ylittää resurssirajansa."
 
-#: dialog/__init__.py:316
+#: dialog/__init__.py:317
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
@@ -222,7 +224,7 @@ msgstr ""
 "Niitä voidaan laajentaa muokkaamalla sen käytäntötiedostoa, joka löytyy "
 "järjestelmästäni osoitteesta /etc/ImageMagick-6/policy.xml"
 
-#: dialog/__init__.py:321
+#: dialog/__init__.py:322
 msgid ""
 "Please see https://imagemagick.org/script/resources.php for more information"
 msgstr ""
@@ -311,7 +313,7 @@ msgstr "Sivunumero, jonka eteen skannaukset lisätään"
 msgid "Position advance"
 msgstr "Sijainnin siirto"
 
-#: dialog/pagecontrols.py:288
+#: dialog/pagecontrols.py:289
 #, fuzzy
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
@@ -392,7 +394,7 @@ msgstr "Yleiset asetukset"
 msgid "Open scanner at program start"
 msgstr "Open scanner at program start"
 
-#: dialog/preferences.py:70
+#: dialog/preferences.py:71
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
@@ -424,7 +426,7 @@ msgstr ""
 msgid "Allow batch scanning from flatbed"
 msgstr "Salli eräskannaus tasoskannauksesta"
 
-#: dialog/preferences.py:108
+#: dialog/preferences.py:109
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
@@ -436,7 +438,7 @@ msgstr ""
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Ohita skannerin kaksipuolisuusominaisuudet"
 
-#: dialog/preferences.py:121
+#: dialog/preferences.py:122
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
@@ -449,7 +451,7 @@ msgstr ""
 msgid "Force new scan job between pages"
 msgstr "Pakota uusi skannaustyö sivujen välillä"
 
-#: dialog/preferences.py:134
+#: dialog/preferences.py:135
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
@@ -461,7 +463,7 @@ msgstr ""
 msgid "Select # pages = all on selecting ADF"
 msgstr "Valitse # sivua = kaikki valittaessa ADF"
 
-#: dialog/preferences.py:154
+#: dialog/preferences.py:155
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
@@ -469,7 +471,7 @@ msgstr ""
 "Jos tämä vaihtoehto on käytössä, lähde=ADF-tilaan vaihdettaessa # sivua = "
 "kaikki on valittuna"
 
-#: dialog/preferences.py:164
+#: dialog/preferences.py:165
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
@@ -477,7 +479,7 @@ msgstr ""
 "Jos tämä vaihtoehto on käytössä, skannerin avaaminen on nopeampaa, koska "
 "scantpaper ei ensin etsi käytettävissä olevia laitteita."
 
-#: dialog/preferences.py:168
+#: dialog/preferences.py:169
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
@@ -522,7 +524,8 @@ msgstr ""
 "%Ds aihe\n"
 "%Dt otsikko\n"
 "\n"
-"Kaikki asiakirjan päivämääräkoodit käyttävät strftime-koodeja, joiden alussa on D, esim.:\n"
+"Kaikki asiakirjan päivämääräkoodit käyttävät strftime-koodeja, joiden alussa "
+"on D, esim.:\n"
 "%DY asiakirjavuosi\n"
 "%Dm asiakirjakuukausi\n"
 "%Dd asiakirjapäivä\n"
@@ -559,7 +562,7 @@ msgstr "Valitse tilapäistiedostojen hakemisto"
 msgid "Warn if available space less than (Mb)"
 msgstr "Varoita, jos tilaa on vähemmän kuin (Mb)"
 
-#: dialog/preferences.py:278
+#: dialog/preferences.py:279
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
@@ -591,7 +594,7 @@ msgstr "OCR tulosta"
 msgid "Replace"
 msgstr "Korvaa"
 
-#: dialog/preferences.py:317
+#: dialog/preferences.py:318
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr "Korvaa tekstipuskurin sisältö OCR-tulosteen sisällöllä."
 
@@ -616,7 +619,7 @@ msgid "Manage user-defined tools"
 msgstr "Hallitse käyttäjän määrittämiä työkaluja"
 
 #: dialog/preferences.py:352
-#, fuzzy
+#, fuzzy, python-format
 msgid ""
 "Use %i and %o for the input and output filenames respectively,\n"
 "or a single %i if the image is to be modified in-place.\n"
@@ -678,12 +681,12 @@ msgid "Scan Options"
 msgstr "Skannauksen asetukset"
 
 #: dialog/sane.py:290
-#, fuzzy
+#, fuzzy, python-format
 msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
 msgstr "Skannausasetus '%s' ohitetaan, vähimmäisarvo (%s) > enimmäisarvo (%s)"
 
 #: dialog/sane.py:450
-#, fuzzy
+#, fuzzy, python-format
 msgid "Setting option %s"
 msgstr "Asetusta %s asetetaan"
 
@@ -712,13 +715,13 @@ msgstr "GIF"
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe grafiikan vaihtomuoto"
 
-#: dialog/save.py:33
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr "Yhteisen valokuvausasiantuntijaryhmän JFIF-muoto"
-
 #: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
 msgid "JPEG"
 msgstr "JPEG"
+
+#: dialog/save.py:33
+msgid "Joint Photographic Experts Group JFIF format"
+msgstr "Yhteisen valokuvausasiantuntijaryhmän JFIF-muoto"
 
 #: dialog/save.py:34
 msgid "PNG"
@@ -768,14 +771,14 @@ msgstr "hOCR"
 msgid "hOCR markup language"
 msgstr "hOCR-kuvauskieli"
 
+#: dialog/save.py:40 session_mixins.py:126
+msgid "Session"
+msgstr "Istunto"
+
 #: dialog/save.py:40
 #, fuzzy
 msgid "scantpaper session database"
 msgstr "scantpaper-istuntotietokanta"
-
-#: dialog/save.py:40 session_mixins.py:126
-msgid "Session"
-msgstr "Istunto"
 
 #: dialog/save.py:41
 msgid "Prepend to PDF"
@@ -879,8 +882,7 @@ msgstr "Poppler"
 #: dialog/save.py:72
 msgid "Use Poppler (pdftops) to create Postscript files from PDF."
 msgstr ""
-"Käytä Poppleria (pdftopsia) Postscript-tiedostojen luomiseen PDF-"
-"tiedostosta."
+"Käytä Poppleria (pdftopsia) Postscript-tiedostojen luomiseen PDF-tiedostosta."
 
 #: dialog/save.py:79
 msgid "Zip"
@@ -1020,6 +1022,7 @@ msgid "Sets the device to be used for the scan"
 msgstr "Asettaa skannaukseen käytettävän laitteen"
 
 #: dialog/scan.py:599
+#, python-format
 msgid "Error: unknown device: %s"
 msgstr "Virhe: tuntematon laite:%s"
 
@@ -1059,11 +1062,11 @@ msgstr "Muokkaa"
 msgid "Selects or edits the paper size"
 msgstr "Valitse tai muokkaa paperin kokoa"
 
-#: dialog/scan.py:769
-#, fuzzy
+#: dialog/scan.py:770
+#, fuzzy, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
-" file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
+"file a bug, attaching a log file reproducing the problem."
 msgstr ""
 "Uudelleenlatauksen rekursioraja (%d) ylittyi: %d uudelleenlatausta %d "
 "skannausasetukselle. Ilmoita viasta ja liitä mukaan lokitiedosto, joka "
@@ -1078,7 +1081,7 @@ msgstr "Muokkaa paperin kokoa"
 msgid "Apply"
 msgstr "Käytä"
 
-#: dialog/scan.py:1068
+#: dialog/scan.py:1069
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr ""
@@ -1094,6 +1097,7 @@ msgid "Name of scan profile"
 msgstr "Nimeä skannausprofiili"
 
 #: dialog/scan.py:1585
+#, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "Profiili '%s' on olemassa. Korvataanko?"
 
@@ -1107,6 +1111,7 @@ msgid "Editing current scan options"
 msgstr "Nykyisten skannausasetusten muokkaaminen"
 
 #: dialog/scan.py:1625
+#, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "Muokataan skannausprofiilia \"%s\""
 
@@ -1119,14 +1124,17 @@ msgid "Frontend options"
 msgstr "Käyttöliittymän asetukset"
 
 #: dialog/scan.py:1752
+#, python-format
 msgid "Scanning page %d of %d"
 msgstr "Skannataan sivua %d/%d"
 
 #: dialog/scan.py:1753
+#, python-format
 msgid "Scanning page %d"
 msgstr "Skannataan sivu %d"
 
 #: docthread.py:1167
+#, python-format
 msgid "Analysing page %i of %i"
 msgstr "Analysoidaan sivua %i / %i"
 
@@ -1140,13 +1148,12 @@ msgstr "Tesseract-kieltä ei ole määritetty"
 msgid "tessdata directory not found"
 msgstr "tessdata-hakemistoa ei löytynyt"
 
-#: document.py:110
+#: document.py:111
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr ""
-"Virhe: istuntotiedostoa ei voi avata samanaikaisesti toisen tiedoston "
-"kanssa."
+"Virhe: istuntotiedostoa ei voi avata samanaikaisesti toisen tiedoston kanssa."
 
-#: document.py:126
+#: document.py:127
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr ""
 "Virhe: tuodaan monisivuista tiedostoa samanaikaisesti toisen tiedoston "
@@ -1203,6 +1210,7 @@ msgid "Last page to extract"
 msgstr "Viimeinen sivu poimittu"
 
 #: file_menu_mixins.py:214
+#, python-format
 msgid "Enter user password for PDF %s"
 msgstr "Anna käyttäjän salasana PDF:lle %s"
 
@@ -1219,7 +1227,8 @@ msgstr "Tallenna"
 msgid "Post-save hook"
 msgstr "Jälkitallennuskoukku"
 
-#: file_menu_mixins.py:369
+#: file_menu_mixins.py:370
+#, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
@@ -1284,10 +1293,12 @@ msgid "scantpaper session files"
 msgstr "scantpaper istunnon tiedostot"
 
 #: file_menu_mixins.py:601
+#, python-format
 msgid "Directory %s is read-only"
 msgstr "Kansio %s on vain luku-oikeus"
 
 #: file_menu_mixins.py:611
+#, python-format
 msgid "File %s is read-only"
 msgstr "Tiedosto %s on kirjoitussuojattu"
 
@@ -1296,6 +1307,7 @@ msgid "Image filename"
 msgstr "Kuvan tiedostonimi"
 
 #: file_menu_mixins.py:862
+#, python-format
 msgid "This operation would overwrite %s"
 msgstr "Tämä operaati ylikirjoittaa %s:n"
 
@@ -1308,20 +1320,22 @@ msgstr ""
 "Haluatko todella lopettaa?"
 
 #: importthread.py:86
+#, python-format
 msgid "File %s not found"
 msgstr "Tiedosto %s ei löydy"
 
 #: importthread.py:92
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error getting file info for %s: %s"
 msgstr "Virhe haettaessa tiedostotietoja kohteelle %s: %s"
 
 #: importthread.py:97
+#, python-format
 msgid "Error importing zero-length file %s."
 msgstr "Virhe tuotaessa nolla-pituista tiedostoa %s."
 
 #: importthread.py:135 importthread.py:178
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr "Asenna djvulibre-bin, jotta voit avata DjVu-tiedostoja: %s"
 
@@ -1330,11 +1344,12 @@ msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Tuntematon DjVu-tiedostorakenne. Ota yhteyttä kirjoittajaan."
 
 #: importthread.py:266
-#, fuzzy
+#, fuzzy, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "Asenna libtiff-tools, jotta voit avata TIFF-tiedostoja: %s"
 
 #: importthread.py:328 importthread.py:388
+#, python-format
 msgid "Importing page %i of %i"
 msgstr "Tuodaan sivua %i/%i"
 
@@ -1342,7 +1357,7 @@ msgstr "Tuodaan sivua %i/%i"
 msgid "Error extracting images from PDF"
 msgstr "Virhe poimittaessa kuvia PDF-tiedostosta"
 
-#: importthread.py:520
+#: importthread.py:521
 #, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
@@ -1350,8 +1365,8 @@ msgid ""
 "add scans to an existing PDF, use the prepend/append to PDF options in the "
 "Save dialogue."
 msgstr ""
-"Varoitus: scantpaper odottaa yhtä kuvaa sivua kohden, mutta tämä vaatimus ei"
-" täyttynyt. PDF:tä ei todennäköisesti tuotu oikein. Jos haluat lisätä "
+"Varoitus: scantpaper odottaa yhtä kuvaa sivua kohden, mutta tämä vaatimus ei "
+"täyttynyt. PDF:tä ei todennäköisesti tuotu oikein. Jos haluat lisätä "
 "skannauksia olemassa olevaan PDF-tiedostoon, käytä Tallenna-valintaikkunan "
 "Lisää alkuun/Lisää loppuun -vaihtoehtoja."
 
@@ -1449,7 +1464,7 @@ msgstr "OCR skannatut sivut"
 msgid "Threshold before OCR"
 msgstr "Raja-arvo ennen tekstintunnistusta"
 
-#: postprocess_controls.py:379
+#: postprocess_controls.py:380
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
@@ -1457,7 +1472,7 @@ msgstr ""
 "Rajaa kuva ennen tekstintunnistusta. Tämä vaikuttaa vain OCR-moottoriin "
 "välitettyyn kuvaan, ei tallennettuun kuvaan."
 
-#: postprocess_controls.py:390 tools_menu_mixins.py:113
+#: postprocess_controls.py:391 tools_menu_mixins.py:114
 #, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
@@ -1476,10 +1491,12 @@ msgid "_Cancel"
 msgstr "_Peruuta"
 
 #: progress.py:76 progress.py:110
+#, python-format
 msgid "Process %i of %i (%s)"
 msgstr "Prosessi %i/%i (%s)"
 
 #: progress.py:119
+#, python-format
 msgid "Process %i of %i"
 msgstr "Prosessi  %i tai  %i"
 
@@ -1498,11 +1515,12 @@ msgid "Setting up PDF"
 msgstr "Asetetaan PDF"
 
 #: savethread.py:264 savethread.py:405
+#, python-format
 msgid "Writing page %i of %i"
 msgstr "Kirjoitetaan sivua %i/%i"
 
-#: savethread.py:290
-#, fuzzy
+#: savethread.py:291
+#, fuzzy, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr "Arvioitu PDF-koko (%.1f GiB) ylittää 2 GiB. Tallenna vähemmän sivuja."
@@ -1517,6 +1535,7 @@ msgid "Converting to PS"
 msgstr "Muunnetaan PS:ksi"
 
 #: savethread.py:374
+#, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "Virhe PDF:n muuntamisessa PS:ksi: %s"
 
@@ -1525,11 +1544,12 @@ msgid "Merging DjVu"
 msgstr "Yhdistäminen DjVu"
 
 #: savethread.py:425
-#, fuzzy
+#, fuzzy, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Virhe yhdistettäessä DjVu: %s"
 
 #: savethread.py:519
+#, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "Virhe muunnettaessa TIFF PS: %s"
 
@@ -1538,10 +1558,12 @@ msgid "Error copying page"
 msgstr "Virhe kopioitaessa sivua"
 
 #: savethread.py:814
+#, python-format
 msgid "Error prepending PDF: %s"
 msgstr "Virhe liitettäessä PDF-tiedostoa: %s"
 
 #: savethread.py:822
+#, python-format
 msgid "Error appending PDF: %s"
 msgstr "Virhe PDF-tiedoston liittämisessä: %s"
 
@@ -1550,6 +1572,7 @@ msgid "Error creating backup of PDF"
 msgstr "Virhe PDF-varmuuskopion luomisessa"
 
 #: savethread.py:905
+#, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "Virhe salattaessa PDF:%s"
 
@@ -1558,7 +1581,7 @@ msgstr "Virhe salattaessa PDF:%s"
 msgid "Really cache libusb device names?"
 msgstr "Tallennetaanko libusb-laitteiden nimet todella välimuistiin?"
 
-#: scan_menu_item_mixins.py:75
+#: scan_menu_item_mixins.py:76
 #, fuzzy
 msgid ""
 "Caching device list with libusb devices included is not recommended as they "
@@ -1585,18 +1608,17 @@ msgstr "Jälkikäsittelyä"
 msgid "Alternate rotation every 2nd page"
 msgstr "Vaihda kiertoa joka toisella sivulla"
 
-#: scan_menu_item_mixins.py:232
+#: scan_menu_item_mixins.py:233
 #, fuzzy
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its "
-"front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its front."
 msgstr ""
-"Kierrä parittomat sivut valitulla kulmalla ja parilliset sivut kulmalla plus"
-" 180 astetta. Käytä skannatessasi kirjaa, jossa jokainen arkki on "
-"kohdistettu samaan reunaan, jolloin arkin takapuoli on kierretty 180 astetta"
-" suhteessa etupuoleen."
+"Kierrä parittomat sivut valitulla kulmalla ja parilliset sivut kulmalla plus "
+"180 astetta. Käytä skannatessasi kirjaa, jossa jokainen arkki on kohdistettu "
+"samaan reunaan, jolloin arkin takapuoli on kierretty 180 astetta suhteessa "
+"etupuoleen."
 
 #: scan_menu_item_mixins.py:298
 msgid "Clean up images"
@@ -1626,7 +1648,8 @@ msgstr "Prosessi käyttäjän määrittelemällä työkalulla"
 msgid "Process scanned images with user-defined tool"
 msgstr "Käsittele skannatut kuvat käyttäjän määrittämillä työkaluilla"
 
-#: session_mixins.py:73
+#: session_mixins.py:74
+#, python-format
 msgid ""
 "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
 msgstr ""
@@ -1695,13 +1718,14 @@ msgid "my-new-annotation"
 msgstr "minnu-uusi-huomautus"
 
 #: tesseract.py:232 tesseract.py:246 tesseract.py:258
+#, python-format
 msgid "You are using locale '%s'."
 msgstr "Käytät paikallista '%s'."
 
-#: tesseract.py:234
+#: tesseract.py:235
 msgid ""
-"scantpaper does not currently know which tesseract language package would be"
-" necessary for that locale."
+"scantpaper does not currently know which tesseract language package would be "
+"necessary for that locale."
 msgstr ""
 "scantpaper ei tällä hetkellä tiedä, mikä tesseract-kielipaketti olisi "
 "tarpeellinen kyseiselle alueelle."
@@ -1710,7 +1734,8 @@ msgstr ""
 msgid "Please contact the developers to add support for that locale."
 msgstr "Ota yhteyttä kehittäjiin lisätäksesi tuen kyseiselle alueelle."
 
-#: tesseract.py:249
+#: tesseract.py:250
+#, python-format
 msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
@@ -1719,6 +1744,7 @@ msgstr ""
 "tekstintunnistusta varten %s:lla tesseractilla."
 
 #: tesseract.py:260
+#, python-format
 msgid "There is no tesseract package for %s"
 msgstr "%s:lle ei ole tesseract-pakettia"
 
@@ -1836,7 +1862,7 @@ msgstr "Prosenttiosuus"
 msgid "Unsharp strength, in percent."
 msgstr "Terävöinnin voimakkuus prosentteina."
 
-#: tools_menu_mixins.py:293
+#: tools_menu_mixins.py:294
 #, fuzzy
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
@@ -1911,7 +1937,7 @@ msgstr "Layout"
 msgid "Single"
 msgstr "Yksilö"
 
-#: unpaper.py:42
+#: unpaper.py:43
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Yksi sivu per arkki, suunnattu ylöspäin ilman kiertoa."
 
@@ -1919,13 +1945,13 @@ msgstr "Yksi sivu per arkki, suunnattu ylöspäin ilman kiertoa."
 msgid "Double"
 msgstr "Tupla"
 
-#: unpaper.py:48
+#: unpaper.py:49
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
 msgstr ""
-"Kaksi sivua arkille, vaakasuuntainen (yksi sivu vasemmalla puoliskolla, yksi"
-" sivu oikealla puoliskolla)."
+"Kaksi sivua arkille, vaakasuuntainen (yksi sivu vasemmalla puoliskolla, yksi "
+"sivu oikealla puoliskolla)."
 
 #: unpaper.py:58
 msgid "# Output pages"
@@ -1943,7 +1969,7 @@ msgstr "Kirjoitusjärjestelmä"
 msgid "Left-to-right"
 msgstr "Vasemmalta - oikelalle"
 
-#: unpaper.py:71
+#: unpaper.py:72
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
 msgstr "Useimmat kirjoitusjärjestelmät, mm. latina, kreikka, kyrillinen."
 
@@ -2023,7 +2049,7 @@ msgstr "Poista reunusten skannaus käytöstä."
 msgid "No border align"
 msgstr "Ei rajausta"
 
-#: unpaper.py:134
+#: unpaper.py:135
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "Poista reunaskannauksella havaitun alueen tasaus käytöstä."
 
@@ -2031,16 +2057,16 @@ msgstr "Poista reunaskannauksella havaitun alueen tasaus käytöstä."
 msgid "Deskew to edge"
 msgstr "Taivutettu reunaan"
 
-#: unpaper.py:142
+#: unpaper.py:143
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
 "value will be used, unless the statistical deviation exceeds --deskew-scan-"
 "deviation."
 msgstr ""
-"Reunat, joista voit skannata kiertoa. Maskin jokaista reunaa voidaan käyttää"
-" maskin pyörimisen havaitsemiseen. Jos määritetään useita reunoja, käytetään"
-" keskiarvoa, ellei tilastollinen poikkeama ylitä --deskew-scan-deviation."
+"Reunat, joista voit skannata kiertoa. Maskin jokaista reunaa voidaan käyttää "
+"maskin pyörimisen havaitsemiseen. Jos määritetään useita reunoja, käytetään "
+"keskiarvoa, ellei tilastollinen poikkeama ylitä --deskew-scan-deviation."
 
 #: unpaper.py:152
 msgid "Use 'left' for scanning from the left edge."
@@ -2098,7 +2124,7 @@ msgstr "Reunusmarginaali"
 msgid "Vertical margin"
 msgstr "Pystymarginaali"
 
-#: unpaper.py:206
+#: unpaper.py:207
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr ""
@@ -2109,7 +2135,7 @@ msgstr ""
 msgid "Horizontal margin"
 msgstr "Vaakamarginaali"
 
-#: unpaper.py:218
+#: unpaper.py:219
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
@@ -2120,7 +2146,7 @@ msgstr ""
 msgid "White threshold"
 msgstr "Valkoinen kynnys"
 
-#: unpaper.py:232
+#: unpaper.py:233
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "Kirkkaussuhde, jonka yläpuolella pikseli katsotaan valkoiseksi."
 
@@ -2128,11 +2154,11 @@ msgstr "Kirkkaussuhde, jonka yläpuolella pikseli katsotaan valkoiseksi."
 msgid "Black threshold"
 msgstr "Musta raja"
 
-#: unpaper.py:244
+#: unpaper.py:245
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is"
-" used by the gray-filter. This value is also used when converting a "
-"grayscale image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is "
+"used by the gray-filter. This value is also used when converting a grayscale "
+"image to black-and-white mode."
 msgstr ""
 "Kirkkaussuhde, jonka alapuolella pikseli katsotaan mustaksi (ei harmaaksi). "
 "Tätä käyttää harmaa-suodatin. Tätä arvoa käytetään myös muunnettaessa "
@@ -2150,6 +2176,349 @@ msgstr "Raja"
 msgid "Filters"
 msgstr "Flitterit"
 
+#: app.ui.h:1 menu.ui.h:1
+msgid "_File"
+msgstr "_Tiedosto"
+
+#: app.ui.h:2 menu.ui.h:2
+msgid "_New"
+msgstr "_Uusi"
+
+#: app.ui.h:3 menu.ui.h:3
+msgid "_Open"
+msgstr "_Avaa"
+
+#: app.ui.h:4
+msgid "Open c_rashed session"
+msgstr "Avaa vioittunut  istunto"
+
+#: app.ui.h:5 menu.ui.h:4
+msgid "S_can"
+msgstr "S_kannaa"
+
+#: app.ui.h:7 menu.ui.h:6
+msgid "_Email as PDF"
+msgstr "Email PDF:nä"
+
+#: app.ui.h:8 menu.ui.h:7
+msgid "_Print"
+msgstr "T_ulosta"
+
+#: app.ui.h:9 menu.ui.h:8
+msgid "_Quit"
+msgstr "_Lopeta"
+
+#: app.ui.h:10 menu.ui.h:9
+msgid "_Edit"
+msgstr "M_uokkaa"
+
+#: app.ui.h:11 menu.ui.h:10
+msgid "_Undo"
+msgstr "_Kumoa"
+
+#: app.ui.h:12 menu.ui.h:11
+msgid "_Redo"
+msgstr "_Tee uudelleen"
+
+#: app.ui.h:13 menu.ui.h:12
+msgid "Cu_t"
+msgstr "_Leikkaa"
+
+#: app.ui.h:15 menu.ui.h:14
+msgid "_Paste"
+msgstr "L_iitä"
+
+#: app.ui.h:17 menu.ui.h:16
+msgid "_Select"
+msgstr "_Valitse"
+
+#: app.ui.h:18 menu.ui.h:17
+msgid "_All"
+msgstr "K_aikki"
+
+#: app.ui.h:19 menu.ui.h:18
+msgid "_Odd"
+msgstr "Pa_riton"
+
+#: app.ui.h:20 menu.ui.h:19
+msgid "_Even"
+msgstr "Paril_linen"
+
+#: app.ui.h:21 menu.ui.h:20
+msgid "_Invert"
+msgstr "Muunna"
+
+#: app.ui.h:22 menu.ui.h:21
+msgid "_Blank"
+msgstr "Ty_hjä"
+
+#: app.ui.h:23 menu.ui.h:22
+msgid "_Dark"
+msgstr "Tu_mma"
+
+#: app.ui.h:24 menu.ui.h:23
+msgid "_Modified"
+msgstr "_Muokattu"
+
+#: app.ui.h:25 menu.ui.h:24
+msgid "_No OCR"
+msgstr "_Ei OCR"
+
+#: app.ui.h:26 menu.ui.h:25
+msgid "_Clear OCR"
+msgstr "_Tyhjennä OCR"
+
+#: app.ui.h:27 menu.ui.h:26
+msgid "Propert_ies"
+msgstr "Omina_isuudet"
+
+#: app.ui.h:28 menu.ui.h:27
+msgid "Prefere_nces"
+msgstr "A_setukset"
+
+#: app.ui.h:29 menu.ui.h:28
+msgid "_View"
+msgstr "_Näytä"
+
+#: app.ui.h:30
+msgid "_Pan"
+msgstr "_Panoroi"
+
+#: app.ui.h:31
+msgid "_Select & pan"
+msgstr "_Valitse ja panoroi"
+
+#: app.ui.h:32
+msgid "_Tabbed"
+msgstr "_Välilehti"
+
+#: app.ui.h:33
+msgid "_Split horizontally"
+msgstr "Järjestä vaakasuoraan"
+
+#: app.ui.h:34
+msgid "_Split vertically"
+msgstr "Järjestä pystysuoraan"
+
+#: app.ui.h:35
+msgid "Edit text layer"
+msgstr "Muokkaa tekstikerrosta"
+
+#: app.ui.h:36
+msgid "Edit annotations"
+msgstr "Muokkaa huomautuksia"
+
+#: app.ui.h:38 menu.ui.h:30
+#, no-c-format
+msgid "Zoom _100%"
+msgstr "Zoomaus _100%"
+
+#: app.ui.h:39 menu.ui.h:31
+msgid "Zoom to _fit"
+msgstr "Sovita ikkunaan"
+
+#: app.ui.h:40 menu.ui.h:32
+msgid "Zoom _in"
+msgstr "L_ähennä"
+
+#: app.ui.h:41 menu.ui.h:33
+msgid "Zoom _out"
+msgstr "L_oitonna"
+
+#: app.ui.h:42 menu.ui.h:34
+msgid "Rotate 90° clockwise"
+msgstr "Käännä 90 astetta myötäpäivään"
+
+#: app.ui.h:43 menu.ui.h:35
+msgid "Rotate 180°"
+msgstr "Käännä 180 astetta"
+
+#: app.ui.h:44 menu.ui.h:36
+msgid "Rotate 90° anticlockwise"
+msgstr "Käännä 90 astetta vastapäivään"
+
+#: app.ui.h:45 menu.ui.h:37
+msgid "_Tools"
+msgstr "_Työkalut"
+
+#: app.ui.h:46 menu.ui.h:38
+msgid "_Threshold"
+msgstr "Kynnysarvo"
+
+#: app.ui.h:47 menu.ui.h:39
+msgid "_Brightness / Contrast"
+msgstr "Kirkkaus / Kontrasti"
+
+#: app.ui.h:48 menu.ui.h:40
+msgid "_Negate"
+msgstr "Käänteinen"
+
+#: app.ui.h:49 menu.ui.h:41
+msgid "_Unsharp Mask"
+msgstr "Epäterävä maski"
+
+#: app.ui.h:50 menu.ui.h:42
+msgid "_Crop"
+msgstr "_Rajaa"
+
+#: app.ui.h:51 menu.ui.h:43
+msgid "_Clean up"
+msgstr "Puhdista"
+
+#: app.ui.h:52 menu.ui.h:44
+msgid "_Split"
+msgstr "_Käännä"
+
+#: app.ui.h:53 menu.ui.h:45
+msgid "_OCR"
+msgstr "_OCR"
+
+#: app.ui.h:54 menu.ui.h:46
+msgid "U_ser-defined"
+msgstr "Käyttäjän määrittelemä"
+
+#: app.ui.h:55 menu.ui.h:47
+msgid "_Help"
+msgstr "_Ohje"
+
+#: app.ui.h:56 menu.ui.h:48
+msgid "_About"
+msgstr "Tietoj_a"
+
+#: app.ui.h:58
+#, fuzzy
+msgid "Cut"
+msgstr "_Leikkaa"
+
+#: app.ui.h:59
+#, fuzzy
+msgid "Copy"
+msgstr "_Kopioi"
+
+#: app.ui.h:60
+#, fuzzy
+msgid "Paste"
+msgstr "L_iitä"
+
+#: app.ui.h:61
+#, fuzzy
+msgid "Delete"
+msgstr "_Poista"
+
+#: app.ui.h:64
+msgid "Print"
+msgstr "Tulosta"
+
+#: app.ui.h:65
+#, fuzzy
+msgid "Select All"
+msgstr "_Valitse"
+
+#: app.ui.h:66
+#, fuzzy
+msgid "Select Odd"
+msgstr "Valittu"
+
+#: app.ui.h:67
+#, fuzzy
+msgid "Select Even"
+msgstr "Valittu"
+
+#: app.ui.h:68
+msgid "Invert selection"
+msgstr "Muuunna valinta"
+
+#: app.ui.h:69
+#, fuzzy
+msgid "Clear OCR"
+msgstr "_Tyhjennä OCR"
+
+#: app.ui.h:70
+msgid "Clears all pages"
+msgstr "Tyhjentää kaikki sivut"
+
+#: app.ui.h:71
+msgid "Open image file(s)"
+msgstr "Avaa kuvatiedosto(t)"
+
+#: app.ui.h:72
+msgid "Scan document"
+msgstr "Skannaa asiakirja"
+
+#: app.ui.h:73
+msgid "Attach as PDF to a new email"
+msgstr "Lisää PDF:nä uuteen sähköpostiin"
+
+#: app.ui.h:74
+msgid "Undo"
+msgstr "Kumoa"
+
+#: app.ui.h:75
+msgid "Redo"
+msgstr "Tee uudelleen"
+
+#: app.ui.h:76
+msgid "Cut selection"
+msgstr "Leikkaa valinta"
+
+#: app.ui.h:77
+msgid "Copy selection"
+msgstr "Kopioi valinta"
+
+#: app.ui.h:78
+msgid "Paste selection"
+msgstr "Liitä valinta"
+
+#: app.ui.h:79
+msgid "Delete selected pages"
+msgstr "Poista valitut sivut"
+
+#: app.ui.h:80
+msgid "Select all pages"
+msgstr "Valitse kaikki sivut"
+
+#: app.ui.h:81
+msgid "Use the pan tool"
+msgstr "Käytä pnorointia"
+
+#: app.ui.h:82
+msgid "Use the rectangular selection tool"
+msgstr "Käytä suorakaiteen muotoista valintatyökalua"
+
+#: app.ui.h:83
+msgid "Use the combined select and pan tool"
+msgstr "Käytä yhdistettyä valinta- ja panorointityökalua"
+
+#: app.ui.h:85
+#, no-c-format
+msgid "Zoom to 100%"
+msgstr "Sovita 100%"
+
+#: app.ui.h:86
+msgid "Zoom to fit"
+msgstr "Sovita ikkunaan"
+
+#: app.ui.h:87
+msgid "Zoom in"
+msgstr "Lähennä"
+
+#: app.ui.h:88
+msgid "Zoom out"
+msgstr "Loitonna"
+
+#: app.ui.h:89
+msgid "Crop selection"
+msgstr "Rajaa valinta"
+
+#: app.ui.h:90
+msgid "Quit"
+msgstr "Lopeta"
+
+#: menu.ui.h:5
+#, fuzzy
+msgid "_Save"
+msgstr "Tallenna"
+
 #~ msgid "Error displaying help"
 #~ msgstr "Virhe näytettäessä ohjetta"
 
@@ -2162,7 +2531,8 @@ msgstr "Flitterit"
 #~ "pdftk is installed, but seems to be missing required dependencies:\n"
 #~ "%s"
 #~ msgstr ""
-#~ "pdftk on asennettu, mutta siltä näyttää puuttuvan vaaditut riippuvuudet:\\n\n"
+#~ "pdftk on asennettu, mutta siltä näyttää puuttuvan vaaditut riippuvuudet:"
+#~ "\\n\n"
 #~ "%s"
 
 #~ msgid ""
@@ -2173,18 +2543,19 @@ msgstr "Flitterit"
 #~ "hakemistoa."
 
 #~ msgid "One reason for this might be that pdftk was installed via snap."
-#~ msgstr "Yksi syy tähän saattaa olla se, että pdftk asennettiin snapin kautta."
+#~ msgstr ""
+#~ "Yksi syy tähän saattaa olla se, että pdftk asennettiin snapin kautta."
 
 #~ msgid ""
 #~ "In this case, removing pdftk, and reinstalling without using snap would "
 #~ "allow scantpaper to use pdftk."
 #~ msgstr ""
-#~ "Tässä tapauksessa pdftk:n poistaminen ja uudelleenasentaminen ilman snapia "
-#~ "antaisi scantpaper:lle mahdollisuuden käyttää pdftk:tä."
+#~ "Tässä tapauksessa pdftk:n poistaminen ja uudelleenasentaminen ilman "
+#~ "snapia antaisi scantpaper:lle mahdollisuuden käyttää pdftk:tä."
 
 #~ msgid ""
-#~ "Another workaround would be to select a temporary directory under your home "
-#~ "directory in Edit/Preferences."
+#~ "Another workaround would be to select a temporary directory under your "
+#~ "home directory in Edit/Preferences."
 #~ msgstr ""
 #~ "Toinen ratkaisu on valita väliaikainen hakemisto kotihakemistosi alta "
 #~ "Muokkaa/Asetukset-kohdassa."
@@ -2201,86 +2572,11 @@ msgstr "Flitterit"
 #~ msgid "Process image with Cuneiform."
 #~ msgstr "Käsittele kuva Cuneiform:lla."
 
-#~ msgid "_File"
-#~ msgstr "_Tiedosto"
-
-#~ msgid "_New"
-#~ msgstr "_Uusi"
-
-#~ msgid "Clears all pages"
-#~ msgstr "Tyhjentää kaikki sivut"
-
-#~ msgid "_Open"
-#~ msgstr "_Avaa"
-
-#~ msgid "Open image file(s)"
-#~ msgstr "Avaa kuvatiedosto(t)"
-
-#~ msgid "Open c_rashed session"
-#~ msgstr "Avaa vioittunut  istunto"
-
-#~ msgid "S_can"
-#~ msgstr "S_kannaa"
-
-#~ msgid "Scan document"
-#~ msgstr "Skannaa asiakirja"
-
-#~ msgid "_Email as PDF"
-#~ msgstr "Email PDF:nä"
-
-#~ msgid "Attach as PDF to a new email"
-#~ msgstr "Lisää PDF:nä uuteen sähköpostiin"
-
-#~ msgid "_Print"
-#~ msgstr "T_ulosta"
-
-#~ msgid "Print"
-#~ msgstr "Tulosta"
-
 #~ msgid "_Compress temporary files"
 #~ msgstr "_Pakkaa väliaikaiset tiedostot"
 
 #~ msgid "Compress temporary files"
 #~ msgstr "Pakkaa väliaikaiset tiedostot"
-
-#~ msgid "_Quit"
-#~ msgstr "_Lopeta"
-
-#~ msgid "Quit"
-#~ msgstr "Lopeta"
-
-#~ msgid "_Edit"
-#~ msgstr "M_uokkaa"
-
-#~ msgid "_Undo"
-#~ msgstr "_Kumoa"
-
-#~ msgid "Undo"
-#~ msgstr "Kumoa"
-
-#~ msgid "_Redo"
-#~ msgstr "_Tee uudelleen"
-
-#~ msgid "Redo"
-#~ msgstr "Tee uudelleen"
-
-#~ msgid "Cu_t"
-#~ msgstr "_Leikkaa"
-
-#~ msgid "Cut selection"
-#~ msgstr "Leikkaa valinta"
-
-#~ msgid "Copy selection"
-#~ msgstr "Kopioi valinta"
-
-#~ msgid "_Paste"
-#~ msgstr "L_iitä"
-
-#~ msgid "Paste selection"
-#~ msgstr "Liitä valinta"
-
-#~ msgid "Delete selected pages"
-#~ msgstr "Poista valitut sivut"
 
 #~ msgid "_Renumber"
 #~ msgstr "_Uudelleen numeroi"
@@ -2288,218 +2584,73 @@ msgstr "Flitterit"
 #~ msgid "Renumber pages"
 #~ msgstr "Uudelleen numeroi sivut"
 
-#~ msgid "_Select"
-#~ msgstr "_Valitse"
-
-#~ msgid "_All"
-#~ msgstr "K_aikki"
-
-#~ msgid "Select all pages"
-#~ msgstr "Valitse kaikki sivut"
-
-#~ msgid "_Odd"
-#~ msgstr "Pa_riton"
-
 #~ msgid "Select all odd-numbered pages"
 #~ msgstr "Valitse kaikki parittomat sivut"
-
-#~ msgid "_Even"
-#~ msgstr "Paril_linen"
 
 #~ msgid "Select all evenly-numbered pages"
 #~ msgstr "Valitse kaikki tasanumeroiset sivut"
 
-#~ msgid "_Invert"
-#~ msgstr "Muunna"
-
-#~ msgid "Invert selection"
-#~ msgstr "Muuunna valinta"
-
-#~ msgid "_Blank"
-#~ msgstr "Ty_hjä"
-
 #~ msgid "Select pages with low standard deviation"
 #~ msgstr "Valitse sivut, joilla on pieni keskihajonta"
-
-#~ msgid "_Dark"
-#~ msgstr "Tu_mma"
 
 #~ msgid "Select dark pages"
 #~ msgstr "Valitse tummat sivut"
 
-#~ msgid "_Modified"
-#~ msgstr "_Muokattu"
-
 #~ msgid "Select modified pages since last OCR"
 #~ msgstr "Valitse edellisen OCR:n jälkeen muokatut sivut"
-
-#~ msgid "_No OCR"
-#~ msgstr "_Ei OCR"
 
 #~ msgid "Select pages with no OCR output"
 #~ msgstr "Valitse sivut, joilla ei ole OCR-tulostusta"
 
-#~ msgid "_Clear OCR"
-#~ msgstr "_Tyhjennä OCR"
-
 #~ msgid "Clear OCR output from selected pages"
 #~ msgstr "Tyhjennä OCR valituista sivuuista"
-
-#~ msgid "Propert_ies"
-#~ msgstr "Omina_isuudet"
 
 #~ msgid "Edit image properties"
 #~ msgstr "Muokkaa kuvan ominaisuuksia"
 
-#~ msgid "Prefere_nces"
-#~ msgstr "A_setukset"
-
 #~ msgid "Edit preferences"
 #~ msgstr "Muokkaa asetuksia"
-
-#~ msgid "_View"
-#~ msgstr "_Näytä"
-
-#~ msgid "Zoom _100%"
-#~ msgstr "Zoomaus _100%"
-
-#~ msgid "Zoom to 100%"
-#~ msgstr "Sovita 100%"
-
-#~ msgid "Zoom to _fit"
-#~ msgstr "Sovita ikkunaan"
-
-#~ msgid "Zoom to fit"
-#~ msgstr "Sovita ikkunaan"
-
-#~ msgid "Zoom _in"
-#~ msgstr "L_ähennä"
-
-#~ msgid "Zoom in"
-#~ msgstr "Lähennä"
-
-#~ msgid "Zoom _out"
-#~ msgstr "L_oitonna"
-
-#~ msgid "Zoom out"
-#~ msgstr "Loitonna"
-
-#~ msgid "Rotate 90° clockwise"
-#~ msgstr "Käännä 90 astetta myötäpäivään"
-
-#~ msgid "Rotate 180°"
-#~ msgstr "Käännä 180 astetta"
-
-#~ msgid "Rotate 90° anticlockwise"
-#~ msgstr "Käännä 90 astetta vastapäivään"
-
-#~ msgid "_Tools"
-#~ msgstr "_Työkalut"
-
-#~ msgid "_Threshold"
-#~ msgstr "Kynnysarvo"
 
 #~ msgid "Change each pixel above this threshold to black"
 #~ msgstr "Muuta jokainen tämän kynnyksen ylittävä pikseli mustaksi"
 
-#~ msgid "_Brightness / Contrast"
-#~ msgstr "Kirkkaus / Kontrasti"
-
 #~ msgid "Change brightness & contrast"
 #~ msgstr "Muuta kirkkautta ja kontrastia"
-
-#~ msgid "_Negate"
-#~ msgstr "Käänteinen"
 
 #~ msgid "Converts black to white and vice versa"
 #~ msgstr "Muunna musta valkoiseksi ja päinvastoin"
 
-#~ msgid "_Unsharp Mask"
-#~ msgstr "Epäterävä maski"
-
 #~ msgid "Apply an unsharp mask"
 #~ msgstr "Hyväksy epäterävä maski"
-
-#~ msgid "_Crop"
-#~ msgstr "_Rajaa"
 
 #~ msgid "Crop pages"
 #~ msgstr "Rajaa sivut"
 
-#~ msgid "Crop selection"
-#~ msgstr "Rajaa valinta"
-
-#~ msgid "_Clean up"
-#~ msgstr "Puhdista"
-
-#~ msgid "_Split"
-#~ msgstr "_Käännä"
-
 #~ msgid "Split pages horizontally or vertically"
 #~ msgstr "Käännä sivut horisontaalisesti tai vertikaalisesti"
-
-#~ msgid "_OCR"
-#~ msgstr "_OCR"
 
 #~ msgid "Optical Character Recognition"
 #~ msgstr "Optinen hahmon tunnistus"
 
-#~ msgid "U_ser-defined"
-#~ msgstr "Käyttäjän määrittelemä"
-
 #~ msgid "Process images with user-defined tool"
 #~ msgstr "Käsittele kuvia käyttäjän määrittämillä työkaluilla"
-
-#~ msgid "_Help"
-#~ msgstr "_Ohje"
 
 #~ msgid "Help"
 #~ msgstr "Ohje"
 
-#~ msgid "_About"
-#~ msgstr "Tietoj_a"
-
-#~ msgid "_Pan"
-#~ msgstr "_Panoroi"
-
-#~ msgid "Use the pan tool"
-#~ msgstr "Käytä pnorointia"
-
-#~ msgid "Use the rectangular selection tool"
-#~ msgstr "Käytä suorakaiteen muotoista valintatyökalua"
-
-#~ msgid "_Select & pan"
-#~ msgstr "_Valitse ja panoroi"
-
-#~ msgid "Use the combined select and pan tool"
-#~ msgstr "Käytä yhdistettyä valinta- ja panorointityökalua"
-
-#~ msgid "_Tabbed"
-#~ msgstr "_Välilehti"
-
 #~ msgid "Arrange image and OCR viewers in tabs"
 #~ msgstr "Järjestä kuva- ja OCR-katseluohjelmat välilehdille"
 
-#~ msgid "_Split horizontally"
-#~ msgstr "Järjestä vaakasuoraan"
-
 #~ msgid "Arrange image and OCR viewers in horizontally split screen"
-#~ msgstr "Järjestä kuva- ja OCR-katselulaitteet vaakasuoraan jaetulle näytölle"
-
-#~ msgid "_Split vertically"
-#~ msgstr "Järjestä pystysuoraan"
+#~ msgstr ""
+#~ "Järjestä kuva- ja OCR-katselulaitteet vaakasuoraan jaetulle näytölle"
 
 #~ msgid "Arrange image and OCR viewers in vertically split screen"
-#~ msgstr "Järjestä kuva- ja OCR-katselulaitteet pystysuoraan jaetulle näytölle"
-
-#~ msgid "Edit text layer"
-#~ msgstr "Muokkaa tekstikerrosta"
+#~ msgstr ""
+#~ "Järjestä kuva- ja OCR-katselulaitteet pystysuoraan jaetulle näytölle"
 
 #~ msgid "Show editing tools for text layer"
 #~ msgstr "Näytä tekstikerroksen muokkaustyökalut"
-
-#~ msgid "Edit annotations"
-#~ msgstr "Muokkaa huomautuksia"
 
 #~ msgid "Show editing tools for annotations"
 #~ msgstr "Näytä merkintöjen muokkaustyökalut"
@@ -2590,8 +2741,8 @@ msgstr "Flitterit"
 #~ "takaisin alkuperäiseen."
 
 #~ msgid ""
-#~ "The threshold, as a fraction of QuantumRange, needed to apply the difference"
-#~ " amount."
+#~ "The threshold, as a fraction of QuantumRange, needed to apply the "
+#~ "difference amount."
 #~ msgstr ""
 #~ "Kynnys, joka on murto-osa QuantumRangesta, tarvittiin eron soveltamiseen."
 
@@ -2666,13 +2817,15 @@ msgstr "Flitterit"
 #~ msgstr "Muunna skannatut kuvat PNG-muotoon ennen jatkokäsittelyä"
 
 #~ msgid ""
-#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
+#~ "Use %i and %o for the input and output filenames respectively, or a "
+#~ "single %i if the image is to be modified in-place.\n"
 #~ "\n"
 #~ "The other variable available is:\n"
 #~ "\n"
 #~ "%r resolution"
 #~ msgstr ""
-#~ "Käytä %i ja %o vastaavasti tulo- ja lähtötiedostonimille tai yhtä %i:tä, jos kuvaa halutaan muokata paikan päällä.\n"
+#~ "Käytä %i ja %o vastaavasti tulo- ja lähtötiedostonimille tai yhtä %i:tä, "
+#~ "jos kuvaa halutaan muokata paikan päällä.\n"
 #~ "\n"
 #~ "Toinen käytettävissä oleva muuttuja on:\n"
 #~ "\n"
@@ -2691,11 +2844,11 @@ msgstr "Flitterit"
 #~ msgstr "Lisäys"
 
 #~ msgid ""
-#~ "The current settings would result in duplicate page numbers. Please select "
-#~ "new start and increment values."
+#~ "The current settings would result in duplicate page numbers. Please "
+#~ "select new start and increment values."
 #~ msgstr ""
-#~ "Nykyiset asetukset johtaisivat päällekkäisiin sivunumeroihin. Valitse uudet "
-#~ "aloitus- ja lisäysarvot."
+#~ "Nykyiset asetukset johtaisivat päällekkäisiin sivunumeroihin. Valitse "
+#~ "uudet aloitus- ja lisäysarvot."
 
 #~ msgid "scantpaper session file"
 #~ msgstr "scantpaper-istuntotiedosto"
@@ -2755,13 +2908,17 @@ msgstr "Flitterit"
 #~ msgstr "%s ei ole tunnistettu kuvatyyppi"
 
 #~ msgid ""
-#~ "Warning: scantpaper expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.\n"
+#~ "Warning: scantpaper expects one image per page, but this was not "
+#~ "satisfied. It is probable that the PDF has not been correctly imported.\n"
 #~ "\n"
-#~ "If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.\n"
+#~ "If you wish to add scans to an existing PDF, use the prepend/append to "
+#~ "PDF options in the Save dialogue.\n"
 #~ msgstr ""
-#~ "Varoitus: scantpaper odottaa yhden kuvan sivua kohden, mutta tämä ei täyty. On todennäköistä, että PDF-tiedostoa ei ole tuotu oikein.\n"
+#~ "Varoitus: scantpaper odottaa yhden kuvan sivua kohden, mutta tämä ei "
+#~ "täyty. On todennäköistä, että PDF-tiedostoa ei ole tuotu oikein.\n"
 #~ "\n"
-#~ "Jos haluat lisätä skannauksia olemassa olevaan PDF-tiedostoon, käytä Tallenna-valintaikkunan prepend/apppend to PDF -vaihtoehtoja.\n"
+#~ "Jos haluat lisätä skannauksia olemassa olevaan PDF-tiedostoon, käytä "
+#~ "Tallenna-valintaikkunan prepend/apppend to PDF -vaihtoehtoja.\n"
 
 #, perl-format
 #~ msgid "Caught error creating PDF %s: %s"
@@ -2795,7 +2952,8 @@ msgstr "Flitterit"
 #~ msgstr "Virhe kuvan pakkaamisessa: %s"
 
 #, perl-format
-#~ msgid "Core font '%s' cannot encode character '%s', and no TTF font defined."
+#~ msgid ""
+#~ "Core font '%s' cannot encode character '%s', and no TTF font defined."
 #~ msgstr ""
 #~ "Ydinfontti '%s' ei voi koodata merkkiä '%s', eikä TTF-fonttia ole "
 #~ "määritetty."
