@@ -7,1180 +7,1444 @@ msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2015-12-20 16:30+0100\n"
+"POT-Creation-Date: 2026-09-26 16:03+0200\n"
 "PO-Revision-Date: 2013-02-16 06:43+0000\n"
 "Last-Translator: Andrej Znidarsic <andrej.znidarsic@gmail.com>\n"
 "Language-Team: Slovenian <sl@li.org>\n"
+"Language: sl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: sl\n"
-"X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 "X-Generator: Launchpad (build 17908)\n"
+"X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 "X-Poedit-Country: SLOVENIA\n"
 "X-Poedit-Language: Slovenian\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: bin/scantpaper:383
-msgid "Image"
-msgstr ""
-
-#: bin/scantpaper:418
-msgid "OCR Output"
-msgstr ""
-
-#: bin/scantpaper:524
-msgid "Error displaying help"
-msgstr ""
-
-#: bin/scantpaper:564 bin/gscan2pdf:586
-#, perl-format
-msgid "Cannot read file: %s"
-msgstr ""
-
-#: bin/scantpaper:673
-msgid "GOCR"
-msgstr "GOCR"
-
-#: bin/scantpaper:673
-msgid "Process image with GOCR."
-msgstr "Procesiraj sliko z GOCR"
-
-#: bin/scantpaper:679
-msgid "Tesseract"
-msgstr ""
-
-#: bin/scantpaper:680
-msgid "Process image with Tesseract."
-msgstr "Obdelovanje slike s programom Tesseract"
-
-#: bin/scantpaper:687
-msgid "Ocropus"
-msgstr ""
-
-#: bin/scantpaper:688
-msgid "Process image with Ocropus."
-msgstr ""
-
-#: bin/scantpaper:695
-msgid "Cuneiform"
-msgstr ""
-
-#: bin/scantpaper:696
-msgid "Process image with Cuneiform."
-msgstr ""
-
-#: bin/scantpaper:719
-msgid "_File"
-msgstr "_Datoteka"
-
-#: bin/scantpaper:722
-msgid "_New"
-msgstr "_Nov"
-
-#: bin/scantpaper:723
-msgid "Clears all pages"
-msgstr "Počisti vse strani"
-
-#: bin/scantpaper:727
-msgid "_Open"
-msgstr "_Odpri"
-
-#: bin/scantpaper:728
-msgid "Open image file(s)"
-msgstr ""
-
-#: bin/scantpaper:732
-msgid "Open c_rashed session"
-msgstr ""
-
-#: bin/scantpaper:733 bin/gscan2pdf:1824
-msgid "Open crashed session"
-msgstr ""
-
-#: bin/scantpaper:737
-msgid "S_can"
-msgstr "S_keniraj"
-
-#: bin/scantpaper:738
-msgid "Scan document"
-msgstr "Skeniraj dokument"
-
-#: bin/scantpaper:741 bin/gscan2pdf:742 bin/gscan2pdf:2538
-msgid "Save"
-msgstr "Shrani"
-
-#: bin/scantpaper:746
-msgid "_Email as PDF"
-msgstr "_Pošlji PDF po e-pošti"
-
-#: bin/scantpaper:747
-msgid "Attach as PDF to a new email"
-msgstr "Pripni kot PDF novemu sporočilu"
-
-#: bin/scantpaper:751
-msgid "_Print"
-msgstr ""
-
-#: bin/scantpaper:752
-msgid "Print"
-msgstr ""
-
-#: bin/scantpaper:756
-msgid "_Compress temporary files"
-msgstr "_Stisni začasne datoteke"
-
-#: bin/scantpaper:757
-msgid "Compress temporary files"
-msgstr "Stisne začasne datoteke"
-
-#: bin/scantpaper:762
-msgid "_Quit"
-msgstr "_Izhod"
-
-#: bin/scantpaper:764
-msgid "Quit"
-msgstr "Končaj"
-
-#: bin/scantpaper:771
-msgid "_Edit"
-msgstr "_Uredi"
-
-#: bin/scantpaper:773
-msgid "_Undo"
-msgstr "_Razveljavi"
-
-#: bin/scantpaper:774
-msgid "Undo"
-msgstr "Razveljavi"
-
-#: bin/scantpaper:778
-msgid "_Redo"
-msgstr "_Ponovi"
-
-#: bin/scantpaper:779
-msgid "Redo"
-msgstr "Ponovi"
-
-#: bin/scantpaper:783
-msgid "Cu_t"
-msgstr "I_zreži"
-
-#: bin/scantpaper:784
-msgid "Cut selection"
-msgstr "Izreži izbrano"
-
-#: bin/scantpaper:788
-msgid "_Copy"
-msgstr "_Kopiraj"
-
-#: bin/scantpaper:789
-msgid "Copy selection"
-msgstr "Kopiraj izbor"
-
-#: bin/scantpaper:793
-msgid "_Paste"
-msgstr "_Prilepi"
-
-#: bin/scantpaper:794
-msgid "Paste selection"
-msgstr "Prilepi izbor"
-
-#: bin/scantpaper:798
-msgid "_Delete"
-msgstr "_Izbriši"
-
-#: bin/scantpaper:799
-msgid "Delete selected pages"
-msgstr "Izbriši izbrane strani"
-
-#: bin/scantpaper:803
-msgid "_Renumber"
-msgstr "_Preštevilči"
-
-#: bin/scantpaper:804
-msgid "Renumber pages"
-msgstr "Preštevilči strani"
-
-#: bin/scantpaper:806 bin/gscan2pdf:971
-msgid "_Select"
-msgstr "_Izberi"
-
-#: bin/scantpaper:809
-msgid "_All"
-msgstr "_Vse"
-
-#: bin/scantpaper:810
-msgid "Select all pages"
-msgstr "Izberi vse strani"
-
-#: bin/scantpaper:813
-msgid "_Odd"
-msgstr "_Liho"
-
-#: bin/scantpaper:814
-msgid "Select all odd-numbered pages"
-msgstr "Izberi vse liho oštevilčene strani"
-
-#: bin/scantpaper:818
-msgid "_Even"
-msgstr "_Sodo"
-
-#: bin/scantpaper:819
-msgid "Select all evenly-numbered pages"
-msgstr "Izberi vse sodo oštevilčene strani"
-
-#: bin/scantpaper:825
-msgid "_Blank"
-msgstr "_Prazna"
-
-#: bin/scantpaper:827
-msgid "Select pages with low standard deviation"
-msgstr "Izberi vse strani z nizko standardno deviacijo"
-
-#: bin/scantpaper:832
-msgid "_Dark"
-msgstr "_Temno"
-
-#: bin/scantpaper:833
-msgid "Select dark pages"
-msgstr "Izberi temne strani"
-
-#: bin/scantpaper:838
-msgid "_Modified"
-msgstr ""
-
-#: bin/scantpaper:840
-msgid "Select modified pages since last OCR"
-msgstr ""
-
-#: bin/scantpaper:845
-msgid "_No OCR"
-msgstr ""
-
-#: bin/scantpaper:846
-msgid "Select pages with no OCR output"
-msgstr ""
-
-#: bin/scantpaper:850
-msgid "_Clear OCR"
-msgstr ""
-
-#: bin/scantpaper:851
-msgid "Clear OCR output from selected pages"
-msgstr ""
-
-#: bin/scantpaper:855
-msgid "Propert_ies"
-msgstr "_Lastnosti"
-
-#: bin/scantpaper:856
-msgid "Edit image properties"
-msgstr "Uredi lastnosti slike"
-
-#: bin/scantpaper:860
-msgid "Prefere_nces"
-msgstr "_Nastavitve"
-
-#: bin/scantpaper:861
-msgid "Edit preferences"
-msgstr "Uredi nastavitve"
-
-#: bin/scantpaper:865
-msgid "_View"
-msgstr "_Pogled"
-
-#: bin/scantpaper:868
-msgid "Zoom _100%"
-msgstr "Povečava _100%"
-
-#: bin/scantpaper:869
-msgid "Zoom to 100%"
-msgstr "Povečaj na 100 %"
-
-#: bin/scantpaper:873
-msgid "Zoom to _fit"
-msgstr "Povečaj na velikost stran"
-
-#: bin/scantpaper:874
-msgid "Zoom to fit"
-msgstr "Prilagodi velikosti, da ustreza"
-
-#: bin/scantpaper:878
-msgid "Zoom _in"
-msgstr "P_ovečaj"
-
-#: bin/scantpaper:879
-msgid "Zoom in"
-msgstr "Povečaj"
-
-#: bin/scantpaper:883
-msgid "Zoom _out"
-msgstr "Po_manjšaj"
-
-#: bin/scantpaper:884
-msgid "Zoom out"
-msgstr "Pomanjšaj"
-
-#: bin/scantpaper:889 bin/gscan2pdf:891
-msgid "Rotate 90° clockwise"
-msgstr "Obrni za 90˚ v smeri urinega kazalca"
-
-#: bin/scantpaper:900 bin/gscan2pdf:902
-msgid "Rotate 180°"
-msgstr "Obrni za 180˚"
-
-#: bin/scantpaper:911 bin/gscan2pdf:913
-msgid "Rotate 90° anticlockwise"
-msgstr "Obrni za 90˚ v nasprotni smeri urinega kazalca"
-
-#: bin/scantpaper:921
-msgid "_Tools"
-msgstr "_Orodja"
-
-#: bin/scantpaper:923
-msgid "_Threshold"
-msgstr "Pra_g"
-
-#: bin/scantpaper:924
-msgid "Change each pixel above this threshold to black"
-msgstr "Spremeni vsak piksel nad vrednost tega praga v črno"
-
-#: bin/scantpaper:928
-msgid "_Negate"
-msgstr ""
-
-#: bin/scantpaper:929
-msgid "Converts black to white and vice versa"
-msgstr "Pretvori črno v belo in obratno"
-
-#: bin/scantpaper:933
-msgid "_Unsharp Mask"
-msgstr "_Maska ostrine"
-
-#: bin/scantpaper:934
-msgid "Apply an unsharp mask"
-msgstr "Določam masko ostrine"
-
-#: bin/scantpaper:937
-msgid "_Crop"
-msgstr "_Obreži"
-
-#: bin/scantpaper:938
-msgid "Crop pages"
-msgstr "Obreži strani"
-
-#: bin/scantpaper:942
-msgid "_Clean up"
-msgstr "_Počisti"
-
-#: bin/scantpaper:943 bin/gscan2pdf:4254
-msgid "Clean up scanned images with unpaper"
-msgstr "Počisti skeniranje strani s programom unpaper"
-
-#: bin/scantpaper:946
-msgid "_OCR"
-msgstr "_OCR"
-
-#: bin/scantpaper:947
-msgid "Optical Character Recognition"
-msgstr "optično prepoznavanje znakov"
-
-#: bin/scantpaper:949
-msgid "U_ser-defined"
-msgstr ""
-
-#: bin/scantpaper:952 bin/gscan2pdf:954
-msgid "_Help"
-msgstr "_Pomoč"
-
-#: bin/scantpaper:955
-msgid "Help"
-msgstr "Pomoč"
-
-#: bin/scantpaper:958 bin/gscan2pdf:959
-msgid "_About"
-msgstr "_O Programu"
-
-#: bin/scantpaper:966
-msgid "_Drag"
-msgstr "_Povleci"
-
-#: bin/scantpaper:967
-msgid "Use the hand tool"
-msgstr ""
-
-#: bin/scantpaper:972
-msgid "Use the rectangular selection tool"
-msgstr ""
-
-#: bin/scantpaper:976
-msgid "_Paint"
-msgstr ""
-
-#: bin/scantpaper:977
-msgid "Use the painter tool"
-msgstr ""
-
-#: bin/scantpaper:1164
-msgid "Save image and Save as PDF both require imagemagick\n"
-msgstr "Shranjevanje slike in PDF formata zahteva nameščen imagemagick\n"
-
-#: bin/scantpaper:1169
-msgid "Save image requires libtiff\n"
-msgstr "Shranjevanje slike zahteva nameščen libtiff\n"
-
-#: bin/scantpaper:1174
-msgid "Save as DjVu requires djvulibre-bin\n"
-msgstr "Shranjevanje kot DjVu zahteva nameščen djvulibre-bin\n"
-
-#: bin/scantpaper:1179
-msgid "Email as PDF requires xdg-email\n"
-msgstr "Pošiljanje PDF po elektronski pošti zahteva nameščen xdg-email\n"
-
-#: bin/scantpaper:1229
-msgid "The rotating options and unpaper support require perlmagick\n"
-msgstr ""
-
-#: bin/scantpaper:1235
-msgid "unpaper missing\n"
-msgstr "manjkajoči program unpaper\n"
-
-#: bin/scantpaper:1246
-msgid "OCR requires gocr, tesseract, ocropus, or cuneiform\n"
-msgstr ""
-
-#: bin/scantpaper:1251
+#: app_window.py:516
+#, fuzzy
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr "Za shranjevanje slike in shranjevanje kot PDF je potreben imagemagick"
+
+#: app_window.py:517
+#, fuzzy
+msgid "Save image requires libtiff"
+msgstr "Za shranjevanje slike je potreben libtiff"
+
+#: app_window.py:518
+#, fuzzy
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "Za shranjevanje kot DjVu je potreben djvulibre-bin"
+
+#: app_window.py:519
+#, fuzzy
+msgid "Email as PDF requires xdg-email"
+msgstr "Za pošiljanje kot PDF po e-pošti je potreben xdg-email"
+
+#: app_window.py:520
+#, fuzzy
+msgid "unpaper missing"
+msgstr "unpaper manjka"
+
+#: app_window.py:528
+#, fuzzy
+msgid "OCR requires tesseract"
+msgstr "OCR zahteva tesseract"
+
+#: app_window.py:543
+#, fuzzy
+msgid "PDF encryption requires qpdf"
+msgstr "Šifriranje PDF-ja zahteva qpdf"
+
+#: app_window.py:575
 msgid "Warning: missing packages"
 msgstr "Pozor: manjkajoči paketi"
 
-#: bin/scantpaper:1407 lib/Gscan2pdf/Document.pm:3609
-msgid "Error copying page"
-msgstr "Napaka pri kopiranju strani"
+#: app_window.py:593
+#, fuzzy
+msgid "Image"
+msgstr "Slika"
 
-#: bin/scantpaper:1512
-#, perl-format
+#: app_window.py:594 text_layer_control.py:57
+#, fuzzy
+msgid "Text layer"
+msgstr "Besedilni sloj"
+
+#: app_window.py:596 session_mixins.py:446
+#, fuzzy
+msgid "Annotations"
+msgstr "Opombe"
+
+#: app_window.py:837
+#, fuzzy
+msgid "%dMb free in %s."
+msgstr "%d MB prostora v %s."
+
+#: app_window.py:861 helpers.py:372
+#, fuzzy
+msgid "Messages"
+msgstr "Sporočila"
+
+#: app_window.py:946
+#, fuzzy
+msgid "Error opening the last device used."
+msgstr "Napaka pri odpiranju zadnje uporabljene naprave."
+
+#: app_window.py:948
+#, fuzzy
+msgid "There was an error opening the last device used."
+msgstr "Prišlo je do napake pri odpiranju zadnje uporabljene naprave."
+
+#: app_window.py:951
+#, fuzzy
+msgid "Whoops! I forgot to turn it on. Try again now."
+msgstr "Ups! Pozabil sem ga vklopiti. Poskusite znova zdaj."
+
+#: app_window.py:956 dialog/scan.py:517
+#, fuzzy
+msgid "Rescan for devices"
+msgstr "Ponovno poišči naprave"
+
+#: app_window.py:960
+#, fuzzy
+msgid "Restart scantpaper."
+msgstr "Znova zaženite scantpaper."
+
+#: app_window.py:965
+#, fuzzy
+msgid "Just ignore the error. I don't need the scanner yet."
+msgstr "Samo prezrite napako. Skenerja še ne potrebujem."
+
+#: app_window.py:968 dialog/preferences.py:162
+#, fuzzy
+msgid "Cache device list"
+msgstr "Predpomni seznam naprav"
+
+#: app_window.py:971 dialog/__init__.py:135 session_mixins.py:392
+msgid "Don't show this message again"
+msgstr "Tega sporočila ne prikaži več"
+
+#: basedocument.py:48
+#, fuzzy
+msgid "Thumbnails"
+msgstr "Sličice"
+
+#: basedocument.py:711
+#, fuzzy
+msgid "No pages to process"
+msgstr "Ni strani za obdelavo"
+
+#: basedocument.py:715
+#, fuzzy
+msgid "No pages selected"
+msgstr "Ni izbrana nobena stran"
+
+#: config.py:107
+#, fuzzy
+msgid "A3"
+msgstr "A3"
+
+#: config.py:113
+msgid "A4"
+msgstr "A4"
+
+#: config.py:119
+msgid "US Letter"
+msgstr "US Letter"
+
+#: config.py:125
+msgid "US Legal"
+msgstr "US Legal"
+
+#: config.py:262
+#, fuzzy
 msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+"The setting %s is %r and cannot be used as %s, so it has been left "
+"unchanged."
 msgstr ""
+"Nastavitev %s je %r in je ni mogoče uporabiti kot %s, zato je ostala "
+"nespremenjena."
 
-#: bin/scantpaper:1571
-msgid "Crashed sessions"
-msgstr ""
-
-#: bin/scantpaper:1580
+#: config.py:298
+#, fuzzy
 msgid ""
-"The following list of sessions cannot be restored. Please retrieve any "
-"images you require from them. Selected sessions will be deleted."
+"The settings file %s could not be read in full. The following settings were "
+"restored: %s. The rest were reset to their defaults. A backup of the "
+"original file has been saved as %s."
 msgstr ""
+"Datoteke z nastavitvami %s ni bilo mogoče v celoti prebrati. Obnovljene so "
+"bile naslednje nastavitve: %s. Preostale so bile ponastavljene na privzete "
+"vrednosti. Varnostna kopija izvirne datoteke je shranjena kot %s."
 
-#: bin/scantpaper:1587 bin/gscan2pdf:1612 bin/gscan2pdf:2569
+#: config.py:305
+#, fuzzy
+msgid ""
+"The settings file %s could not be read, so all settings have been reset to "
+"their defaults. A backup of the original file has been saved as %s."
+msgstr ""
+"Datoteke z nastavitvami %s ni bilo mogoče prebrati, zato so bile vse "
+"nastavitve ponastavljene na privzete vrednosti. Varnostna kopija izvirne "
+"datoteke je shranjena kot %s."
+
+#: dialog/__init__.py:67
+msgid "Page Range"
+msgstr "Niz strani"
+
+#: dialog/__init__.py:106
+#, fuzzy
+msgid "Error"
+msgstr "Napaka"
+
+#: dialog/__init__.py:107
+#, fuzzy
+msgid "Warning"
+msgstr "Opozorilo"
+
+#: dialog/__init__.py:108
+#, fuzzy
+msgid "Info"
+msgstr "Informacije"
+
+#: dialog/__init__.py:125
+#, fuzzy
+msgid "Page"
+msgstr "Stran"
+
+#: dialog/__init__.py:126
+#, fuzzy
+msgid "Process"
+msgstr "Postopek"
+
+#: dialog/__init__.py:127
+#, fuzzy
+msgid "Message type"
+msgstr "Vrsta sporočila"
+
+#: dialog/__init__.py:129
+#, fuzzy
+msgid "Message"
+msgstr "Sporočilo"
+
+#: dialog/__init__.py:132
+#, fuzzy
+msgid "Hide"
+msgstr "Skrij"
+
+#: dialog/__init__.py:193
+#, fuzzy
+msgid "Don't show these messages again"
+msgstr "Ne prikazuj več teh sporočil"
+
+#: dialog/__init__.py:312
+#, fuzzy
+msgid ""
+"This error is normally due to ImageMagick exceeding its resource limits."
+msgstr ""
+"Ta napaka je običajno posledica tega, da ImageMagick preseže svoje omejitve "
+"virov."
+
+#: dialog/__init__.py:316
+#, fuzzy
+msgid ""
+"These can be extended by editing its policy file, which on my system is "
+"found at /etc/ImageMagick-6/policy.xml"
+msgstr ""
+"Te je mogoče razširiti z urejanjem njegove datoteke pravilnika, ki je v "
+"mojem sistemu na /etc/ImageMagick-6/policy.xml"
+
+#: dialog/__init__.py:321
+#, fuzzy
+msgid ""
+"Please see https://imagemagick.org/script/resources.php for more information"
+msgstr "Za več informacij glejte https://imagemagick.org/script/resources.php"
+
+#: dialog/crop.py:14
+#, fuzzy
+msgid "x"
+msgstr "x"
+
+#: dialog/crop.py:15
+#, fuzzy
+msgid "The x-position of the left hand edge of the crop."
+msgstr "Položaj x levega roba izreza."
+
+#: dialog/crop.py:19
+#, fuzzy
+msgid "y"
+msgstr "y"
+
+#: dialog/crop.py:20
+#, fuzzy
+msgid "The y-position of the top edge of the crop."
+msgstr "Položaj y zgornjega roba izreza."
+
+#: dialog/crop.py:24 dialog/paperlist.py:22
+msgid "Width"
+msgstr "Širina"
+
+#: dialog/crop.py:25
+#, fuzzy
+msgid "The width of the crop."
+msgstr "Širina izreza."
+
+#: dialog/crop.py:29 dialog/paperlist.py:23
+msgid "Height"
+msgstr "Višina"
+
+#: dialog/crop.py:30
+#, fuzzy
+msgid "The height of the crop."
+msgstr "Višina izreza."
+
+#: dialog/crop.py:116
+msgid "Crop"
+msgstr "Obreži"
+
+#: dialog/crop.py:154 tools_menu_mixins.py:277
+msgid "pixels"
+msgstr "točk"
+
+#: dialog/pagecontrols.py:188
+msgid "Page Options"
+msgstr "Možnosti strani"
+
+#: dialog/pagecontrols.py:199
+msgid "# Pages"
+msgstr "# strani"
+
+#: dialog/pagecontrols.py:210 pagerange.py:47
+msgid "All"
+msgstr "Vse"
+
+#: dialog/pagecontrols.py:211
+msgid "Scan all pages"
+msgstr "Skaniraj vse strani"
+
+#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+msgid "Set number of pages to scan"
+msgstr "Določi število strani za skeniranje"
+
+#: dialog/pagecontrols.py:247
+msgid "Extended page numbering"
+msgstr "Razširjeno številčenje strani"
+
+#: dialog/pagecontrols.py:260
+msgid "Page number"
+msgstr "Številka strani"
+
+#: dialog/pagecontrols.py:271
+#, fuzzy
+msgid "Insert before page N"
+msgstr "Vstavi pred stran N"
+
+#: dialog/pagecontrols.py:274
+#, fuzzy
+msgid "Page number before which scans will be inserted"
+msgstr "Številka strani, pred katero bodo vstavljeni skeni"
+
+#: dialog/pagecontrols.py:285
+#, fuzzy
+msgid "Position advance"
+msgstr "Napredovanje položaja"
+
+#: dialog/pagecontrols.py:288
+#, fuzzy
+msgid ""
+"Position advance for each subsequent scan (0 = keep inserting before the "
+"same page)"
+msgstr ""
+"Napredovanje položaja za vsak nadaljnji sken (0 = nadaljuj vstavljanje pred "
+"isto stran)"
+
+#: dialog/pagecontrols.py:305
+msgid "Source document"
+msgstr "Izvirni dokument"
+
+#: dialog/pagecontrols.py:313
+msgid "Single sided"
+msgstr "Enostransko"
+
+#: dialog/pagecontrols.py:315
+msgid "Source document is single-sided"
+msgstr "Izvirni dokument je enostranski"
+
+#: dialog/pagecontrols.py:321
+msgid "Double sided"
+msgstr "Obojestranski"
+
+#: dialog/pagecontrols.py:323
+msgid "Source document is double-sided"
+msgstr "Izvirni dokument je obojestranski"
+
+#: dialog/pagecontrols.py:329
+msgid "Side to scan"
+msgstr "Stran za skeniranje"
+
+#: dialog/pagecontrols.py:332
+msgid "Facing"
+msgstr "Sprednja"
+
+#: dialog/pagecontrols.py:332
+msgid "Reverse"
+msgstr "Obrnjena"
+
+#: dialog/pagecontrols.py:337
+msgid "Sets which side of a double-sided document is scanned"
+msgstr "Določi katero stran obojestranskega dokumenta skeniramo"
+
+#: dialog/paperlist.py:21
+msgid "Name"
+msgstr "Ime"
+
+#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+msgid "Left"
+msgstr "Levo"
+
+#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+msgid "Top"
+msgstr "Vrh"
+
+#: dialog/paperlist.py:26
+#, fuzzy
+msgid "Units"
+msgstr "Enote"
+
+#: dialog/paperlist.py:73 dialog/paperlist.py:115
+msgid "Cannot delete all paper sizes"
+msgstr "Ne morem izbrisate vseh velikosti papirja"
+
+#: dialog/preferences.py:42
+#, fuzzy
+msgid "Preferences"
+msgstr "Nastavitve"
+
+#: dialog/preferences.py:56
+#, fuzzy
+msgid "Scan options"
+msgstr "Možnosti skeniranja"
+
+#: dialog/preferences.py:60
+#, fuzzy
+msgid "General options"
+msgstr "Splošne možnosti"
+
+#: dialog/preferences.py:68
+#, fuzzy
+msgid "Open scanner at program start"
+msgstr "Odpri skener ob zagonu programa"
+
+#: dialog/preferences.py:70
+#, fuzzy
+msgid ""
+"Automatically open the scan dialog in the background at program start. This "
+"saves time clicking the scan button and waiting for the program to find the "
+"list of scanners"
+msgstr ""
+"Ob zagonu programa samodejno odpre pogovorno okno za skeniranje v ozadju. To"
+" prihrani čas klikanja gumba za skeniranje in čakanja, da program najde "
+"seznam skenerjev"
+
+#: dialog/preferences.py:83
+#, fuzzy
+msgid "Device blacklist"
+msgstr "Črni seznam naprav"
+
+#: dialog/preferences.py:87
+#, fuzzy
+msgid "Device blacklist (regular expression)"
+msgstr "Črni seznam naprav (regularni izraz)"
+
+#: dialog/preferences.py:95
+#, fuzzy
+msgid "Cycle SANE handle after scan"
+msgstr "Po skeniranju ponovno pridobi ročaj SANE"
+
+#: dialog/preferences.py:97
+#, fuzzy
+msgid "Some ADFs do not feed out the last page if this is not enabled"
+msgstr "Nekateri ADF-ji ne izločijo zadnje strani, če to ni omogočeno"
+
+#: dialog/preferences.py:105
+#, fuzzy
+msgid "Allow batch scanning from flatbed"
+msgstr "Dovoli skupinsko skeniranje s ploščatega skenerja"
+
+#: dialog/preferences.py:108
+#, fuzzy
+msgid ""
+"If not set, switching to a flatbed scanner will force # pages to 1 and "
+"single-sided mode."
+msgstr ""
+"Če ni nastavljeno, preklop na ploščati skener prisili # strani na 1 in "
+"enostranski način."
+
+#: dialog/preferences.py:118
+#, fuzzy
+msgid "Ignore duplex capabilities of scanner"
+msgstr "Prezri dvostranske zmogljivosti skenerja"
+
+#: dialog/preferences.py:121
+#, fuzzy
+msgid ""
+"If set, any duplex capabilities are ignored, and facing/reverse widgets are "
+"displayed to allow manual interleaving of pages."
+msgstr ""
+"Če je nastavljeno, se vse dvostranske zmogljivosti prezrejo in prikažejo se "
+"elementi za sprednjo/zadnjo stran, da se omogoči ročno prepletanje strani."
+
+#: dialog/preferences.py:131
+#, fuzzy
+msgid "Force new scan job between pages"
+msgstr "Prisili nov posel skeniranja med stranmi"
+
+#: dialog/preferences.py:134
+#, fuzzy
+msgid ""
+"Otherwise, some Brother scanners report out of documents, despite scanning "
+"from flatbed."
+msgstr ""
+"V nasprotnem primeru nekateri Brother skenerji poročajo o pomanjkanju "
+"dokumentov, kljub skeniranju s ploščatega skenerja."
+
+#: dialog/preferences.py:151
+#, fuzzy
+msgid "Select # pages = all on selecting ADF"
+msgstr "Ob izbiri ADF izberi # strani = vse"
+
+#: dialog/preferences.py:154
+#, fuzzy
+msgid ""
+"If this option is enabled, when switching to source=ADF, # pages = all is "
+"selected"
+msgstr ""
+"Če je ta možnost omogočena, se ob preklopu na source=ADF izbere # strani = "
+"vse"
+
+#: dialog/preferences.py:164
+#, fuzzy
+msgid ""
+"If this option is enabled, opening the scanner is quicker, as scantpaper "
+"does not first search for available devices."
+msgstr ""
+"Če je ta možnost omogočena, je odpiranje skenerja hitrejše, saj scantpaper "
+"najprej ne išče razpoložljivih naprav."
+
+#: dialog/preferences.py:168
+#, fuzzy
+msgid ""
+"This is only effective if the device names do not change between sessions."
+msgstr "To je učinkovito le, če se imena naprav ne spreminjajo med sejami."
+
+#: dialog/preferences.py:178
+#, fuzzy
+msgid "Restore window settings on startup"
+msgstr "Ob zagonu obnovi nastavitve okna"
+
+#: dialog/preferences.py:183
+#, fuzzy
+msgid "View files on saving"
+msgstr "Prikaži datoteke pri shranjevanju"
+
+#: dialog/preferences.py:190
+#, fuzzy
+msgid "Default PDF & DjVu filename"
+msgstr "Privzeto ime datoteke za PDF in DjVu"
+
+#: dialog/preferences.py:194
+#, fuzzy
+msgid ""
+"strftime codes, e.g.:\n"
+"%Y\tcurrent year\n"
+"\n"
+"with the following additions:\n"
+"%Da\tauthor\n"
+"%De\tfilename extension\n"
+"%Dk\tkeywords\n"
+"%Ds\tsubject\n"
+"%Dt\ttitle\n"
+"\n"
+"All document date codes use strftime codes with a leading D, e.g.:\n"
+"%DY\tdocument year\n"
+"%Dm\tdocument month\n"
+"%Dd\tdocument day\n"
+msgstr ""
+"Kode strftime, npr.:\n"
+"%Y\ttrenutno leto\n"
+"\n"
+"z naslednjimi dodatki:\n"
+"%Da\tautor\n"
+"%De\tpripona imena datoteke\n"
+"%Dk\tključne besede\n"
+"%Ds\tzadeva\n"
+"%Dt\tnaslov\n"
+"\n"
+"Vse kode za datum dokumenta uporabljajo kode strftime z vodilnim D, npr.:\n"
+"%DY\tleto dokumenta\n"
+"%Dm\tmesec dokumenta\n"
+"%Dd\tdan dokumenta\n"
+
+#: dialog/preferences.py:215
+#, fuzzy
+msgid "Replace whitespace in filenames with underscores"
+msgstr "Zamenjaj presledke v imenih datotek s podčrtaji"
+
+#: dialog/preferences.py:221
+#, fuzzy
+msgid "Use timezone from locale"
+msgstr "Uporabi časovni pas iz krajevnih nastavitev"
+
+#: dialog/preferences.py:226
+#, fuzzy
+msgid "Specify time as well as date"
+msgstr "Določi tudi čas in datum"
+
+#: dialog/preferences.py:232
+#, fuzzy
+msgid "Set access and modification times to metadata date"
+msgstr "Nastavi čas dostopa in spremembe na datum metapodatkov"
+
+#: dialog/preferences.py:240
+#, fuzzy
+msgid "Temporary directory"
+msgstr "Začasna mapa"
+
+#: dialog/preferences.py:245
+#, fuzzy
+msgid "Browse"
+msgstr "Prebrskaj"
+
+#: dialog/preferences.py:251
+#, fuzzy
+msgid "Select temporary directory"
+msgstr "Izberi začasno mapo"
+
+#: dialog/preferences.py:273
+#, fuzzy
+msgid "Warn if available space less than (Mb)"
+msgstr "Opozori, če je razpoložljivega prostora manj kot (Mb)"
+
+#: dialog/preferences.py:278
+#, fuzzy
+msgid ""
+"Warn if the available space in the temporary directory is less than this "
+"value"
+msgstr ""
+"Opozori, če je razpoložljivega prostora v začasni mapi manj kot ta vrednost"
+
+#: dialog/preferences.py:287
+#, fuzzy
+msgid "Blank threshold"
+msgstr "Prag za prazne strani"
+
+#: dialog/preferences.py:292
+#, fuzzy
+msgid "Threshold used for selecting blank pages"
+msgstr "Prag, ki se uporablja za izbiro praznih strani"
+
+#: dialog/preferences.py:300
+#, fuzzy
+msgid "Dark threshold"
+msgstr "Prag za temne strani"
+
+#: dialog/preferences.py:304
+#, fuzzy
+msgid "Threshold used for selecting dark pages"
+msgstr "Prag, ki se uporablja za izbiro temnih strani"
+
+#: dialog/preferences.py:311
+#, fuzzy
+msgid "OCR output"
+msgstr "OCR izhod"
+
+#: dialog/preferences.py:316
+#, fuzzy
+msgid "Replace"
+msgstr "Zamenjaj"
+
+#: dialog/preferences.py:317
+#, fuzzy
+msgid "Replace the contents of the text buffer with that from the OCR output."
+msgstr "Zamenjaj vsebino besedilnega medpomnilnika z vsebino iz OCR izhoda."
+
+#: dialog/preferences.py:321
+#, fuzzy
+msgid "Prepend"
+msgstr "Dodaj na začetek"
+
+#: dialog/preferences.py:321
+#, fuzzy
+msgid "Prepend the OCR output to the text buffer."
+msgstr "Dodaj OCR izhod na začetek besedilnega medpomnilnika."
+
+#: dialog/preferences.py:322
+#, fuzzy
+msgid "Append"
+msgstr "Dodaj na konec"
+
+#: dialog/preferences.py:322
+#, fuzzy
+msgid "Append the OCR output to the text buffer."
+msgstr "Dodaj OCR izhod na konec besedilnega medpomnilnika."
+
+#: dialog/preferences.py:329
+#, fuzzy
+msgid "Manage user-defined tools"
+msgstr "Upravljaj orodja, ki jih določi uporabnik"
+
+#: dialog/preferences.py:352
+#, fuzzy
+msgid ""
+"Use %i and %o for the input and output filenames respectively,\n"
+"or a single %i if the image is to be modified in-place.\n"
+"\n"
+"The other variable available is:\n"
+"%r resolution"
+msgstr ""
+"Uporabite %i in %o za imeni vhodne in izhodne datoteke,\n"
+"ali samo %i, če je treba sliko spremeniti na mestu.\n"
+"\n"
+"Druga razpoložljiva spremenljivka je:\n"
+"%r ločljivost"
+
+#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+msgid "_Delete"
+msgstr "_Izbriši"
+
+#: dialog/preferences.py:397
+#, fuzzy
+msgid "The following user-defined tools could not be found:\n"
+msgstr "Naslednjih orodij, ki jih določi uporabnik, ni bilo mogoče najti:\n"
+
+#: dialog/preferences.py:400
+#, fuzzy
+msgid "Please check that the command is installed and in your PATH."
+msgstr "Preverite, ali je ukaz nameščen in v vašem PATH-u."
+
+#: dialog/preferences.py:402
+#, fuzzy
+msgid "User-defined tool not found"
+msgstr "Orodja, ki ga določi uporabnik, ni mogoče najti"
+
+#: dialog/sane.py:71
+msgid "Fetching list of devices"
+msgstr "Iščem naprave"
+
+#: dialog/sane.py:89
+#, fuzzy
+msgid "No devices found"
+msgstr "Ni najdenih naprav"
+
+#: dialog/sane.py:129
+#, fuzzy
+msgid "Opening device"
+msgstr "Odpiranje naprave"
+
+#: dialog/sane.py:142
+#, fuzzy
+msgid "Error opening device: "
+msgstr "Napaka pri odpiranju naprave: "
+
+#: dialog/sane.py:148 dialog/sane.py:494
+#, fuzzy
+msgid "Retrieving options"
+msgstr "Pridobivanje možnosti"
+
+#: dialog/sane.py:165 dialog/sane.py:507
+#, fuzzy
+msgid "Error retrieving scanner options: "
+msgstr "Napaka pri pridobivanju možnosti skenerja: "
+
+#: dialog/sane.py:207
+msgid "Scan Options"
+msgstr "Možnosti skaniranja"
+
+#: dialog/sane.py:290
+#, fuzzy
+msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+msgstr ""
+"Preziranje možnosti skeniranja '%s', minimalni razpon (%s) > maksimalni (%s)"
+
+#: dialog/sane.py:450
+#, fuzzy
+msgid "Setting option %s"
+msgstr "Nastavljanje možnosti %s"
+
+#: dialog/sane.py:469
+#, fuzzy
+msgid "Error setting option: "
+msgstr "Napaka pri nastavljanju možnosti: "
+
+#: dialog/sane.py:531
+msgid "Must scan facing pages first"
+msgstr "Najprej moramo skenirati sprednje strani"
+
+#: dialog/save.py:31
+msgid "PDF"
+msgstr "PDF"
+
+#: dialog/save.py:31
+msgid "Portable Document Format"
+msgstr "PDF (Portable Document Format)"
+
+#: dialog/save.py:32
+msgid "GIF"
+msgstr "GIF"
+
+#: dialog/save.py:32
+msgid "CompuServe graphics interchange format"
+msgstr "CompuServe grafična oblika"
+
+#: dialog/save.py:33
+msgid "Joint Photographic Experts Group JFIF format"
+msgstr "Joint Photographic Experts Group JFIF oblika"
+
+#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+msgid "JPEG"
+msgstr "JPEG"
+
+#: dialog/save.py:34
+msgid "PNG"
+msgstr "PNG"
+
+#: dialog/save.py:34
+msgid "Portable Network Graphics"
+msgstr "Portable Network Graphics oblika"
+
+#: dialog/save.py:35
+msgid "PNM"
+msgstr "PNM"
+
+#: dialog/save.py:35
+#, fuzzy
+msgid "Portable anymap"
+msgstr "Prenosni anymap"
+
+#: dialog/save.py:36
+msgid "PS"
+msgstr "PS"
+
+#: dialog/save.py:36
+msgid "Postscript"
+msgstr "Postscript"
+
+#: dialog/save.py:37
+msgid "TIFF"
+msgstr "TIFF"
+
+#: dialog/save.py:37
+msgid "Tagged Image File Format"
+msgstr "Tagged Image File oblika"
+
+#: dialog/save.py:38
+msgid "Text"
+msgstr "Besedilo"
+
+#: dialog/save.py:38
+msgid "Plain text"
+msgstr "Navadno besedilo"
+
+#: dialog/save.py:39
+#, fuzzy
+msgid "hOCR"
+msgstr "hOCR"
+
+#: dialog/save.py:39
+#, fuzzy
+msgid "hOCR markup language"
+msgstr "Označevalni jezik hOCR"
+
+#: dialog/save.py:40
+#, fuzzy
+msgid "scantpaper session database"
+msgstr "Podatkovna zbirka seje scantpaper"
+
+#: dialog/save.py:40 session_mixins.py:126
 msgid "Session"
 msgstr "Seja"
 
-#: bin/scantpaper:1603 bin/gscan2pdf:1609
-msgid "Pick crashed session to restore"
-msgstr ""
+#: dialog/save.py:41
+#, fuzzy
+msgid "Prepend to PDF"
+msgstr "Dodaj pred PDF"
 
-#: bin/scantpaper:1691
-msgid "Editing text"
-msgstr ""
+#: dialog/save.py:41
+#, fuzzy
+msgid "Prepend to an existing PDF"
+msgstr "Dodaj pred obstoječi PDF"
 
-#: bin/scantpaper:1698 bin/gscan2pdf:1704
-msgid "text"
-msgstr ""
+#: dialog/save.py:42
+#, fuzzy
+msgid "Append to PDF"
+msgstr "Dodaj za PDF"
 
-#: bin/scantpaper:1743
+#: dialog/save.py:42
+#, fuzzy
+msgid "Append to an existing PDF"
+msgstr "Dodaj za obstoječi PDF"
+
+#: dialog/save.py:43
+msgid "DjVu"
+msgstr "DjVu"
+
+#: dialog/save.py:43
+msgid "Deja Vu"
+msgstr "Deja Vu"
+
+#: dialog/save.py:48
+msgid "Automatic"
+msgstr "Samodejno"
+
+#: dialog/save.py:49
+msgid "Let scantpaper which type of compression to use."
+msgstr "Naj se scantpaper sam odloči o načinu stiskanja."
+
+#: dialog/save.py:51 dialog/save.py:76
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:51 dialog/save.py:76
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "Stisni izhodne podatke z Lempel-Ziv & Welch kodiranjem."
+
+#: dialog/save.py:52 dialog/save.py:84
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:52 dialog/save.py:84
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "Stisni izhodne podatke s CCITT skupine 3 kodiranjem."
+
+#: dialog/save.py:53 dialog/save.py:85
+msgid "G4"
+msgstr "G4"
+
+#: dialog/save.py:53 dialog/save.py:85
+msgid "Compress output with CCITT Group 4 encoding."
+msgstr "Stisni izhodne podatke s CCITT skupine 4 kodiranjem."
+
+#: dialog/save.py:54
+#, fuzzy
+msgid "Flate"
+msgstr "Flate"
+
+#: dialog/save.py:54
+#, fuzzy
+msgid "Compress output with flate encoding."
+msgstr "Stisni izhod s kodiranjem flate."
+
+#: dialog/save.py:55
+#, fuzzy
+msgid "Compress output with JPEG (DCT) encoding."
+msgstr "Stisni izhod s kodiranjem JPEG (DCT)."
+
+#: dialog/save.py:56 dialog/save.py:86
+msgid "None"
+msgstr "Noben"
+
+#: dialog/save.py:56 dialog/save.py:86
+msgid "Use no compression algorithm on output."
+msgstr "Pri izhodnih podatkih ne uporabi algoritma za stiskanje."
+
+#: dialog/save.py:61
+#, fuzzy
+msgid "LibTIFF"
+msgstr "LibTIFF"
+
+#: dialog/save.py:62
+#, fuzzy
+msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
+msgstr "Uporabi LibTIFF (tiff2ps) za ustvarjanje Postscript datotek iz TIFF."
+
+#: dialog/save.py:66
+#, fuzzy
+msgid "Ghostscript"
+msgstr "Ghostscript"
+
+#: dialog/save.py:67
+#, fuzzy
+msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
+msgstr ""
+"Uporabi Ghostscript (pdf2ps) za ustvarjanje Postscript datotek iz PDF."
+
+#: dialog/save.py:71
+#, fuzzy
+msgid "Poppler"
+msgstr "Poppler"
+
+#: dialog/save.py:72
+#, fuzzy
+msgid "Use Poppler (pdftops) to create Postscript files from PDF."
+msgstr "Uporabi Poppler (pdftops) za ustvarjanje Postscript datotek iz PDF."
+
+#: dialog/save.py:79
+msgid "Zip"
+msgstr "Zip"
+
+#: dialog/save.py:80
+msgid "Compress output with deflate encoding."
+msgstr "Stisni izhodne podatke s spuščenim kodiranjem."
+
+#: dialog/save.py:82
+msgid "Compress output with JPEG encoding."
+msgstr "Stisni izhodne podatke z JPEG kodiranjem."
+
+#: dialog/save.py:83
+msgid "Packbits"
+msgstr "Paketni biti"
+
+#: dialog/save.py:83
+msgid "Compress output with Packbits encoding."
+msgstr "Stisni izhodne podatke s kodiranjem s paketnimi biti."
+
+#: dialog/save.py:360
+#, fuzzy
+msgid "Document Metadata"
+msgstr "Metapodatki dokumenta"
+
+#: dialog/save.py:374
+#, fuzzy
+msgid "Date/Time"
+msgstr "Datum/Čas"
+
+#: dialog/save.py:387 dialog/save.py:572
+#, fuzzy
+msgid "Now"
+msgstr "Zdaj"
+
+#: dialog/save.py:388 dialog/save.py:573
+#, fuzzy
+msgid "Use current date and time"
+msgstr "Uporabi trenutni datum in čas"
+
+#: dialog/save.py:393
+#, fuzzy
+msgid "Specify"
+msgstr "Določi"
+
+#: dialog/save.py:395
+#, fuzzy
+msgid "Specify date and time"
+msgstr "Določi datum in čas"
+
+#: dialog/save.py:403
+msgid "Year-Month-Day"
+msgstr "Leto-mesec-dan"
+
+#: dialog/save.py:413
+#, fuzzy
+msgid "Select date with calendar"
+msgstr "Izberi datum s koledarjem"
+
+#: dialog/save.py:459
+msgid "Select Date"
+msgstr "Izberi datum"
+
+#: dialog/save.py:489 dialog/save.py:579
+msgid "Today"
+msgstr "Danes"
+
+#: dialog/save.py:545
+msgid "Title"
+msgstr "Naslov"
+
+#: dialog/save.py:546
+#, fuzzy
+msgid "Author"
+msgstr "Avtor"
+
+#: dialog/save.py:547
+msgid "Subject"
+msgstr "Zadeva"
+
+#: dialog/save.py:548
+msgid "Keywords"
+msgstr "Ključne besede"
+
+#: dialog/save.py:580
+#, fuzzy
+msgid "Use today's date"
+msgstr "Uporabi današnji datum"
+
+#: dialog/save.py:590
+#, fuzzy
+msgid "Document type"
+msgstr "Vrsta dokumenta"
+
+#: dialog/save.py:598
+#, fuzzy
+msgid "Postscript backend"
+msgstr "Postscript zaledje"
+
+#: dialog/save.py:614 dialog/save.py:754
+msgid "Compression"
+msgstr "Stiskanje"
+
+#: dialog/save.py:735
+msgid "JPEG Quality"
+msgstr "Kakovost JPEG"
+
+#: dialog/save.py:769
+#, fuzzy
+msgid "Encrypt PDF"
+msgstr "Šifriraj PDF"
+
+#: dialog/save.py:785
+#, fuzzy
+msgid "Downsample to"
+msgstr "Zmanjšaj ločljivost na"
+
+#: dialog/save.py:789
+#, fuzzy
+msgid "PPI"
+msgstr "PPI"
+
+#: dialog/save.py:819
+#, fuzzy
+msgid "Set password"
+msgstr "Nastavi geslo"
+
+#: dialog/save.py:827
+#, fuzzy
+msgid "User password"
+msgstr "Uporabniško geslo"
+
+#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
+#: dialog/scan.py:933
+msgid "Manual"
+msgstr "Ročno"
+
+#: dialog/scan.py:446
+#, fuzzy
+msgid "Scan profiles"
+msgstr "Profili skeniranja"
+
+#: dialog/scan.py:500
+msgid "Scan"
+msgstr "Skeniraj"
+
+#: dialog/scan.py:514
+msgid "Device"
+msgstr "Naprava"
+
+#: dialog/scan.py:552
+msgid "Sets the device to be used for the scan"
+msgstr "Določi napravo, ki jo bomo uporabljali za skeniranje"
+
+#: dialog/scan.py:599
+#, fuzzy
+msgid "Error: unknown device: %s"
+msgstr "Napaka: neznana naprava: %s"
+
+#: dialog/scan.py:657
+#, fuzzy
+msgid "pel"
+msgstr "pel"
+
+#: dialog/scan.py:658
+#, fuzzy
+msgid "bit"
+msgstr "bit"
+
+#: dialog/scan.py:659
+#, fuzzy
+msgid "mm"
+msgstr "mm"
+
+#: dialog/scan.py:660
+#, fuzzy
+msgid "ppi"
+msgstr "ppi"
+
+#: dialog/scan.py:661 tools_menu_mixins.py:284
+#, fuzzy
+msgid "%"
+msgstr "%"
+
+#: dialog/scan.py:662
+#, fuzzy
+msgid "μs"
+msgstr "μs"
+
+#: dialog/scan.py:686
+msgid "Paper size"
+msgstr "Velikost papirja"
+
+#: dialog/scan.py:690 dialog/scan.py:707
+msgid "Edit"
+msgstr "Uredi"
+
+#: dialog/scan.py:691
+msgid "Selects or edits the paper size"
+msgstr "Izbere ali uredi velikost papirja"
+
+#: dialog/scan.py:769
+#, fuzzy
+msgid ""
+"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
+" file a bug, attaching a log file reproducing the problem."
+msgstr ""
+"Presežena je meja rekurzije ponovnega nalaganja (%d): %d ponovnih nalaganj "
+"za %d možnosti skeniranja. Prijavite napako in priložite dnevniško datoteko,"
+" ki reproducira težavo."
+
+#: dialog/scan.py:1024
+msgid "Edit paper size"
+msgstr "Uredi velikost papirja"
+
+#: dialog/scan.py:1051
+#, fuzzy
+msgid "Apply"
+msgstr "Uporabi"
+
+#: dialog/scan.py:1068
+msgid ""
+"The following paper sizes are too big to be scanned by the selected device:"
+msgstr ""
+"Naslednje velikosti papirja so prevelike za skeniranje z izbrano napravo:"
+
+#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
+#, fuzzy
+msgid "Cancel"
+msgstr "Prekliči"
+
+#: dialog/scan.py:1563 dialog/scan.py:1571
+#, fuzzy
+msgid "Name of scan profile"
+msgstr "Ime profila skeniranja"
+
+#: dialog/scan.py:1585
+#, fuzzy
+msgid "Profile '%s' exists. Overwrite?"
+msgstr "Profil '%s' že obstaja. Ali ga želite prepisati?"
+
+#: dialog/scan.py:1592 dialog/scan.py:1634
+#, fuzzy
+msgid "OK"
+msgstr "V redu"
+
+#: dialog/scan.py:1621
+#, fuzzy
+msgid "Editing current scan options"
+msgstr "Urejanje trenutnih možnosti skeniranja"
+
+#: dialog/scan.py:1625
+#, fuzzy
+msgid "Editing scan profile \"%s\""
+msgstr "Urejanje profila skeniranja \"%s\""
+
+#: dialog/scan.py:1686
+#, fuzzy
+msgid "Backend options"
+msgstr "Možnosti zaledja"
+
+#: dialog/scan.py:1687
+#, fuzzy
+msgid "Frontend options"
+msgstr "Možnosti vmesnika"
+
+#: dialog/scan.py:1752
+#, fuzzy
+msgid "Scanning page %d of %d"
+msgstr "Skeniranje strani %d od %d"
+
+#: dialog/scan.py:1753
+#, fuzzy
+msgid "Scanning page %d"
+msgstr "Skeniranje strani %d"
+
+#: docthread.py:1167
+#, fuzzy
+msgid "Analysing page %i of %i"
+msgstr "Analiziranje strani %i od %i"
+
+#: docthread.py:1461
+#, fuzzy
+msgid "No tesseract language specified"
+msgstr "Ni določen tesseract jezik"
+
+#: docthread.py:1470
+#, fuzzy
+msgid "tessdata directory not found"
+msgstr "Mape tessdata ni mogoče najti"
+
+#: document.py:110
+#, fuzzy
+msgid "Error: cannot open a session file at the same time as another file."
+msgstr "Napaka: datoteke seje ni mogoče odpreti hkrati z drugo datoteko."
+
+#: document.py:126
+#, fuzzy
+msgid "Error: importing a multipage file at the same time as another file."
+msgstr "Napaka: uvoz večstranske datoteke hkrati z drugo datoteko."
+
+#: edit_menu_mixins.py:60
+msgid "Properties"
+msgstr "Lastnosti"
+
+#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
+#, fuzzy
+msgid "dpi"
+msgstr "dpi"
+
+#: edit_menu_mixins.py:362
+#, fuzzy
+msgid "Invalid regex. Try without special characters such as '*'"
+msgstr ""
+"Neveljaven regularni izraz. Poskusite brez posebnih znakov, kot je '*'"
+
+#: edit_menu_mixins.py:394
+#, fuzzy
+msgid "Changes will only take effect after restarting scantpaper."
+msgstr "Spremembe bodo začele veljati šele po ponovnem zagonu scantpaperja."
+
+#: edit_menu_mixins.py:396
+#, fuzzy
+msgid "Restart scantpaper now?"
+msgstr "Ali želite zdaj znova zagnati scantpaper?"
+
+#: file_menu_mixins.py:104
+#, fuzzy
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
 msgstr ""
+"Nekatere strani niso shranjene.\n"
+"Ali res želite počistiti vse strani?"
 
-#: bin/scantpaper:1858 bin/gscan2pdf:1892
-#, perl-format
-msgid "Process %i of %i (%s)"
-msgstr ""
-
-#: bin/scantpaper:1899
-#, perl-format
-msgid "Process %i of %i"
-msgstr ""
-
-#: bin/scantpaper:1930
+#: file_menu_mixins.py:129
+#, fuzzy
 msgid "Open image"
-msgstr ""
+msgstr "Odpri sliko"
 
-#: bin/scantpaper:1938 bin/gscan2pdf:2978 bin/gscan2pdf:3214
+#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
+#, fuzzy
 msgid "Image files"
-msgstr ""
+msgstr "Datoteke slik"
 
-#: bin/scantpaper:1974
+#: file_menu_mixins.py:180
 msgid "Pages to extract"
 msgstr "Strani za izvleko"
 
-#: bin/scantpaper:1983
+#: file_menu_mixins.py:194
 msgid "First page to extract"
 msgstr "Prva stran za izvleko"
 
-#: bin/scantpaper:1990
+#: file_menu_mixins.py:200
 msgid "Last page to extract"
 msgstr "Zadnja stran za izvleko"
 
-#: bin/scantpaper:2032 lib/Gscan2pdf/Dialog/Renumber.pm:93
-msgid "Page Range"
-msgstr "Niz strani"
+#: file_menu_mixins.py:214
+#, fuzzy
+msgid "Enter user password for PDF %s"
+msgstr "Vnesite uporabniško geslo za PDF %s"
 
-#: bin/scantpaper:2111
-msgid "Document Metadata"
+#: file_menu_mixins.py:281
+#, fuzzy
+msgid "Open crashed session"
+msgstr "Odpri prekinjeno sejo"
+
+#: file_menu_mixins.py:336
+msgid "Save"
+msgstr "Shrani"
+
+#: file_menu_mixins.py:367
+#, fuzzy
+msgid "Post-save hook"
+msgstr "Dejanje po shranjevanju"
+
+#: file_menu_mixins.py:369
+#, fuzzy
+msgid ""
+"Run command on saved file. The available commands are those user-defined "
+"tools that do not specify %o"
 msgstr ""
+"Zaženi ukaz na shranjeni datoteki. Razpoložljivi ukazi so tista orodja, ki "
+"jih določi uporabnik in ne določajo %o"
 
-#: bin/scantpaper:2125
-msgid "Date"
-msgstr "Datum"
+#: file_menu_mixins.py:392 file_menu_mixins.py:393
+#, fuzzy
+msgid "Close dialog on save"
+msgstr "Zapri pogovorno okno ob shranjevanju"
 
-#: bin/scantpaper:2134
-msgid "Year-Month-Day"
-msgstr "Leto-mesec-dan"
-
-#: bin/scantpaper:2160
-msgid "Select Date"
-msgstr "Izberi datum"
-
-#: bin/scantpaper:2163 bin/gscan2pdf:2542 bin/gscan2pdf:3532 bin/gscan2pdf:4234
-#: bin/scantpaper:4273 bin/gscan2pdf:5169 bin/gscan2pdf:5248 bin/gscan2pdf:5311
-#: bin/scantpaper:5524 bin/gscan2pdf:5832 bin/gscan2pdf:6033 bin/gscan2pdf:6535
-#: bin/scantpaper:7111 lib/Gscan2pdf/Dialog.pm:61
-#: lib/Gscan2pdf/Dialog/Renumber.pm:90 lib/Gscan2pdf/Dialog/Scan.pm:237
-#: lib/Gscan2pdf/Dialog/Scan.pm:947 t/05_Dialog.t:28
-msgid "vbox"
-msgstr ""
-
-#: bin/scantpaper:2193
-msgid "Today"
-msgstr "Danes"
-
-#: bin/scantpaper:2213
-msgid "Select date with calendar"
-msgstr ""
-
-#: bin/scantpaper:2222 bin/gscan2pdf:6659
-msgid "Title"
-msgstr "Naslov"
-
-#: bin/scantpaper:2237
-msgid "Author"
-msgstr ""
-
-#: bin/scantpaper:2254
-msgid "Subject"
-msgstr "Zadeva"
-
-#: bin/scantpaper:2272
-msgid "Keywords"
-msgstr "Ključne besede"
-
-#: bin/scantpaper:2428
-msgid "JPEG Quality"
-msgstr "Kakovost JPEG"
-
-#: bin/scantpaper:2442
-msgid "Downsample to"
-msgstr ""
-
-#: bin/scantpaper:2447
-msgid "PPI"
-msgstr ""
-
-#: bin/scantpaper:2467
-msgid "Automatic"
-msgstr "Samodejno"
-
-#: bin/scantpaper:2468
-msgid "Let scantpaper which type of compression to use."
-msgstr "Naj se scantpaper sam odloči o načinu stiskanja."
-
-#: bin/scantpaper:2471 bin/gscan2pdf:2589
-msgid "LZW"
-msgstr "LZW"
-
-#: bin/scantpaper:2472 bin/gscan2pdf:2590
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "Stisni izhodne podatke z Lempel-Ziv & Welch kodiranjem."
-
-#: bin/scantpaper:2475 bin/gscan2pdf:2593
-msgid "Zip"
-msgstr "Zip"
-
-#: bin/scantpaper:2476 bin/gscan2pdf:2594
-msgid "Compress output with deflate encoding."
-msgstr "Stisni izhodne podatke s spuščenim kodiranjem."
-
-#: bin/scantpaper:2479 bin/gscan2pdf:2603
-msgid "Packbits"
-msgstr "Paketni biti"
-
-#: bin/scantpaper:2480 bin/gscan2pdf:2604
-msgid "Compress output with Packbits encoding."
-msgstr "Stisni izhodne podatke s kodiranjem s paketnimi biti."
-
-#: bin/scantpaper:2487 bin/gscan2pdf:2563
-msgid "PNG"
-msgstr "PNG"
-
-#: bin/scantpaper:2487
-msgid "Compress output with PNG encoding."
-msgstr "Stisni izhodne podatke s PNG kodiranjem."
-
-#: bin/scantpaper:2490 bin/gscan2pdf:2560 bin/gscan2pdf:2599
-msgid "JPEG"
-msgstr "JPEG"
-
-#: bin/scantpaper:2491 bin/gscan2pdf:2600
-msgid "Compress output with JPEG encoding."
-msgstr "Stisni izhodne podatke z JPEG kodiranjem."
-
-#: bin/scantpaper:2494 bin/gscan2pdf:2615
-msgid "None"
-msgstr "Noben"
-
-#: bin/scantpaper:2495 bin/gscan2pdf:2616
-msgid "Use no compression algorithm on output."
-msgstr "Pri izhodnih podatkih ne uporabi algoritma za stiskanje."
-
-#: bin/scantpaper:2502 bin/gscan2pdf:2623
-msgid "Compression"
-msgstr "Stiskanje"
-
-#: bin/scantpaper:2550
-msgid "Image type"
-msgstr "Vrsta slike"
-
-#: bin/scantpaper:2554
-msgid "PDF"
-msgstr "PDF"
-
-#: bin/scantpaper:2554
-msgid "Portable Document Format"
-msgstr "PDF (Portable Document Format)"
-
-#: bin/scantpaper:2556
-msgid "GIF"
-msgstr "GIF"
-
-#: bin/scantpaper:2557
-msgid "CompuServe graphics interchange format"
-msgstr "CompuServe grafična oblika"
-
-#: bin/scantpaper:2561
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr "Joint Photographic Experts Group JFIF oblika"
-
-#: bin/scantpaper:2563
-msgid "Portable Network Graphics"
-msgstr "Portable Network Graphics oblika"
-
-#: bin/scantpaper:2564
-msgid "PNM"
-msgstr "PNM"
-
-#: bin/scantpaper:2564
-msgid "Portable anymap"
-msgstr ""
-
-#: bin/scantpaper:2565
-msgid "PS"
-msgstr "PS"
-
-#: bin/scantpaper:2565
-msgid "Postscript"
-msgstr "Postscript"
-
-#: bin/scantpaper:2566
-msgid "TIFF"
-msgstr "TIFF"
-
-#: bin/scantpaper:2566
-msgid "Tagged Image File Format"
-msgstr "Tagged Image File oblika"
-
-#: bin/scantpaper:2567
-msgid "Text"
-msgstr "Besedilo"
-
-#: bin/scantpaper:2567
-msgid "Plain text"
-msgstr "Navadno besedilo"
-
-#: bin/scantpaper:2568
-msgid "hOCR"
-msgstr ""
-
-#: bin/scantpaper:2568
-msgid "hOCR markup language"
-msgstr ""
-
-#: bin/scantpaper:2569
-msgid "scantpaper session file"
-msgstr "datoteka seje scantpaper"
-
-#: bin/scantpaper:2574
-msgid "Prepend to PDF"
-msgstr ""
-
-#: bin/scantpaper:2575
-msgid "Prepend to an existing PDF"
-msgstr ""
-
-#: bin/scantpaper:2579
-msgid "Append to PDF"
-msgstr ""
-
-#: bin/scantpaper:2580
-msgid "Append to an existing PDF"
-msgstr ""
-
-#: bin/scantpaper:2584
-msgid "DjVu"
-msgstr "DjVu"
-
-#: bin/scantpaper:2584
-msgid "Deja Vu"
-msgstr "Deja Vu"
-
-#: bin/scantpaper:2607
-msgid "G3"
-msgstr "G3"
-
-#: bin/scantpaper:2608
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr "Stisni izhodne podatke s CCITT skupine 3 kodiranjem."
-
-#: bin/scantpaper:2611
-msgid "G4"
-msgstr "G4"
-
-#: bin/scantpaper:2612
-msgid "Compress output with CCITT Group 4 encoding."
-msgstr "Stisni izhodne podatke s CCITT skupine 4 kodiranjem."
-
-#: bin/scantpaper:2628
-msgid "tiff"
-msgstr "tiff"
-
-#: bin/scantpaper:2671
-msgid "Font for non-ASCII text"
-msgstr ""
-
-#: bin/scantpaper:2890 bin/gscan2pdf:2907
+#: file_menu_mixins.py:465
 msgid "PDF filename"
 msgstr "Ime PDF datoteke"
 
-#: bin/scantpaper:2913
+#: file_menu_mixins.py:466
+#, fuzzy
 msgid "PDF files"
-msgstr ""
+msgstr "PDF datoteke"
 
-#: bin/scantpaper:2935
+#: file_menu_mixins.py:469
 msgid "DjVu filename"
 msgstr "Ime DjVu datoteke"
 
-#: bin/scantpaper:2950
+#: file_menu_mixins.py:470
+#, fuzzy
 msgid "DjVu files"
-msgstr ""
+msgstr "DjVu datoteke"
 
-#: bin/scantpaper:2971
+#: file_menu_mixins.py:473
 msgid "TIFF filename"
 msgstr "Ime datoteke TIFF"
 
-#: bin/scantpaper:2997
+#: file_menu_mixins.py:477
+#, fuzzy
 msgid "Text filename"
-msgstr ""
+msgstr "Ime besedilne datoteke"
 
-#: bin/scantpaper:3005
+#: file_menu_mixins.py:478
+#, fuzzy
 msgid "Text files"
-msgstr ""
+msgstr "Besedilne datoteke"
 
-#: bin/scantpaper:3022
+#: file_menu_mixins.py:481
+#, fuzzy
 msgid "hOCR filename"
-msgstr ""
+msgstr "Ime hOCR datoteke"
 
-#: bin/scantpaper:3030
+#: file_menu_mixins.py:482
+#, fuzzy
 msgid "hOCR files"
-msgstr ""
+msgstr "hOCR datoteke"
 
-#: bin/scantpaper:3050
+#: file_menu_mixins.py:485
 msgid "PS filename"
 msgstr "Ime datoteke PS"
 
-#: bin/scantpaper:3057
+#: file_menu_mixins.py:486
+#, fuzzy
 msgid "Postscript files"
-msgstr ""
+msgstr "Postscript datoteke"
 
-#: bin/scantpaper:3075
+#: file_menu_mixins.py:489
 msgid "scantpaper session filename"
 msgstr "ime datoteke seje scantpaper"
 
-#: bin/scantpaper:3082
+#: file_menu_mixins.py:490
+#, fuzzy
 msgid "scantpaper session files"
-msgstr ""
+msgstr "Datoteke seje scantpaper"
 
-#: bin/scantpaper:3127 bin/gscan2pdf:3173
-#, perl-format
+#: file_menu_mixins.py:601
+#, fuzzy
+msgid "Directory %s is read-only"
+msgstr "Mapa %s je samo za branje"
+
+#: file_menu_mixins.py:611
 msgid "File %s is read-only"
 msgstr "Datoteka %s je samo za branje"
 
-#: bin/scantpaper:3184
-#, perl-format
-msgid ""
-"File %s exists.\n"
-"Really overwrite?"
-msgstr ""
-"Datoteka %s že obstaja.\n"
-"Jo želite prepisati?"
-
-#: bin/scantpaper:3207
+#: file_menu_mixins.py:802
 msgid "Image filename"
 msgstr "Ime datoteke slike"
 
-#: bin/scantpaper:3486
-msgid ""
-"You seem to be using Gnome or XFCE, but do not have gconftool installed. "
-"Unable to determine email client."
-msgstr ""
-
-#: bin/scantpaper:3503
-msgid ""
-"Unable to determine your desktop enviroment, and therefore your email client."
-msgstr ""
-
-#: bin/scantpaper:3528
-msgid "Email as PDF"
-msgstr "Pošlji po e-pošti kot PDF"
-
-#: bin/scantpaper:3620
-msgid "Error creating email"
-msgstr ""
-
-#: bin/scantpaper:3664
-msgid "Scan Document"
-msgstr "Skaniraj dokument"
-
-#: bin/scantpaper:3720 bin/gscan2pdf:4398 bin/gscan2pdf:4435 bin/gscan2pdf:4767
-#: lib/Gscan2pdf/Dialog/Scan.pm:380 lib/Gscan2pdf/Dialog/Scan.pm:385
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1017 lib/Gscan2pdf/Dialog/Scan/Sane.pm:570
-#: t/0610_Dialog_Scan_Sane.t:38 t/0610_Dialog_Scan_Sane.t:71
-#: t/0621_Dialog_Scan_CLI.t:38 t/0621_Dialog_Scan_CLI.t:96
-msgid "page-number-increment"
-msgstr ""
-
-#: bin/scantpaper:3731 bin/gscan2pdf:4395 bin/gscan2pdf:4396 bin/gscan2pdf:4434
-#: bin/scantpaper:4766 lib/Gscan2pdf/Dialog/Scan.pm:398
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1016 lib/Gscan2pdf/Dialog/Scan/Sane.pm:569
-#: t/0610_Dialog_Scan_Sane.t:37 t/0621_Dialog_Scan_CLI.t:37
-msgid "page-number-start"
-msgstr ""
-
-#: bin/scantpaper:3969 bin/gscan2pdf:6692 lib/Gscan2pdf/Dialog/Scan.pm:679
-#: lib/Gscan2pdf/Dialog/Scan.pm:798 lib/Gscan2pdf/Dialog/Scan.pm:916
-#: lib/Gscan2pdf/Dialog/Scan.pm:939 lib/Gscan2pdf/Dialog/Scan.pm:1629
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:861 lib/Gscan2pdf/Dialog/Scan/CLI.pm:877
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:993 lib/Gscan2pdf/Dialog/Scan/Sane.pm:469
-#: t/0610_Dialog_Scan_Sane.t:40 t/0610_Dialog_Scan_Sane.t:194
-#: t/0610_Dialog_Scan_Sane.t:241 t/0610_Dialog_Scan_Sane.t:248
-#: t/0610_Dialog_Scan_Sane.t:276 t/0612_Dialog_Scan_Sane.t:97
-#: t/0613_Dialog_Scan_Sane.t:49 t/0616_Dialog_Scan_Sane.t:76
-#: t/0617_Dialog_Scan_Sane.t:39 t/0618_Dialog_Scan_Sane.t:39
-#: t/06191_Dialog_Scan_Sane.t:240 t/0621_Dialog_Scan_CLI.t:40
-#: t/0621_Dialog_Scan_CLI.t:224 t/0621_Dialog_Scan_CLI.t:270
-#: t/0621_Dialog_Scan_CLI.t:278 t/0621_Dialog_Scan_CLI.t:301
-#: t/0621_Dialog_Scan_CLI.t:349 t/0621_Dialog_Scan_CLI.t:393
-#: t/0621_Dialog_Scan_CLI.t:449 t/0622_Dialog_Scan_CLI.t:87
-#: t/0623_Dialog_Scan_CLI.t:53 t/0623_Dialog_Scan_CLI.t:95
-#: t/0625_Dialog_Scan_CLI.t:106 t/0625_Dialog_Scan_CLI.t:114
-#: t/0625_Dialog_Scan_CLI.t:122 t/0625_Dialog_Scan_CLI.t:130
-#: t/0626_Dialog_Scan_CLI.t:67 t/0626_Dialog_Scan_CLI.t:80
-#: t/0626_Dialog_Scan_CLI.t:92 t/0626_Dialog_Scan_CLI.t:99
-#: t/0626_Dialog_Scan_CLI.t:106 t/0627_Dialog_Scan_CLI.t:60
-#: t/0628_Dialog_Scan_CLI.t:75 t/0629_Dialog_Scan_CLI.t:166
-msgid "available-scan-options"
-msgstr ""
-
-#: bin/scantpaper:3995 lib/Gscan2pdf/Dialog/Scan.pm:254
-#: lib/Gscan2pdf/Dialog/Scan.pm:567 t/0610_Dialog_Scan_Sane.t:33
-#: t/0610_Dialog_Scan_Sane.t:405 t/06191_Dialog_Scan_Sane.t:195
-#: t/0621_Dialog_Scan_CLI.t:33 t/0621_Dialog_Scan_CLI.t:47
-#: t/0622_Dialog_Scan_CLI.t:65
-msgid "device-list"
-msgstr ""
-
-#: bin/scantpaper:3996 lib/Gscan2pdf/Dialog/Scan/CLI.pm:224
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:226 lib/Gscan2pdf/Dialog/Scan/CLI.pm:227
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:244 lib/Gscan2pdf/Dialog/Scan/CLI.pm:277
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:729 lib/Gscan2pdf/Dialog/Scan/CLI.pm:732
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:734 lib/Gscan2pdf/Dialog/Scan/CLI.pm:763
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:793 lib/Gscan2pdf/Dialog/Scan/CLI.pm:797
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1033 lib/Gscan2pdf/Dialog/Scan/Sane.pm:122
-#: t/0610_Dialog_Scan_Sane.t:32 t/0621_Dialog_Scan_CLI.t:32
-msgid "device"
-msgstr ""
-
-#: bin/scantpaper:4019 bin/gscan2pdf:4050
-msgid "Rotate"
-msgstr "Zasukaj"
-
-#: bin/scantpaper:4020 bin/gscan2pdf:4051
-msgid "Rotate image after scanning"
-msgstr "Zasukaj sliko po skeniranju"
-
-#: bin/scantpaper:4023
-msgid "Both sides"
-msgstr "Obe strani"
-
-#: bin/scantpaper:4023
-msgid "Both sides."
-msgstr "Obe strani."
-
-#: bin/scantpaper:4024
-msgid "Facing side"
-msgstr "Sprednjo stran"
-
-#: bin/scantpaper:4024
-msgid "Facing side."
-msgstr "Sprednjo stran."
-
-#: bin/scantpaper:4025
-msgid "Reverse side"
-msgstr "Zadnjo stran"
-
-#: bin/scantpaper:4025
-msgid "Reverse side."
-msgstr "Zadnjo stran."
-
-#: bin/scantpaper:4028 bin/gscan2pdf:4055
-msgid "Select side to rotate"
-msgstr "Izberi stran za zasuk"
-
-#: bin/scantpaper:4032
-msgid "90"
-msgstr "90"
-
-#: bin/scantpaper:4033
-msgid "Rotate image 90 degrees clockwise."
-msgstr "Zasukaj sliko za 90 stopinj v smeri urinega kazalca"
-
-#: bin/scantpaper:4036
-msgid "180"
-msgstr "180"
-
-#: bin/scantpaper:4037
-msgid "Rotate image 180 degrees clockwise."
-msgstr "Zasukaj sliko za 180 stopinj v smeri urinega kazalca"
-
-#: bin/scantpaper:4040
-msgid "270"
-msgstr "270"
-
-#: bin/scantpaper:4041
-msgid "Rotate image 90 degrees anticlockwise."
-msgstr "Zasukaj sliko za 90 stopinj v nasprotni smeri urinega kazalca"
-
-#: bin/scantpaper:4045 bin/gscan2pdf:4058
-msgid "Select direction of rotation"
-msgstr "Izberi smer zasuka"
-
-#: bin/scantpaper:4135 bin/gscan2pdf:4136
-msgid "OCR scanned pages"
-msgstr "Skerirane strani pošlji skozi OCR"
-
-#: bin/scantpaper:4150
-msgid "Select OCR engine"
-msgstr "Izberi OCR program"
-
-#: bin/scantpaper:4196 bin/gscan2pdf:6078
-msgid "Threshold before OCR"
-msgstr ""
-
-#: bin/scantpaper:4200 bin/gscan2pdf:6082
-msgid ""
-"Threshold the image before performing OCR. This only affects the image "
-"passed to the OCR engine, and not the image stored."
-msgstr ""
-
-#: bin/scantpaper:4212 bin/gscan2pdf:5166 bin/gscan2pdf:5177 bin/gscan2pdf:5405
-#: bin/scantpaper:6095
-msgid "Threshold"
-msgstr "Prag"
-
-#: bin/scantpaper:4237
-msgid "Post-processing"
-msgstr ""
-
-#: bin/scantpaper:4252
-msgid "Clean up images"
-msgstr "Počisti slike"
-
-#: bin/scantpaper:4263
-msgid "Options"
-msgstr "Možnosti"
-
-#: bin/scantpaper:4264
-msgid "Set unpaper options"
-msgstr "Nastavi možnosti programa unpaper"
-
-#: bin/scantpaper:4270
-msgid "unpaper options"
-msgstr "možnosti programa unpaper"
-
-#: bin/scantpaper:4437 lib/Gscan2pdf/Dialog/Scan.pm:336
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1015 lib/Gscan2pdf/Dialog/Scan/Sane.pm:568
-#: t/0610_Dialog_Scan_Sane.t:35 t/0621_Dialog_Scan_CLI.t:35
-msgid "num-pages"
-msgstr ""
-
-#: bin/scantpaper:4527
-msgid "Unable to load image"
-msgstr "Ne morem naložiti slike"
-
-#: bin/scantpaper:4559
-msgid "print-pages"
-msgstr ""
-
-#: bin/scantpaper:4563
-msgid "page-ranges"
-msgstr ""
-
-#: bin/scantpaper:4669
-#, perl-format
-msgid "Error pasting image - %s"
-msgstr ""
-
-#: bin/scantpaper:4947
-msgid "Patches gratefully received from:"
-msgstr "Popravki velikodušno sprejeti od:"
-
-#: bin/scantpaper:4949
-msgid "To aid the scan-to-PDF process"
-msgstr ""
-
-#: bin/scantpaper:4950
-msgid "Copyright 2006--2015 Jeffrey Ratcliffe"
-msgstr ""
-
-#: bin/scantpaper:5245
-msgid "Negate"
-msgstr "Negativ"
-
-#: bin/scantpaper:5308
-msgid "Unsharp mask"
-msgstr "Maska ostrine"
-
-#: bin/scantpaper:5324
-msgid "Radius"
-msgstr "Radij"
-
-#: bin/scantpaper:5336
-msgid ""
-"The radius of the Gaussian, in pixels, not counting the center pixel (0 = "
-"automatic)."
-msgstr ""
-"Radij po Gaussu v točkah brez upoštevanja sredinske točke (0 = samodejno)"
-
-#: bin/scantpaper:5345 bin/gscan2pdf:5368 bin/gscan2pdf:5551 bin/gscan2pdf:5571
-#: bin/scantpaper:5594 bin/gscan2pdf:5619
-msgid "pixels"
-msgstr "točk"
-
-#: bin/scantpaper:5351
-msgid "Sigma"
-msgstr "Sigma"
-
-#: bin/scantpaper:5361
-msgid "The standard deviation of the Gaussian."
-msgstr "Standardni odklon po Gaussu"
-
-#: bin/scantpaper:5376
-msgid "Amount"
-msgstr "Količina"
-
-#: bin/scantpaper:5387
-msgid ""
-"The percentage of the difference between the original and the blur image "
-"that is added back into the original."
-msgstr ""
-"Odstotek razlike med izvirno in zamegljeno sliko, ki je dodana nazaj na "
-"izvirno sliko."
-
-#: bin/scantpaper:5419
-msgid ""
-"The threshold, as a fraction of QuantumRange, needed to apply the difference "
-"amount."
-msgstr ""
-"Prag, kot delec kvantnega območja, potreben za določanje velikosti razlike."
-
-#: bin/scantpaper:5520
-msgid "Crop"
-msgstr "Obreži"
-
-#: bin/scantpaper:5537
-msgid "x"
-msgstr ""
-
-#: bin/scantpaper:5544
-msgid "The x-position of the left hand edge of the crop."
-msgstr ""
-
-#: bin/scantpaper:5557
-msgid "y"
-msgstr ""
-
-#: bin/scantpaper:5564
-msgid "The y-position of the top edge of the crop."
-msgstr ""
-
-#: bin/scantpaper:5579 lib/Gscan2pdf/Dialog/Scan.pm:962
-msgid "Width"
-msgstr "Širina"
-
-#: bin/scantpaper:5587
-msgid "The width of the crop."
-msgstr ""
-
-#: bin/scantpaper:5603 lib/Gscan2pdf/Dialog/Scan.pm:963
-msgid "Height"
-msgstr "Višina"
-
-#: bin/scantpaper:5612
-msgid "The height of the crop."
-msgstr ""
-
-#: bin/scantpaper:5743
-msgid "label"
-msgstr ""
-
-#: bin/scantpaper:5828
-msgid "unpaper"
-msgstr "unpaper"
-
-#: bin/scantpaper:5974 bin/gscan2pdf:6003
-msgid "Language to recognise"
-msgstr "Jezik za prepoznavanje"
-
-#: bin/scantpaper:5986
-msgid "English"
-msgstr "Angleški"
-
-#: bin/scantpaper:6029
-msgid "OCR"
-msgstr "OCR"
-
-#: bin/scantpaper:6041
-msgid "OCR Engine"
-msgstr "OCR program"
-
-#: bin/scantpaper:6113
-msgid "Start OCR"
-msgstr "Zaženii OCR"
-
-#: bin/scantpaper:6177
+#: file_menu_mixins.py:862
+#, fuzzy
+msgid "This operation would overwrite %s"
+msgstr "Ta operacija bi prepisala %s"
+
+#: file_menu_mixins.py:945
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
@@ -1188,940 +1452,811 @@ msgstr ""
 "Nekatere strani niso bile shranjene.\n"
 "Res želite zapreti program?"
 
-#: bin/scantpaper:6233
-#, perl-format
-msgid ""
-"The help viewer requires module Gtk2::Ex::PodViewer\n"
-"Alternatively, try: %s %s\n"
-"\n"
-msgstr ""
-"Pregledovalnik pomoči zahteva modul Gtk2::Ex::PodViewer\n"
-"Kot alternativo poskusite: %s %s\n"
-"\n"
-
-#: bin/scantpaper:6341
-#, perl-format
-msgid "%dMb free in %s."
-msgstr ""
-
-#: bin/scantpaper:6474
-msgid "This operation cannot be undone. Are you sure?"
-msgstr "Te operacije ni mogoče razveljaviti. Ste prepričani?"
-
-#: bin/scantpaper:6531
-msgid "Preferences"
-msgstr ""
-
-#: bin/scantpaper:6541
-msgid "Scan options"
-msgstr ""
-
-#: bin/scantpaper:6546
-msgid "Open scan dialog at program start"
-msgstr ""
-
-#: bin/scantpaper:6550
-msgid ""
-"Automatically open the scan dialog in the background at program start. This "
-"saves time clicking the scan button and waiting for the program to find the "
-"list of scanners"
-msgstr ""
-
-#: bin/scantpaper:6563
-msgid "Frontend"
-msgstr ""
-
-#: bin/scantpaper:6568
-msgid "libsane-perl"
-msgstr ""
-
-#: bin/scantpaper:6569
-msgid "Scan using the perl bindings for SANE."
-msgstr ""
-
-#: bin/scantpaper:6573
-msgid "scanimage"
-msgstr ""
-
-#: bin/scantpaper:6574
-msgid "Scan using the scanimage frontend."
-msgstr ""
-
-#: bin/scantpaper:6578
-msgid "scanimage-perl"
-msgstr ""
-
-#: bin/scantpaper:6579
-msgid "Scan using the scanimage-perl frontend."
-msgstr ""
-
-#: bin/scantpaper:6583
-msgid "scanadf-perl"
-msgstr ""
-
-#: bin/scantpaper:6584
-msgid "Scan using the scanadf-perl frontend."
-msgstr ""
-
-#: bin/scantpaper:6590
-msgid "scanadf"
-msgstr ""
-
-#: bin/scantpaper:6591
-msgid "Scan using the scanadf frontend."
-msgstr ""
-
-#: bin/scantpaper:6599
-msgid "Device blacklist"
-msgstr ""
-
-#: bin/scantpaper:6604
-msgid "Device blacklist (regular expression)"
-msgstr ""
-
-#: bin/scantpaper:6613
-msgid "Cycle SANE handle after scan"
-msgstr ""
-
-#: bin/scantpaper:6615
-msgid "Interface used for scanner access"
-msgstr ""
-
-#: bin/scantpaper:6624
-msgid "Scan command prefix"
-msgstr ""
-
-#: bin/scantpaper:6634
-msgid "Cache device-dependent options"
-msgstr ""
-
-#: bin/scantpaper:6640
-msgid "Clear device-dependent options cache"
-msgstr ""
-
-#: bin/scantpaper:6650
-msgid "Option visibility & control"
-msgstr ""
-
-#: bin/scantpaper:6660
-msgid "Type"
-msgstr ""
-
-#: bin/scantpaper:6661 bin/gscan2pdf:6668
-msgid "Show"
-msgstr ""
-
-#: bin/scantpaper:6662
-msgid "Reload"
-msgstr ""
-
-#: bin/scantpaper:6678
-msgid "Hide"
-msgstr ""
-
-#: bin/scantpaper:6687
-msgid "List current options"
-msgstr ""
-
-#: bin/scantpaper:6707
-msgid "No scanner currently open with command line frontend."
-msgstr ""
-
-#: bin/scantpaper:6715
-msgid "Show options not listed"
-msgstr ""
-
-#: bin/scantpaper:6758
-msgid "General options"
-msgstr ""
-
-#: bin/scantpaper:6763
-msgid "Restore window settings on startup"
-msgstr ""
-
-#: bin/scantpaper:6769
-msgid "View files on saving"
-msgstr ""
-
-#: bin/scantpaper:6778
-msgid "Default PDF & DjVu filename"
-msgstr ""
-
-#: bin/scantpaper:6784
-msgid ""
-"%a\t author\n"
-"%t\t title\n"
-"%y\t document's year\n"
-"%Y\t today's year\n"
-"%m\t document's month\n"
-"%M\t today's month\n"
-"%d\t document's day\n"
-"%D\t today's day\n"
-"%h\t document's hour\n"
-"%i\tdocument's minute\n"
-"%s\t document's second"
-msgstr ""
-
-#: bin/scantpaper:6796
-msgid "Temporary directory"
-msgstr ""
-
-#: bin/scantpaper:6801
-msgid "Browse"
-msgstr ""
-
-#: bin/scantpaper:6805
-msgid "Select temporary directory"
-msgstr ""
-
-#: bin/scantpaper:6823
-msgid "Warn if available space less than (Mb)"
-msgstr ""
-
-#: bin/scantpaper:6833
-msgid ""
-"Warn if the available space in the temporary directory is less than this "
-"value"
-msgstr ""
-
-#: bin/scantpaper:6841
-msgid "Blank threshold"
-msgstr ""
-
-#: bin/scantpaper:6848
-msgid "Threshold used for selecting blank pages"
-msgstr ""
-
-#: bin/scantpaper:6854
-msgid "Dark threshold"
-msgstr ""
-
-#: bin/scantpaper:6861
-msgid "Threshold used for selecting dark pages"
-msgstr ""
-
-#: bin/scantpaper:6867
-msgid "OCR output"
-msgstr ""
-
-#: bin/scantpaper:6872
-msgid "Replace"
-msgstr ""
-
-#: bin/scantpaper:6874
-msgid ""
-"Replace the contents of the text buffer with that from the OCR output."
-msgstr ""
-
-#: bin/scantpaper:6878
-msgid "Prepend"
-msgstr ""
-
-#: bin/scantpaper:6879
-msgid "Prepend the OCR output to the text buffer."
-msgstr ""
-
-#: bin/scantpaper:6882
-msgid "Append"
-msgstr ""
-
-#: bin/scantpaper:6883
-msgid "Append the OCR output to the text buffer."
-msgstr ""
-
-#: bin/scantpaper:6891
-msgid "User-defined tools"
-msgstr ""
-
-#: bin/scantpaper:6968
-msgid ""
-"You will have to restart gscanp2df for changes to the temporary directory to "
-"take effect."
-msgstr ""
-"Za uveljavitev sprememb začasne mape bo potrebno ponovno zagnati scantpaper."
-
-#: bin/scantpaper:7080
-msgid ""
-"Use %i and %o for the input and output filenames respectively, or a single "
-"%i if the image is to be modified in-place.\n"
-"\n"
-"The other variable available is:\n"
-"\n"
-"%r resolution"
-msgstr ""
-
-#: bin/scantpaper:7107
-msgid "Properties"
-msgstr "Lastnosti"
-
-#: bin/scantpaper:7115
-msgid "Resolution"
-msgstr "Ločljivost"
-
-#: bin/scantpaper:7130
-msgid "dpi"
-msgstr ""
-
-#: bin/scantpaper:7198
-msgid "Don't show this message again"
-msgstr "Tega sporočila ne prikaži več"
-
-#: lib/Gscan2pdf/Config.pm:61
-msgid ""
-"Error: unable to load settings.\n"
-"Backing up settings\n"
-"Reverting to defaults"
-msgstr ""
-
-#: lib/Gscan2pdf/Config.pm:116
-msgid "A4"
-msgstr "A4"
-
-#: lib/Gscan2pdf/Config.pm:122
-msgid "US Letter"
-msgstr "US Letter"
-
-#: lib/Gscan2pdf/Config.pm:128
-msgid "US Legal"
-msgstr "US Legal"
-
-#: lib/Gscan2pdf/Dialog.pm:68 lib/Gscan2pdf/Dialog.pm:84 t/05_Dialog.t:25
-msgid "hide-on-delete"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:88 lib/Gscan2pdf/Dialog/Renumber.pm:191
-msgid "Renumber"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:108 lib/Gscan2pdf/Dialog/Renumber.pm:248
-#: lib/Gscan2pdf/Dialog/Renumber.pm:285
-msgid "range"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:112
-msgid "Page numbering"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:115 lib/Gscan2pdf/Dialog/Scan.pm:289
-#: lib/Gscan2pdf/Dialog/Scan.pm:1300
-msgid "border_width"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:121 lib/Gscan2pdf/Dialog/Scan.pm:357
-msgid "Start"
-msgstr "Začetek"
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:136 lib/Gscan2pdf/Dialog/Renumber.pm:233
-#: lib/Gscan2pdf/Dialog/Renumber.pm:283 t/07_Dialog_Renumber.t:33
-#: t/07_Dialog_Renumber.t:46 t/07_Dialog_Renumber.t:61
-#: t/07_Dialog_Renumber.t:68
-msgid "start"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:142 lib/Gscan2pdf/Dialog/Scan.pm:376
-msgid "Increment"
-msgstr "Prirastek"
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:158 lib/Gscan2pdf/Dialog/Renumber.pm:234
-#: lib/Gscan2pdf/Dialog/Renumber.pm:284 t/07_Dialog_Renumber.t:34
-#: t/07_Dialog_Renumber.t:47 t/07_Dialog_Renumber.t:62
-#: t/07_Dialog_Renumber.t:69
-msgid "increment"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:172 lib/Gscan2pdf/Dialog/Renumber.pm:246
-#: lib/Gscan2pdf/Dialog/Renumber.pm:282
-msgid "document"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:342
-msgid ""
-"The current settings would result in duplicate page numbers. Please select "
-"new start and increment values."
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:246
-msgid "Device"
-msgstr "Naprava"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:249
-msgid "Rescan for devices"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:269
-msgid "Sets the device to be used for the scan"
-msgstr "Določi napravo, ki jo bomo uporabljali za skeniranje"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:279
-msgid "Page Options"
-msgstr "Možnosti strani"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:286
-msgid "# Pages"
-msgstr "# strani"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:296 lib/Gscan2pdf/PageRange.pm:40
-msgid "All"
-msgstr "Vse"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:297
-msgid "Scan all pages"
-msgstr "Skaniraj vse strani"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:309 lib/Gscan2pdf/Dialog/Scan.pm:314
-msgid "Set number of pages to scan"
-msgstr "Določi število strani za skeniranje"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:344
-msgid "Extended page numbering"
-msgstr "Razširjeno številčenje strani"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:348
-msgid "Page number"
-msgstr "Številka strani"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:409
-msgid "Source document"
-msgstr "Izvirni dokument"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:416
-msgid "Single sided"
-msgstr "Enostransko"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:418
-msgid "Source document is single-sided"
-msgstr "Izvirni dokument je enostranski"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:430
-msgid "Double sided"
-msgstr "Obojestranski"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:432
-msgid "Source document is double-sided"
-msgstr "Izvirni dokument je obojestranski"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:438
-msgid "Side to scan"
-msgstr "Stran za skeniranje"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:442
-msgid "Facing"
-msgstr "Sprednja"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:442
-msgid "Reverse"
-msgstr "Obrnjena"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:460
-msgid "Sets which side of a double-sided document is scanned"
-msgstr "Določi katero stran obojestranskega dokumenta skeniramo"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:485
-msgid "Scan profiles"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:506 lib/Gscan2pdf/Dialog/Scan.pm:512
-msgid "Name of scan profile"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:524 lib/Gscan2pdf/Dialog/Scan.pm:1698
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:746 lib/Gscan2pdf/Dialog/Scan/CLI.pm:813
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:838 lib/Gscan2pdf/Dialog/Scan/Sane.pm:502
-#: t/0610_Dialog_Scan_Sane.t:142 t/0610_Dialog_Scan_Sane.t:186
-#: t/0610_Dialog_Scan_Sane.t:237 t/0610_Dialog_Scan_Sane.t:287
-#: t/0611_Dialog_Scan_Sane.t:48 t/0614_Dialog_Scan_Sane.t:45
-#: t/0615_Dialog_Scan_Sane.t:60 t/0616_Dialog_Scan_Sane.t:96
-#: t/0621_Dialog_Scan_CLI.t:170 t/0621_Dialog_Scan_CLI.t:215
-#: t/0621_Dialog_Scan_CLI.t:266 t/0621_Dialog_Scan_CLI.t:293
-#: t/0621_Dialog_Scan_CLI.t:314 t/0625_Dialog_Scan_CLI.t:45
-#: t/0625_Dialog_Scan_CLI.t:55 t/0625_Dialog_Scan_CLI.t:69
-#: t/0625_Dialog_Scan_CLI.t:81 t/0625_Dialog_Scan_CLI.t:95
-#: t/0626_Dialog_Scan_CLI.t:45 t/0628_Dialog_Scan_CLI.t:95
-msgid "current-scan-options"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:547
-msgid "Scan"
-msgstr "Skeniraj"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:677 lib/Gscan2pdf/Dialog/Scan/CLI.pm:614
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:627 lib/Gscan2pdf/Dialog/Scan/Sane.pm:378
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:391
-msgid "Manual"
-msgstr "Ročno"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:688
-msgid "device_list"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:704
-#, perl-format
-msgid "Error: unknown device: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:929 lib/Gscan2pdf/Dialog/Scan.pm:1102
-msgid "paper"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:940 lib/Gscan2pdf/Dialog/Scan/CLI.pm:643
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:407
-msgid "paper-formats"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:944
-msgid "Edit paper size"
-msgstr "Uredi velikost papirja"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:945 t/05_Dialog.t:26 t/05_Dialog.t:31
-#: t/05_Dialog.t:32 t/05_Dialog.t:38 t/05_Dialog.t:39
-msgid "border-width"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:961
-msgid "Name"
-msgstr "Ime"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:964 lib/Gscan2pdf/Unpaper.pm:130
-#: lib/Gscan2pdf/Unpaper.pm:162
-msgid "Left"
-msgstr "Levo"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:965 lib/Gscan2pdf/Unpaper.pm:136
-#: lib/Gscan2pdf/Unpaper.pm:167
-msgid "Top"
-msgstr "Vrh"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1017
-msgid "Cannot delete all paper sizes"
-msgstr "Ne morem izbrisate vseh velikosti papirja"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1085
-msgid ""
-"The following paper sizes are too big to be scanned by the selected device:"
-msgstr ""
-"Naslednje velikosti papirja so prevelike za skeniranje z izbrano napravo:"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1264
-msgid ""
-"Multiple unconstrained values are not currently supported. Please file a bug."
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1278
-msgid ""
-"Multiple non-numerical values are not currently supported. Please file a bug."
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1721
-#, perl-format
-msgid "Scanning page %d of %d"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1723
-#, perl-format
-msgid "Scanning page %d"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:121 lib/Gscan2pdf/Dialog/Scan/CLI.pm:242
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:761
-msgid "prefix"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:126 lib/Gscan2pdf/Dialog/Scan/CLI.pm:250
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:769 lib/Gscan2pdf/Dialog/Scan/Sane.pm:77
-msgid "progress-pulse-step"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:127 lib/Gscan2pdf/Dialog/Scan/Sane.pm:78
-msgid "Fetching list of devices"
-msgstr "Iščem naprave"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:142 lib/Gscan2pdf/Dialog/Scan/Sane.pm:95
-msgid "No devices found"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:159 lib/Gscan2pdf/Dialog/Scan/CLI.pm:706
-msgid "reload-triggers"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:220 lib/Gscan2pdf/Dialog/Scan/CLI.pm:265
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:725 lib/Gscan2pdf/Dialog/Scan/CLI.pm:784
-#: t/0623_Dialog_Scan_CLI.t:32
-msgid "cache-options"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:223 lib/Gscan2pdf/Dialog/Scan/CLI.pm:266
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:728 lib/Gscan2pdf/Dialog/Scan/CLI.pm:785
-msgid "options-cache"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:243 lib/Gscan2pdf/Dialog/Scan/CLI.pm:762
-msgid "frontend"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:251 lib/Gscan2pdf/Dialog/Scan/CLI.pm:770
-msgid "Updating options"
-msgstr "Možnosti posodabljanja"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:328
-msgid "Scan Options"
-msgstr "Možnosti skaniranja"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:480 t/0622_Dialog_Scan_CLI.t:33
-#: t/0622_Dialog_Scan_CLI.t:44 t/0622_Dialog_Scan_CLI.t:52
-msgid "visible-scan-options"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:610 lib/Gscan2pdf/Dialog/Scan/Sane.pm:374
-msgid "Paper size"
-msgstr "Velikost papirja"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:615 lib/Gscan2pdf/Dialog/Scan/CLI.pm:624
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:379 lib/Gscan2pdf/Dialog/Scan/Sane.pm:388
-msgid "Edit"
-msgstr "Uredi"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:617 lib/Gscan2pdf/Dialog/Scan/Sane.pm:381
-msgid "Selects or edits the paper size"
-msgstr "Izbere ali uredi velikost papirja"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1018 lib/Gscan2pdf/Dialog/Scan/CLI.pm:1041
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1042 lib/Gscan2pdf/Dialog/Scan/Sane.pm:571
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:586 lib/Gscan2pdf/Dialog/Scan/Sane.pm:587
-#: t/0610_Dialog_Scan_Sane.t:36 t/0621_Dialog_Scan_CLI.t:36
-msgid "max-pages"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1022 lib/Gscan2pdf/Dialog/Scan/Sane.pm:575
-msgid "Must scan facing pages first"
-msgstr "Najprej moramo skenirati sprednje strani"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1034 lib/Gscan2pdf/Dialog/Scan/Sane.pm:581
-#: t/0610_Dialog_Scan_Sane.t:34 t/0621_Dialog_Scan_CLI.t:34
-msgid "dir"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:124
-msgid "Opening device"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:134
-msgid "Retrieving options"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:158
-msgid "Error retrieving scanner options: "
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:167
-msgid "Error opening device: "
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:475
-#, perl-format
-msgid "Setting option %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:512
-msgid "Error setting option: "
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:105
-msgid "Thumbnails"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:243
-msgid "Error: cannot open a session file at the same time as another file."
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:256
-msgid "Error: import a multipage file at the same time as another file."
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:1221
-#, perl-format
-msgid "Error importing page %d. Ignoring."
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:1328
-msgid "No pages to process"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:1335
-msgid "No pages selected"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:1736
-#, perl-format
+#: importthread.py:86
+#, fuzzy
 msgid "File %s not found"
-msgstr ""
+msgstr "Datoteke %s ni mogoče najti"
 
-#: lib/Gscan2pdf/Document.pm:1749
-#, perl-format
+#: importthread.py:92
+#, fuzzy
+msgid "Error getting file info for %s: %s"
+msgstr "Napaka pri pridobivanju informacij o datoteki za %s: %s"
+
+#: importthread.py:97
+#, fuzzy
 msgid "Error importing zero-length file %s."
-msgstr ""
+msgstr "Napaka pri uvozu datoteke ničelne dolžine %s."
 
-#: lib/Gscan2pdf/Document.pm:1787
+#: importthread.py:135 importthread.py:178
+#, fuzzy
+msgid "Please install djvulibre-bin in order to open DjVu files: %s"
+msgstr "Za odpiranje DjVu datotek namestite djvulibre-bin: %s"
+
+#: importthread.py:166
+#, fuzzy
 msgid "Unknown DjVu file structure. Please contact the author."
-msgstr ""
+msgstr "Neznana struktura DjVu datoteke. Obrnite se na avtorja."
 
-#: lib/Gscan2pdf/Document.pm:1841 lib/Gscan2pdf/Document.pm:1849
-#, perl-format
-msgid "%s is not a recognised image type"
-msgstr ""
+#: importthread.py:266
+#, fuzzy
+msgid "Please install libtiff-tools in order to open TIFF files: %s"
+msgstr "Za odpiranje TIFF datotek namestite libtiff-tools: %s"
 
-#: lib/Gscan2pdf/Document.pm:1879 lib/Gscan2pdf/Document.pm:1937
-#, perl-format
+#: importthread.py:328 importthread.py:388
+#, fuzzy
 msgid "Importing page %i of %i"
-msgstr ""
+msgstr "Uvoz strani %i od %i"
 
-#: lib/Gscan2pdf/Document.pm:2050 lib/Gscan2pdf/Document.pm:2075
+#: importthread.py:509
+#, fuzzy
 msgid "Error extracting images from PDF"
+msgstr "Napaka pri izločanju slik iz PDF-ja"
+
+#: importthread.py:520
+#, fuzzy
+msgid ""
+"Warning: scantpaper expects one image per page, but this was not satisfied. "
+"It is probable that the PDF has not been correctly imported. If you wish to "
+"add scans to an existing PDF, use the prepend/append to PDF options in the "
+"Save dialogue."
 msgstr ""
+"Opozorilo: scantpaper pričakuje eno sliko na stran, vendar to ni bilo "
+"izpolnjeno. Verjetno PDF ni bil pravilno uvožen. Če želite obstoječemu PDF-"
+"ju dodati skene, uporabite možnosti dodajanja pred/za PDF v pogovornem oknu "
+"za shranjevanje."
 
-#: lib/Gscan2pdf/Document.pm:2089
-msgid "Setting up PDF"
-msgstr ""
+#: importthread.py:560
+#, fuzzy
+msgid "Error importing PDF"
+msgstr "Napaka pri uvozu PDF-ja"
 
-#: lib/Gscan2pdf/Document.pm:2109
-#, perl-format
-msgid "Saving page %i of %i"
-msgstr ""
+#: importthread.py:587
+#, fuzzy
+msgid "Error extracting text layer from PDF"
+msgstr "Napaka pri izločanju besedilnega sloja iz PDF-ja"
 
-#: lib/Gscan2pdf/Document.pm:2116
-msgid "Closing PDF"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2130
-#, perl-format
-msgid "Error prepending PDF: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2138
-#, perl-format
-msgid "Error appending PDF: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2263
-#, perl-format
-msgid "Error creating PDF image object: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2280
-#, perl-format
-msgid "Error embedding file image in %s format to PDF: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2361 lib/Gscan2pdf/Document.pm:2770
-#, perl-format
-msgid "Error compressing image: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2476
-#, perl-format
-msgid "Writing page %i of %i"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2565
-msgid "Error writing DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2573
-msgid "Merging DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2581
-msgid "Error merging DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2598
-#, perl-format
-msgid "Can't write to file: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2617 lib/Gscan2pdf/Document.pm:2648
-#: lib/Gscan2pdf/Document.pm:2907 lib/Gscan2pdf/Document.pm:2931
-#, perl-format
-msgid "Can't open file: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2621 lib/Gscan2pdf/Document.pm:2667
-#: lib/Gscan2pdf/Document.pm:2913 lib/Gscan2pdf/Document.pm:2942
-#, perl-format
-msgid "Can't close file: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2633
-msgid "Error adding text layer to DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2677
-msgid "Error adding metadata to DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2694
-#, perl-format
-msgid "Converting image %i of %i to TIFF"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2735
-msgid "Error writing TIFF"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2753
-msgid "Concatenating TIFFs"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2774
-msgid "Converting to PS"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2867 lib/Gscan2pdf/Document.pm:2882
-msgid "Error saving image"
-msgstr ""
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:182
-#, perl-format
-msgid "Scanning %i pages..."
-msgstr ""
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:188
-#, perl-format
-msgid "Scanning page %i..."
-msgstr "Skeniram stran %i..."
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:220 lib/Gscan2pdf/Frontend/CLI.pm:398
-msgid "Scanner warming up"
-msgstr "Ogrevanje skenerja"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:231
-msgid "Document feeder out of documents"
-msgstr "Podajalnik dokumentov je prazen"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:255 lib/Gscan2pdf/Frontend/CLI.pm:436
-msgid "Device busy"
-msgstr "Naprava je zasedena"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:264 lib/Gscan2pdf/Frontend/CLI.pm:446
-msgid "Operation cancelled"
-msgstr "Dejanje preklicano"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:270 lib/Gscan2pdf/Frontend/CLI.pm:453
-msgid "Unknown message: "
-msgstr "Neznano sporočilo: "
-
-#: lib/Gscan2pdf/Page.pm:88 lib/Gscan2pdf/Page.pm:93
-#, perl-format
-msgid "Error importing image %s: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/PageRange.pm:39
+#: pagerange.py:46
 msgid "Selected"
 msgstr "Izbrano"
 
-#: lib/Gscan2pdf/PageRange.pm:67 t/18_PageRange.t:15
-msgid "active"
-msgstr "dejaven"
+#: postprocess_controls.py:21
+msgid "Both sides"
+msgstr "Obe strani"
 
-#: lib/Gscan2pdf/Unpaper.pm:46
+#: postprocess_controls.py:21
+msgid "Both sides."
+msgstr "Obe strani."
+
+#: postprocess_controls.py:22
+msgid "Facing side"
+msgstr "Sprednjo stran"
+
+#: postprocess_controls.py:22
+msgid "Facing side."
+msgstr "Sprednjo stran."
+
+#: postprocess_controls.py:23
+msgid "Reverse side"
+msgstr "Zadnjo stran"
+
+#: postprocess_controls.py:23
+msgid "Reverse side."
+msgstr "Zadnjo stran."
+
+#: postprocess_controls.py:26
+#, fuzzy
+msgid "90°"
+msgstr "90°"
+
+#: postprocess_controls.py:26
+msgid "Rotate image 90 degrees clockwise."
+msgstr "Zasukaj sliko za 90 stopinj v smeri urinega kazalca"
+
+#: postprocess_controls.py:27
+#, fuzzy
+msgid "180°"
+msgstr "180°"
+
+#: postprocess_controls.py:27
+msgid "Rotate image 180 degrees clockwise."
+msgstr "Zasukaj sliko za 180 stopinj v smeri urinega kazalca"
+
+#: postprocess_controls.py:28
+#, fuzzy
+msgid "270°"
+msgstr "270°"
+
+#: postprocess_controls.py:28
+msgid "Rotate image 90 degrees anticlockwise."
+msgstr "Zasukaj sliko za 90 stopinj v nasprotni smeri urinega kazalca"
+
+#: postprocess_controls.py:38
+msgid "Rotate"
+msgstr "Zasukaj"
+
+#: postprocess_controls.py:39
+msgid "Rotate image after scanning"
+msgstr "Zasukaj sliko po skeniranju"
+
+#: postprocess_controls.py:42
+msgid "Select side to rotate"
+msgstr "Izberi stran za zasuk"
+
+#: postprocess_controls.py:45
+#, fuzzy
+msgid "Select angle of rotation"
+msgstr "Izberi kot vrtenja"
+
+#: postprocess_controls.py:48
+#, fuzzy
+msgid "Anticlockwise"
+msgstr "V nasprotni smeri urinega kazalca"
+
+#: postprocess_controls.py:349 postprocess_controls.py:350
+msgid "OCR scanned pages"
+msgstr "Skerirane strani pošlji skozi OCR"
+
+#: postprocess_controls.py:377
+#, fuzzy
+msgid "Threshold before OCR"
+msgstr "Prag pred OCR"
+
+#: postprocess_controls.py:379
+#, fuzzy
+msgid ""
+"Threshold the image before performing OCR. This only affects the image "
+"passed to the OCR engine, and not the image stored."
+msgstr ""
+"Pred izvedbo OCR-ja uporabi prag na sliki. To vpliva samo na sliko, "
+"posredovano OCR pogonu, ne pa na shranjeno sliko."
+
+#: postprocess_controls.py:390 tools_menu_mixins.py:113
+#, fuzzy
+msgid ""
+"Pixels that differ from the paper colour by more than this percentage are "
+"rendered black. Higher values only keep stronger marks."
+msgstr ""
+"Piksli, ki se od barve papirja razlikujejo za več kot ta odstotek, so "
+"prikazani črno. Višje vrednosti ohranijo samo močnejše sledi."
+
+#: postprocess_controls.py:427
+msgid "Language to recognise"
+msgstr "Jezik za prepoznavanje"
+
+#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
+#, fuzzy
+msgid "_Cancel"
+msgstr "_Prekliči"
+
+#: progress.py:76 progress.py:110
+#, fuzzy
+msgid "Process %i of %i (%s)"
+msgstr "Obdelava %i od %i (%s)"
+
+#: progress.py:119
+#, fuzzy
+msgid "Process %i of %i"
+msgstr "Obdelava %i od %i"
+
+#: savethread.py:83
+#, fuzzy
+msgid "Processing PDF"
+msgstr "Obdelava PDF-ja"
+
+#: savethread.py:148
+#, fuzzy
+msgid "Embedding text layer"
+msgstr "Vgrajevanje besedilnega sloja"
+
+#: savethread.py:195
+#, fuzzy
+msgid "Setting up PDF"
+msgstr "Priprava PDF-ja"
+
+#: savethread.py:264 savethread.py:405
+#, fuzzy
+msgid "Writing page %i of %i"
+msgstr "Zapisovanje strani %i od %i"
+
+#: savethread.py:290
+#, fuzzy
+msgid ""
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+msgstr ""
+"Ocenjena velikost PDF-ja (%.1f GiB) presega 2 GiB. Shranite manj strani."
+
+#: savethread.py:314 tests/test_savethread.py:1240
+#, fuzzy
+msgid "Writing PDF"
+msgstr "Zapisovanje PDF-ja"
+
+#: savethread.py:363
+#, fuzzy
+msgid "Converting to PS"
+msgstr "Pretvarjanje v PS"
+
+#: savethread.py:374
+#, fuzzy
+msgid "Error converting PDF to PS: %s"
+msgstr "Napaka pri pretvarjanju PDF-ja v PS: %s"
+
+#: savethread.py:418
+#, fuzzy
+msgid "Merging DjVu"
+msgstr "Združevanje DjVu-ja"
+
+#: savethread.py:425
+#, fuzzy
+msgid "Error merging DjVu: %s"
+msgstr "Napaka pri združevanju DjVu-ja: %s"
+
+#: savethread.py:519
+#, fuzzy
+msgid "Error converting TIFF to PS: %s"
+msgstr "Napaka pri pretvarjanju TIFF v PS: %s"
+
+#: savethread.py:664
+msgid "Error copying page"
+msgstr "Napaka pri kopiranju strani"
+
+#: savethread.py:814
+#, fuzzy
+msgid "Error prepending PDF: %s"
+msgstr "Napaka pri dodajanju pred PDF: %s"
+
+#: savethread.py:822
+#, fuzzy
+msgid "Error appending PDF: %s"
+msgstr "Napaka pri dodajanju za PDF: %s"
+
+#: savethread.py:831
+#, fuzzy
+msgid "Error creating backup of PDF"
+msgstr "Napaka pri ustvarjanju varnostne kopije PDF-ja"
+
+#: savethread.py:905
+#, fuzzy
+msgid "Error encrypting PDF: %s"
+msgstr "Napaka pri šifriranju PDF-ja: %s"
+
+#: scan_menu_item_mixins.py:72
+#, fuzzy
+msgid "Really cache libusb device names?"
+msgstr "Ali res želite predpomniti imena libusb naprav?"
+
+#: scan_menu_item_mixins.py:75
+#, fuzzy
+msgid ""
+"Caching device list with libusb devices included is not recommended as they "
+"can change between reboots."
+msgstr ""
+"Predpomnjenje seznama naprav z libusb napravami ni priporočljivo, saj se "
+"lahko spremenijo med ponovnimi zagoni."
+
+#: scan_menu_item_mixins.py:78
+#, fuzzy
+msgid "Are you sure you want to do this?"
+msgstr "Ali ste prepričani, da želite to storiti?"
+
+#: scan_menu_item_mixins.py:114
+msgid "Scan Document"
+msgstr "Skaniraj dokument"
+
+#: scan_menu_item_mixins.py:216
+#, fuzzy
+msgid "Postprocessing"
+msgstr "Naknadna obdelava"
+
+#: scan_menu_item_mixins.py:230
+#, fuzzy
+msgid "Alternate rotation every 2nd page"
+msgstr "Izmenjuj vrtenje vsake 2. strani"
+
+#: scan_menu_item_mixins.py:232
+#, fuzzy
+msgid ""
+"Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
+"degrees. Use when scanning a book where every sheet is aligned to the same "
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
+msgstr ""
+"Zavrti lihe strani za izbrani kot, sode pa za ta kot plus 180 stopinj. "
+"Uporabite pri skeniranju knjige, kjer je vsak list poravnan z istim robom, "
+"tako da je hrbet vsakega lista zasukan za 180 stopinj glede na sprednjo "
+"stran."
+
+#: scan_menu_item_mixins.py:298
+msgid "Clean up images"
+msgstr "Počisti slike"
+
+#: scan_menu_item_mixins.py:299
+msgid "Clean up scanned images with unpaper"
+msgstr "Počisti skeniranje strani s programom unpaper"
+
+#: scan_menu_item_mixins.py:307
+msgid "Options"
+msgstr "Možnosti"
+
+#: scan_menu_item_mixins.py:308
+msgid "Set unpaper options"
+msgstr "Nastavi možnosti programa unpaper"
+
+#: scan_menu_item_mixins.py:316
+msgid "unpaper options"
+msgstr "možnosti programa unpaper"
+
+#: scan_menu_item_mixins.py:339
+#, fuzzy
+msgid "Process with user-defined tool"
+msgstr "Obdelaj z orodjem, ki ga določi uporabnik"
+
+#: scan_menu_item_mixins.py:340
+#, fuzzy
+msgid "Process scanned images with user-defined tool"
+msgstr "Obdelaj skenirane slike z orodjem, ki ga določi uporabnik"
+
+#: session_mixins.py:73
+#, fuzzy
+msgid ""
+"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+msgstr ""
+"Opozorilo: %s ni mogoče uporabiti za začasno shranjevanje. Namesto tega se "
+"uporabi %s."
+
+#: session_mixins.py:118 session_mixins.py:123
+#, fuzzy
+msgid "Pick crashed session to restore"
+msgstr "Izberi prekinjeno sejo za obnovitev"
+
+#: session_mixins.py:191
+#, fuzzy
+msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
+msgstr "GraphicsMagick se uporablja v načinu združljivosti z ImageMagick."
+
+#: session_mixins.py:193
+#, fuzzy
+msgid "Whilst this might work, it is not currently supported."
+msgstr "Čeprav bi to lahko delovalo, trenutno ni podprto."
+
+#: session_mixins.py:195
+#, fuzzy
+msgid "Please switch to ImageMagick in case of problems."
+msgstr "V primeru težav preklopite na ImageMagick."
+
+#: session_mixins.py:212
+#, fuzzy
+msgid "Tesseract"
+msgstr "Tesseract"
+
+#: session_mixins.py:212
+msgid "Process image with Tesseract."
+msgstr "Obdelovanje slike s programom Tesseract"
+
+#: session_mixins.py:229
+#, fuzzy
+msgid "Finished scanning facing pages. Scan reverse pages?"
+msgstr ""
+"Skeniranje sprednjih strani je končano. Ali želite skenirati zadnje strani?"
+
+#: session_mixins.py:232
+#, fuzzy
+msgid "Finished scanning reverse pages. Scan facing pages?"
+msgstr ""
+"Skeniranje zadnjih strani je končano. Ali želite skenirati sprednje strani?"
+
+#: session_mixins.py:448
+#, fuzzy
+msgid "_Ok"
+msgstr "_V redu"
+
+#: session_mixins.py:449 text_layer_control.py:80
+#, fuzzy
+msgid "Accept corrections"
+msgstr "Sprejmi popravke"
+
+#: session_mixins.py:452 text_layer_control.py:83
+#, fuzzy
+msgid "Cancel corrections"
+msgstr "Prekliči popravke"
+
+#: session_mixins.py:458
+#, fuzzy
+msgid "Add annotation"
+msgstr "Dodaj opombo"
+
+#: session_mixins.py:461
+#, fuzzy
+msgid "Delete annotation"
+msgstr "Izbriši opombo"
+
+#: session_mixins.py:505
+#, fuzzy
+msgid "my-new-word"
+msgstr "my-new-word"
+
+#: session_mixins.py:560
+#, fuzzy
+msgid "my-new-annotation"
+msgstr "my-new-annotation"
+
+#: tesseract.py:232 tesseract.py:246 tesseract.py:258
+#, fuzzy
+msgid "You are using locale '%s'."
+msgstr "Uporabljate krajevne nastavitve '%s'."
+
+#: tesseract.py:234
+#, fuzzy
+msgid ""
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
+msgstr ""
+"scantpaper trenutno ne ve, kateri tesseract jezikovni paket bi bil potreben "
+"za te krajevne nastavitve."
+
+#: tesseract.py:239
+#, fuzzy
+msgid "Please contact the developers to add support for that locale."
+msgstr ""
+"Za dodajanje podpore za te krajevne nastavitve se obrnite na razvijalce."
+
+#: tesseract.py:249
+#, fuzzy
+msgid ""
+"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
+"for OCR for %s with tesseract."
+msgstr ""
+"Namestite tesseract paket 'tesseract-ocr-%s' in znova zaženite scantpaper za"
+" OCR za %s s tesseractom."
+
+#: tesseract.py:260
+#, fuzzy
+msgid "There is no tesseract package for %s"
+msgstr "Za %s ni tesseract paketa"
+
+#: tesseract.py:262
+#, fuzzy
+msgid "If this is in error, please contact the scantpaper developers."
+msgstr "Če je to napaka, se obrnite na razvijalce scantpaperja."
+
+#: tests/test_savethread.py:1230
+#, fuzzy
+msgid "Writing page"
+msgstr "Zapisovanje strani"
+
+#: text_layer_control.py:27
+#, fuzzy
+msgid "Sort by confidence"
+msgstr "Razvrsti po zaupanju"
+
+#: text_layer_control.py:28
+#, fuzzy
+msgid "Sort OCR text boxes by confidence."
+msgstr "Razvrsti OCR besedilna polja po zaupanju."
+
+#: text_layer_control.py:30
+#, fuzzy
+msgid "Sort by position"
+msgstr "Razvrsti po položaju"
+
+#: text_layer_control.py:30
+#, fuzzy
+msgid "Sort OCR text boxes by position."
+msgstr "Razvrsti OCR besedilna polja po položaju."
+
+#: text_layer_control.py:61
+#, fuzzy
+msgid "Go to least confident text"
+msgstr "Pojdi na najmanj zaupanja vredno besedilo"
+
+#: text_layer_control.py:64
+#, fuzzy
+msgid "Go to previous text"
+msgstr "Pojdi na prejšnje besedilo"
+
+#: text_layer_control.py:67
+#, fuzzy
+msgid "Select sort method for OCR boxes"
+msgstr "Izberi metodo razvrščanja za OCR polja"
+
+#: text_layer_control.py:73
+#, fuzzy
+msgid "Go to next text"
+msgstr "Pojdi na naslednje besedilo"
+
+#: text_layer_control.py:75
+#, fuzzy
+msgid "Go to most confident text"
+msgstr "Pojdi na najbolj zaupanja vredno besedilo"
+
+#: text_layer_control.py:77
+#, fuzzy
+msgid "Add text"
+msgstr "Dodaj besedilo"
+
+#: text_layer_control.py:80
+#, fuzzy
+msgid "_OK"
+msgstr "_V redu"
+
+#: text_layer_control.py:86
+msgid "_Copy"
+msgstr "_Kopiraj"
+
+#: text_layer_control.py:86
+#, fuzzy
+msgid "Duplicate text"
+msgstr "Podvoji besedilo"
+
+#: text_layer_control.py:89
+#, fuzzy
+msgid "Delete text"
+msgstr "Izbriši besedilo"
+
+#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
+msgid "Threshold"
+msgstr "Prag"
+
+#: tools_menu_mixins.py:106
+#, fuzzy
+msgid "Ink strength"
+msgstr "Moč črnila"
+
+#: tools_menu_mixins.py:159
+#, fuzzy
+msgid "Brightness / Contrast"
+msgstr "Svetlost / Kontrast"
+
+#: tools_menu_mixins.py:170
+#, fuzzy
+msgid "Brightness"
+msgstr "Svetlost"
+
+#: tools_menu_mixins.py:181
+#, fuzzy
+msgid "Contrast"
+msgstr "Kontrast"
+
+#: tools_menu_mixins.py:227
+msgid "Negate"
+msgstr "Negativ"
+
+#: tools_menu_mixins.py:264
+msgid "Unsharp mask"
+msgstr "Maska ostrine"
+
+#: tools_menu_mixins.py:275
+msgid "Radius"
+msgstr "Radij"
+
+#: tools_menu_mixins.py:279
+#, fuzzy
+msgid "Blur Radius."
+msgstr "Polmer zameglitve."
+
+#: tools_menu_mixins.py:282
+#, fuzzy
+msgid "Percentage"
+msgstr "Odstotek"
+
+#: tools_menu_mixins.py:286
+#, fuzzy
+msgid "Unsharp strength, in percent."
+msgstr "Moč neoštrine, v odstotkih."
+
+#: tools_menu_mixins.py:293
+#, fuzzy
+msgid ""
+"Threshold controls the minimum brightness change that will be sharpened."
+msgstr "Prag nadzoruje minimalno spremembo svetlosti, ki bo izoštrena."
+
+#: tools_menu_mixins.py:444
+#, fuzzy
+msgid "Split"
+msgstr "Razdeli"
+
+#: tools_menu_mixins.py:453
+#, fuzzy
+msgid "Direction"
+msgstr "Smer"
+
+#: tools_menu_mixins.py:458
+#, fuzzy
+msgid "Vertically"
+msgstr "Navpično"
+
+#: tools_menu_mixins.py:459
+#, fuzzy
+msgid "Split the page vertically into left and right pages."
+msgstr "Razdeli stran navpično na levo in desno stran."
+
+#: tools_menu_mixins.py:463
+#, fuzzy
+msgid "Horizontally"
+msgstr "Vodoravno"
+
+#: tools_menu_mixins.py:464
+#, fuzzy
+msgid "Split the page horizontally into top and bottom pages."
+msgstr "Razdeli stran vodoravno na zgornjo in spodnjo stran."
+
+#: tools_menu_mixins.py:487
+#, fuzzy
+msgid "Position"
+msgstr "Položaj"
+
+#: tools_menu_mixins.py:590
+msgid "unpaper"
+msgstr "unpaper"
+
+#: tools_menu_mixins.py:649
+msgid "OCR"
+msgstr "OCR"
+
+#: tools_menu_mixins.py:730
+#, fuzzy
+msgid "User-defined tools"
+msgstr "Orodja, ki jih določi uporabnik"
+
+#: tools_menu_mixins.py:739
+#, fuzzy
+msgid "Selected tool"
+msgstr "Izbrano orodje"
+
+#: tools_menu_mixins.py:782
+msgid "Email as PDF"
+msgstr "Pošlji po e-pošti kot PDF"
+
+#: tools_menu_mixins.py:861
+#, fuzzy
+msgid "Error creating email"
+msgstr "Napaka pri ustvarjanju e-pošte"
+
+#: tools_menu_mixins.py:917
+#, fuzzy
+msgid "To aid the scan-to-PDF process"
+msgstr "Za pomoč pri procesu od skeniranja do PDF-ja"
+
+#: tools_menu_mixins.py:918
+#, fuzzy
+msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
+msgstr "Avtorske pravice 2006--2026 Jeffrey Ratcliffe"
+
+#: unpaper.py:38
 msgid "Layout"
 msgstr "Postavitev"
 
-#: lib/Gscan2pdf/Unpaper.pm:49
+#: unpaper.py:41
 msgid "Single"
 msgstr "Enojno"
 
-#: lib/Gscan2pdf/Unpaper.pm:51
+#: unpaper.py:42
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Ena stran na list, pokončna brez rotacije"
 
-#: lib/Gscan2pdf/Unpaper.pm:55
+#: unpaper.py:47
 msgid "Double"
 msgstr "Dvojno"
 
-#: lib/Gscan2pdf/Unpaper.pm:57
+#: unpaper.py:48
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
 msgstr ""
 "Dve strani na stran, ležeče (ena stran na levi polovici, druga na desni)"
 
-#: lib/Gscan2pdf/Unpaper.pm:65
+#: unpaper.py:58
 msgid "# Output pages"
 msgstr "# izhodnih strani"
 
-#: lib/Gscan2pdf/Unpaper.pm:66
+#: unpaper.py:59
 msgid "Number of pages to output."
 msgstr "Število izhodnih strani."
 
-#: lib/Gscan2pdf/Unpaper.pm:74
+#: unpaper.py:67
+#, fuzzy
+msgid "Writing system"
+msgstr "Sistem pisanja"
+
+#: unpaper.py:70
+#, fuzzy
+msgid "Left-to-right"
+msgstr "Od leve proti desni"
+
+#: unpaper.py:71
+#, fuzzy
+msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
+msgstr "Večina sistemov pisanja, npr. latinica, grška, cirilica."
+
+#: unpaper.py:76
+#, fuzzy
+msgid "Right-to-left"
+msgstr "Od desne proti levi"
+
+#: unpaper.py:77
+#, fuzzy
+msgid "Scripts like Arabic or Hebrew."
+msgstr "Pisave, kot sta arabščina ali hebrejščina."
+
+#: unpaper.py:85
 msgid "No deskew"
 msgstr "Brez odstranjevanja nagiba"
 
-#: lib/Gscan2pdf/Unpaper.pm:75
+#: unpaper.py:86
 msgid "Disable deskewing."
 msgstr "Onemogoči odstranjevanje nagiba"
 
-#: lib/Gscan2pdf/Unpaper.pm:80
+#: unpaper.py:91
 msgid "No mask scan"
 msgstr "Brez maske skeniranja"
 
-#: lib/Gscan2pdf/Unpaper.pm:81
+#: unpaper.py:92
 msgid "Disable mask detection."
 msgstr "Onemogoči zaznavanje maske."
 
-#: lib/Gscan2pdf/Unpaper.pm:86
+#: unpaper.py:97
+#, fuzzy
+msgid "No mask centering"
+msgstr "Brez centriranja maske"
+
+#: unpaper.py:98
+#, fuzzy
+msgid "Disable mask centering."
+msgstr "Onemogoči centriranje maske."
+
+#: unpaper.py:103
 msgid "No black filter"
 msgstr "Brez črnega filtra"
 
-#: lib/Gscan2pdf/Unpaper.pm:87
+#: unpaper.py:104
 msgid "Disable black area scan."
 msgstr "Onemogoči skeniranje črne površine."
 
-#: lib/Gscan2pdf/Unpaper.pm:92
+#: unpaper.py:109
 msgid "No gray filter"
 msgstr "Brez sivinskega filtra"
 
-#: lib/Gscan2pdf/Unpaper.pm:93
+#: unpaper.py:110
 msgid "Disable gray area scan."
 msgstr "Onemogoči skerniranje sive površine."
 
-#: lib/Gscan2pdf/Unpaper.pm:98
+#: unpaper.py:115
 msgid "No noise filter"
 msgstr "Brez filtra za šum"
 
-#: lib/Gscan2pdf/Unpaper.pm:99
+#: unpaper.py:116
 msgid "Disable noise filter."
 msgstr "Onemogoči filter za šum."
 
-#: lib/Gscan2pdf/Unpaper.pm:104
+#: unpaper.py:121
 msgid "No blur filter"
 msgstr "Brez filtra zamegljenosti"
 
-#: lib/Gscan2pdf/Unpaper.pm:105
+#: unpaper.py:122
 msgid "Disable blur filter."
 msgstr "Onemogoči filter zamegljenosti"
 
-#: lib/Gscan2pdf/Unpaper.pm:110
+#: unpaper.py:127
 msgid "No border scan"
 msgstr "Brez skeniranja robov"
 
-#: lib/Gscan2pdf/Unpaper.pm:111
+#: unpaper.py:128
 msgid "Disable border scanning."
 msgstr "Onemogoči skeniranje robov."
 
-#: lib/Gscan2pdf/Unpaper.pm:116
+#: unpaper.py:133
 msgid "No border align"
 msgstr "Brez poravnave robov"
 
-#: lib/Gscan2pdf/Unpaper.pm:118
+#: unpaper.py:134
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "Onemogoči poravnavo površine, ki jo zazna skeniranje robov."
 
-#: lib/Gscan2pdf/Unpaper.pm:123
+#: unpaper.py:141
+#, fuzzy
 msgid "Deskew to edge"
-msgstr ""
+msgstr "Popravi nagib do roba"
 
-#: lib/Gscan2pdf/Unpaper.pm:125
+#: unpaper.py:142
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
@@ -2132,124 +2267,462 @@ msgstr ""
 "zaznavanje zasuka. Če je določenih več robov, bo uporabljena povprečna "
 "vrednost, razen če bo statistični odklon prekoračil --deskew-scan-deviation."
 
-#: lib/Gscan2pdf/Unpaper.pm:132
+#: unpaper.py:152
 msgid "Use 'left' for scanning from the left edge."
 msgstr "Uporabi 'levo' za skeniranje z levega robu."
 
-#: lib/Gscan2pdf/Unpaper.pm:138
+#: unpaper.py:157
 msgid "Use 'top' for scanning from the top edge."
 msgstr "Uporabi 'vrh'  za skeniranje z zgornjega robu."
 
-#: lib/Gscan2pdf/Unpaper.pm:142 lib/Gscan2pdf/Unpaper.pm:172
+#: unpaper.py:161 unpaper.py:189
 msgid "Right"
 msgstr "Desno"
 
-#: lib/Gscan2pdf/Unpaper.pm:144
+#: unpaper.py:162
 msgid "Use 'right' for scanning from the right edge."
 msgstr "Uporabi 'desno' za skeniranje z desnega robu."
 
-#: lib/Gscan2pdf/Unpaper.pm:148 lib/Gscan2pdf/Unpaper.pm:178
+#: unpaper.py:166 unpaper.py:194
 msgid "Bottom"
 msgstr "Dno"
 
-#: lib/Gscan2pdf/Unpaper.pm:150
+#: unpaper.py:167
 msgid "Use 'bottom' for scanning from the bottom."
 msgstr "Uporabi 'dno' za skeniranje s spodnjega robu."
 
-#: lib/Gscan2pdf/Unpaper.pm:157
+#: unpaper.py:174
 msgid "Align to edge"
 msgstr "Poravnaj to roba"
 
-#: lib/Gscan2pdf/Unpaper.pm:158
+#: unpaper.py:175
 msgid "Edge to which to align the page."
 msgstr "Rob do katerega bo stran poravnana."
 
-#: lib/Gscan2pdf/Unpaper.pm:163
+#: unpaper.py:180
 msgid "Use 'left' to align to the left edge."
 msgstr "Uporabi 'levo' za poravnavo ob desnem robu."
 
-#: lib/Gscan2pdf/Unpaper.pm:168
+#: unpaper.py:185
 msgid "Use 'top' to align to the top edge."
 msgstr "Uporabi 'vrh' za poravnavno ob zgornjem robu"
 
-#: lib/Gscan2pdf/Unpaper.pm:174
+#: unpaper.py:190
 msgid "Use 'right' to align to the right edge."
 msgstr "Uporabi 'desno' za poravnavo ob desne robu."
 
-#: lib/Gscan2pdf/Unpaper.pm:179
+#: unpaper.py:195
 msgid "Use 'bottom' to align to the bottom."
 msgstr "Uporabi 'dno' za poravnavo ob spodnjem robu."
 
-#: lib/Gscan2pdf/Unpaper.pm:185
+#: unpaper.py:201
 msgid "Border margin"
 msgstr "Odmik roba"
 
-#: lib/Gscan2pdf/Unpaper.pm:189
+#: unpaper.py:205
 msgid "Vertical margin"
 msgstr "Navpični odmik"
 
-#: lib/Gscan2pdf/Unpaper.pm:191
+#: unpaper.py:206
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr "Navpična razdalja, ki naj ohrani rob lista ob poravnavi površine."
 
-#: lib/Gscan2pdf/Unpaper.pm:200
+#: unpaper.py:217
 msgid "Horizontal margin"
 msgstr "Horizontalni odmik"
 
-#: lib/Gscan2pdf/Unpaper.pm:202
+#: unpaper.py:218
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr "Horizontalna razdalja, ki ohrani rob lista ob poravnavi površine."
 
-#: lib/Gscan2pdf/Unpaper.pm:213
+#: unpaper.py:231
 msgid "White threshold"
 msgstr "Prag beline"
 
-#: lib/Gscan2pdf/Unpaper.pm:215
+#: unpaper.py:232
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "Razmerje svetlosti nad katerim se točka smatra za belega."
 
-#: lib/Gscan2pdf/Unpaper.pm:223
+#: unpaper.py:243
 msgid "Black threshold"
 msgstr "Prag črnine"
 
-#: lib/Gscan2pdf/Unpaper.pm:225
+#: unpaper.py:244
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
 msgstr ""
 "Razmerje svetlosti nad katero se točka smatra za črno (ne sivo). Uporablja "
 "se za sivinski filter. Ta vrednost se uporablja tudi ob pretvorbi sivinske "
 "slike v črno-beli način."
 
-#: lib/Gscan2pdf/Unpaper.pm:261
+#: unpaper.py:355
 msgid "Deskew"
 msgstr "Odstranjevanje poševnosti"
 
-#: lib/Gscan2pdf/Unpaper.pm:293
+#: unpaper.py:359
 msgid "Border"
 msgstr "Rob"
 
-#: lib/Gscan2pdf/Unpaper.pm:352
+#: unpaper.py:364
 msgid "Filters"
 msgstr "Filtri"
 
-#: t/05_Dialog.t:23
-msgid "title"
-msgstr ""
+#~ msgid "GOCR"
+#~ msgstr "GOCR"
 
-#: t/05_Dialog.t:24
-msgid "transient-for"
-msgstr ""
+#~ msgid "Process image with GOCR."
+#~ msgstr "Procesiraj sliko z GOCR"
 
-#: t/060_Dialog_Scan.t:39 t/0610_Dialog_Scan_Sane.t:39
-#: t/0621_Dialog_Scan_CLI.t:39
-msgid "side-to-scan"
-msgstr ""
+#~ msgid "_File"
+#~ msgstr "_Datoteka"
 
-#: t/0610_Dialog_Scan_Sane.t:183 t/0611_Dialog_Scan_Sane.t:71
-#: t/0621_Dialog_Scan_CLI.t:212
-msgid "profile"
-msgstr ""
+#~ msgid "_New"
+#~ msgstr "_Nov"
+
+#~ msgid "Clears all pages"
+#~ msgstr "Počisti vse strani"
+
+#~ msgid "_Open"
+#~ msgstr "_Odpri"
+
+#~ msgid "S_can"
+#~ msgstr "S_keniraj"
+
+#~ msgid "Scan document"
+#~ msgstr "Skeniraj dokument"
+
+#~ msgid "_Email as PDF"
+#~ msgstr "_Pošlji PDF po e-pošti"
+
+#~ msgid "Attach as PDF to a new email"
+#~ msgstr "Pripni kot PDF novemu sporočilu"
+
+#~ msgid "_Compress temporary files"
+#~ msgstr "_Stisni začasne datoteke"
+
+#~ msgid "Compress temporary files"
+#~ msgstr "Stisne začasne datoteke"
+
+#~ msgid "_Quit"
+#~ msgstr "_Izhod"
+
+#~ msgid "Quit"
+#~ msgstr "Končaj"
+
+#~ msgid "_Edit"
+#~ msgstr "_Uredi"
+
+#~ msgid "_Undo"
+#~ msgstr "_Razveljavi"
+
+#~ msgid "Undo"
+#~ msgstr "Razveljavi"
+
+#~ msgid "_Redo"
+#~ msgstr "_Ponovi"
+
+#~ msgid "Redo"
+#~ msgstr "Ponovi"
+
+#~ msgid "Cu_t"
+#~ msgstr "I_zreži"
+
+#~ msgid "Cut selection"
+#~ msgstr "Izreži izbrano"
+
+#~ msgid "Copy selection"
+#~ msgstr "Kopiraj izbor"
+
+#~ msgid "_Paste"
+#~ msgstr "_Prilepi"
+
+#~ msgid "Paste selection"
+#~ msgstr "Prilepi izbor"
+
+#~ msgid "Delete selected pages"
+#~ msgstr "Izbriši izbrane strani"
+
+#~ msgid "_Renumber"
+#~ msgstr "_Preštevilči"
+
+#~ msgid "Renumber pages"
+#~ msgstr "Preštevilči strani"
+
+#~ msgid "_Select"
+#~ msgstr "_Izberi"
+
+#~ msgid "_All"
+#~ msgstr "_Vse"
+
+#~ msgid "Select all pages"
+#~ msgstr "Izberi vse strani"
+
+#~ msgid "_Odd"
+#~ msgstr "_Liho"
+
+#~ msgid "Select all odd-numbered pages"
+#~ msgstr "Izberi vse liho oštevilčene strani"
+
+#~ msgid "_Even"
+#~ msgstr "_Sodo"
+
+#~ msgid "Select all evenly-numbered pages"
+#~ msgstr "Izberi vse sodo oštevilčene strani"
+
+#~ msgid "_Blank"
+#~ msgstr "_Prazna"
+
+#~ msgid "Select pages with low standard deviation"
+#~ msgstr "Izberi vse strani z nizko standardno deviacijo"
+
+#~ msgid "_Dark"
+#~ msgstr "_Temno"
+
+#~ msgid "Select dark pages"
+#~ msgstr "Izberi temne strani"
+
+#~ msgid "Propert_ies"
+#~ msgstr "_Lastnosti"
+
+#~ msgid "Edit image properties"
+#~ msgstr "Uredi lastnosti slike"
+
+#~ msgid "Prefere_nces"
+#~ msgstr "_Nastavitve"
+
+#~ msgid "Edit preferences"
+#~ msgstr "Uredi nastavitve"
+
+#~ msgid "_View"
+#~ msgstr "_Pogled"
+
+#~ msgid "Zoom _100%"
+#~ msgstr "Povečava _100%"
+
+#~ msgid "Zoom to 100%"
+#~ msgstr "Povečaj na 100 %"
+
+#~ msgid "Zoom to _fit"
+#~ msgstr "Povečaj na velikost stran"
+
+#~ msgid "Zoom to fit"
+#~ msgstr "Prilagodi velikosti, da ustreza"
+
+#~ msgid "Zoom _in"
+#~ msgstr "P_ovečaj"
+
+#~ msgid "Zoom in"
+#~ msgstr "Povečaj"
+
+#~ msgid "Zoom _out"
+#~ msgstr "Po_manjšaj"
+
+#~ msgid "Zoom out"
+#~ msgstr "Pomanjšaj"
+
+#~ msgid "Rotate 90° clockwise"
+#~ msgstr "Obrni za 90˚ v smeri urinega kazalca"
+
+#~ msgid "Rotate 180°"
+#~ msgstr "Obrni za 180˚"
+
+#~ msgid "Rotate 90° anticlockwise"
+#~ msgstr "Obrni za 90˚ v nasprotni smeri urinega kazalca"
+
+#~ msgid "_Tools"
+#~ msgstr "_Orodja"
+
+#~ msgid "_Threshold"
+#~ msgstr "Pra_g"
+
+#~ msgid "Change each pixel above this threshold to black"
+#~ msgstr "Spremeni vsak piksel nad vrednost tega praga v črno"
+
+#~ msgid "Converts black to white and vice versa"
+#~ msgstr "Pretvori črno v belo in obratno"
+
+#~ msgid "_Unsharp Mask"
+#~ msgstr "_Maska ostrine"
+
+#~ msgid "Apply an unsharp mask"
+#~ msgstr "Določam masko ostrine"
+
+#~ msgid "_Crop"
+#~ msgstr "_Obreži"
+
+#~ msgid "Crop pages"
+#~ msgstr "Obreži strani"
+
+#~ msgid "_Clean up"
+#~ msgstr "_Počisti"
+
+#~ msgid "_OCR"
+#~ msgstr "_OCR"
+
+#~ msgid "Optical Character Recognition"
+#~ msgstr "optično prepoznavanje znakov"
+
+#~ msgid "_Help"
+#~ msgstr "_Pomoč"
+
+#~ msgid "Help"
+#~ msgstr "Pomoč"
+
+#~ msgid "_About"
+#~ msgstr "_O Programu"
+
+#~ msgid "_Drag"
+#~ msgstr "_Povleci"
+
+#~ msgid "Save image and Save as PDF both require imagemagick\n"
+#~ msgstr "Shranjevanje slike in PDF formata zahteva nameščen imagemagick\n"
+
+#~ msgid "Save image requires libtiff\n"
+#~ msgstr "Shranjevanje slike zahteva nameščen libtiff\n"
+
+#~ msgid "Save as DjVu requires djvulibre-bin\n"
+#~ msgstr "Shranjevanje kot DjVu zahteva nameščen djvulibre-bin\n"
+
+#~ msgid "Email as PDF requires xdg-email\n"
+#~ msgstr "Pošiljanje PDF po elektronski pošti zahteva nameščen xdg-email\n"
+
+#~ msgid "unpaper missing\n"
+#~ msgstr "manjkajoči program unpaper\n"
+
+#~ msgid "Date"
+#~ msgstr "Datum"
+
+#~ msgid "Compress output with PNG encoding."
+#~ msgstr "Stisni izhodne podatke s PNG kodiranjem."
+
+#~ msgid "Image type"
+#~ msgstr "Vrsta slike"
+
+#~ msgid "scantpaper session file"
+#~ msgstr "datoteka seje scantpaper"
+
+#~ msgid "tiff"
+#~ msgstr "tiff"
+
+#, perl-format
+#~ msgid ""
+#~ "File %s exists.\n"
+#~ "Really overwrite?"
+#~ msgstr ""
+#~ "Datoteka %s že obstaja.\n"
+#~ "Jo želite prepisati?"
+
+#~ msgid "90"
+#~ msgstr "90"
+
+#~ msgid "180"
+#~ msgstr "180"
+
+#~ msgid "270"
+#~ msgstr "270"
+
+#~ msgid "Select direction of rotation"
+#~ msgstr "Izberi smer zasuka"
+
+#~ msgid "Select OCR engine"
+#~ msgstr "Izberi OCR program"
+
+#~ msgid "Unable to load image"
+#~ msgstr "Ne morem naložiti slike"
+
+#~ msgid "Patches gratefully received from:"
+#~ msgstr "Popravki velikodušno sprejeti od:"
+
+#~ msgid ""
+#~ "The radius of the Gaussian, in pixels, not counting the center pixel (0 = "
+#~ "automatic)."
+#~ msgstr ""
+#~ "Radij po Gaussu v točkah brez upoštevanja sredinske točke (0 = samodejno)"
+
+#~ msgid "Sigma"
+#~ msgstr "Sigma"
+
+#~ msgid "The standard deviation of the Gaussian."
+#~ msgstr "Standardni odklon po Gaussu"
+
+#~ msgid "Amount"
+#~ msgstr "Količina"
+
+#~ msgid ""
+#~ "The percentage of the difference between the original and the blur image "
+#~ "that is added back into the original."
+#~ msgstr ""
+#~ "Odstotek razlike med izvirno in zamegljeno sliko, ki je dodana nazaj na "
+#~ "izvirno sliko."
+
+#~ msgid ""
+#~ "The threshold, as a fraction of QuantumRange, needed to apply the difference"
+#~ " amount."
+#~ msgstr ""
+#~ "Prag, kot delec kvantnega območja, potreben za določanje velikosti razlike."
+
+#~ msgid "English"
+#~ msgstr "Angleški"
+
+#~ msgid "OCR Engine"
+#~ msgstr "OCR program"
+
+#~ msgid "Start OCR"
+#~ msgstr "Zaženii OCR"
+
+#, perl-format
+#~ msgid ""
+#~ "The help viewer requires module Gtk2::Ex::PodViewer\n"
+#~ "Alternatively, try: %s %s\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Pregledovalnik pomoči zahteva modul Gtk2::Ex::PodViewer\n"
+#~ "Kot alternativo poskusite: %s %s\n"
+#~ "\n"
+
+#~ msgid "This operation cannot be undone. Are you sure?"
+#~ msgstr "Te operacije ni mogoče razveljaviti. Ste prepričani?"
+
+#~ msgid ""
+#~ "You will have to restart gscanp2df for changes to the temporary directory to"
+#~ " take effect."
+#~ msgstr ""
+#~ "Za uveljavitev sprememb začasne mape bo potrebno ponovno zagnati scantpaper."
+
+#~ msgid "Resolution"
+#~ msgstr "Ločljivost"
+
+#~ msgid "Start"
+#~ msgstr "Začetek"
+
+#~ msgid "Increment"
+#~ msgstr "Prirastek"
+
+#~ msgid "Updating options"
+#~ msgstr "Možnosti posodabljanja"
+
+#, perl-format
+#~ msgid "Scanning page %i..."
+#~ msgstr "Skeniram stran %i..."
+
+#~ msgid "Scanner warming up"
+#~ msgstr "Ogrevanje skenerja"
+
+#~ msgid "Document feeder out of documents"
+#~ msgstr "Podajalnik dokumentov je prazen"
+
+#~ msgid "Device busy"
+#~ msgstr "Naprava je zasedena"
+
+#~ msgid "Operation cancelled"
+#~ msgstr "Dejanje preklicano"
+
+#~ msgid "Unknown message: "
+#~ msgstr "Neznano sporočilo: "
+
+#~ msgid "active"
+#~ msgstr "dejaven"

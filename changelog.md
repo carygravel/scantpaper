@@ -24,10 +24,12 @@
 * + builds for Fedora 43 and 44 to CI/CD. Closes: #63 (Fedora)
 * + builds for OpenSuse Leap 16 to CI/CD. Closes: #72 (openSUSE Leap 16 GNOME)
 * Updated German translation
-* Seeded Basque, Brazilian Portuguese, Catalan, Czech, Danish, Dutch, Finnish,
-  French, Galician, Greek, Hungarian, Italian, Norwegian Bokmål, Polish,
-  Portuguese, Russian, Slovak, Spanish, Swedish, Turkish and Ukrainian
-  translations. These will not be visible until they have been checked.
+* Seeded Basque, Brazilian Portuguese, Bulgarian, Catalan, Croatian, Czech,
+  Danish, Dutch, Finnish, French, Galician, Greek, Hungarian, Italian,
+  Japanese, Korean, Norwegian Bokmål, Polish, Portuguese, Russian,
+  Simplified Chinese, Slovak, Slovenian, Spanish, Swedish, Traditional Chinese,
+  Turkish and Ukrainian translations.
+  These will not be visible until they have been checked.
 
 
 ## 3.0.19 (2026-09-19)
