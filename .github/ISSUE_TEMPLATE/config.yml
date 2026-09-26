@@ -1,5 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Translations
-    about: Contribute translations via Launchpad Rosetta, not as GitHub issues.
+    about: We'd like to organise translations on Launchpad Rosetta — but if
+      that's too much effort for you, attaching a .po file to an issue or
+      merge request is just as welcome.
     url: https://translations.launchpad.net/scantpaper
