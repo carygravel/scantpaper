@@ -7,491 +7,1283 @@ msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2015-12-20 16:30+0100\n"
+"POT-Creation-Date: 2026-09-26 16:03+0200\n"
 "PO-Revision-Date: 2014-01-12 07:21+0000\n"
 "Last-Translator: SiliconDreams <BlackdeGR@yahoo.gr>\n"
 "Language-Team: Greek <el@li.org>\n"
+"Language: el\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: el\n"
-"X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 "X-Generator: Launchpad (build 17908)\n"
-
-#: bin/scantpaper:383
-msgid "Image"
-msgstr "Εικόνα"
-
-#: bin/scantpaper:418
-msgid "OCR Output"
-msgstr "Έξοδος OCR"
-
-#: bin/scantpaper:524
-msgid "Error displaying help"
-msgstr "Υπήρξε σφάλμα κατά την εμφάνιση της βοήθειας"
-
-#: bin/scantpaper:564 bin/gscan2pdf:586
-#, perl-format
-msgid "Cannot read file: %s"
-msgstr "Αδύνατη η ανάγνωση του αρχείου: %s"
-
-#: bin/scantpaper:673
-msgid "GOCR"
-msgstr "GOCR"
-
-#: bin/scantpaper:673
-msgid "Process image with GOCR."
-msgstr "Επεξεργασία εικόνας με GOCR."
-
-#: bin/scantpaper:679
-msgid "Tesseract"
-msgstr "Tesseract"
-
-#: bin/scantpaper:680
-msgid "Process image with Tesseract."
-msgstr "Επεξεργασία εικόνας με Υπερκυβισμό (Tesseract)"
-
-#: bin/scantpaper:687
-msgid "Ocropus"
-msgstr "Ocropus"
-
-#: bin/scantpaper:688
-msgid "Process image with Ocropus."
-msgstr "Επεξεργασία εικόνας με το Ocropus."
-
-#: bin/scantpaper:695
-msgid "Cuneiform"
-msgstr "Σφηνοειδής γραφή (Cuneiform)"
-
-#: bin/scantpaper:696
-msgid "Process image with Cuneiform."
-msgstr "Επεξεργασία εικόνας με τη σφηνοειδή γραφή (Cuneiform)"
-
-#: bin/scantpaper:719
-msgid "_File"
-msgstr "_Αρχείο"
-
-#: bin/scantpaper:722
-msgid "_New"
-msgstr "_Νέο"
-
-#: bin/scantpaper:723
-msgid "Clears all pages"
-msgstr "Καθαρισμός όλων των σελίδων"
-
-#: bin/scantpaper:727
-msgid "_Open"
-msgstr "_Άνοιγμα"
-
-#: bin/scantpaper:728
-msgid "Open image file(s)"
-msgstr "Άνοιγμα αρχείου εικόνων"
-
-#: bin/scantpaper:732
-msgid "Open c_rashed session"
-msgstr ""
-
-#: bin/scantpaper:733 bin/gscan2pdf:1824
-msgid "Open crashed session"
-msgstr ""
-
-#: bin/scantpaper:737
-msgid "S_can"
-msgstr "Σ_άρωση"
-
-#: bin/scantpaper:738
-msgid "Scan document"
-msgstr "Σάρωση εγγράφου"
-
-#: bin/scantpaper:741 bin/gscan2pdf:742 bin/gscan2pdf:2538
-msgid "Save"
-msgstr "Αποθήκευση"
-
-#: bin/scantpaper:746
-msgid "_Email as PDF"
-msgstr "_Email ως PDF"
-
-#: bin/scantpaper:747
-msgid "Attach as PDF to a new email"
-msgstr "Επισύναψη σαν PDF σε νέο email"
-
-#: bin/scantpaper:751
-msgid "_Print"
-msgstr "_Εκτύπωση"
-
-#: bin/scantpaper:752
-msgid "Print"
-msgstr "Εκτύπωση"
-
-#: bin/scantpaper:756
-msgid "_Compress temporary files"
-msgstr "_Συμπίεση προσωρινών αρχείων"
-
-#: bin/scantpaper:757
-msgid "Compress temporary files"
-msgstr "Συμπίεση προσωρινών αρχείων"
-
-#: bin/scantpaper:762
-msgid "_Quit"
-msgstr "_'Εξοδος"
-
-#: bin/scantpaper:764
-msgid "Quit"
-msgstr "'Εξοδος"
-
-#: bin/scantpaper:771
-msgid "_Edit"
-msgstr "_Επεξεργασία"
-
-#: bin/scantpaper:773
-msgid "_Undo"
-msgstr "_Αναίρεση"
-
-#: bin/scantpaper:774
-msgid "Undo"
-msgstr "Αναίρεση"
-
-#: bin/scantpaper:778
-msgid "_Redo"
-msgstr "_Ακύρωση Αναίρεσης"
-
-#: bin/scantpaper:779
-msgid "Redo"
-msgstr "Ακύρωση Αναίρεσης"
-
-#: bin/scantpaper:783
-msgid "Cu_t"
-msgstr "Απο_κοπή"
-
-#: bin/scantpaper:784
-msgid "Cut selection"
-msgstr "Αποκοπή επιλογής"
-
-#: bin/scantpaper:788
-msgid "_Copy"
-msgstr "Αντι_γραφή"
-
-#: bin/scantpaper:789
-msgid "Copy selection"
-msgstr "Αντιγραφή επιλογής"
-
-#: bin/scantpaper:793
-msgid "_Paste"
-msgstr "Ε_πικόλληση"
-
-#: bin/scantpaper:794
-msgid "Paste selection"
-msgstr "Επικόλληση επιλογής"
-
-#: bin/scantpaper:798
-msgid "_Delete"
-msgstr "_Διαγραφή"
-
-#: bin/scantpaper:799
-msgid "Delete selected pages"
-msgstr "Διαγραφή επιλεγμένων σελίδων"
-
-#: bin/scantpaper:803
-msgid "_Renumber"
-msgstr "_Επαναρίθμηση"
-
-#: bin/scantpaper:804
-msgid "Renumber pages"
-msgstr "Εκ νέου αρίθμηση σελίδων"
-
-#: bin/scantpaper:806 bin/gscan2pdf:971
-msgid "_Select"
-msgstr "_Επιλογή"
-
-#: bin/scantpaper:809
-msgid "_All"
-msgstr "_Όλα"
-
-#: bin/scantpaper:810
-msgid "Select all pages"
-msgstr "Επιλογή όλων των σελίδων"
-
-#: bin/scantpaper:813
-msgid "_Odd"
-msgstr "_Μονό"
-
-#: bin/scantpaper:814
-msgid "Select all odd-numbered pages"
-msgstr "Επιλέξτε όλες τις σελίδες με  μονή αρίθμηση"
-
-#: bin/scantpaper:818
-msgid "_Even"
-msgstr "_Ζυγό"
-
-#: bin/scantpaper:819
-msgid "Select all evenly-numbered pages"
-msgstr "Επιλέξτε όλες τις σελίδες με  ζυγή αρίθμηση"
-
-#: bin/scantpaper:825
-msgid "_Blank"
-msgstr "_Κενό"
-
-#: bin/scantpaper:827
-msgid "Select pages with low standard deviation"
-msgstr "Επιλογή σελίδων με χαμηλή απόκλιση"
-
-#: bin/scantpaper:832
-msgid "_Dark"
-msgstr "_Σκοτεινό"
-
-#: bin/scantpaper:833
-msgid "Select dark pages"
-msgstr "Επιλέξτε τις σκοτεινές σελίιδες"
-
-#: bin/scantpaper:838
-msgid "_Modified"
-msgstr "_Τροποποιήθηκαν"
-
-#: bin/scantpaper:840
-msgid "Select modified pages since last OCR"
-msgstr "Επιλέξτε τις τροποποιημένες σελίδες μετά το τελευταίο OCR"
-
-#: bin/scantpaper:845
-msgid "_No OCR"
-msgstr "_Χωρίς OCR"
-
-#: bin/scantpaper:846
-msgid "Select pages with no OCR output"
-msgstr "Επιλέξτε τις σελίδες χωρίς έξοδο OCR"
-
-#: bin/scantpaper:850
-msgid "_Clear OCR"
-msgstr "_Διαγραφή OCR"
-
-#: bin/scantpaper:851
-msgid "Clear OCR output from selected pages"
-msgstr "Διαγραφή της εξόδου OCR από τις επιλεγμένες σελίδες"
-
-#: bin/scantpaper:855
-msgid "Propert_ies"
-msgstr "Ιδιό_τητες"
-
-#: bin/scantpaper:856
-msgid "Edit image properties"
-msgstr "Επεξεργασία ιδιοτήτων εικόνας"
-
-#: bin/scantpaper:860
-msgid "Prefere_nces"
-msgstr "Προτι_μήσεις"
-
-#: bin/scantpaper:861
-msgid "Edit preferences"
-msgstr "Επεξεργασία ρυθμίσεων"
-
-#: bin/scantpaper:865
-msgid "_View"
-msgstr "_Προβολή"
-
-#: bin/scantpaper:868
-msgid "Zoom _100%"
-msgstr "Μεγέθυνση _100%"
-
-#: bin/scantpaper:869
-msgid "Zoom to 100%"
-msgstr "Κλίμακα στο 100%"
-
-#: bin/scantpaper:873
-msgid "Zoom to _fit"
-msgstr "Αλλαγή κλίμακας για _ταίριασμα"
-
-#: bin/scantpaper:874
-msgid "Zoom to fit"
-msgstr "Αλλαγή κλίμακας για ταίριασμα"
-
-#: bin/scantpaper:878
-msgid "Zoom _in"
-msgstr "_Μεγέθυνση"
-
-#: bin/scantpaper:879
-msgid "Zoom in"
-msgstr "Μεγέθυνση"
-
-#: bin/scantpaper:883
-msgid "Zoom _out"
-msgstr "Σ_μίκρυνση"
-
-#: bin/scantpaper:884
-msgid "Zoom out"
-msgstr "Σμίκρυνση"
-
-#: bin/scantpaper:889 bin/gscan2pdf:891
-msgid "Rotate 90° clockwise"
-msgstr "Περιστροφή 90 δεξιόστροφα"
-
-#: bin/scantpaper:900 bin/gscan2pdf:902
-msgid "Rotate 180°"
-msgstr "Περιστροφή 180"
-
-#: bin/scantpaper:911 bin/gscan2pdf:913
-msgid "Rotate 90° anticlockwise"
-msgstr "Περιστροφή 90 αριστερόστροφα"
-
-#: bin/scantpaper:921
-msgid "_Tools"
-msgstr "_Εργαλεία"
-
-#: bin/scantpaper:923
-msgid "_Threshold"
-msgstr "_Ανοχή"
-
-#: bin/scantpaper:924
-msgid "Change each pixel above this threshold to black"
-msgstr "Αλλαγή σε μσύρο για κάθε εικονοστοιχείο που υπερβαίνει το όριο"
-
-#: bin/scantpaper:928
-msgid "_Negate"
-msgstr "_Απόρριψη"
-
-#: bin/scantpaper:929
-msgid "Converts black to white and vice versa"
-msgstr "Μετατρέπει το μαύρο σε λευκό και αντιστρόφως"
-
-#: bin/scantpaper:933
-msgid "_Unsharp Mask"
-msgstr "_Μάσκα Άμβλυνσης"
-
-#: bin/scantpaper:934
-msgid "Apply an unsharp mask"
-msgstr "Εφαρμόστε μια μάσκα άμβλυνσης"
-
-#: bin/scantpaper:937
-msgid "_Crop"
-msgstr "Α_ποκοπή"
-
-#: bin/scantpaper:938
-msgid "Crop pages"
-msgstr "Αποκοπή σελίδων"
-
-#: bin/scantpaper:942
-msgid "_Clean up"
-msgstr "_Καθαρισμός"
-
-#: bin/scantpaper:943 bin/gscan2pdf:4254
-msgid "Clean up scanned images with unpaper"
-msgstr "Καθαρίστε τις σαρωμένες εικόνες με τον αποσελιδοποιητή"
-
-#: bin/scantpaper:946
-msgid "_OCR"
-msgstr "_OCR"
-
-#: bin/scantpaper:947
-msgid "Optical Character Recognition"
-msgstr "Οπτική Αναγνώριση Χαρακτήρων"
-
-#: bin/scantpaper:949
-msgid "U_ser-defined"
-msgstr "Ο_ρίζεται από τον χρήστη"
-
-#: bin/scantpaper:952 bin/gscan2pdf:954
-msgid "_Help"
-msgstr "_Βοήθεια"
-
-#: bin/scantpaper:955
-msgid "Help"
-msgstr "Βοήθεια"
-
-#: bin/scantpaper:958 bin/gscan2pdf:959
-msgid "_About"
-msgstr "_Σχετικά"
-
-#: bin/scantpaper:966
-msgid "_Drag"
-msgstr "_Σύρτε"
-
-#: bin/scantpaper:967
-msgid "Use the hand tool"
-msgstr "Χρησιμοποιήστε το χειροκίνητο εργαλείο"
-
-#: bin/scantpaper:972
-msgid "Use the rectangular selection tool"
-msgstr "Χρησιμοποιήστε το ορθογώνιο εργαλείο επιλογής"
-
-#: bin/scantpaper:976
-msgid "_Paint"
-msgstr "_Σχεδίαση"
-
-#: bin/scantpaper:977
-msgid "Use the painter tool"
-msgstr "Χρησιμοποιήστε το εργαλείο σχεδίασης/ ζωγραφικής"
-
-#: bin/scantpaper:1164
-msgid "Save image and Save as PDF both require imagemagick\n"
-msgstr ""
-"Η αποθήκευση εικόνας και η αποθήκευση ώς PDF απαιτέι το imagemagick\n"
-
-#: bin/scantpaper:1169
-msgid "Save image requires libtiff\n"
-msgstr "Η αποθήκευση εικονας απαιτεί το libtiff\n"
-
-#: bin/scantpaper:1174
-msgid "Save as DjVu requires djvulibre-bin\n"
-msgstr "Η αποθήκευση ως DjVu απαιτεί το djvulibre-bin\n"
-
-#: bin/scantpaper:1179
-msgid "Email as PDF requires xdg-email\n"
-msgstr "Η αποστολή email ως PDF απαιτεί xdg-email\n"
-
-#: bin/scantpaper:1229
-msgid "The rotating options and unpaper support require perlmagick\n"
-msgstr ""
-"Οι επιλογές περιστροφής και αποσελιδοποίησης απαιτούν το perlmagick\n"
-
-#: bin/scantpaper:1235
-msgid "unpaper missing\n"
-msgstr "Η αποχάρτιση λείπει\n"
-
-#: bin/scantpaper:1246
-msgid "OCR requires gocr, tesseract, ocropus, or cuneiform\n"
-msgstr "Το OCR απαιτεί τα gocr, tesseract, ocropus ή cuneiform\n"
-
-#: bin/scantpaper:1251
+"X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
+
+#: app_window.py:516
+#, fuzzy
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr "Η αποθήκευση εικόνας και η αποθήκευση ως PDF απαιτούν το imagemagick"
+
+#: app_window.py:517
+#, fuzzy
+msgid "Save image requires libtiff"
+msgstr "Η αποθήκευση εικόνας απαιτεί το libtiff"
+
+#: app_window.py:518
+#, fuzzy
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "Η αποθήκευση ως DjVu απαιτεί το djvulibre-bin"
+
+#: app_window.py:519
+#, fuzzy
+msgid "Email as PDF requires xdg-email"
+msgstr "Η αποστολή ως PDF μέσω email απαιτεί το xdg-email"
+
+#: app_window.py:520
+#, fuzzy
+msgid "unpaper missing"
+msgstr "Λείπει το unpaper"
+
+#: app_window.py:528
+#, fuzzy
+msgid "OCR requires tesseract"
+msgstr "Το OCR απαιτεί το tesseract"
+
+#: app_window.py:543
+#, fuzzy
+msgid "PDF encryption requires qpdf"
+msgstr "Η κρυπτογράφηση PDF απαιτεί το qpdf"
+
+#: app_window.py:575
 msgid "Warning: missing packages"
 msgstr "Προσοχή: πακέτα που λείπουν"
 
-#: bin/scantpaper:1407 lib/Gscan2pdf/Document.pm:3609
-msgid "Error copying page"
-msgstr "Σφάλμα κατά την αντιγραφή σελίδας"
+#: app_window.py:593
+msgid "Image"
+msgstr "Εικόνα"
 
-#: bin/scantpaper:1512
-#, perl-format
+#: app_window.py:594 text_layer_control.py:57
+#, fuzzy
+msgid "Text layer"
+msgstr "Στρώμα κειμένου"
+
+#: app_window.py:596 session_mixins.py:446
+#, fuzzy
+msgid "Annotations"
+msgstr "Σχολιασμοί"
+
+#: app_window.py:837
+#, fuzzy
+msgid "%dMb free in %s."
+msgstr "%dMB ελεύθερα στο %s."
+
+#: app_window.py:861 helpers.py:372
+#, fuzzy
+msgid "Messages"
+msgstr "Μηνύματα"
+
+#: app_window.py:946
+#, fuzzy
+msgid "Error opening the last device used."
+msgstr "Σφάλμα κατά το άνοιγμα της τελευταίας συσκευής που χρησιμοποιήθηκε."
+
+#: app_window.py:948
+#, fuzzy
+msgid "There was an error opening the last device used."
+msgstr ""
+"Παρουσιάστηκε σφάλμα κατά το άνοιγμα της τελευταίας συσκευής που "
+"χρησιμοποιήθηκε."
+
+#: app_window.py:951
+#, fuzzy
+msgid "Whoops! I forgot to turn it on. Try again now."
+msgstr "Ουπς! Ξέχασα να την ενεργοποιήσω. Δοκιμάστε ξανά τώρα."
+
+#: app_window.py:956 dialog/scan.py:517
+msgid "Rescan for devices"
+msgstr "Νέα σάρωση για συσκευές"
+
+#: app_window.py:960
+#, fuzzy
+msgid "Restart scantpaper."
+msgstr "Επανεκκινήστε το scantpaper."
+
+#: app_window.py:965
+#, fuzzy
+msgid "Just ignore the error. I don't need the scanner yet."
+msgstr "Απλώς αγνοήστε το σφάλμα. Δεν χρειάζομαι ακόμα τον σαρωτή."
+
+#: app_window.py:968 dialog/preferences.py:162
+#, fuzzy
+msgid "Cache device list"
+msgstr "Αποθήκευση λίστας συσκευών"
+
+#: app_window.py:971 dialog/__init__.py:135 session_mixins.py:392
+msgid "Don't show this message again"
+msgstr "Να μην εμφανισθεί ξανά αυτό το μήνυμα"
+
+#: basedocument.py:48
+msgid "Thumbnails"
+msgstr "Μικρογραφίες"
+
+#: basedocument.py:711
+#, fuzzy
+msgid "No pages to process"
+msgstr "Δεν υπάρχουν σελίδες για επεξεργασία"
+
+#: basedocument.py:715
+#, fuzzy
+msgid "No pages selected"
+msgstr "Δεν έχουν επιλεγεί σελίδες"
+
+#: config.py:107
+#, fuzzy
+msgid "A3"
+msgstr "A3"
+
+#: config.py:113
+msgid "A4"
+msgstr "A4"
+
+#: config.py:119
+msgid "US Letter"
+msgstr "Επιστολή με Αμερικανικά πρότυπα"
+
+#: config.py:125
+msgid "US Legal"
+msgstr "Νομικής φύσεως (ΗΠΑ)"
+
+#: config.py:262
+#, fuzzy
 msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+"The setting %s is %r and cannot be used as %s, so it has been left "
+"unchanged."
 msgstr ""
-"Προσοχή: αδύνατη η χρήση του %s για προσωρινή αποθήκευση. Αντί για αυτό, "
-"γίνεται μετάπτωση στο %s"
+"Η ρύθμιση %s είναι %r και δεν μπορεί να χρησιμοποιηθεί ως %s, οπότε "
+"παραμένει ως έχει."
 
-#: bin/scantpaper:1571
-msgid "Crashed sessions"
-msgstr ""
-
-#: bin/scantpaper:1580
+#: config.py:298
+#, fuzzy
 msgid ""
-"The following list of sessions cannot be restored. Please retrieve any "
-"images you require from them. Selected sessions will be deleted."
+"The settings file %s could not be read in full. The following settings were "
+"restored: %s. The rest were reset to their defaults. A backup of the "
+"original file has been saved as %s."
 msgstr ""
+"Το αρχείο ρυθμίσεων %s δεν μπόρεσε να διαβαστεί πλήρως. Οι ακόλουθες "
+"ρυθμίσεις επαναφέρθηκαν: %s. Οι υπόλοιπες επαναφέρθηκαν στις προεπιλογές "
+"τους. Ένα αντίγραφο ασφαλείας του αρχικού αρχείου αποθηκεύτηκε ως %s."
 
-#: bin/scantpaper:1587 bin/gscan2pdf:1612 bin/gscan2pdf:2569
+#: config.py:305
+#, fuzzy
+msgid ""
+"The settings file %s could not be read, so all settings have been reset to "
+"their defaults. A backup of the original file has been saved as %s."
+msgstr ""
+"Το αρχείο ρυθμίσεων %s δεν μπόρεσε να διαβαστεί, οπότε όλες οι ρυθμίσεις "
+"επαναφέρθηκαν στις προεπιλογές τους. Ένα αντίγραφο ασφαλείας του αρχικού "
+"αρχείου αποθηκεύτηκε ως %s."
+
+#: dialog/__init__.py:67
+msgid "Page Range"
+msgstr "Φάσμα σελίδας"
+
+#: dialog/__init__.py:106
+#, fuzzy
+msgid "Error"
+msgstr "Σφάλμα"
+
+#: dialog/__init__.py:107
+#, fuzzy
+msgid "Warning"
+msgstr "Προειδοποίηση"
+
+#: dialog/__init__.py:108
+#, fuzzy
+msgid "Info"
+msgstr "Πληροφορίες"
+
+#: dialog/__init__.py:125
+#, fuzzy
+msgid "Page"
+msgstr "Σελίδα"
+
+#: dialog/__init__.py:126
+#, fuzzy
+msgid "Process"
+msgstr "Διαδικασία"
+
+#: dialog/__init__.py:127
+#, fuzzy
+msgid "Message type"
+msgstr "Τύπος μηνύματος"
+
+#: dialog/__init__.py:129
+#, fuzzy
+msgid "Message"
+msgstr "Μήνυμα"
+
+#: dialog/__init__.py:132
+#, fuzzy
+msgid "Hide"
+msgstr "Απόκρυψη"
+
+#: dialog/__init__.py:193
+#, fuzzy
+msgid "Don't show these messages again"
+msgstr "Να μην εμφανιστούν ξανά αυτά τα μηνύματα"
+
+#: dialog/__init__.py:312
+#, fuzzy
+msgid ""
+"This error is normally due to ImageMagick exceeding its resource limits."
+msgstr ""
+"Αυτό το σφάλμα οφείλεται συνήθως στην υπέρβαση των ορίων πόρων του "
+"ImageMagick."
+
+#: dialog/__init__.py:316
+#, fuzzy
+msgid ""
+"These can be extended by editing its policy file, which on my system is "
+"found at /etc/ImageMagick-6/policy.xml"
+msgstr ""
+"Αυτά μπορούν να επεκταθούν επεξεργαζόμενοι το αρχείο πολιτικής του, το οποίο"
+" στο σύστημά μου βρίσκεται στο /etc/ImageMagick-6/policy.xml"
+
+#: dialog/__init__.py:321
+#, fuzzy
+msgid ""
+"Please see https://imagemagick.org/script/resources.php for more information"
+msgstr ""
+"Δείτε το https://imagemagick.org/script/resources.php για περισσότερες "
+"πληροφορίες"
+
+#: dialog/crop.py:14
+msgid "x"
+msgstr "χ"
+
+#: dialog/crop.py:15
+msgid "The x-position of the left hand edge of the crop."
+msgstr "H x (οριζόντια) θέση της αριστερής χειρολαβής της περικοπής"
+
+#: dialog/crop.py:19
+msgid "y"
+msgstr "ψ"
+
+#: dialog/crop.py:20
+msgid "The y-position of the top edge of the crop."
+msgstr "Η θέση-Ψ στο άνω άκρο της περιοχής αποκοπής"
+
+#: dialog/crop.py:24 dialog/paperlist.py:22
+msgid "Width"
+msgstr "Πλάτος"
+
+#: dialog/crop.py:25
+msgid "The width of the crop."
+msgstr "Το πλάτος της περιοχής αποκοπής (crop)"
+
+#: dialog/crop.py:29 dialog/paperlist.py:23
+msgid "Height"
+msgstr "Ύψος"
+
+#: dialog/crop.py:30
+msgid "The height of the crop."
+msgstr "Το ύψος της περιοχής αποκοπής (crop)"
+
+#: dialog/crop.py:116
+msgid "Crop"
+msgstr "Αποκοπή"
+
+#: dialog/crop.py:154 tools_menu_mixins.py:277
+msgid "pixels"
+msgstr "εικονοστοιχεία"
+
+#: dialog/pagecontrols.py:188
+msgid "Page Options"
+msgstr "Επιλογές σελίδας"
+
+#: dialog/pagecontrols.py:199
+msgid "# Pages"
+msgstr "# Σελίδων"
+
+#: dialog/pagecontrols.py:210 pagerange.py:47
+msgid "All"
+msgstr "Όλα"
+
+#: dialog/pagecontrols.py:211
+msgid "Scan all pages"
+msgstr "Σάρωση όλων των σελίδων"
+
+#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+msgid "Set number of pages to scan"
+msgstr "Αριθμός σελίδων για σάρωση"
+
+#: dialog/pagecontrols.py:247
+msgid "Extended page numbering"
+msgstr "Εκτεταμένη αρίθμηση σελίδων"
+
+#: dialog/pagecontrols.py:260
+msgid "Page number"
+msgstr "Αριθμός σελίδας"
+
+#: dialog/pagecontrols.py:271
+#, fuzzy
+msgid "Insert before page N"
+msgstr "Εισαγωγή πριν από τη σελίδα N"
+
+#: dialog/pagecontrols.py:274
+#, fuzzy
+msgid "Page number before which scans will be inserted"
+msgstr "Αριθμός σελίδας πριν από την οποία θα εισαχθούν οι σαρώσεις"
+
+#: dialog/pagecontrols.py:285
+#, fuzzy
+msgid "Position advance"
+msgstr "Προχώρηση θέσης"
+
+#: dialog/pagecontrols.py:288
+#, fuzzy
+msgid ""
+"Position advance for each subsequent scan (0 = keep inserting before the "
+"same page)"
+msgstr ""
+"Προχώρηση θέσης για κάθε επόμενη σάρωση (0 = συνέχιση εισαγωγής πριν από την"
+" ίδια σελίδα)"
+
+#: dialog/pagecontrols.py:305
+msgid "Source document"
+msgstr "Αρχείο προέλευσης"
+
+#: dialog/pagecontrols.py:313
+msgid "Single sided"
+msgstr "Μονής όψης"
+
+#: dialog/pagecontrols.py:315
+msgid "Source document is single-sided"
+msgstr "Το αρχείο προέλευσης είναι μονής όψης"
+
+#: dialog/pagecontrols.py:321
+msgid "Double sided"
+msgstr "Διπλής όψης"
+
+#: dialog/pagecontrols.py:323
+msgid "Source document is double-sided"
+msgstr "Το αρχείο προέλευσης είναι διπλής όψης"
+
+#: dialog/pagecontrols.py:329
+msgid "Side to scan"
+msgstr "Πλευρά για σάρωση"
+
+#: dialog/pagecontrols.py:332
+msgid "Facing"
+msgstr "Προσανατολισμός"
+
+#: dialog/pagecontrols.py:332
+msgid "Reverse"
+msgstr "Ανάποδη πλευρά"
+
+#: dialog/pagecontrols.py:337
+msgid "Sets which side of a double-sided document is scanned"
+msgstr "Ορίζει ποια πλευρά ενός διπλής όψης εγγράφου θα σαρωθεί"
+
+#: dialog/paperlist.py:21
+msgid "Name"
+msgstr "Όνομα"
+
+#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+msgid "Left"
+msgstr "Αριστερά"
+
+#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+msgid "Top"
+msgstr "Κορυφή"
+
+#: dialog/paperlist.py:26
+#, fuzzy
+msgid "Units"
+msgstr "Μονάδες"
+
+#: dialog/paperlist.py:73 dialog/paperlist.py:115
+msgid "Cannot delete all paper sizes"
+msgstr "Αδύνατη η διαγραφή όλων των μεγεθών σελίδας"
+
+#: dialog/preferences.py:42
+msgid "Preferences"
+msgstr "Προτιμήσεις"
+
+#: dialog/preferences.py:56
+#, fuzzy
+msgid "Scan options"
+msgstr "Επιλογές σάρωσης"
+
+#: dialog/preferences.py:60
+#, fuzzy
+msgid "General options"
+msgstr "Γενικές επιλογές"
+
+#: dialog/preferences.py:68
+#, fuzzy
+msgid "Open scanner at program start"
+msgstr "Άνοιγμα του σαρωτή κατά την εκκίνηση του προγράμματος"
+
+#: dialog/preferences.py:70
+#, fuzzy
+msgid ""
+"Automatically open the scan dialog in the background at program start. This "
+"saves time clicking the scan button and waiting for the program to find the "
+"list of scanners"
+msgstr ""
+"Αυτόματο άνοιγμα του παραθύρου σάρωσης στο παρασκήνιο κατά την εκκίνηση του "
+"προγράμματος. Αυτό εξοικονομεί χρόνο από το κλικ στο κουμπί σάρωσης και την "
+"αναμονή του προγράμματος να βρει τη λίστα σαρωτών"
+
+#: dialog/preferences.py:83
+#, fuzzy
+msgid "Device blacklist"
+msgstr "Μαύρη λίστα συσκευών"
+
+#: dialog/preferences.py:87
+#, fuzzy
+msgid "Device blacklist (regular expression)"
+msgstr "Μαύρη λίστα συσκευών (κανονική έκφραση)"
+
+#: dialog/preferences.py:95
+msgid "Cycle SANE handle after scan"
+msgstr "Κύκλωσε την λαβή SANE μετά τη σάρωση"
+
+#: dialog/preferences.py:97
+#, fuzzy
+msgid "Some ADFs do not feed out the last page if this is not enabled"
+msgstr ""
+"Ορισμένα ADF δεν εξάγουν την τελευταία σελίδα εάν αυτό δεν είναι "
+"ενεργοποιημένο"
+
+#: dialog/preferences.py:105
+#, fuzzy
+msgid "Allow batch scanning from flatbed"
+msgstr "Να επιτρέπεται η μαζική σάρωση από flatbed"
+
+#: dialog/preferences.py:108
+#, fuzzy
+msgid ""
+"If not set, switching to a flatbed scanner will force # pages to 1 and "
+"single-sided mode."
+msgstr ""
+"Εάν δεν οριστεί, η εναλλαγή σε σαρωτή flatbed θα περιορίσει τις # σελίδες σε"
+" 1 και σε λειτουργία μονής όψης."
+
+#: dialog/preferences.py:118
+#, fuzzy
+msgid "Ignore duplex capabilities of scanner"
+msgstr "Αγνόηση δυνατοτήτων διπλής όψης του σαρωτή"
+
+#: dialog/preferences.py:121
+#, fuzzy
+msgid ""
+"If set, any duplex capabilities are ignored, and facing/reverse widgets are "
+"displayed to allow manual interleaving of pages."
+msgstr ""
+"Εάν οριστεί, όλες οι δυνατότητες διπλής όψης αγνοούνται και εμφανίζονται τα "
+"στοιχεία εμπρός/πίσω όψης για χειροκίνητη εναλλαγή των σελίδων."
+
+#: dialog/preferences.py:131
+#, fuzzy
+msgid "Force new scan job between pages"
+msgstr "Εξαναγκασμός νέας εργασίας σάρωσης μεταξύ των σελίδων"
+
+#: dialog/preferences.py:134
+#, fuzzy
+msgid ""
+"Otherwise, some Brother scanners report out of documents, despite scanning "
+"from flatbed."
+msgstr ""
+"Διαφορετικά, ορισμένοι σαρωτές Brother αναφέρουν έλλειψη εγγράφων, παρά τη "
+"σάρωση από flatbed."
+
+#: dialog/preferences.py:151
+#, fuzzy
+msgid "Select # pages = all on selecting ADF"
+msgstr "Επιλογή # σελίδων = όλες κατά την επιλογή ADF"
+
+#: dialog/preferences.py:154
+#, fuzzy
+msgid ""
+"If this option is enabled, when switching to source=ADF, # pages = all is "
+"selected"
+msgstr ""
+"Εάν αυτή η επιλογή είναι ενεργοποιημένη, όταν γίνεται εναλλαγή σε "
+"source=ADF, επιλέγεται # σελίδες = όλες"
+
+#: dialog/preferences.py:164
+#, fuzzy
+msgid ""
+"If this option is enabled, opening the scanner is quicker, as scantpaper "
+"does not first search for available devices."
+msgstr ""
+"Εάν αυτή η επιλογή είναι ενεργοποιημένη, το άνοιγμα του σαρωτή είναι "
+"ταχύτερο, καθώς το scantpaper δεν αναζητά πρώτα τις διαθέσιμες συσκευές."
+
+#: dialog/preferences.py:168
+#, fuzzy
+msgid ""
+"This is only effective if the device names do not change between sessions."
+msgstr ""
+"Αυτό είναι αποτελεσματικό μόνο εάν τα ονόματα των συσκευών δεν αλλάζουν "
+"μεταξύ των συνεδριών."
+
+#: dialog/preferences.py:178
+msgid "Restore window settings on startup"
+msgstr "Ανάκτηση των ρυθμίσεων παραθύρου κατά την εκκίνηση"
+
+#: dialog/preferences.py:183
+msgid "View files on saving"
+msgstr "Εμφάνιση αρχείων κατά την αποθήκευση"
+
+#: dialog/preferences.py:190
+msgid "Default PDF & DjVu filename"
+msgstr "Προεπιλεγμένο όνομα αρχείου για τα PDF"
+
+#: dialog/preferences.py:194
+#, fuzzy
+msgid ""
+"strftime codes, e.g.:\n"
+"%Y\tcurrent year\n"
+"\n"
+"with the following additions:\n"
+"%Da\tauthor\n"
+"%De\tfilename extension\n"
+"%Dk\tkeywords\n"
+"%Ds\tsubject\n"
+"%Dt\ttitle\n"
+"\n"
+"All document date codes use strftime codes with a leading D, e.g.:\n"
+"%DY\tdocument year\n"
+"%Dm\tdocument month\n"
+"%Dd\tdocument day\n"
+msgstr ""
+"Κωδικοί strftime, π.χ.:\n"
+"%Y\tτρέχον έτος\n"
+"\n"
+"με τις ακόλουθες προσθήκες:\n"
+"%Da\tσυγγραφέας\n"
+"%De\tεπέκταση ονόματος αρχείου\n"
+"%Dk\tλέξεις-κλειδιά\n"
+"%Ds\tθέμα\n"
+"%Dt\tτίτλος\n"
+"\n"
+"Όλοι οι κωδικοί ημερομηνίας εγγράφου χρησιμοποιούν κωδικούς strftime με αρχικό D, π.χ.:\n"
+"%DY\tέτος εγγράφου\n"
+"%Dm\tμήνας εγγράφου\n"
+"%Dd\tημέρα εγγράφου\n"
+
+#: dialog/preferences.py:215
+#, fuzzy
+msgid "Replace whitespace in filenames with underscores"
+msgstr "Αντικατάσταση κενών στα ονόματα αρχείων με κάτω παύλες"
+
+#: dialog/preferences.py:221
+#, fuzzy
+msgid "Use timezone from locale"
+msgstr "Χρήση ζώνης ώρας από τις τοπικές ρυθμίσεις"
+
+#: dialog/preferences.py:226
+#, fuzzy
+msgid "Specify time as well as date"
+msgstr "Προσδιορισμός ώρας καθώς και ημερομηνίας"
+
+#: dialog/preferences.py:232
+#, fuzzy
+msgid "Set access and modification times to metadata date"
+msgstr ""
+"Ορισμός χρόνων πρόσβασης και τροποποίησης στην ημερομηνία μεταδεδομένων"
+
+#: dialog/preferences.py:240
+msgid "Temporary directory"
+msgstr "Προσωρινός κατάλογος"
+
+#: dialog/preferences.py:245
+msgid "Browse"
+msgstr "Εξερεύνηση"
+
+#: dialog/preferences.py:251
+msgid "Select temporary directory"
+msgstr "Επιλογή προσωρινού φακέλλου"
+
+#: dialog/preferences.py:273
+#, fuzzy
+msgid "Warn if available space less than (Mb)"
+msgstr "Προειδοποίηση εάν ο διαθέσιμος χώρος είναι μικρότερος από (Mb)"
+
+#: dialog/preferences.py:278
+#, fuzzy
+msgid ""
+"Warn if the available space in the temporary directory is less than this "
+"value"
+msgstr ""
+"Προειδοποίηση εάν ο διαθέσιμος χώρος στον προσωρινό κατάλογο είναι "
+"μικρότερος από αυτή την τιμή"
+
+#: dialog/preferences.py:287
+msgid "Blank threshold"
+msgstr "Όριο ανοχής λευκού"
+
+#: dialog/preferences.py:292
+msgid "Threshold used for selecting blank pages"
+msgstr "Το όριο που χρησιμοποιείται για την επιλογή κενών σελίδων"
+
+#: dialog/preferences.py:300
+msgid "Dark threshold"
+msgstr "Όριο ανοχής σκοτεινού"
+
+#: dialog/preferences.py:304
+msgid "Threshold used for selecting dark pages"
+msgstr "Το όριο που χρησιμοποιείται για την επιλογή σκοτεινών σελίδων"
+
+#: dialog/preferences.py:311
+msgid "OCR output"
+msgstr "Έξοδος OCR"
+
+#: dialog/preferences.py:316
+msgid "Replace"
+msgstr "Αντικατάσταση"
+
+#: dialog/preferences.py:317
+msgid "Replace the contents of the text buffer with that from the OCR output."
+msgstr ""
+"Να γίνει αντικατάσταση των περιεχομένων του buffer κειμένου, με εκείνα από "
+"τη έξοδο OCR."
+
+#: dialog/preferences.py:321
+#, fuzzy
+msgid "Prepend"
+msgstr "Πρόταξη"
+
+#: dialog/preferences.py:321
+#, fuzzy
+msgid "Prepend the OCR output to the text buffer."
+msgstr "Πρόταξη της εξόδου OCR στο buffer κειμένου."
+
+#: dialog/preferences.py:322
+msgid "Append"
+msgstr "Προσάρτηση"
+
+#: dialog/preferences.py:322
+msgid "Append the OCR output to the text buffer."
+msgstr "Προσάρτηση της εξόδου του OCR στο buffer κειμένου"
+
+#: dialog/preferences.py:329
+#, fuzzy
+msgid "Manage user-defined tools"
+msgstr "Διαχείριση εργαλείων που ορίζει ο χρήστης"
+
+#: dialog/preferences.py:352
+#, fuzzy
+msgid ""
+"Use %i and %o for the input and output filenames respectively,\n"
+"or a single %i if the image is to be modified in-place.\n"
+"\n"
+"The other variable available is:\n"
+"%r resolution"
+msgstr ""
+"Χρησιμοποιήστε %i και %o για τα ονόματα αρχείων εισόδου και εξόδου αντίστοιχα,\n"
+"ή μόνο %i εάν η εικόνα πρόκειται να τροποποιηθεί επί τόπου.\n"
+"\n"
+"Η άλλη διαθέσιμη μεταβλητή είναι:\n"
+"%r ανάλυση"
+
+#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+msgid "_Delete"
+msgstr "_Διαγραφή"
+
+#: dialog/preferences.py:397
+#, fuzzy
+msgid "The following user-defined tools could not be found:\n"
+msgstr "Τα ακόλουθα εργαλεία που ορίζει ο χρήστης δεν βρέθηκαν:\n"
+
+#: dialog/preferences.py:400
+#, fuzzy
+msgid "Please check that the command is installed and in your PATH."
+msgstr "Βεβαιωθείτε ότι η εντολή είναι εγκατεστημένη και στο PATH σας."
+
+#: dialog/preferences.py:402
+#, fuzzy
+msgid "User-defined tool not found"
+msgstr "Δεν βρέθηκε το εργαλείο που ορίζει ο χρήστης"
+
+#: dialog/sane.py:71
+msgid "Fetching list of devices"
+msgstr "Ανάκτηση καταλόγου συσκευών"
+
+#: dialog/sane.py:89
+msgid "No devices found"
+msgstr "Δε βρέθηκαν συσκευές"
+
+#: dialog/sane.py:129
+msgid "Opening device"
+msgstr "Γίνεται άνοιγμα συσκευής"
+
+#: dialog/sane.py:142
+#, fuzzy
+msgid "Error opening device: "
+msgstr "Σφάλμα κατά το άνοιγμα της συσκευής: "
+
+#: dialog/sane.py:148 dialog/sane.py:494
+#, fuzzy
+msgid "Retrieving options"
+msgstr "Ανάκτηση επιλογών"
+
+#: dialog/sane.py:165 dialog/sane.py:507
+#, fuzzy
+msgid "Error retrieving scanner options: "
+msgstr "Σφάλμα κατά την ανάκτηση επιλογών σαρωτή: "
+
+#: dialog/sane.py:207
+msgid "Scan Options"
+msgstr "Επιλογές σάρωσης"
+
+#: dialog/sane.py:290
+#, fuzzy
+msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+msgstr "Αγνόηση επιλογής σάρωσης '%s', ελάχιστο εύρος (%s) > μέγιστο (%s)"
+
+#: dialog/sane.py:450
+#, fuzzy
+msgid "Setting option %s"
+msgstr "Ορισμός επιλογής %s"
+
+#: dialog/sane.py:469
+#, fuzzy
+msgid "Error setting option: "
+msgstr "Σφάλμα κατά τον ορισμό της επιλογής: "
+
+#: dialog/sane.py:531
+msgid "Must scan facing pages first"
+msgstr "Πρέπει να σαρωθούν πρώτα οι μπροστινές πλευρές"
+
+#: dialog/save.py:31
+msgid "PDF"
+msgstr "PDF"
+
+#: dialog/save.py:31
+msgid "Portable Document Format"
+msgstr "Portable Document Format"
+
+#: dialog/save.py:32
+msgid "GIF"
+msgstr "GIF"
+
+#: dialog/save.py:32
+msgid "CompuServe graphics interchange format"
+msgstr "Πρότυπο ανταλλαγής αρχείων CompuServe graphics"
+
+#: dialog/save.py:33
+msgid "Joint Photographic Experts Group JFIF format"
+msgstr "Διαμόρφωση Joint Photographic Experts Group JFIF"
+
+#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+msgid "JPEG"
+msgstr "JPEG"
+
+#: dialog/save.py:34
+msgid "PNG"
+msgstr "PNG"
+
+#: dialog/save.py:34
+msgid "Portable Network Graphics"
+msgstr "Φορητά Δικτυακά Γραφικά (PNG)"
+
+#: dialog/save.py:35
+msgid "PNM"
+msgstr "PNM"
+
+#: dialog/save.py:35
+msgid "Portable anymap"
+msgstr "Φορητό anymap"
+
+#: dialog/save.py:36
+msgid "PS"
+msgstr "PS"
+
+#: dialog/save.py:36
+msgid "Postscript"
+msgstr "Postscript"
+
+#: dialog/save.py:37
+msgid "TIFF"
+msgstr "TIFF"
+
+#: dialog/save.py:37
+msgid "Tagged Image File Format"
+msgstr "Μορφή αρχείων εικόνας με ετικέτα (TIFF)"
+
+#: dialog/save.py:38
+msgid "Text"
+msgstr "Κείμενο"
+
+#: dialog/save.py:38
+msgid "Plain text"
+msgstr "Απλό κείμενο"
+
+#: dialog/save.py:39
+#, fuzzy
+msgid "hOCR"
+msgstr "hOCR"
+
+#: dialog/save.py:39
+#, fuzzy
+msgid "hOCR markup language"
+msgstr "Γλώσσα σήμανσης hOCR"
+
+#: dialog/save.py:40
+#, fuzzy
+msgid "scantpaper session database"
+msgstr "Βάση δεδομένων συνεδρίας του scantpaper"
+
+#: dialog/save.py:40 session_mixins.py:126
 msgid "Session"
 msgstr "Συνεδρία"
 
-#: bin/scantpaper:1603 bin/gscan2pdf:1609
-msgid "Pick crashed session to restore"
-msgstr "Επιλέξτε προς ανάκτηση τη συνεδρία που κατέρρευσε"
+#: dialog/save.py:41
+#, fuzzy
+msgid "Prepend to PDF"
+msgstr "Πρόταξη σε PDF"
 
-#: bin/scantpaper:1691
-msgid "Editing text"
-msgstr "Γίνεται επεξεργασία κειμένου"
+#: dialog/save.py:41
+#, fuzzy
+msgid "Prepend to an existing PDF"
+msgstr "Πρόταξη σε υπάρχον PDF"
 
-#: bin/scantpaper:1698 bin/gscan2pdf:1704
-msgid "text"
-msgstr "κείμενο"
+#: dialog/save.py:42
+#, fuzzy
+msgid "Append to PDF"
+msgstr "Προσάρτηση σε PDF"
 
-#: bin/scantpaper:1743
+#: dialog/save.py:42
+#, fuzzy
+msgid "Append to an existing PDF"
+msgstr "Προσάρτηση σε υπάρχον PDF"
+
+#: dialog/save.py:43
+msgid "DjVu"
+msgstr "DjVu"
+
+#: dialog/save.py:43
+msgid "Deja Vu"
+msgstr "Deja Vu"
+
+#: dialog/save.py:48
+msgid "Automatic"
+msgstr "Αυτόματα"
+
+#: dialog/save.py:49
+msgid "Let scantpaper which type of compression to use."
+msgstr ""
+"Αφήστε το scantpaper να επιλέξει ποιο είδος συμπίεσης να χρησιμοποιηθεί."
+
+#: dialog/save.py:51 dialog/save.py:76
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:51 dialog/save.py:76
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση Lempel-Ziv & Welch"
+
+#: dialog/save.py:52 dialog/save.py:84
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:52 dialog/save.py:84
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 3"
+
+#: dialog/save.py:53 dialog/save.py:85
+msgid "G4"
+msgstr "G4"
+
+#: dialog/save.py:53 dialog/save.py:85
+msgid "Compress output with CCITT Group 4 encoding."
+msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 4"
+
+#: dialog/save.py:54
+#, fuzzy
+msgid "Flate"
+msgstr "Flate"
+
+#: dialog/save.py:54
+#, fuzzy
+msgid "Compress output with flate encoding."
+msgstr "Συμπίεση εξόδου με κωδικοποίηση flate."
+
+#: dialog/save.py:55
+#, fuzzy
+msgid "Compress output with JPEG (DCT) encoding."
+msgstr "Συμπίεση εξόδου με κωδικοποίηση JPEG (DCT)."
+
+#: dialog/save.py:56 dialog/save.py:86
+msgid "None"
+msgstr "Τίποτα"
+
+#: dialog/save.py:56 dialog/save.py:86
+msgid "Use no compression algorithm on output."
+msgstr "Κανένας αλγόριθμος συμπίεσης στο εξαγώγιμο"
+
+#: dialog/save.py:61
+#, fuzzy
+msgid "LibTIFF"
+msgstr "LibTIFF"
+
+#: dialog/save.py:62
+#, fuzzy
+msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
+msgstr ""
+"Χρήση LibTIFF (tiff2ps) για τη δημιουργία αρχείων Postscript από TIFF."
+
+#: dialog/save.py:66
+#, fuzzy
+msgid "Ghostscript"
+msgstr "Ghostscript"
+
+#: dialog/save.py:67
+#, fuzzy
+msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
+msgstr ""
+"Χρήση Ghostscript (pdf2ps) για τη δημιουργία αρχείων Postscript από PDF."
+
+#: dialog/save.py:71
+#, fuzzy
+msgid "Poppler"
+msgstr "Poppler"
+
+#: dialog/save.py:72
+#, fuzzy
+msgid "Use Poppler (pdftops) to create Postscript files from PDF."
+msgstr "Χρήση Poppler (pdftops) για τη δημιουργία αρχείων Postscript από PDF."
+
+#: dialog/save.py:79
+msgid "Zip"
+msgstr "Zip"
+
+#: dialog/save.py:80
+msgid "Compress output with deflate encoding."
+msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση deflate"
+
+#: dialog/save.py:82
+msgid "Compress output with JPEG encoding."
+msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση JPEG"
+
+#: dialog/save.py:83
+msgid "Packbits"
+msgstr "Ψηφίδες"
+
+#: dialog/save.py:83
+msgid "Compress output with Packbits encoding."
+msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση Packbits"
+
+#: dialog/save.py:360
+#, fuzzy
+msgid "Document Metadata"
+msgstr "Μεταδεδομένα εγγράφου"
+
+#: dialog/save.py:374
+#, fuzzy
+msgid "Date/Time"
+msgstr "Ημερομηνία/Ώρα"
+
+#: dialog/save.py:387 dialog/save.py:572
+#, fuzzy
+msgid "Now"
+msgstr "Τώρα"
+
+#: dialog/save.py:388 dialog/save.py:573
+#, fuzzy
+msgid "Use current date and time"
+msgstr "Χρήση τρέχουσας ημερομηνίας και ώρας"
+
+#: dialog/save.py:393
+#, fuzzy
+msgid "Specify"
+msgstr "Προσδιορισμός"
+
+#: dialog/save.py:395
+#, fuzzy
+msgid "Specify date and time"
+msgstr "Προσδιορισμός ημερομηνίας και ώρας"
+
+#: dialog/save.py:403
+msgid "Year-Month-Day"
+msgstr "Έτος-Μήνας-Μέρα"
+
+#: dialog/save.py:413
+#, fuzzy
+msgid "Select date with calendar"
+msgstr "Επιλογή ημερομηνίας με ημερολόγιο"
+
+#: dialog/save.py:459
+msgid "Select Date"
+msgstr "Επιλογή Ημερομηνίας"
+
+#: dialog/save.py:489 dialog/save.py:579
+msgid "Today"
+msgstr "Σήμερα"
+
+#: dialog/save.py:545
+msgid "Title"
+msgstr "Τίτλος"
+
+#: dialog/save.py:546
+#, fuzzy
+msgid "Author"
+msgstr "Συγγραφέας"
+
+#: dialog/save.py:547
+msgid "Subject"
+msgstr "Θέμα"
+
+#: dialog/save.py:548
+msgid "Keywords"
+msgstr "Λέξεις κλεδιά"
+
+#: dialog/save.py:580
+#, fuzzy
+msgid "Use today's date"
+msgstr "Χρήση σημερινής ημερομηνίας"
+
+#: dialog/save.py:590
+#, fuzzy
+msgid "Document type"
+msgstr "Τύπος εγγράφου"
+
+#: dialog/save.py:598
+#, fuzzy
+msgid "Postscript backend"
+msgstr "Υποσύστημα Postscript"
+
+#: dialog/save.py:614 dialog/save.py:754
+msgid "Compression"
+msgstr "Συμπίεση"
+
+#: dialog/save.py:735
+msgid "JPEG Quality"
+msgstr "Ποιότητα JPEG"
+
+#: dialog/save.py:769
+#, fuzzy
+msgid "Encrypt PDF"
+msgstr "Κρυπτογράφηση PDF"
+
+#: dialog/save.py:785
+msgid "Downsample to"
+msgstr "Μείωση ανάλυσης σε"
+
+#: dialog/save.py:789
+msgid "PPI"
+msgstr "PPI"
+
+#: dialog/save.py:819
+#, fuzzy
+msgid "Set password"
+msgstr "Ορισμός κωδικού πρόσβασης"
+
+#: dialog/save.py:827
+#, fuzzy
+msgid "User password"
+msgstr "Κωδικός πρόσβασης χρήστη"
+
+#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
+#: dialog/scan.py:933
+msgid "Manual"
+msgstr "Χειροκίνητα"
+
+#: dialog/scan.py:446
+msgid "Scan profiles"
+msgstr "Προφίλ σάρωσης"
+
+#: dialog/scan.py:500
+msgid "Scan"
+msgstr "Σάρωση"
+
+#: dialog/scan.py:514
+msgid "Device"
+msgstr "Συσκευή"
+
+#: dialog/scan.py:552
+msgid "Sets the device to be used for the scan"
+msgstr "Ορίζεται η συσκευή σάρωσης που θα χρησιμοποιηθεί"
+
+#: dialog/scan.py:599
+#, fuzzy
+msgid "Error: unknown device: %s"
+msgstr "Σφάλμα: άγνωστη συσκευή: %s"
+
+#: dialog/scan.py:657
+#, fuzzy
+msgid "pel"
+msgstr "pel"
+
+#: dialog/scan.py:658
+#, fuzzy
+msgid "bit"
+msgstr "bit"
+
+#: dialog/scan.py:659
+#, fuzzy
+msgid "mm"
+msgstr "mm"
+
+#: dialog/scan.py:660
+#, fuzzy
+msgid "ppi"
+msgstr "ppi"
+
+#: dialog/scan.py:661 tools_menu_mixins.py:284
+#, fuzzy
+msgid "%"
+msgstr "%"
+
+#: dialog/scan.py:662
+#, fuzzy
+msgid "μs"
+msgstr "μs"
+
+#: dialog/scan.py:686
+msgid "Paper size"
+msgstr "Μέγεθος σελίδας"
+
+#: dialog/scan.py:690 dialog/scan.py:707
+msgid "Edit"
+msgstr "Επεξεργασία"
+
+#: dialog/scan.py:691
+msgid "Selects or edits the paper size"
+msgstr "Επιλέγει ή επεξεργάζεται το μέγεθος σελίδας"
+
+#: dialog/scan.py:769
+#, fuzzy
+msgid ""
+"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
+" file a bug, attaching a log file reproducing the problem."
+msgstr ""
+"Υπέρβαση ορίου αναδρομής επαναφόρτωσης (%d): %d επαναφορτώσεις για %d "
+"επιλογές σάρωσης. Παρακαλούμε αναφέρετε το σφάλμα, επισυνάπτοντας ένα αρχείο"
+" καταγραφής που αναπαράγει το πρόβλημα."
+
+#: dialog/scan.py:1024
+msgid "Edit paper size"
+msgstr "Επεξεργασία μεγέθους σελίδας"
+
+#: dialog/scan.py:1051
+#, fuzzy
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+#: dialog/scan.py:1068
+msgid ""
+"The following paper sizes are too big to be scanned by the selected device:"
+msgstr ""
+"Τα ακόλουθα μεγέθη σελίδας είναι πολύ μεγάλα για σάρωση από την επιλεγμένη "
+"συσκευή:"
+
+#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
+#, fuzzy
+msgid "Cancel"
+msgstr "Άκυρο"
+
+#: dialog/scan.py:1563 dialog/scan.py:1571
+msgid "Name of scan profile"
+msgstr "Όνομα του προφίλ σάρωσης"
+
+#: dialog/scan.py:1585
+#, fuzzy
+msgid "Profile '%s' exists. Overwrite?"
+msgstr "Το προφίλ '%s' υπάρχει. Αντικατάσταση;"
+
+#: dialog/scan.py:1592 dialog/scan.py:1634
+#, fuzzy
+msgid "OK"
+msgstr "OK"
+
+#: dialog/scan.py:1621
+#, fuzzy
+msgid "Editing current scan options"
+msgstr "Επεξεργασία τρεχουσών επιλογών σάρωσης"
+
+#: dialog/scan.py:1625
+#, fuzzy
+msgid "Editing scan profile \"%s\""
+msgstr "Επεξεργασία προφίλ σάρωσης \"%s\""
+
+#: dialog/scan.py:1686
+#, fuzzy
+msgid "Backend options"
+msgstr "Επιλογές υποσυστήματος"
+
+#: dialog/scan.py:1687
+#, fuzzy
+msgid "Frontend options"
+msgstr "Επιλογές διεπαφής"
+
+#: dialog/scan.py:1752
+#, fuzzy
+msgid "Scanning page %d of %d"
+msgstr "Σάρωση σελίδας %d από %d"
+
+#: dialog/scan.py:1753
+#, fuzzy
+msgid "Scanning page %d"
+msgstr "Σάρωση σελίδας %d"
+
+#: docthread.py:1167
+#, fuzzy
+msgid "Analysing page %i of %i"
+msgstr "Ανάλυση σελίδας %i από %i"
+
+#: docthread.py:1461
+#, fuzzy
+msgid "No tesseract language specified"
+msgstr "Δεν καθορίστηκε γλώσσα tesseract"
+
+#: docthread.py:1470
+#, fuzzy
+msgid "tessdata directory not found"
+msgstr "Δεν βρέθηκε ο κατάλογος tessdata"
+
+#: document.py:110
+#, fuzzy
+msgid "Error: cannot open a session file at the same time as another file."
+msgstr ""
+"Σφάλμα: δεν είναι δυνατό να ανοίξετε ένα αρχείο συνεδρίας ταυτόχρονα με άλλο"
+" αρχείο."
+
+#: document.py:126
+#, fuzzy
+msgid "Error: importing a multipage file at the same time as another file."
+msgstr "Σφάλμα: εισαγωγή αρχείου πολλαπλών σελίδων ταυτόχρονα με άλλο αρχείο."
+
+#: edit_menu_mixins.py:60
+msgid "Properties"
+msgstr "Ιδιότητες"
+
+#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
+#, fuzzy
+msgid "dpi"
+msgstr "dpi"
+
+#: edit_menu_mixins.py:362
+#, fuzzy
+msgid "Invalid regex. Try without special characters such as '*'"
+msgstr ""
+"Μη έγκυρη κανονική έκφραση. Δοκιμάστε χωρίς ειδικούς χαρακτήρες όπως το '*'"
+
+#: edit_menu_mixins.py:394
+#, fuzzy
+msgid "Changes will only take effect after restarting scantpaper."
+msgstr ""
+"Οι αλλαγές θα τεθούν σε ισχύ μόνο μετά την επανεκκίνηση του scantpaper."
+
+#: edit_menu_mixins.py:396
+#, fuzzy
+msgid "Restart scantpaper now?"
+msgstr "Επανεκκίνηση του scantpaper τώρα;"
+
+#: file_menu_mixins.py:104
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
@@ -499,692 +1291,132 @@ msgstr ""
 "Ορισμένες σελίδες δεν αποθηκεύθηκαν.\n"
 "Θέλετε πραγματικά να καθαρίσετε όλες τις σελίδες;"
 
-#: bin/scantpaper:1858 bin/gscan2pdf:1892
-#, perl-format
-msgid "Process %i of %i (%s)"
-msgstr "Λειτουργία %i επί συνόλου %i (%s)"
-
-#: bin/scantpaper:1899
-#, perl-format
-msgid "Process %i of %i"
-msgstr "Επεξεργασία %i απο %i"
-
-#: bin/scantpaper:1930
+#: file_menu_mixins.py:129
 msgid "Open image"
 msgstr "Άνοιγμα εικόνας"
 
-#: bin/scantpaper:1938 bin/gscan2pdf:2978 bin/gscan2pdf:3214
+#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
 msgid "Image files"
 msgstr "Αρχεία εικόνων"
 
-#: bin/scantpaper:1974
+#: file_menu_mixins.py:180
 msgid "Pages to extract"
 msgstr "Σελίδες για εξαγωγή"
 
-#: bin/scantpaper:1983
+#: file_menu_mixins.py:194
 msgid "First page to extract"
 msgstr "Πρώτη σελίδα για εξαγωγή"
 
-#: bin/scantpaper:1990
+#: file_menu_mixins.py:200
 msgid "Last page to extract"
 msgstr "Τελευταία σελίδα προς εξαγωγή"
 
-#: bin/scantpaper:2032 lib/Gscan2pdf/Dialog/Renumber.pm:93
-msgid "Page Range"
-msgstr "Φάσμα σελίδας"
+#: file_menu_mixins.py:214
+#, fuzzy
+msgid "Enter user password for PDF %s"
+msgstr "Εισαγάγετε τον κωδικό πρόσβασης χρήστη για το PDF %s"
 
-#: bin/scantpaper:2111
-msgid "Document Metadata"
+#: file_menu_mixins.py:281
+#, fuzzy
+msgid "Open crashed session"
+msgstr "Άνοιγμα συνεδρίας που κατέρρευσε"
+
+#: file_menu_mixins.py:336
+msgid "Save"
+msgstr "Αποθήκευση"
+
+#: file_menu_mixins.py:367
+#, fuzzy
+msgid "Post-save hook"
+msgstr "Ενέργεια μετά την αποθήκευση"
+
+#: file_menu_mixins.py:369
+#, fuzzy
+msgid ""
+"Run command on saved file. The available commands are those user-defined "
+"tools that do not specify %o"
 msgstr ""
+"Εκτέλεση εντολής στο αποθηκευμένο αρχείο. Οι διαθέσιμες εντολές είναι εκείνα"
+" τα εργαλεία που ορίζει ο χρήστης και δεν καθορίζουν %o"
 
-#: bin/scantpaper:2125
-msgid "Date"
-msgstr "Ημερομηνία"
+#: file_menu_mixins.py:392 file_menu_mixins.py:393
+#, fuzzy
+msgid "Close dialog on save"
+msgstr "Κλείσιμο παραθύρου κατά την αποθήκευση"
 
-#: bin/scantpaper:2134
-msgid "Year-Month-Day"
-msgstr "Έτος-Μήνας-Μέρα"
-
-#: bin/scantpaper:2160
-msgid "Select Date"
-msgstr "Επιλογή Ημερομηνίας"
-
-#: bin/scantpaper:2163 bin/gscan2pdf:2542 bin/gscan2pdf:3532 bin/gscan2pdf:4234
-#: bin/scantpaper:4273 bin/gscan2pdf:5169 bin/gscan2pdf:5248 bin/gscan2pdf:5311
-#: bin/scantpaper:5524 bin/gscan2pdf:5832 bin/gscan2pdf:6033 bin/gscan2pdf:6535
-#: bin/scantpaper:7111 lib/Gscan2pdf/Dialog.pm:61
-#: lib/Gscan2pdf/Dialog/Renumber.pm:90 lib/Gscan2pdf/Dialog/Scan.pm:237
-#: lib/Gscan2pdf/Dialog/Scan.pm:947 t/05_Dialog.t:28
-msgid "vbox"
-msgstr "vbox"
-
-#: bin/scantpaper:2193
-msgid "Today"
-msgstr "Σήμερα"
-
-#: bin/scantpaper:2213
-msgid "Select date with calendar"
-msgstr ""
-
-#: bin/scantpaper:2222 bin/gscan2pdf:6659
-msgid "Title"
-msgstr "Τίτλος"
-
-#: bin/scantpaper:2237
-msgid "Author"
-msgstr ""
-
-#: bin/scantpaper:2254
-msgid "Subject"
-msgstr "Θέμα"
-
-#: bin/scantpaper:2272
-msgid "Keywords"
-msgstr "Λέξεις κλεδιά"
-
-#: bin/scantpaper:2428
-msgid "JPEG Quality"
-msgstr "Ποιότητα JPEG"
-
-#: bin/scantpaper:2442
-msgid "Downsample to"
-msgstr "Μείωση ανάλυσης σε"
-
-#: bin/scantpaper:2447
-msgid "PPI"
-msgstr "PPI"
-
-#: bin/scantpaper:2467
-msgid "Automatic"
-msgstr "Αυτόματα"
-
-#: bin/scantpaper:2468
-msgid "Let scantpaper which type of compression to use."
-msgstr ""
-"Αφήστε το scantpaper να επιλέξει ποιο είδος συμπίεσης να χρησιμοποιηθεί."
-
-#: bin/scantpaper:2471 bin/gscan2pdf:2589
-msgid "LZW"
-msgstr "LZW"
-
-#: bin/scantpaper:2472 bin/gscan2pdf:2590
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση Lempel-Ziv & Welch"
-
-#: bin/scantpaper:2475 bin/gscan2pdf:2593
-msgid "Zip"
-msgstr "Zip"
-
-#: bin/scantpaper:2476 bin/gscan2pdf:2594
-msgid "Compress output with deflate encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση deflate"
-
-#: bin/scantpaper:2479 bin/gscan2pdf:2603
-msgid "Packbits"
-msgstr "Ψηφίδες"
-
-#: bin/scantpaper:2480 bin/gscan2pdf:2604
-msgid "Compress output with Packbits encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση Packbits"
-
-#: bin/scantpaper:2487 bin/gscan2pdf:2563
-msgid "PNG"
-msgstr "PNG"
-
-#: bin/scantpaper:2487
-msgid "Compress output with PNG encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση PNG"
-
-#: bin/scantpaper:2490 bin/gscan2pdf:2560 bin/gscan2pdf:2599
-msgid "JPEG"
-msgstr "JPEG"
-
-#: bin/scantpaper:2491 bin/gscan2pdf:2600
-msgid "Compress output with JPEG encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση JPEG"
-
-#: bin/scantpaper:2494 bin/gscan2pdf:2615
-msgid "None"
-msgstr "Τίποτα"
-
-#: bin/scantpaper:2495 bin/gscan2pdf:2616
-msgid "Use no compression algorithm on output."
-msgstr "Κανένας αλγόριθμος συμπίεσης στο εξαγώγιμο"
-
-#: bin/scantpaper:2502 bin/gscan2pdf:2623
-msgid "Compression"
-msgstr "Συμπίεση"
-
-#: bin/scantpaper:2550
-msgid "Image type"
-msgstr "Τύπος εικόνας"
-
-#: bin/scantpaper:2554
-msgid "PDF"
-msgstr "PDF"
-
-#: bin/scantpaper:2554
-msgid "Portable Document Format"
-msgstr "Portable Document Format"
-
-#: bin/scantpaper:2556
-msgid "GIF"
-msgstr "GIF"
-
-#: bin/scantpaper:2557
-msgid "CompuServe graphics interchange format"
-msgstr "Πρότυπο ανταλλαγής αρχείων CompuServe graphics"
-
-#: bin/scantpaper:2561
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr "Διαμόρφωση Joint Photographic Experts Group JFIF"
-
-#: bin/scantpaper:2563
-msgid "Portable Network Graphics"
-msgstr "Φορητά Δικτυακά Γραφικά (PNG)"
-
-#: bin/scantpaper:2564
-msgid "PNM"
-msgstr "PNM"
-
-#: bin/scantpaper:2564
-msgid "Portable anymap"
-msgstr "Φορητό anymap"
-
-#: bin/scantpaper:2565
-msgid "PS"
-msgstr "PS"
-
-#: bin/scantpaper:2565
-msgid "Postscript"
-msgstr "Postscript"
-
-#: bin/scantpaper:2566
-msgid "TIFF"
-msgstr "TIFF"
-
-#: bin/scantpaper:2566
-msgid "Tagged Image File Format"
-msgstr "Μορφή αρχείων εικόνας με ετικέτα (TIFF)"
-
-#: bin/scantpaper:2567
-msgid "Text"
-msgstr "Κείμενο"
-
-#: bin/scantpaper:2567
-msgid "Plain text"
-msgstr "Απλό κείμενο"
-
-#: bin/scantpaper:2568
-msgid "hOCR"
-msgstr ""
-
-#: bin/scantpaper:2568
-msgid "hOCR markup language"
-msgstr ""
-
-#: bin/scantpaper:2569
-msgid "scantpaper session file"
-msgstr "Αρχείο συνεδρίας scantpaper"
-
-#: bin/scantpaper:2574
-msgid "Prepend to PDF"
-msgstr ""
-
-#: bin/scantpaper:2575
-msgid "Prepend to an existing PDF"
-msgstr ""
-
-#: bin/scantpaper:2579
-msgid "Append to PDF"
-msgstr ""
-
-#: bin/scantpaper:2580
-msgid "Append to an existing PDF"
-msgstr ""
-
-#: bin/scantpaper:2584
-msgid "DjVu"
-msgstr "DjVu"
-
-#: bin/scantpaper:2584
-msgid "Deja Vu"
-msgstr "Deja Vu"
-
-#: bin/scantpaper:2607
-msgid "G3"
-msgstr "G3"
-
-#: bin/scantpaper:2608
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 3"
-
-#: bin/scantpaper:2611
-msgid "G4"
-msgstr "G4"
-
-#: bin/scantpaper:2612
-msgid "Compress output with CCITT Group 4 encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 4"
-
-#: bin/scantpaper:2628
-msgid "tiff"
-msgstr "tiff"
-
-#: bin/scantpaper:2671
-msgid "Font for non-ASCII text"
-msgstr "Γραμματοσειρά για κείμενο μη-ASCII"
-
-#: bin/scantpaper:2890 bin/gscan2pdf:2907
+#: file_menu_mixins.py:465
 msgid "PDF filename"
 msgstr "Όνομα αρχείου PDF"
 
-#: bin/scantpaper:2913
+#: file_menu_mixins.py:466
 msgid "PDF files"
 msgstr "Αρχεία PDF"
 
-#: bin/scantpaper:2935
+#: file_menu_mixins.py:469
 msgid "DjVu filename"
 msgstr "Όνομα αρχείου DjVu"
 
-#: bin/scantpaper:2950
+#: file_menu_mixins.py:470
 msgid "DjVu files"
 msgstr "Αρχεία DjVu"
 
-#: bin/scantpaper:2971
+#: file_menu_mixins.py:473
 msgid "TIFF filename"
 msgstr "Όνομα αρχείου TIFF"
 
-#: bin/scantpaper:2997
+#: file_menu_mixins.py:477
 msgid "Text filename"
 msgstr "Όνομα αρχείου κειμένου"
 
-#: bin/scantpaper:3005
+#: file_menu_mixins.py:478
 msgid "Text files"
 msgstr "Αρχεία κειμένου"
 
-#: bin/scantpaper:3022
+#: file_menu_mixins.py:481
+#, fuzzy
 msgid "hOCR filename"
-msgstr ""
+msgstr "Όνομα αρχείου hOCR"
 
-#: bin/scantpaper:3030
+#: file_menu_mixins.py:482
+#, fuzzy
 msgid "hOCR files"
-msgstr ""
+msgstr "Αρχεία hOCR"
 
-#: bin/scantpaper:3050
+#: file_menu_mixins.py:485
 msgid "PS filename"
 msgstr "Όνομα PS αρχείου"
 
-#: bin/scantpaper:3057
+#: file_menu_mixins.py:486
 msgid "Postscript files"
 msgstr "Αρχεία Postscript"
 
-#: bin/scantpaper:3075
+#: file_menu_mixins.py:489
 msgid "scantpaper session filename"
 msgstr "Όνομα αρχείου συνεδρίας του scantpaper"
 
-#: bin/scantpaper:3082
+#: file_menu_mixins.py:490
 msgid "scantpaper session files"
 msgstr "Αρχεία συνεδρίας του scantpaper"
 
-#: bin/scantpaper:3127 bin/gscan2pdf:3173
-#, perl-format
+#: file_menu_mixins.py:601
+#, fuzzy
+msgid "Directory %s is read-only"
+msgstr "Ο κατάλογος %s είναι μόνο για ανάγνωση"
+
+#: file_menu_mixins.py:611
 msgid "File %s is read-only"
 msgstr "Το αρχείο %s είναι μόνο για ανάγνωση"
 
-#: bin/scantpaper:3184
-#, perl-format
-msgid ""
-"File %s exists.\n"
-"Really overwrite?"
-msgstr ""
-"Το αρχείο %s υπάρχει.\n"
-"Να γίνει αντικατάσταση;"
-
-#: bin/scantpaper:3207
+#: file_menu_mixins.py:802
 msgid "Image filename"
 msgstr "Όνομα αρχείου εικόνας"
 
-#: bin/scantpaper:3486
-msgid ""
-"You seem to be using Gnome or XFCE, but do not have gconftool installed. "
-"Unable to determine email client."
-msgstr ""
-
-#: bin/scantpaper:3503
-msgid ""
-"Unable to determine your desktop enviroment, and therefore your email client."
-msgstr ""
-
-#: bin/scantpaper:3528
-msgid "Email as PDF"
-msgstr "Ηλεκτρονική ταχυδρόμιση ως PDF"
-
-#: bin/scantpaper:3620
-msgid "Error creating email"
-msgstr "Σφάλμα κατά τη δημιουργία e-mail"
-
-#: bin/scantpaper:3664
-msgid "Scan Document"
-msgstr "Σάρωση εγγράφου"
-
-#: bin/scantpaper:3720 bin/gscan2pdf:4398 bin/gscan2pdf:4435 bin/gscan2pdf:4767
-#: lib/Gscan2pdf/Dialog/Scan.pm:380 lib/Gscan2pdf/Dialog/Scan.pm:385
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1017 lib/Gscan2pdf/Dialog/Scan/Sane.pm:570
-#: t/0610_Dialog_Scan_Sane.t:38 t/0610_Dialog_Scan_Sane.t:71
-#: t/0621_Dialog_Scan_CLI.t:38 t/0621_Dialog_Scan_CLI.t:96
-msgid "page-number-increment"
-msgstr ""
-
-#: bin/scantpaper:3731 bin/gscan2pdf:4395 bin/gscan2pdf:4396 bin/gscan2pdf:4434
-#: bin/scantpaper:4766 lib/Gscan2pdf/Dialog/Scan.pm:398
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1016 lib/Gscan2pdf/Dialog/Scan/Sane.pm:569
-#: t/0610_Dialog_Scan_Sane.t:37 t/0621_Dialog_Scan_CLI.t:37
-msgid "page-number-start"
-msgstr ""
-
-#: bin/scantpaper:3969 bin/gscan2pdf:6692 lib/Gscan2pdf/Dialog/Scan.pm:679
-#: lib/Gscan2pdf/Dialog/Scan.pm:798 lib/Gscan2pdf/Dialog/Scan.pm:916
-#: lib/Gscan2pdf/Dialog/Scan.pm:939 lib/Gscan2pdf/Dialog/Scan.pm:1629
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:861 lib/Gscan2pdf/Dialog/Scan/CLI.pm:877
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:993 lib/Gscan2pdf/Dialog/Scan/Sane.pm:469
-#: t/0610_Dialog_Scan_Sane.t:40 t/0610_Dialog_Scan_Sane.t:194
-#: t/0610_Dialog_Scan_Sane.t:241 t/0610_Dialog_Scan_Sane.t:248
-#: t/0610_Dialog_Scan_Sane.t:276 t/0612_Dialog_Scan_Sane.t:97
-#: t/0613_Dialog_Scan_Sane.t:49 t/0616_Dialog_Scan_Sane.t:76
-#: t/0617_Dialog_Scan_Sane.t:39 t/0618_Dialog_Scan_Sane.t:39
-#: t/06191_Dialog_Scan_Sane.t:240 t/0621_Dialog_Scan_CLI.t:40
-#: t/0621_Dialog_Scan_CLI.t:224 t/0621_Dialog_Scan_CLI.t:270
-#: t/0621_Dialog_Scan_CLI.t:278 t/0621_Dialog_Scan_CLI.t:301
-#: t/0621_Dialog_Scan_CLI.t:349 t/0621_Dialog_Scan_CLI.t:393
-#: t/0621_Dialog_Scan_CLI.t:449 t/0622_Dialog_Scan_CLI.t:87
-#: t/0623_Dialog_Scan_CLI.t:53 t/0623_Dialog_Scan_CLI.t:95
-#: t/0625_Dialog_Scan_CLI.t:106 t/0625_Dialog_Scan_CLI.t:114
-#: t/0625_Dialog_Scan_CLI.t:122 t/0625_Dialog_Scan_CLI.t:130
-#: t/0626_Dialog_Scan_CLI.t:67 t/0626_Dialog_Scan_CLI.t:80
-#: t/0626_Dialog_Scan_CLI.t:92 t/0626_Dialog_Scan_CLI.t:99
-#: t/0626_Dialog_Scan_CLI.t:106 t/0627_Dialog_Scan_CLI.t:60
-#: t/0628_Dialog_Scan_CLI.t:75 t/0629_Dialog_Scan_CLI.t:166
-msgid "available-scan-options"
-msgstr ""
-
-#: bin/scantpaper:3995 lib/Gscan2pdf/Dialog/Scan.pm:254
-#: lib/Gscan2pdf/Dialog/Scan.pm:567 t/0610_Dialog_Scan_Sane.t:33
-#: t/0610_Dialog_Scan_Sane.t:405 t/06191_Dialog_Scan_Sane.t:195
-#: t/0621_Dialog_Scan_CLI.t:33 t/0621_Dialog_Scan_CLI.t:47
-#: t/0622_Dialog_Scan_CLI.t:65
-msgid "device-list"
-msgstr ""
-
-#: bin/scantpaper:3996 lib/Gscan2pdf/Dialog/Scan/CLI.pm:224
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:226 lib/Gscan2pdf/Dialog/Scan/CLI.pm:227
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:244 lib/Gscan2pdf/Dialog/Scan/CLI.pm:277
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:729 lib/Gscan2pdf/Dialog/Scan/CLI.pm:732
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:734 lib/Gscan2pdf/Dialog/Scan/CLI.pm:763
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:793 lib/Gscan2pdf/Dialog/Scan/CLI.pm:797
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1033 lib/Gscan2pdf/Dialog/Scan/Sane.pm:122
-#: t/0610_Dialog_Scan_Sane.t:32 t/0621_Dialog_Scan_CLI.t:32
-msgid "device"
-msgstr ""
-
-#: bin/scantpaper:4019 bin/gscan2pdf:4050
-msgid "Rotate"
-msgstr "Περιστροφή"
-
-#: bin/scantpaper:4020 bin/gscan2pdf:4051
-msgid "Rotate image after scanning"
-msgstr "Περιστροφή της εικόνας μετά την επεξργασία"
-
-#: bin/scantpaper:4023
-msgid "Both sides"
-msgstr "Και τις δύο πλευρές"
-
-#: bin/scantpaper:4023
-msgid "Both sides."
-msgstr "Και τις δύο πλευρές."
-
-#: bin/scantpaper:4024
-msgid "Facing side"
-msgstr "Ίσια πλευρά"
-
-#: bin/scantpaper:4024
-msgid "Facing side."
-msgstr "Μπροστινή πλευρά"
-
-#: bin/scantpaper:4025
-msgid "Reverse side"
-msgstr "Ανάποδη πλευρά"
-
-#: bin/scantpaper:4025
-msgid "Reverse side."
-msgstr "Ανάποδη πλευρά"
-
-#: bin/scantpaper:4028 bin/gscan2pdf:4055
-msgid "Select side to rotate"
-msgstr "Επιλογή πλευράς προς περιστροφή"
-
-#: bin/scantpaper:4032
-msgid "90"
-msgstr "90"
-
-#: bin/scantpaper:4033
-msgid "Rotate image 90 degrees clockwise."
-msgstr "Περιστροφή εικόνας κατά 90 μοίρες δεξιόστροφα."
-
-#: bin/scantpaper:4036
-msgid "180"
-msgstr "180"
-
-#: bin/scantpaper:4037
-msgid "Rotate image 180 degrees clockwise."
-msgstr "Περιστροφή εικόνας κατά 180 μοίρες δεξιόστροφα."
-
-#: bin/scantpaper:4040
-msgid "270"
-msgstr "270"
-
-#: bin/scantpaper:4041
-msgid "Rotate image 90 degrees anticlockwise."
-msgstr "Περιστροφή εικόνας κατά 90 μοίρες αριστερόστροφα."
-
-#: bin/scantpaper:4045 bin/gscan2pdf:4058
-msgid "Select direction of rotation"
-msgstr "Επιλογή της φοράς  κατά την οποία θα γίνει η περιστροφή"
-
-#: bin/scantpaper:4135 bin/gscan2pdf:4136
-msgid "OCR scanned pages"
-msgstr "Σελίδες που σαρώθηκαν με OCR"
-
-#: bin/scantpaper:4150
-msgid "Select OCR engine"
-msgstr "Επιλογή μηχανής OCR"
-
-#: bin/scantpaper:4196 bin/gscan2pdf:6078
-msgid "Threshold before OCR"
-msgstr ""
-
-#: bin/scantpaper:4200 bin/gscan2pdf:6082
-msgid ""
-"Threshold the image before performing OCR. This only affects the image "
-"passed to the OCR engine, and not the image stored."
-msgstr ""
-
-#: bin/scantpaper:4212 bin/gscan2pdf:5166 bin/gscan2pdf:5177 bin/gscan2pdf:5405
-#: bin/scantpaper:6095
-msgid "Threshold"
-msgstr "Ανοχή"
-
-#: bin/scantpaper:4237
-msgid "Post-processing"
-msgstr "Μετα-επεξεργασία"
-
-#: bin/scantpaper:4252
-msgid "Clean up images"
-msgstr "Καθαρισμός εικόνων"
-
-#: bin/scantpaper:4263
-msgid "Options"
-msgstr "Επιλογές"
-
-#: bin/scantpaper:4264
-msgid "Set unpaper options"
-msgstr "Ορισμός επιλογών αποχάρτισης"
-
-#: bin/scantpaper:4270
-msgid "unpaper options"
-msgstr "Επιλογές αποχάρτισης"
-
-#: bin/scantpaper:4437 lib/Gscan2pdf/Dialog/Scan.pm:336
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1015 lib/Gscan2pdf/Dialog/Scan/Sane.pm:568
-#: t/0610_Dialog_Scan_Sane.t:35 t/0621_Dialog_Scan_CLI.t:35
-msgid "num-pages"
-msgstr ""
-
-#: bin/scantpaper:4527
-msgid "Unable to load image"
-msgstr "Δεν είναι δυνατή η φόρτωση της εικόνας"
-
-#: bin/scantpaper:4559
-msgid "print-pages"
-msgstr "εκτύπωση-σελίδων"
-
-#: bin/scantpaper:4563
-msgid "page-ranges"
-msgstr "φάσμα-σελίδων"
-
-#: bin/scantpaper:4669
-#, perl-format
-msgid "Error pasting image - %s"
-msgstr ""
-
-#: bin/scantpaper:4947
-msgid "Patches gratefully received from:"
-msgstr "Ευχαριστίες για την παραλαβή διορθωτικών patches από:"
-
-#: bin/scantpaper:4949
-msgid "To aid the scan-to-PDF process"
-msgstr "Για βοήθεια στην εξέλιξη του scan-to-PDF"
-
-#: bin/scantpaper:4950
-msgid "Copyright 2006--2015 Jeffrey Ratcliffe"
-msgstr ""
-
-#: bin/scantpaper:5245
-msgid "Negate"
-msgstr "Απόρριψη"
-
-#: bin/scantpaper:5308
-msgid "Unsharp mask"
-msgstr "Μάσκα άμβλυνσης"
-
-#: bin/scantpaper:5324
-msgid "Radius"
-msgstr "Η ακ"
-
-#: bin/scantpaper:5336
-msgid ""
-"The radius of the Gaussian, in pixels, not counting the center pixel (0 = "
-"automatic)."
-msgstr ""
-"Η ακτίνα της Γκαουσσιανής, σε εικονοστοιχεία (pixels), χωρίς να προσμετράται "
-"το κεντρικό εικονοστοιχείο (0= αυτόματο)."
-
-#: bin/scantpaper:5345 bin/gscan2pdf:5368 bin/gscan2pdf:5551 bin/gscan2pdf:5571
-#: bin/scantpaper:5594 bin/gscan2pdf:5619
-msgid "pixels"
-msgstr "εικονοστοιχεία"
-
-#: bin/scantpaper:5351
-msgid "Sigma"
-msgstr "Sigma"
-
-#: bin/scantpaper:5361
-msgid "The standard deviation of the Gaussian."
-msgstr "Η τυπική απόκλιση (standard deviation) της Γκαουσσιανής."
-
-#: bin/scantpaper:5376
-msgid "Amount"
-msgstr "Ποσοστό"
-
-#: bin/scantpaper:5387
-msgid ""
-"The percentage of the difference between the original and the blur image "
-"that is added back into the original."
-msgstr ""
-"Η ποσοστιαία διαφορά ανάμεσα στην αρχική και στη θολωμένη (blur)  εικόνα που "
-"προστέθηκε στο πρωτότυπο."
-
-#: bin/scantpaper:5419
-msgid ""
-"The threshold, as a fraction of QuantumRange, needed to apply the difference "
-"amount."
-msgstr ""
-
-#: bin/scantpaper:5520
-msgid "Crop"
-msgstr "Αποκοπή"
-
-#: bin/scantpaper:5537
-msgid "x"
-msgstr "χ"
-
-#: bin/scantpaper:5544
-msgid "The x-position of the left hand edge of the crop."
-msgstr "H x (οριζόντια) θέση της αριστερής χειρολαβής της περικοπής"
-
-#: bin/scantpaper:5557
-msgid "y"
-msgstr "ψ"
-
-#: bin/scantpaper:5564
-msgid "The y-position of the top edge of the crop."
-msgstr "Η θέση-Ψ στο άνω άκρο της περιοχής αποκοπής"
-
-#: bin/scantpaper:5579 lib/Gscan2pdf/Dialog/Scan.pm:962
-msgid "Width"
-msgstr "Πλάτος"
-
-#: bin/scantpaper:5587
-msgid "The width of the crop."
-msgstr "Το πλάτος της περιοχής αποκοπής (crop)"
-
-#: bin/scantpaper:5603 lib/Gscan2pdf/Dialog/Scan.pm:963
-msgid "Height"
-msgstr "Ύψος"
-
-#: bin/scantpaper:5612
-msgid "The height of the crop."
-msgstr "Το ύψος της περιοχής αποκοπής (crop)"
-
-#: bin/scantpaper:5743
-msgid "label"
-msgstr "ετικέτα"
-
-#: bin/scantpaper:5828
-msgid "unpaper"
-msgstr "Αποσελιδοποιήση"
-
-#: bin/scantpaper:5974 bin/gscan2pdf:6003
-msgid "Language to recognise"
-msgstr "Γλώσσα προς αναγνώριση"
-
-#: bin/scantpaper:5986
-msgid "English"
-msgstr "Αγγλικά"
-
-#: bin/scantpaper:6029
-msgid "OCR"
-msgstr "Οπτική Αναγνώριση Χαρακτήρων (OCR)"
-
-#: bin/scantpaper:6041
-msgid "OCR Engine"
-msgstr "Μηχανή OCR"
-
-#: bin/scantpaper:6113
-msgid "Start OCR"
-msgstr "Εκκίνηση OCR"
-
-#: bin/scantpaper:6177
+#: file_menu_mixins.py:862
+#, fuzzy
+msgid "This operation would overwrite %s"
+msgstr "Αυτή η λειτουργία θα αντικαθιστούσε το %s"
+
+#: file_menu_mixins.py:945
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
@@ -1192,876 +1424,682 @@ msgstr ""
 "Κάποιες σελίδες δεν έχουν αποθηκευτεί.\n"
 "Θέλετε πράγματι να εγκαταλείψετε;"
 
-#: bin/scantpaper:6233
-#, perl-format
-msgid ""
-"The help viewer requires module Gtk2::Ex::PodViewer\n"
-"Alternatively, try: %s %s\n"
-"\n"
-msgstr ""
-"Το σύστημα για την εμφάνιση βοήθειας απαιτεί το άρθρωμα Gtk2::Ex::PodViewer\n"
-"Εναλλακτικά, δοκιμάστε το: %s %s\n"
-"\n"
-
-#: bin/scantpaper:6341
-#, perl-format
-msgid "%dMb free in %s."
-msgstr ""
-
-#: bin/scantpaper:6474
-msgid "This operation cannot be undone. Are you sure?"
-msgstr "Αυτή η ενέργεια δεν μπορεί να αντιστραφεί. Είστε σίγουρος/η;"
-
-#: bin/scantpaper:6531
-msgid "Preferences"
-msgstr "Προτιμήσεις"
-
-#: bin/scantpaper:6541
-msgid "Scan options"
-msgstr ""
-
-#: bin/scantpaper:6546
-msgid "Open scan dialog at program start"
-msgstr ""
-
-#: bin/scantpaper:6550
-msgid ""
-"Automatically open the scan dialog in the background at program start. This "
-"saves time clicking the scan button and waiting for the program to find the "
-"list of scanners"
-msgstr ""
-
-#: bin/scantpaper:6563
-msgid "Frontend"
-msgstr "Frontend"
-
-#: bin/scantpaper:6568
-msgid "libsane-perl"
-msgstr "libsane-perl"
-
-#: bin/scantpaper:6569
-msgid "Scan using the perl bindings for SANE."
-msgstr "Να γίνει σάρωση χρησιμοποιώντας τα perl bindings για το SANE."
-
-#: bin/scantpaper:6573
-msgid "scanimage"
-msgstr "scanimage"
-
-#: bin/scantpaper:6574
-msgid "Scan using the scanimage frontend."
-msgstr "Να γίνει σάρωση χρησιμοποιώντας το frontend του scanimage"
-
-#: bin/scantpaper:6578
-msgid "scanimage-perl"
-msgstr "scanimage-perl"
-
-#: bin/scantpaper:6579
-msgid "Scan using the scanimage-perl frontend."
-msgstr "Να γίνει σάρωση χρησιμοποιώντας  το frontend του scanimage-perl"
-
-#: bin/scantpaper:6583
-msgid "scanadf-perl"
-msgstr "scanadf-perl"
-
-#: bin/scantpaper:6584
-msgid "Scan using the scanadf-perl frontend."
-msgstr "Να γίνει σάρωση χρησιμοποιώντας  το frontend του scanadf-perl"
-
-#: bin/scantpaper:6590
-msgid "scanadf"
-msgstr "scanadf"
-
-#: bin/scantpaper:6591
-msgid "Scan using the scanadf frontend."
-msgstr "Να γίνει σάρωση χρησιμοποιώντας  το frontend του scanadf"
-
-#: bin/scantpaper:6599
-msgid "Device blacklist"
-msgstr ""
-
-#: bin/scantpaper:6604
-msgid "Device blacklist (regular expression)"
-msgstr ""
-
-#: bin/scantpaper:6613
-msgid "Cycle SANE handle after scan"
-msgstr "Κύκλωσε την λαβή SANE μετά τη σάρωση"
-
-#: bin/scantpaper:6615
-msgid "Interface used for scanner access"
-msgstr ""
-
-#: bin/scantpaper:6624
-msgid "Scan command prefix"
-msgstr ""
-
-#: bin/scantpaper:6634
-msgid "Cache device-dependent options"
-msgstr "Επιλογές εξαρτώμενες από το είδος της συσκευής"
-
-#: bin/scantpaper:6640
-msgid "Clear device-dependent options cache"
-msgstr ""
-"Να γίνει καθαρισμός των επιλογών που εξαρτώνται από το είδος συσκευής"
-
-#: bin/scantpaper:6650
-msgid "Option visibility & control"
-msgstr ""
-
-#: bin/scantpaper:6660
-msgid "Type"
-msgstr ""
-
-#: bin/scantpaper:6661 bin/gscan2pdf:6668
-msgid "Show"
-msgstr ""
-
-#: bin/scantpaper:6662
-msgid "Reload"
-msgstr ""
-
-#: bin/scantpaper:6678
-msgid "Hide"
-msgstr ""
-
-#: bin/scantpaper:6687
-msgid "List current options"
-msgstr ""
-
-#: bin/scantpaper:6707
-msgid "No scanner currently open with command line frontend."
-msgstr ""
-
-#: bin/scantpaper:6715
-msgid "Show options not listed"
-msgstr ""
-
-#: bin/scantpaper:6758
-msgid "General options"
-msgstr ""
-
-#: bin/scantpaper:6763
-msgid "Restore window settings on startup"
-msgstr "Ανάκτηση των ρυθμίσεων παραθύρου κατά την εκκίνηση"
-
-#: bin/scantpaper:6769
-msgid "View files on saving"
-msgstr "Εμφάνιση αρχείων κατά την αποθήκευση"
-
-#: bin/scantpaper:6778
-msgid "Default PDF & DjVu filename"
-msgstr "Προεπιλεγμένο όνομα αρχείου για τα PDF"
-
-#: bin/scantpaper:6784
-msgid ""
-"%a\t author\n"
-"%t\t title\n"
-"%y\t document's year\n"
-"%Y\t today's year\n"
-"%m\t document's month\n"
-"%M\t today's month\n"
-"%d\t document's day\n"
-"%D\t today's day\n"
-"%h\t document's hour\n"
-"%i\tdocument's minute\n"
-"%s\t document's second"
-msgstr ""
-
-#: bin/scantpaper:6796
-msgid "Temporary directory"
-msgstr "Προσωρινός κατάλογος"
-
-#: bin/scantpaper:6801
-msgid "Browse"
-msgstr "Εξερεύνηση"
-
-#: bin/scantpaper:6805
-msgid "Select temporary directory"
-msgstr "Επιλογή προσωρινού φακέλλου"
-
-#: bin/scantpaper:6823
-msgid "Warn if available space less than (Mb)"
-msgstr ""
-
-#: bin/scantpaper:6833
-msgid ""
-"Warn if the available space in the temporary directory is less than this "
-"value"
-msgstr ""
-
-#: bin/scantpaper:6841
-msgid "Blank threshold"
-msgstr "Όριο ανοχής λευκού"
-
-#: bin/scantpaper:6848
-msgid "Threshold used for selecting blank pages"
-msgstr "Το όριο που χρησιμοποιείται για την επιλογή κενών σελίδων"
-
-#: bin/scantpaper:6854
-msgid "Dark threshold"
-msgstr "Όριο ανοχής σκοτεινού"
-
-#: bin/scantpaper:6861
-msgid "Threshold used for selecting dark pages"
-msgstr "Το όριο που χρησιμοποιείται για την επιλογή σκοτεινών σελίδων"
-
-#: bin/scantpaper:6867
-msgid "OCR output"
-msgstr "Έξοδος OCR"
-
-#: bin/scantpaper:6872
-msgid "Replace"
-msgstr "Αντικατάσταση"
-
-#: bin/scantpaper:6874
-msgid ""
-"Replace the contents of the text buffer with that from the OCR output."
-msgstr ""
-"Να γίνει αντικατάσταση των περιεχομένων του buffer κειμένου, με εκείνα από "
-"τη έξοδο OCR."
-
-#: bin/scantpaper:6878
-msgid "Prepend"
-msgstr ""
-
-#: bin/scantpaper:6879
-msgid "Prepend the OCR output to the text buffer."
-msgstr ""
-
-#: bin/scantpaper:6882
-msgid "Append"
-msgstr "Προσάρτηση"
-
-#: bin/scantpaper:6883
-msgid "Append the OCR output to the text buffer."
-msgstr "Προσάρτηση της εξόδου του OCR στο buffer κειμένου"
-
-#: bin/scantpaper:6891
-msgid "User-defined tools"
-msgstr "Εργαλεία καθοριζόμενα από τον χρήστη"
-
-#: bin/scantpaper:6968
-msgid ""
-"You will have to restart gscanp2df for changes to the temporary directory to "
-"take effect."
-msgstr ""
-"Για να εφαρμοσθούν οι αλλαγές στον προσωρινό φάκελλο, θα πρέπει να "
-"επανεκκινήσετε το gscanp2df"
-
-#: bin/scantpaper:7080
-msgid ""
-"Use %i and %o for the input and output filenames respectively, or a single "
-"%i if the image is to be modified in-place.\n"
-"\n"
-"The other variable available is:\n"
-"\n"
-"%r resolution"
-msgstr ""
-"Για την Είσοδο και την Έξοδο ονομάτων αρχείων, χρησιμοποιήστε το %i  και το "
-"%o, αντίστοιχα, ή ένα μεμονωμένο %i αν η εικόνα πρέπει να τροποποιηθεί επί "
-"τόπου.\n"
-"\n"
-"The other variable available is:\n"
-"\n"
-"%r resolution"
-
-#: bin/scantpaper:7107
-msgid "Properties"
-msgstr "Ιδιότητες"
-
-#: bin/scantpaper:7115
-msgid "Resolution"
-msgstr "Ανάλυση"
-
-#: bin/scantpaper:7130
-msgid "dpi"
-msgstr ""
-
-#: bin/scantpaper:7198
-msgid "Don't show this message again"
-msgstr "Να μην εμφανισθεί ξανά αυτό το μήνυμα"
-
-#: lib/Gscan2pdf/Config.pm:61
-msgid ""
-"Error: unable to load settings.\n"
-"Backing up settings\n"
-"Reverting to defaults"
-msgstr ""
-"Σφάλμα: ανέφικτη η φόρτωση των ρυθμίσεων.\n"
-"Γίνεται αποθήκευση των ρυθμίσεων\n"
-"Επαναφορά των ρυθμίσεων προεπιλογής"
-
-#: lib/Gscan2pdf/Config.pm:116
-msgid "A4"
-msgstr "A4"
-
-#: lib/Gscan2pdf/Config.pm:122
-msgid "US Letter"
-msgstr "Επιστολή με Αμερικανικά πρότυπα"
-
-#: lib/Gscan2pdf/Config.pm:128
-msgid "US Legal"
-msgstr "Νομικής φύσεως (ΗΠΑ)"
-
-#: lib/Gscan2pdf/Dialog.pm:68 lib/Gscan2pdf/Dialog.pm:84 t/05_Dialog.t:25
-msgid "hide-on-delete"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:88 lib/Gscan2pdf/Dialog/Renumber.pm:191
-msgid "Renumber"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:108 lib/Gscan2pdf/Dialog/Renumber.pm:248
-#: lib/Gscan2pdf/Dialog/Renumber.pm:285
-msgid "range"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:112
-msgid "Page numbering"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:115 lib/Gscan2pdf/Dialog/Scan.pm:289
-#: lib/Gscan2pdf/Dialog/Scan.pm:1300
-msgid "border_width"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:121 lib/Gscan2pdf/Dialog/Scan.pm:357
-msgid "Start"
-msgstr "Έναρξη"
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:136 lib/Gscan2pdf/Dialog/Renumber.pm:233
-#: lib/Gscan2pdf/Dialog/Renumber.pm:283 t/07_Dialog_Renumber.t:33
-#: t/07_Dialog_Renumber.t:46 t/07_Dialog_Renumber.t:61
-#: t/07_Dialog_Renumber.t:68
-msgid "start"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:142 lib/Gscan2pdf/Dialog/Scan.pm:376
-msgid "Increment"
-msgstr "Βήμα"
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:158 lib/Gscan2pdf/Dialog/Renumber.pm:234
-#: lib/Gscan2pdf/Dialog/Renumber.pm:284 t/07_Dialog_Renumber.t:34
-#: t/07_Dialog_Renumber.t:47 t/07_Dialog_Renumber.t:62
-#: t/07_Dialog_Renumber.t:69
-msgid "increment"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:172 lib/Gscan2pdf/Dialog/Renumber.pm:246
-#: lib/Gscan2pdf/Dialog/Renumber.pm:282
-msgid "document"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Renumber.pm:342
-msgid ""
-"The current settings would result in duplicate page numbers. Please select "
-"new start and increment values."
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:246
-msgid "Device"
-msgstr "Συσκευή"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:249
-msgid "Rescan for devices"
-msgstr "Νέα σάρωση για συσκευές"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:269
-msgid "Sets the device to be used for the scan"
-msgstr "Ορίζεται η συσκευή σάρωσης που θα χρησιμοποιηθεί"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:279
-msgid "Page Options"
-msgstr "Επιλογές σελίδας"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:286
-msgid "# Pages"
-msgstr "# Σελίδων"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:296 lib/Gscan2pdf/PageRange.pm:40
-msgid "All"
-msgstr "Όλα"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:297
-msgid "Scan all pages"
-msgstr "Σάρωση όλων των σελίδων"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:309 lib/Gscan2pdf/Dialog/Scan.pm:314
-msgid "Set number of pages to scan"
-msgstr "Αριθμός σελίδων για σάρωση"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:344
-msgid "Extended page numbering"
-msgstr "Εκτεταμένη αρίθμηση σελίδων"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:348
-msgid "Page number"
-msgstr "Αριθμός σελίδας"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:409
-msgid "Source document"
-msgstr "Αρχείο προέλευσης"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:416
-msgid "Single sided"
-msgstr "Μονής όψης"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:418
-msgid "Source document is single-sided"
-msgstr "Το αρχείο προέλευσης είναι μονής όψης"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:430
-msgid "Double sided"
-msgstr "Διπλής όψης"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:432
-msgid "Source document is double-sided"
-msgstr "Το αρχείο προέλευσης είναι διπλής όψης"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:438
-msgid "Side to scan"
-msgstr "Πλευρά για σάρωση"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:442
-msgid "Facing"
-msgstr "Προσανατολισμός"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:442
-msgid "Reverse"
-msgstr "Ανάποδη πλευρά"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:460
-msgid "Sets which side of a double-sided document is scanned"
-msgstr "Ορίζει ποια πλευρά ενός διπλής όψης εγγράφου θα σαρωθεί"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:485
-msgid "Scan profiles"
-msgstr "Προφίλ σάρωσης"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:506 lib/Gscan2pdf/Dialog/Scan.pm:512
-msgid "Name of scan profile"
-msgstr "Όνομα του προφίλ σάρωσης"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:524 lib/Gscan2pdf/Dialog/Scan.pm:1698
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:746 lib/Gscan2pdf/Dialog/Scan/CLI.pm:813
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:838 lib/Gscan2pdf/Dialog/Scan/Sane.pm:502
-#: t/0610_Dialog_Scan_Sane.t:142 t/0610_Dialog_Scan_Sane.t:186
-#: t/0610_Dialog_Scan_Sane.t:237 t/0610_Dialog_Scan_Sane.t:287
-#: t/0611_Dialog_Scan_Sane.t:48 t/0614_Dialog_Scan_Sane.t:45
-#: t/0615_Dialog_Scan_Sane.t:60 t/0616_Dialog_Scan_Sane.t:96
-#: t/0621_Dialog_Scan_CLI.t:170 t/0621_Dialog_Scan_CLI.t:215
-#: t/0621_Dialog_Scan_CLI.t:266 t/0621_Dialog_Scan_CLI.t:293
-#: t/0621_Dialog_Scan_CLI.t:314 t/0625_Dialog_Scan_CLI.t:45
-#: t/0625_Dialog_Scan_CLI.t:55 t/0625_Dialog_Scan_CLI.t:69
-#: t/0625_Dialog_Scan_CLI.t:81 t/0625_Dialog_Scan_CLI.t:95
-#: t/0626_Dialog_Scan_CLI.t:45 t/0628_Dialog_Scan_CLI.t:95
-msgid "current-scan-options"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:547
-msgid "Scan"
-msgstr "Σάρωση"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:677 lib/Gscan2pdf/Dialog/Scan/CLI.pm:614
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:627 lib/Gscan2pdf/Dialog/Scan/Sane.pm:378
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:391
-msgid "Manual"
-msgstr "Χειροκίνητα"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:688
-msgid "device_list"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:704
-#, perl-format
-msgid "Error: unknown device: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:929 lib/Gscan2pdf/Dialog/Scan.pm:1102
-msgid "paper"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:940 lib/Gscan2pdf/Dialog/Scan/CLI.pm:643
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:407
-msgid "paper-formats"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:944
-msgid "Edit paper size"
-msgstr "Επεξεργασία μεγέθους σελίδας"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:945 t/05_Dialog.t:26 t/05_Dialog.t:31
-#: t/05_Dialog.t:32 t/05_Dialog.t:38 t/05_Dialog.t:39
-msgid "border-width"
-msgstr "πλάτος-περιθωρίου"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:961
-msgid "Name"
-msgstr "Όνομα"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:964 lib/Gscan2pdf/Unpaper.pm:130
-#: lib/Gscan2pdf/Unpaper.pm:162
-msgid "Left"
-msgstr "Αριστερά"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:965 lib/Gscan2pdf/Unpaper.pm:136
-#: lib/Gscan2pdf/Unpaper.pm:167
-msgid "Top"
-msgstr "Κορυφή"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1017
-msgid "Cannot delete all paper sizes"
-msgstr "Αδύνατη η διαγραφή όλων των μεγεθών σελίδας"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1085
-msgid ""
-"The following paper sizes are too big to be scanned by the selected device:"
-msgstr ""
-"Τα ακόλουθα μεγέθη σελίδας είναι πολύ μεγάλα για σάρωση από την επιλεγμένη "
-"συσκευή:"
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1264
-msgid ""
-"Multiple unconstrained values are not currently supported. Please file a bug."
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1278
-msgid ""
-"Multiple non-numerical values are not currently supported. Please file a bug."
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1721
-#, perl-format
-msgid "Scanning page %d of %d"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan.pm:1723
-#, perl-format
-msgid "Scanning page %d"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:121 lib/Gscan2pdf/Dialog/Scan/CLI.pm:242
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:761
-msgid "prefix"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:126 lib/Gscan2pdf/Dialog/Scan/CLI.pm:250
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:769 lib/Gscan2pdf/Dialog/Scan/Sane.pm:77
-msgid "progress-pulse-step"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:127 lib/Gscan2pdf/Dialog/Scan/Sane.pm:78
-msgid "Fetching list of devices"
-msgstr "Ανάκτηση καταλόγου συσκευών"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:142 lib/Gscan2pdf/Dialog/Scan/Sane.pm:95
-msgid "No devices found"
-msgstr "Δε βρέθηκαν συσκευές"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:159 lib/Gscan2pdf/Dialog/Scan/CLI.pm:706
-msgid "reload-triggers"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:220 lib/Gscan2pdf/Dialog/Scan/CLI.pm:265
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:725 lib/Gscan2pdf/Dialog/Scan/CLI.pm:784
-#: t/0623_Dialog_Scan_CLI.t:32
-msgid "cache-options"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:223 lib/Gscan2pdf/Dialog/Scan/CLI.pm:266
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:728 lib/Gscan2pdf/Dialog/Scan/CLI.pm:785
-msgid "options-cache"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:243 lib/Gscan2pdf/Dialog/Scan/CLI.pm:762
-msgid "frontend"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:251 lib/Gscan2pdf/Dialog/Scan/CLI.pm:770
-msgid "Updating options"
-msgstr "Ενημέρωση επιλογών"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:328
-msgid "Scan Options"
-msgstr "Επιλογές σάρωσης"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:480 t/0622_Dialog_Scan_CLI.t:33
-#: t/0622_Dialog_Scan_CLI.t:44 t/0622_Dialog_Scan_CLI.t:52
-msgid "visible-scan-options"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:610 lib/Gscan2pdf/Dialog/Scan/Sane.pm:374
-msgid "Paper size"
-msgstr "Μέγεθος σελίδας"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:615 lib/Gscan2pdf/Dialog/Scan/CLI.pm:624
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:379 lib/Gscan2pdf/Dialog/Scan/Sane.pm:388
-msgid "Edit"
-msgstr "Επεξεργασία"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:617 lib/Gscan2pdf/Dialog/Scan/Sane.pm:381
-msgid "Selects or edits the paper size"
-msgstr "Επιλέγει ή επεξεργάζεται το μέγεθος σελίδας"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1018 lib/Gscan2pdf/Dialog/Scan/CLI.pm:1041
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1042 lib/Gscan2pdf/Dialog/Scan/Sane.pm:571
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:586 lib/Gscan2pdf/Dialog/Scan/Sane.pm:587
-#: t/0610_Dialog_Scan_Sane.t:36 t/0621_Dialog_Scan_CLI.t:36
-msgid "max-pages"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1022 lib/Gscan2pdf/Dialog/Scan/Sane.pm:575
-msgid "Must scan facing pages first"
-msgstr "Πρέπει να σαρωθούν πρώτα οι μπροστινές πλευρές"
-
-#: lib/Gscan2pdf/Dialog/Scan/CLI.pm:1034 lib/Gscan2pdf/Dialog/Scan/Sane.pm:581
-#: t/0610_Dialog_Scan_Sane.t:34 t/0621_Dialog_Scan_CLI.t:34
-msgid "dir"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:124
-msgid "Opening device"
-msgstr "Γίνεται άνοιγμα συσκευής"
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:134
-msgid "Retrieving options"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:158
-msgid "Error retrieving scanner options: "
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:167
-msgid "Error opening device: "
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:475
-#, perl-format
-msgid "Setting option %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Dialog/Scan/Sane.pm:512
-msgid "Error setting option: "
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:105
-msgid "Thumbnails"
-msgstr "Μικρογραφίες"
-
-#: lib/Gscan2pdf/Document.pm:243
-msgid "Error: cannot open a session file at the same time as another file."
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:256
-msgid "Error: import a multipage file at the same time as another file."
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:1221
-#, perl-format
-msgid "Error importing page %d. Ignoring."
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:1328
-msgid "No pages to process"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:1335
-msgid "No pages selected"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:1736
-#, perl-format
+#: importthread.py:86
+#, fuzzy
 msgid "File %s not found"
-msgstr ""
+msgstr "Το αρχείο %s δεν βρέθηκε"
 
-#: lib/Gscan2pdf/Document.pm:1749
-#, perl-format
+#: importthread.py:92
+#, fuzzy
+msgid "Error getting file info for %s: %s"
+msgstr "Σφάλμα κατά τη λήψη πληροφοριών αρχείου για το %s: %s"
+
+#: importthread.py:97
+#, fuzzy
 msgid "Error importing zero-length file %s."
-msgstr ""
+msgstr "Σφάλμα εισαγωγής αρχείου μηδενικού μεγέθους %s."
 
-#: lib/Gscan2pdf/Document.pm:1787
+#: importthread.py:135 importthread.py:178
+#, fuzzy
+msgid "Please install djvulibre-bin in order to open DjVu files: %s"
+msgstr "Εγκαταστήστε το djvulibre-bin για να ανοίγετε αρχεία DjVu: %s"
+
+#: importthread.py:166
 msgid "Unknown DjVu file structure. Please contact the author."
-msgstr ""
-"Άγνωστη δομή αρχείου DjVu . Παρακαλώ, επικοινωνήστε με τον συγγραφέα."
+msgstr "Άγνωστη δομή αρχείου DjVu . Παρακαλώ, επικοινωνήστε με τον συγγραφέα."
 
-#: lib/Gscan2pdf/Document.pm:1841 lib/Gscan2pdf/Document.pm:1849
-#, perl-format
-msgid "%s is not a recognised image type"
-msgstr "Το %s δεν είναι ένα αναγνωρισμένο είδος φωτογραφίας"
+#: importthread.py:266
+#, fuzzy
+msgid "Please install libtiff-tools in order to open TIFF files: %s"
+msgstr "Εγκαταστήστε το libtiff-tools για να ανοίγετε αρχεία TIFF: %s"
 
-#: lib/Gscan2pdf/Document.pm:1879 lib/Gscan2pdf/Document.pm:1937
-#, perl-format
+#: importthread.py:328 importthread.py:388
 msgid "Importing page %i of %i"
 msgstr "Εισαγωγή σελίδας %i του %i"
 
-#: lib/Gscan2pdf/Document.pm:2050 lib/Gscan2pdf/Document.pm:2075
+#: importthread.py:509
 msgid "Error extracting images from PDF"
 msgstr "Σημειώθηκε σφάλμα κατά την εξαγωγή εικόνων από το PDF"
 
-#: lib/Gscan2pdf/Document.pm:2089
-msgid "Setting up PDF"
-msgstr "Ρύθμιση του PDF"
-
-#: lib/Gscan2pdf/Document.pm:2109
-#, perl-format
-msgid "Saving page %i of %i"
-msgstr "Γίνεται αποθήκευση της σελίδας %i (επί συνόλου %i)"
-
-#: lib/Gscan2pdf/Document.pm:2116
-msgid "Closing PDF"
-msgstr "Κλείσιμο του PDF"
-
-#: lib/Gscan2pdf/Document.pm:2130
-#, perl-format
-msgid "Error prepending PDF: %s"
+#: importthread.py:520
+#, fuzzy
+msgid ""
+"Warning: scantpaper expects one image per page, but this was not satisfied. "
+"It is probable that the PDF has not been correctly imported. If you wish to "
+"add scans to an existing PDF, use the prepend/append to PDF options in the "
+"Save dialogue."
 msgstr ""
+"Προειδοποίηση: το scantpaper αναμένει μία εικόνα ανά σελίδα, αλλά αυτό δεν "
+"ικανοποιήθηκε. Είναι πιθανό το PDF να μην έχει εισαχθεί σωστά. Εάν θέλετε να"
+" προσθέσετε σαρώσεις σε υπάρχον PDF, χρησιμοποιήστε τις επιλογές "
+"πρόταξης/προσάρτησης σε PDF στο παράθυρο Αποθήκευση."
 
-#: lib/Gscan2pdf/Document.pm:2138
-#, perl-format
-msgid "Error appending PDF: %s"
-msgstr ""
+#: importthread.py:560
+#, fuzzy
+msgid "Error importing PDF"
+msgstr "Σφάλμα εισαγωγής PDF"
 
-#: lib/Gscan2pdf/Document.pm:2263
-#, perl-format
-msgid "Error creating PDF image object: %s"
-msgstr "Σημειώθηκε σφάλμα κατά τη δημιουργία αντικειμένου εικόνας PDF: %s"
+#: importthread.py:587
+#, fuzzy
+msgid "Error extracting text layer from PDF"
+msgstr "Σφάλμα εξαγωγής στρώματος κειμένου από PDF"
 
-#: lib/Gscan2pdf/Document.pm:2280
-#, perl-format
-msgid "Error embedding file image in %s format to PDF: %s"
-msgstr ""
-"Σημειώθηκε σφάλμα κατά την ενσωμάτωση αρχείου εικόνας σε μορφή %s, μέσα στο "
-"PDF: %s"
-
-#: lib/Gscan2pdf/Document.pm:2361 lib/Gscan2pdf/Document.pm:2770
-#, perl-format
-msgid "Error compressing image: %s"
-msgstr "Σημειώθηκε σφάλμα κατά τη συμπίεση εικόνας: %s"
-
-#: lib/Gscan2pdf/Document.pm:2476
-#, perl-format
-msgid "Writing page %i of %i"
-msgstr "Γίνεται εγγραφη της σελίδας %i (επί συνόλου %i)"
-
-#: lib/Gscan2pdf/Document.pm:2565
-msgid "Error writing DjVu"
-msgstr "Σημειώθηκε σφάλμα κατά την εγγραφή του DjVu"
-
-#: lib/Gscan2pdf/Document.pm:2573
-msgid "Merging DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2581
-msgid "Error merging DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2598
-#, perl-format
-msgid "Can't write to file: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2617 lib/Gscan2pdf/Document.pm:2648
-#: lib/Gscan2pdf/Document.pm:2907 lib/Gscan2pdf/Document.pm:2931
-#, perl-format
-msgid "Can't open file: %s"
-msgstr "Αδύνατο το άνοιγμα του αρχείου: %s"
-
-#: lib/Gscan2pdf/Document.pm:2621 lib/Gscan2pdf/Document.pm:2667
-#: lib/Gscan2pdf/Document.pm:2913 lib/Gscan2pdf/Document.pm:2942
-#, perl-format
-msgid "Can't close file: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2633
-msgid "Error adding text layer to DjVu"
-msgstr ""
-"Σημειώθηκε σφάλμα κατά την προσθήκη στιβάδας κειμένου (text layer) στο DjVu"
-
-#: lib/Gscan2pdf/Document.pm:2677
-msgid "Error adding metadata to DjVu"
-msgstr ""
-
-#: lib/Gscan2pdf/Document.pm:2694
-#, perl-format
-msgid "Converting image %i of %i to TIFF"
-msgstr "Γίνεται μετατροπή σε TIFF της εικόνας %i (επί συνόλου %i)"
-
-#: lib/Gscan2pdf/Document.pm:2735
-msgid "Error writing TIFF"
-msgstr "Σφάλμα κατά την εγγραφή του TIFF"
-
-#: lib/Gscan2pdf/Document.pm:2753
-msgid "Concatenating TIFFs"
-msgstr "Γίνεται διασύνδεση (concatenaton) των TIFF"
-
-#: lib/Gscan2pdf/Document.pm:2774
-msgid "Converting to PS"
-msgstr "Μετατροπή σε PS"
-
-#: lib/Gscan2pdf/Document.pm:2867 lib/Gscan2pdf/Document.pm:2882
-msgid "Error saving image"
-msgstr "Σφάλμα κατά την αποθήκευση εικόνας"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:182
-#, perl-format
-msgid "Scanning %i pages..."
-msgstr ""
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:188
-#, perl-format
-msgid "Scanning page %i..."
-msgstr "Σάρωση σελίδας %i..."
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:220 lib/Gscan2pdf/Frontend/CLI.pm:398
-msgid "Scanner warming up"
-msgstr "Προθέρμανση σαρωτή"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:231
-msgid "Document feeder out of documents"
-msgstr "Το τροφοδοτικό χαρτιού έμεινε χωρίς έγγραφα"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:255 lib/Gscan2pdf/Frontend/CLI.pm:436
-msgid "Device busy"
-msgstr "Η συσκευέυή είναι απασχολημένη"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:264 lib/Gscan2pdf/Frontend/CLI.pm:446
-msgid "Operation cancelled"
-msgstr "Η λειτουργία ακυρώθηκε"
-
-#: lib/Gscan2pdf/Frontend/CLI.pm:270 lib/Gscan2pdf/Frontend/CLI.pm:453
-msgid "Unknown message: "
-msgstr "Άγνωστο μύνημα: "
-
-#: lib/Gscan2pdf/Page.pm:88 lib/Gscan2pdf/Page.pm:93
-#, perl-format
-msgid "Error importing image %s: %s"
-msgstr ""
-
-#: lib/Gscan2pdf/PageRange.pm:39
+#: pagerange.py:46
 msgid "Selected"
 msgstr "Επιλεγμένο"
 
-#: lib/Gscan2pdf/PageRange.pm:67 t/18_PageRange.t:15
-msgid "active"
-msgstr "ενεργό"
+#: postprocess_controls.py:21
+msgid "Both sides"
+msgstr "Και τις δύο πλευρές"
 
-#: lib/Gscan2pdf/Unpaper.pm:46
+#: postprocess_controls.py:21
+msgid "Both sides."
+msgstr "Και τις δύο πλευρές."
+
+#: postprocess_controls.py:22
+msgid "Facing side"
+msgstr "Ίσια πλευρά"
+
+#: postprocess_controls.py:22
+msgid "Facing side."
+msgstr "Μπροστινή πλευρά"
+
+#: postprocess_controls.py:23
+msgid "Reverse side"
+msgstr "Ανάποδη πλευρά"
+
+#: postprocess_controls.py:23
+msgid "Reverse side."
+msgstr "Ανάποδη πλευρά"
+
+#: postprocess_controls.py:26
+#, fuzzy
+msgid "90°"
+msgstr "90°"
+
+#: postprocess_controls.py:26
+msgid "Rotate image 90 degrees clockwise."
+msgstr "Περιστροφή εικόνας κατά 90 μοίρες δεξιόστροφα."
+
+#: postprocess_controls.py:27
+#, fuzzy
+msgid "180°"
+msgstr "180°"
+
+#: postprocess_controls.py:27
+msgid "Rotate image 180 degrees clockwise."
+msgstr "Περιστροφή εικόνας κατά 180 μοίρες δεξιόστροφα."
+
+#: postprocess_controls.py:28
+#, fuzzy
+msgid "270°"
+msgstr "270°"
+
+#: postprocess_controls.py:28
+msgid "Rotate image 90 degrees anticlockwise."
+msgstr "Περιστροφή εικόνας κατά 90 μοίρες αριστερόστροφα."
+
+#: postprocess_controls.py:38
+msgid "Rotate"
+msgstr "Περιστροφή"
+
+#: postprocess_controls.py:39
+msgid "Rotate image after scanning"
+msgstr "Περιστροφή της εικόνας μετά την επεξργασία"
+
+#: postprocess_controls.py:42
+msgid "Select side to rotate"
+msgstr "Επιλογή πλευράς προς περιστροφή"
+
+#: postprocess_controls.py:45
+#, fuzzy
+msgid "Select angle of rotation"
+msgstr "Επιλογή γωνίας περιστροφής"
+
+#: postprocess_controls.py:48
+#, fuzzy
+msgid "Anticlockwise"
+msgstr "Αντίθετα από τη φορά των δεικτών του ρολογιού"
+
+#: postprocess_controls.py:349 postprocess_controls.py:350
+msgid "OCR scanned pages"
+msgstr "Σελίδες που σαρώθηκαν με OCR"
+
+#: postprocess_controls.py:377
+#, fuzzy
+msgid "Threshold before OCR"
+msgstr "Όριο πριν από το OCR"
+
+#: postprocess_controls.py:379
+#, fuzzy
+msgid ""
+"Threshold the image before performing OCR. This only affects the image "
+"passed to the OCR engine, and not the image stored."
+msgstr ""
+"Εφαρμογή ορίου στην εικόνα πριν από την εκτέλεση OCR. Αυτό επηρεάζει μόνο "
+"την εικόνα που μεταβιβάζεται στη μηχανή OCR, όχι την αποθηκευμένη εικόνα."
+
+#: postprocess_controls.py:390 tools_menu_mixins.py:113
+#, fuzzy
+msgid ""
+"Pixels that differ from the paper colour by more than this percentage are "
+"rendered black. Higher values only keep stronger marks."
+msgstr ""
+"Τα εικονοστοιχεία που διαφέρουν από το χρώμα του χαρτιού κατά περισσότερο "
+"από αυτό το ποσοστό αποδίδονται μαύρα. Οι υψηλότερες τιμές διατηρούν μόνο τα"
+" πιο έντονα σημάδια."
+
+#: postprocess_controls.py:427
+msgid "Language to recognise"
+msgstr "Γλώσσα προς αναγνώριση"
+
+#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
+#, fuzzy
+msgid "_Cancel"
+msgstr "_Άκυρο"
+
+#: progress.py:76 progress.py:110
+msgid "Process %i of %i (%s)"
+msgstr "Λειτουργία %i επί συνόλου %i (%s)"
+
+#: progress.py:119
+msgid "Process %i of %i"
+msgstr "Επεξεργασία %i απο %i"
+
+#: savethread.py:83
+#, fuzzy
+msgid "Processing PDF"
+msgstr "Επεξεργασία PDF"
+
+#: savethread.py:148
+#, fuzzy
+msgid "Embedding text layer"
+msgstr "Ενσωμάτωση στρώματος κειμένου"
+
+#: savethread.py:195
+msgid "Setting up PDF"
+msgstr "Ρύθμιση του PDF"
+
+#: savethread.py:264 savethread.py:405
+msgid "Writing page %i of %i"
+msgstr "Γίνεται εγγραφη της σελίδας %i (επί συνόλου %i)"
+
+#: savethread.py:290
+#, fuzzy
+msgid ""
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+msgstr ""
+"Το εκτιμώμενο μέγεθος PDF (%.1f GiB) υπερβαίνει τα 2 GiB. Αποθηκεύστε "
+"λιγότερες σελίδες."
+
+#: savethread.py:314 tests/test_savethread.py:1240
+#, fuzzy
+msgid "Writing PDF"
+msgstr "Εγγραφή PDF"
+
+#: savethread.py:363
+msgid "Converting to PS"
+msgstr "Μετατροπή σε PS"
+
+#: savethread.py:374
+#, fuzzy
+msgid "Error converting PDF to PS: %s"
+msgstr "Σφάλμα μετατροπής PDF σε PS: %s"
+
+#: savethread.py:418
+#, fuzzy
+msgid "Merging DjVu"
+msgstr "Συγχώνευση DjVu"
+
+#: savethread.py:425
+#, fuzzy
+msgid "Error merging DjVu: %s"
+msgstr "Σφάλμα συγχώνευσης DjVu: %s"
+
+#: savethread.py:519
+#, fuzzy
+msgid "Error converting TIFF to PS: %s"
+msgstr "Σφάλμα μετατροπής TIFF σε PS: %s"
+
+#: savethread.py:664
+msgid "Error copying page"
+msgstr "Σφάλμα κατά την αντιγραφή σελίδας"
+
+#: savethread.py:814
+#, fuzzy
+msgid "Error prepending PDF: %s"
+msgstr "Σφάλμα πρόταξης PDF: %s"
+
+#: savethread.py:822
+#, fuzzy
+msgid "Error appending PDF: %s"
+msgstr "Σφάλμα προσάρτησης PDF: %s"
+
+#: savethread.py:831
+#, fuzzy
+msgid "Error creating backup of PDF"
+msgstr "Σφάλμα δημιουργίας αντιγράφου ασφαλείας του PDF"
+
+#: savethread.py:905
+#, fuzzy
+msgid "Error encrypting PDF: %s"
+msgstr "Σφάλμα κρυπτογράφησης PDF: %s"
+
+#: scan_menu_item_mixins.py:72
+#, fuzzy
+msgid "Really cache libusb device names?"
+msgstr "Να αποθηκευτούν πραγματικά τα ονόματα συσκευών libusb;"
+
+#: scan_menu_item_mixins.py:75
+#, fuzzy
+msgid ""
+"Caching device list with libusb devices included is not recommended as they "
+"can change between reboots."
+msgstr ""
+"Η αποθήκευση λίστας συσκευών με συσκευές libusb δεν συνιστάται, καθώς "
+"μπορούν να αλλάξουν μεταξύ επανεκκινήσεων."
+
+#: scan_menu_item_mixins.py:78
+#, fuzzy
+msgid "Are you sure you want to do this?"
+msgstr "Είστε βέβαιοι ότι θέλετε να το κάνετε αυτό;"
+
+#: scan_menu_item_mixins.py:114
+msgid "Scan Document"
+msgstr "Σάρωση εγγράφου"
+
+#: scan_menu_item_mixins.py:216
+#, fuzzy
+msgid "Postprocessing"
+msgstr "Μετα-επεξεργασία"
+
+#: scan_menu_item_mixins.py:230
+#, fuzzy
+msgid "Alternate rotation every 2nd page"
+msgstr "Εναλλαγή περιστροφής κάθε 2η σελίδα"
+
+#: scan_menu_item_mixins.py:232
+#, fuzzy
+msgid ""
+"Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
+"degrees. Use when scanning a book where every sheet is aligned to the same "
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
+msgstr ""
+"Περιστρέψτε τις μονές σελίδες κατά την επιλεγμένη γωνία και τις ζυγές κατά "
+"τη γωνία αυτή συν 180 μοίρες. Χρησιμοποιήστε το κατά τη σάρωση ενός βιβλίου "
+"όπου κάθε φύλλο είναι ευθυγραμμισμένο στην ίδια ακμή, οπότε το πίσω μέρος "
+"κάθε φύλλου είναι περιστραμμένο κατά 180 μοίρες σε σχέση με το μπροστινό."
+
+#: scan_menu_item_mixins.py:298
+msgid "Clean up images"
+msgstr "Καθαρισμός εικόνων"
+
+#: scan_menu_item_mixins.py:299
+msgid "Clean up scanned images with unpaper"
+msgstr "Καθαρίστε τις σαρωμένες εικόνες με τον αποσελιδοποιητή"
+
+#: scan_menu_item_mixins.py:307
+msgid "Options"
+msgstr "Επιλογές"
+
+#: scan_menu_item_mixins.py:308
+msgid "Set unpaper options"
+msgstr "Ορισμός επιλογών αποχάρτισης"
+
+#: scan_menu_item_mixins.py:316
+msgid "unpaper options"
+msgstr "Επιλογές αποχάρτισης"
+
+#: scan_menu_item_mixins.py:339
+#, fuzzy
+msgid "Process with user-defined tool"
+msgstr "Επεξεργασία με εργαλείο που ορίζει ο χρήστης"
+
+#: scan_menu_item_mixins.py:340
+#, fuzzy
+msgid "Process scanned images with user-defined tool"
+msgstr "Επεξεργασία σαρωμένων εικόνων με εργαλείο που ορίζει ο χρήστης"
+
+#: session_mixins.py:73
+msgid ""
+"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+msgstr ""
+"Προσοχή: αδύνατη η χρήση του %s για προσωρινή αποθήκευση. Αντί για αυτό, "
+"γίνεται μετάπτωση στο %s"
+
+#: session_mixins.py:118 session_mixins.py:123
+msgid "Pick crashed session to restore"
+msgstr "Επιλέξτε προς ανάκτηση τη συνεδρία που κατέρρευσε"
+
+#: session_mixins.py:191
+#, fuzzy
+msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
+msgstr ""
+"Το GraphicsMagick χρησιμοποιείται σε λειτουργία συμβατότητας ImageMagick."
+
+#: session_mixins.py:193
+#, fuzzy
+msgid "Whilst this might work, it is not currently supported."
+msgstr ""
+"Αν και αυτό μπορεί να λειτουργήσει, δεν υποστηρίζεται επί του παρόντος."
+
+#: session_mixins.py:195
+#, fuzzy
+msgid "Please switch to ImageMagick in case of problems."
+msgstr "Σε περίπτωση προβλημάτων, μεταβείτε στο ImageMagick."
+
+#: session_mixins.py:212
+msgid "Tesseract"
+msgstr "Tesseract"
+
+#: session_mixins.py:212
+msgid "Process image with Tesseract."
+msgstr "Επεξεργασία εικόνας με Υπερκυβισμό (Tesseract)"
+
+#: session_mixins.py:229
+#, fuzzy
+msgid "Finished scanning facing pages. Scan reverse pages?"
+msgstr "Ολοκληρώθηκε η σάρωση των εμπρός όψεων. Σάρωση των πίσω όψεων;"
+
+#: session_mixins.py:232
+#, fuzzy
+msgid "Finished scanning reverse pages. Scan facing pages?"
+msgstr "Ολοκληρώθηκε η σάρωση των πίσω όψεων. Σάρωση των εμπρός όψεων;"
+
+#: session_mixins.py:448
+#, fuzzy
+msgid "_Ok"
+msgstr "_OK"
+
+#: session_mixins.py:449 text_layer_control.py:80
+#, fuzzy
+msgid "Accept corrections"
+msgstr "Αποδοχή διορθώσεων"
+
+#: session_mixins.py:452 text_layer_control.py:83
+#, fuzzy
+msgid "Cancel corrections"
+msgstr "Ακύρωση διορθώσεων"
+
+#: session_mixins.py:458
+#, fuzzy
+msgid "Add annotation"
+msgstr "Προσθήκη σχολιασμού"
+
+#: session_mixins.py:461
+#, fuzzy
+msgid "Delete annotation"
+msgstr "Διαγραφή σχολιασμού"
+
+#: session_mixins.py:505
+#, fuzzy
+msgid "my-new-word"
+msgstr "my-new-word"
+
+#: session_mixins.py:560
+#, fuzzy
+msgid "my-new-annotation"
+msgstr "my-new-annotation"
+
+#: tesseract.py:232 tesseract.py:246 tesseract.py:258
+#, fuzzy
+msgid "You are using locale '%s'."
+msgstr "Χρησιμοποιείτε τις τοπικές ρυθμίσεις '%s'."
+
+#: tesseract.py:234
+#, fuzzy
+msgid ""
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
+msgstr ""
+"Το scantpaper δεν γνωρίζει επί του παρόντος ποιο πακέτο γλώσσας tesseract θα"
+" ήταν απαραίτητο για αυτές τις τοπικές ρυθμίσεις."
+
+#: tesseract.py:239
+#, fuzzy
+msgid "Please contact the developers to add support for that locale."
+msgstr ""
+"Επικοινωνήστε με τους προγραμματιστές για να προσθέσετε υποστήριξη για αυτές"
+" τις τοπικές ρυθμίσεις."
+
+#: tesseract.py:249
+#, fuzzy
+msgid ""
+"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
+"for OCR for %s with tesseract."
+msgstr ""
+"Εγκαταστήστε το πακέτο tesseract 'tesseract-ocr-%s' και επανεκκινήστε το "
+"scantpaper για OCR για %s με το tesseract."
+
+#: tesseract.py:260
+#, fuzzy
+msgid "There is no tesseract package for %s"
+msgstr "Δεν υπάρχει πακέτο tesseract για %s"
+
+#: tesseract.py:262
+#, fuzzy
+msgid "If this is in error, please contact the scantpaper developers."
+msgstr ""
+"Εάν αυτό είναι λάθος, επικοινωνήστε με τους προγραμματιστές του scantpaper."
+
+#: tests/test_savethread.py:1230
+#, fuzzy
+msgid "Writing page"
+msgstr "Εγγραφή σελίδας"
+
+#: text_layer_control.py:27
+#, fuzzy
+msgid "Sort by confidence"
+msgstr "Ταξινόμηση κατά βεβαιότητα"
+
+#: text_layer_control.py:28
+#, fuzzy
+msgid "Sort OCR text boxes by confidence."
+msgstr "Ταξινόμηση πλαισίων κειμένου OCR κατά βεβαιότητα."
+
+#: text_layer_control.py:30
+#, fuzzy
+msgid "Sort by position"
+msgstr "Ταξινόμηση κατά θέση"
+
+#: text_layer_control.py:30
+#, fuzzy
+msgid "Sort OCR text boxes by position."
+msgstr "Ταξινόμηση πλαισίων κειμένου OCR κατά θέση."
+
+#: text_layer_control.py:61
+#, fuzzy
+msgid "Go to least confident text"
+msgstr "Μετάβαση στο λιγότερο βέβαιο κείμενο"
+
+#: text_layer_control.py:64
+#, fuzzy
+msgid "Go to previous text"
+msgstr "Μετάβαση στο προηγούμενο κείμενο"
+
+#: text_layer_control.py:67
+#, fuzzy
+msgid "Select sort method for OCR boxes"
+msgstr "Επιλογή μεθόδου ταξινόμησης για τα πλαίσια OCR"
+
+#: text_layer_control.py:73
+#, fuzzy
+msgid "Go to next text"
+msgstr "Μετάβαση στο επόμενο κείμενο"
+
+#: text_layer_control.py:75
+#, fuzzy
+msgid "Go to most confident text"
+msgstr "Μετάβαση στο πιο βέβαιο κείμενο"
+
+#: text_layer_control.py:77
+#, fuzzy
+msgid "Add text"
+msgstr "Προσθήκη κειμένου"
+
+#: text_layer_control.py:80
+#, fuzzy
+msgid "_OK"
+msgstr "_OK"
+
+#: text_layer_control.py:86
+msgid "_Copy"
+msgstr "Αντι_γραφή"
+
+#: text_layer_control.py:86
+#, fuzzy
+msgid "Duplicate text"
+msgstr "Διπλασιασμός κειμένου"
+
+#: text_layer_control.py:89
+#, fuzzy
+msgid "Delete text"
+msgstr "Διαγραφή κειμένου"
+
+#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
+msgid "Threshold"
+msgstr "Ανοχή"
+
+#: tools_menu_mixins.py:106
+#, fuzzy
+msgid "Ink strength"
+msgstr "Ένταση μελανιού"
+
+#: tools_menu_mixins.py:159
+#, fuzzy
+msgid "Brightness / Contrast"
+msgstr "Φωτεινότητα / Αντίθεση"
+
+#: tools_menu_mixins.py:170
+#, fuzzy
+msgid "Brightness"
+msgstr "Φωτεινότητα"
+
+#: tools_menu_mixins.py:181
+#, fuzzy
+msgid "Contrast"
+msgstr "Αντίθεση"
+
+#: tools_menu_mixins.py:227
+msgid "Negate"
+msgstr "Απόρριψη"
+
+#: tools_menu_mixins.py:264
+msgid "Unsharp mask"
+msgstr "Μάσκα άμβλυνσης"
+
+#: tools_menu_mixins.py:275
+msgid "Radius"
+msgstr "Η ακ"
+
+#: tools_menu_mixins.py:279
+#, fuzzy
+msgid "Blur Radius."
+msgstr "Ακτίνα θολώματος."
+
+#: tools_menu_mixins.py:282
+#, fuzzy
+msgid "Percentage"
+msgstr "Ποσοστό"
+
+#: tools_menu_mixins.py:286
+#, fuzzy
+msgid "Unsharp strength, in percent."
+msgstr "Ένταση μη ευκρινούς μάσκας, σε ποσοστό."
+
+#: tools_menu_mixins.py:293
+#, fuzzy
+msgid ""
+"Threshold controls the minimum brightness change that will be sharpened."
+msgstr "Το όριο ελέγχει την ελάχιστη αλλαγή φωτεινότητας που θα οξυνθεί."
+
+#: tools_menu_mixins.py:444
+#, fuzzy
+msgid "Split"
+msgstr "Διαίρεση"
+
+#: tools_menu_mixins.py:453
+#, fuzzy
+msgid "Direction"
+msgstr "Κατεύθυνση"
+
+#: tools_menu_mixins.py:458
+#, fuzzy
+msgid "Vertically"
+msgstr "Κάθετα"
+
+#: tools_menu_mixins.py:459
+#, fuzzy
+msgid "Split the page vertically into left and right pages."
+msgstr "Διαίρεση της σελίδας κάθετα σε αριστερή και δεξιά σελίδα."
+
+#: tools_menu_mixins.py:463
+#, fuzzy
+msgid "Horizontally"
+msgstr "Οριζόντια"
+
+#: tools_menu_mixins.py:464
+#, fuzzy
+msgid "Split the page horizontally into top and bottom pages."
+msgstr "Διαίρεση της σελίδας οριζόντια σε επάνω και κάτω σελίδα."
+
+#: tools_menu_mixins.py:487
+#, fuzzy
+msgid "Position"
+msgstr "Θέση"
+
+#: tools_menu_mixins.py:590
+msgid "unpaper"
+msgstr "Αποσελιδοποιήση"
+
+#: tools_menu_mixins.py:649
+msgid "OCR"
+msgstr "Οπτική Αναγνώριση Χαρακτήρων (OCR)"
+
+#: tools_menu_mixins.py:730
+msgid "User-defined tools"
+msgstr "Εργαλεία καθοριζόμενα από τον χρήστη"
+
+#: tools_menu_mixins.py:739
+#, fuzzy
+msgid "Selected tool"
+msgstr "Επιλεγμένο εργαλείο"
+
+#: tools_menu_mixins.py:782
+msgid "Email as PDF"
+msgstr "Ηλεκτρονική ταχυδρόμιση ως PDF"
+
+#: tools_menu_mixins.py:861
+msgid "Error creating email"
+msgstr "Σφάλμα κατά τη δημιουργία e-mail"
+
+#: tools_menu_mixins.py:917
+msgid "To aid the scan-to-PDF process"
+msgstr "Για βοήθεια στην εξέλιξη του scan-to-PDF"
+
+#: tools_menu_mixins.py:918
+#, fuzzy
+msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
+msgstr "Πνευματικά δικαιώματα 2006--2026 Jeffrey Ratcliffe"
+
+#: unpaper.py:38
 msgid "Layout"
 msgstr "Διάταξη"
 
-#: lib/Gscan2pdf/Unpaper.pm:49
+#: unpaper.py:41
 msgid "Single"
 msgstr "Μονό"
 
-#: lib/Gscan2pdf/Unpaper.pm:51
+#: unpaper.py:42
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Μία σελίδα ανά φύλλο, προσανατολισμός προς τα επάνω χωρίς περιστροφή"
 
-#: lib/Gscan2pdf/Unpaper.pm:55
+#: unpaper.py:47
 msgid "Double"
 msgstr "Διπλό"
 
-#: lib/Gscan2pdf/Unpaper.pm:57
+#: unpaper.py:48
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -2069,217 +2107,803 @@ msgstr ""
 "Δύο σελίδες ανά φύλλο, με οριζόντιο προσανατολισμό (μία σελίδα στο αριστερό "
 "μισό, μία σελίδα στο δεξί μισό)."
 
-#: lib/Gscan2pdf/Unpaper.pm:65
+#: unpaper.py:58
 msgid "# Output pages"
 msgstr "# Αριθμός εξαγώγιμων σελίδων"
 
-#: lib/Gscan2pdf/Unpaper.pm:66
+#: unpaper.py:59
 msgid "Number of pages to output."
 msgstr "Αριθμός σελίδων προς εξαγωγή."
 
-#: lib/Gscan2pdf/Unpaper.pm:74
+#: unpaper.py:67
+#, fuzzy
+msgid "Writing system"
+msgstr "Σύστημα γραφής"
+
+#: unpaper.py:70
+#, fuzzy
+msgid "Left-to-right"
+msgstr "Αριστερά προς δεξιά"
+
+#: unpaper.py:71
+#, fuzzy
+msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
+msgstr "Τα περισσότερα συστήματα γραφής, π.χ. Λατινικό, Ελληνικό, Κυριλλικό."
+
+#: unpaper.py:76
+#, fuzzy
+msgid "Right-to-left"
+msgstr "Δεξιά προς αριστερά"
+
+#: unpaper.py:77
+#, fuzzy
+msgid "Scripts like Arabic or Hebrew."
+msgstr "Γραφές όπως τα Αραβικά ή τα Εβραϊκά."
+
+#: unpaper.py:85
 msgid "No deskew"
 msgstr "Χωρίς αντιστρέβλωση"
 
-#: lib/Gscan2pdf/Unpaper.pm:75
+#: unpaper.py:86
 msgid "Disable deskewing."
 msgstr "Απενεργοποίηση αντιστρέβλωσης"
 
-#: lib/Gscan2pdf/Unpaper.pm:80
+#: unpaper.py:91
+#, fuzzy
 msgid "No mask scan"
-msgstr ""
+msgstr "Χωρίς ανίχνευση μάσκας"
 
-#: lib/Gscan2pdf/Unpaper.pm:81
+#: unpaper.py:92
 msgid "Disable mask detection."
 msgstr "Άρση ανίχνευσης μάσκας"
 
-#: lib/Gscan2pdf/Unpaper.pm:86
+#: unpaper.py:97
+#, fuzzy
+msgid "No mask centering"
+msgstr "Χωρίς κεντράρισμα μάσκας"
+
+#: unpaper.py:98
+#, fuzzy
+msgid "Disable mask centering."
+msgstr "Απενεργοποίηση κεντραρίσματος μάσκας."
+
+#: unpaper.py:103
 msgid "No black filter"
 msgstr "Χωρίς φίλτρο μαύρου"
 
-#: lib/Gscan2pdf/Unpaper.pm:87
+#: unpaper.py:104
 msgid "Disable black area scan."
 msgstr "Άρση σάρωσης μαύρων περιοχών"
 
-#: lib/Gscan2pdf/Unpaper.pm:92
+#: unpaper.py:109
 msgid "No gray filter"
 msgstr "Χωρίς φίλτρο γρί"
 
-#: lib/Gscan2pdf/Unpaper.pm:93
+#: unpaper.py:110
 msgid "Disable gray area scan."
 msgstr "Άρση σάρωσης γκρι περιοχών"
 
-#: lib/Gscan2pdf/Unpaper.pm:98
+#: unpaper.py:115
 msgid "No noise filter"
 msgstr "Χωρίς φίλτρο θορύβου"
 
-#: lib/Gscan2pdf/Unpaper.pm:99
+#: unpaper.py:116
 msgid "Disable noise filter."
 msgstr "Άρση φίλτρου θορύβου"
 
-#: lib/Gscan2pdf/Unpaper.pm:104
+#: unpaper.py:121
 msgid "No blur filter"
 msgstr "Χωρίς φίλτρο θαμπώματος"
 
-#: lib/Gscan2pdf/Unpaper.pm:105
+#: unpaper.py:122
 msgid "Disable blur filter."
 msgstr "Άρση φίλτρου θαμπώματος"
 
-#: lib/Gscan2pdf/Unpaper.pm:110
+#: unpaper.py:127
 msgid "No border scan"
 msgstr "Χωρίς σάρωση περιθωρίων"
 
-#: lib/Gscan2pdf/Unpaper.pm:111
+#: unpaper.py:128
 msgid "Disable border scanning."
 msgstr "Απενεργοποίηση σάρωσης περιθωρίων"
 
-#: lib/Gscan2pdf/Unpaper.pm:116
+#: unpaper.py:133
 msgid "No border align"
 msgstr "Χωρίς στοίχιση περιθωρίου"
 
-#: lib/Gscan2pdf/Unpaper.pm:118
+#: unpaper.py:134
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "Απενεργοποίηση στοίχισης"
 
-#: lib/Gscan2pdf/Unpaper.pm:123
+#: unpaper.py:141
 msgid "Deskew to edge"
 msgstr "Αντιστρέβλωση στο άκρο"
 
-#: lib/Gscan2pdf/Unpaper.pm:125
+#: unpaper.py:142
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
 "value will be used, unless the statistical deviation exceeds --deskew-scan-"
 "deviation."
 msgstr ""
-"Ακμές από τις οποίες θα γίνει σάρωση για περιστροφή. Κάθε ακμή μάσκας μπορεί "
-"να χρησιμοποιηθεί για εντοπισμό περιστροφής της μάσκας. Αν οριστούν πολλές "
+"Ακμές από τις οποίες θα γίνει σάρωση για περιστροφή. Κάθε ακμή μάσκας μπορεί"
+" να χρησιμοποιηθεί για εντοπισμό περιστροφής της μάσκας. Αν οριστούν πολλές "
 "ακμές, θα χρησιμοποιηθεί ο μέσος όρος, εκτός αν η στατιστική απόκλιση "
 "υπερβαίνει την απόκλιση --αντιστρέβλωσης-σάρωσης"
 
-#: lib/Gscan2pdf/Unpaper.pm:132
+#: unpaper.py:152
 msgid "Use 'left' for scanning from the left edge."
 msgstr "Χρησιμοποίησε το \"αριστερά\" για σάρωση από αριστερά"
 
-#: lib/Gscan2pdf/Unpaper.pm:138
+#: unpaper.py:157
 msgid "Use 'top' for scanning from the top edge."
 msgstr "Χρησιμοποίησε το \"κορυφή\" για σάρωση από την κορυφή"
 
-#: lib/Gscan2pdf/Unpaper.pm:142 lib/Gscan2pdf/Unpaper.pm:172
+#: unpaper.py:161 unpaper.py:189
 msgid "Right"
 msgstr "Δεξιά"
 
-#: lib/Gscan2pdf/Unpaper.pm:144
+#: unpaper.py:162
 msgid "Use 'right' for scanning from the right edge."
 msgstr "Χρησιμοποίησε το \"δεξιά\" για σάρωση από δεξιά"
 
-#: lib/Gscan2pdf/Unpaper.pm:148 lib/Gscan2pdf/Unpaper.pm:178
+#: unpaper.py:166 unpaper.py:194
 msgid "Bottom"
 msgstr "Βάση"
 
-#: lib/Gscan2pdf/Unpaper.pm:150
+#: unpaper.py:167
 msgid "Use 'bottom' for scanning from the bottom."
 msgstr "Χρησιμοποίησε το \"βάση\" για σάρωση από την βάση"
 
-#: lib/Gscan2pdf/Unpaper.pm:157
+#: unpaper.py:174
 msgid "Align to edge"
 msgstr "Στοίχιση στην ακμή"
 
-#: lib/Gscan2pdf/Unpaper.pm:158
+#: unpaper.py:175
 msgid "Edge to which to align the page."
 msgstr "Ακμή που θα ευθυγραμιστεί η σελίδα"
 
-#: lib/Gscan2pdf/Unpaper.pm:163
+#: unpaper.py:180
 msgid "Use 'left' to align to the left edge."
 msgstr "Χρησιμοποίησε το \"αριστερά\" για στοίχιση αριστερά"
 
-#: lib/Gscan2pdf/Unpaper.pm:168
+#: unpaper.py:185
 msgid "Use 'top' to align to the top edge."
 msgstr "Χρήση της επιλογής 'top' για να γίνει στοίχιση στο πάνω μέρος."
 
-#: lib/Gscan2pdf/Unpaper.pm:174
+#: unpaper.py:190
 msgid "Use 'right' to align to the right edge."
 msgstr "Χρήση της επιλογής 'right' για να γίνει στοίχιση στο δεξί μέρος."
 
-#: lib/Gscan2pdf/Unpaper.pm:179
+#: unpaper.py:195
 msgid "Use 'bottom' to align to the bottom."
 msgstr "Χρήση της επιλογής 'bottom' για να γίνει στοίχιση στο κάτω μέρος."
 
-#: lib/Gscan2pdf/Unpaper.pm:185
+#: unpaper.py:201
 msgid "Border margin"
 msgstr "περίγραμμα περιθωρίου"
 
-#: lib/Gscan2pdf/Unpaper.pm:189
+#: unpaper.py:205
 msgid "Vertical margin"
 msgstr "Κατακόρυφο περιθώριο"
 
-#: lib/Gscan2pdf/Unpaper.pm:191
+#: unpaper.py:206
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Η κάθετη απόσταση από την άκρη του φύλλου, όταν γίνεται στοίχιση των "
 "περιθωρίων μιας περιοχής"
 
-#: lib/Gscan2pdf/Unpaper.pm:200
+#: unpaper.py:217
 msgid "Horizontal margin"
 msgstr "Οριζόντιο περιθώριο"
 
-#: lib/Gscan2pdf/Unpaper.pm:202
+#: unpaper.py:218
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Οριζόντια απόσταση από την ακμή του φύλλου για ευθυγράμμιση στο περιθώριο"
 
-#: lib/Gscan2pdf/Unpaper.pm:213
+#: unpaper.py:231
 msgid "White threshold"
 msgstr "Ανοχή λευκού"
 
-#: lib/Gscan2pdf/Unpaper.pm:215
+#: unpaper.py:232
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr ""
 "Τιμή φωτεινότητας πάνω από την οποία ένα εικονοστοιχείο θα θεωρείται ως "
 "λευκό."
 
-#: lib/Gscan2pdf/Unpaper.pm:223
+#: unpaper.py:243
 msgid "Black threshold"
 msgstr "Ανοχή μαύρου"
 
-#: lib/Gscan2pdf/Unpaper.pm:225
+#: unpaper.py:244
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
 msgstr ""
 "Αναλογία φωτεινότητας κάτω από την οποία ένα εικονοστοιχείο θεωρείται μαύρο "
 "(όχι γκρι). Αυτό χρησιμοποιείται από το φίλτρο γκρι. Η ποσότητα αυτή επίσης "
 "χρησιμοποιείται στη μετατροπή μίας εικόνας από τόνους γκρι σε μαυρόασπρη."
 
-#: lib/Gscan2pdf/Unpaper.pm:261
+#: unpaper.py:355
 msgid "Deskew"
 msgstr "Αντιστρέβλωση"
 
-#: lib/Gscan2pdf/Unpaper.pm:293
+#: unpaper.py:359
 msgid "Border"
 msgstr "Περίγραμμα"
 
-#: lib/Gscan2pdf/Unpaper.pm:352
+#: unpaper.py:364
 msgid "Filters"
 msgstr "Φίλτρα"
 
-#: t/05_Dialog.t:23
-msgid "title"
-msgstr "τίτλος"
+#~ msgid "OCR Output"
+#~ msgstr "Έξοδος OCR"
 
-#: t/05_Dialog.t:24
-msgid "transient-for"
-msgstr "προσωρινό-για"
+#~ msgid "Error displaying help"
+#~ msgstr "Υπήρξε σφάλμα κατά την εμφάνιση της βοήθειας"
 
-#: t/060_Dialog_Scan.t:39 t/0610_Dialog_Scan_Sane.t:39
-#: t/0621_Dialog_Scan_CLI.t:39
-msgid "side-to-scan"
-msgstr ""
+#, perl-format
+#~ msgid "Cannot read file: %s"
+#~ msgstr "Αδύνατη η ανάγνωση του αρχείου: %s"
 
-#: t/0610_Dialog_Scan_Sane.t:183 t/0611_Dialog_Scan_Sane.t:71
-#: t/0621_Dialog_Scan_CLI.t:212
-msgid "profile"
-msgstr ""
+#~ msgid "GOCR"
+#~ msgstr "GOCR"
+
+#~ msgid "Process image with GOCR."
+#~ msgstr "Επεξεργασία εικόνας με GOCR."
+
+#~ msgid "Ocropus"
+#~ msgstr "Ocropus"
+
+#~ msgid "Process image with Ocropus."
+#~ msgstr "Επεξεργασία εικόνας με το Ocropus."
+
+#~ msgid "Cuneiform"
+#~ msgstr "Σφηνοειδής γραφή (Cuneiform)"
+
+#~ msgid "Process image with Cuneiform."
+#~ msgstr "Επεξεργασία εικόνας με τη σφηνοειδή γραφή (Cuneiform)"
+
+#~ msgid "_File"
+#~ msgstr "_Αρχείο"
+
+#~ msgid "_New"
+#~ msgstr "_Νέο"
+
+#~ msgid "Clears all pages"
+#~ msgstr "Καθαρισμός όλων των σελίδων"
+
+#~ msgid "_Open"
+#~ msgstr "_Άνοιγμα"
+
+#~ msgid "Open image file(s)"
+#~ msgstr "Άνοιγμα αρχείου εικόνων"
+
+#~ msgid "S_can"
+#~ msgstr "Σ_άρωση"
+
+#~ msgid "Scan document"
+#~ msgstr "Σάρωση εγγράφου"
+
+#~ msgid "_Email as PDF"
+#~ msgstr "_Email ως PDF"
+
+#~ msgid "Attach as PDF to a new email"
+#~ msgstr "Επισύναψη σαν PDF σε νέο email"
+
+#~ msgid "_Print"
+#~ msgstr "_Εκτύπωση"
+
+#~ msgid "Print"
+#~ msgstr "Εκτύπωση"
+
+#~ msgid "_Compress temporary files"
+#~ msgstr "_Συμπίεση προσωρινών αρχείων"
+
+#~ msgid "Compress temporary files"
+#~ msgstr "Συμπίεση προσωρινών αρχείων"
+
+#~ msgid "_Quit"
+#~ msgstr "_'Εξοδος"
+
+#~ msgid "Quit"
+#~ msgstr "'Εξοδος"
+
+#~ msgid "_Edit"
+#~ msgstr "_Επεξεργασία"
+
+#~ msgid "_Undo"
+#~ msgstr "_Αναίρεση"
+
+#~ msgid "Undo"
+#~ msgstr "Αναίρεση"
+
+#~ msgid "_Redo"
+#~ msgstr "_Ακύρωση Αναίρεσης"
+
+#~ msgid "Redo"
+#~ msgstr "Ακύρωση Αναίρεσης"
+
+#~ msgid "Cu_t"
+#~ msgstr "Απο_κοπή"
+
+#~ msgid "Cut selection"
+#~ msgstr "Αποκοπή επιλογής"
+
+#~ msgid "Copy selection"
+#~ msgstr "Αντιγραφή επιλογής"
+
+#~ msgid "_Paste"
+#~ msgstr "Ε_πικόλληση"
+
+#~ msgid "Paste selection"
+#~ msgstr "Επικόλληση επιλογής"
+
+#~ msgid "Delete selected pages"
+#~ msgstr "Διαγραφή επιλεγμένων σελίδων"
+
+#~ msgid "_Renumber"
+#~ msgstr "_Επαναρίθμηση"
+
+#~ msgid "Renumber pages"
+#~ msgstr "Εκ νέου αρίθμηση σελίδων"
+
+#~ msgid "_Select"
+#~ msgstr "_Επιλογή"
+
+#~ msgid "_All"
+#~ msgstr "_Όλα"
+
+#~ msgid "Select all pages"
+#~ msgstr "Επιλογή όλων των σελίδων"
+
+#~ msgid "_Odd"
+#~ msgstr "_Μονό"
+
+#~ msgid "Select all odd-numbered pages"
+#~ msgstr "Επιλέξτε όλες τις σελίδες με  μονή αρίθμηση"
+
+#~ msgid "_Even"
+#~ msgstr "_Ζυγό"
+
+#~ msgid "Select all evenly-numbered pages"
+#~ msgstr "Επιλέξτε όλες τις σελίδες με  ζυγή αρίθμηση"
+
+#~ msgid "_Blank"
+#~ msgstr "_Κενό"
+
+#~ msgid "Select pages with low standard deviation"
+#~ msgstr "Επιλογή σελίδων με χαμηλή απόκλιση"
+
+#~ msgid "_Dark"
+#~ msgstr "_Σκοτεινό"
+
+#~ msgid "Select dark pages"
+#~ msgstr "Επιλέξτε τις σκοτεινές σελίιδες"
+
+#~ msgid "_Modified"
+#~ msgstr "_Τροποποιήθηκαν"
+
+#~ msgid "Select modified pages since last OCR"
+#~ msgstr "Επιλέξτε τις τροποποιημένες σελίδες μετά το τελευταίο OCR"
+
+#~ msgid "_No OCR"
+#~ msgstr "_Χωρίς OCR"
+
+#~ msgid "Select pages with no OCR output"
+#~ msgstr "Επιλέξτε τις σελίδες χωρίς έξοδο OCR"
+
+#~ msgid "_Clear OCR"
+#~ msgstr "_Διαγραφή OCR"
+
+#~ msgid "Clear OCR output from selected pages"
+#~ msgstr "Διαγραφή της εξόδου OCR από τις επιλεγμένες σελίδες"
+
+#~ msgid "Propert_ies"
+#~ msgstr "Ιδιό_τητες"
+
+#~ msgid "Edit image properties"
+#~ msgstr "Επεξεργασία ιδιοτήτων εικόνας"
+
+#~ msgid "Prefere_nces"
+#~ msgstr "Προτι_μήσεις"
+
+#~ msgid "Edit preferences"
+#~ msgstr "Επεξεργασία ρυθμίσεων"
+
+#~ msgid "_View"
+#~ msgstr "_Προβολή"
+
+#~ msgid "Zoom _100%"
+#~ msgstr "Μεγέθυνση _100%"
+
+#~ msgid "Zoom to 100%"
+#~ msgstr "Κλίμακα στο 100%"
+
+#~ msgid "Zoom to _fit"
+#~ msgstr "Αλλαγή κλίμακας για _ταίριασμα"
+
+#~ msgid "Zoom to fit"
+#~ msgstr "Αλλαγή κλίμακας για ταίριασμα"
+
+#~ msgid "Zoom _in"
+#~ msgstr "_Μεγέθυνση"
+
+#~ msgid "Zoom in"
+#~ msgstr "Μεγέθυνση"
+
+#~ msgid "Zoom _out"
+#~ msgstr "Σ_μίκρυνση"
+
+#~ msgid "Zoom out"
+#~ msgstr "Σμίκρυνση"
+
+#~ msgid "Rotate 90° clockwise"
+#~ msgstr "Περιστροφή 90 δεξιόστροφα"
+
+#~ msgid "Rotate 180°"
+#~ msgstr "Περιστροφή 180"
+
+#~ msgid "Rotate 90° anticlockwise"
+#~ msgstr "Περιστροφή 90 αριστερόστροφα"
+
+#~ msgid "_Tools"
+#~ msgstr "_Εργαλεία"
+
+#~ msgid "_Threshold"
+#~ msgstr "_Ανοχή"
+
+#~ msgid "Change each pixel above this threshold to black"
+#~ msgstr "Αλλαγή σε μσύρο για κάθε εικονοστοιχείο που υπερβαίνει το όριο"
+
+#~ msgid "_Negate"
+#~ msgstr "_Απόρριψη"
+
+#~ msgid "Converts black to white and vice versa"
+#~ msgstr "Μετατρέπει το μαύρο σε λευκό και αντιστρόφως"
+
+#~ msgid "_Unsharp Mask"
+#~ msgstr "_Μάσκα Άμβλυνσης"
+
+#~ msgid "Apply an unsharp mask"
+#~ msgstr "Εφαρμόστε μια μάσκα άμβλυνσης"
+
+#~ msgid "_Crop"
+#~ msgstr "Α_ποκοπή"
+
+#~ msgid "Crop pages"
+#~ msgstr "Αποκοπή σελίδων"
+
+#~ msgid "_Clean up"
+#~ msgstr "_Καθαρισμός"
+
+#~ msgid "_OCR"
+#~ msgstr "_OCR"
+
+#~ msgid "Optical Character Recognition"
+#~ msgstr "Οπτική Αναγνώριση Χαρακτήρων"
+
+#~ msgid "U_ser-defined"
+#~ msgstr "Ο_ρίζεται από τον χρήστη"
+
+#~ msgid "_Help"
+#~ msgstr "_Βοήθεια"
+
+#~ msgid "Help"
+#~ msgstr "Βοήθεια"
+
+#~ msgid "_About"
+#~ msgstr "_Σχετικά"
+
+#~ msgid "_Drag"
+#~ msgstr "_Σύρτε"
+
+#~ msgid "Use the hand tool"
+#~ msgstr "Χρησιμοποιήστε το χειροκίνητο εργαλείο"
+
+#~ msgid "Use the rectangular selection tool"
+#~ msgstr "Χρησιμοποιήστε το ορθογώνιο εργαλείο επιλογής"
+
+#~ msgid "_Paint"
+#~ msgstr "_Σχεδίαση"
+
+#~ msgid "Use the painter tool"
+#~ msgstr "Χρησιμοποιήστε το εργαλείο σχεδίασης/ ζωγραφικής"
+
+#~ msgid "Save image and Save as PDF both require imagemagick\n"
+#~ msgstr "Η αποθήκευση εικόνας και η αποθήκευση ώς PDF απαιτέι το imagemagick\n"
+
+#~ msgid "Save image requires libtiff\n"
+#~ msgstr "Η αποθήκευση εικονας απαιτεί το libtiff\n"
+
+#~ msgid "Save as DjVu requires djvulibre-bin\n"
+#~ msgstr "Η αποθήκευση ως DjVu απαιτεί το djvulibre-bin\n"
+
+#~ msgid "Email as PDF requires xdg-email\n"
+#~ msgstr "Η αποστολή email ως PDF απαιτεί xdg-email\n"
+
+#~ msgid "The rotating options and unpaper support require perlmagick\n"
+#~ msgstr "Οι επιλογές περιστροφής και αποσελιδοποίησης απαιτούν το perlmagick\n"
+
+#~ msgid "unpaper missing\n"
+#~ msgstr "Η αποχάρτιση λείπει\n"
+
+#~ msgid "OCR requires gocr, tesseract, ocropus, or cuneiform\n"
+#~ msgstr "Το OCR απαιτεί τα gocr, tesseract, ocropus ή cuneiform\n"
+
+#~ msgid "Editing text"
+#~ msgstr "Γίνεται επεξεργασία κειμένου"
+
+#~ msgid "text"
+#~ msgstr "κείμενο"
+
+#~ msgid "Date"
+#~ msgstr "Ημερομηνία"
+
+#~ msgid "vbox"
+#~ msgstr "vbox"
+
+#~ msgid "Compress output with PNG encoding."
+#~ msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση PNG"
+
+#~ msgid "Image type"
+#~ msgstr "Τύπος εικόνας"
+
+#~ msgid "scantpaper session file"
+#~ msgstr "Αρχείο συνεδρίας scantpaper"
+
+#~ msgid "tiff"
+#~ msgstr "tiff"
+
+#~ msgid "Font for non-ASCII text"
+#~ msgstr "Γραμματοσειρά για κείμενο μη-ASCII"
+
+#, perl-format
+#~ msgid ""
+#~ "File %s exists.\n"
+#~ "Really overwrite?"
+#~ msgstr ""
+#~ "Το αρχείο %s υπάρχει.\n"
+#~ "Να γίνει αντικατάσταση;"
+
+#~ msgid "90"
+#~ msgstr "90"
+
+#~ msgid "180"
+#~ msgstr "180"
+
+#~ msgid "270"
+#~ msgstr "270"
+
+#~ msgid "Select direction of rotation"
+#~ msgstr "Επιλογή της φοράς  κατά την οποία θα γίνει η περιστροφή"
+
+#~ msgid "Select OCR engine"
+#~ msgstr "Επιλογή μηχανής OCR"
+
+#~ msgid "Post-processing"
+#~ msgstr "Μετα-επεξεργασία"
+
+#~ msgid "Unable to load image"
+#~ msgstr "Δεν είναι δυνατή η φόρτωση της εικόνας"
+
+#~ msgid "print-pages"
+#~ msgstr "εκτύπωση-σελίδων"
+
+#~ msgid "page-ranges"
+#~ msgstr "φάσμα-σελίδων"
+
+#~ msgid "Patches gratefully received from:"
+#~ msgstr "Ευχαριστίες για την παραλαβή διορθωτικών patches από:"
+
+#~ msgid ""
+#~ "The radius of the Gaussian, in pixels, not counting the center pixel (0 = "
+#~ "automatic)."
+#~ msgstr ""
+#~ "Η ακτίνα της Γκαουσσιανής, σε εικονοστοιχεία (pixels), χωρίς να προσμετράται"
+#~ " το κεντρικό εικονοστοιχείο (0= αυτόματο)."
+
+#~ msgid "Sigma"
+#~ msgstr "Sigma"
+
+#~ msgid "The standard deviation of the Gaussian."
+#~ msgstr "Η τυπική απόκλιση (standard deviation) της Γκαουσσιανής."
+
+#~ msgid "Amount"
+#~ msgstr "Ποσοστό"
+
+#~ msgid ""
+#~ "The percentage of the difference between the original and the blur image "
+#~ "that is added back into the original."
+#~ msgstr ""
+#~ "Η ποσοστιαία διαφορά ανάμεσα στην αρχική και στη θολωμένη (blur)  εικόνα που"
+#~ " προστέθηκε στο πρωτότυπο."
+
+#~ msgid "label"
+#~ msgstr "ετικέτα"
+
+#~ msgid "English"
+#~ msgstr "Αγγλικά"
+
+#~ msgid "OCR Engine"
+#~ msgstr "Μηχανή OCR"
+
+#~ msgid "Start OCR"
+#~ msgstr "Εκκίνηση OCR"
+
+#, perl-format
+#~ msgid ""
+#~ "The help viewer requires module Gtk2::Ex::PodViewer\n"
+#~ "Alternatively, try: %s %s\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Το σύστημα για την εμφάνιση βοήθειας απαιτεί το άρθρωμα Gtk2::Ex::PodViewer\n"
+#~ "Εναλλακτικά, δοκιμάστε το: %s %s\n"
+#~ "\n"
+
+#~ msgid "This operation cannot be undone. Are you sure?"
+#~ msgstr "Αυτή η ενέργεια δεν μπορεί να αντιστραφεί. Είστε σίγουρος/η;"
+
+#~ msgid "Frontend"
+#~ msgstr "Frontend"
+
+#~ msgid "libsane-perl"
+#~ msgstr "libsane-perl"
+
+#~ msgid "Scan using the perl bindings for SANE."
+#~ msgstr "Να γίνει σάρωση χρησιμοποιώντας τα perl bindings για το SANE."
+
+#~ msgid "scanimage"
+#~ msgstr "scanimage"
+
+#~ msgid "Scan using the scanimage frontend."
+#~ msgstr "Να γίνει σάρωση χρησιμοποιώντας το frontend του scanimage"
+
+#~ msgid "scanimage-perl"
+#~ msgstr "scanimage-perl"
+
+#~ msgid "Scan using the scanimage-perl frontend."
+#~ msgstr "Να γίνει σάρωση χρησιμοποιώντας  το frontend του scanimage-perl"
+
+#~ msgid "scanadf-perl"
+#~ msgstr "scanadf-perl"
+
+#~ msgid "Scan using the scanadf-perl frontend."
+#~ msgstr "Να γίνει σάρωση χρησιμοποιώντας  το frontend του scanadf-perl"
+
+#~ msgid "scanadf"
+#~ msgstr "scanadf"
+
+#~ msgid "Scan using the scanadf frontend."
+#~ msgstr "Να γίνει σάρωση χρησιμοποιώντας  το frontend του scanadf"
+
+#~ msgid "Cache device-dependent options"
+#~ msgstr "Επιλογές εξαρτώμενες από το είδος της συσκευής"
+
+#~ msgid "Clear device-dependent options cache"
+#~ msgstr "Να γίνει καθαρισμός των επιλογών που εξαρτώνται από το είδος συσκευής"
+
+#~ msgid ""
+#~ "You will have to restart gscanp2df for changes to the temporary directory to"
+#~ " take effect."
+#~ msgstr ""
+#~ "Για να εφαρμοσθούν οι αλλαγές στον προσωρινό φάκελλο, θα πρέπει να "
+#~ "επανεκκινήσετε το gscanp2df"
+
+#~ msgid ""
+#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
+#~ "\n"
+#~ "The other variable available is:\n"
+#~ "\n"
+#~ "%r resolution"
+#~ msgstr ""
+#~ "Για την Είσοδο και την Έξοδο ονομάτων αρχείων, χρησιμοποιήστε το %i  και το %o, αντίστοιχα, ή ένα μεμονωμένο %i αν η εικόνα πρέπει να τροποποιηθεί επί τόπου.\n"
+#~ "\n"
+#~ "The other variable available is:\n"
+#~ "\n"
+#~ "%r resolution"
+
+#~ msgid "Resolution"
+#~ msgstr "Ανάλυση"
+
+#~ msgid ""
+#~ "Error: unable to load settings.\n"
+#~ "Backing up settings\n"
+#~ "Reverting to defaults"
+#~ msgstr ""
+#~ "Σφάλμα: ανέφικτη η φόρτωση των ρυθμίσεων.\n"
+#~ "Γίνεται αποθήκευση των ρυθμίσεων\n"
+#~ "Επαναφορά των ρυθμίσεων προεπιλογής"
+
+#~ msgid "Start"
+#~ msgstr "Έναρξη"
+
+#~ msgid "Increment"
+#~ msgstr "Βήμα"
+
+#~ msgid "border-width"
+#~ msgstr "πλάτος-περιθωρίου"
+
+#~ msgid "Updating options"
+#~ msgstr "Ενημέρωση επιλογών"
+
+#, perl-format
+#~ msgid "%s is not a recognised image type"
+#~ msgstr "Το %s δεν είναι ένα αναγνωρισμένο είδος φωτογραφίας"
+
+#, perl-format
+#~ msgid "Saving page %i of %i"
+#~ msgstr "Γίνεται αποθήκευση της σελίδας %i (επί συνόλου %i)"
+
+#~ msgid "Closing PDF"
+#~ msgstr "Κλείσιμο του PDF"
+
+#, perl-format
+#~ msgid "Error creating PDF image object: %s"
+#~ msgstr "Σημειώθηκε σφάλμα κατά τη δημιουργία αντικειμένου εικόνας PDF: %s"
+
+#, perl-format
+#~ msgid "Error embedding file image in %s format to PDF: %s"
+#~ msgstr ""
+#~ "Σημειώθηκε σφάλμα κατά την ενσωμάτωση αρχείου εικόνας σε μορφή %s, μέσα στο "
+#~ "PDF: %s"
+
+#, perl-format
+#~ msgid "Error compressing image: %s"
+#~ msgstr "Σημειώθηκε σφάλμα κατά τη συμπίεση εικόνας: %s"
+
+#~ msgid "Error writing DjVu"
+#~ msgstr "Σημειώθηκε σφάλμα κατά την εγγραφή του DjVu"
+
+#, perl-format
+#~ msgid "Can't open file: %s"
+#~ msgstr "Αδύνατο το άνοιγμα του αρχείου: %s"
+
+#~ msgid "Error adding text layer to DjVu"
+#~ msgstr ""
+#~ "Σημειώθηκε σφάλμα κατά την προσθήκη στιβάδας κειμένου (text layer) στο DjVu"
+
+#, perl-format
+#~ msgid "Converting image %i of %i to TIFF"
+#~ msgstr "Γίνεται μετατροπή σε TIFF της εικόνας %i (επί συνόλου %i)"
+
+#~ msgid "Error writing TIFF"
+#~ msgstr "Σφάλμα κατά την εγγραφή του TIFF"
+
+#~ msgid "Concatenating TIFFs"
+#~ msgstr "Γίνεται διασύνδεση (concatenaton) των TIFF"
+
+#~ msgid "Error saving image"
+#~ msgstr "Σφάλμα κατά την αποθήκευση εικόνας"
+
+#, perl-format
+#~ msgid "Scanning page %i..."
+#~ msgstr "Σάρωση σελίδας %i..."
+
+#~ msgid "Scanner warming up"
+#~ msgstr "Προθέρμανση σαρωτή"
+
+#~ msgid "Document feeder out of documents"
+#~ msgstr "Το τροφοδοτικό χαρτιού έμεινε χωρίς έγγραφα"
+
+#~ msgid "Device busy"
+#~ msgstr "Η συσκευέυή είναι απασχολημένη"
+
+#~ msgid "Operation cancelled"
+#~ msgstr "Η λειτουργία ακυρώθηκε"
+
+#~ msgid "Unknown message: "
+#~ msgstr "Άγνωστο μύνημα: "
+
+#~ msgid "active"
+#~ msgstr "ενεργό"
+
+#~ msgid "title"
+#~ msgstr "τίτλος"
+
+#~ msgid "transient-for"
+#~ msgstr "προσωρινό-για"
