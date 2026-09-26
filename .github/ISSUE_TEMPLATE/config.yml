@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Translations
+    about: Contribute translations via Launchpad Rosetta, not as GitHub issues.
+    url: https://translations.launchpad.net/scantpaper
