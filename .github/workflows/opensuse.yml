@@ -1,0 +1,473 @@
+name: Build openSUSE packages
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: opensuse/leap:16.0
+
+    steps:
+      - name: Enable non-oss repository
+        run: |
+          # openSUSE:repo-non-oss is preconfigured but disabled in the
+          # Leap 16.0 image; enable it without importing any keys.
+          zypper -n --gpg-auto-import-keys \
+            modifyrepo -e openSUSE:repo-non-oss
+
+      - name: Install RPM build tools
+        run: |
+          zypper -n --gpg-auto-import-keys ref
+          zypper -n --gpg-auto-import-keys install \
+            --no-recommends \
+            git \
+            curl \
+            tar \
+            gzip \
+            rpm-build \
+            gcc \
+            gcc-c++ \
+            make \
+            pkgconf-pkg-config \
+            python-rpm-macros \
+            python3-base \
+            python313-devel \
+            python313-setuptools \
+            python313-pip \
+            python313-wheel \
+            python313-Cython \
+            python313-build \
+            python313-flit-core \
+            python313-hatchling \
+            python313-packaging \
+            python313-pytest \
+            python313-polib \
+            python313-deprecation \
+            python313-tqdm \
+            python313-rich \
+            python313-pluggy \
+            python313-cryptography \
+            python313-charset-normalizer \
+            python313-Pillow \
+            python313-pikepdf \
+            python313-numpy \
+            python313-pycairo \
+            python313-gobject \
+            gtk3-devel \
+            typelib-1_0-Gtk-3_0 \
+            gobject-introspection-devel \
+            tesseract-ocr-devel \
+            tesseract-ocr \
+            leptonica-devel \
+            libcurl-devel \
+            libarchive-devel \
+            sane-backends-devel \
+            sane-backends \
+            ghostscript \
+            poppler-tools \
+            tiff \
+            rsvg-convert \
+            ImageMagick \
+            qpdf \
+            unpaper \
+            djvulibre \
+            xdg-utils \
+            gettext-tools \
+            help2man
+
+      - name: Define distribution release macro
+        run: |
+          # Leap 16 image has no distribution-release package (so %{dist} is
+          # empty). Define the release suffix explicitly so the built RPMs
+          # are versioned .lp160.1 like the distro's own packages.
+          printf '%s\n' '%dist .lp160.1' \
+            > /usr/lib/rpm/macros.d/macros.dist
+          rpm --eval '%{?dist}'
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Prepare RPM build tree
+        run: |
+          mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+          # openSUSE's default rpm _topdir is /usr/src/packages; point it
+          # at $HOME/rpmbuild like the Fedora workflow expects.
+          printf '%%_topdir %s\n' "$HOME/rpmbuild" > ~/.rpmmacros
+
+      # The dependency packages are only rebuilt when their own inputs
+      # change, i.e. when the cache key (a hash of the spec and any patch
+      # files) no longer exists. On a cache hit the corresponding build step
+      # below is skipped and the packaged RPMs are restored; on a miss they
+      # are rebuilt and stored at the end of the job. Bump the extra suffix
+      # (if any) when system build dependencies change to force a rebuild.
+
+      - name: Restore cysignals cache
+        id: cache-cysignals
+        uses: actions/cache@v6
+        with:
+          path: cache/cysignals
+          key: opensuse-${{ runner.os }}-cysignals-cache-${{ hashFiles('packaging/opensuse/python3-cysignals.spec') }}
+
+      - name: Restore setuptools-scm cache
+        id: cache-setuptools-scm
+        uses: actions/cache@v6
+        with:
+          path: cache/setuptools-scm
+          key: opensuse-${{ runner.os }}-setuptools-scm-cache-${{ hashFiles('packaging/opensuse/python3-setuptools-scm.spec') }}
+
+      - name: Restore hatch-vcs cache
+        id: cache-hatch-vcs
+        uses: actions/cache@v6
+        with:
+          path: cache/hatch-vcs
+          key: opensuse-${{ runner.os }}-hatch-vcs-cache-${{ hashFiles('packaging/opensuse/python3-hatch-vcs.spec') }}
+
+      - name: Restore tesserocr cache
+        id: cache-tesserocr
+        uses: actions/cache@v6
+        with:
+          path: cache/tesserocr
+          key: opensuse-${{ runner.os }}-tesserocr-cache-${{ hashFiles('packaging/opensuse/python3-tesserocr.spec') }}
+
+      - name: Restore python3-iso639 cache
+        id: cache-iso639
+        uses: actions/cache@v6
+        with:
+          path: cache/iso639
+          key: opensuse-${{ runner.os }}-iso639-cache-${{ hashFiles('packaging/opensuse/python3-iso639.spec') }}
+
+      - name: Restore python3-sane cache
+        id: cache-sane
+        uses: actions/cache@v6
+        with:
+          path: cache/sane
+          key: opensuse-${{ runner.os }}-sane-cache-${{ hashFiles('packaging/opensuse/python3-sane.spec', 'packaging/opensuse/python3-sane-snap-params-cache.patch') }}
+
+      - name: Restore pdfminer.six cache
+        id: cache-pdfminer
+        uses: actions/cache@v6
+        with:
+          path: cache/pdfminer
+          key: opensuse-${{ runner.os }}-pdfminer-cache-${{ hashFiles('packaging/opensuse/python3-pdfminer.six.spec') }}
+
+      - name: Restore img2pdf cache
+        id: cache-img2pdf
+        uses: actions/cache@v6
+        with:
+          path: cache/img2pdf
+          key: opensuse-${{ runner.os }}-img2pdf-cache-${{ hashFiles('packaging/opensuse/python3-img2pdf.spec') }}
+
+      - name: Restore ocrmypdf cache
+        id: cache-ocrmypdf
+        uses: actions/cache@v6
+        with:
+          path: cache/ocrmypdf
+          key: opensuse-${{ runner.os }}-ocrmypdf-cache-${{ hashFiles('packaging/opensuse/python3-ocrmypdf.spec') }}
+
+      # Make cached RPMs available for the install steps below, which read
+      # from the conventional ~/rpmbuild/RPMS/<arch> locations.
+      - name: Restore dependency RPMs into build tree
+        run: |
+          for rpmfile in cache/*/*.rpm; do
+            [ -e "$rpmfile" ] || continue
+            arch=$(rpm -qp --qf '%{ARCH}\n' "$rpmfile")
+            mkdir -p ~/rpmbuild/RPMS/"$arch"
+            cp -f "$rpmfile" ~/rpmbuild/RPMS/"$arch"/
+          done
+
+      # Leap has no spectool/rpmdevtools (those are Fedora tools), so each
+      # sdist is fetched by expanding the spec with rpmspec -P and reading
+      # the resolved Source0: URL.
+
+      - name: Install cysignals build dependencies
+        run: |
+          zypper -n --gpg-auto-import-keys install \
+            --no-recommends \
+            gcc \
+            gcc-c++ \
+            make \
+            pkgconf-pkg-config \
+            python313-devel \
+            python313-setuptools \
+            python313-Cython
+
+      - name: Build cysignals
+        if: steps.cache-cysignals.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-cysignals.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-cysignals.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-cysignals.spec
+          mkdir -p cache/cysignals
+          cp ~/rpmbuild/RPMS/*/python3-cysignals-*.rpm \
+            cache/cysignals/
+
+      - name: Install cysignals
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/$(rpm --eval '%{_arch}')/python3-cysignals-*.rpm
+
+      - name: Build python3-setuptools-scm
+        if: steps.cache-setuptools-scm.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-setuptools-scm.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-setuptools-scm.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-setuptools-scm.spec
+          mkdir -p cache/setuptools-scm
+          cp ~/rpmbuild/RPMS/*/python3-setuptools-scm-*.rpm \
+            cache/setuptools-scm/
+
+      - name: Install python3-setuptools-scm
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/noarch/python3-setuptools-scm-*.rpm
+
+      - name: Build python3-hatch-vcs
+        if: steps.cache-hatch-vcs.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-hatch-vcs.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-hatch-vcs.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-hatch-vcs.spec
+          mkdir -p cache/hatch-vcs
+          cp ~/rpmbuild/RPMS/*/python3-hatch-vcs-*.rpm \
+            cache/hatch-vcs/
+
+      - name: Install python3-hatch-vcs
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/noarch/python3-hatch-vcs-*.rpm
+
+      - name: Verify dependencies
+        run: |
+          rpm -q python3-cysignals
+          rpm -q python313-Cython
+          rpm -q python3-setuptools-scm
+          rpm -q python3-hatch-vcs
+          rpm -q tesseract-ocr-devel
+          rpm -q leptonica-devel
+
+      - name: Build tesserocr
+        if: steps.cache-tesserocr.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-tesserocr.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-tesserocr.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-tesserocr.spec
+          mkdir -p cache/tesserocr
+          cp ~/rpmbuild/RPMS/*/python3-tesserocr-*.rpm \
+            cache/tesserocr/
+
+      - name: Install tesserocr
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/$(rpm --eval '%{_arch}')/python3-tesserocr-*.rpm
+
+      - name: Build python3-iso639
+        if: steps.cache-iso639.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-iso639.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-iso639.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-iso639.spec
+          mkdir -p cache/iso639
+          cp ~/rpmbuild/RPMS/*/python3-iso639-*.rpm \
+            cache/iso639/
+
+      - name: Install python3-iso639
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/noarch/python3-iso639-*.rpm
+
+      - name: Install python3-sane build dependencies
+        run: |
+          zypper -n --gpg-auto-import-keys install \
+            --no-recommends \
+            python313-setuptools \
+            python313-numpy \
+            python313-Pillow \
+            sane-backends-devel \
+            sane-backends
+
+      - name: Build python3-sane
+        if: steps.cache-sane.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-sane.spec \
+            ~/rpmbuild/SPECS/
+          cp packaging/opensuse/python3-sane-snap-params-cache.patch \
+            ~/rpmbuild/SOURCES/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-sane.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-sane.spec
+          mkdir -p cache/sane
+          cp ~/rpmbuild/RPMS/*/python3-sane-*.rpm \
+            cache/sane/
+
+      - name: Install python3-sane
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/$(rpm --eval '%{_arch}')/python3-sane-*.rpm
+
+      - name: Verify PDF toolchain dependencies
+        run: |
+          rpm -q python313-flit-core
+          rpm -q python313-hatchling
+          rpm -q python313-Pillow
+          rpm -q python313-pikepdf
+          rpm -q python313-cryptography
+          rpm -q python313-charset-normalizer
+
+      - name: Build python3-pdfminer.six
+        if: steps.cache-pdfminer.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-pdfminer.six.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-pdfminer.six.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-pdfminer.six.spec
+          mkdir -p cache/pdfminer
+          cp ~/rpmbuild/RPMS/*/python3-pdfminer.six-*.rpm \
+            cache/pdfminer/
+
+      - name: Install python3-pdfminer.six
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/noarch/python3-pdfminer.six-*.rpm
+
+      - name: Build python3-img2pdf
+        if: steps.cache-img2pdf.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-img2pdf.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-img2pdf.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-img2pdf.spec
+          mkdir -p cache/img2pdf
+          cp ~/rpmbuild/RPMS/*/python3-img2pdf-*.rpm \
+            cache/img2pdf/
+
+      - name: Install python3-img2pdf
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/noarch/python3-img2pdf-*.rpm
+
+      - name: Build python3-ocrmypdf
+        if: steps.cache-ocrmypdf.outputs.cache-hit != 'true'
+        run: |
+          cp packaging/opensuse/python3-ocrmypdf.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/python3-ocrmypdf.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/python3-ocrmypdf.spec
+          mkdir -p cache/ocrmypdf
+          cp ~/rpmbuild/RPMS/*/python3-ocrmypdf-*.rpm \
+            cache/ocrmypdf/
+
+      - name: Install python3-ocrmypdf
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/noarch/python3-ocrmypdf-*.rpm
+
+      - name: Verify OCR toolchain installation
+        run: |
+          python3 -c 'import ocrmypdf, img2pdf; print(ocrmypdf.__version__)'
+          rpm -q python3-ocrmypdf python3-img2pdf python3-pdfminer.six
+          rpm -q ghostscript tesseract-ocr qpdf poppler-tools rsvg-convert
+
+      - name: Build scantpaper
+        run: |
+          cp packaging/opensuse/scantpaper.spec \
+            ~/rpmbuild/SPECS/
+          url=$(rpmspec -P ~/rpmbuild/SPECS/scantpaper.spec |
+            sed -n 's/^Source0:[[:space:]]*//p')
+          curl -fL -o \
+            ~/rpmbuild/SOURCES/"$(basename "$url")" \
+            "$url"
+          rpmbuild -ba \
+            ~/rpmbuild/SPECS/scantpaper.spec
+
+      - name: Install scantpaper
+        run: |
+          zypper -n install --allow-unsigned-rpm --force-resolution \
+            ~/rpmbuild/RPMS/noarch/scantpaper-*.rpm
+
+      - name: Verify scantpaper installation
+        run: |
+          rpm -q scantpaper python3-sane python3-tesserocr python3-iso639
+          python3 -c 'import sane, tesserocr, iso639; print("imports ok")'
+
+      - name: List RPMs
+        run: |
+          find ~/rpmbuild/RPMS \
+            -type f \
+            -name '*.rpm' \
+            -print
+
+      - name: Copy packages
+        run: |
+          mkdir -p artifacts
+          find ~/rpmbuild/RPMS \
+            -type f \
+            -name '*.rpm' \
+            -exec cp {} artifacts/ \;
+
+      - name: Upload RPMs
+        uses: actions/upload-artifact@v7
+        with:
+          name: scantpaper-opensuse-leap16
+          path: artifacts/*.rpm
+
+      - name: Release RPMs
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: artifacts/*.rpm

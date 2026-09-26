@@ -472,6 +472,35 @@ Weak dependencies such as `qpdf` are installed by default, but can be skipped
 with `--setopt=install_weak_deps=0`, in which case the optional features they
 provide (e.g. PDF encryption) are disabled.
 
+#### From openSUSE RPM packages
+
+Download the RPM files from
+[Github](https://github.com/carygravel/scantpaper/releases/) and install them
+all in a single transaction (Leap 16.0):
+
+```sh
+sudo zypper install --allow-unsigned-rpm *.rpm
+```
+
+The release provides scantpaper together with locally rebuilt, Leap 16.0
+versions of the Python dependencies that the distro does not package
+(`python3-sane`, `python3-tesserocr`, `python3-cysignals`, `python3-iso639`,
+`python3-pdfminer.six`, `python3-img2pdf`, `python3-ocrmypdf`,
+`python3-setuptools-scm` and `python3-hatch-vcs`, with a `python3-sane` patch
+for Epson `epsonscan2` scanners). scantpaper requires these packages by their
+`python3dist(...)` names, so they must be installed in the same transaction:
+installing scantpaper first fails with `nothing provides python3dist(...)`.
+
+To remove scantpaper afterwards:
+
+```sh
+sudo zypper remove scantpaper
+```
+
+The RPMs are unsigned (the workflow builds them from source), hence the
+`--allow-unsigned-rpm`. PostScript export needs `tiff2ps`, which is not
+packaged on Leap 16.0, so the PostScript save type is not available there.
+
 #### From a wheel file
 
 Download `.whl` from [Github](https://github.com/carygravel/scantpaper/releases/).
