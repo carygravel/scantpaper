@@ -22,6 +22,7 @@
   scanned book all end up upright without rotating every other page by hand
   afterwards.
 * + builds for Fedora 43 and 44 to CI/CD. Closes: #63 (Fedora)
+* + builds for OpenSuse Leap 16 to CI/CD. Closes: #72 (openSUSE Leap 16 GNOME)
 
 
 ## 3.0.19 (2026-09-19)
