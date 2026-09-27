@@ -1,8 +1,8 @@
 """Summarise translation coverage across the .po catalogs.
 
 Usage:
-  python3 dev/summarise_po.py        # summarise po/*.po
-  python3 dev/summarise_po.py --src po
+  python3 dev/summarise_po.py        # summarise po/scantpaper/*.po
+  python3 dev/summarise_po.py --src po/scantpaper
 
 Prints one row per language with the counts of non-fuzzy (shipped), fuzzy
 (awaiting review) and untranslated strings, sorted by the number of
@@ -43,14 +43,16 @@ def counts(path: Path) -> tuple[str, int, int, int]:
             non_fuzzy += 1
         else:
             untranslated += 1
-    return path.stem.split("-")[-1], non_fuzzy, fuzzy, untranslated
+    return path.stem, non_fuzzy, fuzzy, untranslated
 
 
 def main() -> None:
     """Run the application entry point."""
     parser = argparse.ArgumentParser(description="Summarise catalog coverage")
     parser.add_argument(
-        "--src", default="po", help="Source dir containing .po files (default: po)"
+        "--src",
+        default="po/scantpaper",
+        help="Source dir containing .po files (default: po/scantpaper)",
     )
     args = parser.parse_args()
 

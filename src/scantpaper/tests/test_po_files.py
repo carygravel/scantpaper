@@ -33,8 +33,8 @@ def _run_check_po(
     catalog check from the source checks; leave it ``None`` to use the real
     source.
     """
-    src = tmp_path / "po"
-    src.mkdir()
+    src = tmp_path / "po" / "scantpaper"
+    src.mkdir(parents=True)
     header = (
         'msgid ""\n'
         'msgstr ""\n'
@@ -43,7 +43,7 @@ def _run_check_po(
         f'"Language: {lang}\\n"\n'
         f'"Plural-Forms: {_PLURAL_FORMS[lang]}\\n"\n'
     )
-    (src / f"scantpaper-{lang}.po").write_text(header + body, encoding="utf-8")
+    (src / f"{lang}.po").write_text(header + body, encoding="utf-8")
 
     command = [
         "python3",
@@ -69,7 +69,7 @@ def _run_check_po(
 
 def test_compile_po_files(tmp_path: Path) -> None:
     """All .po files compile cleanly to .mo, as done in CI."""
-    src = REPO_ROOT / "po"
+    src = REPO_ROOT / "po" / "scantpaper"
     out = tmp_path / "locale"
 
     result = subprocess.run(
@@ -91,7 +91,7 @@ def test_compile_po_files(tmp_path: Path) -> None:
 
 def test_check_po_files() -> None:
     """All .po files pass deterministic catalog checks, as done in CI."""
-    src = REPO_ROOT / "po"
+    src = REPO_ROOT / "po" / "scantpaper"
 
     result = subprocess.run(
         [
@@ -372,7 +372,12 @@ def _run_generate_pot(
     if path is not None:
         env["PATH"] = str(path)
     return subprocess.run(
-        [sys.executable, str(REPO_ROOT / "dev" / "generate_pot.py")],
+        [
+            sys.executable,
+            str(REPO_ROOT / "dev" / "generate_pot.py"),
+            "--output",
+            str(tmp_path / "scantpaper.pot"),
+        ],
         cwd=tmp_path,
         env=env,
         capture_output=True,
@@ -454,9 +459,9 @@ def test_vendored_its_rules_exist() -> None:
 
 def _run_its_drift(tmp_path: Path, its_dir: Path) -> subprocess.CompletedProcess[str]:
     """Run check_po.py over a stub catalog, pointing the ITS check at a dir."""
-    src = tmp_path / "po"
-    src.mkdir()
-    (src / "scantpaper-de.po").write_text(
+    src = tmp_path / "po" / "scantpaper"
+    src.mkdir(parents=True)
+    (src / "de.po").write_text(
         'msgid ""\n'
         'msgstr ""\n'
         '"MIME-Version: 1.0\\n"\n'
@@ -564,8 +569,8 @@ def test_summarise_po_counts_plural_entries_as_translated(tmp_path: Path) -> Non
     ``msgstr`` stays empty; a summary that reads only ``msgstr`` wrongly counts
     every translated plural as untranslated. This guards that regression.
     """
-    src = tmp_path / "po"
-    src.mkdir()
+    src = tmp_path / "po" / "scantpaper"
+    src.mkdir(parents=True)
     po = polib.POFile()
     po.metadata["Language"] = "de"
     po.metadata["Plural-Forms"] = _PLURAL_FORMS["de"]
@@ -578,7 +583,7 @@ def test_summarise_po_counts_plural_entries_as_translated(tmp_path: Path) -> Non
     fuzzy = polib.POEntry(msgid="Fuzzy thing", msgstr="fuzzy")
     fuzzy.flags.append("fuzzy")
     po.append(fuzzy)
-    po.save(str(src / "scantpaper-de.po"))
+    po.save(str(src / "de.po"))
 
     result = subprocess.run(
         [

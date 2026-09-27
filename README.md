@@ -614,8 +614,10 @@ is just as welcome.
 
 Missing strings are seeded as `#, fuzzy` (needs review) entries and fall
 back to English until a translator confirms them, so only confirmed
-translations reach users. The catalogs live in `po/` as
-`scantpaper-<language>.po`.
+translations reach users. The catalogs live in the `po/scantpaper/`
+template directory, one `po/scantpaper/<language>.po` per language next to
+the generated `po/scantpaper/scantpaper.pot` — the layout Rosetta expects,
+so the directory can be tarballed and uploaded as-is.
 
 - Scanner option translations come from sane-backends. Contribute via the
 [sane-devel mailing list](mailto:sane-devel@lists.alioth.debian.org) or
@@ -624,7 +626,7 @@ translations reach users. The catalogs live in `po/` as
 To test updated `.po` files:
 
 ```sh
-python3 dev/compile_mo.py --src po --out src/scantpaper/locale --domain scantpaper
+python3 dev/compile_mo.py --src po/scantpaper --out src/scantpaper/locale --domain scantpaper
 PYTHONPATH=src python3 -m scantpaper.app --log=log --locale=locale
 ```
 

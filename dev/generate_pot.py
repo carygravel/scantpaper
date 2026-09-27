@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import argparse
 import datetime
 import os
 import subprocess
 from pathlib import Path
 
-pkg_dir = Path(__file__).resolve().parent.parent / "src" / "scantpaper"
+repo_root = Path(__file__).resolve().parent.parent
+pkg_dir = repo_root / "src" / "scantpaper"
 its_rules = Path(__file__).resolve().parent / "gtkbuilder.its"
 from scantpaper.const import (  # noqa: E402
     AUTHOR,
@@ -23,9 +25,19 @@ from scantpaper.const import (  # noqa: E402
 
 def main() -> None:
     """Run the application entry point."""
+    parser = argparse.ArgumentParser(description="Generate the POT template")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Write the template here (default: po/scantpaper/scantpaper.pot)",
+    )
+    args = parser.parse_args()
+    output = args.output or repo_root / "po" / "scantpaper" / (NAME + ".pot")
+
     # contextlib.chdir needs Python 3.11, but the minimum supported version
     # (see requires-python) is 3.10, so change directory by hand and always
-    # restore it so the template is written to the caller's directory.
+    # restore it before writing the template.
     previous_cwd = Path.cwd()
     try:
         os.chdir(pkg_dir)
@@ -84,10 +96,10 @@ def main() -> None:
         .replace("FIRST AUTHOR <EMAIL@ADDRESS>, YEAR", f"{AUTHOR} <{EMAIL}>, {year}", 1)
         .replace("Report-Msgid-Bugs-To: ", f"Report-Msgid-Bugs-To: {EMAIL}", 1)
     )
-    filename = NAME + ".pot"
-    with Path(filename).open("w", encoding="utf-8") as fhd:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", encoding="utf-8") as fhd:
         fhd.write(out)
-    print(f"Wrote {filename}")
+    print(f"Wrote {output}")
 
 
 if __name__ == "__main__":

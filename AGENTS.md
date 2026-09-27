@@ -84,7 +84,8 @@ This document provides essential context for anyone working on this project. Adh
     1. Regenerate the translation template with
        `PYTHONPATH=src python3 dev/generate_pot.py`, which creates the `.pot`
        file.
-    2. Missing strings in `po/*.po` may be translated locally, but every such
+    2. Missing strings in `po/scantpaper/*.po` may be translated locally, but
+       every such
        addition MUST be marked `#, fuzzy` (needs review). Never add a
        translation that is not marked fuzzy. The point of the marker is to
        hold every new translation behind review until a translator confirms
@@ -102,7 +103,8 @@ This document provides essential context for anyone working on this project. Adh
     4. Upload the seeded `.po` files (not just the `.pot`) to Rosetta
        (Launchpad) so translators can confirm and clear the fuzzy entries.
     5. Download the translated `.po` files from Rosetta before a release.
-    6. Ensure every `po/*.po` passes the deterministic catalog checks: run
+    6. Ensure every `po/scantpaper/*.po` passes the deterministic catalog
+       checks: run
        `PYTHONPATH=src python3 dev/check_po.py` (CI enforces the same via
        `test_po_files.py`), which runs `msgfmt --check` (format-specifier
        drift, escaping, plural-entry counts) and validates each catalog's

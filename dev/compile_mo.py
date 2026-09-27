@@ -1,9 +1,9 @@
 """Compile .po files into .mo files.
 
 Usage:
-  python3 compile_mo.py # compiles po/*.po into src/scantpaper/locale/<lang>/LC_MESSAGES/<domain>.mo
-  python3 compile_mo.py --src po --out src/scantpaper/locale
-  python3 compile_mo.py --src po --out src/scantpaper/locale --domain scantpaper
+  python3 compile_mo.py # compiles po/scantpaper/*.po into src/scantpaper/locale/<lang>/LC_MESSAGES/<domain>.mo
+  python3 compile_mo.py --src po/scantpaper --out src/scantpaper/locale
+  python3 compile_mo.py --src po/scantpaper --out src/scantpaper/locale --domain scantpaper
 """
 
 from __future__ import annotations
@@ -14,29 +14,19 @@ from pathlib import Path
 
 import polib
 
-DOMAIN_LANG_PARTS = 2
-
 
 def guess_lang_and_domain(
     po_file: Path, given_domain: str | None = None
 ) -> tuple[str, str]:
-    """Try to infer language and domain from filename.
+    """Infer language and domain from a Rosetta-layout file path.
 
-    Common forms:
-       <domain>-<lang>.po  -> domain, lang
-       <lang>.po           -> domain from given_domain, lang
+    A template directory holds one template's files, so the directory name is
+    the domain and the file stem is the language, e.g. ``po/scantpaper/de.po``
+    -> domain ``scantpaper``, language ``de``. ``given_domain`` overrides the
+    domain when supplied.
     """
-    name = po_file.name
-    if name.count("-") >= 1 and name.endswith(".po"):
-        # Try domain-lang.po -> split last '-' occurrence
-        base = name[:-3]  # strip .po
-        parts = base.rsplit("-", 1)
-        if len(parts) == DOMAIN_LANG_PARTS and parts[1]:
-            domain, lang = parts[0], parts[1]
-            return domain if given_domain is None else given_domain, lang
-    # fallback: name without extension is lang
-    lang = name[:-3]
-    domain = given_domain or "messages"
+    lang = po_file.stem
+    domain = given_domain or po_file.parent.name
     return domain, lang
 
 
@@ -44,7 +34,9 @@ def main() -> None:
     """Run the application entry point."""
     p = argparse.ArgumentParser(description="Compile .po to .mo")
     p.add_argument(
-        "--src", default="po", help="Source dir containing .po files (default: po)"
+        "--src",
+        default="po/scantpaper",
+        help="Source dir containing .po files (default: po/scantpaper)",
     )
     p.add_argument(
         "--out",

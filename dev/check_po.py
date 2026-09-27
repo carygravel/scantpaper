@@ -1,6 +1,6 @@
 """Deterministic checks for translation catalogs.
 
-For every `po/*.po` this runs `msgfmt --check` (format-specifier
+For every `po/scantpaper/*.po` this runs `msgfmt --check` (format-specifier
 consistency, escaping, plural-entry counts), validates the catalog's
 `Plural-Forms` header against the CLDR plural-form count for its language,
 and parses the message bodies with polib to catch defects `msgfmt` misses:
@@ -208,8 +208,8 @@ _FORMATTER = string.Formatter()
 
 
 def language_from_filename(path: Path) -> str:
-    """Infer the language code from a `scantpaper-<lang>.po` filename."""
-    return path.name[len("scantpaper-") : -len(".po")]
+    """Infer the language code from a `<lang>.po` filename."""
+    return path.stem
 
 
 def plural_forms_nplurals(po_text: str) -> int | None:
@@ -291,8 +291,14 @@ def _generate_msgids() -> list[str]:
         [src, *([env["PYTHONPATH"]] if env.get("PYTHONPATH") else [])]
     )
     with tempfile.TemporaryDirectory() as tmp:
+        pot_path = Path(tmp) / "scantpaper.pot"
         result = subprocess.run(
-            [sys.executable, str(REPO_ROOT / "dev" / "generate_pot.py")],
+            [
+                sys.executable,
+                str(REPO_ROOT / "dev" / "generate_pot.py"),
+                "--output",
+                str(pot_path),
+            ],
             cwd=tmp,
             env=env,
             capture_output=True,
@@ -307,11 +313,7 @@ def _generate_msgids() -> list[str]:
                 f"{result.stderr.rstrip()}"
             )
             raise RuntimeError(message)
-        pots = list(Path(tmp).glob("*.pot"))
-        if len(pots) != 1:
-            message = f"expected one .pot in the temporary directory, found {pots}"
-            raise RuntimeError(message)
-        return _pot_msgids(pots[0])
+        return _pot_msgids(pot_path)
 
 
 def _clean_generator_temp_files() -> None:
@@ -602,7 +604,11 @@ def check_catalog(path: Path) -> int:
 def main() -> int:
     """Run the application entry point."""
     parser = argparse.ArgumentParser(description="Check translation catalogs")
-    parser.add_argument("--src", default="po", help="Source dir of .po files")
+    parser.add_argument(
+        "--src",
+        default="po/scantpaper",
+        help="Source dir of .po files (default: po/scantpaper)",
+    )
     parser.add_argument(
         "--pot",
         type=Path,
