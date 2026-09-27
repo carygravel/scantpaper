@@ -4,6 +4,10 @@
   (e.g. rotating or cropping a selection) as a single step: one Undo reverts
   every affected page together, and one Redo re-applies the whole operation,
   instead of requiring one undo per page.
+* No longer log a spurious "unable to use None for temporary storage" warning
+  when no temporary directory has been configured; the system default is used
+  silently, and the warning is only shown when a configured directory has to
+  be replaced.
 
 
 ## 3.0.20 (2026-09-27)

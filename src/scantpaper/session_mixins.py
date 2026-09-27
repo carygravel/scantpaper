@@ -68,14 +68,18 @@ class SessionMixins:
         self._lockfd = self._create_lockfile()
         logger.info("Using %s for temporary files", self.session.name)
         tmpdir = str(Path(self.session.name).parent)
-        if "TMPDIR" in self.settings and self.settings["TMPDIR"] != tmpdir:
-            logger.warning(
-                _(
-                    "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
-                ),
-                self.settings["TMPDIR"],
-                tmpdir,
-            )
+        if "TMPDIR" in self.settings:
+            if (
+                self.settings["TMPDIR"] is not None
+                and self.settings["TMPDIR"] != tmpdir
+            ):
+                logger.warning(
+                    _(
+                        "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+                    ),
+                    self.settings["TMPDIR"],
+                    tmpdir,
+                )
             self.settings["TMPDIR"] = tmpdir
 
     def _create_lockfile(self, session: str | None = None) -> object:

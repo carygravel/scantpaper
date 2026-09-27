@@ -148,6 +148,28 @@ def test_create_temp_directory_no_tmpdir(
     mock_temp_dir.assert_called_with(prefix="scantpaper-")
 
 
+def test_create_temp_directory_unconfigured_tmpdir_no_warning(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """No misleading 'unable to use None' warning when TMPDIR is unset."""
+    mock_session_window.settings["TMPDIR"] = None
+    mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value=None)
+    mocker.patch("scantpaper.session_mixins.fcntl.lockf")
+    mock_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
+    mock_temp_dir_instance = mock_temp_dir.return_value
+    mock_temp_dir_instance.name = "/tmp/scantpaper-fallback"
+    mocker.patch.object(pathlib.Path, "open", mocker.mock_open())
+    mock_session_window._find_crashed_sessions = mocker.Mock()
+    mock_logger = mocker.patch("scantpaper.session_mixins.logger")
+
+    mock_session_window._create_temp_directory()
+
+    assert mock_session_window.settings["TMPDIR"] == "/tmp", (
+        "unset TMPDIR silently adopts the resolved directory"
+    )
+    mock_logger.warning.assert_not_called()
+
+
 def test_create_temp_directory_empty_tmpdir(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
