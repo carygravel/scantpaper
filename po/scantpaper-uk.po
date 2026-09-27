@@ -20,37 +20,30 @@ msgstr ""
 "X-Launchpad-Export-Date: 2024-06-28 17:52+0000\n"
 
 #: app_window.py:516
-#, fuzzy
 msgid "Save image and Save as PDF both require imagemagick"
 msgstr "Для збереження зображення та у PDF потрібен ImageMagick"
 
 #: app_window.py:517
-#, fuzzy
 msgid "Save image requires libtiff"
 msgstr "Для збереження зображення потрібен libtiff"
 
 #: app_window.py:518
-#, fuzzy
 msgid "Save as DjVu requires djvulibre-bin"
 msgstr "Для збереження у DjVu потрібен djvulibre-bin"
 
 #: app_window.py:519
-#, fuzzy
 msgid "Email as PDF requires xdg-email"
 msgstr "Для надсилання PDF електронною поштою потрібен xdg-email"
 
 #: app_window.py:520
-#, fuzzy
 msgid "unpaper missing"
 msgstr "unpaper відсутній"
 
 #: app_window.py:528
-#, fuzzy
 msgid "OCR requires tesseract"
 msgstr "Для OCR потрібен tesseract"
 
 #: app_window.py:543
-#, fuzzy
 msgid "PDF encryption requires qpdf"
 msgstr "Для шифрування PDF потрібен qpdf"
 
@@ -71,7 +64,7 @@ msgid "Annotations"
 msgstr "Анотації"
 
 #: app_window.py:838
-#, fuzzy, python-format
+#, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
 msgstr[0] "%dMb вільно в %s."
@@ -144,7 +137,7 @@ msgid "US Legal"
 msgstr "Формат US Legal"
 
 #: config.py:263
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The setting %s is %r and cannot be used as %s, so it has been left unchanged."
 msgstr ""
@@ -152,7 +145,7 @@ msgstr ""
 "його залишено без змін."
 
 #: config.py:299
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The settings file %s could not be read in full. The following settings were "
 "restored: %s. The rest were reset to their defaults. A backup of the "
@@ -163,7 +156,7 @@ msgstr ""
 "оригінального файлу збережено як %s."
 
 #: config.py:306
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The settings file %s could not be read, so all settings have been reset to "
 "their defaults. A backup of the original file has been saved as %s."
@@ -184,7 +177,6 @@ msgid "Warning"
 msgstr "Попередження"
 
 #: dialog/__init__.py:108
-#, fuzzy
 msgid "Info"
 msgstr "Інформація"
 
@@ -303,22 +295,18 @@ msgid "Page number"
 msgstr "Номер сторінки"
 
 #: dialog/pagecontrols.py:271
-#, fuzzy
 msgid "Insert before page N"
 msgstr "Вставити перед сторінкою N"
 
 #: dialog/pagecontrols.py:274
-#, fuzzy
 msgid "Page number before which scans will be inserted"
 msgstr "Номер сторінки, перед якою буде вставлено скани"
 
 #: dialog/pagecontrols.py:285
-#, fuzzy
 msgid "Position advance"
 msgstr "Зсув позиції"
 
 #: dialog/pagecontrols.py:289
-#, fuzzy
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
@@ -624,7 +612,7 @@ msgid "Manage user-defined tools"
 msgstr "Керування визначеними користувачем інструментами"
 
 #: dialog/preferences.py:352
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Use %i and %o for the input and output filenames respectively,\n"
 "or a single %i if the image is to be modified in-place.\n"
@@ -643,17 +631,14 @@ msgid "_Delete"
 msgstr "В_илучити"
 
 #: dialog/preferences.py:397
-#, fuzzy
 msgid "The following user-defined tools could not be found:\n"
 msgstr "Не вдалося знайти такі визначені користувачем інструменти:\n"
 
 #: dialog/preferences.py:400
-#, fuzzy
 msgid "Please check that the command is installed and in your PATH."
 msgstr "Перевірте, що команду встановлено та вона є в PATH."
 
 #: dialog/preferences.py:402
-#, fuzzy
 msgid "User-defined tool not found"
 msgstr "Визначений користувачем інструмент не знайдено"
 
@@ -686,19 +671,18 @@ msgid "Scan Options"
 msgstr "Параметри сканування"
 
 #: dialog/sane.py:290
-#, fuzzy, python-format
+#, python-format
 msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
 msgstr ""
 "Параметр сканування «%s» ігнорується, мінімальний діапазон (%s) > "
 "максимальний (%s)"
 
 #: dialog/sane.py:450
-#, fuzzy, python-format
+#, python-format
 msgid "Setting option %s"
 msgstr "Встановлення параметра %s"
 
 #: dialog/sane.py:469
-#, fuzzy
 msgid "Error setting option: "
 msgstr "Помилка встановлення параметра: "
 
@@ -783,7 +767,6 @@ msgid "Session"
 msgstr "Сеанс"
 
 #: dialog/save.py:40
-#, fuzzy
 msgid "scantpaper session database"
 msgstr "База даних сеансу scantpaper"
 
@@ -1067,7 +1050,7 @@ msgid "Selects or edits the paper size"
 msgstr "Встановлення або зміна розміру сторінки"
 
 #: dialog/scan.py:770
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
 "file a bug, attaching a log file reproducing the problem."
@@ -1081,7 +1064,6 @@ msgid "Edit paper size"
 msgstr "Змінити формат сторінки"
 
 #: dialog/scan.py:1051
-#, fuzzy
 msgid "Apply"
 msgstr "Застосувати"
 
@@ -1091,7 +1073,6 @@ msgid ""
 msgstr "Обраний сканер не може сканути сторінки такого розміру"
 
 #: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-#, fuzzy
 msgid "Cancel"
 msgstr "Скасувати"
 
@@ -1105,7 +1086,6 @@ msgid "Profile '%s' exists. Overwrite?"
 msgstr "Профіль «%s» вже існує. Перезаписати?"
 
 #: dialog/scan.py:1592 dialog/scan.py:1634
-#, fuzzy
 msgid "OK"
 msgstr "OK"
 
@@ -1142,12 +1122,10 @@ msgid "Analysing page %i of %i"
 msgstr "Аналізуємо сторінку %i з %i"
 
 #: docthread.py:1461
-#, fuzzy
 msgid "No tesseract language specified"
 msgstr "Не вказано мову tesseract"
 
 #: docthread.py:1470
-#, fuzzy
 msgid "tessdata directory not found"
 msgstr "Каталог tessdata не знайдено"
 
@@ -1325,7 +1303,7 @@ msgid "File %s not found"
 msgstr "Файл '%s' не знайдено"
 
 #: importthread.py:92
-#, fuzzy, python-format
+#, python-format
 msgid "Error getting file info for %s: %s"
 msgstr "Помилка отримання інформації про файл %s: %s"
 
@@ -1335,7 +1313,7 @@ msgid "Error importing zero-length file %s."
 msgstr "Помилка: імпортування файла нульової довжини, %s."
 
 #: importthread.py:135 importthread.py:178
-#, fuzzy, python-format
+#, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr "Встановіть djvulibre-bin, щоб відкривати файли DjVu: %s"
 
@@ -1344,7 +1322,7 @@ msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Невідома структура файлу DjVu. Зконтактуйтеся з автором."
 
 #: importthread.py:266
-#, fuzzy, python-format
+#, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "Встановіть libtiff-tools, щоб відкривати файли TIFF: %s"
 
@@ -1358,7 +1336,6 @@ msgid "Error extracting images from PDF"
 msgstr "Помилка при видобуванні зображення із PDF"
 
 #: importthread.py:521
-#, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
@@ -1407,7 +1384,6 @@ msgid "Reverse side."
 msgstr "Зворотня сторона."
 
 #: postprocess_controls.py:26
-#, fuzzy
 msgid "90°"
 msgstr "90°"
 
@@ -1416,7 +1392,6 @@ msgid "Rotate image 90 degrees clockwise."
 msgstr "Повернуть на 90 градусів за годинниковою стрілкою"
 
 #: postprocess_controls.py:27
-#, fuzzy
 msgid "180°"
 msgstr "180°"
 
@@ -1425,7 +1400,6 @@ msgid "Rotate image 180 degrees clockwise."
 msgstr "Повернути на 180° градусів за годинниковою стрілкою"
 
 #: postprocess_controls.py:28
-#, fuzzy
 msgid "270°"
 msgstr "270°"
 
@@ -1446,12 +1420,10 @@ msgid "Select side to rotate"
 msgstr "Виберіть сторону яку потрібно повернути"
 
 #: postprocess_controls.py:45
-#, fuzzy
 msgid "Select angle of rotation"
 msgstr "Вибір кута повороту"
 
 #: postprocess_controls.py:48
-#, fuzzy
 msgid "Anticlockwise"
 msgstr "Проти годинникової стрілки"
 
@@ -1473,7 +1445,6 @@ msgstr ""
 "не зображень, які зберігаються на диску."
 
 #: postprocess_controls.py:391 tools_menu_mixins.py:114
-#, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
@@ -1486,7 +1457,6 @@ msgid "Language to recognise"
 msgstr "Які мови розпізнавати"
 
 #: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-#, fuzzy
 msgid "_Cancel"
 msgstr "_Скасувати"
 
@@ -1501,12 +1471,10 @@ msgid "Process %i of %i"
 msgstr "Обробка %i з %i"
 
 #: savethread.py:83
-#, fuzzy
 msgid "Processing PDF"
 msgstr "Обробка PDF"
 
 #: savethread.py:148
-#, fuzzy
 msgid "Embedding text layer"
 msgstr "Вбудовування текстового шару"
 
@@ -1520,7 +1488,7 @@ msgid "Writing page %i of %i"
 msgstr "Запис сторінки %i із %i"
 
 #: savethread.py:291
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
@@ -1528,7 +1496,6 @@ msgstr ""
 "сторінок."
 
 #: savethread.py:314 tests/test_savethread.py:1240
-#, fuzzy
 msgid "Writing PDF"
 msgstr "Запис PDF"
 
@@ -1546,7 +1513,7 @@ msgid "Merging DjVu"
 msgstr "Злиття DjVu"
 
 #: savethread.py:425
-#, fuzzy, python-format
+#, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Помилка об'єднання DjVu: %s"
 
@@ -1579,12 +1546,10 @@ msgid "Error encrypting PDF: %s"
 msgstr "Помилка під час спроби зашифрувати PDF: %s"
 
 #: scan_menu_item_mixins.py:72
-#, fuzzy
 msgid "Really cache libusb device names?"
 msgstr "Дійсно кешувати назви пристроїв libusb?"
 
 #: scan_menu_item_mixins.py:76
-#, fuzzy
 msgid ""
 "Caching device list with libusb devices included is not recommended as they "
 "can change between reboots."
@@ -1593,7 +1558,6 @@ msgstr ""
 "оскільки вони можуть змінюватися між перезавантаженнями."
 
 #: scan_menu_item_mixins.py:78
-#, fuzzy
 msgid "Are you sure you want to do this?"
 msgstr "Ви впевнені, що хочете це зробити?"
 
@@ -1606,12 +1570,10 @@ msgid "Postprocessing"
 msgstr "Остаточна обробка"
 
 #: scan_menu_item_mixins.py:230
-#, fuzzy
 msgid "Alternate rotation every 2nd page"
 msgstr "Чергувати поворот на кожній другій сторінці"
 
 #: scan_menu_item_mixins.py:233
-#, fuzzy
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
@@ -1693,7 +1655,6 @@ msgid "Finished scanning reverse pages. Scan facing pages?"
 msgstr "Сканування зворотів сторінок завершено. Сканувати лицеві частини?"
 
 #: session_mixins.py:448
-#, fuzzy
 msgid "_Ok"
 msgstr "_OK"
 
@@ -1761,7 +1722,6 @@ msgstr ""
 "scantpaper."
 
 #: tests/test_savethread.py:1230
-#, fuzzy
 msgid "Writing page"
 msgstr "Запис сторінки"
 
@@ -1806,7 +1766,6 @@ msgid "Add text"
 msgstr "Додати текст"
 
 #: text_layer_control.py:80
-#, fuzzy
 msgid "_OK"
 msgstr "_OK"
 
@@ -1827,7 +1786,6 @@ msgid "Threshold"
 msgstr "Постеризація"
 
 #: tools_menu_mixins.py:106
-#, fuzzy
 msgid "Ink strength"
 msgstr "Сила чорнила"
 
@@ -1856,22 +1814,18 @@ msgid "Radius"
 msgstr "Радіус"
 
 #: tools_menu_mixins.py:279
-#, fuzzy
 msgid "Blur Radius."
 msgstr "Радіус розмиття."
 
 #: tools_menu_mixins.py:282
-#, fuzzy
 msgid "Percentage"
 msgstr "Відсоток"
 
 #: tools_menu_mixins.py:286
-#, fuzzy
 msgid "Unsharp strength, in percent."
 msgstr "Сила різкості, у відсотках."
 
 #: tools_menu_mixins.py:294
-#, fuzzy
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
 msgstr ""
@@ -1934,7 +1888,6 @@ msgid "To aid the scan-to-PDF process"
 msgstr "Спрощення процесу сканування в PDF"
 
 #: tools_menu_mixins.py:918
-#, fuzzy
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
 msgstr "Copyright 2006--2026 Jeffrey Ratcliffe"
 
@@ -2396,22 +2349,18 @@ msgid "_About"
 msgstr "_Про програму"
 
 #: app.ui.h:58
-#, fuzzy
 msgid "Cut"
 msgstr "_Вирізати"
 
 #: app.ui.h:59
-#, fuzzy
 msgid "Copy"
 msgstr "_Копіювати"
 
 #: app.ui.h:60
-#, fuzzy
 msgid "Paste"
 msgstr "В_ставити"
 
 #: app.ui.h:61
-#, fuzzy
 msgid "Delete"
 msgstr "В_илучити"
 
@@ -2422,24 +2371,23 @@ msgstr "Друк"
 #: app.ui.h:65
 #, fuzzy
 msgid "Select All"
-msgstr "По_значити"
+msgstr "Позначити все"
 
 #: app.ui.h:66
 #, fuzzy
 msgid "Select Odd"
-msgstr "Вибрані"
+msgstr "Позначити непарні"
 
 #: app.ui.h:67
 #, fuzzy
 msgid "Select Even"
-msgstr "Вибрані"
+msgstr "Позначити парні"
 
 #: app.ui.h:68
 msgid "Invert selection"
 msgstr "Інвертувати вибір"
 
 #: app.ui.h:69
-#, fuzzy
 msgid "Clear OCR"
 msgstr "_Очистити OCR"
 
@@ -2527,7 +2475,7 @@ msgstr "Вихід"
 #: menu.ui.h:5
 #, fuzzy
 msgid "_Save"
-msgstr "Зберегти"
+msgstr "_Зберегти"
 
 #~ msgid "Error displaying help"
 #~ msgstr "При відображенні довідки сталася помилка"
