@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
+import sys
 from pathlib import Path
+
+import polib
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -322,3 +327,231 @@ def test_label_and_tooltip_pair_is_not_reported(tmp_path: Path) -> None:
         "translation effort risk",
     ):
         assert condition not in result.stdout
+
+
+# Msgids that exist only in the .ui files, so finding them proves the ITS
+# extraction ran. If the rules cannot be resolved, xgettext silently extracts
+# nothing from the three .ui files and every source-side check would then
+# report a clean result over a set missing 83 user-interface strings.
+_UI_ONLY_MSGIDS = (
+    "Attach as PDF to a new email",
+    "Clear OCR",
+    "Clears all pages",
+    "Copy selection",
+    "Crop selection",
+    "Cut selection",
+    "Edit annotations",
+    "Invert selection",
+    "Open images",
+    "Paste selection",
+    "Prefere_nces",
+)
+
+# The number of msgids the three .ui files contribute, measured on 2026-09-27
+# with gettext 1.0. Asserted as a floor rather than an equality: the point is
+# to catch the extraction collapsing to nothing, not to make every new
+# translatable string a test failure.
+_UI_MSGID_FLOOR = 83
+
+_VENDORED_ITS = REPO_ROOT / "dev" / "gtkbuilder.its"
+
+
+def _run_generate_pot(
+    tmp_path: Path, path: Path | None = None
+) -> subprocess.CompletedProcess[str]:
+    """Run dev/generate_pot.py and return the result.
+
+    ``path`` replaces ``PATH`` for the run, so a test can present the
+    generator with only the tools it is entitled to need. The template is
+    written into ``tmp_path`` rather than the repository.
+    """
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(REPO_ROOT / "src"), env.get("PYTHONPATH", "")]
+    ).rstrip(os.pathsep)
+    if path is not None:
+        env["PATH"] = str(path)
+    return subprocess.run(
+        [sys.executable, str(REPO_ROOT / "dev" / "generate_pot.py")],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _gettext_only_path(tmp_path: Path) -> Path:
+    """Build a PATH directory holding gettext's tools and nothing else.
+
+    ``intltool-extract`` is deliberately absent, which is the situation this
+    change removes the need for.
+    """
+    bindir = tmp_path / "gettext-bin"
+    bindir.mkdir()
+    for tool in ("python3", "xgettext", "msgcat", "msgfmt"):
+        found = shutil.which(tool)
+        assert found is not None, f"{tool} is not installed"
+        (bindir / tool).symlink_to(found)
+    return bindir
+
+
+def test_generate_pot_needs_no_intltool(tmp_path: Path) -> None:
+    """The template is generated with gettext alone, with no intltool."""
+    result = _run_generate_pot(tmp_path, path=_gettext_only_path(tmp_path))
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "intltool" not in (result.stdout + result.stderr)
+    pot = polib.pofile(str(tmp_path / "scantpaper.pot"))
+    msgids = {entry.msgid for entry in pot if entry.msgid}
+    for msgid in _UI_ONLY_MSGIDS:
+        assert msgid in msgids, f"{msgid!r} missing from the generated template"
+
+
+def test_ui_msgids_are_extracted_from_the_ui_files(tmp_path: Path) -> None:
+    """The .ui contribution to the template is not silently empty."""
+    result = _run_generate_pot(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    pot = polib.pofile(str(tmp_path / "scantpaper.pot"))
+    msgids = {entry.msgid for entry in pot if entry.msgid}
+    for msgid in _UI_ONLY_MSGIDS:
+        assert msgid in msgids, f"{msgid!r} missing from the generated template"
+
+
+def test_ui_msgid_count_has_not_collapsed(tmp_path: Path) -> None:
+    """The .ui files still contribute at least the msgids they used to."""
+    result = _run_generate_pot(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    src = REPO_ROOT / "src" / "scantpaper"
+    env = dict(os.environ)
+    env["PATH"] = (
+        _gettext_only_path(tmp_path).as_posix() + os.pathsep + os.environ["PATH"]
+    )
+    ui_pot = tmp_path / "ui-only.pot"
+    subprocess.run(
+        [
+            "xgettext",
+            f"--its={_VENDORED_ITS}",
+            "--from-code=UTF-8",
+            "-o",
+            str(ui_pot),
+            *[str(p) for p in sorted(src.rglob("*.ui"))],
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    count = len({e.msgid for e in polib.pofile(str(ui_pot)) if e.msgid})
+    assert count >= _UI_MSGID_FLOOR, f"only {count} msgids from the .ui files"
+
+
+def test_vendored_its_rules_exist() -> None:
+    """The ITS rules the generator needs are vendored, not looked up."""
+    assert _VENDORED_ITS.is_file(), f"{_VENDORED_ITS} is missing"
+    loc = _VENDORED_ITS.with_suffix(".loc")
+    assert loc.is_file(), f"{loc} is missing"
+
+
+def _run_its_drift(tmp_path: Path, its_dir: Path) -> subprocess.CompletedProcess[str]:
+    """Run check_po.py over a stub catalog, pointing the ITS check at a dir."""
+    src = tmp_path / "po"
+    src.mkdir()
+    (src / "scantpaper-de.po").write_text(
+        'msgid ""\n'
+        'msgstr ""\n'
+        '"MIME-Version: 1.0\\n"\n'
+        '"Content-Type: text/plain; charset=UTF-8\\n"\n'
+        '"Language: de\\n"\n'
+        f'"Plural-Forms: {_PLURAL_FORMS["de"]}\\n"\n',
+        encoding="utf-8",
+    )
+    empty_pot = tmp_path / "empty.pot"
+    empty_pot.write_text(
+        'msgid ""\nmsgstr ""\n"MIME-Version: 1.0\\n"\n'
+        '"Content-Type: text/plain; charset=UTF-8\\n"\n',
+        encoding="utf-8",
+    )
+    return subprocess.run(
+        [
+            "python3",
+            str(REPO_ROOT / "dev" / "check_po.py"),
+            "--src",
+            str(src),
+            "--pot",
+            str(empty_pot),
+            "--its-dir",
+            str(its_dir),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_its_rules_matching_the_system_are_reported_as_matching(
+    tmp_path: Path,
+) -> None:
+    """An installed copy identical to the vendored one is reported as such."""
+    its_dir = tmp_path / "its"
+    its_dir.mkdir()
+    for name in ("gtkbuilder.its", "gtkbuilder.loc"):
+        (its_dir / name).write_bytes(
+            (REPO_ROOT / "dev" / name).read_bytes(),
+        )
+    result = _run_its_drift(tmp_path, its_dir)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "matches" in result.stdout
+    assert "differs" not in result.stdout
+    assert "no installed copy" not in result.stdout
+
+
+def test_its_rules_differing_from_the_system_are_reported(tmp_path: Path) -> None:
+    """An installed copy that differs is reported, naming both files."""
+    its_dir = tmp_path / "its"
+    its_dir.mkdir()
+    (its_dir / "gtkbuilder.its").write_text(
+        "<!-- a different upstream revision -->\n", encoding="utf-8"
+    )
+    (its_dir / "gtkbuilder.loc").write_bytes(
+        (REPO_ROOT / "dev" / "gtkbuilder.loc").read_bytes(),
+    )
+    result = _run_its_drift(tmp_path, its_dir)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "differs" in result.stdout
+    assert str(its_dir / "gtkbuilder.its") in result.stdout
+    assert str(_VENDORED_ITS) in result.stdout
+
+
+def test_absent_system_its_rules_are_distinguishable_from_a_match(
+    tmp_path: Path,
+) -> None:
+    """No installed copy is reported as its own case, not as a match."""
+    its_dir = tmp_path / "its"
+    its_dir.mkdir()
+    result = _run_its_drift(tmp_path, its_dir)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "no installed copy" in result.stdout
+    assert "matches" not in result.stdout
+
+
+def test_generate_pot_leaves_the_ui_sources_in_place(tmp_path: Path) -> None:
+    """Generation removes only its own temporaries, never the .ui sources.
+
+    The generator runs with the source directory as its working directory, so
+    a stray entry in its cleanup list would silently delete a tracked source
+    file rather than a temporary.
+    """
+    src = REPO_ROOT / "src" / "scantpaper"
+    ui_files = sorted(src.rglob("*.ui"))
+    assert ui_files, "no .ui sources found to check against"
+
+    before = {p: p.read_bytes() for p in ui_files}
+    result = _run_generate_pot(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    missing = [p for p in ui_files if not p.is_file()]
+    assert not missing, f"generation deleted {[p.name for p in missing]}"
+    for path, content in before.items():
+        assert path.read_bytes() == content, f"generation altered {path.name}"
+    assert not list(src.glob("_*_tmp.pot")), "temporary pots were left behind"
+    assert not list(src.glob("*.ui.h")), "intermediate headers were left behind"

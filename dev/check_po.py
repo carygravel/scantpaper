@@ -49,6 +49,17 @@ from pathlib import Path
 import polib
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+DEV_DIR = REPO_ROOT / "dev"
+
+# The GtkBuilder ITS rules dev/generate_pot.py extracts .ui strings with. They
+# are vendored under dev/ so the msgid set is the same on every machine; the
+# advisory below compares them against whatever gettext installed locally.
+ITS_RULE_NAMES = ("gtkbuilder.its", "gtkbuilder.loc")
+_ITS_SEARCH_PATHS = [
+    Path("/usr/share/gettext/its"),
+    Path("/usr/local/share/gettext/its"),
+    Path("/opt/homebrew/share/gettext/its"),
+]
 
 # CLDR plural-form count per language code. Only the well-established
 # counts are enforced; the common {1,2} pair is accepted for the rest so
@@ -283,8 +294,8 @@ def _generate_msgids() -> list[str]:
             _clean_generator_temp_files()
             message = (
                 "could not generate the message template with "
-                "dev/generate_pot.py; it needs xgettext, msgcat and "
-                f"intltool-extract on PATH.\n{result.stderr.rstrip()}"
+                f"dev/generate_pot.py; it needs xgettext and msgcat on PATH.\n"
+                f"{result.stderr.rstrip()}"
             )
             raise RuntimeError(message)
         pots = list(Path(tmp).glob("*.pot"))
@@ -296,7 +307,7 @@ def _generate_msgids() -> list[str]:
 
 def _clean_generator_temp_files() -> None:
     """Remove the scratch templates generate_pot.py leaves behind on failure."""
-    for name in ("_py_tmp.pot", "_c_tmp.pot"):
+    for name in ("_py_tmp.pot", "_ui_tmp.pot"):
         stray = REPO_ROOT / "src" / "scantpaper" / name
         if stray.exists():
             stray.unlink()
@@ -331,6 +342,53 @@ def _case_only_duplicate_groups(msgids: list[str]) -> list[list[str]]:
     for msgid in msgids:
         folded[msgid.lower()].add(msgid)
     return [sorted(group) for group in folded.values() if len(group) > 1]
+
+
+def _first_difference(vendored: Path, installed: Path) -> int:
+    """Return the 1-based number of the first line where two files differ."""
+    vendored_lines = vendored.read_text(encoding="utf-8").splitlines()
+    installed_lines = installed.read_text(encoding="utf-8").splitlines()
+    for number, (left, right) in enumerate(
+        zip(vendored_lines, installed_lines, strict=False), start=1
+    ):
+        if left != right:
+            return number
+    return min(len(vendored_lines), len(installed_lines)) + 1
+
+
+def _its_advisories(its_dir: Path | None = None) -> list[str]:
+    """Compare the vendored ITS rules against the ones gettext installed.
+
+    The rules are vendored so that the msgid set does not vary with the gettext
+    version or install layout of the generating machine. The cost of that
+    choice is a silent divergence if upstream changes them, so report it here.
+    This is advisory: the vendored copy is the one in use, and a mismatch is
+    not a defect in this tree.
+    """
+    search = [Path(its_dir)] if its_dir is not None else _ITS_SEARCH_PATHS
+    result: list[str] = []
+    for name in ITS_RULE_NAMES:
+        vendored = DEV_DIR / name
+        if not vendored.is_file():
+            continue
+        found = [d / name for d in search if (d / name).is_file()]
+        if not found:
+            result.append(
+                f"[advisory] ITS rules: no installed copy of {name} was found "
+                f"in {', '.join(str(d) for d in search)}, so the vendored "
+                f"{vendored.name} was not compared against upstream"
+            )
+            continue
+        for installed in found:
+            if installed.read_bytes() == vendored.read_bytes():
+                result.append(f"[advisory] ITS rules: {vendored} matches {installed}")
+            else:
+                line = _first_difference(vendored, installed)
+                result.append(
+                    f"[advisory] ITS rules: {vendored} differs from "
+                    f"{installed} from line {line} on; see dev/its-rules.md"
+                )
+    return result
 
 
 def _source_advisories(msgids: list[str]) -> list[str]:
@@ -541,7 +599,16 @@ def main() -> int:
         type=Path,
         help="Check against this message template instead of generating one",
     )
+    parser.add_argument(
+        "--its-dir",
+        type=Path,
+        help="Search this directory for installed copies of the vendored ITS "
+        "rules, instead of the standard gettext locations",
+    )
     args = parser.parse_args()
+
+    for line in _its_advisories(args.its_dir):
+        print(line)
 
     try:
         msgids = source_msgids(args.pot)

@@ -640,8 +640,12 @@ LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LAN
 python3 dev/check_po.py
 ```
 
-This needs `xgettext`, `msgcat`, `intltool-extract` and `msgfmt` on `PATH`.
-CI runs the same script via `test_po_files.py`.
+This needs `xgettext`, `msgcat` and `msgfmt` on `PATH`. `intltool` is not
+needed: the translatable strings in the `.ui` files are extracted with the
+GtkBuilder ITS rules vendored in `dev/`, so the template does not depend on the
+gettext version installed. CI runs the same script via `test_po_files.py`.
+`dev/check_po.py` compares those vendored rules against the copies gettext
+installed and reports any drift as an advisory.
 
 Errors fail the script; advisories are printed but do not. A release is
 therefore never blocked by an advisory, but they are worth reading.

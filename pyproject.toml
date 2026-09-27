@@ -147,7 +147,7 @@ task-tags = ["TODO", "FIXME"]
 "src/scantpaper/conftest.py" = ["S108", "S607", "T201"]
 # dev/ is a scripts folder, not a Python package, so its scripts live in an
 # implicit namespace directory; the package itself is under src/. The dev
-# scripts also invoke translation tooling (intltool-extract, pygettext3) via
+# scripts also invoke translation tooling (xgettext, msgcat, msgfmt) via
 # PATH without ever using a shell, and print their progress/errors directly
 # (T201) as one-shot developer CLI tools.
 "dev/**" = ["INP001", "S603", "S607", "T201"]

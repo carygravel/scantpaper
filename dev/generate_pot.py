@@ -1,4 +1,4 @@
-"""Create pot for translation strings. Requires gettext and intltool."""
+"""Create pot for translation strings. Requires gettext."""
 
 from __future__ import annotations
 
@@ -7,7 +7,8 @@ import subprocess
 from contextlib import chdir
 from pathlib import Path
 
-pkg_dir = Path(__file__).resolve().parents[1] / "src" / "scantpaper"
+pkg_dir = Path(__file__).resolve().parent.parent / "src" / "scantpaper"
+its_rules = Path(__file__).resolve().parent / "gtkbuilder.its"
 from scantpaper.const import (  # noqa: E402
     AUTHOR,
     VERSION,
@@ -24,9 +25,6 @@ def main() -> None:
     """Run the application entry point."""
     with chdir(pkg_dir):
         ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))
-        for x in ui_sources:
-            subprocess.run(["intltool-extract", "--type=gettext/glade", x], check=True)
-        uih_sources = sorted(x + ".h" for x in ui_sources)
         py_sources = sorted(str(x) for x in Path().rglob("*.py"))
 
         py_pot = "_py_tmp.pot"
@@ -45,26 +43,29 @@ def main() -> None:
         )
 
         tmp_pots = [py_pot]
-        if uih_sources:
-            c_pot = "_c_tmp.pot"
+        if ui_sources:
+            # A Glade .ui file is GtkBuilder XML, so gettext's own ITS rules
+            # for GtkBuilder describe which attributes are translatable. The
+            # rules are vendored beside this script so that the msgid set does
+            # not depend on the gettext version or install layout of whichever
+            # machine generates the template; see dev/its-rules.md.
+            ui_pot = "_ui_tmp.pot"
             subprocess.run(
                 [
                     "xgettext",
-                    "--language=C",
+                    f"--its={its_rules}",
                     "--from-code=UTF-8",
                     "-o",
-                    c_pot,
-                    "--keyword=_",
-                    "--keyword=N_",
-                    *uih_sources,
+                    ui_pot,
+                    *ui_sources,
                 ],
                 check=True,
             )
-            tmp_pots.append(c_pot)
+            tmp_pots.append(ui_pot)
 
         out = subprocess.check_output(["msgcat", "--use-first", *tmp_pots], text=True)
-        for x in uih_sources + tmp_pots:
-            Path(x).unlink()
+        for x in tmp_pots:
+            Path(x).unlink(missing_ok=True)
 
     local_tz = datetime.datetime.now().astimezone().tzinfo
     year = datetime.datetime.now(local_tz).year
