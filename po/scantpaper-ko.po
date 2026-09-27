@@ -20,57 +20,46 @@ msgstr ""
 "X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
 #: app_window.py:516
-#, fuzzy
 msgid "Save image and Save as PDF both require imagemagick"
 msgstr "이미지 저장 및 PDF로 저장에는 imagemagick이 필요합니다"
 
 #: app_window.py:517
-#, fuzzy
 msgid "Save image requires libtiff"
 msgstr "이미지 저장에는 libtiff가 필요합니다"
 
 #: app_window.py:518
-#, fuzzy
 msgid "Save as DjVu requires djvulibre-bin"
 msgstr "DjVu로 저장하려면 djvulibre-bin이 필요합니다"
 
 #: app_window.py:519
-#, fuzzy
 msgid "Email as PDF requires xdg-email"
 msgstr "PDF로 이메일 보내기에는 xdg-email이 필요합니다"
 
 #: app_window.py:520
-#, fuzzy
 msgid "unpaper missing"
 msgstr "unpaper가 없습니다"
 
 #: app_window.py:528
-#, fuzzy
 msgid "OCR requires tesseract"
 msgstr "OCR에는 tesseract가 필요합니다"
 
 #: app_window.py:543
-#, fuzzy
 msgid "PDF encryption requires qpdf"
 msgstr "PDF 암호화에는 qpdf가 필요합니다"
 
 #: app_window.py:575
-#, fuzzy
 msgid "Warning: missing packages"
 msgstr "경고: 패키지 누락"
 
 #: app_window.py:593
-#, fuzzy
 msgid "Image"
 msgstr "이미지"
 
 #: app_window.py:594 text_layer_control.py:57
-#, fuzzy
 msgid "Text layer"
 msgstr "텍스트 레이어"
 
 #: app_window.py:596 session_mixins.py:446
-#, fuzzy
 msgid "Annotations"
 msgstr "주석"
 
@@ -78,46 +67,37 @@ msgstr "주석"
 #, fuzzy, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
-msgstr[0] "%s에 %dMB 사용 가능."
-msgstr[1] "%s에 %dMB 사용 가능."
+msgstr[0] "%dMB 사용 가능 (%s)."
 
 #: app_window.py:863 helpers.py:372
-#, fuzzy
 msgid "Messages"
 msgstr "메시지"
 
 #: app_window.py:948
-#, fuzzy
 msgid "Error opening the last device used."
 msgstr "마지막으로 사용한 장치를 여는 중 오류가 발생했습니다."
 
 #: app_window.py:950
-#, fuzzy
 msgid "There was an error opening the last device used."
 msgstr "마지막으로 사용한 장치를 여는 중 오류가 발생했습니다."
 
 #: app_window.py:953
-#, fuzzy
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "어이쿠! 전원을 켜는 것을 잊었습니다. 지금 다시 시도하십시오."
 
 #: app_window.py:958 dialog/scan.py:517
-#, fuzzy
 msgid "Rescan for devices"
 msgstr "장치 다시 검색"
 
 #: app_window.py:962
-#, fuzzy
 msgid "Restart scantpaper."
 msgstr "scantpaper를 다시 시작하십시오."
 
 #: app_window.py:967
-#, fuzzy
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "오류는 무시하십시오. 아직 스캐너가 필요하지 않습니다."
 
 #: app_window.py:970 dialog/preferences.py:162
-#, fuzzy
 msgid "Cache device list"
 msgstr "장치 목록 캐시"
 
@@ -126,22 +106,18 @@ msgid "Don't show this message again"
 msgstr "이 메시지를 다시 보이지 않습니다"
 
 #: basedocument.py:48
-#, fuzzy
 msgid "Thumbnails"
 msgstr "축소판"
 
 #: basedocument.py:711
-#, fuzzy
 msgid "No pages to process"
 msgstr "처리할 페이지가 없습니다"
 
 #: basedocument.py:715
-#, fuzzy
 msgid "No pages selected"
 msgstr "선택된 페이지가 없습니다"
 
 #: config.py:107
-#, fuzzy
 msgid "A3"
 msgstr "A3"
 
@@ -158,7 +134,7 @@ msgid "US Legal"
 msgstr "US Legal"
 
 #: config.py:263
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The setting %s is %r and cannot be used as %s, so it has been left unchanged."
 msgstr ""
@@ -166,7 +142,7 @@ msgstr ""
 "습니다."
 
 #: config.py:299
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The settings file %s could not be read in full. The following settings were "
 "restored: %s. The rest were reset to their defaults. A backup of the "
@@ -177,7 +153,7 @@ msgstr ""
 "니다."
 
 #: config.py:306
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The settings file %s could not be read, so all settings have been reset to "
 "their defaults. A backup of the original file has been saved as %s."
@@ -190,58 +166,47 @@ msgid "Page Range"
 msgstr "페이지 범위"
 
 #: dialog/__init__.py:106
-#, fuzzy
 msgid "Error"
 msgstr "오류"
 
 #: dialog/__init__.py:107
-#, fuzzy
 msgid "Warning"
 msgstr "경고"
 
 #: dialog/__init__.py:108
-#, fuzzy
 msgid "Info"
 msgstr "정보"
 
 #: dialog/__init__.py:125
-#, fuzzy
 msgid "Page"
 msgstr "페이지"
 
 #: dialog/__init__.py:126
-#, fuzzy
 msgid "Process"
 msgstr "프로세스"
 
 #: dialog/__init__.py:127
-#, fuzzy
 msgid "Message type"
 msgstr "메시지 유형"
 
 #: dialog/__init__.py:129
-#, fuzzy
 msgid "Message"
 msgstr "메시지"
 
 #: dialog/__init__.py:132
-#, fuzzy
 msgid "Hide"
 msgstr "숨기기"
 
 #: dialog/__init__.py:193
-#, fuzzy
 msgid "Don't show these messages again"
 msgstr "이 메시지를 다시 표시하지 않음"
 
 #: dialog/__init__.py:313
-#, fuzzy
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr "이 오류는 일반적으로 ImageMagick이 리소스 제한을 초과하여 발생합니다."
 
 #: dialog/__init__.py:317
-#, fuzzy
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
@@ -250,29 +215,24 @@ msgstr ""
 "ImageMagick-6/policy.xml에 있습니다"
 
 #: dialog/__init__.py:322
-#, fuzzy
 msgid ""
 "Please see https://imagemagick.org/script/resources.php for more information"
 msgstr ""
 "자세한 내용은 https://imagemagick.org/script/resources.php를 참조하십시오"
 
 #: dialog/crop.py:14
-#, fuzzy
 msgid "x"
 msgstr "x"
 
 #: dialog/crop.py:15
-#, fuzzy
 msgid "The x-position of the left hand edge of the crop."
 msgstr "자르기 영역 왼쪽 가장자리의 x 위치."
 
 #: dialog/crop.py:19
-#, fuzzy
 msgid "y"
 msgstr "y"
 
 #: dialog/crop.py:20
-#, fuzzy
 msgid "The y-position of the top edge of the crop."
 msgstr "자르기 영역 위쪽 가장자리의 y 위치."
 
@@ -281,7 +241,6 @@ msgid "Width"
 msgstr "폭"
 
 #: dialog/crop.py:25
-#, fuzzy
 msgid "The width of the crop."
 msgstr "자르기 영역의 너비."
 
@@ -290,22 +249,18 @@ msgid "Height"
 msgstr "높이"
 
 #: dialog/crop.py:30
-#, fuzzy
 msgid "The height of the crop."
 msgstr "자르기 영역의 높이."
 
 #: dialog/crop.py:116
-#, fuzzy
 msgid "Crop"
 msgstr "자르기"
 
 #: dialog/crop.py:154 tools_menu_mixins.py:277
-#, fuzzy
 msgid "pixels"
 msgstr "픽셀"
 
 #: dialog/pagecontrols.py:188
-#, fuzzy
 msgid "Page Options"
 msgstr "페이지 옵션"
 
@@ -334,29 +289,24 @@ msgid "Page number"
 msgstr "페이지 번호"
 
 #: dialog/pagecontrols.py:271
-#, fuzzy
 msgid "Insert before page N"
 msgstr "페이지 N 앞에 삽입"
 
 #: dialog/pagecontrols.py:274
-#, fuzzy
 msgid "Page number before which scans will be inserted"
 msgstr "스캔이 삽입될 앞 페이지 번호"
 
 #: dialog/pagecontrols.py:285
-#, fuzzy
 msgid "Position advance"
 msgstr "위치 이동"
 
 #: dialog/pagecontrols.py:289
-#, fuzzy
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
 msgstr "이후 각 스캔의 위치 이동 (0 = 같은 페이지 앞에 계속 삽입)"
 
 #: dialog/pagecontrols.py:305
-#, fuzzy
 msgid "Source document"
 msgstr "원본 문서"
 
@@ -365,7 +315,6 @@ msgid "Single sided"
 msgstr "단면"
 
 #: dialog/pagecontrols.py:315
-#, fuzzy
 msgid "Source document is single-sided"
 msgstr "원본 문서가 단면입니다"
 
@@ -374,7 +323,6 @@ msgid "Double sided"
 msgstr "양면"
 
 #: dialog/pagecontrols.py:323
-#, fuzzy
 msgid "Source document is double-sided"
 msgstr "원본 문서가 양면입니다"
 
@@ -383,12 +331,10 @@ msgid "Side to scan"
 msgstr "스캔할 면"
 
 #: dialog/pagecontrols.py:332
-#, fuzzy
 msgid "Facing"
 msgstr "앞면"
 
 #: dialog/pagecontrols.py:332
-#, fuzzy
 msgid "Reverse"
 msgstr "뒷면"
 
@@ -409,37 +355,30 @@ msgid "Top"
 msgstr "위"
 
 #: dialog/paperlist.py:26
-#, fuzzy
 msgid "Units"
 msgstr "단위"
 
 #: dialog/paperlist.py:73 dialog/paperlist.py:115
-#, fuzzy
 msgid "Cannot delete all paper sizes"
 msgstr "모든 용지 크기를 삭제할 수 없습니다"
 
 #: dialog/preferences.py:42
-#, fuzzy
 msgid "Preferences"
 msgstr "기본 설정"
 
 #: dialog/preferences.py:56
-#, fuzzy
 msgid "Scan options"
 msgstr "스캔 옵션"
 
 #: dialog/preferences.py:60
-#, fuzzy
 msgid "General options"
 msgstr "일반 옵션"
 
 #: dialog/preferences.py:68
-#, fuzzy
 msgid "Open scanner at program start"
 msgstr "프로그램 시작 시 스캐너 열기"
 
 #: dialog/preferences.py:71
-#, fuzzy
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
@@ -450,33 +389,27 @@ msgstr ""
 "약됩니다"
 
 #: dialog/preferences.py:83
-#, fuzzy
 msgid "Device blacklist"
 msgstr "장치 블랙리스트"
 
 #: dialog/preferences.py:87
-#, fuzzy
 msgid "Device blacklist (regular expression)"
 msgstr "장치 블랙리스트 (정규식)"
 
 #: dialog/preferences.py:95
-#, fuzzy
 msgid "Cycle SANE handle after scan"
 msgstr "스캔 후 SANE 핸들 재생성"
 
 #: dialog/preferences.py:97
-#, fuzzy
 msgid "Some ADFs do not feed out the last page if this is not enabled"
 msgstr ""
 "일부 ADF는 이 옵션이 활성화되지 않으면 마지막 페이지를 배출하지 않습니다"
 
 #: dialog/preferences.py:105
-#, fuzzy
 msgid "Allow batch scanning from flatbed"
 msgstr "평판 스캐너에서 배치 스캔 허용"
 
 #: dialog/preferences.py:109
-#, fuzzy
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
@@ -485,12 +418,10 @@ msgstr ""
 "다."
 
 #: dialog/preferences.py:118
-#, fuzzy
 msgid "Ignore duplex capabilities of scanner"
 msgstr "스캐너의 양면 기능 무시"
 
 #: dialog/preferences.py:122
-#, fuzzy
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
@@ -499,12 +430,10 @@ msgstr ""
 "면/뒷면 위젯이 표시됩니다."
 
 #: dialog/preferences.py:131
-#, fuzzy
 msgid "Force new scan job between pages"
 msgstr "페이지 사이에 새 스캔 작업 강제"
 
 #: dialog/preferences.py:135
-#, fuzzy
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
@@ -513,12 +442,10 @@ msgstr ""
 "니다."
 
 #: dialog/preferences.py:151
-#, fuzzy
 msgid "Select # pages = all on selecting ADF"
 msgstr "ADF 선택 시 # 페이지 = 모두 선택"
 
 #: dialog/preferences.py:155
-#, fuzzy
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
@@ -526,7 +453,6 @@ msgstr ""
 "이 옵션을 활성화하면 source=ADF로 전환할 때 # 페이지 = 모두가 선택됩니다"
 
 #: dialog/preferences.py:165
-#, fuzzy
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
@@ -535,28 +461,23 @@ msgstr ""
 "스캐너를 더 빨리 열 수 있습니다."
 
 #: dialog/preferences.py:169
-#, fuzzy
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr "이 옵션은 세션 간에 장치 이름이 변경되지 않는 경우에만 유효합니다."
 
 #: dialog/preferences.py:178
-#, fuzzy
 msgid "Restore window settings on startup"
 msgstr "시작 시 창 설정 복원"
 
 #: dialog/preferences.py:183
-#, fuzzy
 msgid "View files on saving"
 msgstr "저장 시 파일 보기"
 
 #: dialog/preferences.py:190
-#, fuzzy
 msgid "Default PDF & DjVu filename"
 msgstr "기본 PDF 및 DjVu 파일 이름"
 
 #: dialog/preferences.py:194
-#, fuzzy
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -589,114 +510,93 @@ msgstr ""
 "%Dd\t문서 일\n"
 
 #: dialog/preferences.py:215
-#, fuzzy
 msgid "Replace whitespace in filenames with underscores"
 msgstr "파일 이름의 공백을 밑줄로 바꾸기"
 
 #: dialog/preferences.py:221
-#, fuzzy
 msgid "Use timezone from locale"
 msgstr "로케일의 시간대 사용"
 
 #: dialog/preferences.py:226
-#, fuzzy
 msgid "Specify time as well as date"
 msgstr "날짜와 함께 시간도 지정"
 
 #: dialog/preferences.py:232
-#, fuzzy
 msgid "Set access and modification times to metadata date"
 msgstr "액세스 및 수정 시간을 메타데이터 날짜로 설정"
 
 #: dialog/preferences.py:240
-#, fuzzy
 msgid "Temporary directory"
 msgstr "임시 디렉터리"
 
 #: dialog/preferences.py:245
-#, fuzzy
 msgid "Browse"
 msgstr "찾아보기"
 
 #: dialog/preferences.py:251
-#, fuzzy
 msgid "Select temporary directory"
 msgstr "임시 디렉터리 선택"
 
 #: dialog/preferences.py:273
-#, fuzzy
 msgid "Warn if available space less than (Mb)"
 msgstr "사용 가능한 공간이 (Mb)보다 적으면 경고"
 
 #: dialog/preferences.py:279
-#, fuzzy
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
 msgstr "임시 디렉터리의 사용 가능한 공간이 이 값보다 적으면 경고"
 
 #: dialog/preferences.py:287
-#, fuzzy
 msgid "Blank threshold"
 msgstr "빈 페이지 임계값"
 
 #: dialog/preferences.py:292
-#, fuzzy
 msgid "Threshold used for selecting blank pages"
 msgstr "빈 페이지 선택에 사용되는 임계값"
 
 #: dialog/preferences.py:300
-#, fuzzy
 msgid "Dark threshold"
 msgstr "어두운 페이지 임계값"
 
 #: dialog/preferences.py:304
-#, fuzzy
 msgid "Threshold used for selecting dark pages"
 msgstr "어두운 페이지 선택에 사용되는 임계값"
 
 #: dialog/preferences.py:311
-#, fuzzy
 msgid "OCR output"
 msgstr "OCR 출력"
 
 #: dialog/preferences.py:316
-#, fuzzy
 msgid "Replace"
 msgstr "바꾸기"
 
 #: dialog/preferences.py:318
-#, fuzzy
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr "텍스트 버퍼의 내용을 OCR 출력 내용으로 바꿉니다."
 
 #: dialog/preferences.py:321
-#, fuzzy
 msgid "Prepend"
 msgstr "앞에 추가"
 
 #: dialog/preferences.py:321
-#, fuzzy
 msgid "Prepend the OCR output to the text buffer."
 msgstr "OCR 출력을 텍스트 버퍼 앞에 추가합니다."
 
 #: dialog/preferences.py:322
-#, fuzzy
 msgid "Append"
 msgstr "뒤에 추가"
 
 #: dialog/preferences.py:322
-#, fuzzy
 msgid "Append the OCR output to the text buffer."
 msgstr "OCR 출력을 텍스트 버퍼 뒤에 추가합니다."
 
 #: dialog/preferences.py:329
-#, fuzzy
 msgid "Manage user-defined tools"
 msgstr "사용자 정의 도구 관리"
 
 #: dialog/preferences.py:352
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Use %i and %o for the input and output filenames respectively,\n"
 "or a single %i if the image is to be modified in-place.\n"
@@ -715,47 +615,38 @@ msgid "_Delete"
 msgstr "지우기(_D)"
 
 #: dialog/preferences.py:397
-#, fuzzy
 msgid "The following user-defined tools could not be found:\n"
 msgstr "다음 사용자 정의 도구를 찾을 수 없습니다:\n"
 
 #: dialog/preferences.py:400
-#, fuzzy
 msgid "Please check that the command is installed and in your PATH."
 msgstr "명령이 설치되어 PATH에 있는지 확인하십시오."
 
 #: dialog/preferences.py:402
-#, fuzzy
 msgid "User-defined tool not found"
 msgstr "사용자 정의 도구를 찾을 수 없습니다"
 
 #: dialog/sane.py:71
-#, fuzzy
 msgid "Fetching list of devices"
 msgstr "장치 목록 가져오는 중"
 
 #: dialog/sane.py:89
-#, fuzzy
 msgid "No devices found"
 msgstr "장치를 찾을 수 없습니다"
 
 #: dialog/sane.py:129
-#, fuzzy
 msgid "Opening device"
 msgstr "장치 여는 중"
 
 #: dialog/sane.py:142
-#, fuzzy
 msgid "Error opening device: "
 msgstr "장치 여는 중 오류: "
 
 #: dialog/sane.py:148 dialog/sane.py:494
-#, fuzzy
 msgid "Retrieving options"
 msgstr "옵션 검색 중"
 
 #: dialog/sane.py:165 dialog/sane.py:507
-#, fuzzy
 msgid "Error retrieving scanner options: "
 msgstr "스캐너 옵션 검색 중 오류: "
 
@@ -764,22 +655,20 @@ msgid "Scan Options"
 msgstr "스캔 옵션"
 
 #: dialog/sane.py:290
-#, fuzzy, python-format
+#, python-format
 msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
 msgstr "스캔 옵션 '%s' 무시, 최소 범위(%s) > 최대(%s)"
 
 #: dialog/sane.py:450
-#, fuzzy, python-format
+#, python-format
 msgid "Setting option %s"
 msgstr "옵션 %s 설정 중"
 
 #: dialog/sane.py:469
-#, fuzzy
 msgid "Error setting option: "
 msgstr "옵션 설정 중 오류: "
 
 #: dialog/sane.py:531
-#, fuzzy
 msgid "Must scan facing pages first"
 msgstr "먼저 앞면 페이지를 스캔해야 합니다"
 
@@ -796,7 +685,6 @@ msgid "GIF"
 msgstr "GIF"
 
 #: dialog/save.py:32
-#, fuzzy
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe 그래픽 교환 형식"
 
@@ -805,7 +693,6 @@ msgid "JPEG"
 msgstr "JPEG"
 
 #: dialog/save.py:33
-#, fuzzy
 msgid "Joint Photographic Experts Group JFIF format"
 msgstr "JPEG 전문가 그룹 JFIF 형식"
 
@@ -814,7 +701,6 @@ msgid "PNG"
 msgstr "PNG"
 
 #: dialog/save.py:34
-#, fuzzy
 msgid "Portable Network Graphics"
 msgstr "휴대용 네트워크 그래픽"
 
@@ -823,7 +709,6 @@ msgid "PNM"
 msgstr "PNM"
 
 #: dialog/save.py:35
-#, fuzzy
 msgid "Portable anymap"
 msgstr "휴대용 anymap"
 
@@ -840,7 +725,6 @@ msgid "TIFF"
 msgstr "TIFF"
 
 #: dialog/save.py:37
-#, fuzzy
 msgid "Tagged Image File Format"
 msgstr "태그가 있는 이미지 파일 형식"
 
@@ -853,42 +737,34 @@ msgid "Plain text"
 msgstr "일반 텍스트"
 
 #: dialog/save.py:39
-#, fuzzy
 msgid "hOCR"
 msgstr "hOCR"
 
 #: dialog/save.py:39
-#, fuzzy
 msgid "hOCR markup language"
 msgstr "hOCR 마크업 언어"
 
 #: dialog/save.py:40 session_mixins.py:126
-#, fuzzy
 msgid "Session"
 msgstr "세션"
 
 #: dialog/save.py:40
-#, fuzzy
 msgid "scantpaper session database"
 msgstr "scantpaper 세션 데이터베이스"
 
 #: dialog/save.py:41
-#, fuzzy
 msgid "Prepend to PDF"
 msgstr "PDF 앞에 추가"
 
 #: dialog/save.py:41
-#, fuzzy
 msgid "Prepend to an existing PDF"
 msgstr "기존 PDF 앞에 추가"
 
 #: dialog/save.py:42
-#, fuzzy
 msgid "Append to PDF"
 msgstr "PDF 뒤에 추가"
 
 #: dialog/save.py:42
-#, fuzzy
 msgid "Append to an existing PDF"
 msgstr "기존 PDF 뒤에 추가"
 
@@ -897,17 +773,14 @@ msgid "DjVu"
 msgstr "DjVu"
 
 #: dialog/save.py:43
-#, fuzzy
 msgid "Deja Vu"
 msgstr "Deja Vu"
 
 #: dialog/save.py:48
-#, fuzzy
 msgid "Automatic"
 msgstr "자동"
 
 #: dialog/save.py:49
-#, fuzzy
 msgid "Let scantpaper which type of compression to use."
 msgstr "사용할 압축 유형을 scantpaper가 결정하게 합니다."
 
@@ -916,7 +789,6 @@ msgid "LZW"
 msgstr "LZW"
 
 #: dialog/save.py:51 dialog/save.py:76
-#, fuzzy
 msgid "Compress output with Lempel-Ziv & Welch encoding."
 msgstr "Lempel-Ziv & Welch 인코딩으로 출력을 압축합니다."
 
@@ -925,7 +797,6 @@ msgid "G3"
 msgstr "G3"
 
 #: dialog/save.py:52 dialog/save.py:84
-#, fuzzy
 msgid "Compress output with CCITT Group 3 encoding."
 msgstr "CCITT Group 3 인코딩으로 출력을 압축합니다."
 
@@ -934,27 +805,22 @@ msgid "G4"
 msgstr "G4"
 
 #: dialog/save.py:53 dialog/save.py:85
-#, fuzzy
 msgid "Compress output with CCITT Group 4 encoding."
 msgstr "CCITT Group 4 인코딩으로 출력을 압축합니다."
 
 #: dialog/save.py:54
-#, fuzzy
 msgid "Flate"
 msgstr "Flate"
 
 #: dialog/save.py:54
-#, fuzzy
 msgid "Compress output with flate encoding."
 msgstr "flate 인코딩으로 출력을 압축합니다."
 
 #: dialog/save.py:55
-#, fuzzy
 msgid "Compress output with JPEG (DCT) encoding."
 msgstr "JPEG (DCT) 인코딩으로 출력을 압축합니다."
 
 #: dialog/save.py:56 dialog/save.py:86
-#, fuzzy
 msgid "None"
 msgstr "없음"
 
@@ -963,32 +829,26 @@ msgid "Use no compression algorithm on output."
 msgstr "출력에 압축 알고리즘 사용하지 않음"
 
 #: dialog/save.py:61
-#, fuzzy
 msgid "LibTIFF"
 msgstr "LibTIFF"
 
 #: dialog/save.py:62
-#, fuzzy
 msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
 msgstr "LibTIFF(tiff2ps)를 사용하여 TIFF에서 Postscript 파일을 만듭니다."
 
 #: dialog/save.py:66
-#, fuzzy
 msgid "Ghostscript"
 msgstr "Ghostscript"
 
 #: dialog/save.py:67
-#, fuzzy
 msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
 msgstr "Ghostscript(pdf2ps)를 사용하여 PDF에서 Postscript 파일을 만듭니다."
 
 #: dialog/save.py:71
-#, fuzzy
 msgid "Poppler"
 msgstr "Poppler"
 
 #: dialog/save.py:72
-#, fuzzy
 msgid "Use Poppler (pdftops) to create Postscript files from PDF."
 msgstr "Poppler(pdftops)를 사용하여 PDF에서 Postscript 파일을 만듭니다."
 
@@ -997,7 +857,6 @@ msgid "Zip"
 msgstr "Zip"
 
 #: dialog/save.py:80
-#, fuzzy
 msgid "Compress output with deflate encoding."
 msgstr "deflate 인코딩으로 출력을 압축합니다."
 
@@ -1006,42 +865,34 @@ msgid "Compress output with JPEG encoding."
 msgstr "출력을 JPEG 인코딩으로 압축"
 
 #: dialog/save.py:83
-#, fuzzy
 msgid "Packbits"
 msgstr "Packbits"
 
 #: dialog/save.py:83
-#, fuzzy
 msgid "Compress output with Packbits encoding."
 msgstr "Packbits 인코딩으로 출력을 압축합니다."
 
 #: dialog/save.py:360
-#, fuzzy
 msgid "Document Metadata"
 msgstr "문서 메타데이터"
 
 #: dialog/save.py:374
-#, fuzzy
 msgid "Date/Time"
 msgstr "날짜/시간"
 
 #: dialog/save.py:387 dialog/save.py:572
-#, fuzzy
 msgid "Now"
 msgstr "지금"
 
 #: dialog/save.py:388 dialog/save.py:573
-#, fuzzy
 msgid "Use current date and time"
 msgstr "현재 날짜와 시간 사용"
 
 #: dialog/save.py:393
-#, fuzzy
 msgid "Specify"
 msgstr "지정"
 
 #: dialog/save.py:395
-#, fuzzy
 msgid "Specify date and time"
 msgstr "날짜와 시간 지정"
 
@@ -1050,7 +901,6 @@ msgid "Year-Month-Day"
 msgstr "년-월-일"
 
 #: dialog/save.py:413
-#, fuzzy
 msgid "Select date with calendar"
 msgstr "달력으로 날짜 선택"
 
@@ -1067,7 +917,6 @@ msgid "Title"
 msgstr "제목"
 
 #: dialog/save.py:546
-#, fuzzy
 msgid "Author"
 msgstr "저자"
 
@@ -1080,22 +929,18 @@ msgid "Keywords"
 msgstr "주제어"
 
 #: dialog/save.py:580
-#, fuzzy
 msgid "Use today's date"
 msgstr "오늘 날짜 사용"
 
 #: dialog/save.py:590
-#, fuzzy
 msgid "Document type"
 msgstr "문서 유형"
 
 #: dialog/save.py:598
-#, fuzzy
 msgid "Postscript backend"
 msgstr "Postscript 백엔드"
 
 #: dialog/save.py:614 dialog/save.py:754
-#, fuzzy
 msgid "Compression"
 msgstr "압축"
 
@@ -1104,38 +949,31 @@ msgid "JPEG Quality"
 msgstr "JPEG 품질"
 
 #: dialog/save.py:769
-#, fuzzy
 msgid "Encrypt PDF"
 msgstr "PDF 암호화"
 
 #: dialog/save.py:785
-#, fuzzy
 msgid "Downsample to"
 msgstr "해상도 낮추기"
 
 #: dialog/save.py:789
-#, fuzzy
 msgid "PPI"
 msgstr "PPI"
 
 #: dialog/save.py:819
-#, fuzzy
 msgid "Set password"
 msgstr "비밀번호 설정"
 
 #: dialog/save.py:827
-#, fuzzy
 msgid "User password"
 msgstr "사용자 비밀번호"
 
 #: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
 #: dialog/scan.py:933
-#, fuzzy
 msgid "Manual"
 msgstr "수동"
 
 #: dialog/scan.py:446
-#, fuzzy
 msgid "Scan profiles"
 msgstr "스캔 프로필"
 
@@ -1152,37 +990,31 @@ msgid "Sets the device to be used for the scan"
 msgstr "스캔할 때 사용할 장치 설정"
 
 #: dialog/scan.py:599
-#, fuzzy, python-format
+#, python-format
 msgid "Error: unknown device: %s"
 msgstr "오류: 알 수 없는 장치: %s"
 
 #: dialog/scan.py:657
-#, fuzzy
 msgid "pel"
 msgstr "pel"
 
 #: dialog/scan.py:658
-#, fuzzy
 msgid "bit"
 msgstr "bit"
 
 #: dialog/scan.py:659
-#, fuzzy
 msgid "mm"
 msgstr "mm"
 
 #: dialog/scan.py:660
-#, fuzzy
 msgid "ppi"
 msgstr "ppi"
 
 #: dialog/scan.py:661 tools_menu_mixins.py:284
-#, fuzzy
 msgid "%"
 msgstr "%"
 
 #: dialog/scan.py:662
-#, fuzzy
 msgid "μs"
 msgstr "μs"
 
@@ -1195,12 +1027,11 @@ msgid "Edit"
 msgstr "편집"
 
 #: dialog/scan.py:691
-#, fuzzy
 msgid "Selects or edits the paper size"
 msgstr "용지 크기 선택 또는 편집"
 
 #: dialog/scan.py:770
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
 "file a bug, attaching a log file reproducing the problem."
@@ -1213,118 +1044,100 @@ msgid "Edit paper size"
 msgstr "용지 크기 편집"
 
 #: dialog/scan.py:1051
-#, fuzzy
 msgid "Apply"
 msgstr "적용"
 
 #: dialog/scan.py:1069
-#, fuzzy
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr "다음 용지 크기는 선택한 장치로 스캔하기에 너무 큽니다:"
 
 #: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-#, fuzzy
 msgid "Cancel"
 msgstr "취소"
 
 #: dialog/scan.py:1563 dialog/scan.py:1571
-#, fuzzy
 msgid "Name of scan profile"
 msgstr "스캔 프로필 이름"
 
 #: dialog/scan.py:1585
-#, fuzzy, python-format
+#, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "프로필 '%s'이(가) 이미 있습니다. 덮어쓰시겠습니까?"
 
 #: dialog/scan.py:1592 dialog/scan.py:1634
-#, fuzzy
 msgid "OK"
 msgstr "확인"
 
 #: dialog/scan.py:1621
-#, fuzzy
 msgid "Editing current scan options"
 msgstr "현재 스캔 옵션 편집 중"
 
 #: dialog/scan.py:1625
-#, fuzzy, python-format
+#, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "스캔 프로필 \"%s\" 편집 중"
 
 #: dialog/scan.py:1686
-#, fuzzy
 msgid "Backend options"
 msgstr "백엔드 옵션"
 
 #: dialog/scan.py:1687
-#, fuzzy
 msgid "Frontend options"
 msgstr "프런트엔드 옵션"
 
 #: dialog/scan.py:1752
-#, fuzzy, python-format
+#, python-format
 msgid "Scanning page %d of %d"
 msgstr "%d/%d 페이지 스캔 중"
 
 #: dialog/scan.py:1753
-#, fuzzy, python-format
+#, python-format
 msgid "Scanning page %d"
 msgstr "페이지 %d 스캔 중"
 
 #: docthread.py:1167
-#, fuzzy, python-format
+#, python-format
 msgid "Analysing page %i of %i"
 msgstr "%i/%i 페이지 분석 중"
 
 #: docthread.py:1461
-#, fuzzy
 msgid "No tesseract language specified"
 msgstr "tesseract 언어가 지정되지 않았습니다"
 
 #: docthread.py:1470
-#, fuzzy
 msgid "tessdata directory not found"
 msgstr "tessdata 디렉터리를 찾을 수 없습니다"
 
 #: document.py:111
-#, fuzzy
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr "오류: 다른 파일과 동시에 세션 파일을 열 수 없습니다."
 
 #: document.py:127
-#, fuzzy
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr "오류: 다른 파일과 동시에 다중 페이지 파일을 가져올 수 없습니다."
 
 #: edit_menu_mixins.py:60
-#, fuzzy
 msgid "Properties"
 msgstr "속성"
 
 #: edit_menu_mixins.py:70 edit_menu_mixins.py:78
-#, fuzzy
 msgid "dpi"
 msgstr "dpi"
 
 #: edit_menu_mixins.py:362
-#, fuzzy
 msgid "Invalid regex. Try without special characters such as '*'"
 msgstr "잘못된 정규식입니다. '*'와 같은 특수 문자 없이 시도하십시오"
 
 #: edit_menu_mixins.py:394
-#, fuzzy
 msgid "Changes will only take effect after restarting scantpaper."
 msgstr "변경 사항은 scantpaper를 다시 시작한 후에만 적용됩니다."
 
 #: edit_menu_mixins.py:396
-#, fuzzy
 msgid "Restart scantpaper now?"
 msgstr "지금 scantpaper를 다시 시작하시겠습니까?"
 
 #: file_menu_mixins.py:104
-#, fuzzy
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
@@ -1333,37 +1146,31 @@ msgstr ""
 "정말 모든 페이지를 지우시겠습니까?"
 
 #: file_menu_mixins.py:129
-#, fuzzy
 msgid "Open image"
 msgstr "이미지 열기"
 
 #: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
-#, fuzzy
 msgid "Image files"
 msgstr "이미지 파일"
 
 #: file_menu_mixins.py:180
-#, fuzzy
 msgid "Pages to extract"
 msgstr "추출할 페이지"
 
 #: file_menu_mixins.py:194
-#, fuzzy
 msgid "First page to extract"
 msgstr "추출할 첫 번째 페이지"
 
 #: file_menu_mixins.py:200
-#, fuzzy
 msgid "Last page to extract"
 msgstr "추출할 마지막 페이지"
 
 #: file_menu_mixins.py:214
-#, fuzzy, python-format
+#, python-format
 msgid "Enter user password for PDF %s"
 msgstr "PDF %s의 사용자 비밀번호를 입력하십시오"
 
 #: file_menu_mixins.py:281
-#, fuzzy
 msgid "Open crashed session"
 msgstr "중단된 세션 열기"
 
@@ -1372,12 +1179,11 @@ msgid "Save"
 msgstr "저장"
 
 #: file_menu_mixins.py:367
-#, fuzzy
 msgid "Post-save hook"
 msgstr "저장 후 훅"
 
 #: file_menu_mixins.py:370
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
@@ -1386,7 +1192,6 @@ msgstr ""
 "자 정의 도구입니다"
 
 #: file_menu_mixins.py:392 file_menu_mixins.py:393
-#, fuzzy
 msgid "Close dialog on save"
 msgstr "저장 시 대화상자 닫기"
 
@@ -1395,7 +1200,6 @@ msgid "PDF filename"
 msgstr "PDF 파일이름"
 
 #: file_menu_mixins.py:466
-#, fuzzy
 msgid "PDF files"
 msgstr "PDF 파일"
 
@@ -1404,7 +1208,6 @@ msgid "DjVu filename"
 msgstr "DjVu 파일이름f"
 
 #: file_menu_mixins.py:470
-#, fuzzy
 msgid "DjVu files"
 msgstr "DjVu 파일"
 
@@ -1417,17 +1220,14 @@ msgid "Text filename"
 msgstr "텍스트 파일 이름"
 
 #: file_menu_mixins.py:478
-#, fuzzy
 msgid "Text files"
 msgstr "텍스트 파일"
 
 #: file_menu_mixins.py:481
-#, fuzzy
 msgid "hOCR filename"
 msgstr "hOCR 파일 이름"
 
 #: file_menu_mixins.py:482
-#, fuzzy
 msgid "hOCR files"
 msgstr "hOCR 파일"
 
@@ -1436,7 +1236,6 @@ msgid "PS filename"
 msgstr "PS 파일이름"
 
 #: file_menu_mixins.py:486
-#, fuzzy
 msgid "Postscript files"
 msgstr "Postscript 파일"
 
@@ -1445,17 +1244,16 @@ msgid "scantpaper session filename"
 msgstr "scantpaper 세션 파일 이름"
 
 #: file_menu_mixins.py:490
-#, fuzzy
 msgid "scantpaper session files"
 msgstr "scantpaper 세션 파일"
 
 #: file_menu_mixins.py:601
-#, fuzzy, python-format
+#, python-format
 msgid "Directory %s is read-only"
 msgstr "디렉터리 %s은(는) 읽기 전용입니다"
 
 #: file_menu_mixins.py:611
-#, fuzzy, python-format
+#, python-format
 msgid "File %s is read-only"
 msgstr "파일 %s은(는) 읽기 전용입니다"
 
@@ -1464,7 +1262,7 @@ msgid "Image filename"
 msgstr "이미지 파일이름"
 
 #: file_menu_mixins.py:862
-#, fuzzy, python-format
+#, python-format
 msgid "This operation would overwrite %s"
 msgstr "이 작업은 %s을(를) 덮어씁니다"
 
@@ -1477,47 +1275,44 @@ msgstr ""
 "정말로 끝내시겠습니까?"
 
 #: importthread.py:86
-#, fuzzy, python-format
+#, python-format
 msgid "File %s not found"
 msgstr "파일 %s을(를) 찾을 수 없습니다"
 
 #: importthread.py:92
-#, fuzzy, python-format
+#, python-format
 msgid "Error getting file info for %s: %s"
 msgstr "%s의 파일 정보를 가져오는 중 오류: %s"
 
 #: importthread.py:97
-#, fuzzy, python-format
+#, python-format
 msgid "Error importing zero-length file %s."
 msgstr "길이가 0인 파일 %s을(를) 가져오는 중 오류."
 
 #: importthread.py:135 importthread.py:178
-#, fuzzy, python-format
+#, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr "DjVu 파일을 열려면 djvulibre-bin을 설치하십시오: %s"
 
 #: importthread.py:166
-#, fuzzy
 msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "알 수 없는 DjVu 파일 구조입니다. 작성자에게 문의하십시오."
 
 #: importthread.py:266
-#, fuzzy, python-format
+#, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "TIFF 파일을 열려면 libtiff-tools를 설치하십시오: %s"
 
 #: importthread.py:328 importthread.py:388
-#, fuzzy, python-format
+#, python-format
 msgid "Importing page %i of %i"
 msgstr "%i/%i 페이지 가져오는 중"
 
 #: importthread.py:509
-#, fuzzy
 msgid "Error extracting images from PDF"
 msgstr "PDF에서 이미지를 추출하는 중 오류"
 
 #: importthread.py:521
-#, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
@@ -1529,17 +1324,14 @@ msgstr ""
 "면 저장 대화상자의 PDF 앞/뒤에 추가 옵션을 사용하십시오."
 
 #: importthread.py:560
-#, fuzzy
 msgid "Error importing PDF"
 msgstr "PDF 가져오는 중 오류"
 
 #: importthread.py:587
-#, fuzzy
 msgid "Error extracting text layer from PDF"
 msgstr "PDF에서 텍스트 레이어를 추출하는 중 오류"
 
 #: pagerange.py:46
-#, fuzzy
 msgid "Selected"
 msgstr "선택됨"
 
@@ -1552,27 +1344,22 @@ msgid "Both sides."
 msgstr "양면 모두."
 
 #: postprocess_controls.py:22
-#, fuzzy
 msgid "Facing side"
 msgstr "앞면"
 
 #: postprocess_controls.py:22
-#, fuzzy
 msgid "Facing side."
 msgstr "앞면."
 
 #: postprocess_controls.py:23
-#, fuzzy
 msgid "Reverse side"
 msgstr "뒷면"
 
 #: postprocess_controls.py:23
-#, fuzzy
 msgid "Reverse side."
 msgstr "뒷면."
 
 #: postprocess_controls.py:26
-#, fuzzy
 msgid "90°"
 msgstr "90°"
 
@@ -1581,7 +1368,6 @@ msgid "Rotate image 90 degrees clockwise."
 msgstr "시계방향으로 90도 회전"
 
 #: postprocess_controls.py:27
-#, fuzzy
 msgid "180°"
 msgstr "180°"
 
@@ -1590,7 +1376,6 @@ msgid "Rotate image 180 degrees clockwise."
 msgstr "시계방향으로 180도 회전"
 
 #: postprocess_controls.py:28
-#, fuzzy
 msgid "270°"
 msgstr "270°"
 
@@ -1607,32 +1392,26 @@ msgid "Rotate image after scanning"
 msgstr "스캔 후 이미지 회전"
 
 #: postprocess_controls.py:42
-#, fuzzy
 msgid "Select side to rotate"
 msgstr "회전할 면 선택"
 
 #: postprocess_controls.py:45
-#, fuzzy
 msgid "Select angle of rotation"
 msgstr "회전 각도 선택"
 
 #: postprocess_controls.py:48
-#, fuzzy
 msgid "Anticlockwise"
 msgstr "시계 반대 방향"
 
 #: postprocess_controls.py:349 postprocess_controls.py:350
-#, fuzzy
 msgid "OCR scanned pages"
 msgstr "스캔한 페이지 OCR"
 
 #: postprocess_controls.py:377
-#, fuzzy
 msgid "Threshold before OCR"
 msgstr "OCR 전 임계값"
 
 #: postprocess_controls.py:380
-#, fuzzy
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
@@ -1641,7 +1420,6 @@ msgstr ""
 "미지에만 영향을 미치며 저장된 이미지에는 영향을 미치지 않습니다."
 
 #: postprocess_controls.py:391 tools_menu_mixins.py:114
-#, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
@@ -1650,114 +1428,103 @@ msgstr ""
 "높을수록 더 진한 자국만 유지됩니다."
 
 #: postprocess_controls.py:427
-#, fuzzy
 msgid "Language to recognise"
 msgstr "인식할 언어"
 
 #: progress.py:43 session_mixins.py:451 text_layer_control.py:83
 #, fuzzy
 msgid "_Cancel"
-msgstr "_취소"
+msgstr "취소(_C)"
 
 #: progress.py:76 progress.py:110
-#, fuzzy, python-format
+#, python-format
 msgid "Process %i of %i (%s)"
 msgstr "%i/%i 처리 중 (%s)"
 
 #: progress.py:119
-#, fuzzy, python-format
+#, python-format
 msgid "Process %i of %i"
 msgstr "%i/%i 처리 중"
 
 #: savethread.py:83
-#, fuzzy
 msgid "Processing PDF"
 msgstr "PDF 처리 중"
 
 #: savethread.py:148
-#, fuzzy
 msgid "Embedding text layer"
 msgstr "텍스트 레이어 삽입 중"
 
 #: savethread.py:195
-#, fuzzy
 msgid "Setting up PDF"
 msgstr "PDF 설정 중"
 
 #: savethread.py:264 savethread.py:405
-#, fuzzy, python-format
+#, python-format
 msgid "Writing page %i of %i"
 msgstr "%i/%i 페이지 쓰는 중"
 
 #: savethread.py:291
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
 "예상 PDF 크기(%.1f GiB)가 2 GiB를 초과합니다. 더 적은 페이지를 저장하십시오."
 
 #: savethread.py:314 tests/test_savethread.py:1240
-#, fuzzy
 msgid "Writing PDF"
 msgstr "PDF 쓰는 중"
 
 #: savethread.py:363
-#, fuzzy
 msgid "Converting to PS"
 msgstr "PS로 변환 중"
 
 #: savethread.py:374
-#, fuzzy, python-format
+#, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "PDF를 PS로 변환하는 중 오류: %s"
 
 #: savethread.py:418
-#, fuzzy
 msgid "Merging DjVu"
 msgstr "DjVu 병합 중"
 
 #: savethread.py:425
-#, fuzzy, python-format
+#, python-format
 msgid "Error merging DjVu: %s"
 msgstr "DjVu 병합 중 오류: %s"
 
 #: savethread.py:519
-#, fuzzy, python-format
+#, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "TIFF를 PS로 변환하는 중 오류: %s"
 
 #: savethread.py:664
-#, fuzzy
 msgid "Error copying page"
 msgstr "페이지 복사 중 오류"
 
 #: savethread.py:814
-#, fuzzy, python-format
+#, python-format
 msgid "Error prepending PDF: %s"
 msgstr "PDF 앞에 추가하는 중 오류: %s"
 
 #: savethread.py:822
-#, fuzzy, python-format
+#, python-format
 msgid "Error appending PDF: %s"
 msgstr "PDF 뒤에 추가하는 중 오류: %s"
 
 #: savethread.py:831
-#, fuzzy
 msgid "Error creating backup of PDF"
 msgstr "PDF 백업 만드는 중 오류"
 
 #: savethread.py:905
-#, fuzzy, python-format
+#, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "PDF 암호화 중 오류: %s"
 
 #: scan_menu_item_mixins.py:72
-#, fuzzy
 msgid "Really cache libusb device names?"
 msgstr "정말 libusb 장치 이름을 캐시하시겠습니까?"
 
 #: scan_menu_item_mixins.py:76
-#, fuzzy
 msgid ""
 "Caching device list with libusb devices included is not recommended as they "
 "can change between reboots."
@@ -1766,7 +1533,6 @@ msgstr ""
 "지 않습니다."
 
 #: scan_menu_item_mixins.py:78
-#, fuzzy
 msgid "Are you sure you want to do this?"
 msgstr "정말 이 작업을 수행하시겠습니까?"
 
@@ -1775,17 +1541,14 @@ msgid "Scan Document"
 msgstr "문서 스캔"
 
 #: scan_menu_item_mixins.py:216
-#, fuzzy
 msgid "Postprocessing"
 msgstr "후처리"
 
 #: scan_menu_item_mixins.py:230
-#, fuzzy
 msgid "Alternate rotation every 2nd page"
 msgstr "두 번째 페이지마다 회전 번갈아 적용"
 
 #: scan_menu_item_mixins.py:233
-#, fuzzy
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
@@ -1796,64 +1559,53 @@ msgstr ""
 "트의 뒷면은 앞면에 대해 180도 회전되어 있기 때문입니다."
 
 #: scan_menu_item_mixins.py:298
-#, fuzzy
 msgid "Clean up images"
 msgstr "이미지 정리"
 
 #: scan_menu_item_mixins.py:299
-#, fuzzy
 msgid "Clean up scanned images with unpaper"
 msgstr "unpaper로 스캔한 이미지 정리"
 
 #: scan_menu_item_mixins.py:307
-#, fuzzy
 msgid "Options"
 msgstr "옵션"
 
 #: scan_menu_item_mixins.py:308
-#, fuzzy
 msgid "Set unpaper options"
 msgstr "unpaper 옵션 설정"
 
 #: scan_menu_item_mixins.py:316
-#, fuzzy
 msgid "unpaper options"
 msgstr "unpaper 옵션"
 
 #: scan_menu_item_mixins.py:339
-#, fuzzy
 msgid "Process with user-defined tool"
 msgstr "사용자 정의 도구로 처리"
 
 #: scan_menu_item_mixins.py:340
-#, fuzzy
 msgid "Process scanned images with user-defined tool"
 msgstr "사용자 정의 도구로 스캔한 이미지 처리"
 
 #: session_mixins.py:74
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
 msgstr ""
 "경고: 임시 저장에 %s을(를) 사용할 수 없습니다. 대신 %s(으)로 기본 설정합니다."
 
 #: session_mixins.py:118 session_mixins.py:123
-#, fuzzy
 msgid "Pick crashed session to restore"
 msgstr "복원할 중단된 세션 선택"
 
 #: session_mixins.py:191
-#, fuzzy
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
 msgstr "GraphicsMagick이 ImageMagick 호환 모드로 사용되고 있습니다."
 
 #: session_mixins.py:193
-#, fuzzy
 msgid "Whilst this might work, it is not currently supported."
 msgstr "이것이 작동할 수는 있지만 현재 지원되지 않습니다."
 
 #: session_mixins.py:195
-#, fuzzy
 msgid "Please switch to ImageMagick in case of problems."
 msgstr "문제가 발생하면 ImageMagick으로 전환하십시오."
 
@@ -1866,57 +1618,47 @@ msgid "Process image with Tesseract."
 msgstr "Tesseract를 이용하여 이미지 처리"
 
 #: session_mixins.py:229
-#, fuzzy
 msgid "Finished scanning facing pages. Scan reverse pages?"
 msgstr "앞면 페이지 스캔이 완료되었습니다. 뒷면 페이지를 스캔하시겠습니까?"
 
 #: session_mixins.py:232
-#, fuzzy
 msgid "Finished scanning reverse pages. Scan facing pages?"
 msgstr "뒷면 페이지 스캔이 완료되었습니다. 앞면 페이지를 스캔하시겠습니까?"
 
 #: session_mixins.py:448
-#, fuzzy
 msgid "_Ok"
 msgstr "_확인"
 
 #: session_mixins.py:449 text_layer_control.py:80
-#, fuzzy
 msgid "Accept corrections"
 msgstr "수정 적용"
 
 #: session_mixins.py:452 text_layer_control.py:83
-#, fuzzy
 msgid "Cancel corrections"
 msgstr "수정 취소"
 
 #: session_mixins.py:458
-#, fuzzy
 msgid "Add annotation"
 msgstr "주석 추가"
 
 #: session_mixins.py:461
-#, fuzzy
 msgid "Delete annotation"
 msgstr "주석 삭제"
 
 #: session_mixins.py:505
-#, fuzzy
 msgid "my-new-word"
 msgstr "my-new-word"
 
 #: session_mixins.py:560
-#, fuzzy
 msgid "my-new-annotation"
 msgstr "my-new-annotation"
 
 #: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, fuzzy, python-format
+#, python-format
 msgid "You are using locale '%s'."
 msgstr "로케일 '%s'을(를) 사용하고 있습니다."
 
 #: tesseract.py:235
-#, fuzzy
 msgid ""
 "scantpaper does not currently know which tesseract language package would be "
 "necessary for that locale."
@@ -1925,12 +1667,11 @@ msgstr ""
 "못합니다."
 
 #: tesseract.py:239
-#, fuzzy
 msgid "Please contact the developers to add support for that locale."
 msgstr "해당 로케일 지원을 추가하려면 개발자에게 문의하십시오."
 
 #: tesseract.py:250
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
@@ -1939,72 +1680,59 @@ msgstr ""
 "해 scantpaper를 다시 시작하십시오."
 
 #: tesseract.py:260
-#, fuzzy, python-format
+#, python-format
 msgid "There is no tesseract package for %s"
 msgstr "%s용 tesseract 패키지가 없습니다"
 
 #: tesseract.py:262
-#, fuzzy
 msgid "If this is in error, please contact the scantpaper developers."
 msgstr "이것이 오류라면 scantpaper 개발자에게 문의하십시오."
 
 #: tests/test_savethread.py:1230
-#, fuzzy
 msgid "Writing page"
 msgstr "페이지 쓰는 중"
 
 #: text_layer_control.py:27
-#, fuzzy
 msgid "Sort by confidence"
 msgstr "신뢰도로 정렬"
 
 #: text_layer_control.py:28
-#, fuzzy
 msgid "Sort OCR text boxes by confidence."
 msgstr "OCR 텍스트 상자를 신뢰도로 정렬합니다."
 
 #: text_layer_control.py:30
-#, fuzzy
 msgid "Sort by position"
 msgstr "위치로 정렬"
 
 #: text_layer_control.py:30
-#, fuzzy
 msgid "Sort OCR text boxes by position."
 msgstr "OCR 텍스트 상자를 위치로 정렬합니다."
 
 #: text_layer_control.py:61
-#, fuzzy
 msgid "Go to least confident text"
 msgstr "가장 신뢰도가 낮은 텍스트로 이동"
 
 #: text_layer_control.py:64
-#, fuzzy
 msgid "Go to previous text"
 msgstr "이전 텍스트로 이동"
 
 #: text_layer_control.py:67
-#, fuzzy
 msgid "Select sort method for OCR boxes"
 msgstr "OCR 상자 정렬 방법 선택"
 
 #: text_layer_control.py:73
-#, fuzzy
 msgid "Go to next text"
 msgstr "다음 텍스트로 이동"
 
 #: text_layer_control.py:75
-#, fuzzy
 msgid "Go to most confident text"
 msgstr "가장 신뢰도가 높은 텍스트로 이동"
 
 #: text_layer_control.py:77
-#, fuzzy
 msgid "Add text"
 msgstr "텍스트 추가"
 
 #: text_layer_control.py:80
-#, fuzzy
 msgid "_OK"
 msgstr "_확인"
 
@@ -2013,12 +1741,10 @@ msgid "_Copy"
 msgstr "복사하기(_C)"
 
 #: text_layer_control.py:86
-#, fuzzy
 msgid "Duplicate text"
 msgstr "텍스트 복제"
 
 #: text_layer_control.py:89
-#, fuzzy
 msgid "Delete text"
 msgstr "텍스트 삭제"
 
@@ -2027,113 +1753,91 @@ msgid "Threshold"
 msgstr "임계값"
 
 #: tools_menu_mixins.py:106
-#, fuzzy
 msgid "Ink strength"
 msgstr "잉크 강도"
 
 #: tools_menu_mixins.py:159
-#, fuzzy
 msgid "Brightness / Contrast"
 msgstr "밝기 / 대비"
 
 #: tools_menu_mixins.py:170
-#, fuzzy
 msgid "Brightness"
 msgstr "밝기"
 
 #: tools_menu_mixins.py:181
-#, fuzzy
 msgid "Contrast"
 msgstr "대비"
 
 #: tools_menu_mixins.py:227
-#, fuzzy
 msgid "Negate"
 msgstr "반전"
 
 #: tools_menu_mixins.py:264
-#, fuzzy
 msgid "Unsharp mask"
 msgstr "언샤프 마스크"
 
 #: tools_menu_mixins.py:275
-#, fuzzy
 msgid "Radius"
 msgstr "반경"
 
 #: tools_menu_mixins.py:279
-#, fuzzy
 msgid "Blur Radius."
 msgstr "흐림 반경."
 
 #: tools_menu_mixins.py:282
-#, fuzzy
 msgid "Percentage"
 msgstr "백분율"
 
 #: tools_menu_mixins.py:286
-#, fuzzy
 msgid "Unsharp strength, in percent."
 msgstr "언샤프 강도 (백분율)."
 
 #: tools_menu_mixins.py:294
-#, fuzzy
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
 msgstr "임계값은 선명하게 처리될 최소 밝기 변화를 제어합니다."
 
 #: tools_menu_mixins.py:444
-#, fuzzy
 msgid "Split"
 msgstr "분할"
 
 #: tools_menu_mixins.py:453
-#, fuzzy
 msgid "Direction"
 msgstr "방향"
 
 #: tools_menu_mixins.py:458
-#, fuzzy
 msgid "Vertically"
 msgstr "세로"
 
 #: tools_menu_mixins.py:459
-#, fuzzy
 msgid "Split the page vertically into left and right pages."
 msgstr "페이지를 세로로 왼쪽 및 오른쪽 페이지로 분할합니다."
 
 #: tools_menu_mixins.py:463
-#, fuzzy
 msgid "Horizontally"
 msgstr "가로"
 
 #: tools_menu_mixins.py:464
-#, fuzzy
 msgid "Split the page horizontally into top and bottom pages."
 msgstr "페이지를 가로로 위쪽 및 아래쪽 페이지로 분할합니다."
 
 #: tools_menu_mixins.py:487
-#, fuzzy
 msgid "Position"
 msgstr "위치"
 
 #: tools_menu_mixins.py:590
-#, fuzzy
 msgid "unpaper"
 msgstr "unpaper"
 
 #: tools_menu_mixins.py:649
-#, fuzzy
 msgid "OCR"
 msgstr "OCR"
 
 #: tools_menu_mixins.py:730
-#, fuzzy
 msgid "User-defined tools"
 msgstr "사용자 정의 도구"
 
 #: tools_menu_mixins.py:739
-#, fuzzy
 msgid "Selected tool"
 msgstr "선택된 도구"
 
@@ -2142,17 +1846,14 @@ msgid "Email as PDF"
 msgstr "PDF로 이메일 보내기"
 
 #: tools_menu_mixins.py:861
-#, fuzzy
 msgid "Error creating email"
 msgstr "이메일 만드는 중 오류"
 
 #: tools_menu_mixins.py:917
-#, fuzzy
 msgid "To aid the scan-to-PDF process"
 msgstr "스캔-투-PDF 프로세스를 돕기 위해"
 
 #: tools_menu_mixins.py:918
-#, fuzzy
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
 msgstr "Copyright 2006--2026 Jeffrey Ratcliffe"
 
@@ -2161,7 +1862,6 @@ msgid "Layout"
 msgstr "레이아웃"
 
 #: unpaper.py:41
-#, fuzzy
 msgid "Single"
 msgstr "단일"
 
@@ -2170,7 +1870,6 @@ msgid "One page per sheet, oriented upwards without rotation."
 msgstr "회전 없이 바로 선 한 장의 용지에 한 페이지"
 
 #: unpaper.py:47
-#, fuzzy
 msgid "Double"
 msgstr "이중"
 
@@ -2183,7 +1882,6 @@ msgstr ""
 "쪽 반)"
 
 #: unpaper.py:58
-#, fuzzy
 msgid "# Output pages"
 msgstr "# 출력 페이지"
 
@@ -2192,62 +1890,50 @@ msgid "Number of pages to output."
 msgstr "출력할 페이지의 수"
 
 #: unpaper.py:67
-#, fuzzy
 msgid "Writing system"
 msgstr "문자 체계"
 
 #: unpaper.py:70
-#, fuzzy
 msgid "Left-to-right"
 msgstr "왼쪽에서 오른쪽"
 
 #: unpaper.py:72
-#, fuzzy
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
 msgstr "대부분의 문자 체계, 예: 라틴어, 그리스어, 키릴 문자."
 
 #: unpaper.py:76
-#, fuzzy
 msgid "Right-to-left"
 msgstr "오른쪽에서 왼쪽"
 
 #: unpaper.py:77
-#, fuzzy
 msgid "Scripts like Arabic or Hebrew."
 msgstr "아랍어나 히브리어 같은 문자."
 
 #: unpaper.py:85
-#, fuzzy
 msgid "No deskew"
 msgstr "기울기 보정 없음"
 
 #: unpaper.py:86
-#, fuzzy
 msgid "Disable deskewing."
 msgstr "기울기 보정을 비활성화합니다."
 
 #: unpaper.py:91
-#, fuzzy
 msgid "No mask scan"
 msgstr "마스크 감지 없음"
 
 #: unpaper.py:92
-#, fuzzy
 msgid "Disable mask detection."
 msgstr "마스크 감지를 비활성화합니다."
 
 #: unpaper.py:97
-#, fuzzy
 msgid "No mask centering"
 msgstr "마스크 중앙 정렬 없음"
 
 #: unpaper.py:98
-#, fuzzy
 msgid "Disable mask centering."
 msgstr "마스크 중앙 정렬을 비활성화합니다."
 
 #: unpaper.py:103
-#, fuzzy
 msgid "No black filter"
 msgstr "검은색 필터 없음"
 
@@ -2256,62 +1942,50 @@ msgid "Disable black area scan."
 msgstr "검은 영역을 스캔하지 않음"
 
 #: unpaper.py:109
-#, fuzzy
 msgid "No gray filter"
 msgstr "회색 필터 없음"
 
 #: unpaper.py:110
-#, fuzzy
 msgid "Disable gray area scan."
 msgstr "회색 영역 스캔을 비활성화합니다."
 
 #: unpaper.py:115
-#, fuzzy
 msgid "No noise filter"
 msgstr "노이즈 필터 없음"
 
 #: unpaper.py:116
-#, fuzzy
 msgid "Disable noise filter."
 msgstr "노이즈 필터를 비활성화합니다."
 
 #: unpaper.py:121
-#, fuzzy
 msgid "No blur filter"
 msgstr "흐림 필터 없음"
 
 #: unpaper.py:122
-#, fuzzy
 msgid "Disable blur filter."
 msgstr "흐림 필터를 비활성화합니다."
 
 #: unpaper.py:127
-#, fuzzy
 msgid "No border scan"
 msgstr "테두리 스캔 없음"
 
 #: unpaper.py:128
-#, fuzzy
 msgid "Disable border scanning."
 msgstr "테두리 스캔을 비활성화합니다."
 
 #: unpaper.py:133
-#, fuzzy
 msgid "No border align"
 msgstr "테두리 정렬 없음"
 
 #: unpaper.py:135
-#, fuzzy
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "테두리 스캔으로 감지된 영역의 정렬을 비활성화합니다."
 
 #: unpaper.py:141
-#, fuzzy
 msgid "Deskew to edge"
 msgstr "가장자리까지 기울기 보정"
 
 #: unpaper.py:143
-#, fuzzy
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
@@ -2323,12 +1997,10 @@ msgstr ""
 "deviation을 초과하지 않는 한 평균값이 사용됩니다."
 
 #: unpaper.py:152
-#, fuzzy
 msgid "Use 'left' for scanning from the left edge."
 msgstr "왼쪽 가장자리에서 스캔하려면 'left'를 사용하십시오."
 
 #: unpaper.py:157
-#, fuzzy
 msgid "Use 'top' for scanning from the top edge."
 msgstr "위쪽 가장자리에서 스캔하려면 'top'을 사용하십시오."
 
@@ -2337,7 +2009,6 @@ msgid "Right"
 msgstr "오른쪽"
 
 #: unpaper.py:162
-#, fuzzy
 msgid "Use 'right' for scanning from the right edge."
 msgstr "오른쪽 가장자리에서 스캔하려면 'right'를 사용하십시오."
 
@@ -2346,84 +2017,68 @@ msgid "Bottom"
 msgstr "아래"
 
 #: unpaper.py:167
-#, fuzzy
 msgid "Use 'bottom' for scanning from the bottom."
 msgstr "아래쪽에서 스캔하려면 'bottom'을 사용하십시오."
 
 #: unpaper.py:174
-#, fuzzy
 msgid "Align to edge"
 msgstr "가장자리에 정렬"
 
 #: unpaper.py:175
-#, fuzzy
 msgid "Edge to which to align the page."
 msgstr "페이지를 정렬할 가장자리."
 
 #: unpaper.py:180
-#, fuzzy
 msgid "Use 'left' to align to the left edge."
 msgstr "왼쪽 가장자리에 정렬하려면 'left'를 사용하십시오."
 
 #: unpaper.py:185
-#, fuzzy
 msgid "Use 'top' to align to the top edge."
 msgstr "위쪽 가장자리에 정렬하려면 'top'을 사용하십시오."
 
 #: unpaper.py:190
-#, fuzzy
 msgid "Use 'right' to align to the right edge."
 msgstr "오른쪽 가장자리에 정렬하려면 'right'를 사용하십시오."
 
 #: unpaper.py:195
-#, fuzzy
 msgid "Use 'bottom' to align to the bottom."
 msgstr "아래쪽에 정렬하려면 'bottom'을 사용하십시오."
 
 #: unpaper.py:201
-#, fuzzy
 msgid "Border margin"
 msgstr "테두리 여백"
 
 #: unpaper.py:205
-#, fuzzy
 msgid "Vertical margin"
 msgstr "세로 여백"
 
 #: unpaper.py:207
-#, fuzzy
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr "테두리 영역을 정렬할 때 시트 가장자리에서 유지할 세로 거리."
 
 #: unpaper.py:217
-#, fuzzy
 msgid "Horizontal margin"
 msgstr "가로 여백"
 
 #: unpaper.py:219
-#, fuzzy
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr "테두리 영역을 정렬할 때 시트 가장자리에서 유지할 가로 거리."
 
 #: unpaper.py:231
-#, fuzzy
 msgid "White threshold"
 msgstr "흰색 임계값"
 
 #: unpaper.py:233
-#, fuzzy
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "픽셀이 흰색으로 간주되는 밝기 비율."
 
 #: unpaper.py:243
-#, fuzzy
 msgid "Black threshold"
 msgstr "검은색 임계값"
 
 #: unpaper.py:245
-#, fuzzy
 msgid ""
 "Brightness ratio below which a pixel is considered black (non-gray). This is "
 "used by the gray-filter. This value is also used when converting a grayscale "
@@ -2433,17 +2088,14 @@ msgstr ""
 "이 값은 회색조 이미지를 흑백 모드로 변환할 때도 사용됩니다."
 
 #: unpaper.py:355
-#, fuzzy
 msgid "Deskew"
 msgstr "기울기 보정"
 
 #: unpaper.py:359
-#, fuzzy
 msgid "Border"
 msgstr "테두리"
 
 #: unpaper.py:364
-#, fuzzy
 msgid "Filters"
 msgstr "필터"
 
@@ -2460,7 +2112,6 @@ msgid "_Open"
 msgstr "열기(_O)"
 
 #: app.ui.h:4
-#, fuzzy
 msgid "Open c_rashed session"
 msgstr "중단된 세션 열기"
 
@@ -2473,7 +2124,6 @@ msgid "_Email as PDF"
 msgstr "PDF로 이메일 보내기(_E)"
 
 #: app.ui.h:8 menu.ui.h:7
-#, fuzzy
 msgid "_Print"
 msgstr "인쇄(_P)"
 
@@ -2518,7 +2168,6 @@ msgid "_Even"
 msgstr "짝수 (_E)"
 
 #: app.ui.h:21 menu.ui.h:20
-#, fuzzy
 msgid "_Invert"
 msgstr "반전(_I)"
 
@@ -2527,24 +2176,21 @@ msgid "_Blank"
 msgstr "비우기(_B)"
 
 #: app.ui.h:23 menu.ui.h:22
-#, fuzzy
 msgid "_Dark"
 msgstr "어두운 페이지(_D)"
 
 #: app.ui.h:24 menu.ui.h:23
-#, fuzzy
 msgid "_Modified"
 msgstr "수정된 페이지(_M)"
 
 #: app.ui.h:25 menu.ui.h:24
-#, fuzzy
 msgid "_No OCR"
 msgstr "OCR 없음(_N)"
 
 #: app.ui.h:26 menu.ui.h:25
 #, fuzzy
 msgid "_Clear OCR"
-msgstr "OCR 시작"
+msgstr "OCR 지우기(_C)"
 
 #: app.ui.h:27 menu.ui.h:26
 msgid "Propert_ies"
@@ -2559,39 +2205,37 @@ msgid "_View"
 msgstr "보기(_V)"
 
 #: app.ui.h:30
-#, fuzzy
 msgid "_Pan"
 msgstr "이동(_P)"
 
 #: app.ui.h:31
 #, fuzzy
 msgid "_Select & pan"
-msgstr "선택(_S)"
+msgstr "선택 및 이동(_S)"
 
 #: app.ui.h:32
-#, fuzzy
 msgid "_Tabbed"
 msgstr "탭(_T)"
 
 #: app.ui.h:33
 #, fuzzy
 msgid "_Split horizontally"
-msgstr "가로"
+msgstr "가로 분할(_S)"
 
 #: app.ui.h:34
 #, fuzzy
 msgid "_Split vertically"
-msgstr "세로"
+msgstr "세로 분할(_S)"
 
 #: app.ui.h:35
 #, fuzzy
 msgid "Edit text layer"
-msgstr "텍스트 레이어 삽입 중"
+msgstr "텍스트 레이어 편집"
 
 #: app.ui.h:36
 #, fuzzy
 msgid "Edit annotations"
-msgstr "주석 추가"
+msgstr "주석 편집"
 
 #: app.ui.h:38 menu.ui.h:30
 #, no-c-format
@@ -2599,7 +2243,6 @@ msgid "Zoom _100%"
 msgstr "크기 _100%"
 
 #: app.ui.h:39 menu.ui.h:31
-#, fuzzy
 msgid "Zoom to _fit"
 msgstr "확대(_i)"
 
@@ -2634,31 +2277,30 @@ msgstr "임계(_Threshold):"
 #: app.ui.h:47 menu.ui.h:39
 #, fuzzy
 msgid "_Brightness / Contrast"
-msgstr "밝기 / 대비"
+msgstr "밝기 / 대비(_B)"
 
 #: app.ui.h:48 menu.ui.h:40
 #, fuzzy
 msgid "_Negate"
-msgstr "반전"
+msgstr "반전(_N)"
 
 #: app.ui.h:49 menu.ui.h:41
 #, fuzzy
 msgid "_Unsharp Mask"
-msgstr "언샤프 마스크"
+msgstr "언샤프 마스크(_U)"
 
 #: app.ui.h:50 menu.ui.h:42
 msgid "_Crop"
 msgstr "잘라내기(_C)"
 
 #: app.ui.h:51 menu.ui.h:43
-#, fuzzy
 msgid "_Clean up"
 msgstr "이미지 정리"
 
 #: app.ui.h:52 menu.ui.h:44
 #, fuzzy
 msgid "_Split"
-msgstr "분할"
+msgstr "분할(_S)"
 
 #: app.ui.h:53 menu.ui.h:45
 msgid "_OCR"
@@ -2667,7 +2309,7 @@ msgstr "_OCR"
 #: app.ui.h:54 menu.ui.h:46
 #, fuzzy
 msgid "U_ser-defined"
-msgstr "사용자 정의 도구"
+msgstr "사용자 정의(_U)"
 
 #: app.ui.h:55 menu.ui.h:47
 msgid "_Help"
@@ -2678,61 +2320,55 @@ msgid "_About"
 msgstr "정보(_A)"
 
 #: app.ui.h:58
-#, fuzzy
 msgid "Cut"
 msgstr "잘라내기(_t)"
 
 #: app.ui.h:59
-#, fuzzy
 msgid "Copy"
 msgstr "복사하기(_C)"
 
 #: app.ui.h:60
-#, fuzzy
 msgid "Paste"
 msgstr "붙여넣기(_P)"
 
 #: app.ui.h:61
-#, fuzzy
 msgid "Delete"
 msgstr "지우기(_D)"
 
 #: app.ui.h:64
-#, fuzzy
 msgid "Print"
 msgstr "인쇄"
 
 #: app.ui.h:65
 #, fuzzy
 msgid "Select All"
-msgstr "선택(_S)"
+msgstr "모두 선택"
 
 #: app.ui.h:66
 #, fuzzy
 msgid "Select Odd"
-msgstr "선택됨"
+msgstr "홀수 페이지 선택"
 
 #: app.ui.h:67
 #, fuzzy
 msgid "Select Even"
-msgstr "선택됨"
+msgstr "짝수 페이지 선택"
 
 #: app.ui.h:68
 #, fuzzy
 msgid "Invert selection"
-msgstr "선택 잘라내기"
+msgstr "선택 반전"
 
 #: app.ui.h:69
 #, fuzzy
 msgid "Clear OCR"
-msgstr "OCR 시작"
+msgstr "OCR 지우기"
 
 #: app.ui.h:70
 msgid "Clears all pages"
 msgstr "모든 페이지 지우기"
 
 #: app.ui.h:71
-#, fuzzy
 msgid "Open image file(s)"
 msgstr "이미지 열기"
 
@@ -2775,7 +2411,7 @@ msgstr "모든 페이지 선택하기"
 #: app.ui.h:81
 #, fuzzy
 msgid "Use the pan tool"
-msgstr "직사각형 선택 도구 사용"
+msgstr "이동 도구 사용"
 
 #: app.ui.h:82
 msgid "Use the rectangular selection tool"
@@ -2784,7 +2420,7 @@ msgstr "직사각형 선택 도구 사용"
 #: app.ui.h:83
 #, fuzzy
 msgid "Use the combined select and pan tool"
-msgstr "직사각형 선택 도구 사용"
+msgstr "선택 및 이동 도구 사용"
 
 #: app.ui.h:85
 #, no-c-format
@@ -2792,7 +2428,6 @@ msgid "Zoom to 100%"
 msgstr "100%로 확대"
 
 #: app.ui.h:86
-#, fuzzy
 msgid "Zoom to fit"
 msgstr "축소"
 
@@ -2807,7 +2442,7 @@ msgstr "축소"
 #: app.ui.h:89
 #, fuzzy
 msgid "Crop selection"
-msgstr "선택 복사하기"
+msgstr "선택 영역 자르기"
 
 #: app.ui.h:90
 msgid "Quit"
@@ -2816,7 +2451,7 @@ msgstr "끝내기"
 #: menu.ui.h:5
 #, fuzzy
 msgid "_Save"
-msgstr "저장"
+msgstr "저장(_S)"
 
 #~ msgid "GOCR"
 #~ msgstr "GOCR"
