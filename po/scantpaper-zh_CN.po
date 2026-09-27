@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
 "Report-Msgid-Bugs-To: jffry@posteo.net\n"
-"POT-Creation-Date: 2026-09-26 20:13+0200\n"
+"POT-Creation-Date: 2026-09-27 10:31+0200\n"
 "PO-Revision-Date: 2012-05-21 06:46+0000\n"
 "Last-Translator: Wang Dianjin <Unknown>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
 "Language: zh_CN\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Launchpad (build 17908)\n"
 "X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
@@ -63,45 +63,45 @@ msgstr "文本层"
 msgid "Annotations"
 msgstr "注释"
 
-#: app_window.py:838
+#: app_window.py:837
 #, fuzzy, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
 msgstr[0] "剩余 %d MB 可用空间（%s）。"
 
-#: app_window.py:863 helpers.py:372
+#: app_window.py:864 helpers.py:372
 msgid "Messages"
 msgstr "消息"
 
-#: app_window.py:948
+#: app_window.py:949
 msgid "Error opening the last device used."
 msgstr "打开上次使用的设备时出错。"
 
-#: app_window.py:950
+#: app_window.py:951
 msgid "There was an error opening the last device used."
 msgstr "打开上次使用的设备时出错。"
 
-#: app_window.py:953
+#: app_window.py:954
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "哎呀！我忘了打开它。请立即重试。"
 
-#: app_window.py:958 dialog/scan.py:517
+#: app_window.py:959 dialog/scan.py:517
 msgid "Rescan for devices"
 msgstr "重新扫描设备"
 
-#: app_window.py:962
+#: app_window.py:963
 msgid "Restart scantpaper."
 msgstr "请重新启动scantpaper。"
 
-#: app_window.py:967
+#: app_window.py:968
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "请忽略此错误。我还不需要扫描仪。"
 
-#: app_window.py:970 dialog/preferences.py:162
+#: app_window.py:971 dialog/preferences.py:162
 msgid "Cache device list"
 msgstr "缓存设备列表"
 
-#: app_window.py:973 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
 msgid "Don't show this message again"
 msgstr "不再显示此信息"
 
@@ -941,9 +941,9 @@ msgstr "加密PDF"
 msgid "Downsample to"
 msgstr "降低分辨率至"
 
-#: dialog/save.py:789
-msgid "PPI"
-msgstr "PPI"
+#: dialog/save.py:789 dialog/scan.py:660
+msgid "ppi"
+msgstr "ppi"
 
 #: dialog/save.py:819
 msgid "Set password"
@@ -990,14 +990,6 @@ msgstr "bit"
 #: dialog/scan.py:659
 msgid "mm"
 msgstr "mm"
-
-#: dialog/scan.py:660
-msgid "ppi"
-msgstr "ppi"
-
-#: dialog/scan.py:661 tools_menu_mixins.py:284
-msgid "%"
-msgstr "%"
 
 #: dialog/scan.py:662
 msgid "μs"
@@ -1317,83 +1309,83 @@ msgstr "从PDF提取文本层出错"
 msgid "Selected"
 msgstr "选中的"
 
-#: postprocess_controls.py:21
+#: postprocess_controls.py:22
 msgid "Both sides"
 msgstr "两面都是"
 
-#: postprocess_controls.py:21
+#: postprocess_controls.py:22
 msgid "Both sides."
 msgstr "两面都是"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:23
 msgid "Facing side"
 msgstr "正面"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:23
 msgid "Facing side."
 msgstr "正面。"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:24
 msgid "Reverse side"
 msgstr "反面"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:24
 msgid "Reverse side."
 msgstr "反面。"
 
-#: postprocess_controls.py:26
+#: postprocess_controls.py:27
 msgid "90°"
 msgstr "90°"
 
-#: postprocess_controls.py:26
+#: postprocess_controls.py:27
 msgid "Rotate image 90 degrees clockwise."
 msgstr "顺时针旋转 90 度"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:28
 msgid "180°"
 msgstr "180°"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:28
 msgid "Rotate image 180 degrees clockwise."
 msgstr "顺时针旋转 180 度"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:29
 msgid "270°"
 msgstr "270°"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:29
 msgid "Rotate image 90 degrees anticlockwise."
 msgstr "逆时针旋转 90 度"
 
-#: postprocess_controls.py:38
+#: postprocess_controls.py:39
 msgid "Rotate"
 msgstr "旋转"
 
-#: postprocess_controls.py:39
+#: postprocess_controls.py:40
 msgid "Rotate image after scanning"
 msgstr "扫描后旋转图像"
 
-#: postprocess_controls.py:42
+#: postprocess_controls.py:43
 msgid "Select side to rotate"
 msgstr "选择要旋转的那一面"
 
-#: postprocess_controls.py:45
+#: postprocess_controls.py:46
 msgid "Select angle of rotation"
 msgstr "选择旋转角度"
 
-#: postprocess_controls.py:48
+#: postprocess_controls.py:49
 msgid "Anticlockwise"
 msgstr "逆时针"
 
-#: postprocess_controls.py:349 postprocess_controls.py:350
+#: postprocess_controls.py:350 postprocess_controls.py:351
 msgid "OCR scanned pages"
 msgstr "OCR 扫描页面"
 
-#: postprocess_controls.py:377
+#: postprocess_controls.py:378
 msgid "Threshold before OCR"
 msgstr "OCR前阈值"
 
-#: postprocess_controls.py:380
+#: postprocess_controls.py:381
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
@@ -1401,14 +1393,14 @@ msgstr ""
 "在执行OCR前对图像应用阈值。这只会影响传递给OCR引擎的图像，而不会影响存储的图"
 "像。"
 
-#: postprocess_controls.py:391 tools_menu_mixins.py:114
+#: postprocess_controls.py:392 tools_menu_mixins.py:114
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
 msgstr ""
 "与纸张颜色相差超过此百分比的像素将渲染为黑色。较高的值仅保留较深的痕迹。"
 
-#: postprocess_controls.py:427
+#: postprocess_controls.py:428
 msgid "Language to recognise"
 msgstr "重新识别语种"
 
@@ -1600,8 +1592,8 @@ msgstr "正面页面扫描完成。是否扫描反面页面？"
 msgid "Finished scanning reverse pages. Scan facing pages?"
 msgstr "反面页面扫描完成。是否扫描正面页面？"
 
-#: session_mixins.py:448
-msgid "_Ok"
+#: session_mixins.py:448 text_layer_control.py:80
+msgid "_OK"
 msgstr "_确定"
 
 #: session_mixins.py:449 text_layer_control.py:80
@@ -1704,10 +1696,6 @@ msgstr "转到置信度最高的文本"
 #: text_layer_control.py:77
 msgid "Add text"
 msgstr "添加文本"
-
-#: text_layer_control.py:80
-msgid "_OK"
-msgstr "_确定"
 
 #: text_layer_control.py:86
 msgid "_Copy"
@@ -2069,355 +2057,366 @@ msgstr "边框"
 msgid "Filters"
 msgstr "过滤"
 
-#: app.ui.h:1 menu.ui.h:1
+#: app.ui:5 menu.ui:6
 msgid "_File"
 msgstr "文件(_F)"
 
-#: app.ui.h:2 menu.ui.h:2
+#: app.ui:9 menu.ui:9
 msgid "_New"
 msgstr "新建(_N)"
 
-#: app.ui.h:3 menu.ui.h:3
+#: app.ui:14 menu.ui:14
 msgid "_Open"
 msgstr "打开(_O)"
 
-#: app.ui.h:4
+#: app.ui:19
 msgid "Open c_rashed session"
 msgstr "打开崩溃的会话"
 
-#: app.ui.h:5 menu.ui.h:4
+#: app.ui:23 menu.ui:19
 msgid "S_can"
 msgstr "扫描(_C)"
 
-#: app.ui.h:7 menu.ui.h:6
+#: app.ui:33 menu.ui:29
 msgid "_Email as PDF"
 msgstr "保存为PDF文件并发送到电子邮件(_E)"
 
-#: app.ui.h:8 menu.ui.h:7
+#: app.ui:38 menu.ui:34
 msgid "_Print"
 msgstr "打印(_P)"
 
-#: app.ui.h:9 menu.ui.h:8
+#: app.ui:45 menu.ui:39
 msgid "_Quit"
 msgstr "退出(_Q)"
 
-#: app.ui.h:10 menu.ui.h:9
+#: app.ui:51 menu.ui:46
 msgid "_Edit"
 msgstr "编辑(_E)"
 
-#: app.ui.h:11 menu.ui.h:10
+#: app.ui:55 menu.ui:49
 msgid "_Undo"
 msgstr "撤消(_U)"
 
-#: app.ui.h:12 menu.ui.h:11
+#: app.ui:60 menu.ui:53
 msgid "_Redo"
 msgstr "重做(_R)"
 
-#: app.ui.h:13 menu.ui.h:12
+#: app.ui:67 menu.ui:57
 msgid "Cu_t"
 msgstr "剪切(_T)"
 
-#: app.ui.h:15 menu.ui.h:14
+#: app.ui:77 menu.ui:65
 msgid "_Paste"
 msgstr "粘贴(_P)"
 
-#: app.ui.h:17 menu.ui.h:16
+#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
 msgid "_Select"
 msgstr "选择(_S)"
 
-#: app.ui.h:18 menu.ui.h:17
+#: app.ui:89 menu.ui:76
 msgid "_All"
 msgstr "全部(_A)"
 
-#: app.ui.h:19 menu.ui.h:18
+#: app.ui:94 menu.ui:80
 msgid "_Odd"
 msgstr "单数(_O)"
 
-#: app.ui.h:20 menu.ui.h:19
+#: app.ui:99 menu.ui:84
 msgid "_Even"
 msgstr "双数(_E)"
 
-#: app.ui.h:21 menu.ui.h:20
+#: app.ui:104 menu.ui:88
 msgid "_Invert"
 msgstr "反色(_I)"
 
-#: app.ui.h:22 menu.ui.h:21
+#: app.ui:109 menu.ui:92
 msgid "_Blank"
 msgstr "清空(_B)"
 
-#: app.ui.h:23 menu.ui.h:22
+#: app.ui:114 menu.ui:96
 msgid "_Dark"
 msgstr "深色(_D)"
 
-#: app.ui.h:24 menu.ui.h:23
+#: app.ui:119 menu.ui:100
 msgid "_Modified"
 msgstr "已修改(_M)"
 
-#: app.ui.h:25 menu.ui.h:24
+#: app.ui:124 menu.ui:104
 msgid "_No OCR"
 msgstr "非 OCR(_N)"
 
-#: app.ui.h:26 menu.ui.h:25
+#: app.ui:130 menu.ui:108
 msgid "_Clear OCR"
 msgstr "清除 OCR(_C)"
 
-#: app.ui.h:27 menu.ui.h:26
+#: app.ui:136 menu.ui:114
 msgid "Propert_ies"
 msgstr "属性(_I)"
 
-#: app.ui.h:28 menu.ui.h:27
+#: app.ui:142 menu.ui:118
 msgid "Prefere_nces"
 msgstr "首选项(_N)"
 
-#: app.ui.h:29 menu.ui.h:28
+#: app.ui:147 menu.ui:124
 msgid "_View"
 msgstr "查看(_V)"
 
-#: app.ui.h:30
+#: app.ui:150 app.ui:293
 msgid "_Pan"
 msgstr "平移(_P)"
 
-#: app.ui.h:31
+#: app.ui:160 app.ui:310
 #, fuzzy
 msgid "_Select & pan"
 msgstr "选择并平移(_S)"
 
-#: app.ui.h:32
+#: app.ui:167
 msgid "_Tabbed"
 msgstr "选项卡(_T)"
 
-#: app.ui.h:33
+#: app.ui:172
 #, fuzzy
 msgid "_Split horizontally"
 msgstr "水平拆分(_S)"
 
-#: app.ui.h:34
+#: app.ui:177
 #, fuzzy
 msgid "_Split vertically"
 msgstr "垂直拆分(_S)"
 
-#: app.ui.h:35
+#: app.ui:184
 #, fuzzy
 msgid "Edit text layer"
 msgstr "编辑文本层"
 
-#: app.ui.h:36
+#: app.ui:189
 #, fuzzy
 msgid "Edit annotations"
 msgstr "编辑注释"
 
-#: app.ui.h:38 menu.ui.h:30
-#, no-c-format
+#: app.ui:197 app.ui:320 menu.ui:127
 msgid "Zoom _100%"
 msgstr "缩放 _100%"
 
-#: app.ui.h:39 menu.ui.h:31
+#: app.ui:201 app.ui:327 menu.ui:131
 msgid "Zoom to _fit"
 msgstr "最佳比例(_F)"
 
-#: app.ui.h:40 menu.ui.h:32
+#: app.ui:205 app.ui:334 menu.ui:135
 msgid "Zoom _in"
 msgstr "放大(_I)"
 
-#: app.ui.h:41 menu.ui.h:33
+#: app.ui:210 app.ui:341 menu.ui:139
 msgid "Zoom _out"
 msgstr "缩小(_O)"
 
-#: app.ui.h:42 menu.ui.h:34
+#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
 msgid "Rotate 90° clockwise"
 msgstr "顺时针旋转 90 度"
 
-#: app.ui.h:43 menu.ui.h:35
+#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
 msgid "Rotate 180°"
 msgstr "旋转 180 度"
 
-#: app.ui.h:44 menu.ui.h:36
+#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
 msgid "Rotate 90° anticlockwise"
 msgstr "逆时针旋转 90 度"
 
-#: app.ui.h:45 menu.ui.h:37
+#: app.ui:233 menu.ui:157
 msgid "_Tools"
 msgstr "工具(_T)"
 
-#: app.ui.h:46 menu.ui.h:38
+#: app.ui:237 menu.ui:160
 msgid "_Threshold"
 msgstr "阈值(_T)"
 
-#: app.ui.h:47 menu.ui.h:39
+#: app.ui:241 menu.ui:164
 #, fuzzy
 msgid "_Brightness / Contrast"
 msgstr "亮度 / 对比度(_B)"
 
-#: app.ui.h:48 menu.ui.h:40
+#: app.ui:245 menu.ui:168
 msgid "_Negate"
 msgstr "反转(_N)"
 
-#: app.ui.h:49 menu.ui.h:41
+#: app.ui:249 menu.ui:172
 #, fuzzy
 msgid "_Unsharp Mask"
 msgstr "反锐化蒙版(_U)"
 
-#: app.ui.h:50 menu.ui.h:42
+#: app.ui:253 menu.ui:176
 msgid "_Crop"
 msgstr "裁剪(_C)"
 
-#: app.ui.h:51 menu.ui.h:43
+#: app.ui:259 menu.ui:180
 msgid "_Clean up"
 msgstr "清理(_C)"
 
-#: app.ui.h:52 menu.ui.h:44
+#: app.ui:263 menu.ui:184
 #, fuzzy
 msgid "_Split"
 msgstr "拆分(_S)"
 
-#: app.ui.h:53 menu.ui.h:45
+#: app.ui:267 menu.ui:188
 msgid "_OCR"
 msgstr "光学字符识别(_OCR)"
 
-#: app.ui.h:54 menu.ui.h:46
+#: app.ui:273 menu.ui:192
 msgid "U_ser-defined"
 msgstr "用户自定义(_S)"
 
-#: app.ui.h:55 menu.ui.h:47
+#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
 msgid "_Help"
 msgstr "帮助(_H)"
 
-#: app.ui.h:56 menu.ui.h:48
+#: app.ui:286 menu.ui:205
 msgid "_About"
 msgstr "关于(_A)"
 
-#: app.ui.h:58
+#: app.ui:375 app.ui:478
 msgid "Cut"
 msgstr "剪切(_T)"
 
-#: app.ui.h:59
+#: app.ui:381 app.ui:484
 msgid "Copy"
 msgstr "复制(_C)"
 
-#: app.ui.h:60
+#: app.ui:387 app.ui:490
 msgid "Paste"
 msgstr "粘贴(_P)"
 
-#: app.ui.h:61
+#: app.ui:393 app.ui:496
 msgid "Delete"
 msgstr "删除(_D)"
 
-#: app.ui.h:64
+#: app.ui:420 app.ui:573
 msgid "Print"
 msgstr "打印"
 
-#: app.ui.h:65
+#: app.ui:427
 #, fuzzy
 msgid "Select All"
 msgstr "全选"
 
-#: app.ui.h:66
+#: app.ui:433
 #, fuzzy
 msgid "Select Odd"
 msgstr "选择奇数页"
 
-#: app.ui.h:67
+#: app.ui:439
 #, fuzzy
 msgid "Select Even"
 msgstr "选择偶数页"
 
-#: app.ui.h:68
+#: app.ui:445
 #, fuzzy
 msgid "Invert selection"
 msgstr "反选"
 
-#: app.ui.h:69
+#: app.ui:503
 msgid "Clear OCR"
 msgstr "清除 OCR(_C)"
 
-#: app.ui.h:70
+#: app.ui:523
 msgid "Clears all pages"
 msgstr "清理所有页面"
 
-#: app.ui.h:71
-msgid "Open image file(s)"
-msgstr "打开图像文件"
+#: app.ui:533
+#, fuzzy
+msgid "Open images"
+msgstr "打开图像"
 
-#: app.ui.h:72
+#: app.ui:543
 msgid "Scan document"
 msgstr "扫描文档"
 
-#: app.ui.h:73
+#: app.ui:563
 msgid "Attach as PDF to a new email"
 msgstr "添加PDF文件作为新的电子邮件的附件"
 
-#: app.ui.h:74
+#: app.ui:584
 msgid "Undo"
 msgstr "撤销"
 
-#: app.ui.h:75
+#: app.ui:594
 msgid "Redo"
 msgstr "重做"
 
-#: app.ui.h:76
+#: app.ui:605
 msgid "Cut selection"
 msgstr "剪切选中内容"
 
-#: app.ui.h:77
+#: app.ui:615
 msgid "Copy selection"
 msgstr "复制选中内容"
 
-#: app.ui.h:78
+#: app.ui:625
 msgid "Paste selection"
 msgstr "粘贴选中内容"
 
-#: app.ui.h:79
+#: app.ui:635
 msgid "Delete selected pages"
 msgstr "删除选中的页面"
 
-#: app.ui.h:80
+#: app.ui:646
 msgid "Select all pages"
 msgstr "选择全部页面"
 
-#: app.ui.h:81
+#: app.ui:657
 #, fuzzy
 msgid "Use the pan tool"
 msgstr "使用平移工具"
 
-#: app.ui.h:82
+#: app.ui:668
 msgid "Use the rectangular selection tool"
 msgstr "使用矩形选择工具"
 
-#: app.ui.h:83
+#: app.ui:680
 #, fuzzy
 msgid "Use the combined select and pan tool"
 msgstr "使用选择与平移组合工具"
 
-#: app.ui.h:85
-#, no-c-format
+#: app.ui:693
 msgid "Zoom to 100%"
 msgstr "缩放到 100%"
 
-#: app.ui.h:86
+#: app.ui:703
 msgid "Zoom to fit"
 msgstr "最佳比例"
 
-#: app.ui.h:87
+#: app.ui:713
 msgid "Zoom in"
 msgstr "放大"
 
-#: app.ui.h:88
+#: app.ui:723
 msgid "Zoom out"
 msgstr "缩小"
 
-#: app.ui.h:89
+#: app.ui:765
 #, fuzzy
 msgid "Crop selection"
 msgstr "裁剪选中内容"
 
-#: app.ui.h:90
+#: app.ui:776
 msgid "Quit"
 msgstr "退出"
 
-#: menu.ui.h:5
+#: menu.ui:24
 #, fuzzy
 msgid "_Save"
 msgstr "保存(_S)"
+
+#~ msgid "PPI"
+#~ msgstr "PPI"
+
+#~ msgid "%"
+#~ msgstr "%"
+
+#~ msgid "_Ok"
+#~ msgstr "_确定"
+
+#~ msgid "Open image file(s)"
+#~ msgstr "打开图像文件"
 
 #~ msgid "OCR Output"
 #~ msgstr "OCR 输出"

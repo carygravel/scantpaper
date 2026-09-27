@@ -85,9 +85,13 @@ This document provides essential context for anyone working on this project. Adh
        `PYTHONPATH=src python3 dev/generate_pot.py`, which creates the `.pot`
        file.
     2. Missing strings in `po/*.po` may be translated locally, but every such
-       addition MUST be marked `#, fuzzy` (needs review) so it is never
-       shipped until a translator confirms it. Never add a translation that
-       is not marked fuzzy.
+       addition MUST be marked `#, fuzzy` (needs review). Never add a
+       translation that is not marked fuzzy. The point of the marker is to
+       hold every new translation behind review until a translator confirms
+       it, not to block a release: a fuzzy translation is never shown to the
+       user, because it falls back to the English msgid (see the release
+       gate below), so an unreviewed translation cannot reach users by
+       accident.
     3. A `#, fuzzy` flag that another author or tool added MAY be cleared
        (removed) as part of a translation review, but only when the
        maintainer explicitly directs it. Do not clear a fuzzy flag on your
@@ -126,9 +130,10 @@ This document provides essential context for anyone working on this project. Adh
     - Keep msgids short; over 200 characters is flagged as a translation
       effort risk.
     Release gate: only non-fuzzy translations ship. Release builds never pass
-    `--use-fuzzy` to `msgfmt`, so fuzzy entries fall back to English and are
-    excluded from the release; a release is not blocked by the presence of
-    fuzzy entries.
+    `--use-fuzzy` to `msgfmt`, so a fuzzy translation is excluded from the
+    release and the English msgid is shown instead; a fuzzy string is
+    therefore never visible to the user. A release is not blocked by the
+    presence of fuzzy entries.
 -   **CI/CD Process:** The `.github/workflows/test.yml` file runs the test suite.
 
 ## 7. Contribution Guidelines

@@ -156,9 +156,9 @@ def test_bare_multifield_is_advisory(tmp_path: Path) -> None:
 
 def test_obsolete_growth_fails(tmp_path: Path) -> None:
     """Obsolete entries beyond a catalog's ceiling fail the build."""
-    # ru's ceiling is 139; emit 140 obsolete entries.
+    # ru's ceiling is 143; emit 144 obsolete entries.
     obsolete = "".join(
-        f'#~ msgid "gone {i}"\n#~ msgstr "weg {i}"\n\n' for i in range(140)
+        f'#~ msgid "gone {i}"\n#~ msgstr "weg {i}"\n\n' for i in range(144)
     )
     result = _run_check_po(tmp_path, obsolete, lang="ru")
     assert result.returncode != 0
@@ -555,3 +555,45 @@ def test_generate_pot_leaves_the_ui_sources_in_place(tmp_path: Path) -> None:
         assert path.read_bytes() == content, f"generation altered {path.name}"
     assert not list(src.glob("_*_tmp.pot")), "temporary pots were left behind"
     assert not list(src.glob("*.ui.h")), "intermediate headers were left behind"
+
+
+def test_summarise_po_counts_plural_entries_as_translated(tmp_path: Path) -> None:
+    """A filled plural entry counts as translated, not as untranslated.
+
+    Plural entries store their strings in ``msgstr_plural`` while the singular
+    ``msgstr`` stays empty; a summary that reads only ``msgstr`` wrongly counts
+    every translated plural as untranslated. This guards that regression.
+    """
+    src = tmp_path / "po"
+    src.mkdir()
+    po = polib.POFile()
+    po.metadata["Language"] = "de"
+    po.metadata["Plural-Forms"] = _PLURAL_FORMS["de"]
+    po.metadata["MIME-Version"] = "1.0"
+    po.metadata["Content-Type"] = "text/plain; charset=UTF-8"
+    plural = polib.POEntry(msgid="%dMb free in %s.", msgid_plural="%dMb free in %s.")
+    plural.msgstr_plural = {0: "eins", 1: "zwei"}
+    po.append(plural)
+    po.append(polib.POEntry(msgid="Untranslated thing"))
+    fuzzy = polib.POEntry(msgid="Fuzzy thing", msgstr="fuzzy")
+    fuzzy.flags.append("fuzzy")
+    po.append(fuzzy)
+    po.save(str(src / "scantpaper-de.po"))
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(REPO_ROOT / "dev" / "summarise_po.py"),
+            "--src",
+            str(src),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    total = next(
+        line for line in result.stdout.splitlines() if line.startswith("TOTAL")
+    )
+    _, non_fuzzy, fuzzy, untranslated = total.split()
+    assert (non_fuzzy, fuzzy, untranslated) == ("1", "1", "1")

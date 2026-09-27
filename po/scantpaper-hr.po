@@ -7,15 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
 "Report-Msgid-Bugs-To: jffry@posteo.net\n"
-"POT-Creation-Date: 2026-09-26 20:13+0200\n"
+"POT-Creation-Date: 2026-09-27 10:31+0200\n"
 "PO-Revision-Date: 2009-01-19 11:00+0000\n"
 "Last-Translator: DarioSeparovic <Unknown>\n"
 "Language-Team: Croatian <hr@li.org>\n"
 "Language: hr\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Launchpad (build 17908)\n"
 "X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
@@ -74,7 +75,7 @@ msgstr "Tekstualni sloj"
 msgid "Annotations"
 msgstr "Anotacije"
 
-#: app_window.py:838
+#: app_window.py:837
 #, fuzzy, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
@@ -82,47 +83,47 @@ msgstr[0] "%d MB slobodno u %s."
 msgstr[1] "%d MB slobodno u %s."
 msgstr[2] "%d MB slobodno u %s."
 
-#: app_window.py:863 helpers.py:372
+#: app_window.py:864 helpers.py:372
 #, fuzzy
 msgid "Messages"
 msgstr "Poruke"
 
-#: app_window.py:948
+#: app_window.py:949
 #, fuzzy
 msgid "Error opening the last device used."
 msgstr "Pogreška pri otvaranju posljednjeg korištenog uređaja."
 
-#: app_window.py:950
+#: app_window.py:951
 #, fuzzy
 msgid "There was an error opening the last device used."
 msgstr "Došlo je do pogreške pri otvaranju posljednjeg korištenog uređaja."
 
-#: app_window.py:953
+#: app_window.py:954
 #, fuzzy
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Ups! Zaboravio sam ga uključiti. Pokušajte ponovno sada."
 
-#: app_window.py:958 dialog/scan.py:517
+#: app_window.py:959 dialog/scan.py:517
 #, fuzzy
 msgid "Rescan for devices"
 msgstr "Ponovno skeniraj uređaje"
 
-#: app_window.py:962
+#: app_window.py:963
 #, fuzzy
 msgid "Restart scantpaper."
 msgstr "Ponovno pokrenite scantpaper."
 
-#: app_window.py:967
+#: app_window.py:968
 #, fuzzy
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Samo zanemarite pogrešku. Skener mi još nije potreban."
 
-#: app_window.py:970 dialog/preferences.py:162
+#: app_window.py:971 dialog/preferences.py:162
 #, fuzzy
 msgid "Cache device list"
 msgstr "Spremi popis uređaja u predmemoriju"
 
-#: app_window.py:973 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
 #, fuzzy
 msgid "Don't show this message again"
 msgstr "Ne prikazuj ponovno ovu poruku"
@@ -1130,10 +1131,10 @@ msgstr "Šifriraj PDF"
 msgid "Downsample to"
 msgstr "Smanji razlučivost na"
 
-#: dialog/save.py:789
+#: dialog/save.py:789 dialog/scan.py:660
 #, fuzzy
-msgid "PPI"
-msgstr "PPI"
+msgid "ppi"
+msgstr "ppi"
 
 #: dialog/save.py:819
 #, fuzzy
@@ -1186,16 +1187,6 @@ msgstr "bit"
 #, fuzzy
 msgid "mm"
 msgstr "mm"
-
-#: dialog/scan.py:660
-#, fuzzy
-msgid "ppi"
-msgstr "ppi"
-
-#: dialog/scan.py:661 tools_menu_mixins.py:284
-#, fuzzy
-msgid "%"
-msgstr "%"
 
 #: dialog/scan.py:662
 #, fuzzy
@@ -1571,101 +1562,101 @@ msgstr "Pogreška pri izdvajanju tekstualnog sloja iz PDF-a"
 msgid "Selected"
 msgstr "Odabrano"
 
-#: postprocess_controls.py:21
+#: postprocess_controls.py:22
 #, fuzzy
 msgid "Both sides"
 msgstr "Obje strane"
 
-#: postprocess_controls.py:21
+#: postprocess_controls.py:22
 #, fuzzy
 msgid "Both sides."
 msgstr "Obje strane."
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:23
 #, fuzzy
 msgid "Facing side"
 msgstr "Prednja strana"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:23
 #, fuzzy
 msgid "Facing side."
 msgstr "Prednja strana."
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:24
 #, fuzzy
 msgid "Reverse side"
 msgstr "Stražnja strana"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:24
 #, fuzzy
 msgid "Reverse side."
 msgstr "Stražnja strana."
 
-#: postprocess_controls.py:26
+#: postprocess_controls.py:27
 #, fuzzy
 msgid "90°"
 msgstr "90°"
 
-#: postprocess_controls.py:26
+#: postprocess_controls.py:27
 #, fuzzy
 msgid "Rotate image 90 degrees clockwise."
 msgstr "Zarotiraj sliku 90 stupnjeva u smjeru kazaljke na satu."
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:28
 #, fuzzy
 msgid "180°"
 msgstr "180°"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:28
 #, fuzzy
 msgid "Rotate image 180 degrees clockwise."
 msgstr "Zarotiraj sliku 180 stupnjeva u smjeru kazaljke na satu."
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:29
 #, fuzzy
 msgid "270°"
 msgstr "270°"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:29
 #, fuzzy
 msgid "Rotate image 90 degrees anticlockwise."
 msgstr "Zarotiraj sliku 90 stupnjeva suprotno od kazaljke na satu."
 
-#: postprocess_controls.py:38
+#: postprocess_controls.py:39
 msgid "Rotate"
 msgstr "Okreni"
 
-#: postprocess_controls.py:39
+#: postprocess_controls.py:40
 #, fuzzy
 msgid "Rotate image after scanning"
 msgstr "Zarotiraj sliku nakon skeniranja"
 
-#: postprocess_controls.py:42
+#: postprocess_controls.py:43
 #, fuzzy
 msgid "Select side to rotate"
 msgstr "Odaberi stranu za rotaciju"
 
-#: postprocess_controls.py:45
+#: postprocess_controls.py:46
 #, fuzzy
 msgid "Select angle of rotation"
 msgstr "Odaberi kut rotacije"
 
-#: postprocess_controls.py:48
+#: postprocess_controls.py:49
 #, fuzzy
 msgid "Anticlockwise"
 msgstr "Suprotno od kazaljke na satu"
 
-#: postprocess_controls.py:349 postprocess_controls.py:350
+#: postprocess_controls.py:350 postprocess_controls.py:351
 #, fuzzy
 msgid "OCR scanned pages"
 msgstr "OCR skeniranih stranica"
 
-#: postprocess_controls.py:377
+#: postprocess_controls.py:378
 #, fuzzy
 msgid "Threshold before OCR"
 msgstr "Prag prije OCR-a"
 
-#: postprocess_controls.py:380
+#: postprocess_controls.py:381
 #, fuzzy
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
@@ -1674,7 +1665,7 @@ msgstr ""
 "Primijeni prag na sliku prije izvođenja OCR-a. To utječe samo na sliku "
 "proslijeđenu OCR motoru, a ne na spremljenu sliku."
 
-#: postprocess_controls.py:391 tools_menu_mixins.py:114
+#: postprocess_controls.py:392 tools_menu_mixins.py:114
 #, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
@@ -1683,7 +1674,7 @@ msgstr ""
 "Pikseli koji se od boje papira razlikuju za više od ovog postotka prikazuju "
 "se crno. Veće vrijednosti zadržavaju samo jače tragove."
 
-#: postprocess_controls.py:427
+#: postprocess_controls.py:428
 #, fuzzy
 msgid "Language to recognise"
 msgstr "Jezik za prepoznavanje"
@@ -1911,9 +1902,9 @@ msgstr "Završeno je skeniranje prednjih stranica. Skenirati stražnje stranice?
 msgid "Finished scanning reverse pages. Scan facing pages?"
 msgstr "Završeno je skeniranje stražnjih stranica. Skenirati prednje stranice?"
 
-#: session_mixins.py:448
+#: session_mixins.py:448 text_layer_control.py:80
 #, fuzzy
-msgid "_Ok"
+msgid "_OK"
 msgstr "_U redu"
 
 #: session_mixins.py:449 text_layer_control.py:80
@@ -2039,11 +2030,6 @@ msgstr "Idi na najpouzdaniji tekst"
 #, fuzzy
 msgid "Add text"
 msgstr "Dodaj tekst"
-
-#: text_layer_control.py:80
-#, fuzzy
-msgid "_OK"
-msgstr "_U redu"
 
 #: text_layer_control.py:86
 msgid "_Copy"
@@ -2486,376 +2472,390 @@ msgstr "Rub"
 msgid "Filters"
 msgstr "Filteri"
 
-#: app.ui.h:1 menu.ui.h:1
+#: app.ui:5 menu.ui:6
 msgid "_File"
 msgstr "_Datoteka"
 
-#: app.ui.h:2 menu.ui.h:2
+#: app.ui:9 menu.ui:9
 msgid "_New"
 msgstr "_Novi"
 
-#: app.ui.h:3 menu.ui.h:3
+#: app.ui:14 menu.ui:14
 msgid "_Open"
 msgstr "_Otvori"
 
-#: app.ui.h:4
+#: app.ui:19
 #, fuzzy
 msgid "Open c_rashed session"
 msgstr "Otvori prekinutu sesiju"
 
-#: app.ui.h:5 menu.ui.h:4
+#: app.ui:23 menu.ui:19
 msgid "S_can"
 msgstr "U stanju"
 
-#: app.ui.h:7 menu.ui.h:6
+#: app.ui:33 menu.ui:29
 msgid "_Email as PDF"
 msgstr "e-pošta kao PDF"
 
-#: app.ui.h:8 menu.ui.h:7
+#: app.ui:38 menu.ui:34
 #, fuzzy
 msgid "_Print"
 msgstr "_Ispis"
 
-#: app.ui.h:9 menu.ui.h:8
+#: app.ui:45 menu.ui:39
 msgid "_Quit"
 msgstr "_Izlaz"
 
-#: app.ui.h:10 menu.ui.h:9
+#: app.ui:51 menu.ui:46
 msgid "_Edit"
 msgstr "_Uredi"
 
-#: app.ui.h:11 menu.ui.h:10
+#: app.ui:55 menu.ui:49
 msgid "_Undo"
 msgstr "_Vrati"
 
-#: app.ui.h:12 menu.ui.h:11
+#: app.ui:60 menu.ui:53
 msgid "_Redo"
 msgstr "_Ponovi"
 
-#: app.ui.h:13 menu.ui.h:12
+#: app.ui:67 menu.ui:57
 msgid "Cu_t"
 msgstr "Iz_reži"
 
-#: app.ui.h:15 menu.ui.h:14
+#: app.ui:77 menu.ui:65
 msgid "_Paste"
 msgstr "_Zalijepi"
 
-#: app.ui.h:17 menu.ui.h:16
+#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
 msgid "_Select"
 msgstr "_Odaberi"
 
-#: app.ui.h:18 menu.ui.h:17
+#: app.ui:89 menu.ui:76
 #, fuzzy
 msgid "_All"
 msgstr "_Sve"
 
-#: app.ui.h:19 menu.ui.h:18
+#: app.ui:94 menu.ui:80
 #, fuzzy
 msgid "_Odd"
 msgstr "_Neparne"
 
-#: app.ui.h:20 menu.ui.h:19
+#: app.ui:99 menu.ui:84
 #, fuzzy
 msgid "_Even"
 msgstr "_Parne"
 
-#: app.ui.h:21 menu.ui.h:20
+#: app.ui:104 menu.ui:88
 #, fuzzy
 msgid "_Invert"
 msgstr "_Invertiraj"
 
-#: app.ui.h:22 menu.ui.h:21
+#: app.ui:109 menu.ui:92
 #, fuzzy
 msgid "_Blank"
 msgstr "_Prazne"
 
-#: app.ui.h:23 menu.ui.h:22
+#: app.ui:114 menu.ui:96
 #, fuzzy
 msgid "_Dark"
 msgstr "_Tamne"
 
-#: app.ui.h:24 menu.ui.h:23
+#: app.ui:119 menu.ui:100
 #, fuzzy
 msgid "_Modified"
 msgstr "_Izmijenjene"
 
-#: app.ui.h:25 menu.ui.h:24
+#: app.ui:124 menu.ui:104
 #, fuzzy
 msgid "_No OCR"
 msgstr "Bez _OCR-a"
 
-#: app.ui.h:26 menu.ui.h:25
+#: app.ui:130 menu.ui:108
 #, fuzzy
 msgid "_Clear OCR"
 msgstr "_Počisti"
 
-#: app.ui.h:27 menu.ui.h:26
+#: app.ui:136 menu.ui:114
 msgid "Propert_ies"
 msgstr "Postavke"
 
-#: app.ui.h:28 menu.ui.h:27
+#: app.ui:142 menu.ui:118
 msgid "Prefere_nces"
 msgstr "Postavke"
 
-#: app.ui.h:29 menu.ui.h:28
+#: app.ui:147 menu.ui:124
 msgid "_View"
 msgstr "_Prikaz"
 
-#: app.ui.h:30
+#: app.ui:150 app.ui:293
 #, fuzzy
 msgid "_Pan"
 msgstr "_Pomicanje"
 
-#: app.ui.h:31
+#: app.ui:160 app.ui:310
 #, fuzzy
 msgid "_Select & pan"
 msgstr "_Odaberi"
 
-#: app.ui.h:32
+#: app.ui:167
 #, fuzzy
 msgid "_Tabbed"
 msgstr "_Kartice"
 
-#: app.ui.h:33
+#: app.ui:172
 #, fuzzy
 msgid "_Split horizontally"
 msgstr "Vodoravno"
 
-#: app.ui.h:34
+#: app.ui:177
 #, fuzzy
 msgid "_Split vertically"
 msgstr "Okomito"
 
-#: app.ui.h:35
+#: app.ui:184
 #, fuzzy
 msgid "Edit text layer"
 msgstr "Ugrađivanje tekstualnog sloja"
 
-#: app.ui.h:36
+#: app.ui:189
 #, fuzzy
 msgid "Edit annotations"
 msgstr "Dodaj anotaciju"
 
-#: app.ui.h:38 menu.ui.h:30
-#, no-c-format
+#: app.ui:197 app.ui:320 menu.ui:127
 msgid "Zoom _100%"
 msgstr "Zumiraj  _100%"
 
-#: app.ui.h:39 menu.ui.h:31
+#: app.ui:201 app.ui:327 menu.ui:131
 msgid "Zoom to _fit"
 msgstr "Prilagođeno _uvećanje"
 
-#: app.ui.h:40 menu.ui.h:32
+#: app.ui:205 app.ui:334 menu.ui:135
 msgid "Zoom _in"
 msgstr "Uvećaj_"
 
-#: app.ui.h:41 menu.ui.h:33
+#: app.ui:210 app.ui:341 menu.ui:139
 msgid "Zoom _out"
 msgstr "Umanji_"
 
-#: app.ui.h:42 menu.ui.h:34
+#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
 msgid "Rotate 90° clockwise"
 msgstr "Rotiraj 90 u smjeru kazaljke"
 
-#: app.ui.h:43 menu.ui.h:35
+#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
 msgid "Rotate 180°"
 msgstr "Rotiraj 180"
 
-#: app.ui.h:44 menu.ui.h:36
+#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
 msgid "Rotate 90° anticlockwise"
 msgstr "Rotiraj 90 udesno"
 
-#: app.ui.h:45 menu.ui.h:37
+#: app.ui:233 menu.ui:157
 msgid "_Tools"
 msgstr "_Alati"
 
-#: app.ui.h:46 menu.ui.h:38
+#: app.ui:237 menu.ui:160
 msgid "_Threshold"
 msgstr "Prag:"
 
-#: app.ui.h:47 menu.ui.h:39
+#: app.ui:241 menu.ui:164
 #, fuzzy
 msgid "_Brightness / Contrast"
 msgstr "Svjetlina / Kontrast"
 
-#: app.ui.h:48 menu.ui.h:40
+#: app.ui:245 menu.ui:168
 msgid "_Negate"
 msgstr "_Odricati"
 
-#: app.ui.h:49 menu.ui.h:41
+#: app.ui:249 menu.ui:172
 #, fuzzy
 msgid "_Unsharp Mask"
 msgstr "Neizoštrena maska"
 
-#: app.ui.h:50 menu.ui.h:42
+#: app.ui:253 menu.ui:176
 msgid "_Crop"
 msgstr "_Izreži"
 
-#: app.ui.h:51 menu.ui.h:43
+#: app.ui:259 menu.ui:180
 msgid "_Clean up"
 msgstr "_Počisti"
 
-#: app.ui.h:52 menu.ui.h:44
+#: app.ui:263 menu.ui:184
 #, fuzzy
 msgid "_Split"
 msgstr "Razdijeli"
 
-#: app.ui.h:53 menu.ui.h:45
+#: app.ui:267 menu.ui:188
 msgid "_OCR"
 msgstr "_OCR"
 
-#: app.ui.h:54 menu.ui.h:46
+#: app.ui:273 menu.ui:192
 #, fuzzy
 msgid "U_ser-defined"
 msgstr "Alati koje je definirao korisnik"
 
-#: app.ui.h:55 menu.ui.h:47
+#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
 msgid "_Help"
 msgstr "_Pomoć"
 
-#: app.ui.h:56 menu.ui.h:48
+#: app.ui:286 menu.ui:205
 msgid "_About"
 msgstr "_O"
 
-#: app.ui.h:58
+#: app.ui:375 app.ui:478
 #, fuzzy
 msgid "Cut"
 msgstr "Iz_reži"
 
-#: app.ui.h:59
+#: app.ui:381 app.ui:484
 #, fuzzy
 msgid "Copy"
 msgstr "_Kopiraj"
 
-#: app.ui.h:60
+#: app.ui:387 app.ui:490
 #, fuzzy
 msgid "Paste"
 msgstr "_Zalijepi"
 
-#: app.ui.h:61
+#: app.ui:393 app.ui:496
 #, fuzzy
 msgid "Delete"
 msgstr "_Obriši"
 
-#: app.ui.h:64
+#: app.ui:420 app.ui:573
 #, fuzzy
 msgid "Print"
 msgstr "Ispis"
 
-#: app.ui.h:65
+#: app.ui:427
 #, fuzzy
 msgid "Select All"
 msgstr "_Odaberi"
 
-#: app.ui.h:66
+#: app.ui:433
 #, fuzzy
 msgid "Select Odd"
 msgstr "Odabrano"
 
-#: app.ui.h:67
+#: app.ui:439
 #, fuzzy
 msgid "Select Even"
 msgstr "Odabrano"
 
-#: app.ui.h:68
+#: app.ui:445
 #, fuzzy
 msgid "Invert selection"
 msgstr "Izreži izabrano"
 
-#: app.ui.h:69
+#: app.ui:503
 #, fuzzy
 msgid "Clear OCR"
 msgstr "Očisti OCR"
 
-#: app.ui.h:70
+#: app.ui:523
 msgid "Clears all pages"
 msgstr "Brisanje svi stranica"
 
-#: app.ui.h:71
+#: app.ui:533
 #, fuzzy
-msgid "Open image file(s)"
+msgid "Open images"
 msgstr "Otvori sliku"
 
-#: app.ui.h:72
+#: app.ui:543
 msgid "Scan document"
 msgstr "Učitavanje dokumenta"
 
-#: app.ui.h:73
+#: app.ui:563
 msgid "Attach as PDF to a new email"
 msgstr "Pridruži PDF u novi e-mail"
 
-#: app.ui.h:74
+#: app.ui:584
 msgid "Undo"
 msgstr "Vrati"
 
-#: app.ui.h:75
+#: app.ui:594
 msgid "Redo"
 msgstr "Ponovi"
 
-#: app.ui.h:76
+#: app.ui:605
 msgid "Cut selection"
 msgstr "Izreži izabrano"
 
-#: app.ui.h:77
+#: app.ui:615
 msgid "Copy selection"
 msgstr "Kopiraj izabrano"
 
-#: app.ui.h:78
+#: app.ui:625
 msgid "Paste selection"
 msgstr "Umetni odabrano"
 
-#: app.ui.h:79
+#: app.ui:635
 msgid "Delete selected pages"
 msgstr "Obriši slektirane stranice"
 
-#: app.ui.h:80
+#: app.ui:646
 msgid "Select all pages"
 msgstr "Označi sve stranice"
 
-#: app.ui.h:81
+#: app.ui:657
 #, fuzzy
 msgid "Use the pan tool"
 msgstr "Koristi ručni alat"
 
-#: app.ui.h:82
+#: app.ui:668
 msgid "Use the rectangular selection tool"
 msgstr "Koristi pravokutni odabira alata"
 
-#: app.ui.h:83
+#: app.ui:680
 #, fuzzy
 msgid "Use the combined select and pan tool"
 msgstr "Koristi pravokutni odabira alata"
 
-#: app.ui.h:85
-#, no-c-format
+#: app.ui:693
 msgid "Zoom to 100%"
 msgstr "Zumiraj na 100%"
 
-#: app.ui.h:86
+#: app.ui:703
 msgid "Zoom to fit"
 msgstr "Prilagođeno uvećanje"
 
-#: app.ui.h:87
+#: app.ui:713
 msgid "Zoom in"
 msgstr "Uvećaj"
 
-#: app.ui.h:88
+#: app.ui:723
 msgid "Zoom out"
 msgstr "Umanji"
 
-#: app.ui.h:89
+#: app.ui:765
 #, fuzzy
 msgid "Crop selection"
 msgstr "Kopiraj izabrano"
 
-#: app.ui.h:90
+#: app.ui:776
 msgid "Quit"
 msgstr "Izlaz"
 
-#: menu.ui.h:5
+#: menu.ui:24
 #, fuzzy
 msgid "_Save"
 msgstr "Spremi"
+
+#, fuzzy
+#~ msgid "PPI"
+#~ msgstr "PPI"
+
+#, fuzzy
+#~ msgid "%"
+#~ msgstr "%"
+
+#, fuzzy
+#~ msgid "_Ok"
+#~ msgstr "_U redu"
+
+#, fuzzy
+#~ msgid "Open image file(s)"
+#~ msgstr "Otvori sliku"
 
 #~ msgid "GOCR"
 #~ msgstr "GOCR"

@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: scantpaper\n"
 "Report-Msgid-Bugs-To: jffry@posteo.net\n"
-"POT-Creation-Date: 2026-09-26 20:13+0200\n"
+"POT-Creation-Date: 2026-09-27 10:31+0200\n"
 "PO-Revision-Date: 2022-12-21 13:11+0000\n"
 "Last-Translator: Celso Lira <celso.lom@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <pt_BR@li.org>\n"
 "Language: pt_BR\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Launchpad (build bbfa2351d9d6a9ddfe262109428f7bf5516e65d1)\n"
 "X-Launchpad-Export-Date: 2024-06-28 17:52+0000\n"
 
@@ -63,46 +63,46 @@ msgstr "Camada de texto"
 msgid "Annotations"
 msgstr "Anotações"
 
-#: app_window.py:838
+#: app_window.py:837
 #, fuzzy, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
 msgstr[0] "%dMb livre em %s."
 msgstr[1] "%dMb livres em %s."
 
-#: app_window.py:863 helpers.py:372
+#: app_window.py:864 helpers.py:372
 msgid "Messages"
 msgstr "Mensagens"
 
-#: app_window.py:948
+#: app_window.py:949
 msgid "Error opening the last device used."
 msgstr "Erro abrindo o último dispositivo usado"
 
-#: app_window.py:950
+#: app_window.py:951
 msgid "There was an error opening the last device used."
 msgstr "Ocorreu um erro ao abrir o último dispositivo usado."
 
-#: app_window.py:953
+#: app_window.py:954
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Ops! Esqueci de ligá-lo. Tente novamente agora."
 
-#: app_window.py:958 dialog/scan.py:517
+#: app_window.py:959 dialog/scan.py:517
 msgid "Rescan for devices"
 msgstr "Verificar dispositivos novamente"
 
-#: app_window.py:962
+#: app_window.py:963
 msgid "Restart scantpaper."
 msgstr "Reinicie o scantpaper."
 
-#: app_window.py:967
+#: app_window.py:968
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Apenas ignorar o erro. Eu não preciso do scanner agora."
 
-#: app_window.py:970 dialog/preferences.py:162
+#: app_window.py:971 dialog/preferences.py:162
 msgid "Cache device list"
 msgstr "Armazenar lista de dispositivos em cache"
 
-#: app_window.py:973 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
 msgid "Don't show this message again"
 msgstr "Não exibir esta mensagem novamente"
 
@@ -972,9 +972,9 @@ msgstr "Criptografar PDF"
 msgid "Downsample to"
 msgstr "Reduzir para"
 
-#: dialog/save.py:789
-msgid "PPI"
-msgstr "PPI"
+#: dialog/save.py:789 dialog/scan.py:660
+msgid "ppi"
+msgstr "ppi"
 
 #: dialog/save.py:819
 msgid "Set password"
@@ -1021,14 +1021,6 @@ msgstr "bit"
 #: dialog/scan.py:659
 msgid "mm"
 msgstr "mm"
-
-#: dialog/scan.py:660
-msgid "ppi"
-msgstr "ppi"
-
-#: dialog/scan.py:661 tools_menu_mixins.py:284
-msgid "%"
-msgstr "%"
 
 #: dialog/scan.py:662
 msgid "μs"
@@ -1358,83 +1350,83 @@ msgstr "Erro ao extrair camada de texto do PDF"
 msgid "Selected"
 msgstr "Selecionado"
 
-#: postprocess_controls.py:21
+#: postprocess_controls.py:22
 msgid "Both sides"
 msgstr "Ambos os lados"
 
-#: postprocess_controls.py:21
+#: postprocess_controls.py:22
 msgid "Both sides."
 msgstr "Ambos os lados."
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:23
 msgid "Facing side"
 msgstr "Frente do papel"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:23
 msgid "Facing side."
 msgstr "Frente do papel."
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:24
 msgid "Reverse side"
 msgstr "Lado inverso"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:24
 msgid "Reverse side."
 msgstr "Lado inverso."
 
-#: postprocess_controls.py:26
+#: postprocess_controls.py:27
 msgid "90°"
 msgstr "90°"
 
-#: postprocess_controls.py:26
+#: postprocess_controls.py:27
 msgid "Rotate image 90 degrees clockwise."
 msgstr "Girar imagem em 90 graus em sentido horário."
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:28
 msgid "180°"
 msgstr "180°"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:28
 msgid "Rotate image 180 degrees clockwise."
 msgstr "Girar imagem a 180 graus em sentido horário."
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:29
 msgid "270°"
 msgstr "270°"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:29
 msgid "Rotate image 90 degrees anticlockwise."
 msgstr "Girar imagem a 90 graus em sentido anti-horário."
 
-#: postprocess_controls.py:38
+#: postprocess_controls.py:39
 msgid "Rotate"
 msgstr "Girar"
 
-#: postprocess_controls.py:39
+#: postprocess_controls.py:40
 msgid "Rotate image after scanning"
 msgstr "Girar imagem após digitalização"
 
-#: postprocess_controls.py:42
+#: postprocess_controls.py:43
 msgid "Select side to rotate"
 msgstr "Selecionar lado a ser girado"
 
-#: postprocess_controls.py:45
+#: postprocess_controls.py:46
 msgid "Select angle of rotation"
 msgstr "Selecionar ângulo de rotação"
 
-#: postprocess_controls.py:48
+#: postprocess_controls.py:49
 msgid "Anticlockwise"
 msgstr "Sentido anti-horário"
 
-#: postprocess_controls.py:349 postprocess_controls.py:350
+#: postprocess_controls.py:350 postprocess_controls.py:351
 msgid "OCR scanned pages"
 msgstr "Imagens digitalizadas com OCR"
 
-#: postprocess_controls.py:377
+#: postprocess_controls.py:378
 msgid "Threshold before OCR"
 msgstr "Limiar antes do OCR"
 
-#: postprocess_controls.py:380
+#: postprocess_controls.py:381
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
@@ -1442,7 +1434,7 @@ msgstr ""
 "Aplicar limiar à imagem antes de executar o OCR. Isso afeta apenas a imagem "
 "passada ao mecanismo de OCR, não a imagem armazenada."
 
-#: postprocess_controls.py:391 tools_menu_mixins.py:114
+#: postprocess_controls.py:392 tools_menu_mixins.py:114
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
@@ -1450,7 +1442,7 @@ msgstr ""
 "Pixels que diferem da cor do papel em mais dessa porcentagem são "
 "renderizados em preto. Valores mais altos mantêm apenas marcas mais fortes."
 
-#: postprocess_controls.py:427
+#: postprocess_controls.py:428
 msgid "Language to recognise"
 msgstr "Idioma para reconhecimento"
 
@@ -1655,8 +1647,8 @@ msgstr ""
 "Terminou de digitalizar as páginas traseiras. Digitalizar as páginas "
 "frontais?"
 
-#: session_mixins.py:448
-msgid "_Ok"
+#: session_mixins.py:448 text_layer_control.py:80
+msgid "_OK"
 msgstr "_OK"
 
 #: session_mixins.py:449 text_layer_control.py:80
@@ -1764,10 +1756,6 @@ msgstr "Ir para o texto mais confiável"
 #: text_layer_control.py:77
 msgid "Add text"
 msgstr "Adicionar texto"
-
-#: text_layer_control.py:80
-msgid "_OK"
-msgstr "_OK"
 
 #: text_layer_control.py:86
 msgid "_Copy"
@@ -2138,348 +2126,359 @@ msgstr "Borda"
 msgid "Filters"
 msgstr "Filtros"
 
-#: app.ui.h:1 menu.ui.h:1
+#: app.ui:5 menu.ui:6
 msgid "_File"
 msgstr "_Arquivo"
 
-#: app.ui.h:2 menu.ui.h:2
+#: app.ui:9 menu.ui:9
 msgid "_New"
 msgstr "_Novo"
 
-#: app.ui.h:3 menu.ui.h:3
+#: app.ui:14 menu.ui:14
 msgid "_Open"
 msgstr "_Abrir"
 
-#: app.ui.h:4
+#: app.ui:19
 msgid "Open c_rashed session"
 msgstr "Abrir sessão c_rashed"
 
-#: app.ui.h:5 menu.ui.h:4
+#: app.ui:23 menu.ui:19
 msgid "S_can"
 msgstr "D_igitalizar"
 
-#: app.ui.h:7 menu.ui.h:6
+#: app.ui:33 menu.ui:29
 msgid "_Email as PDF"
 msgstr "_Enviar por email"
 
-#: app.ui.h:8 menu.ui.h:7
+#: app.ui:38 menu.ui:34
 msgid "_Print"
 msgstr "_Imprimir"
 
-#: app.ui.h:9 menu.ui.h:8
+#: app.ui:45 menu.ui:39
 msgid "_Quit"
 msgstr "_Sair"
 
-#: app.ui.h:10 menu.ui.h:9
+#: app.ui:51 menu.ui:46
 msgid "_Edit"
 msgstr "_Editar"
 
-#: app.ui.h:11 menu.ui.h:10
+#: app.ui:55 menu.ui:49
 msgid "_Undo"
 msgstr "_Desfazer"
 
-#: app.ui.h:12 menu.ui.h:11
+#: app.ui:60 menu.ui:53
 msgid "_Redo"
 msgstr "_Refazer"
 
-#: app.ui.h:13 menu.ui.h:12
+#: app.ui:67 menu.ui:57
 msgid "Cu_t"
 msgstr "Recorta_r"
 
-#: app.ui.h:15 menu.ui.h:14
+#: app.ui:77 menu.ui:65
 msgid "_Paste"
 msgstr "Colar_v"
 
-#: app.ui.h:17 menu.ui.h:16
+#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
 msgid "_Select"
 msgstr "_Selecionar"
 
-#: app.ui.h:18 menu.ui.h:17
+#: app.ui:89 menu.ui:76
 msgid "_All"
 msgstr "_Tudo"
 
-#: app.ui.h:19 menu.ui.h:18
+#: app.ui:94 menu.ui:80
 msgid "_Odd"
 msgstr "Í_mpar"
 
-#: app.ui.h:20 menu.ui.h:19
+#: app.ui:99 menu.ui:84
 msgid "_Even"
 msgstr "_Par"
 
-#: app.ui.h:21 menu.ui.h:20
+#: app.ui:104 menu.ui:88
 msgid "_Invert"
 msgstr "_Inverter"
 
-#: app.ui.h:22 menu.ui.h:21
+#: app.ui:109 menu.ui:92
 msgid "_Blank"
 msgstr "Em _branco"
 
-#: app.ui.h:23 menu.ui.h:22
+#: app.ui:114 menu.ui:96
 msgid "_Dark"
 msgstr "_Escuro"
 
-#: app.ui.h:24 menu.ui.h:23
+#: app.ui:119 menu.ui:100
 msgid "_Modified"
 msgstr "_Modificado"
 
-#: app.ui.h:25 menu.ui.h:24
+#: app.ui:124 menu.ui:104
 msgid "_No OCR"
 msgstr "_Nenhum OCR"
 
-#: app.ui.h:26 menu.ui.h:25
+#: app.ui:130 menu.ui:108
 msgid "_Clear OCR"
 msgstr "Limpar O_CR"
 
-#: app.ui.h:27 menu.ui.h:26
+#: app.ui:136 menu.ui:114
 msgid "Propert_ies"
 msgstr "Propr_iedades"
 
-#: app.ui.h:28 menu.ui.h:27
+#: app.ui:142 menu.ui:118
 msgid "Prefere_nces"
 msgstr "Preferê_ncias"
 
-#: app.ui.h:29 menu.ui.h:28
+#: app.ui:147 menu.ui:124
 msgid "_View"
 msgstr "_Visualizar"
 
-#: app.ui.h:30
+#: app.ui:150 app.ui:293
 msgid "_Pan"
 msgstr "_Mover"
 
-#: app.ui.h:31
+#: app.ui:160 app.ui:310
 #, fuzzy
 msgid "_Select & pan"
 msgstr "_Selecionar e mover"
 
-#: app.ui.h:32
+#: app.ui:167
 msgid "_Tabbed"
 msgstr "_Guias"
 
-#: app.ui.h:33
+#: app.ui:172
 #, fuzzy
 msgid "_Split horizontally"
 msgstr "_Dividir horizontalmente"
 
-#: app.ui.h:34
+#: app.ui:177
 #, fuzzy
 msgid "_Split vertically"
 msgstr "_Dividir verticalmente"
 
-#: app.ui.h:35
+#: app.ui:184
 #, fuzzy
 msgid "Edit text layer"
 msgstr "Editar camada de texto"
 
-#: app.ui.h:36
+#: app.ui:189
 #, fuzzy
 msgid "Edit annotations"
 msgstr "Editar anotações"
 
-#: app.ui.h:38 menu.ui.h:30
-#, no-c-format
+#: app.ui:197 app.ui:320 menu.ui:127
 msgid "Zoom _100%"
 msgstr "Zoom _100%"
 
-#: app.ui.h:39 menu.ui.h:31
+#: app.ui:201 app.ui:327 menu.ui:131
 msgid "Zoom to _fit"
 msgstr "_Caber na tela"
 
-#: app.ui.h:40 menu.ui.h:32
+#: app.ui:205 app.ui:334 menu.ui:135
 msgid "Zoom _in"
 msgstr "A_proximar"
 
-#: app.ui.h:41 menu.ui.h:33
+#: app.ui:210 app.ui:341 menu.ui:139
 msgid "Zoom _out"
 msgstr "A_fastar"
 
-#: app.ui.h:42 menu.ui.h:34
+#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
 msgid "Rotate 90° clockwise"
 msgstr "Girar 90º no sentido horário"
 
-#: app.ui.h:43 menu.ui.h:35
+#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
 msgid "Rotate 180°"
 msgstr "Girar 180°"
 
-#: app.ui.h:44 menu.ui.h:36
+#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
 msgid "Rotate 90° anticlockwise"
 msgstr "Girar 90º no sentido anti-horário"
 
-#: app.ui.h:45 menu.ui.h:37
+#: app.ui:233 menu.ui:157
 msgid "_Tools"
 msgstr "Ferramen_tas"
 
-#: app.ui.h:46 menu.ui.h:38
+#: app.ui:237 menu.ui:160
 msgid "_Threshold"
 msgstr "_Limite"
 
-#: app.ui.h:47 menu.ui.h:39
+#: app.ui:241 menu.ui:164
 msgid "_Brightness / Contrast"
 msgstr "_Brilho / Contraste"
 
-#: app.ui.h:48 menu.ui.h:40
+#: app.ui:245 menu.ui:168
 msgid "_Negate"
 msgstr "_Negativo"
 
-#: app.ui.h:49 menu.ui.h:41
+#: app.ui:249 menu.ui:172
 msgid "_Unsharp Mask"
 msgstr "Máscara de ni_tidez"
 
-#: app.ui.h:50 menu.ui.h:42
+#: app.ui:253 menu.ui:176
 msgid "_Crop"
 msgstr "_Cortar"
 
-#: app.ui.h:51 menu.ui.h:43
+#: app.ui:259 menu.ui:180
 msgid "_Clean up"
 msgstr "_Limpar"
 
-#: app.ui.h:52 menu.ui.h:44
+#: app.ui:263 menu.ui:184
 msgid "_Split"
 msgstr "Dividir"
 
-#: app.ui.h:53 menu.ui.h:45
+#: app.ui:267 menu.ui:188
 msgid "_OCR"
 msgstr "_OCR"
 
-#: app.ui.h:54 menu.ui.h:46
+#: app.ui:273 menu.ui:192
 msgid "U_ser-defined"
 msgstr "U_suário-definido"
 
-#: app.ui.h:55 menu.ui.h:47
+#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
 msgid "_Help"
 msgstr "_Ajuda"
 
-#: app.ui.h:56 menu.ui.h:48
+#: app.ui:286 menu.ui:205
 msgid "_About"
 msgstr "_Sobre"
 
-#: app.ui.h:58
+#: app.ui:375 app.ui:478
 msgid "Cut"
 msgstr "Recorta_r"
 
-#: app.ui.h:59
+#: app.ui:381 app.ui:484
 msgid "Copy"
 msgstr "_Copiar"
 
-#: app.ui.h:60
+#: app.ui:387 app.ui:490
 msgid "Paste"
 msgstr "Colar_v"
 
-#: app.ui.h:61
+#: app.ui:393 app.ui:496
 msgid "Delete"
 msgstr "Excluir"
 
-#: app.ui.h:64
+#: app.ui:420 app.ui:573
 msgid "Print"
 msgstr "Imprimir"
 
-#: app.ui.h:65
+#: app.ui:427
 #, fuzzy
 msgid "Select All"
 msgstr "Selecionar tudo"
 
-#: app.ui.h:66
+#: app.ui:433
 #, fuzzy
 msgid "Select Odd"
 msgstr "Selecionar ímpares"
 
-#: app.ui.h:67
+#: app.ui:439
 #, fuzzy
 msgid "Select Even"
 msgstr "Selecionar pares"
 
-#: app.ui.h:68
+#: app.ui:445
 #, fuzzy
 msgid "Invert selection"
 msgstr "Inverter a seleção"
 
-#: app.ui.h:69
+#: app.ui:503
 msgid "Clear OCR"
 msgstr "Limpar O_CR"
 
-#: app.ui.h:70
+#: app.ui:523
 msgid "Clears all pages"
 msgstr "Limpar todas as páginas"
 
-#: app.ui.h:71
-msgid "Open image file(s)"
-msgstr "Abrir arquivo(s) de imagem:"
+#: app.ui:533
+#, fuzzy
+msgid "Open images"
+msgstr "Abrir imagem"
 
-#: app.ui.h:72
+#: app.ui:543
 msgid "Scan document"
 msgstr "Digitalizar documento"
 
-#: app.ui.h:73
+#: app.ui:563
 msgid "Attach as PDF to a new email"
 msgstr "Anexar como PDF em um novo email"
 
-#: app.ui.h:74
+#: app.ui:584
 msgid "Undo"
 msgstr "Desfazer"
 
-#: app.ui.h:75
+#: app.ui:594
 msgid "Redo"
 msgstr "Refazer"
 
-#: app.ui.h:76
+#: app.ui:605
 msgid "Cut selection"
 msgstr "Recorta a seleção"
 
-#: app.ui.h:77
+#: app.ui:615
 msgid "Copy selection"
 msgstr "Copia a seleção"
 
-#: app.ui.h:78
+#: app.ui:625
 msgid "Paste selection"
 msgstr "Cola a seleção"
 
-#: app.ui.h:79
+#: app.ui:635
 msgid "Delete selected pages"
 msgstr "Excluir páginas selecionadas"
 
-#: app.ui.h:80
+#: app.ui:646
 msgid "Select all pages"
 msgstr "Selecionar todas as páginas"
 
-#: app.ui.h:81
+#: app.ui:657
 msgid "Use the pan tool"
 msgstr "Usar a ferramenta de mover"
 
-#: app.ui.h:82
+#: app.ui:668
 msgid "Use the rectangular selection tool"
 msgstr "Usar a ferramenta de seleção retangular"
 
-#: app.ui.h:83
+#: app.ui:680
 msgid "Use the combined select and pan tool"
 msgstr "Usar a ferramenta combinada de seleção e mover"
 
-#: app.ui.h:85
-#, no-c-format
+#: app.ui:693
 msgid "Zoom to 100%"
 msgstr "Zoom em 100%"
 
-#: app.ui.h:86
+#: app.ui:703
 msgid "Zoom to fit"
 msgstr "Ajustar para caber"
 
-#: app.ui.h:87
+#: app.ui:713
 msgid "Zoom in"
 msgstr "Aproximar"
 
-#: app.ui.h:88
+#: app.ui:723
 msgid "Zoom out"
 msgstr "Afastar"
 
-#: app.ui.h:89
+#: app.ui:765
 msgid "Crop selection"
 msgstr "Recortar seleção"
 
-#: app.ui.h:90
+#: app.ui:776
 msgid "Quit"
 msgstr "Sair"
 
-#: menu.ui.h:5
+#: menu.ui:24
 msgid "_Save"
 msgstr "Salvar"
+
+#~ msgid "PPI"
+#~ msgstr "PPI"
+
+#~ msgid "%"
+#~ msgstr "%"
+
+#~ msgid "_Ok"
+#~ msgstr "_OK"
+
+#~ msgid "Open image file(s)"
+#~ msgstr "Abrir arquivo(s) de imagem:"
 
 #~ msgid "Error displaying help"
 #~ msgstr "Erro ao exibir a ajuda"
