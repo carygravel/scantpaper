@@ -1132,20 +1132,10 @@ class DocThread(SaveThread):
         callbacks = _note_callbacks(kwargs)
         return self.send("rotate", kwargs, **callbacks)
 
-    def begin_batch(self, **kwargs: object) -> uuid.UUID:
-        """Begin a batch of page operations that undo as one step."""
-        callbacks = _note_callbacks(kwargs)
-        return self.send("begin_batch", **callbacks)
-
     def do_begin_batch(self, _request: Request) -> None:
         """Set the batch flag so page ops share a single undo step."""
         self._in_batch = True
         self._batch_pending_snapshot = True
-
-    def end_batch(self, **kwargs: object) -> uuid.UUID:
-        """End a batch of page operations."""
-        callbacks = _note_callbacks(kwargs)
-        return self.send("end_batch", **callbacks)
 
     def do_end_batch(self, _request: Request) -> None:
         """Clear the batch flag."""
