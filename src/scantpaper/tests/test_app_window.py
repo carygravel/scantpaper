@@ -1123,10 +1123,15 @@ def test_page_selection_changed_with_value_error(
     app_window._page_selection_changed_callback(None)
 
 
-def test_page_selection_changed_restore_selection(
+def test_page_selection_changed_does_not_reapply_selection(
     app_window: ApplicationWindow, mocker: pytest.MockerFixture
 ) -> None:
-    """Test _page_selection_changed_callback restores selection (covers 692-693)."""
+    """Switching pages does not re-apply the selection against the thumbnail.
+
+    The selection is re-applied later by _on_page_loaded against the
+    full-resolution image, so it is not clamped away (and settings["selection"]
+    is not corrupted) during the page change.
+    """
     app_window.slist.get_selected_indices.return_value = [0]
     cast("Any", app_window.slist).data = [[1, None, "page_id"]]
     app_window._display_image = mocker.Mock()
@@ -1138,7 +1143,7 @@ def test_page_selection_changed_restore_selection(
 
     app_window._page_selection_changed_callback(None)
 
-    app_window.view.set_selection.assert_called_with(mock_selection)
+    app_window.view.set_selection.assert_not_called()
 
 
 def test_pack_viewer_tools(app_window: ApplicationWindow) -> None:

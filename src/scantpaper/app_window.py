@@ -726,12 +726,9 @@ class ApplicationWindow(
                 row_align=HALF,
                 col_align=HALF,
             )
-            sel = self.view.get_selection()
             with contextlib.suppress(ValueError):
                 # if a page is deleted this is still fired, so ignore it
                 self._display_image(self.slist.data[i][2])
-            if sel is not None:
-                self.view.set_selection(sel)
         else:
             self.view.set_pixbuf(None)
             self.t_canvas.clear_text()

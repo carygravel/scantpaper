@@ -8,6 +8,10 @@
   when no temporary directory has been configured; the system default is used
   silently, and the warning is only shown when a configured directory has to
   be replaced.
+* Fix the selection rectangle disappearing when moving between pages: it is
+  now re-applied against the full-resolution page image, so it stays visible
+  (bounded to each page) and you can preview where a crop will land before
+  applying it.
 
 
 ## 3.0.20 (2026-09-27)

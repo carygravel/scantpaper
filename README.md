@@ -233,7 +233,9 @@ multi-page flatbed batches, and rotation still runs before OCR.
 - **Brightness / Contrast:** Adjust brightness and contrast.
 - **Negate:** Invert colours.
 - **Unsharp mask:** Sharpen images.
-- **Crop:** Crop selected pages.
+- **Crop:** Crop selected pages. The selection rectangle stays visible when
+  you move between pages, so you can preview where the crop will land on each
+  page before applying it.
 - **Clean up:** Use unpaper to clean up scans.
 - **Split:** Split pages vertically or horizontally.
 - **OCR:** Use tesseract to create a text layer for the selected pages. The text layer is embedded into saved PDFs, making them searchable, and can be viewed and edited in the text layer window. Page pixels are fed to tesseract in memory and the stored image is reused, so OCR is faster than in previous versions.

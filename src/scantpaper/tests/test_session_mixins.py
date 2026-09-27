@@ -19,7 +19,8 @@ if TYPE_CHECKING:
     from typing import ClassVar
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # noqa: E402
+gi.require_version("Gdk", "3.0")
+from gi.repository import Gdk, Gtk  # noqa: E402
 
 
 @pytest.fixture
@@ -1217,3 +1218,54 @@ def test_error_callback_with_trace(
     mock_logger.error.assert_any_call(
         "Filename: '%s' line: %s", "scantpaper/session_mixins.py", 123
     )
+
+
+def test_on_page_loaded_reapplies_selection(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """A selection is re-applied against the full-resolution page on load."""
+    mock_session_window._windowc = None
+    sel = Gdk.Rectangle()
+    sel.x, sel.y, sel.width, sel.height = 600, 800, 700, 900
+    mock_session_window.settings["selection"] = sel
+
+    page = mocker.Mock()
+    page.get_pixbuf.return_value = mocker.Mock()
+    page.get_resolution.return_value = (200, 200, "PixelsPerInch")
+    page.get_size.return_value = (1500, 2000)
+    page.text_layer = None
+    page.annotations = None
+    response = mocker.Mock()
+    response.info = page
+
+    mock_session_window._on_page_loaded(response)
+
+    mock_session_window.view.set_selection.assert_called_once()
+    reapplied = mock_session_window.view.set_selection.call_args[0][0]
+    assert reapplied is sel
+    assert reapplied.width > 0, "re-applied selection is not degenerate"
+    assert reapplied.height > 0, "re-applied selection is not degenerate"
+    assert mock_session_window.settings["selection"] is sel, (
+        "settings selection is not overwritten"
+    )
+
+
+def test_on_page_loaded_does_not_reapply_when_no_selection(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """No selection is re-applied when none is set."""
+    mock_session_window._windowc = None
+    mock_session_window.settings["selection"] = None
+
+    page = mocker.Mock()
+    page.get_pixbuf.return_value = mocker.Mock()
+    page.get_resolution.return_value = (200, 200, "PixelsPerInch")
+    page.get_size.return_value = (1500, 2000)
+    page.text_layer = None
+    page.annotations = None
+    response = mocker.Mock()
+    response.info = page
+
+    mock_session_window._on_page_loaded(response)
+
+    mock_session_window.view.set_selection.assert_not_called()

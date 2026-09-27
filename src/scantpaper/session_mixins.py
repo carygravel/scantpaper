@@ -296,6 +296,13 @@ class SessionMixins:
         xresolution, yresolution, _units = self._current_page.get_resolution()
         self.view.set_resolution_ratio(xresolution / yresolution)
 
+        # Re-apply the selection now that the full-resolution image is
+        # displayed, so it is clamped to the real page size rather than the
+        # transient thumbnail. The crop dialog manages the selection itself
+        # (below), so skip it when that dialog owns the selection.
+        if self._windowc is None and self.settings.get("selection") is not None:
+            self.view.set_selection(self.settings["selection"])
+
         # Get image dimensions to constrain selector spinbuttons on crop dialog
         width, height = self._current_page.get_size()
 
