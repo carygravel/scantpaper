@@ -39,6 +39,11 @@ EMPTY = ""
 EMPTY_LIST = -1
 NOT_FOUND = -1
 HALF = 0.5
+# The percent sign is a symbol, not a linguistic element: ISO 31-0/SI defines
+# it universally and it is not localised in any locale. It is deliberately not
+# wrapped in _(), so it never becomes a msgid that translators must confirm as
+# unchanged. The sibling unit labels (mm, ppi, dpi, pel, bit, us, pixels) *are*
+# wrapped in _(), because those locales do localise them.
 PERCENT = "%"
 SPACE = " "
 ZOOM_CONTEXT_FACTOR = 0.5

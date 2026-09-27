@@ -281,7 +281,7 @@ class ToolsMenuMixins:
             [
                 _("Percentage"),
                 spinbuttons,
-                _("%"),
+                PERCENT,
                 self.settings["unsharp percentage"],
                 _("Unsharp strength, in percent."),
             ],

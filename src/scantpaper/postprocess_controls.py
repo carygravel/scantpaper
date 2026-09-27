@@ -7,6 +7,7 @@ from typing import cast
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
+from scantpaper.const import PERCENT
 from scantpaper.gobject import property_
 from scantpaper.i18n import _
 from scantpaper.tesseract import get_tesseract_codes, languages
@@ -383,7 +384,7 @@ class OCRControls(Gtk.Box):
         )
         self._threshold_button.set_active(self.threshold)
         hboxt.pack_start(self._threshold_button, expand=False, fill=True, padding=0)
-        labelp = Gtk.Label(label="%")
+        labelp = Gtk.Label(label=PERCENT)
         hboxt.pack_end(labelp, expand=False, fill=True, padding=0)
         self._threshold_spin = Gtk.SpinButton.new_with_range(0, 100, 1)
         self._threshold_spin.set_tooltip_text(

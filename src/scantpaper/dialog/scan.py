@@ -12,7 +12,7 @@ from gi.repository import Gdk, GObject, Gtk
 from typing_extensions import override
 
 from scantpaper.comboboxtext import ComboBoxText
-from scantpaper.const import POINTS_PER_INCH
+from scantpaper.const import PERCENT, POINTS_PER_INCH
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.pagecontrols import MAX_PAGES, PageControls
 from scantpaper.dialog.paperlist import PaperList
@@ -658,7 +658,7 @@ class Scan(PageControls):
             enums.UNIT_BIT: _("bit"),
             enums.UNIT_MM: _("mm"),
             enums.UNIT_DPI: _("ppi"),
-            enums.UNIT_PERCENT: _("%"),
+            enums.UNIT_PERCENT: PERCENT,
             enums.UNIT_MICROSECOND: _("μs"),
         }
         return labels.get(unit)
