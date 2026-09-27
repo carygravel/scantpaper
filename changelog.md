@@ -1,4 +1,4 @@
-## 3.0.20 (unreleased)
+## 3.0.20 (2026-09-27)
 
 * Accept fractional values in the numeric spin-button scan options (e.g. the
   scan-area fields `br-x`, `br-y`): typing a value with the locale's decimal
