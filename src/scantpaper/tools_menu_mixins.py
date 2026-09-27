@@ -77,17 +77,21 @@ class ToolsMenuMixins:
 
     def _rotate(self, angle: int, pagelist: Iterator[object]) -> None:
         """Rotate selected images."""
-        for page in pagelist:
-            self.slist.rotate(
-                angle=angle,
-                page=page,
-                queued_callback=self.post_process_progress.queued,
-                started_callback=self.post_process_progress.update,
-                running_callback=self.post_process_progress.update,
-                finished_callback=self.post_process_progress.finish,
-                error_callback=self._error_callback,
-                display_callback=self._display_callback,
-            )
+        self.slist.begin_undo_batch()
+        try:
+            for page in pagelist:
+                self.slist.rotate(
+                    angle=angle,
+                    page=page,
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=self.post_process_progress.finish,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
+                )
+        finally:
+            self.slist.end_undo_batch()
 
     def threshold(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display page selector and on apply threshold accordingly."""
@@ -416,24 +420,28 @@ class ToolsMenuMixins:
         if not pagelist:
             return
 
-        for i in pagelist:
+        self.slist.begin_undo_batch()
+        try:
+            for i in pagelist:
 
-            def crop_finished_callback(response: Response) -> None:
-                self.post_process_progress.finish(response)
+                def crop_finished_callback(response: Response) -> None:
+                    self.post_process_progress.finish(response)
 
-            self.slist.crop(
-                page=self.slist.data[i][2],
-                x=self.settings["selection"].x,
-                y=self.settings["selection"].y,
-                w=self.settings["selection"].width,
-                h=self.settings["selection"].height,
-                queued_callback=self.post_process_progress.queued,
-                started_callback=self.post_process_progress.update,
-                running_callback=self.post_process_progress.update,
-                finished_callback=crop_finished_callback,
-                error_callback=self._error_callback,
-                display_callback=self._display_callback,
-            )
+                self.slist.crop(
+                    page=self.slist.data[i][2],
+                    x=self.settings["selection"].x,
+                    y=self.settings["selection"].y,
+                    w=self.settings["selection"].width,
+                    h=self.settings["selection"].height,
+                    queued_callback=self.post_process_progress.queued,
+                    started_callback=self.post_process_progress.update,
+                    running_callback=self.post_process_progress.update,
+                    finished_callback=crop_finished_callback,
+                    error_callback=self._error_callback,
+                    display_callback=self._display_callback,
+                )
+        finally:
+            self.slist.end_undo_batch()
 
     def split_dialog(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None

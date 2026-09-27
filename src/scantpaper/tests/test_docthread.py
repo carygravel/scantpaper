@@ -1377,3 +1377,75 @@ def test_do_rotate_not_90(mocker: pytest.MockerFixture) -> None:
     assert page.width == 100
     assert page.height == 200
     mock_replace.assert_called_once()
+
+
+def test_batch_rotate_is_single_undo_step(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """Several page ops in one batch share a single undo/redo step."""
+    thread = DocThread(db=temp_db.name)  # type: ignore[attr-defined]
+    thread._write_tid = threading.get_native_id()
+    mocker.patch.object(thread, "check_cancelled")
+
+    _, _, p1 = thread.add_page(
+        Page(image_object=Image.new("RGB", (10, 5), color="red"))
+    )
+    _, _, p2 = thread.add_page(
+        Page(image_object=Image.new("RGB", (8, 4), color="blue"))
+    )
+    base = thread._action_id
+
+    thread.do_begin_batch(mocker.Mock())
+    thread.do_rotate(mocker.Mock(args=[{"page": p1, "angle": 90, "dir": "/tmp"}]))
+    thread.do_rotate(mocker.Mock(args=[{"page": p2, "angle": 90, "dir": "/tmp"}]))
+    thread.do_end_batch(mocker.Mock())
+
+    assert thread._action_id == base + 1, "batch rotates record a single undo step"
+    assert (thread.get_page(id=p1).width, thread.get_page(id=p1).height) == (5, 10)
+    assert (thread.get_page(id=p2).width, thread.get_page(id=p2).height) == (4, 8)
+
+    thread.do_undo(mocker.Mock())
+    assert thread._action_id == base, "one undo reverts the whole batch"
+    assert (thread.get_page(id=p1).width, thread.get_page(id=p1).height) == (10, 5)
+    assert (thread.get_page(id=p2).width, thread.get_page(id=p2).height) == (8, 4)
+
+    thread.do_redo(mocker.Mock())
+    assert thread._action_id == base + 1, "one redo re-applies the whole batch"
+    assert (thread.get_page(id=p1).width, thread.get_page(id=p1).height) == (5, 10)
+    assert (thread.get_page(id=p2).width, thread.get_page(id=p2).height) == (4, 8)
+
+
+def test_empty_batch_records_no_undo_step(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """An empty batch (no page ops) leaves no spurious undo step."""
+    thread = DocThread(db=temp_db.name)  # type: ignore[attr-defined]
+    thread._write_tid = threading.get_native_id()
+
+    _, _, _p1 = thread.add_page(
+        Page(image_object=Image.new("RGB", (10, 5), color="red"))
+    )
+    base = thread._action_id
+
+    thread.do_begin_batch(mocker.Mock())
+    thread.do_end_batch(mocker.Mock())
+
+    assert thread._action_id == base, "empty batch records no undo step"
+
+
+def test_single_op_outside_batch_records_one_step(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """A single (non-batch) page op still records exactly one undo step."""
+    thread = DocThread(db=temp_db.name)  # type: ignore[attr-defined]
+    thread._write_tid = threading.get_native_id()
+    mocker.patch.object(thread, "check_cancelled")
+
+    _, _, p1 = thread.add_page(
+        Page(image_object=Image.new("RGB", (10, 5), color="red"))
+    )
+    base = thread._action_id
+
+    thread.do_rotate(mocker.Mock(args=[{"page": p1, "angle": 90, "dir": "/tmp"}]))
+
+    assert thread._action_id == base + 1, "single op records one undo step"

@@ -409,3 +409,17 @@ def test_extract_metadata_placeholder_title() -> None:
     info["title"] = "La Voz de Galicia"
     meta = _extract_metadata(info)
     assert meta["title"] == "La Voz de Galicia"
+
+
+def test_begin_undo_batch_forwards_to_thread() -> None:
+    """begin_undo_batch sends a begin_batch request to the thread."""
+    doc = create_doc()
+    doc.begin_undo_batch()
+    doc.thread.send.assert_called_once_with("begin_batch")
+
+
+def test_end_undo_batch_forwards_to_thread() -> None:
+    """end_undo_batch sends an end_batch request to the thread."""
+    doc = create_doc()
+    doc.end_undo_batch()
+    doc.thread.send.assert_called_once_with("end_batch")

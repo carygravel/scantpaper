@@ -402,6 +402,14 @@ class Document(BaseDocument):
             callbacks["error_callback"] = error_callback
         self.thread.send("redo", **callbacks)
 
+    def begin_undo_batch(self) -> None:
+        """Begin a batch of operations that undo/redo as one step."""
+        self.thread.send("begin_batch")
+
+    def end_undo_batch(self) -> None:
+        """End a batch of operations that undo/redo as one step."""
+        self.thread.send("end_batch")
+
     def indices2pages(self, list_of_indices: list[int]) -> Iterator[object]:
         """Convert an array of indices into an array of UUIDs."""
         return (self.data[x][2] for x in list_of_indices)

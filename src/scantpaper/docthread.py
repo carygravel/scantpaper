@@ -73,6 +73,8 @@ class DocThread(SaveThread):
     heightt = THUMBNAIL
     widtht = THUMBNAIL
     _action_id = 0
+    _in_batch = False
+    _batch_pending_snapshot = False
     _db = None
     dir = None
 
@@ -793,6 +795,13 @@ class DocThread(SaveThread):
         """Take a snapshot of the current state of the document."""
         self._check_write_tid()
 
+        if self._in_batch:
+            # Inside a batch only the first page operation records a
+            # snapshot, so the whole batch shares one undo step.
+            if not self._batch_pending_snapshot:
+                return
+            self._batch_pending_snapshot = False
+
         # in case the user has undone one or more actions, before taking a
         # snapshot, remove the redo steps
         self._execute("DELETE FROM page_order WHERE action_id > ?", (self._action_id,))
@@ -1122,6 +1131,26 @@ class DocThread(SaveThread):
         """Rotate page."""
         callbacks = _note_callbacks(kwargs)
         return self.send("rotate", kwargs, **callbacks)
+
+    def begin_batch(self, **kwargs: object) -> uuid.UUID:
+        """Begin a batch of page operations that undo as one step."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("begin_batch", **callbacks)
+
+    def do_begin_batch(self, _request: Request) -> None:
+        """Set the batch flag so page ops share a single undo step."""
+        self._in_batch = True
+        self._batch_pending_snapshot = True
+
+    def end_batch(self, **kwargs: object) -> uuid.UUID:
+        """End a batch of page operations."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("end_batch", **callbacks)
+
+    def do_end_batch(self, _request: Request) -> None:
+        """Clear the batch flag."""
+        self._in_batch = False
+        self._batch_pending_snapshot = False
 
     def do_rotate(self, request: Request) -> None:
         """Rotate page in thread."""

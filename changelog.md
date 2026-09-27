@@ -1,3 +1,11 @@
+## 3.0.21 (unreleased)
+
+* Undo and redo now treat an operation applied to several pages at once
+  (e.g. rotating or cropping a selection) as a single step: one Undo reverts
+  every affected page together, and one Redo re-applies the whole operation,
+  instead of requiring one undo per page.
+
+
 ## 3.0.20 (2026-09-27)
 
 * Accept fractional values in the numeric spin-button scan options (e.g. the

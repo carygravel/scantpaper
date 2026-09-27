@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import gi
@@ -1044,3 +1045,54 @@ def test_about_dialog_runs(
     instance.set_version.assert_called()
     instance.set_website.assert_called()
     instance.set_logo_icon_name.assert_called()
+
+
+def test_rotate_multi_page_wraps_in_undo_batch(
+    mock_tool_window: object,
+) -> None:
+    """Rotating several pages wraps the loop in a single undo batch."""
+    mock_tool_window.slist.get_selected_indices.return_value = [0, 1]
+    mock_tool_window.slist.indices2pages.return_value = ["page1", "page2"]
+
+    mock_tool_window.rotate_90(None, None)
+
+    assert mock_tool_window.slist.rotate.call_count == 2
+    assert mock_tool_window.slist.begin_undo_batch.call_count == 1
+    assert mock_tool_window.slist.end_undo_batch.call_count == 1
+    calls = [call[0] for call in mock_tool_window.slist.method_calls]
+    assert calls.index("begin_undo_batch") < calls.index("rotate")
+    assert calls.index("rotate") < calls.index("end_undo_batch")
+
+
+def test_rotate_ends_undo_batch_even_on_error(
+    mock_tool_window: object,
+) -> None:
+    """The undo batch is always closed, even if a rotation fails."""
+    mock_tool_window.slist.get_selected_indices.return_value = [0, 1]
+    mock_tool_window.slist.indices2pages.return_value = ["page1", "page2"]
+    mock_tool_window.slist.rotate.side_effect = RuntimeError("boom")
+
+    with pytest.raises(RuntimeError):
+        mock_tool_window.rotate_90(None, None)
+
+    assert mock_tool_window.slist.end_undo_batch.call_count == 1
+
+
+def test_crop_selection_wraps_in_undo_batch(
+    mock_tool_window: object,
+) -> None:
+    """Cropping several pages wraps the loop in a single undo batch."""
+    mock_tool_window.settings["selection"] = SimpleNamespace(
+        x=1, y=2, width=3, height=4
+    )
+    mock_tool_window.slist.data = [["a", "b", "page1"], ["a", "b", "page2"]]
+    mock_tool_window.slist.get_selected_indices.return_value = [0, 1]
+
+    mock_tool_window.crop_selection(None, None)
+
+    assert mock_tool_window.slist.crop.call_count == 2
+    assert mock_tool_window.slist.begin_undo_batch.call_count == 1
+    assert mock_tool_window.slist.end_undo_batch.call_count == 1
+    calls = [call[0] for call in mock_tool_window.slist.method_calls]
+    assert calls.index("begin_undo_batch") < calls.index("crop")
+    assert calls.index("crop") < calls.index("end_undo_batch")

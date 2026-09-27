@@ -171,7 +171,9 @@ multi-page flatbed batches, and rotation still runs before OCR.
 
 ### Edit Menu
 
-- **Undo, Redo:** Undo or redo the last action.
+- **Undo, Redo:** Undo or redo the last action. An operation applied to
+  several pages at once (for example rotating or cropping a selection) is
+  undone or redone as a single step, reverting every affected page together.
 - **Cut, Copy, Paste:** Cut, copy, or paste selected pages.
 - **Delete:** Remove selected pages.
 - **Select:** Select all, odd, even, inverted, blank, dark, or modified pages, or pages without (up-to-date) OCR.
