@@ -2123,18 +2123,16 @@ msgid "_Open"
 msgstr "_Open"
 
 #: app.ui.h:4
-#, fuzzy
 msgid "Open c_rashed session"
-msgstr "Open crashed session"
+msgstr "Open c_rashed session"
 
 #: app.ui.h:5 menu.ui.h:4
 msgid "S_can"
 msgstr "S_can"
 
 #: app.ui.h:7 menu.ui.h:6
-#, fuzzy
 msgid "_Email as PDF"
-msgstr "Email as PDF"
+msgstr "_Email as PDF"
 
 #: app.ui.h:8 menu.ui.h:7
 msgid "_Print"
@@ -2145,9 +2143,8 @@ msgid "_Quit"
 msgstr "_Quit"
 
 #: app.ui.h:10 menu.ui.h:9
-#, fuzzy
 msgid "_Edit"
-msgstr "Edit"
+msgstr "_Edit"
 
 #: app.ui.h:11 menu.ui.h:10
 msgid "_Undo"
@@ -2166,9 +2163,8 @@ msgid "_Paste"
 msgstr "_Paste"
 
 #: app.ui.h:17 menu.ui.h:16
-#, fuzzy
 msgid "_Select"
-msgstr "Selected"
+msgstr "_Select"
 
 #: app.ui.h:18 menu.ui.h:17
 msgid "_All"
@@ -2207,14 +2203,12 @@ msgid "_Clear OCR"
 msgstr "_Clear OCR"
 
 #: app.ui.h:27 menu.ui.h:26
-#, fuzzy
 msgid "Propert_ies"
-msgstr "Properties"
+msgstr "Propert_ies"
 
 #: app.ui.h:28 menu.ui.h:27
-#, fuzzy
 msgid "Prefere_nces"
-msgstr "Preferences"
+msgstr "Prefere_nces"
 
 #: app.ui.h:29 menu.ui.h:28
 msgid "_View"
@@ -2225,33 +2219,28 @@ msgid "_Pan"
 msgstr "_Pan"
 
 #: app.ui.h:31
-#, fuzzy
 msgid "_Select & pan"
-msgstr "Select Date"
+msgstr "_Select & pan"
 
 #: app.ui.h:32
 msgid "_Tabbed"
 msgstr "_Tabbed"
 
 #: app.ui.h:33
-#, fuzzy
 msgid "_Split horizontally"
-msgstr "Horizontally"
+msgstr "_Split horizontally"
 
 #: app.ui.h:34
-#, fuzzy
 msgid "_Split vertically"
-msgstr "Vertically"
+msgstr "_Split vertically"
 
 #: app.ui.h:35
-#, fuzzy
 msgid "Edit text layer"
-msgstr "Embedding text layer"
+msgstr "Edit text layer"
 
 #: app.ui.h:36
-#, fuzzy
 msgid "Edit annotations"
-msgstr "Add annotation"
+msgstr "Edit annotations"
 
 #: app.ui.h:38 menu.ui.h:30
 #, no-c-format
@@ -2271,67 +2260,56 @@ msgid "Zoom _out"
 msgstr "Zoom _out"
 
 #: app.ui.h:42 menu.ui.h:34
-#, fuzzy
 msgid "Rotate 90° clockwise"
-msgstr "Rotate image 90 degrees clockwise."
+msgstr "Rotate 90° clockwise"
 
 #: app.ui.h:43 menu.ui.h:35
-#, fuzzy
 msgid "Rotate 180°"
-msgstr "Rotate"
+msgstr "Rotate 180°"
 
 #: app.ui.h:44 menu.ui.h:36
-#, fuzzy
 msgid "Rotate 90° anticlockwise"
-msgstr "Rotate image 90 degrees counterclockwise."
+msgstr "Rotate 90° counterclockwise"
 
 #: app.ui.h:45 menu.ui.h:37
 msgid "_Tools"
 msgstr "_Tools"
 
 #: app.ui.h:46 menu.ui.h:38
-#, fuzzy
 msgid "_Threshold"
-msgstr "Threshold"
+msgstr "_Threshold"
 
 #: app.ui.h:47 menu.ui.h:39
-#, fuzzy
 msgid "_Brightness / Contrast"
-msgstr "Brightness / Contrast"
+msgstr "_Brightness / Contrast"
 
 #: app.ui.h:48 menu.ui.h:40
-#, fuzzy
 msgid "_Negate"
-msgstr "Negate"
+msgstr "_Negate"
 
 #: app.ui.h:49 menu.ui.h:41
-#, fuzzy
 msgid "_Unsharp Mask"
-msgstr "Unsharp mask"
+msgstr "_Unsharp Mask"
 
 #: app.ui.h:50 menu.ui.h:42
-#, fuzzy
 msgid "_Crop"
-msgstr "Crop"
+msgstr "_Crop"
 
 #: app.ui.h:51 menu.ui.h:43
-#, fuzzy
 msgid "_Clean up"
-msgstr "Clean up images"
+msgstr "_Clean up"
 
 #: app.ui.h:52 menu.ui.h:44
-#, fuzzy
 msgid "_Split"
-msgstr "Split"
+msgstr "_Split"
 
 #: app.ui.h:53 menu.ui.h:45
 msgid "_OCR"
 msgstr "_OCR"
 
 #: app.ui.h:54 menu.ui.h:46
-#, fuzzy
 msgid "U_ser-defined"
-msgstr "User-defined tools"
+msgstr "U_ser-defined"
 
 #: app.ui.h:55 menu.ui.h:47
 msgid "_Help"
@@ -2346,37 +2324,32 @@ msgid "Cut"
 msgstr "Cut"
 
 #: app.ui.h:59
-#, fuzzy
 msgid "Copy"
-msgstr "_Copy"
+msgstr "Copy"
 
 #: app.ui.h:60
 msgid "Paste"
 msgstr "Paste"
 
 #: app.ui.h:61
-#, fuzzy
 msgid "Delete"
-msgstr "_Delete"
+msgstr "Delete"
 
 #: app.ui.h:64
 msgid "Print"
 msgstr "Print"
 
 #: app.ui.h:65
-#, fuzzy
 msgid "Select All"
-msgstr "Selected tool"
+msgstr "Select All"
 
 #: app.ui.h:66
-#, fuzzy
 msgid "Select Odd"
-msgstr "Selected"
+msgstr "Select Odd"
 
 #: app.ui.h:67
-#, fuzzy
 msgid "Select Even"
-msgstr "Selected"
+msgstr "Select Even"
 
 #: app.ui.h:68
 msgid "Invert selection"
@@ -2387,19 +2360,16 @@ msgid "Clear OCR"
 msgstr "Clear OCR"
 
 #: app.ui.h:70
-#, fuzzy
 msgid "Clears all pages"
-msgstr "Scan all pages"
+msgstr "Clears all pages"
 
 #: app.ui.h:71
-#, fuzzy
 msgid "Open image file(s)"
-msgstr "Open image"
+msgstr "Open image file(s)"
 
 #: app.ui.h:72
-#, fuzzy
 msgid "Scan document"
-msgstr "Scan Document"
+msgstr "Scan document"
 
 #: app.ui.h:73
 msgid "Attach as PDF to a new email"
@@ -2430,9 +2400,8 @@ msgid "Delete selected pages"
 msgstr "Delete selected pages"
 
 #: app.ui.h:80
-#, fuzzy
 msgid "Select all pages"
-msgstr "Scan all pages"
+msgstr "Select all pages"
 
 #: app.ui.h:81
 msgid "Use the pan tool"
@@ -2464,15 +2433,13 @@ msgid "Zoom out"
 msgstr "Zoom out"
 
 #: app.ui.h:89
-#, fuzzy
 msgid "Crop selection"
-msgstr "Direction"
+msgstr "Crop selection"
 
 #: app.ui.h:90
 msgid "Quit"
 msgstr "Quit"
 
 #: menu.ui.h:5
-#, fuzzy
 msgid "_Save"
-msgstr "Save"
+msgstr "_Save"

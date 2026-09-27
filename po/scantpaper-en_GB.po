@@ -2220,33 +2220,28 @@ msgid "_Pan"
 msgstr "_Pan"
 
 #: app.ui.h:31
-#, fuzzy
 msgid "_Select & pan"
-msgstr "_Select"
+msgstr "_Select & pan"
 
 #: app.ui.h:32
 msgid "_Tabbed"
 msgstr "_Tabbed"
 
 #: app.ui.h:33
-#, fuzzy
 msgid "_Split horizontally"
-msgstr "Horizontally"
+msgstr "_Split horizontally"
 
 #: app.ui.h:34
-#, fuzzy
 msgid "_Split vertically"
-msgstr "Vertically"
+msgstr "_Split vertically"
 
 #: app.ui.h:35
-#, fuzzy
 msgid "Edit text layer"
-msgstr "Embedding text layer"
+msgstr "Edit text layer"
 
 #: app.ui.h:36
-#, fuzzy
 msgid "Edit annotations"
-msgstr "Add annotation"
+msgstr "Edit annotations"
 
 #: app.ui.h:38 menu.ui.h:30
 #, no-c-format
@@ -2326,53 +2321,44 @@ msgid "_About"
 msgstr "_About"
 
 #: app.ui.h:58
-#, fuzzy
 msgid "Cut"
-msgstr "Cu_t"
+msgstr "Cut"
 
 #: app.ui.h:59
-#, fuzzy
 msgid "Copy"
-msgstr "_Copy"
+msgstr "Copy"
 
 #: app.ui.h:60
-#, fuzzy
 msgid "Paste"
-msgstr "_Paste"
+msgstr "Paste"
 
 #: app.ui.h:61
-#, fuzzy
 msgid "Delete"
-msgstr "_Delete"
+msgstr "Delete"
 
 #: app.ui.h:64
 msgid "Print"
 msgstr "Print"
 
 #: app.ui.h:65
-#, fuzzy
 msgid "Select All"
-msgstr "_Select"
+msgstr "Select All"
 
 #: app.ui.h:66
-#, fuzzy
 msgid "Select Odd"
-msgstr "Selected"
+msgstr "Select Odd"
 
 #: app.ui.h:67
-#, fuzzy
 msgid "Select Even"
-msgstr "Selected"
+msgstr "Select Even"
 
 #: app.ui.h:68
-#, fuzzy
 msgid "Invert selection"
-msgstr "Cut selection"
+msgstr "Invert selection"
 
 #: app.ui.h:69
-#, fuzzy
 msgid "Clear OCR"
-msgstr "_Clear OCR"
+msgstr "Clear OCR"
 
 #: app.ui.h:70
 msgid "Clears all pages"
@@ -2456,9 +2442,8 @@ msgid "Quit"
 msgstr "Quit"
 
 #: menu.ui.h:5
-#, fuzzy
 msgid "_Save"
-msgstr "Save"
+msgstr "_Save"
 
 #~ msgid "OCR Output"
 #~ msgstr "OCR Output"
