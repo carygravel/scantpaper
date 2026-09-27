@@ -17,10 +17,10 @@ BuildRequires:  python313-setuptools
 BuildRequires:  python313-wheel
 BuildRequires:  python313-build
 BuildRequires:  python313-flit-core
-BuildRequires:  python3dist(pillow)
+BuildRequires:  python313-Pillow
 BuildRequires:  python313-pikepdf
 
-Requires:       python3dist(pillow)
+Requires:       python313-Pillow
 Requires:       python313-pikepdf
 
 %description

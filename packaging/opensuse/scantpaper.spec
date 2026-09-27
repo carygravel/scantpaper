@@ -33,8 +33,8 @@ BuildRequires:  python3-ocrmypdf
 BuildRequires:  python3-img2pdf
 BuildRequires:  python3-sane
 BuildRequires:  python3-iso639
-BuildRequires:  python3dist(pillow)
-BuildRequires:  python3dist(pikepdf)
+BuildRequires:  python313-Pillow
+BuildRequires:  python313-pikepdf
 
 # Tools used to generate the additional files installed by the package.
 BuildRequires:  gettext-tools
@@ -51,10 +51,27 @@ BuildRequires:  poppler-tools
 BuildRequires:  rsvg-convert
 BuildRequires:  ghostscript
 
-# Python runtime dependencies are generated automatically from pyproject.toml.
+# Python runtime dependencies. openSUSE's pip-based build (no %pyproject_*
+# macros) does not auto-generate python requires, so they are declared
+# explicitly here, matching the pyproject.toml dependencies. The concrete
+# python313-*/python3-* package names are used instead of python3dist(...)
+# virtual provides because third-party OBS python repos (devel:languages:python,
+# system:documentserver:paperless) do not provide python3dist(...); forcing
+# that provide would make zypper downgrade their newer builds to the repo-oss
+# ones.
+Requires:  python3-img2pdf
+Requires:  python3-ocrmypdf
+Requires:  python3-iso639
+Requires:  python3-sane
+Requires:  python3-tesserocr
+Requires:  python313-pikepdf
+Requires:  python313-pycairo
+Requires:  python313-gobject
+Requires:  python313-typing_extensions
+
 # The tools invoked via subprocess (convert, tiffcp, pdfunite, rsvg-convert,
-# gs, and the Recommends below) are not covered by the Python METADATA
-# auto-requires, so they are declared explicitly:
+# gs, and the Recommends below) are not Python packages, so they are declared
+# explicitly:
 Requires:  ImageMagick
 Requires:  tiff
 Requires:  poppler-tools

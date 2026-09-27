@@ -17,8 +17,8 @@ BuildRequires:  python313-setuptools
 BuildRequires:  python313-wheel
 BuildRequires:  python313-build
 
-Requires:       python3dist(packaging)
-Requires:       python3dist(setuptools)
+Requires:       python313-packaging
+Requires:       python313-setuptools
 
 %description
 setuptools-scm helps manage package versions by SCM tags. It is rebuilt

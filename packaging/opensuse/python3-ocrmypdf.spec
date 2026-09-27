@@ -19,10 +19,10 @@ BuildRequires:  python313-build
 BuildRequires:  python313-hatchling
 BuildRequires:  python3-hatch-vcs
 BuildRequires:  python3-setuptools-scm
-BuildRequires:  python3dist(pikepdf) >= 8.10.1
-BuildRequires:  python3dist(pillow) >= 10.0.1
-BuildRequires:  python3dist(pluggy) >= 1
-BuildRequires:  python3dist(rich) >= 13
+BuildRequires:  python313-pikepdf >= 8.10.1
+BuildRequires:  python313-Pillow >= 10.0.1
+BuildRequires:  python313-pluggy >= 1
+BuildRequires:  python313-rich >= 13
 BuildRequires:  python313-deprecation
 BuildRequires:  python313-packaging
 
@@ -32,10 +32,10 @@ Requires:       python313-deprecation
 Requires:       python3-img2pdf >= 0.5
 Requires:       python313-packaging
 Requires:       python3-pdfminer.six >= 20220319
-Requires:       python3dist(pikepdf) >= 8.10.1
-Requires:       python3dist(pillow) >= 10.0.1
-Requires:       python3dist(pluggy) >= 1
-Requires:       python3dist(rich) >= 13
+Requires:       python313-pikepdf >= 8.10.1
+Requires:       python313-Pillow >= 10.0.1
+Requires:       python313-pluggy >= 1
+Requires:       python313-rich >= 13
 
 # The build and runtime dependencies are declared statically rather than
 # generated, because ocrmypdf 16.11.1 lists "pi-heif" in its runtime

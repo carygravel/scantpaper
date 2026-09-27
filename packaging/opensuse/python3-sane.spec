@@ -24,8 +24,8 @@ BuildRequires:  sane-backends-devel
 BuildRequires:  sane-backends
 
 Requires:       libsane1
-Requires:       python3dist(numpy)
-Requires:       python3dist(pillow)
+Requires:       python313-numpy
+Requires:       python313-Pillow
 
 %description
 python-sane is a Python interface to the SANE scanner API. It is built from
