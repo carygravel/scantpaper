@@ -20,37 +20,30 @@ msgstr ""
 "X-Launchpad-Export-Date: 2024-06-28 17:52+0000\n"
 
 #: app_window.py:516
-#, fuzzy
 msgid "Save image and Save as PDF both require imagemagick"
 msgstr "Pro uložení obrázku i jako PDF je vyžadován ImageMagick"
 
 #: app_window.py:517
-#, fuzzy
 msgid "Save image requires libtiff"
 msgstr "Pro uložení obrázku je vyžadován libtiff"
 
 #: app_window.py:518
-#, fuzzy
 msgid "Save as DjVu requires djvulibre-bin"
 msgstr "Pro uložení jako DjVu je vyžadován djvulibre-bin"
 
 #: app_window.py:519
-#, fuzzy
 msgid "Email as PDF requires xdg-email"
 msgstr "Pro odeslání PDF e-mailem je vyžadován xdg-email"
 
 #: app_window.py:520
-#, fuzzy
 msgid "unpaper missing"
 msgstr "chybí unpaper"
 
 #: app_window.py:528
-#, fuzzy
 msgid "OCR requires tesseract"
 msgstr "Pro OCR je vyžadován tesseract"
 
 #: app_window.py:543
-#, fuzzy
 msgid "PDF encryption requires qpdf"
 msgstr "Pro šifrování PDF je vyžadován qpdf"
 
@@ -67,12 +60,11 @@ msgid "Text layer"
 msgstr "Textová vrstva"
 
 #: app_window.py:596 session_mixins.py:446
-#, fuzzy
 msgid "Annotations"
 msgstr "Anotace"
 
 #: app_window.py:838
-#, fuzzy, python-format
+#, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
 msgstr[0] "%dMB volných v %s."
@@ -84,17 +76,14 @@ msgid "Messages"
 msgstr "Zprávy"
 
 #: app_window.py:948
-#, fuzzy
 msgid "Error opening the last device used."
 msgstr "Chyba při otevírání posledního použitého zařízení."
 
 #: app_window.py:950
-#, fuzzy
 msgid "There was an error opening the last device used."
 msgstr "Při otevírání posledního použitého zařízení došlo k chybě."
 
 #: app_window.py:953
-#, fuzzy
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Jejda! Zapomněl jsem ho zapnout. Zkus to znovu."
 
@@ -103,17 +92,14 @@ msgid "Rescan for devices"
 msgstr "Opakovat hledání zařízení"
 
 #: app_window.py:962
-#, fuzzy
 msgid "Restart scantpaper."
 msgstr "Restartujte scantpaper."
 
 #: app_window.py:967
-#, fuzzy
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Chybu prostě ignorujte. Skener zatím nepotřebuji."
 
 #: app_window.py:970 dialog/preferences.py:162
-#, fuzzy
 msgid "Cache device list"
 msgstr "Ukládat seznam zařízení do mezipaměti"
 
@@ -150,7 +136,7 @@ msgid "US Legal"
 msgstr "US Legal"
 
 #: config.py:263
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The setting %s is %r and cannot be used as %s, so it has been left unchanged."
 msgstr ""
@@ -158,7 +144,7 @@ msgstr ""
 "beze změny."
 
 #: config.py:299
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The settings file %s could not be read in full. The following settings were "
 "restored: %s. The rest were reset to their defaults. A backup of the "
@@ -169,7 +155,7 @@ msgstr ""
 "původního souboru byla uložena jako %s."
 
 #: config.py:306
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The settings file %s could not be read, so all settings have been reset to "
 "their defaults. A backup of the original file has been saved as %s."
@@ -191,7 +177,6 @@ msgid "Warning"
 msgstr "Varování"
 
 #: dialog/__init__.py:108
-#, fuzzy
 msgid "Info"
 msgstr "Informace"
 
@@ -309,22 +294,18 @@ msgid "Page number"
 msgstr "Číslo stránky"
 
 #: dialog/pagecontrols.py:271
-#, fuzzy
 msgid "Insert before page N"
 msgstr "Vložit před stránku N"
 
 #: dialog/pagecontrols.py:274
-#, fuzzy
 msgid "Page number before which scans will be inserted"
 msgstr "Číslo stránky, před kterou budou skeny vloženy"
 
 #: dialog/pagecontrols.py:285
-#, fuzzy
 msgid "Position advance"
 msgstr "Posun pozice"
 
 #: dialog/pagecontrols.py:289
-#, fuzzy
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
@@ -444,12 +425,10 @@ msgstr ""
 "jednostranný režim."
 
 #: dialog/preferences.py:118
-#, fuzzy
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Ignorovat funkce oboustranného skenování skeneru"
 
 #: dialog/preferences.py:122
-#, fuzzy
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
@@ -483,7 +462,6 @@ msgstr ""
 "dokumentů je vybrán počet stránek vše."
 
 #: dialog/preferences.py:165
-#, fuzzy
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
@@ -492,7 +470,6 @@ msgstr ""
 "scantpaper nejprve nehledá dostupná zařízení."
 
 #: dialog/preferences.py:169
-#, fuzzy
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
@@ -511,7 +488,6 @@ msgid "Default PDF & DjVu filename"
 msgstr "Výchozí název souboru PDF a DjVu"
 
 #: dialog/preferences.py:194
-#, fuzzy
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -631,7 +607,7 @@ msgid "Manage user-defined tools"
 msgstr "Spravovat uživatelem určené nástroje"
 
 #: dialog/preferences.py:352
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Use %i and %o for the input and output filenames respectively,\n"
 "or a single %i if the image is to be modified in-place.\n"
@@ -650,17 +626,14 @@ msgid "_Delete"
 msgstr "_Smazat"
 
 #: dialog/preferences.py:397
-#, fuzzy
 msgid "The following user-defined tools could not be found:\n"
 msgstr "Následující uživatelské nástroje nebylo možné najít:\n"
 
 #: dialog/preferences.py:400
-#, fuzzy
 msgid "Please check that the command is installed and in your PATH."
 msgstr "Zkontrolujte, že je příkaz nainstalován a v PATH."
 
 #: dialog/preferences.py:402
-#, fuzzy
 msgid "User-defined tool not found"
 msgstr "Uživatelský nástroj nebyl nalezen"
 
@@ -693,18 +666,17 @@ msgid "Scan Options"
 msgstr "Možnosti skenování"
 
 #: dialog/sane.py:290
-#, fuzzy, python-format
+#, python-format
 msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
 msgstr ""
 "Volba skenování „%s“ se ignoruje, minimální rozsah (%s) > maximální (%s)"
 
 #: dialog/sane.py:450
-#, fuzzy, python-format
+#, python-format
 msgid "Setting option %s"
 msgstr "Nastavuji volbu %s"
 
 #: dialog/sane.py:469
-#, fuzzy
 msgid "Error setting option: "
 msgstr "Chyba při nastavování volby: "
 
@@ -789,7 +761,6 @@ msgid "Session"
 msgstr "Sezení"
 
 #: dialog/save.py:40
-#, fuzzy
 msgid "scantpaper session database"
 msgstr "Databáze relace scantpaper"
 
@@ -850,17 +821,14 @@ msgid "Compress output with CCITT Group 4 encoding."
 msgstr "Kompresovat výstup poocí kódovaní CCITT Skupiny 4."
 
 #: dialog/save.py:54
-#, fuzzy
 msgid "Flate"
 msgstr "Flate"
 
 #: dialog/save.py:54
-#, fuzzy
 msgid "Compress output with flate encoding."
 msgstr "Komprimovat výstup kódováním flate."
 
 #: dialog/save.py:55
-#, fuzzy
 msgid "Compress output with JPEG (DCT) encoding."
 msgstr "Komprimovat výstup kódováním JPEG (DCT)."
 
@@ -1042,12 +1010,10 @@ msgid "Error: unknown device: %s"
 msgstr "Chyba: neznámé zařízení: %s"
 
 #: dialog/scan.py:657
-#, fuzzy
 msgid "pel"
 msgstr "bod"
 
 #: dialog/scan.py:658
-#, fuzzy
 msgid "bit"
 msgstr "bit"
 
@@ -1080,7 +1046,7 @@ msgid "Selects or edits the paper size"
 msgstr "Vybírá nebo upravuje rozměry stránek"
 
 #: dialog/scan.py:770
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
 "file a bug, attaching a log file reproducing the problem."
@@ -1094,7 +1060,6 @@ msgid "Edit paper size"
 msgstr "Upravit velikost papíru"
 
 #: dialog/scan.py:1051
-#, fuzzy
 msgid "Apply"
 msgstr "Použít"
 
@@ -1106,7 +1071,6 @@ msgstr ""
 "zařízením:"
 
 #: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-#, fuzzy
 msgid "Cancel"
 msgstr "Zrušit"
 
@@ -1120,7 +1084,6 @@ msgid "Profile '%s' exists. Overwrite?"
 msgstr "Profil „%s“ už existuje. Přepsat?"
 
 #: dialog/scan.py:1592 dialog/scan.py:1634
-#, fuzzy
 msgid "OK"
 msgstr "OK"
 
@@ -1157,12 +1120,10 @@ msgid "Analysing page %i of %i"
 msgstr "Analyzuje se stránka %i z %i"
 
 #: docthread.py:1461
-#, fuzzy
 msgid "No tesseract language specified"
 msgstr "Není zadán jazyk tesseractu"
 
 #: docthread.py:1470
-#, fuzzy
 msgid "tessdata directory not found"
 msgstr "Adresář tessdata nebyl nalezen"
 
@@ -1189,12 +1150,10 @@ msgstr ""
 "(hvězdička)"
 
 #: edit_menu_mixins.py:394
-#, fuzzy
 msgid "Changes will only take effect after restarting scantpaper."
 msgstr "Změny se projeví až po restartu scantpaperu."
 
 #: edit_menu_mixins.py:396
-#, fuzzy
 msgid "Restart scantpaper now?"
 msgstr "Restartovat scantpaper nyní?"
 
@@ -1323,7 +1282,7 @@ msgid "Image filename"
 msgstr "Jméno souboru s obrázkem"
 
 #: file_menu_mixins.py:862
-#, fuzzy, python-format
+#, python-format
 msgid "This operation would overwrite %s"
 msgstr "Tato operace přepíše %s"
 
@@ -1341,7 +1300,7 @@ msgid "File %s not found"
 msgstr "Soubor %s nebyl nalezen"
 
 #: importthread.py:92
-#, fuzzy, python-format
+#, python-format
 msgid "Error getting file info for %s: %s"
 msgstr "Chyba při získávání informací o souboru %s: %s"
 
@@ -1351,7 +1310,7 @@ msgid "Error importing zero-length file %s."
 msgstr "Chyba při importu prázdného souboru %s."
 
 #: importthread.py:135 importthread.py:178
-#, fuzzy, python-format
+#, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr "Pro otevírání souborů DjVu nainstalujte djvulibre-bin: %s"
 
@@ -1360,7 +1319,7 @@ msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Neznámá struktura souboru DjVu. Prosím kontaktujte autora."
 
 #: importthread.py:266
-#, fuzzy, python-format
+#, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "Pro otevírání souborů TIFF nainstalujte libtiff-tools: %s"
 
@@ -1374,7 +1333,6 @@ msgid "Error extracting images from PDF"
 msgstr "Chyba při xtrahování obrázků z PDF"
 
 #: importthread.py:521
-#, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
@@ -1423,7 +1381,6 @@ msgid "Reverse side."
 msgstr "Zadní strana."
 
 #: postprocess_controls.py:26
-#, fuzzy
 msgid "90°"
 msgstr "90°"
 
@@ -1432,7 +1389,6 @@ msgid "Rotate image 90 degrees clockwise."
 msgstr "Otočit obrázek o 90 stupnů vpravo"
 
 #: postprocess_controls.py:27
-#, fuzzy
 msgid "180°"
 msgstr "180°"
 
@@ -1441,7 +1397,6 @@ msgid "Rotate image 180 degrees clockwise."
 msgstr "Otočit obrázek o 180 stupnů"
 
 #: postprocess_controls.py:28
-#, fuzzy
 msgid "270°"
 msgstr "270°"
 
@@ -1462,12 +1417,10 @@ msgid "Select side to rotate"
 msgstr "Vyberte stranu pro otočení"
 
 #: postprocess_controls.py:45
-#, fuzzy
 msgid "Select angle of rotation"
 msgstr "Vyberte úhel otočení"
 
 #: postprocess_controls.py:48
-#, fuzzy
 msgid "Anticlockwise"
 msgstr "Proti směru hodinových ručiček"
 
@@ -1488,7 +1441,6 @@ msgstr ""
 "předaných OCR engine a ne uložených obrázků."
 
 #: postprocess_controls.py:391 tools_menu_mixins.py:114
-#, fuzzy
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
@@ -1501,7 +1453,6 @@ msgid "Language to recognise"
 msgstr "Jazyk pro rozpoznávání"
 
 #: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-#, fuzzy
 msgid "_Cancel"
 msgstr "_Zrušit"
 
@@ -1516,12 +1467,10 @@ msgid "Process %i of %i"
 msgstr "Zpracování %i z %i"
 
 #: savethread.py:83
-#, fuzzy
 msgid "Processing PDF"
 msgstr "Zpracovávám PDF"
 
 #: savethread.py:148
-#, fuzzy
 msgid "Embedding text layer"
 msgstr "Vkládám textovou vrstvu"
 
@@ -1535,7 +1484,7 @@ msgid "Writing page %i of %i"
 msgstr "Zápis stránky %i z %i"
 
 #: savethread.py:291
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
@@ -1543,7 +1492,6 @@ msgstr ""
 "stránek."
 
 #: savethread.py:314 tests/test_savethread.py:1240
-#, fuzzy
 msgid "Writing PDF"
 msgstr "Zapisuji PDF"
 
@@ -1561,7 +1509,7 @@ msgid "Merging DjVu"
 msgstr "Spojování DjVu"
 
 #: savethread.py:425
-#, fuzzy, python-format
+#, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Chyba při slučování DjVu: %s"
 
@@ -1594,12 +1542,10 @@ msgid "Error encrypting PDF: %s"
 msgstr "Chyba šifrování PDF: %s"
 
 #: scan_menu_item_mixins.py:72
-#, fuzzy
 msgid "Really cache libusb device names?"
 msgstr "Opravdu uložit názvy zařízení libusb do mezipaměti?"
 
 #: scan_menu_item_mixins.py:76
-#, fuzzy
 msgid ""
 "Caching device list with libusb devices included is not recommended as they "
 "can change between reboots."
@@ -1608,7 +1554,6 @@ msgstr ""
 "nedoporučuje, protože se mezi restarty může změnit."
 
 #: scan_menu_item_mixins.py:78
-#, fuzzy
 msgid "Are you sure you want to do this?"
 msgstr "Opravdu to chcete udělat?"
 
@@ -1617,17 +1562,14 @@ msgid "Scan Document"
 msgstr "Skenovat dokument"
 
 #: scan_menu_item_mixins.py:216
-#, fuzzy
 msgid "Postprocessing"
 msgstr "Následné zpracování"
 
 #: scan_menu_item_mixins.py:230
-#, fuzzy
 msgid "Alternate rotation every 2nd page"
 msgstr "Střídat otočení na každé druhé stránce"
 
 #: scan_menu_item_mixins.py:233
-#, fuzzy
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
@@ -1706,47 +1648,39 @@ msgid "Finished scanning reverse pages. Scan facing pages?"
 msgstr "Dokončeno skenování z druhé strany (rub). Skenovat z té první (rub)?"
 
 #: session_mixins.py:448
-#, fuzzy
 msgid "_Ok"
 msgstr "_OK"
 
 #: session_mixins.py:449 text_layer_control.py:80
-#, fuzzy
 msgid "Accept corrections"
 msgstr "Přijmout opravy"
 
 #: session_mixins.py:452 text_layer_control.py:83
-#, fuzzy
 msgid "Cancel corrections"
 msgstr "Zrušit opravy"
 
 #: session_mixins.py:458
-#, fuzzy
 msgid "Add annotation"
 msgstr "Přidat anotaci"
 
 #: session_mixins.py:461
-#, fuzzy
 msgid "Delete annotation"
 msgstr "Smazat anotaci"
 
 #: session_mixins.py:505
-#, fuzzy
 msgid "my-new-word"
 msgstr "moje-nové-slovo"
 
 #: session_mixins.py:560
-#, fuzzy
 msgid "my-new-annotation"
 msgstr "moje-nová-anotace"
 
 #: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, fuzzy, python-format
+#, python-format
 msgid "You are using locale '%s'."
 msgstr "Používáte národní prostředí „%s“."
 
 #: tesseract.py:235
-#, fuzzy
 msgid ""
 "scantpaper does not currently know which tesseract language package would be "
 "necessary for that locale."
@@ -1755,12 +1689,11 @@ msgstr ""
 "toto národní prostředí potřebný."
 
 #: tesseract.py:239
-#, fuzzy
 msgid "Please contact the developers to add support for that locale."
 msgstr "Požádejte vývojáře o přidání podpory pro toto národní prostředí."
 
 #: tesseract.py:250
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
 "for OCR for %s with tesseract."
@@ -1769,72 +1702,59 @@ msgstr ""
 "pro OCR jazyka %s s tesseractem."
 
 #: tesseract.py:260
-#, fuzzy, python-format
+#, python-format
 msgid "There is no tesseract package for %s"
 msgstr "Pro %s neexistuje balíček tesseractu"
 
 #: tesseract.py:262
-#, fuzzy
 msgid "If this is in error, please contact the scantpaper developers."
 msgstr "Pokud je to omyl, kontaktujte vývojáře scantpaperu."
 
 #: tests/test_savethread.py:1230
-#, fuzzy
 msgid "Writing page"
 msgstr "Zapisuji stránku"
 
 #: text_layer_control.py:27
-#, fuzzy
 msgid "Sort by confidence"
 msgstr "Seřadit podle spolehlivosti"
 
 #: text_layer_control.py:28
-#, fuzzy
 msgid "Sort OCR text boxes by confidence."
 msgstr "Seřadit textové rámečky OCR podle spolehlivosti."
 
 #: text_layer_control.py:30
-#, fuzzy
 msgid "Sort by position"
 msgstr "Seřadit podle pozice"
 
 #: text_layer_control.py:30
-#, fuzzy
 msgid "Sort OCR text boxes by position."
 msgstr "Seřadit textové rámečky OCR podle pozice."
 
 #: text_layer_control.py:61
-#, fuzzy
 msgid "Go to least confident text"
 msgstr "Přejít na nejméně spolehlivý text"
 
 #: text_layer_control.py:64
-#, fuzzy
 msgid "Go to previous text"
 msgstr "Přejít na předchozí text"
 
 #: text_layer_control.py:67
-#, fuzzy
 msgid "Select sort method for OCR boxes"
 msgstr "Vyberte způsob řazení rámečků OCR"
 
 #: text_layer_control.py:73
-#, fuzzy
 msgid "Go to next text"
 msgstr "Přejít na další text"
 
 #: text_layer_control.py:75
-#, fuzzy
 msgid "Go to most confident text"
 msgstr "Přejít na nejspolehlivější text"
 
 #: text_layer_control.py:77
-#, fuzzy
 msgid "Add text"
 msgstr "Přidat text"
 
 #: text_layer_control.py:80
-#, fuzzy
 msgid "_OK"
 msgstr "_OK"
 
@@ -1843,12 +1763,10 @@ msgid "_Copy"
 msgstr "_Kopírovat"
 
 #: text_layer_control.py:86
-#, fuzzy
 msgid "Duplicate text"
 msgstr "Duplikovat text"
 
 #: text_layer_control.py:89
-#, fuzzy
 msgid "Delete text"
 msgstr "Smazat text"
 
@@ -1857,7 +1775,6 @@ msgid "Threshold"
 msgstr "Práh"
 
 #: tools_menu_mixins.py:106
-#, fuzzy
 msgid "Ink strength"
 msgstr "Síla inkoustu"
 
@@ -1886,58 +1803,47 @@ msgid "Radius"
 msgstr "Poloměr"
 
 #: tools_menu_mixins.py:279
-#, fuzzy
 msgid "Blur Radius."
 msgstr "Poloměr rozostření."
 
 #: tools_menu_mixins.py:282
-#, fuzzy
 msgid "Percentage"
 msgstr "Procento"
 
 #: tools_menu_mixins.py:286
-#, fuzzy
 msgid "Unsharp strength, in percent."
 msgstr "Síla doostření v procentech."
 
 #: tools_menu_mixins.py:294
-#, fuzzy
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
 msgstr "Práh řídí minimální změnu jasu, která bude doostřena."
 
 #: tools_menu_mixins.py:444
-#, fuzzy
 msgid "Split"
 msgstr "Rozdělit"
 
 #: tools_menu_mixins.py:453
-#, fuzzy
 msgid "Direction"
 msgstr "Směr"
 
 #: tools_menu_mixins.py:458
-#, fuzzy
 msgid "Vertically"
 msgstr "Svisle"
 
 #: tools_menu_mixins.py:459
-#, fuzzy
 msgid "Split the page vertically into left and right pages."
 msgstr "Rozdělit stránku svisle na levou a pravou stránku."
 
 #: tools_menu_mixins.py:463
-#, fuzzy
 msgid "Horizontally"
 msgstr "Vodorovně"
 
 #: tools_menu_mixins.py:464
-#, fuzzy
 msgid "Split the page horizontally into top and bottom pages."
 msgstr "Rozdělit stránku vodorovně na horní a dolní stránku."
 
 #: tools_menu_mixins.py:487
-#, fuzzy
 msgid "Position"
 msgstr "Pozice"
 
@@ -1970,7 +1876,6 @@ msgid "To aid the scan-to-PDF process"
 msgstr "Pomáhá skenovat dokumenty do PDF"
 
 #: tools_menu_mixins.py:918
-#, fuzzy
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
 msgstr "Copyright 2006--2026 Jeffrey Ratcliffe"
 
@@ -2289,7 +2194,6 @@ msgid "_Even"
 msgstr "S_udé"
 
 #: app.ui.h:21 menu.ui.h:20
-#, fuzzy
 msgid "_Invert"
 msgstr "_Invertovat"
 
@@ -2326,14 +2230,13 @@ msgid "_View"
 msgstr "_Zobrazit"
 
 #: app.ui.h:30
-#, fuzzy
 msgid "_Pan"
 msgstr "_Posun"
 
 #: app.ui.h:31
 #, fuzzy
 msgid "_Select & pan"
-msgstr "Vy_brat"
+msgstr "Vy_brat a posouvat"
 
 #: app.ui.h:32
 msgid "_Tabbed"
@@ -2342,22 +2245,22 @@ msgstr "S kar_tami"
 #: app.ui.h:33
 #, fuzzy
 msgid "_Split horizontally"
-msgstr "Vodorovně"
+msgstr "_Rozdělit vodorovně"
 
 #: app.ui.h:34
 #, fuzzy
 msgid "_Split vertically"
-msgstr "Svisle"
+msgstr "_Rozdělit svisle"
 
 #: app.ui.h:35
 #, fuzzy
 msgid "Edit text layer"
-msgstr "Vkládám textovou vrstvu"
+msgstr "Upravit textovou vrstvu"
 
 #: app.ui.h:36
 #, fuzzy
 msgid "Edit annotations"
-msgstr "Přidat anotaci"
+msgstr "Upravit anotace"
 
 #: app.ui.h:38 menu.ui.h:30
 #, no-c-format
@@ -2437,22 +2340,18 @@ msgid "_About"
 msgstr "_O programu"
 
 #: app.ui.h:58
-#, fuzzy
 msgid "Cut"
 msgstr "_Vyjmout"
 
 #: app.ui.h:59
-#, fuzzy
 msgid "Copy"
 msgstr "_Kopírovat"
 
 #: app.ui.h:60
-#, fuzzy
 msgid "Paste"
 msgstr "_Vložit"
 
 #: app.ui.h:61
-#, fuzzy
 msgid "Delete"
 msgstr "_Smazat"
 
@@ -2463,25 +2362,24 @@ msgstr "Vytisknout"
 #: app.ui.h:65
 #, fuzzy
 msgid "Select All"
-msgstr "Vy_brat"
+msgstr "Vybrat vše"
 
 #: app.ui.h:66
 #, fuzzy
 msgid "Select Odd"
-msgstr "Vybrané"
+msgstr "Vybrat liché"
 
 #: app.ui.h:67
 #, fuzzy
 msgid "Select Even"
-msgstr "Vybrané"
+msgstr "Vybrat sudé"
 
 #: app.ui.h:68
 #, fuzzy
 msgid "Invert selection"
-msgstr "Vyjmout výběr"
+msgstr "Invertovat výběr"
 
 #: app.ui.h:69
-#, fuzzy
 msgid "Clear OCR"
 msgstr "_Vyčistit OCR"
 
@@ -2530,17 +2428,14 @@ msgid "Select all pages"
 msgstr "Vybrat všechny stránky"
 
 #: app.ui.h:81
-#, fuzzy
 msgid "Use the pan tool"
 msgstr "Použít nástroj posunu"
 
 #: app.ui.h:82
-#, fuzzy
 msgid "Use the rectangular selection tool"
 msgstr "Použít nástroj obdélníkového výběru"
 
 #: app.ui.h:83
-#, fuzzy
 msgid "Use the combined select and pan tool"
 msgstr "Použít kombinovaný nástroj výběru a posunu"
 
@@ -2572,7 +2467,7 @@ msgstr "Konec"
 #: menu.ui.h:5
 #, fuzzy
 msgid "_Save"
-msgstr "Uložit"
+msgstr "_Uložit"
 
 #~ msgid "Error displaying help"
 #~ msgstr "Nepodařilo se zobrazit nápovědu"
