@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import datetime
+import os
 import subprocess
-from contextlib import chdir
 from pathlib import Path
 
 pkg_dir = Path(__file__).resolve().parent.parent / "src" / "scantpaper"
@@ -23,7 +23,12 @@ from scantpaper.const import (  # noqa: E402
 
 def main() -> None:
     """Run the application entry point."""
-    with chdir(pkg_dir):
+    # contextlib.chdir needs Python 3.11, but the minimum supported version
+    # (see requires-python) is 3.10, so change directory by hand and always
+    # restore it so the template is written to the caller's directory.
+    previous_cwd = Path.cwd()
+    try:
+        os.chdir(pkg_dir)
         ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))
         py_sources = sorted(str(x) for x in Path().rglob("*.py"))
 
@@ -66,6 +71,8 @@ def main() -> None:
         out = subprocess.check_output(["msgcat", "--use-first", *tmp_pots], text=True)
         for x in tmp_pots:
             Path(x).unlink(missing_ok=True)
+    finally:
+        os.chdir(previous_cwd)
 
     local_tz = datetime.datetime.now().astimezone().tzinfo
     year = datetime.datetime.now(local_tz).year
