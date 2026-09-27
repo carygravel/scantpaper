@@ -634,6 +634,38 @@ Set locale variables as needed (e.g., for Russian):
 LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LANGUAGE=ru_RU.utf8 PYTHONPATH=src python3 -m scantpaper.app --log=log --locale=locale
 ```
 
+### Validating catalogs and source strings
+
+```sh
+python3 dev/check_po.py
+```
+
+This needs `xgettext`, `msgcat`, `intltool-extract` and `msgfmt` on `PATH`.
+CI runs the same script via `test_po_files.py`.
+
+Errors fail the script; advisories are printed but do not. A release is
+therefore never blocked by an advisory, but they are worth reading.
+
+The hard checks catch defects that break a catalog or a translation: a bad
+format specifier, an unbalanced or renamed placeholder, a plural entry with
+the wrong number of forms, a `Plural-Forms` header that disagrees with CLDR,
+an obsolete-entry count over the catalog's ceiling, and counted strings
+written as `%(plural)s` rather than `ngettext`.
+
+The advisories fall into two groups. Source-side ones report strings that are
+hard to translate, so they are best fixed by rewording: a concatenation
+fragment that fixes English word order into a translatable string, a msgid
+differing from another only by case, a doubled space, a msgid over 200
+characters, and a `μs` written with GREEK SMALL LETTER MU. Catalog-side ones
+report mistranslations that only a native speaker can judge: a `msgstr` copied
+verbatim from a different msgid (the signature of a bad fuzzy match), and two
+sibling controls such as `Select Odd` and `Select Even` sharing one
+translation.
+
+`dev/check_po.py` has a `--pot` option that points it at an existing template
+instead of generating one, which the test suite uses to exercise the
+source-side checks.
+
 ---
 
 ## FAQs

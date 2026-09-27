@@ -561,7 +561,7 @@ def test_other_save_dialog_callbacks() -> None:
     downsample_btn = find_checkbutton(content_area, "Downsample to")
     assert downsample_btn is not None
 
-    downsample_spins = find_all_spinbuttons_near_label(content_area, "PPI")
+    downsample_spins = find_all_spinbuttons_near_label(content_area, "ppi")
     assert len(downsample_spins) > 0
     downsample_spin = downsample_spins[0]
 

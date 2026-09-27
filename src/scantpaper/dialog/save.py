@@ -786,7 +786,7 @@ class Save(Dialog):
         hbox.pack_start(button, expand=False, fill=False, padding=0)
         spinbutton = Gtk.SpinButton.new_with_range(1, MAX_DPI, 1)
         spinbutton.set_value(self.downsample_dpi)
-        label = Gtk.Label(label=_("PPI"))
+        label = Gtk.Label(label=_("ppi"))
         hbox.pack_end(label, expand=False, fill=False, padding=0)
         hbox.pack_end(spinbutton, expand=False, fill=False, padding=0)
 

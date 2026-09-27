@@ -445,7 +445,7 @@ class SessionMixins:
         ann_textview = Gtk.TextView()
         ann_textview.set_tooltip_text(_("Annotations"))
         self._ann_hbox.textbuffer = ann_textview.get_buffer()
-        ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_Ok"))
+        ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
         ann_obutton.set_tooltip_text(_("Accept corrections"))
         ann_obutton.connect("clicked", self._ann_text_ok)
         ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))

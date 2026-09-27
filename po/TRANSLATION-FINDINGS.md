@@ -9,6 +9,16 @@ Detection is structural (a fuzzy string equal to a *different* confirmed UI
 concept, or an accelerator the source declares but the translation drops),
 so it cannot author the fix - a native must.
 
+**The two structural conditions are now automated.** `dev/check_po.py` reports
+a `msgstr` copied verbatim from a different msgid, and two sibling controls
+sharing one translation, so the first class of finding above no longer needs
+re-deriving by hand. The accelerator class is deliberately *not* checked: it
+fires on ~558 entries that are all correct, because a mnemonic has to point at
+a character that exists in the translated word. Run `python3 dev/check_po.py`
+for the current set. Findings are advisories, so they never fail a release.
+
+This file remains the record of what still needs a native pass.
+
 
 ## sk
 - Select All == '_Select' (dropped 'All')
