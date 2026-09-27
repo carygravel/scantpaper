@@ -69,6 +69,7 @@ msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
 msgstr[0] ""
 msgstr[1] ""
+msgstr[2] ""
 
 #: app_window.py:863 helpers.py:372
 #, fuzzy
