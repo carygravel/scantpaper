@@ -160,3 +160,83 @@ def test_legacy_default_scan_options_applied_and_saved(
             ["mode", "Color"],
             ["resolution", 600],
         ], "applied option values are written back"
+
+
+def test_completion_to_set_profile_handler_with_empty_stack(
+    capsys: pytest.CaptureFixture[str],
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    sane_scan_mocks: SimpleNamespace,
+) -> None:
+    """A re-entrant completion must not crash set_profile's handler.
+
+    Reproduces the IndexError seen three times in the Brother (3.0.20)
+    log: the one-shot handler connected by set_profile() reads
+    self.setting_profile[0] unconditionally, so a changed-current-scan-options
+    completion that arrives after the stack has been consumed raises
+    IndexError: list index out of range. Applying a genuine profile must
+    still commit the name.
+    """
+    sane_scan_mocks.patch_all(mocker)
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
+
+    dialog._add_profile("my profile", Profile(backend=[("brightness", 10)]))
+
+    # A genuine single apply still commits the profile name and restores the
+    # cursor, so the defensive guard must not swallow the normal path.
+    loop = mainloop_with_timeout()
+    committed: list[str] = []
+
+    def changed_profile_cb(_widget: Gtk.Widget, name: str) -> None:
+        committed.append(name)
+        loop.quit()
+
+    signal = dialog.connect("changed-profile", changed_profile_cb)
+    dialog.set_profile("my profile")
+    loop.run()
+    dialog.disconnect(signal)
+
+    assert committed == ["my profile"], "clean path commits the profile"
+    assert dialog._profile == "my profile"
+    assert dialog.setting_profile == [], "clean apply consumed the stack"
+
+    # Launch a second, overlapping apply, then clear the stack before the
+    # completion emit arrives, as the racy emit in the log did. The handler
+    # must tolerate the empty stack instead of raising IndexError.
+    loop = mainloop_with_timeout()
+    emissions = 0
+
+    def changed_current_scan_options_cb(
+        _widget: Gtk.Widget, _profile: object, _uuid: object
+    ) -> None:
+        nonlocal emissions
+        emissions += 1
+        if emissions == 2:
+            loop.quit()
+
+    signal = dialog.connect(
+        "changed-current-scan-options", changed_current_scan_options_cb
+    )
+    dialog.set_profile("my profile")
+    assert dialog.setting_profile == [dialog.profiles["my profile"].uuid], (
+        "apply is in flight with the profile on the stack"
+    )
+    dialog.setting_profile = []
+    dialog.emit(
+        "changed-current-scan-options",
+        dialog.current_scan_options,
+        dialog.profiles["my profile"].uuid,
+    )
+    err = capsys.readouterr().err
+    assert "list index out of range" not in err, (
+        "re-entrant completion must not crash set_profile's handler"
+    )
+    loop.run()
+    dialog.disconnect(signal)
+
+    assert emissions == 2, "duplicate and genuine completions both delivered"
+    assert dialog.setting_profile == [], "stack stays drained"
+    assert dialog.cursor == "default", "dialog cursor restored after apply"

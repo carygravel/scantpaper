@@ -1179,14 +1179,18 @@ class Scan(PageControls):
             def do_changed_current_scan_options(
                 _1: object, _2: object, uuid_found: str
             ) -> None:
-                uuid = self.setting_profile[0]
-
-                # there seems to be a race condition in t/0621_Dialog_Scan_CLI.t
-                # where the uuid set below is not set in time to be tested in
-                # this if.
-                if uuid == uuid_found:
+                # A re-entrant or duplicate completion emit can reach this
+                # handler when no set_profile is pending, so tolerate an empty
+                # stack instead of raising. Only consume the entry we matched,
+                # so an unrelated completion (e.g. an option reload emitted
+                # with an empty uuid) cannot clear the stack for a still-pending
+                # apply, and a duplicate emit cannot commit twice (the handler
+                # is disconnected on match).
+                if not self.setting_profile:
+                    return
+                if self.setting_profile[0] == uuid_found:
                     self.disconnect(signal)
-                    self.setting_profile = []
+                    self.setting_profile.pop(0)
 
                     # set property before emitting signal to ensure callbacks
                     # receive correct value
