@@ -12,6 +12,11 @@
   now re-applied against the full-resolution page image, so it stays visible
   (bounded to each page) and you can preview where a crop will land before
   applying it.
+* Fix cancelling a scan sometimes appearing to do nothing. The application
+  could be left showing the job as still running, never reporting that it had
+  finished or been cancelled, with no way out of that state but closing the
+  window. A progress update that fails is now reported as an error instead,
+  and cancelling always completes.
 
 
 ## 3.0.20 (2026-09-27)

@@ -164,12 +164,28 @@ class BaseThread(threading.Thread):
                 os.read(self._notify_r, 1024)
         except BlockingIOError:
             pass
-        self.monitor()
+        # A failure here must not remove the pipe watch. Nothing else drains
+        # the response queue on demand, so a source lost to an exception
+        # strands every response that is already queued, and the request
+        # waiting on one can never complete or be cancelled.
+        try:
+            self.monitor()
+        except Exception:
+            logger.exception(
+                "Error monitoring responses for thread %s", type(self).__name__
+            )
         return cast("bool", (GLib.SOURCE_CONTINUE))
 
     def _tick(self) -> bool:
         """Periodic tick for running callbacks (progress reporting)."""
-        self._execute_callbacks_for_stage("running", None)
+        # As with the pipe watch, losing this source would stop progress
+        # reporting for the rest of the request's life.
+        try:
+            self._execute_callbacks_for_stage("running", None)
+        except Exception:
+            logger.exception(
+                "Error running progress callbacks for %s", type(self).__name__
+            )
         return cast("bool", (GLib.SOURCE_CONTINUE))
 
     def quit(self) -> uuid.UUID:
@@ -222,7 +238,10 @@ class BaseThread(threading.Thread):
     ) -> uuid.UUID:
         """Put the process and args as a `Request` on the requests queue."""
         request = Request(process, args, self.responses, notify_cb=self._notify)
-        callbacks = {"started": False}
+        # The registry keeps the request so that a callback which fails can
+        # still be reported by name: by the time it fails there may be no
+        # response left to read the request from.
+        callbacks = {"started": False, "request": request}
         for callback in CALLBACKS:
             name = callback + "_callback"
             if name in kwargs:
@@ -307,16 +326,33 @@ class BaseThread(threading.Thread):
 
     def _drain_one(self) -> bool:
         """Process one response from the queue, scheduling the next if needed."""
-        self._execute_callbacks_for_stage("running", None)
-        if not self.responses.empty():
-            self._monitor_response()
-            return cast("bool", (GLib.SOURCE_CONTINUE))
+        try:
+            self._execute_callbacks_for_stage("running", None)
+            if not self.responses.empty():
+                self._monitor_response()
+                return cast("bool", (GLib.SOURCE_CONTINUE))
+        except Exception:
+            # This source is the drain chain: while it keeps returning
+            # SOURCE_CONTINUE GLib re-arms it, so ending it on a failure
+            # would leave queued responses undelivered until the next
+            # notification. Keep it alive while there is anything left to
+            # drain, and let it end once there is not.
+            logger.exception("Error draining responses for %s", type(self).__name__)
+            if not self.responses.empty():
+                return cast("bool", (GLib.SOURCE_CONTINUE))
         return cast("bool", (GLib.SOURCE_REMOVE))
 
     def _execute_callbacks_for_stage(self, stage: str, result: Response | None) -> None:
         """Run the callbacks associated with each stage."""
         if stage == "running":
-            for uid, callbacks in self.callbacks.items():
+            # Iterate a snapshot: a running callback can register or retire
+            # requests (it may cancel, or open a modal dialog whose nested
+            # main loop retires another request), and mutating the registry
+            # while iterating it raises. The entry dicts are shared, so the
+            # `started` flag read below is still live; only the set of
+            # requests is frozen. A request retired earlier in this pass is
+            # skipped by `_execute_stage_callbacks`.
+            for uid, callbacks in list(self.callbacks.items()):
                 if callbacks["started"]:
                     self._execute_stage_callbacks(stage, uid, result)
         else:
@@ -352,20 +388,50 @@ class BaseThread(threading.Thread):
                 # BLE001 — the callback is user-supplied arbitrary code that
                 # can raise anything, so no narrower set is catchable; the
                 # error is routed to the caller's error_callback below.
+                # The running stage invokes callbacks with no Response, so
+                # there is nothing to read the request from: take it from the
+                # registry entry, which records it. Reading data.request here
+                # would raise while the failure is being reported, hiding it.
+                request = data.request if data is not None else None
+                if request is None:
+                    request = self.callbacks[uid].get("request")
                 logger.exception(
                     "Error running %s callback '%s' for process '%s' with args: %s",
                     stage,
                     callback,
-                    data.request.process,
-                    data.request.args,
+                    request.process if request is not None else "unknown",
+                    request.args if request is not None else "unknown",
                 )
+                # A registry entry written by hand, rather than by send(), may
+                # record no request. There is then nothing to report the
+                # failure against, so it is logged but not routed.
                 if (
                     callback != "error_callback"
+                    and request is not None
                     and "error_callback" in self.callbacks[uid]
                     and self.callbacks[uid]["error_callback"] is not None
                 ):
-                    data = data._replace(status=str(err))
-                    self.callbacks[uid]["error_callback"](data)
+                    self.callbacks[uid]["error_callback"](
+                        self._callback_failure(data, err, request)
+                    )
+
+    def _callback_failure(
+        self, data: Response | None, err: Exception, request: Request
+    ) -> Response:
+        """Build the response that reports a failed callback to an error_callback."""
+        if data is not None:
+            return data._replace(status=str(err))
+        # The callback was invoked for a pass with no response, so report an
+        # error carrying the request the callback belonged to.
+        return Response(
+            type=ResponseType.ERROR,
+            request=request,
+            info=None,
+            status=str(err),
+            num_completed_jobs=self.num_completed_jobs,
+            total_jobs=self.total_jobs,
+            pending=not self.requests.empty(),
+        )
 
     def _monitor_response(self) -> bool:
         try:

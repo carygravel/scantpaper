@@ -642,3 +642,396 @@ def test_quit_all_live_threads_logs_exception(
     t2.join(timeout=2)
     assert not t1.is_alive(), "t1 quit"
     assert not t2.is_alive(), "t2 quit"
+
+
+def _failing_callback() -> Callable[[Response | None], None]:
+    """Return a progress callback that fails once, then returns quietly.
+
+    A callback that keeps raising would leave the thread's progress tick
+    logging a traceback for the rest of the session, long after the test has
+    finished asserting. The repeat case is covered directly instead.
+    """
+    failed: list[bool] = []
+
+    def callback(_response: Response | None) -> None:
+        if not failed:
+            failed.append(True)
+            msg = "boom"
+            raise ValueError(msg)
+
+    return callback
+
+
+# --- thread-response-dispatch regression tests -------------------------
+# These cover the failure modes that let a misbehaving progress callback
+# strand work in an indefinite "busy" state. Each docstring records why the
+# test failed before thread-callback-dispatch-safety.
+
+
+def test_running_callback_send_does_not_break_dispatch_pass() -> None:
+    """A running callback that calls send() must not break the pass.
+
+    Fails before the change with `RuntimeError: dictionary changed size
+    during iteration`: the callback calls `BaseThread.send()`, which
+    inserts into the registry that the pass is iterating.
+    """
+    thread = BaseThread()
+    dispatched: list[uuid.UUID] = []
+    sent: list[uuid.UUID] = []
+
+    def running_cb(_response: Response | None) -> None:
+        # Send once: a callback that keeps re-sending would be re-run by the
+        # thread's progress tick for the rest of the session, growing the
+        # registry without bound and starving every other main loop.
+        if not sent:
+            sent.append(thread.send("test", "follow-up"))
+        dispatched.append(first.uuid)
+
+    first = Request("test", (), thread.responses)
+    thread.callbacks[first.uuid] = {"started": True, "running_callback": running_cb}
+
+    assert thread.monitor() == GLib.SOURCE_CONTINUE
+    assert dispatched == [first.uuid]
+    assert len(sent) == 1
+    assert len(thread.callbacks) == 2, "follow-up request registered"
+    assert thread.requests.qsize() == 1, "follow-up request queued"
+
+
+def test_running_callback_retiring_another_request_completes_pass() -> None:
+    """A running callback that retires another request must not break the pass.
+
+    Fails before the change with `RuntimeError: dictionary changed size
+    during iteration`: a modal dialog opened from a progress callback runs
+    a nested main loop, which can deliver another request's terminal
+    response and delete its registry entry mid-pass.
+    """
+    thread = BaseThread()
+    dispatched: list[uuid.UUID] = []
+
+    def first_cb(_response: Response | None) -> None:
+        dispatched.append(first.uuid)
+        # Stands in for a nested main loop delivering a queued terminal
+        # response, which retires `second` while the pass is still running.
+        thread._monitor_response()
+
+    def third_cb(_response: Response | None) -> None:
+        dispatched.append(third.uuid)
+
+    retired_cb = MagicMock()
+
+    first = Request("test", (), thread.responses)
+    thread.callbacks[first.uuid] = {"started": True, "running_callback": first_cb}
+    second = Request("test", (), thread.responses)
+    thread.callbacks[second.uuid] = {
+        "started": True,
+        "running_callback": retired_cb,
+        "finished_callback": MagicMock(),
+    }
+    third = Request("test", (), thread.responses)
+    thread.callbacks[third.uuid] = {"started": True, "running_callback": third_cb}
+    second.finished(info="done")
+
+    assert thread.monitor() == GLib.SOURCE_CONTINUE
+    assert dispatched == [first.uuid, third.uuid], "retired request not dispatched"
+    retired_cb.assert_not_called()
+    assert second.uuid not in thread.callbacks, "retired mid-pass"
+    assert third.uuid in thread.callbacks, "untouched request still active"
+
+
+def test_running_callback_registering_request_gets_no_progress() -> None:
+    """A request registered mid-pass gets no progress until it has started."""
+    thread = BaseThread()
+    dispatched: list[uuid.UUID] = []
+    follow_up: list[uuid.UUID] = []
+
+    def first_cb(_response: Response | None) -> None:
+        # Send once; see test_running_callback_send_does_not_break_dispatch_pass.
+        if not follow_up:
+            follow_up.append(thread.send("test", "follow-up"))
+        dispatched.append(first.uuid)
+
+    def second_cb(_response: Response | None) -> None:
+        dispatched.append(second.uuid)
+
+    first = Request("test", (), thread.responses)
+    thread.callbacks[first.uuid] = {"started": True, "running_callback": first_cb}
+    second = Request("test", (), thread.responses)
+    thread.callbacks[second.uuid] = {"started": True, "running_callback": second_cb}
+
+    assert thread.monitor() == GLib.SOURCE_CONTINUE
+    assert dispatched == [first.uuid, second.uuid], "follow-up not progressed"
+    assert len(follow_up) == 1
+    assert not thread.callbacks[follow_up[0]]["started"], "follow-up unstarted"
+
+
+def test_running_callback_failure_routes_to_error_callback() -> None:
+    """A raising running callback must be routed to the error_callback.
+
+    Fails before the change with `AttributeError: 'NoneType' object has no
+    attribute 'request'`: the running stage passes no response, but the
+    failure path read `data.request` to name the process.
+    """
+    thread = BaseThread()
+    error_callback = MagicMock()
+
+    request = Request("test", (), thread.responses)
+    thread.callbacks[request.uuid] = {
+        "started": True,
+        "request": request,
+        "running_callback": _failing_callback(),
+        "error_callback": error_callback,
+    }
+
+    thread._execute_callbacks_for_stage("running", None)
+
+    error_callback.assert_called_once()
+    routed = cast("Response", error_callback.call_args.args[0])
+    assert routed.status == "boom"
+    assert routed.type == ResponseType.ERROR
+    assert routed.request is request, "the failing request reaches the handler"
+    assert routed.num_completed_jobs == 0
+    assert routed.total_jobs == 0
+
+
+def test_running_callback_failure_without_recorded_request_is_logged() -> None:
+    """An entry recording no request is logged, not routed, and does not raise."""
+    thread = BaseThread()
+    error_callback = MagicMock()
+
+    request = Request("test", (), thread.responses)
+    thread.callbacks[request.uuid] = {
+        "started": True,
+        "running_callback": _failing_callback(),
+        "error_callback": error_callback,
+    }
+
+    with patch("scantpaper.basethread.logger") as mock_logger:
+        thread._execute_callbacks_for_stage("running", None)
+
+    error_callback.assert_not_called()
+    logged = "\n".join(str(call.args) for call in mock_logger.exception.call_args_list)
+    assert "unknown" in logged
+
+
+def test_running_callback_failure_log_names_the_failing_process() -> None:
+    """The failure log names the process recorded for the failing request."""
+    thread = BaseThread()
+
+    request = Request("div", (1, 2), thread.responses)
+    thread.callbacks[request.uuid] = {
+        "started": True,
+        "request": request,
+        "running_callback": _failing_callback(),
+        "error_callback": MagicMock(),
+    }
+
+    with patch("scantpaper.basethread.logger") as mock_logger:
+        thread._execute_callbacks_for_stage("running", None)
+
+    logged = "\n".join(str(call.args) for call in mock_logger.exception.call_args_list)
+    assert "div" in logged, "process named from the recorded request"
+    assert "None" not in logged, "no placeholder process name"
+
+
+def test_responses_around_raising_callback_are_still_delivered(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Responses queued before and after a raising callback are delivered.
+
+    Fails before the change because the raising `running` callback escaped
+    `_execute_single_callback` entirely, so the drain chain broke and the
+    response queued after it was never dispatched.
+    """
+    thread = BaseThread()
+    finished = MagicMock()
+    error_callback = MagicMock()
+
+    failing = Request("test", (), thread.responses)
+    thread.callbacks[failing.uuid] = {
+        "started": True,
+        "request": failing,
+        "running_callback": _failing_callback(),
+        "error_callback": error_callback,
+    }
+    before = Request("test", (), thread.responses)
+    thread.callbacks[before.uuid] = {
+        "started": True,
+        "request": before,
+        "finished_callback": finished,
+    }
+    after = Request("test", (), thread.responses)
+    thread.callbacks[after.uuid] = {
+        "started": True,
+        "request": after,
+        "finished_callback": finished,
+    }
+    before.finished(info="before")
+    after.finished(info="after")
+
+    mocker.patch("scantpaper.basethread.GLib.idle_add")
+
+    assert thread.monitor() == GLib.SOURCE_CONTINUE
+    assert thread._drain_one() == GLib.SOURCE_CONTINUE
+    assert thread._drain_one() == GLib.SOURCE_REMOVE, "chain ends when drained"
+
+    error_callback.assert_called_once()
+    routed = cast("Response", error_callback.call_args.args[0])
+    assert routed.status == "boom"
+    assert routed.request is failing
+    delivered = [
+        cast("Response", call.args[0]).info for call in finished.call_args_list
+    ]
+    assert delivered == ["before", "after"]
+
+
+def test_later_request_response_delivered_after_callback_failure() -> None:
+    """A request sent after a failing one still receives its response."""
+    thread = BaseThread()
+    finished = MagicMock()
+    error_callback = MagicMock()
+
+    failing = Request("test", (), thread.responses)
+    thread.callbacks[failing.uuid] = {
+        "started": True,
+        "request": failing,
+        "running_callback": _failing_callback(),
+        "error_callback": error_callback,
+    }
+
+    assert thread.monitor() == GLib.SOURCE_CONTINUE
+    error_callback.assert_called_once()
+
+    later = Request("test", (), thread.responses)
+    thread.callbacks[later.uuid] = {"started": True, "finished_callback": finished}
+    later.finished(info="done")
+
+    # SOURCE_REMOVE: a terminal response retires the request it belongs to.
+    assert thread._monitor_response() == GLib.SOURCE_REMOVE
+    finished.assert_called_once()
+    assert finished.call_args.args[0].info == "done"
+
+
+@pytest.mark.parametrize(
+    ("method_name", "args"),
+    [
+        pytest.param("_on_readable", (0, 0), id="on-readable"),
+        pytest.param("_tick", (), id="tick"),
+    ],
+)
+def test_pump_source_survives_raising_callback(
+    method_name: str, args: tuple[int, ...], mocker: pytest.MockerFixture
+) -> None:
+    """No pump source may be destroyed by a raising callback.
+
+    Fails before the change: `_on_readable` and `_tick` let the exception
+    escape, so PyGObject removed the source. With the pipe watch gone,
+    queued responses were never drained again and the cancellation response
+    was never dispatched.
+    """
+    thread = BaseThread()
+    mocker.patch.object(
+        thread, "_execute_callbacks_for_stage", side_effect=ValueError("boom")
+    )
+    mocker.patch.object(thread, "_monitor_response", side_effect=ValueError("boom"))
+
+    method = cast("Callable[..., bool]", getattr(thread, method_name))
+    assert method(*args) == GLib.SOURCE_CONTINUE
+
+
+def test_drain_chain_survives_raising_callback(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """The drain chain must stay alive while responses remain.
+
+    Fails before the change: the exception escaped and PyGObject removed the
+    idle source, so the responses still queued behind it were never drained.
+    """
+    thread = BaseThread()
+    request = Request("test", (), thread.responses)
+    thread.callbacks[request.uuid] = {"started": True}
+    request.finished(info="still queued")
+
+    mocker.patch.object(
+        thread, "_execute_callbacks_for_stage", side_effect=ValueError("boom")
+    )
+
+    assert thread._drain_one() == GLib.SOURCE_CONTINUE
+    assert not thread.responses.empty(), "response left for the next pass"
+
+
+def test_drain_chain_ends_when_drained_after_failure(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """The drain chain still ends once there is nothing left to drain."""
+    thread = BaseThread()
+    mocker.patch.object(
+        thread, "_execute_callbacks_for_stage", side_effect=ValueError("boom")
+    )
+
+    assert thread._drain_one() == GLib.SOURCE_REMOVE
+
+
+def test_on_readable_failure_keeps_draining_responses() -> None:
+    """A raising callback must not stop responses being drained.
+
+    Fails before the change with the safety-timeout error: the exception
+    removed the io watch, so the queued response was never delivered.
+    """
+    thread = BaseThread()
+    finished = MagicMock()
+
+    request = Request("test", (), thread.responses)
+    thread.callbacks[request.uuid] = {
+        "started": True,
+        "request": request,
+        "running_callback": _failing_callback(),
+        "error_callback": MagicMock(),
+    }
+    later = Request("test", (), thread.responses)
+    thread.callbacks[later.uuid] = {
+        "started": True,
+        "request": later,
+        "finished_callback": finished,
+    }
+    later.finished(info="done")
+
+    assert thread._on_readable(0, 0) == GLib.SOURCE_CONTINUE
+    assert thread.responses.qsize() == 0, "response was drained"
+    finished.assert_called_once()
+    assert finished.call_args.args[0].info == "done"
+
+
+def test_repeatedly_failing_callback_is_reported_each_pass() -> None:
+    """A callback that keeps failing is reported on every pass.
+
+    Dispatched directly rather than through a ticking source: a real
+    request that failed this way would keep logging until it reached a
+    terminal state, which is a defect to surface rather than a state to
+    leave behind a test.
+    """
+    thread = BaseThread()
+    error_callback = MagicMock()
+
+    def always_failing_cb(_response: Response | None) -> None:
+        msg = "boom"
+        raise ValueError(msg)
+
+    request = Request("test", (), thread.responses)
+    thread.callbacks[request.uuid] = {
+        "started": True,
+        "request": request,
+        "running_callback": always_failing_cb,
+        "error_callback": error_callback,
+    }
+
+    thread._execute_callbacks_for_stage("running", None)
+    thread._execute_callbacks_for_stage("running", None)
+
+    assert error_callback.call_count == 2
+    for call in error_callback.call_args_list:
+        assert cast("Response", call.args[0]).status == "boom"
+    assert request.uuid in thread.callbacks, "still active, still reported"
+
+    # Stop the callback before returning, or the thread's progress tick keeps
+    # reporting this failure for the rest of the session.
+    thread.callbacks[request.uuid]["started"] = False
