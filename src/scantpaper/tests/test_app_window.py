@@ -111,7 +111,7 @@ def _setup_app_window_mocks(
     mocker.patch("scantpaper.app_window.Document")
     mocker.patch("scantpaper.app_window.Unpaper")
     mocker.patch("scantpaper.app_window.ImageView", MockImageView)
-    mocker.patch("scantpaper.app_window.Canvas", MockCanvas)
+    mocker.patch("scantpaper.layer.Canvas", MockCanvas)
     mocker.patch("scantpaper.app_window.Progress")
     mocker.patch("scantpaper.app_window.sane.init")
     mocker.patch("scantpaper.app_window.recursive_slurp")
@@ -233,7 +233,7 @@ def app_window(
     mock_mm.return_value.get_size.return_value = (400, 300)
 
     mocker.patch("scantpaper.app_window.ImageView", MockImageView)
-    mocker.patch("scantpaper.app_window.Canvas", MockCanvas)
+    mocker.patch("scantpaper.layer.Canvas", MockCanvas)
 
     mocker.patch("scantpaper.app_window.Progress")
     mocker.patch("scantpaper.app_window.sane.init")
@@ -897,17 +897,6 @@ def test_window_state_event_callback(app_window: ApplicationWindow) -> None:
     assert app_window.settings["window_maximize"] is False
 
 
-def test_changed_text_sort_method(app_window: ApplicationWindow) -> None:
-    """Test _changed_text_sort_method."""
-    app_window.t_canvas = MagicMock()
-
-    app_window._changed_text_sort_method(None, "confidence")
-    app_window.t_canvas.sort_by_confidence.assert_called_once()
-
-    app_window._changed_text_sort_method(None, "position")
-    app_window.t_canvas.sort_by_position.assert_called_once()
-
-
 def test_handle_clicks(app_window: ApplicationWindow) -> None:
     """Test _handle_clicks."""
     event = MagicMock()
@@ -1249,7 +1238,7 @@ def test_pre_flight_linux(mocker: pytest.MockerFixture) -> None:
     mocker.patch("scantpaper.app_window.Document")
     mocker.patch("scantpaper.app_window.Unpaper")
     mocker.patch("scantpaper.app_window.ImageView", MockImageView)
-    mocker.patch("scantpaper.app_window.Canvas", MockCanvas)
+    mocker.patch("scantpaper.layer.Canvas", MockCanvas)
     mocker.patch("scantpaper.app_window.Progress")
     mocker.patch("scantpaper.app_window.sane.init")
     mocker.patch("scantpaper.app_window.Selector")

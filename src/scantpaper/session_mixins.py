@@ -7,7 +7,7 @@ import inspect
 import logging
 import tempfile
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 import gi
 import tesserocr
@@ -17,28 +17,25 @@ from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import (
     EMPTY,
     SPACE,
-    ZOOM_CONTEXT_FACTOR,
 )
 from scantpaper.dialog import filter_message, response_stored
 from scantpaper.helpers import get_tmp_dir, program_version
 from scantpaper.i18n import _
+from scantpaper.layer import LayerEditor
 from scantpaper.simplelist import SimpleList
-from scantpaper.text_layer_control import TextLayerControls
 from scantpaper.unpaper import Unpaper
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from gi.repository import Gio
 
     from scantpaper.basethread import Response
-    from scantpaper.canvas import Bbox
     from scantpaper.dialog.sane import SaneScanDialog
     from scantpaper.page import Page
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import (  # noqa: E402
     GLib,
+    GObject,
     Gtk,
 )
 
@@ -323,12 +320,16 @@ class SessionMixins:
                 self._current_page.text_layer = None
 
         if self._current_page.text_layer:
-            self._create_txt_canvas(cast("Page", self._current_page))
+            self._text_editor.create(
+                cast("Page", self._current_page), self.view.get_offset()
+            )
         else:
             self.t_canvas.clear_text()
 
         if self._current_page.annotations:
-            self._create_ann_canvas(cast("Page", self._current_page))
+            self._ann_editor.create(
+                cast("Page", self._current_page), self.view.get_offset()
+            )
         else:
             self.a_canvas.clear_text()
 
@@ -427,180 +428,52 @@ class SessionMixins:
         return response
 
     def _add_text_view_layers(self) -> None:
-        # split panes for detail view/text layer canvas and text layer dialog
-        self._ocr_text_hbox = TextLayerControls()
+        """Create the text and annotation editors and their control bars."""
+        view = self.view
+
+        def get_page() -> Page | None:
+            return cast("Page | None", getattr(self, "_current_page", None))
+
+        self._text_editor = LayerEditor(
+            page_attr="text_layer",
+            view=view,
+            thread=self.slist.thread,
+            get_page=get_page,
+            features=("sort", "nav", "copy"),
+        )
+        self._ann_editor = LayerEditor(
+            page_attr="annotations",
+            view=view,
+            thread=self.slist.thread,
+            get_page=get_page,
+        )
+
+        # Keep canvas aliases so existing mixins (clear_text, layout) still work.
+        self.t_canvas = self._text_editor.canvas
+        self.a_canvas = self._ann_editor.canvas
+
+        for canvas in (self.t_canvas, self.a_canvas):
+            self.view.bind_property(
+                "zoom",
+                canvas,
+                "zoom",
+                GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
+            )
+            self.view.bind_property(
+                "offset",
+                canvas,
+                "offset",
+                GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
+            )
+
         edit_hbox = self.builder.get_object("edit_hbox")
-        edit_hbox.pack_start(self._ocr_text_hbox, expand=True, fill=True, padding=0)
-        self._ocr_text_hbox.connect(
-            "go-to-first", lambda _: self._edit_ocr_text(self.t_canvas.get_first_bbox())
+        edit_hbox.pack_start(
+            self._text_editor.controls, expand=True, fill=True, padding=0
         )
-        self._ocr_text_hbox.connect(
-            "go-to-previous",
-            lambda _: self._edit_ocr_text(self.t_canvas.get_previous_bbox()),
+        edit_hbox.pack_start(
+            self._ann_editor.controls, expand=True, fill=True, padding=0
         )
-        self._ocr_text_hbox.connect("sort-changed", self._changed_text_sort_method)
-        self._ocr_text_hbox.connect(
-            "go-to-next", lambda _: self._edit_ocr_text(self.t_canvas.get_next_bbox())
-        )
-        self._ocr_text_hbox.connect(
-            "go-to-last", lambda _: self._edit_ocr_text(self.t_canvas.get_last_bbox())
-        )
-        self._ocr_text_hbox.connect("ok-clicked", self._ocr_text_button_clicked)
-        self._ocr_text_hbox.connect("copy-clicked", self._ocr_text_copy)
-        self._ocr_text_hbox.connect("add-clicked", self._ocr_text_add)
-        self._ocr_text_hbox.connect("delete-clicked", self._ocr_text_delete)
-
-        # split panes for detail view/text layer canvas and text layer dialog
-        self._ann_hbox = TextLayerControls()
-        edit_hbox.pack_start(self._ann_hbox, expand=True, fill=True, padding=0)
-        ann_textview = Gtk.TextView()
-        ann_textview.set_tooltip_text(_("Annotations"))
-        self._ann_hbox.textbuffer = ann_textview.get_buffer()
-        ann_obutton = Gtk.Button.new_with_mnemonic(label=_("_OK"))
-        ann_obutton.set_tooltip_text(_("Accept corrections"))
-        ann_obutton.connect("clicked", self._ann_text_ok)
-        ann_cbutton = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
-        ann_cbutton.set_tooltip_text(_("Cancel corrections"))
-        ann_cbutton.connect("clicked", self._ann_hbox.hide)
-        ann_abutton = Gtk.Button()
-        ann_abutton.set_image(
-            Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
-        )
-        ann_abutton.set_tooltip_text(_("Add annotation"))
-        ann_abutton.connect("clicked", self._ann_text_new)
-        ann_dbutton = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
-        ann_dbutton.set_tooltip_text(_("Delete annotation"))
-        ann_dbutton.connect("clicked", self._ann_text_delete)
-        self._ann_hbox.pack_start(ann_textview, expand=False, fill=False, padding=0)
-        self._ann_hbox.pack_end(ann_dbutton, expand=False, fill=False, padding=0)
-        self._ann_hbox.pack_end(ann_cbutton, expand=False, fill=False, padding=0)
-        self._ann_hbox.pack_end(ann_obutton, expand=False, fill=False, padding=0)
-        self._ann_hbox.pack_end(ann_abutton, expand=False, fill=False, padding=0)
         self._pack_viewer_tools()
-
-    def _ocr_text_button_clicked(self, _widget: Gtk.Button) -> None:
-        old_text = self._current_ocr_bbox.text
-        text = self._ocr_text_hbox.textbuffer.get_text(
-            self._ocr_text_hbox.textbuffer.get_start_iter(),
-            self._ocr_text_hbox.textbuffer.get_end_iter(),
-            include_hidden_chars=False,
-        )
-        self._current_ocr_bbox.update_box(text, self.view.get_selection())
-        hocr = self.t_canvas.hocr()
-        self._current_page.import_hocr(hocr)
-        self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
-        self._edit_ocr_text(self._current_ocr_bbox)
-        logger.info("Corrected '%s'->'%s'", old_text, text)
-
-    def _ocr_text_copy(self, _widget: Gtk.Button) -> None:
-        self._current_ocr_bbox = self.t_canvas.add_box(
-            text=self._ocr_text_hbox.textbuffer.get_text(
-                self._ocr_text_hbox.textbuffer.get_start_iter(),
-                self._ocr_text_hbox.textbuffer.get_end_iter(),
-                include_hidden_chars=False,
-            ),
-            bbox=self.view.get_selection(),
-        )
-        hocr = self.t_canvas.hocr()
-        self._current_page.import_hocr(hocr)
-        self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
-        self._edit_ocr_text(self._current_ocr_bbox)
-
-    def _ocr_text_add(self, _widget: Gtk.Button) -> None:
-        text = self._ocr_text_hbox.textbuffer.get_text(
-            self._ocr_text_hbox.textbuffer.get_start_iter(),
-            self._ocr_text_hbox.textbuffer.get_end_iter(),
-            include_hidden_chars=False,
-        )
-        if text is None or text == EMPTY:
-            text = _("my-new-word")
-
-        # If we don't yet have a canvas, create one
-        selection = self.view.get_selection()
-        if hasattr(self._current_page, "text_layer"):
-            logger.info("Added '%s'", text)
-            self._current_ocr_bbox = self.t_canvas.add_box(
-                text=text, bbox=self.view.get_selection()
-            )
-            self._current_page.import_hocr(self.t_canvas.hocr())
-            self._edit_ocr_text(self._current_ocr_bbox)
-        else:
-            logger.info("Creating new text layer with '%s'", text)
-            cast("Any", self._current_page).text_layer = (
-                f'[{{"type":"page","bbox":[0,0,{cast("Any", self._current_page)["width"]},'
-                f'{cast("Any", self._current_page)["height"]}],"depth":0}},'
-                f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'
-                f"{selection['x'] + selection['width']},"
-                f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
-            )
-
-            def ocr_new_page(_widget: Gtk.Button) -> None:
-                self._current_ocr_bbox = self.t_canvas.get_first_bbox()
-                self._edit_ocr_text(self._current_ocr_bbox)
-
-            self._create_txt_canvas(
-                cast("Page", cast("object", self._current_page)), ocr_new_page
-            )
-        self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
-
-    def _ocr_text_delete(self, _widget: Gtk.Button) -> None:
-        self._current_ocr_bbox.delete_box()
-        hocr = self.t_canvas.hocr()
-        self._current_page.import_hocr(hocr)
-        self.slist.thread.set_text(self._current_page.id, self._current_page.text_layer)
-        self._edit_ocr_text(self.t_canvas.get_current_bbox())
-
-    def _ann_text_ok(self, _widget: Gtk.Button) -> None:
-        text = self._ann_hbox.textbuffer.get_text(
-            self._ann_hbox.textbuffer.get_start_iter(),
-            self._ann_hbox.textbuffer.get_end_iter(),
-            include_hidden_chars=False,
-        )
-        logger.info("Corrected '%s'->'%s'", self._current_ann_bbox.text, text)
-        self._current_ann_bbox.update_box(text, self.view.get_selection())
-        self._current_page.import_annotations(self.a_canvas.hocr())
-        self._edit_annotation(self._current_ann_bbox)
-
-    def _ann_text_new(self, _widget: Gtk.Button) -> None:
-        text = self._ann_hbox.textbuffer.get_text(
-            self._ann_hbox.textbuffer.get_start_iter(),
-            self._ann_hbox.textbuffer.get_end_iter(),
-            include_hidden_chars=False,
-        )
-        if text is None or text == EMPTY:
-            text = _("my-new-annotation")
-
-        # If we don't yet have a canvas, create one
-        selection = self.view.get_selection()
-        if hasattr(self._current_page, "text_layer"):
-            logger.info("Added '%s'", text)
-            self._current_ann_bbox = self.a_canvas.add_box(
-                text=text, bbox=self.view.get_selection()
-            )
-            self._current_page.import_annotations(self.a_canvas.hocr())
-            self._edit_annotation(self._current_ann_bbox)
-        else:
-            logger.info("Creating new annotation canvas with '%s'", text)
-            self._current_page["annotations"] = (
-                f'[{{"type":"page","bbox":[0,0,{cast("Any", self._current_page)["width"]},'
-                f'{cast("Any", self._current_page)["height"]}],"depth":0}},'
-                f'{{"type":"word","bbox":[{selection["x"]},{selection["y"]},'
-                f"{selection['x'] + selection['width']},"
-                f'{selection["y"] + selection["height"]}],"text":"{text}","depth":1}}]'
-            )
-
-            def ann_text_new_page(_widget: Gtk.Button) -> None:
-                self._current_ann_bbox = self.a_canvas.get_first_bbox()
-                self._edit_annotation(self._current_ann_bbox)
-
-            self._create_ann_canvas(
-                cast("Page", cast("object", self._current_page)), ann_text_new_page
-            )
-
-    def _ann_text_delete(self, _widget: Gtk.Button) -> None:
-        self._current_ann_bbox.delete_box()
-        self._current_page.import_hocr(self.a_canvas.hocr())
-        self._edit_annotation(self.t_canvas.get_current_bbox())
 
     def _edit_mode_callback(
         self, action: Gio.SimpleAction, parameter: GLib.Variant
@@ -608,95 +481,11 @@ class SessionMixins:
         """Show/hide the edit tools."""
         action.set_state(parameter)
         if parameter.get_string() == "text":
-            self._ocr_text_hbox.show()
-            self._ann_hbox.hide()
+            self._text_editor.set_active(active=True)
+            self._ann_editor.set_active(active=False)
             return
-        self._ocr_text_hbox.hide()
-        self._ann_hbox.show()
-
-    def _edit_ocr_text(self, bbox: Bbox | None, _target: object | None = None) -> None:
-        """Edit OCR text."""
-        if bbox is None:
-            logger.debug("edit_ocr_text did not return a bbox")
-            return
-
-        self._current_ocr_bbox = bbox
-        self._ocr_text_hbox.textbuffer.set_text(bbox.text)
-        self._ocr_text_hbox.show_all()
-        self.view.set_selection(bbox.bbox)
-        self.view.setzoom_is_fit(zoom_to_fit=False)
-        self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
-
-        if bbox:
-            self.t_canvas.set_index_by_bbox(bbox)
-
-    def _edit_annotation(
-        self, bbox: Bbox | None, _target: object | None = None
-    ) -> None:
-        """Edit annotation."""
-        self._current_ann_bbox = bbox
-        self._ann_hbox.textbuffer.set_text(bbox.text)
-        self._ann_hbox.show_all()
-        self.view.set_selection(bbox.bbox)
-        self.view.setzoom_is_fit(zoom_to_fit=False)
-        self.view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
-
-        if bbox:
-            self.a_canvas.set_index_by_bbox(bbox)
-
-    def _create_txt_canvas(
-        self, page: Page, finished_callback: Callable[..., object] | None = None
-    ) -> None:
-        """Create the text canvas."""
-
-        def on_parsed(result: Response) -> None:
-            self.t_canvas.set_text(
-                bboxes=cast("dict[str, Any]", result.info)["bboxes"],
-                sorted_word_indices=cast("dict[str, Any]", result.info)[
-                    "sorted_word_indices"
-                ],
-                edit_callback=self._edit_ocr_text,
-                finished_callback=finished_callback,
-            )
-            self.t_canvas.set_offset(offset.x, offset.y)
-            self.t_canvas.show()
-
-        offset = self.view.get_offset()
-        if page.text_layer:
-            self.slist.thread.parse_bboxtree(
-                page.text_layer, finished_callback=on_parsed
-            )
-        else:
-            self.t_canvas.clear_text()
-            if finished_callback:
-                finished_callback()
-
-    def _create_ann_canvas(
-        self, page: Page, finished_callback: Callable[..., object] | None = None
-    ) -> None:
-        """Create the annotation canvas."""
-
-        def on_parsed(result: Response) -> None:
-            self.a_canvas.set_text(
-                bboxes=cast("dict[str, Any]", result.info)["bboxes"],
-                sorted_word_indices=cast("dict[str, Any]", result.info)[
-                    "sorted_word_indices"
-                ],
-                edit_callback=self._edit_annotation,
-                finished_callback=finished_callback,
-            )
-            self.a_canvas.set_offset(offset.x, offset.y)
-            self.a_canvas.show()
-
-        offset = self.view.get_offset()
-        if page.annotations:
-            self.slist.thread.parse_bboxtree(
-                page.annotations, finished_callback=on_parsed
-            )
-        else:
-            self.a_canvas.clear_text()
-            if finished_callback:
-                finished_callback()
+        self._text_editor.set_active(active=False)
+        self._ann_editor.set_active(active=True)
 
     def zoom_100(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Set the zoom level of the view to 100%."""

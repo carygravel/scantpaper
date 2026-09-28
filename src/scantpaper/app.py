@@ -1,7 +1,6 @@
 """scantpaper --- to aid the scan to PDF or DjVu process."""
 
 # Roadmap and wishlist:
-# refactor ocr & annotation manipulation into single class
 # migrate to Gtk4
 # improve translations, including those in org.scantpaper.desktop.metainfo.xml
 # look again at translating docs

@@ -18,7 +18,6 @@ import ocrmypdf
 import sane  # To get SANE_* enums
 
 from scantpaper import config
-from scantpaper.canvas import Canvas
 from scantpaper.clipboard import Clipboard
 from scantpaper.const import (
     DRAGGER_TOOL,
@@ -119,18 +118,14 @@ class ApplicationWindow(
     settings: dict[str, Any]
     _configfile = None
     _current_page = None
-    _current_ocr_bbox = None
-    _current_ann_bbox = None
     _rotate_controls = None
     session = None  # session dir
     _args = None
     view = None
-    t_canvas = None  # Canvas for text layer
-    a_canvas = None  # Canvas for annotation layer
-    _ocr_text_hbox = None
-    _ocr_textbuffer = None
-    _ann_hbox = None
-    _ann_textbuffer = None
+    _text_editor = None  # LayerEditor for the text layer
+    _ann_editor = None  # LayerEditor for the annotation layer
+    t_canvas = None  # Canvas for text layer (alias of _text_editor.canvas)
+    a_canvas = None  # Canvas for annotation layer (alias of _ann_editor.canvas)
     _lockfd = None
     _pref_udt_cmbx = None
     _scan_udt_cmbx = None
@@ -410,8 +405,8 @@ class ApplicationWindow(
         self.post_process_progress.cancel_callback = self._cancel_post_process
 
         # OCR text editing interface
-        self._ocr_text_hbox.hide()
-        self._ann_hbox.hide()
+        self._text_editor.set_active(active=False)
+        self._ann_editor.set_active(active=False)
 
         # Open scan dialog in background
         if self.settings["auto-open-scan-dialog"]:
@@ -429,12 +424,6 @@ class ApplicationWindow(
     def _cancel_post_process(self) -> None:
         """Cancel all queued and running post-process jobs."""
         self.slist.cancel(self.post_process_progress.finish)
-
-    def _changed_text_sort_method(self, _widget: Gtk.Widget, sort_method: str) -> None:
-        if sort_method == "confidence":
-            self.t_canvas.sort_by_confidence()
-        else:
-            self.t_canvas.sort_by_position()
 
     def _populate_panes(self) -> None:
 
@@ -483,36 +472,6 @@ class ApplicationWindow(
             "selection-changed", self._view_selection_changed_callback
         )
         self.view.connect("notify::selection", self._on_view_selection_notify)
-
-        # Canvas for text layer
-        self.t_canvas = Canvas()
-        self.view.bind_property(
-            "zoom",
-            self.t_canvas,
-            "zoom",
-            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
-        )
-        self.view.bind_property(
-            "offset",
-            self.t_canvas,
-            "offset",
-            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
-        )
-
-        # Canvas for annotation layer
-        self.a_canvas = Canvas()
-        self.view.bind_property(
-            "zoom",
-            self.a_canvas,
-            "zoom",
-            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
-        )
-        self.view.bind_property(
-            "offset",
-            self.a_canvas,
-            "offset",
-            GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
-        )
 
     def _missing_packages_message(self) -> str:
         """Return the warning message for packages needed by the tools."""

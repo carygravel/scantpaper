@@ -1,213 +1,31 @@
-"""test TextLayerControls widget."""
+"""test LayerControls widget."""
 
 from __future__ import annotations
 
-import pathlib
-from typing import TYPE_CHECKING
-from unittest.mock import MagicMock
-
 import gi
 
-from scantpaper.app import Application
-from scantpaper.app_window import ApplicationWindow
-from scantpaper.const import PROG_NAME, VERSION
-from scantpaper.text_layer_control import TextLayerControls
+from scantpaper.layer import LayerControls
 
 gi.require_version("Gtk", "3.0")
-
 from gi.repository import Gtk  # noqa: E402
 
-if TYPE_CHECKING:
-    import pytest
+
+def get_child_by_tooltip(widget: Gtk.Widget, tooltip: str) -> object:
+    """Return the first child with the given tooltip, or None."""
+    for child in widget.get_children():
+        if child.get_tooltip_text() == tooltip:
+            return child
+    return None
 
 
-def test_text_layer_sort_combo_box(mocker: pytest.MockerFixture) -> None:
-    """Test the text layer sort combo box."""
-    mocker.patch("scantpaper.app_window.ApplicationWindow._populate_main_window")
-    mocker.patch("scantpaper.app_window.ApplicationWindow._create_temp_directory")
-    mocker.patch("scantpaper.config.read_config").return_value = {
-        "restore window": False,
-        "image_control_tool": "selector",
-        "Paper": {},
-        "cwd": ".",
-        "unpaper options": "",
-        "available-tmp-warning": 100,
-        "message": {},
-    }
-    mocker.patch("shutil.disk_usage", return_value=(1, 1, 1024 * 1024 * 200))
-
-    app = Application()
-    app.args = MagicMock()
-    app.args.device = None
-    app.args.import_files = None
-    app.args.import_all = None
-    app.iconpath = (pathlib.Path(__file__).parent / "../icons").resolve()
-    mocker.patch(
-        "scantpaper.app_window.ApplicationWindow.get_application", return_value=app
-    )
-
-    window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
-    window.t_canvas = MagicMock()
-    window._ocr_text_hbox = MagicMock()
-
-    # Simulate changing the sort method to 'confidence'
-    window._changed_text_sort_method(None, "confidence")
-    window.t_canvas.sort_by_confidence.assert_called_once()
-    window.t_canvas.sort_by_position.assert_not_called()
-
-    # Reset the mock
-    window.t_canvas.reset_mock()
-
-    # Simulate changing the sort method to 'position'
-    window._changed_text_sort_method(None, "position")
-    window.t_canvas.sort_by_confidence.assert_not_called()
-    window.t_canvas.sort_by_position.assert_called_once()
-
-
-def test_text_layer_add_and_ok_buttons(mocker: pytest.MockerFixture) -> None:
-    """Test that the text layer add and ok buttons call _take_snapshot."""
-    mocker.patch("scantpaper.app_window.ApplicationWindow._populate_main_window")
-    mocker.patch("scantpaper.app_window.ApplicationWindow._create_temp_directory")
-    mocker.patch("scantpaper.config.read_config").return_value = {
-        "restore window": False,
-        "image_control_tool": "selector",
-        "Paper": {},
-        "cwd": ".",
-        "unpaper options": "",
-        "available-tmp-warning": 100,
-        "message": {},
-    }
-    mocker.patch("shutil.disk_usage", return_value=(1, 1, 1024 * 1024 * 200))
-
-    app = Application()
-    app.args = MagicMock()
-    app.args.device = None
-    app.args.import_files = None
-    app.args.import_all = None
-    app.iconpath = (pathlib.Path(__file__).parent / "../icons").resolve()
-    mocker.patch(
-        "scantpaper.app_window.ApplicationWindow.get_application", return_value=app
-    )
-
-    window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
-
-    # Mock dependencies for the tested methods
-    window.slist = MagicMock()
-    window.slist.thread.set_text = MagicMock()
-
-    window._ocr_text_hbox = MagicMock()
-    window._ocr_text_hbox.textbuffer.get_text.return_value = "some text"
-
-    window._current_ocr_bbox = MagicMock()
-    window.view = MagicMock()
-    window.view.get_selection.return_value = {"x": 0, "y": 0, "width": 10, "height": 10}
-
-    window._current_page = MagicMock()
-    window.t_canvas = MagicMock()
-    window._edit_ocr_text = MagicMock()
-
-    # Call the method for the "OK" button
-    window._ocr_text_button_clicked(None)
-
-    # Assert that set_text was called
-    window.slist.thread.set_text.assert_called_once_with(
-        window._current_page.id, window._current_page.text_layer
-    )
-
-    # Reset the mock for the next call
-    window.slist.thread.set_text.reset_mock()
-
-    # Call the method for the "Add" button
-    window._ocr_text_add(None)
-
-    # Assert that set_text was called again
-    window.slist.thread.set_text.assert_called_once_with(
-        window._current_page.id, window._current_page.text_layer
-    )
-
-    # Reset the mock for the next call
-    window.slist.thread.set_text.reset_mock()
-
-    # Call the method for the "Copy" button
-    window._ocr_text_copy(None)
-
-    # Assert that set_text was called
-    window.slist.thread.set_text.assert_called_once_with(
-        window._current_page.id, window._current_page.text_layer
-    )
-
-    # Reset the mock for the next call
-    window.slist.thread.set_text.reset_mock()
-
-    # Call the method for the "Delete" button
-    window._ocr_text_delete(None)
-
-    # Assert that set_text was called
-    window.slist.thread.set_text.assert_called_once_with(
-        window._current_page.id, window._current_page.text_layer
-    )
-
-
-def test_edit_ocr_text_updates_selection(mocker: pytest.MockerFixture) -> None:
-    """Test _edit_ocr_text."""
-    mocker.patch("scantpaper.app_window.ApplicationWindow._populate_main_window")
-    mocker.patch("scantpaper.app_window.ApplicationWindow._create_temp_directory")
-    mocker.patch("scantpaper.config.read_config").return_value = {
-        "restore window": False,
-        "image_control_tool": "selector",
-        "Paper": {},
-        "cwd": ".",
-        "unpaper options": "",
-        "available-tmp-warning": 100,
-        "message": {},
-    }
-    mocker.patch("shutil.disk_usage", return_value=(1, 1, 1024 * 1024 * 200))
-
-    app = Application()
-    app.args = MagicMock()
-    app.args.device = None
-    app.args.import_files = None
-    app.args.import_all = None
-    app.iconpath = (pathlib.Path(__file__).parent / "../icons").resolve()
-    mocker.patch(
-        "scantpaper.app_window.ApplicationWindow.get_application", return_value=app
-    )
-
-    window = ApplicationWindow(application=app, title=f"{PROG_NAME} v{VERSION}")
-
-    # Mock dependencies for _edit_ocr_text
-    window._ocr_text_hbox = MagicMock()
-    window.view = MagicMock()
-    window.t_canvas = MagicMock()
-
-    # Create two distinct mock bboxes
-    mock_bbox1 = MagicMock()
-    mock_bbox1.text = "word1"
-    mock_bbox2 = MagicMock()
-    mock_bbox2.text = "word2"
-
-    mock_target = MagicMock()
-
-    # First call to _edit_ocr_text, simulating a click on the first box
-    window._edit_ocr_text(bbox=mock_bbox1, _target=mock_target)
-    assert window._current_ocr_bbox == mock_bbox1
-
-    # Second call to _edit_ocr_text, simulating a click on the second box
-    window._edit_ocr_text(bbox=mock_bbox2, _target=mock_target)
-    assert window._current_ocr_bbox == mock_bbox2
-
-
-def test_text_layer_control_signals() -> None:
+def test_layer_controls_signals() -> None:
     """Test that buttons emit the correct signals."""
-    tlc = TextLayerControls()
-
-    # Helper to track signals
+    controls = LayerControls(sort=True, nav=True, copy=True)
     signals_received = []
 
     def on_signal(_widget: object, name: str) -> None:
         signals_received.append(name)
 
-    # Connect signals
     for signal in [
         "go-to-first",
         "go-to-previous",
@@ -218,18 +36,8 @@ def test_text_layer_control_signals() -> None:
         "add-clicked",
         "delete-clicked",
     ]:
-        tlc.connect(signal, lambda w, s=signal: on_signal(w, s))
+        controls.connect(signal, lambda w, s=signal: on_signal(w, s))
 
-    # Helper to find child by tooltip
-    def get_child_by_tooltip(tooltip: str) -> object:
-        retval = None
-        for child in tlc.get_children():
-            if child.get_tooltip_text() == tooltip:
-                retval = child
-                break
-        return retval
-
-    # Test buttons
     buttons = {
         "Go to least confident text": "go-to-first",
         "Go to previous text": "go-to-previous",
@@ -242,32 +50,22 @@ def test_text_layer_control_signals() -> None:
     }
 
     for tooltip, signal in buttons.items():
-        btn = get_child_by_tooltip(tooltip)
+        btn = get_child_by_tooltip(controls, tooltip)
         assert btn is not None, f"Button '{tooltip}' not found"
-        # Ensure it's a button before clicking
         assert isinstance(btn, Gtk.Button)
         btn.clicked()
         assert signals_received[-1] == signal, f"Signal '{signal}' not received"
 
 
-def test_text_layer_control_sort() -> None:
+def test_layer_controls_sort() -> None:
     """Test sort combo box."""
-    tlc = TextLayerControls()
-
-    def get_child_by_tooltip(tooltip: str) -> object:
-        widget = None
-        for child in tlc.get_children():
-            if child.get_tooltip_text() == tooltip:
-                widget = child
-        return widget
-
-    sort_combo = get_child_by_tooltip("Select sort method for OCR boxes")
+    controls = LayerControls(sort=True)
+    sort_combo = get_child_by_tooltip(controls, "Select sort method for OCR boxes")
     assert sort_combo is not None
 
     received_sort = []
-    tlc.connect("sort-changed", lambda _w, val: received_sort.append(val))
+    controls.connect("sort-changed", lambda _w, val: received_sort.append(val))
 
-    # Change selection
     # Index 0 is confidence (default), 1 is position
     sort_combo.set_active(1)
     assert received_sort[-1] == "position"
@@ -276,13 +74,18 @@ def test_text_layer_control_sort() -> None:
     assert received_sort[-1] == "confidence"
 
 
-def test_text_layer_control_cancel() -> None:
+def test_layer_controls_cancel() -> None:
     """Test cancel button existence."""
-    tlc = TextLayerControls()
+    controls = LayerControls()
+    assert get_child_by_tooltip(controls, "Cancel corrections") is not None
 
-    found = False
-    for child in tlc.get_children():
-        if child.get_tooltip_text() == "Cancel corrections":
-            found = True
-            break
-    assert found, "Cancel button not found"
+
+def test_layer_controls_annotation_has_no_sort_nav_copy() -> None:
+    """The annotation bar exposes only ok/add/delete/cancel (no sort/nav/copy)."""
+    controls = LayerControls()
+    assert get_child_by_tooltip(controls, "Select sort method for OCR boxes") is None
+    assert get_child_by_tooltip(controls, "Go to least confident text") is None
+    assert get_child_by_tooltip(controls, "Duplicate text") is None
+    assert get_child_by_tooltip(controls, "Accept corrections") is not None
+    assert get_child_by_tooltip(controls, "Add text") is not None
+    assert get_child_by_tooltip(controls, "Delete text") is not None

@@ -1053,8 +1053,16 @@ class DocThread(SaveThread):
         )
         return cast("str | None", cast("tuple[object, ...]", self._fetchone())[0])
 
+    def set_annotations(
+        self, page_id: int, annotations: str, **kwargs: object
+    ) -> uuid.UUID:
+        """Set the annotations layer for the given page."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("set_annotations", page_id, annotations, **callbacks)
+
     def do_set_annotations(self, request: Request) -> None:
         """Set the annotations layer for the given page."""
+        self._take_snapshot()
         self._check_write_tid()
         page_id, annotations = request.args
         self._execute(

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import pathlib
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import gi
@@ -48,17 +48,14 @@ def mock_session_window(
         _windowi = None
         _windowe = None
         _current_page = None
-        _current_ocr_bbox = None
-        _current_ann_bbox = None
-        _ocr_text_hbox = None
-        _ann_hbox = None
+        _text_editor = None
+        _ann_editor = None
         _scan_progress = None
         post_process_progress = None
         _configfile = "/tmp/config"
 
         # Callbacks
         _show_message_dialog = mocker.Mock()
-        _changed_text_sort_method = mocker.Mock()
         save_dialog = mocker.Mock()
         email = mocker.Mock()
         print_dialog = mocker.Mock()
@@ -568,17 +565,19 @@ def test_display_image(
         "scantpaper.session_mixins.Bboxtree",
         return_value=mocker.Mock(valid=lambda: True),
     )
-    mock_session_window._create_txt_canvas = mocker.Mock()
+    mock_session_window._text_editor = mocker.Mock()
     mock_session_window._display_image("page_id")
     captured_callbacks["finished_callback"](mock_response)
-    mock_session_window._create_txt_canvas.assert_called_with(mock_page)
+    mock_session_window._text_editor.create.assert_called()
+    assert mock_session_window._text_editor.create.call_args[0][0] is mock_page
 
     # Case 4: Annotations
     mock_page.annotations = "some_ann"
-    mock_session_window._create_ann_canvas = mocker.Mock()
+    mock_session_window._ann_editor = mocker.Mock()
     mock_session_window._display_image("page_id")
     captured_callbacks["finished_callback"](mock_response)
-    mock_session_window._create_ann_canvas.assert_called_with(mock_page)
+    mock_session_window._ann_editor.create.assert_called()
+    assert mock_session_window._ann_editor.create.call_args[0][0] is mock_page
 
     # Case 5: No pageid (page not found)
     mock_session_window.slist.find_page_by_uuid.return_value = None
@@ -758,167 +757,6 @@ def test_ask_question_with_default_response(
     mock_dialog.set_default_response.assert_called_with(Gtk.ResponseType.OK)
 
 
-def test_ocr_text_operations(
-    mocker: pytest.MockerFixture, mock_session_window: object
-) -> None:
-    """Test OCR text operations: add, copy, delete."""
-    mock_session_window.slist.thread._take_snapshot = mocker.Mock()
-    mock_session_window._ocr_text_hbox = mocker.Mock()
-    mock_session_window._ocr_text_hbox.textbuffer.get_text.return_value = "new text"
-
-    mock_session_window._current_page = mocker.Mock()
-    mock_session_window._current_page.text_layer = "existing_layer"
-    mock_session_window._current_page.__getitem__ = lambda _self, _key: (
-        100
-    )  # width/height
-
-    mock_session_window.view.get_selection.return_value = {
-        "x": 0,
-        "y": 0,
-        "width": 10,
-        "height": 10,
-    }
-
-    # Add
-    mock_session_window.t_canvas.add_box.return_value = "new_bbox"
-    mock_session_window.t_canvas.hocr.return_value = "hocr_output"
-
-    mock_session_window._edit_ocr_text = mocker.Mock()
-
-    mock_session_window._ocr_text_add(None)
-
-    mock_session_window.t_canvas.add_box.assert_called()
-    mock_session_window._current_page.import_hocr.assert_called_with("hocr_output")
-    mock_session_window._edit_ocr_text.assert_called_with("new_bbox")
-
-    # Add new layer case
-    del mock_session_window._current_page.text_layer
-    mock_session_window._create_txt_canvas = mocker.Mock()
-    mock_session_window._ocr_text_add(None)
-    mock_session_window._create_txt_canvas.assert_called()
-
-    # Copy
-    mock_session_window._ocr_text_copy(None)
-    assert mock_session_window.t_canvas.add_box.call_count == 2
-
-    # Delete
-    mock_session_window._current_ocr_bbox = mocker.Mock()
-    mock_session_window.t_canvas.get_current_bbox.return_value = "prev_bbox"
-
-    mock_session_window._ocr_text_delete(None)
-    mock_session_window._current_ocr_bbox.delete_box.assert_called()
-
-    # OK (button clicked)
-    mock_session_window._ocr_text_button_clicked(None)
-    mock_session_window._current_ocr_bbox.update_box.assert_called()
-
-
-def test_annotation_operations(
-    mocker: pytest.MockerFixture, mock_session_window: object
-) -> None:
-    """Test annotation operations: ok, new, delete."""
-    mock_session_window._ann_hbox = mocker.Mock()
-    mock_session_window._ann_hbox.textbuffer.get_text.return_value = "ann text"
-    mock_session_window._current_page = mocker.Mock()
-    mock_session_window._current_page.__getitem__ = lambda _self, _key: 100
-    mock_session_window._current_ann_bbox = mocker.Mock()
-    mock_session_window.a_canvas.hocr.return_value = "ann_hocr"
-
-    # OK
-    mock_session_window._edit_annotation = mocker.Mock()
-    mock_session_window._ann_text_ok(None)
-    mock_session_window._current_ann_bbox.update_box.assert_called()
-    mock_session_window._current_page.import_annotations.assert_called_with("ann_hocr")
-
-    # New
-    mock_session_window._ann_text_new(None)
-    mock_session_window.a_canvas.add_box.assert_called()
-
-    # Delete
-    mock_session_window._ann_text_delete(None)
-    mock_session_window._current_ann_bbox.delete_box.assert_called()
-
-
-def test_add_text_view_layers(
-    mocker: pytest.MockerFixture, mock_session_window: object
-) -> None:
-    """Test _add_text_view_layers."""
-    mocker.patch("scantpaper.session_mixins.TextLayerControls")
-    mock_edit_hbox = mocker.Mock()
-    mock_session_window.builder.get_object.return_value = mock_edit_hbox
-
-    mock_session_window._add_text_view_layers()
-
-    mock_session_window.builder.get_object.assert_called_with("edit_hbox")
-    assert mock_session_window._ocr_text_hbox is not None
-    assert mock_session_window._ann_hbox is not None
-
-
-def test_edit_mode_callback(
-    mocker: pytest.MockerFixture, mock_session_window: object
-) -> None:
-    """Test _edit_mode_callback."""
-    mock_action = mocker.Mock()
-    mock_param = mocker.Mock()
-
-    mock_session_window._ocr_text_hbox = mocker.Mock()
-    mock_session_window._ann_hbox = mocker.Mock()
-
-    # Test text mode
-    mock_param.get_string.return_value = "text"
-    mock_session_window._edit_mode_callback(mock_action, mock_param)
-    mock_session_window._ocr_text_hbox.show.assert_called()
-    mock_session_window._ann_hbox.hide.assert_called()
-
-    # Test other mode (e.g. annotation)
-    mock_param.get_string.return_value = "annotation"
-    mock_session_window._edit_mode_callback(mock_action, mock_param)
-    mock_session_window._ocr_text_hbox.hide.assert_called()
-    mock_session_window._ann_hbox.show.assert_called()
-
-
-def test_edit_ocr_text(
-    mocker: pytest.MockerFixture, mock_session_window: object
-) -> None:
-    """Test _edit_ocr_text."""
-    mock_bbox = mocker.Mock()
-    mock_bbox.text = "some text"
-    mock_bbox.bbox = "bbox_rect"
-
-    mock_session_window._ocr_text_hbox = mocker.Mock()
-    mock_session_window.t_canvas = mocker.Mock()
-
-    # Case bbox is None
-    mock_session_window._edit_ocr_text(None)
-
-    # Case bbox is set
-    mock_session_window._edit_ocr_text(mock_bbox)
-
-    mock_session_window._ocr_text_hbox.textbuffer.set_text.assert_called_with(
-        "some text"
-    )
-    mock_session_window.view.set_selection.assert_called_with("bbox_rect")
-    mock_session_window.t_canvas.set_index_by_bbox.assert_called_with(mock_bbox)
-
-
-def test_edit_annotation(
-    mocker: pytest.MockerFixture, mock_session_window: object
-) -> None:
-    """Test _edit_annotation."""
-    mock_bbox = mocker.Mock()
-    mock_bbox.text = "some text"
-    mock_bbox.bbox = "bbox_rect"
-
-    mock_session_window._ann_hbox = mocker.Mock()
-    mock_session_window.a_canvas = mocker.Mock()
-
-    mock_session_window._edit_annotation(mock_bbox)
-
-    mock_session_window._ann_hbox.textbuffer.set_text.assert_called_with("some text")
-    mock_session_window.view.set_selection.assert_called_with("bbox_rect")
-    mock_session_window.a_canvas.set_index_by_bbox.assert_called_with(mock_bbox)
-
-
 def test_tool_actions(mock_session_window: object) -> None:
     """Test tool action callbacks."""
     mock_session_window._on_zoom_100(None)
@@ -947,158 +785,62 @@ def test_tool_actions(mock_session_window: object) -> None:
     mock_session_window.get_application().quit.assert_called()
 
 
-def test_create_txt_ann_canvas(
+def test_add_text_view_layers(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _create_txt_canvas and _create_ann_canvas."""
+    """Test _add_text_view_layers creates and wires the two editors."""
+    captured = []
 
-    def sync_parse(
-        _json_string: object,
-        finished_callback: Callable[[object], None] | None = None,
-    ) -> None:
-        mock_result = mocker.Mock()
-        mock_result.info = {
-            "bboxes": [{"bbox": [0, 0, 100, 100]}],
-            "sorted_word_indices": [],
-        }
-        cast("Callable[[object], None]", finished_callback)(mock_result)
+    class FakeEditor:
+        def __init__(self, **kwargs: object) -> None:
+            captured.append(kwargs)
+            self.canvas = mocker.Mock()
+            self.controls = mocker.Mock()
 
-    mock_session_window.slist.thread.parse_bboxtree.side_effect = sync_parse
-    mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
-    mock_session_window.view.get_zoom.return_value = 1.5
+    mocker.patch("scantpaper.session_mixins.LayerEditor", FakeEditor)
+    mock_session_window.view = mocker.Mock()
+    mock_session_window.slist.thread = mocker.Mock()
+    mock_session_window._current_page = mocker.Mock()
+    mock_edit_hbox = mocker.Mock()
+    mock_session_window.builder.get_object.return_value = mock_edit_hbox
+    mock_session_window._pack_viewer_tools = mocker.Mock()
 
-    mock_page = mocker.Mock()
-    mock_page.text_layer = "some json"
-    mock_page.annotations = "some json"
+    mock_session_window._add_text_view_layers()
 
-    mock_session_window._create_txt_canvas(mock_page)
-    mock_session_window.t_canvas.set_text.assert_called()
-    mock_session_window.t_canvas.set_offset.assert_called_with(10, 20)
+    assert len(captured) == 2
+    assert mock_session_window.t_canvas is not None
+    assert mock_session_window.a_canvas is not None
+    mock_edit_hbox.pack_start.assert_called()
+    mock_session_window._pack_viewer_tools.assert_called()
 
-    mock_session_window._create_ann_canvas(mock_page)
-    mock_session_window.a_canvas.set_text.assert_called()
-    mock_session_window.a_canvas.set_offset.assert_called_with(10, 20)
+    # Exercise the injected get_page closure and verify the shared thread.
+    for kwargs in captured:
+        assert kwargs["get_page"]() is mock_session_window._current_page
+        assert kwargs["thread"] is mock_session_window.slist.thread
 
 
-def test_create_txt_ann_canvas_no_layer(
+def test_edit_mode_callback(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _create_txt_canvas and _create_ann_canvas with no layers."""
-    mock_session_window.view.get_offset.return_value = MagicMock(x=10, y=20)
-    mock_page = mocker.Mock()
-    mock_page.text_layer = None
-    mock_page.annotations = None
+    """Test _edit_mode_callback toggles the editors via set_active."""
+    mock_action = mocker.Mock()
+    mock_param = mocker.Mock()
+    mock_session_window._text_editor = mocker.Mock()
+    mock_session_window._ann_editor = mocker.Mock()
 
-    callback = mocker.Mock()
-    mock_session_window._create_txt_canvas(mock_page, finished_callback=callback)
-    mock_session_window.t_canvas.clear_text.assert_called_once()
-    callback.assert_called_once()
+    # Test text mode
+    mock_param.get_string.return_value = "text"
+    mock_session_window._edit_mode_callback(mock_action, mock_param)
+    mock_session_window._text_editor.set_active.assert_called_with(active=True)
+    mock_session_window._ann_editor.set_active.assert_called_with(active=False)
 
-    callback.reset_mock()
-    mock_session_window._create_ann_canvas(mock_page, finished_callback=callback)
-    mock_session_window.a_canvas.clear_text.assert_called_once()
-    callback.assert_called_once()
-
-
-def test_ann_text_new_no_layer(
-    mocker: pytest.MockerFixture, mock_session_window: object
-) -> None:
-    """Test _ann_text_new with no existing text layer and empty text."""
-    mock_session_window._ann_hbox = mocker.Mock()
-    # Line 643 coverage: text is EMPTY
-    mock_session_window._ann_hbox.textbuffer.get_text.return_value = EMPTY
-
-    # Mock _current_page so it doesn't have text_layer (Lines 655-674 coverage)
-    # and supports dict access
-    mock_page = mocker.MagicMock()
-    del mock_page.text_layer
-    page_data: dict[str, object] = {"width": 100, "height": 100}
-
-    def getitem(key: str) -> object | None:
-        return page_data.get(key)
-
-    def setitem(key: str, value: object) -> None:
-        page_data[key] = value
-
-    mock_page.__getitem__.side_effect = getitem
-    mock_page.__setitem__.side_effect = setitem
-    mock_session_window._current_page = mock_page
-
-    mock_session_window.view.get_selection.return_value = {
-        "x": 0,
-        "y": 0,
-        "width": 10,
-        "height": 10,
-    }
-
-    # Line 671-672 coverage: need to call the callback passed to _create_ann_canvas
-    def create_ann_canvas_side_effect(
-        _page: object, callback: Callable[[object], None]
-    ) -> None:
-        callback(None)
-
-    mock_session_window._create_ann_canvas = mocker.Mock(
-        side_effect=create_ann_canvas_side_effect
-    )
-    mock_session_window._edit_annotation = mocker.Mock()
-    mock_session_window.a_canvas = mocker.Mock()
-
-    mock_session_window._ann_text_new(None)
-
-    # Verify line 643 was hit (text became default)
-    assert "my-new-annotation" in cast("list[object]", page_data["annotations"])
-    # Verify lines 671-672 were hit
-    mock_session_window.a_canvas.get_first_bbox.assert_called()
-    mock_session_window._edit_annotation.assert_called()
-
-
-def test_ocr_text_add_no_layer(
-    mocker: pytest.MockerFixture, mock_session_window: object
-) -> None:
-    """Test _ocr_text_add with no existing text layer and empty text."""
-    mock_session_window._ocr_text_hbox = mocker.Mock()
-    # Line 587 coverage: text is EMPTY
-    mock_session_window._ocr_text_hbox.textbuffer.get_text.return_value = EMPTY
-
-    # Mock _current_page so it doesn't have text_layer (Lines 599-618 coverage)
-    # and supports dict access
-    mock_page = mocker.MagicMock()
-    del mock_page.text_layer
-    page_data: dict[str, object] = {"width": 100, "height": 100}
-
-    def getitem(key: str) -> object | None:
-        return page_data.get(key)
-
-    mock_page.__getitem__.side_effect = getitem
-    mock_page.__setitem__.side_effect = None
-    mock_session_window._current_page = mock_page
-
-    mock_session_window.view.get_selection.return_value = {
-        "x": 0,
-        "y": 0,
-        "width": 10,
-        "height": 10,
-    }
-
-    # Line 615-616 coverage: need to call the callback passed to _create_txt_canvas
-    def create_txt_canvas_side_effect(
-        _page: object, callback: Callable[[object], None]
-    ) -> None:
-        callback(None)
-
-    mock_session_window._create_txt_canvas = mocker.Mock(
-        side_effect=create_txt_canvas_side_effect
-    )
-    mock_session_window._edit_ocr_text = mocker.Mock()
-    mock_session_window.t_canvas = mocker.Mock()
-
-    mock_session_window._ocr_text_add(None)
-
-    # Verify line 587 was hit (text became default)
-    assert "my-new-word" in mock_session_window._current_page.text_layer
-    # Verify lines 615-616 were hit
-    mock_session_window.t_canvas.get_first_bbox.assert_called()
-    mock_session_window._edit_ocr_text.assert_called()
+    # Test other mode (e.g. annotation)
+    mock_session_window._text_editor.reset_mock()
+    mock_session_window._ann_editor.reset_mock()
+    mock_param.get_string.return_value = "annotation"
+    mock_session_window._edit_mode_callback(mock_action, mock_param)
+    mock_session_window._text_editor.set_active.assert_called_with(active=False)
+    mock_session_window._ann_editor.set_active.assert_called_with(active=True)
 
 
 class MockApp(SessionMixins):

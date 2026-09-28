@@ -462,6 +462,7 @@ def test_do_set_annotations(mocker: pytest.MockerFixture) -> None:
     """Test do_set_annotations."""
     thread = DocThread(db=":memory:")
     thread._write_tid = threading.get_native_id()
+    mocker.patch.object(thread, "_take_snapshot")
 
     mock_execute = mocker.patch.object(thread, "_execute")
     thread._con[threading.get_native_id()] = mocker.Mock()
@@ -636,6 +637,20 @@ def test_set_text_calls_send(mocker: pytest.MockerFixture) -> None:
     mock_send.assert_called_once()
     # Ensure the first three positional args are domain, page_id, text
     assert mock_send.call_args[0][:3] == ("set_text", 42, "hello world")
+    assert result == "sent"
+
+
+def test_set_annotations_calls_send(mocker: pytest.MockerFixture) -> None:
+    """Test that `set_annotations()` forwards to `send()` with correct args."""
+    thread = DocThread(db=":memory:")
+
+    mock_send = mocker.Mock(return_value="sent")
+    thread.send = mock_send
+
+    result = thread.set_annotations(42, "ann", finished_callback=lambda *_: None)
+
+    mock_send.assert_called_once()
+    assert mock_send.call_args[0][:3] == ("set_annotations", 42, "ann")
     assert result == "sent"
 
 
