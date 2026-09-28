@@ -1,12 +1,12 @@
 """scantpaper --- to aid the scan to PDF or DjVu process."""
 
 # Roadmap and wishlist:
-# refactor methods using self.slist.clipboard
 # refactor ocr & annotation manipulation into single class
 # migrate to Gtk4
 # improve translations, including those in org.scantpaper.desktop.metainfo.xml
 # look again at translating docs
 # + scan profile viewer/editor
+# + mutmut
 # remaining FIXMEs and TODOs
 
 import argparse

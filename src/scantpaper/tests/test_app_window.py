@@ -671,6 +671,17 @@ def test_update_uimanager(app_window: ApplicationWindow) -> None:
     assert app_window._actions["crop-dialog"].get_enabled()
 
 
+def test_paste_action_reflects_clipboard(app_window: ApplicationWindow) -> None:
+    """Test paste action is enabled by clipboard data via the changed signal."""
+    assert not app_window._actions["paste"].get_enabled()
+
+    app_window.clipboard.data = [MagicMock()]
+    assert app_window._actions["paste"].get_enabled()
+
+    app_window.clipboard.data = None
+    assert not app_window._actions["paste"].get_enabled()
+
+
 def test_update_uimanager_low_disk_space(
     app_window: ApplicationWindow, mocker: pytest.MockerFixture
 ) -> None:

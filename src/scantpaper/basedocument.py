@@ -54,7 +54,6 @@ class BaseDocument(SimpleList):
         self.set_headers_visible(False)
         self.set_reorderable(True)
         self.dir: str | pathlib.Path | None = None
-        self.clipboard = None
         self._context = {}
         self._suppress_delete = False
         for key, val in kwargs.items():

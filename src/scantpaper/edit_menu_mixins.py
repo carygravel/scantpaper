@@ -120,32 +120,32 @@ class EditMenuMixins:
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None
     ) -> None:
         """Cut the selection."""
-        self.slist.clipboard = self.slist.cut_selection()
+        self.clipboard.data = self.slist.cut_selection()
         self._update_uimanager()
 
     def copy_selection(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None
     ) -> None:
         """Copy the selection."""
-        self.slist.clipboard = self.slist.copy_selection()
+        self.clipboard.data = self.slist.copy_selection()
         self._update_uimanager()
 
     def paste_selection(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None
     ) -> None:
         """Paste the selection."""
-        if self.slist.clipboard is None:
+        if self.clipboard.data is None:
             return
         pages = self.slist.get_selected_indices()
         if pages:
             self.slist.paste_selection(
-                data=self.slist.clipboard,
+                data=self.clipboard.data,
                 dest=pages[-1],
                 how="after",
                 select_new_pages=True,
             )
         else:
-            self.slist.paste_selection(data=self.slist.clipboard, select_new_pages=True)
+            self.slist.paste_selection(data=self.clipboard.data, select_new_pages=True)
         self._update_uimanager()
 
     def delete_selection(

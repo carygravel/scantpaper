@@ -19,6 +19,7 @@ import sane  # To get SANE_* enums
 
 from scantpaper import config
 from scantpaper.canvas import Canvas
+from scantpaper.clipboard import Clipboard
 from scantpaper.const import (
     DRAGGER_TOOL,
     EMPTY,
@@ -160,6 +161,10 @@ class ApplicationWindow(
         self._actions = {}
         self._read_config()
         self._init_actions()
+
+        self.clipboard = Clipboard()
+        self.clipboard.connect("changed", self._update_paste_action)
+        self._update_paste_action()
 
         # add the actions to the window that have window-classed callbacks
         self.add_action(self._actions["tooltype"])
@@ -741,6 +746,11 @@ class ApplicationWindow(
         # have to ensure that any progress bars are hidden afterwards if neceesary.
         self.post_process_progress.finish(None)
 
+    def _update_paste_action(self, _clipboard: object = None) -> None:
+        """Enable or disable the paste action based on clipboard contents."""
+        if "paste" in self._actions:
+            self._actions["paste"].set_enabled(self.clipboard.has_data)
+
     def _update_uimanager(self) -> None:
         action_names = [
             "cut",
@@ -793,8 +803,6 @@ class ApplicationWindow(
             self._actions["ocr"].set_enabled(False)
 
         self._update_send_save_actions()
-
-        self._actions["paste"].set_enabled(bool(self.slist.clipboard))
 
         # Un/ghost Undo/redo
         self._actions["undo"].set_enabled(self.slist.thread.can_undo())

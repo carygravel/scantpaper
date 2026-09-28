@@ -9,6 +9,7 @@ from unittest.mock import ANY, MagicMock
 import gi
 import pytest
 
+from scantpaper.clipboard import Clipboard
 from scantpaper.edit_menu_mixins import EditMenuMixins
 
 if TYPE_CHECKING:
@@ -57,6 +58,7 @@ def mock_edit_window(
 
     # Common mocks
     window.slist = mocker.MagicMock()
+    window.clipboard = Clipboard()
     window.post_process_progress = mocker.Mock()
     window.t_canvas = mocker.Mock()
     window._actions = {
@@ -112,7 +114,7 @@ def test_cut_selection(mock_edit_window: object) -> None:
     mock_edit_window.slist.cut_selection.return_value = "clipboard_data"
     mock_edit_window.cut_selection(None, None)
     mock_edit_window.slist.cut_selection.assert_called_once()
-    assert mock_edit_window.slist.clipboard == "clipboard_data"
+    assert mock_edit_window.clipboard.data == "clipboard_data"
     mock_edit_window._update_uimanager.assert_called_once()
 
 
@@ -121,20 +123,20 @@ def test_copy_selection(mock_edit_window: object) -> None:
     mock_edit_window.slist.copy_selection.return_value = "clipboard_data"
     mock_edit_window.copy_selection(None, None)
     mock_edit_window.slist.copy_selection.assert_called_once()
-    assert mock_edit_window.slist.clipboard == "clipboard_data"
+    assert mock_edit_window.clipboard.data == "clipboard_data"
     mock_edit_window._update_uimanager.assert_called_once()
 
 
 def test_paste_selection_empty(mock_edit_window: object) -> None:
     """Test paste_selection with empty clipboard."""
-    mock_edit_window.slist.clipboard = None
+    mock_edit_window.clipboard.data = None
     mock_edit_window.paste_selection(None, None)
     mock_edit_window.slist.paste_selection.assert_not_called()
 
 
 def test_paste_selection_with_pages(mock_edit_window: object) -> None:
     """Test paste_selection with selected pages."""
-    mock_edit_window.slist.clipboard = "data"
+    mock_edit_window.clipboard.data = "data"
     mock_edit_window.slist.get_selected_indices.return_value = [0, 1]
 
     mock_edit_window.paste_selection(None, None)
@@ -147,7 +149,7 @@ def test_paste_selection_with_pages(mock_edit_window: object) -> None:
 
 def test_paste_selection_no_pages(mock_edit_window: object) -> None:
     """Test paste_selection without selected pages."""
-    mock_edit_window.slist.clipboard = "data"
+    mock_edit_window.clipboard.data = "data"
     mock_edit_window.slist.get_selected_indices.return_value = []
 
     mock_edit_window.paste_selection(None, None)
