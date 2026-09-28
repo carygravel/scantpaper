@@ -14,6 +14,9 @@
 #   install <pkg>      Install the built RPMs for one package with zypper.
 #   all                setup + build + install every package, in order.
 #   collect <dir>      Copy every built RPM into <dir>.
+#   collect-runtime <dir>
+#                      Copy only the runtime RPMs (no build-only helpers, no
+#                      -debuginfo / -debugsource) into <dir>.
 #
 set -euo pipefail
 
@@ -22,6 +25,14 @@ SPEC_DIR="$SCRIPT_DIR"
 
 ORDER=(cysignals setuptools-scm hatch-vcs tesserocr iso639 sane pdfminer \
        img2pdf ocrmypdf scantpaper)
+
+# The packages ScantPaper needs at run time, in build order. The build-only
+# helper packages (python3-setuptools-scm, python3-hatch-vcs) are deliberately
+# excluded: installing them on a target system drags in their own Python
+# dependencies from the Leap backports repositories and buys nothing at run
+# time. collect-runtime copies exactly this set (minus the -debuginfo /
+# -debugsource packages) for publishing.
+RUNTIME=(cysignals tesserocr iso639 sane pdfminer img2pdf ocrmypdf scantpaper)
 
 # Package key -> spec file name.
 spec_for() {
@@ -149,12 +160,29 @@ do_collect() {
   echo "Copied $(find "$dir" -maxdepth 1 -name '*.rpm' | wc -l) RPMs to $dir"
 }
 
+do_collect_runtime() {
+  local dir="$1"
+  mkdir -p "$dir"
+  local pkg rpmname file
+  for pkg in "${RUNTIME[@]}"; do
+    rpmname="$(rpmname_for "$pkg")"
+    while IFS= read -r file; do
+      cp "$file" "$dir"/
+    done < <(find "$HOME/rpmbuild/RPMS" -type f \
+        -name "$rpmname-*.rpm" \
+        ! -name '*-debuginfo-*' \
+        ! -name '*-debugsource-*')
+  done
+  echo "Copied $(find "$dir" -maxdepth 1 -name '*.rpm' | wc -l) RPMs to $dir"
+}
+
 case "${1:-}" in
   setup)  do_setup ;;
   build)  do_build "${2:?usage: build <pkg>}" ;;
   install) do_install "${2:?usage: install <pkg>}" ;;
   all)    do_all ;;
   collect) do_collect "${2:?usage: collect <dir>}" ;;
-  *) echo "usage: $0 {setup|build <pkg>|install <pkg>|all|collect <dir>}" >&2
+  collect-runtime) do_collect_runtime "${2:?usage: collect-runtime <dir>}" ;;
+  *) echo "usage: $0 {setup|build <pkg>|install <pkg>|all|collect <dir>|collect-runtime <dir>}" >&2
      exit 1 ;;
 esac

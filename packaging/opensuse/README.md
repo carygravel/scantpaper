@@ -36,6 +36,18 @@ collect them into one directory:
 bash packaging/opensuse/build.sh collect /tmp/rpms
 ```
 
+`collect` copies everything (including the `-debuginfo`/`-debugsource` and
+build-only helper packages). For a runnable set, use `collect-runtime`, which
+copies only what a target system needs (no build-only helpers, no debug
+packages):
+
+```sh
+bash packaging/opensuse/build.sh collect-runtime /tmp/rpms
+```
+
+The GitHub release artifact is built with `collect-runtime`, so the published
+RPMs are the runtime set only.
+
 To iterate on a single package (after `setup`, and once its dependencies are
 installed):
 
@@ -47,16 +59,34 @@ bash packaging/opensuse/build.sh install ocrmypdf
 
 ## Install the built packages
 
-On the target Leap 16 system, install the collected RPMs in one transaction so
-the dependency resolver can satisfy everything at once:
+On the target Leap 16 system, install the runtime packages in one transaction
+so the dependency resolver can satisfy everything at once. Install only the
+packages ScantPaper needs at run time; the build-only helper packages
+(`python3-hatch-vcs`, `python3-setuptools-scm`) and the `-debuginfo` /
+`-debugsource` packages can be left out:
 
 ```sh
-sudo zypper install --allow-unsigned-rpm --force-resolution /tmp/rpms/*.rpm
+sudo zypper install --allow-unsigned-rpm --force-resolution \
+    scantpaper-*.rpm \
+    python3-cysignals-*.rpm \
+    python3-img2pdf-*.rpm \
+    python3-iso639-*.rpm \
+    python3-ocrmypdf-*.rpm \
+    python3-pdfminer.six-*.rpm \
+    python3-sane-*.rpm \
+    python3-tesserocr-*.rpm
 ```
 
 The RPMs are unsigned because they are built locally (CI builds them without
 signing keys). `--allow-unsigned-rpm` is required for that. `--force-resolution`
 lets zypper resolve without interactive prompts.
+
+Do not expand the whole `*.rpm` directory: that also installs
+`python3-hatch-vcs` and `python3-setuptools-scm`, which are only needed to
+*build* the other packages. They pull their own Python dependencies from the
+Leap backports repositories, and a few of those (e.g. `python313-hatchling`)
+can be temporarily missing from a mirror, which then aborts the entire
+transaction with a 404.
 
 ## Why the specs look the way they do
 

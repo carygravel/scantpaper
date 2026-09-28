@@ -238,13 +238,11 @@ jobs:
             -name '*.rpm' \
             -print
 
+      # Only the runtime packages are published; the build-only helpers
+      # (python3-hatch-vcs, python3-setuptools-scm) and the -debuginfo /
+      # -debugsource packages are not useful on a target system.
       - name: Copy packages
-        run: |
-          mkdir -p artifacts
-          find ~/rpmbuild/RPMS \
-            -type f \
-            -name '*.rpm' \
-            -exec cp {} artifacts/ \;
+        run: bash packaging/opensuse/build.sh collect-runtime artifacts
 
       - name: Upload RPMs
         uses: actions/upload-artifact@v7
