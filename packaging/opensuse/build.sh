@@ -27,25 +27,25 @@ ORDER=(cysignals setuptools-scm hatch-vcs tesserocr iso639 sane pdfminer \
        img2pdf ocrmypdf scantpaper)
 
 # The packages ScantPaper needs at run time, in build order. The build-only
-# helper packages (python3-setuptools-scm, python3-hatch-vcs) are deliberately
-# excluded: installing them on a target system drags in their own Python
-# dependencies from the Leap backports repositories and buys nothing at run
-# time. collect-runtime copies exactly this set (minus the -debuginfo /
+# helper packages (python313-setuptools-scm, python313-hatch-vcs) are
+# deliberately excluded: installing them on a target system drags in their own
+# Python dependencies from the Leap backports repositories and buys nothing at
+# run time. collect-runtime copies exactly this set (minus the -debuginfo /
 # -debugsource packages) for publishing.
 RUNTIME=(cysignals tesserocr iso639 sane pdfminer img2pdf ocrmypdf scantpaper)
 
 # Package key -> spec file name.
 spec_for() {
   case "$1" in
-    cysignals)      echo python3-cysignals.spec ;;
-    setuptools-scm) echo python3-setuptools-scm.spec ;;
-    hatch-vcs)      echo python3-hatch-vcs.spec ;;
-    tesserocr)      echo python3-tesserocr.spec ;;
-    iso639)         echo python3-iso639.spec ;;
-    sane)           echo python3-sane.spec ;;
-    pdfminer)       echo python3-pdfminer.six.spec ;;
-    img2pdf)        echo python3-img2pdf.spec ;;
-    ocrmypdf)       echo python3-ocrmypdf.spec ;;
+    cysignals)      echo python313-cysignals.spec ;;
+    setuptools-scm) echo python313-setuptools-scm.spec ;;
+    hatch-vcs)      echo python313-hatch-vcs.spec ;;
+    tesserocr)      echo python313-tesserocr.spec ;;
+    iso639)         echo python313-python-iso639.spec ;;
+    sane)           echo python313-sane.spec ;;
+    pdfminer)       echo python313-pdfminer.six.spec ;;
+    img2pdf)        echo python313-img2pdf.spec ;;
+    ocrmypdf)       echo python313-ocrmypdf.spec ;;
     scantpaper)     echo scantpaper.spec ;;
     *) echo "unknown package: $1" >&2; return 1 ;;
   esac
@@ -54,15 +54,15 @@ spec_for() {
 # Package key -> RPM name prefix used for the install glob.
 rpmname_for() {
   case "$1" in
-    cysignals)      echo python3-cysignals ;;
-    setuptools-scm) echo python3-setuptools-scm ;;
-    hatch-vcs)      echo python3-hatch-vcs ;;
-    tesserocr)      echo python3-tesserocr ;;
-    iso639)         echo python3-iso639 ;;
-    sane)           echo python3-sane ;;
-    pdfminer)       echo python3-pdfminer.six ;;
-    img2pdf)        echo python3-img2pdf ;;
-    ocrmypdf)       echo python3-ocrmypdf ;;
+    cysignals)      echo python313-cysignals ;;
+    setuptools-scm) echo python313-setuptools-scm ;;
+    hatch-vcs)      echo python313-hatch-vcs ;;
+    tesserocr)      echo python313-tesserocr ;;
+    iso639)         echo python313-python-iso639 ;;
+    sane)           echo python313-sane ;;
+    pdfminer)       echo python313-pdfminer.six ;;
+    img2pdf)        echo python313-img2pdf ;;
+    ocrmypdf)       echo python313-ocrmypdf ;;
     scantpaper)     echo scantpaper ;;
     *) echo "unknown package: $1" >&2; return 1 ;;
   esac
@@ -140,7 +140,7 @@ do_install() {
   local rpmname
   rpmname="$(rpmname_for "$pkg")"
   # shellcheck disable=SC2086  # glob must expand
-  zypper -n install --allow-unsigned-rpm --force-resolution \
+  zypper -n install --allow-unsigned-rpm \
     "$HOME"/rpmbuild/RPMS/*/"$rpmname"-*.rpm
 }
 

@@ -1,4 +1,4 @@
-Name:           python3-ocrmypdf
+Name:           python313-ocrmypdf
 Version:        16.11.1
 Release:        1%{?dist}
 Summary:        OCR PDFs with tesseract
@@ -17,8 +17,8 @@ BuildRequires:  python313-setuptools
 BuildRequires:  python313-wheel
 BuildRequires:  python313-build
 BuildRequires:  python313-hatchling
-BuildRequires:  python3-hatch-vcs
-BuildRequires:  python3-setuptools-scm
+BuildRequires:  python313-hatch-vcs
+BuildRequires:  python313-setuptools-scm
 BuildRequires:  python313-pikepdf >= 8.10.1
 BuildRequires:  python313-Pillow >= 10.0.1
 BuildRequires:  python313-pluggy >= 1
@@ -29,9 +29,9 @@ BuildRequires:  python313-packaging
 Requires:       ghostscript
 Requires:       tesseract-ocr
 Requires:       python313-deprecation
-Requires:       python3-img2pdf >= 0.5
+Requires:       python313-img2pdf >= 0.5
 Requires:       python313-packaging
-Requires:       python3-pdfminer.six >= 20220319
+Requires:       python313-pdfminer.six >= 20220319
 Requires:       python313-pikepdf >= 8.10.1
 Requires:       python313-Pillow >= 10.0.1
 Requires:       python313-pluggy >= 1
@@ -53,7 +53,7 @@ Requires:       python313-rich >= 13
 ocrMyPDF uses tesseract to add an OCR text layer to scanned PDF files,
 making them searchable. It is rebuilt locally because openSUSE Leap 16.0
 does not ship ocrmypdf built for python313, together with the source-built
-toolchain packages (python3-img2pdf, python3-pdfminer.six, ...).
+toolchain packages (python313-img2pdf, python313-pdfminer.six, ...).
 
 %prep
 %autosetup -n ocrmypdf-%{version}

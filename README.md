@@ -488,12 +488,17 @@ sudo zypper install --allow-unsigned-rpm *.rpm
 
 The release provides scantpaper together with locally rebuilt, Leap 16.0
 versions of the Python dependencies that the distro does not package
-(`python3-sane`, `python3-tesserocr`, `python3-cysignals`, `python3-iso639`,
-`python3-pdfminer.six`, `python3-img2pdf`, `python3-ocrmypdf`,
-`python3-setuptools-scm` and `python3-hatch-vcs`, with a `python3-sane` patch
-for Epson `epsonscan2` scanners). scantpaper requires these packages by their
-`python3dist(...)` names, so they must be installed in the same transaction:
-installing scantpaper first fails with `nothing provides python3dist(...)`.
+(`python313-sane`, `python313-tesserocr`, `python313-cysignals`,
+`python313-python-iso639`, `python313-pdfminer.six`, `python313-img2pdf`,
+`python313-ocrmypdf`, `python313-setuptools-scm` and `python313-hatch-vcs`,
+with a `python313-sane` patch for Epson `epsonscan2` scanners).
+
+Installing the set replaces any same-named packages you already have from
+repo-oss or from a third-party repository such as
+`devel:languages:python`. That is intended: the rebuilt packages carry fixes
+the repository builds do not, the `python313-sane` `snap()` patch being the
+important one. Three of them are versioned so that a later system update keeps
+your build instead of reverting it to the distribution's.
 
 To remove scantpaper afterwards:
 
@@ -502,8 +507,9 @@ sudo zypper remove scantpaper
 ```
 
 The RPMs are unsigned (the workflow builds them from source), hence the
-`--allow-unsigned-rpm`. PostScript export needs `tiff2ps`, which is not
-packaged on Leap 16.0, so the PostScript save type is not available there.
+`--allow-unsigned-rpm`. That is the only flag needed. PostScript export needs
+`tiff2ps`, which is not packaged on Leap 16.0, so the PostScript save type is
+not available there.
 
 #### From a wheel file
 

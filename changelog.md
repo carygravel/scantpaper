@@ -17,6 +17,16 @@
   finished or been cancelled, with no way out of that state but closing the
   window. A progress update that fails is now reported as an error instead,
   and cancelling always completes.
+* Fix the published openSUSE Leap 16 RPMs not installing. The package names
+  now follow the distribution's own `python313-*` scheme, so the artifact
+  filenames changed: `python3-sane`, `python3-tesserocr`, `python3-cysignals`,
+  `python3-iso639`, `python3-pdfminer.six`, `python3-img2pdf`,
+  `python3-ocrmypdf`, `python3-setuptools-scm` and `python3-hatch-vcs` are now
+  `python313-sane`, `python313-tesserocr`, `python313-cysignals`,
+  `python313-python-iso639`, `python313-pdfminer.six`, `python313-img2pdf`,
+  `python313-ocrmypdf`, `python313-setuptools-scm` and `python313-hatch-vcs`.
+  Download the whole new set: RPM files from an earlier release are
+  superseded and will not satisfy the new dependencies.
 
 
 ## 3.0.20 (2026-09-27)

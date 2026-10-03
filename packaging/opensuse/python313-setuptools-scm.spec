@@ -1,4 +1,4 @@
-Name:           python3-setuptools-scm
+Name:           python313-setuptools-scm
 Version:        8.2.1
 Release:        1%{?dist}
 Summary:        The blessed package to manage your versions by scm tags

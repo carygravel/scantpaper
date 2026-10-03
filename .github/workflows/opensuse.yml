@@ -37,63 +37,63 @@ jobs:
         uses: actions/cache@v6
         with:
           path: cache/cysignals
-          key: opensuse-${{ runner.os }}-cysignals-cache-${{ hashFiles('packaging/opensuse/python3-cysignals.spec') }}
+          key: opensuse-${{ runner.os }}-cysignals-cache-${{ hashFiles('packaging/opensuse/python313-cysignals.spec') }}
 
       - name: Restore setuptools-scm cache
         id: cache-setuptools-scm
         uses: actions/cache@v6
         with:
           path: cache/setuptools-scm
-          key: opensuse-${{ runner.os }}-setuptools-scm-cache-${{ hashFiles('packaging/opensuse/python3-setuptools-scm.spec') }}
+          key: opensuse-${{ runner.os }}-setuptools-scm-cache-${{ hashFiles('packaging/opensuse/python313-setuptools-scm.spec') }}
 
       - name: Restore hatch-vcs cache
         id: cache-hatch-vcs
         uses: actions/cache@v6
         with:
           path: cache/hatch-vcs
-          key: opensuse-${{ runner.os }}-hatch-vcs-cache-${{ hashFiles('packaging/opensuse/python3-hatch-vcs.spec') }}
+          key: opensuse-${{ runner.os }}-hatch-vcs-cache-${{ hashFiles('packaging/opensuse/python313-hatch-vcs.spec') }}
 
       - name: Restore tesserocr cache
         id: cache-tesserocr
         uses: actions/cache@v6
         with:
           path: cache/tesserocr
-          key: opensuse-${{ runner.os }}-tesserocr-cache-${{ hashFiles('packaging/opensuse/python3-tesserocr.spec') }}
+          key: opensuse-${{ runner.os }}-tesserocr-cache-${{ hashFiles('packaging/opensuse/python313-tesserocr.spec') }}
 
-      - name: Restore python3-iso639 cache
+      - name: Restore python313-python-iso639 cache
         id: cache-iso639
         uses: actions/cache@v6
         with:
           path: cache/iso639
-          key: opensuse-${{ runner.os }}-iso639-cache-${{ hashFiles('packaging/opensuse/python3-iso639.spec') }}
+          key: opensuse-${{ runner.os }}-iso639-cache-${{ hashFiles('packaging/opensuse/python313-python-iso639.spec') }}
 
-      - name: Restore python3-sane cache
+      - name: Restore python313-sane cache
         id: cache-sane
         uses: actions/cache@v6
         with:
           path: cache/sane
-          key: opensuse-${{ runner.os }}-sane-cache-${{ hashFiles('packaging/opensuse/python3-sane.spec', 'packaging/opensuse/python3-sane-snap-params-cache.patch') }}
+          key: opensuse-${{ runner.os }}-sane-cache-${{ hashFiles('packaging/opensuse/python313-sane.spec', 'packaging/opensuse/python3-sane-snap-params-cache.patch') }}
 
       - name: Restore pdfminer.six cache
         id: cache-pdfminer
         uses: actions/cache@v6
         with:
           path: cache/pdfminer
-          key: opensuse-${{ runner.os }}-pdfminer-cache-${{ hashFiles('packaging/opensuse/python3-pdfminer.six.spec') }}
+          key: opensuse-${{ runner.os }}-pdfminer-cache-${{ hashFiles('packaging/opensuse/python313-pdfminer.six.spec') }}
 
       - name: Restore img2pdf cache
         id: cache-img2pdf
         uses: actions/cache@v6
         with:
           path: cache/img2pdf
-          key: opensuse-${{ runner.os }}-img2pdf-cache-${{ hashFiles('packaging/opensuse/python3-img2pdf.spec') }}
+          key: opensuse-${{ runner.os }}-img2pdf-cache-${{ hashFiles('packaging/opensuse/python313-img2pdf.spec') }}
 
       - name: Restore ocrmypdf cache
         id: cache-ocrmypdf
         uses: actions/cache@v6
         with:
           path: cache/ocrmypdf
-          key: opensuse-${{ runner.os }}-ocrmypdf-cache-${{ hashFiles('packaging/opensuse/python3-ocrmypdf.spec') }}
+          key: opensuse-${{ runner.os }}-ocrmypdf-cache-${{ hashFiles('packaging/opensuse/python313-ocrmypdf.spec') }}
 
       # Make cached RPMs available for the install steps below, which read
       # from the conventional ~/rpmbuild/RPMS/<arch> locations.
@@ -111,37 +111,37 @@ jobs:
         run: |
           bash packaging/opensuse/build.sh build cysignals
           mkdir -p cache/cysignals
-          cp ~/rpmbuild/RPMS/*/python3-cysignals-*.rpm cache/cysignals/
+          cp ~/rpmbuild/RPMS/*/python313-cysignals-*.rpm cache/cysignals/
 
       - name: Install cysignals
         run: bash packaging/opensuse/build.sh install cysignals
 
-      - name: Build python3-setuptools-scm
+      - name: Build python313-setuptools-scm
         if: steps.cache-setuptools-scm.outputs.cache-hit != 'true'
         run: |
           bash packaging/opensuse/build.sh build setuptools-scm
           mkdir -p cache/setuptools-scm
-          cp ~/rpmbuild/RPMS/*/python3-setuptools-scm-*.rpm cache/setuptools-scm/
+          cp ~/rpmbuild/RPMS/*/python313-setuptools-scm-*.rpm cache/setuptools-scm/
 
-      - name: Install python3-setuptools-scm
+      - name: Install python313-setuptools-scm
         run: bash packaging/opensuse/build.sh install setuptools-scm
 
-      - name: Build python3-hatch-vcs
+      - name: Build python313-hatch-vcs
         if: steps.cache-hatch-vcs.outputs.cache-hit != 'true'
         run: |
           bash packaging/opensuse/build.sh build hatch-vcs
           mkdir -p cache/hatch-vcs
-          cp ~/rpmbuild/RPMS/*/python3-hatch-vcs-*.rpm cache/hatch-vcs/
+          cp ~/rpmbuild/RPMS/*/python313-hatch-vcs-*.rpm cache/hatch-vcs/
 
-      - name: Install python3-hatch-vcs
+      - name: Install python313-hatch-vcs
         run: bash packaging/opensuse/build.sh install hatch-vcs
 
       - name: Verify dependencies
         run: |
-          rpm -q python3-cysignals
+          rpm -q python313-cysignals
           rpm -q python313-Cython
-          rpm -q python3-setuptools-scm
-          rpm -q python3-hatch-vcs
+          rpm -q python313-setuptools-scm
+          rpm -q python313-hatch-vcs
           rpm -q tesseract-ocr-devel
           rpm -q leptonica-devel
 
@@ -150,29 +150,29 @@ jobs:
         run: |
           bash packaging/opensuse/build.sh build tesserocr
           mkdir -p cache/tesserocr
-          cp ~/rpmbuild/RPMS/*/python3-tesserocr-*.rpm cache/tesserocr/
+          cp ~/rpmbuild/RPMS/*/python313-tesserocr-*.rpm cache/tesserocr/
 
       - name: Install tesserocr
         run: bash packaging/opensuse/build.sh install tesserocr
 
-      - name: Build python3-iso639
+      - name: Build python313-python-iso639
         if: steps.cache-iso639.outputs.cache-hit != 'true'
         run: |
           bash packaging/opensuse/build.sh build iso639
           mkdir -p cache/iso639
-          cp ~/rpmbuild/RPMS/*/python3-iso639-*.rpm cache/iso639/
+          cp ~/rpmbuild/RPMS/*/python313-python-iso639-*.rpm cache/iso639/
 
-      - name: Install python3-iso639
+      - name: Install python313-python-iso639
         run: bash packaging/opensuse/build.sh install iso639
 
-      - name: Build python3-sane
+      - name: Build python313-sane
         if: steps.cache-sane.outputs.cache-hit != 'true'
         run: |
           bash packaging/opensuse/build.sh build sane
           mkdir -p cache/sane
-          cp ~/rpmbuild/RPMS/*/python3-sane-*.rpm cache/sane/
+          cp ~/rpmbuild/RPMS/*/python313-sane-*.rpm cache/sane/
 
-      - name: Install python3-sane
+      - name: Install python313-sane
         run: bash packaging/opensuse/build.sh install sane
 
       - name: Verify PDF toolchain dependencies
@@ -184,40 +184,40 @@ jobs:
           rpm -q python313-cryptography
           rpm -q python313-charset-normalizer
 
-      - name: Build python3-pdfminer.six
+      - name: Build python313-pdfminer.six
         if: steps.cache-pdfminer.outputs.cache-hit != 'true'
         run: |
           bash packaging/opensuse/build.sh build pdfminer
           mkdir -p cache/pdfminer
-          cp ~/rpmbuild/RPMS/*/python3-pdfminer.six-*.rpm cache/pdfminer/
+          cp ~/rpmbuild/RPMS/*/python313-pdfminer.six-*.rpm cache/pdfminer/
 
-      - name: Install python3-pdfminer.six
+      - name: Install python313-pdfminer.six
         run: bash packaging/opensuse/build.sh install pdfminer
 
-      - name: Build python3-img2pdf
+      - name: Build python313-img2pdf
         if: steps.cache-img2pdf.outputs.cache-hit != 'true'
         run: |
           bash packaging/opensuse/build.sh build img2pdf
           mkdir -p cache/img2pdf
-          cp ~/rpmbuild/RPMS/*/python3-img2pdf-*.rpm cache/img2pdf/
+          cp ~/rpmbuild/RPMS/*/python313-img2pdf-*.rpm cache/img2pdf/
 
-      - name: Install python3-img2pdf
+      - name: Install python313-img2pdf
         run: bash packaging/opensuse/build.sh install img2pdf
 
-      - name: Build python3-ocrmypdf
+      - name: Build python313-ocrmypdf
         if: steps.cache-ocrmypdf.outputs.cache-hit != 'true'
         run: |
           bash packaging/opensuse/build.sh build ocrmypdf
           mkdir -p cache/ocrmypdf
-          cp ~/rpmbuild/RPMS/*/python3-ocrmypdf-*.rpm cache/ocrmypdf/
+          cp ~/rpmbuild/RPMS/*/python313-ocrmypdf-*.rpm cache/ocrmypdf/
 
-      - name: Install python3-ocrmypdf
+      - name: Install python313-ocrmypdf
         run: bash packaging/opensuse/build.sh install ocrmypdf
 
       - name: Verify OCR toolchain installation
         run: |
           python3 -c 'import ocrmypdf, img2pdf; print(ocrmypdf.__version__)'
-          rpm -q python3-ocrmypdf python3-img2pdf python3-pdfminer.six
+          rpm -q python313-ocrmypdf python313-img2pdf python313-pdfminer.six
           rpm -q ghostscript tesseract-ocr qpdf poppler-tools rsvg-convert
 
       - name: Build scantpaper
@@ -228,7 +228,7 @@ jobs:
 
       - name: Verify scantpaper installation
         run: |
-          rpm -q scantpaper python3-sane python3-tesserocr python3-iso639
+          rpm -q scantpaper python313-sane python313-tesserocr python313-python-iso639
           python3 -c 'import sane, tesserocr, iso639; print("imports ok")'
 
       - name: List RPMs
@@ -239,10 +239,54 @@ jobs:
             -print
 
       # Only the runtime packages are published; the build-only helpers
-      # (python3-hatch-vcs, python3-setuptools-scm) and the -debuginfo /
+      # (python313-hatch-vcs, python313-setuptools-scm) and the -debuginfo /
       # -debugsource packages are not useful on a target system.
       - name: Copy packages
         run: bash packaging/opensuse/build.sh collect-runtime artifacts
+
+      # A python3dist() require is never satisfiable on Leap 16: nothing in
+      # the distro provides those names, and the third-party OBS Python
+      # repositories do not either. The specs declare their dependencies by
+      # concrete python313-* name, so this asserts the built artifacts agree -
+      # the defect this guards against was invisible at review time and only
+      # surfaced on a user's machine.
+      - name: Assert no python3dist() requires
+        run: |
+          rc=0
+          for rpmfile in artifacts/*.rpm; do
+            requires=$(rpm -qp --requires "$rpmfile")
+            if printf '%s\n' "$requires" | grep -q 'python3dist('; then
+              echo "::error::$rpmfile carries a python3dist() require"
+              printf '%s\n' "$requires" | grep 'python3dist('
+              rc=1
+            fi
+          done
+          exit "$rc"
+
+      # No spec may hand-write python3dist() metadata, and no spec may try to
+      # suppress the pythondist dependency generator. Leap 16's
+      # fileattrs/pythondist.attr matches a flat <name>.dist-info *file*, but a
+      # PEP 427 wheel unpacks to a <name>-<version>.dist-info/ *directory*, so
+      # the generator never fires for these pip-built specs: the built RPMs
+      # carry neither python3dist() requires nor provides, with or without a
+      # suppression macro. A macro here would look load-bearing while doing
+      # nothing, so it is banned rather than pinned.
+      - name: Assert no hand-written python3dist() metadata
+        run: |
+          rc=0
+          if grep -nE '^[[:space:]]*(Requires|Provides|BuildRequires):.*python3dist\(' \
+               packaging/opensuse/*.spec; then
+            echo "::error::a spec hand-writes python3dist() metadata; declare" \
+              "dependencies by concrete python313-* package name instead"
+            rc=1
+          fi
+          if grep -rn '__pythondist_requires\|disable_python_dependency_generator' \
+               packaging/opensuse/*.spec; then
+            echo "::error::a spec suppresses the pythondist generator, which" \
+              "never runs for pip-built wheels; remove the macro"
+            rc=1
+          fi
+          exit "$rc"
 
       - name: Upload RPMs
         uses: actions/upload-artifact@v7
@@ -255,3 +299,108 @@ jobs:
         if: github.ref_type == 'tag'
         with:
           files: artifacts/*.rpm
+
+  # Install the published artifact set on a container that has never seen a
+  # ScantPaper build, so the check exercises the RPMs a user downloads rather
+  # than the build tree they were produced from. Two scenarios:
+  #
+  #   stock   - default repositories only, nothing pre-installed.
+  #   seeded  - repo-oss' python313-sane installed first, so the set has to
+  #             displace a package the target already owns and then survive
+  #             the next update.
+  #
+  # The seed comes from repo-oss only. Enabling devel:languages:python would
+  # make this job depend on a third-party repository with its own update
+  # cadence.
+  clean-room-install:
+    name: clean-room install (${{ matrix.scenario }})
+    needs: build
+    runs-on: ubuntu-latest
+
+    container:
+      image: opensuse/leap:16.0
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - stock
+          - seeded
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download published RPMs
+        uses: actions/download-artifact@v7
+        with:
+          name: scantpaper-opensuse-leap16
+          path: artifacts
+
+      # Import the distribution's repository keys. The stock scenario
+      # deliberately enables no repository beyond the image defaults.
+      - name: Refresh repositories
+        run: zypper -n --gpg-auto-import-keys ref
+
+      - name: Seed repo-oss python313-sane
+        if: matrix.scenario == 'seeded'
+        run: |
+          zypper -n --gpg-auto-import-keys install python313-sane
+          rpm -q python313-sane
+
+      - name: Install the published RPM set
+        run: |
+          # GitHub runs this with `bash -e`, so a bare failing command would
+          # abort the step before the log and the conflict check below could
+          # report anything. Capture the status in an `if` instead.
+          if zypper -n install --allow-unsigned-rpm artifacts/*.rpm \
+            > /tmp/install.log 2>&1; then
+            rc=0
+          else
+            rc=$?
+          fi
+          cat /tmp/install.log
+          # zypper's exit status alone does not name the offending files, so
+          # report them explicitly. Match only a real conflict: on every run,
+          # success included, zypper prints the progress line
+          # "Checking for file conflicts: [.......done]", so grepping for
+          # "file conflicts" alone would fail every green build. A real one
+          # reads "Detected N file conflict:" / "conflicts with file from
+          # package".
+          if grep -qE 'Detected [0-9]+ file conflict|conflicts with file from package' \
+            /tmp/install.log; then
+            echo "::error::zypper reported file conflicts"
+            grep -iE -B2 -A8 'Detected [0-9]+ file conflict|conflicts with file from package' \
+              /tmp/install.log
+            rc=1
+          fi
+          exit "$rc"
+
+      - name: Verify installed set
+        run: |
+          rpm -q scantpaper \
+            python313-cysignals python313-tesserocr \
+            python313-python-iso639 python313-sane \
+            python313-pdfminer.six python313-img2pdf python313-ocrmypdf
+
+      # The build container could never answer this: it imports from the
+      # build tree, so a broken install would still look fine. Here the only
+      # source of these modules is the installed artifact set.
+      - name: Verify the installed application runs
+        run: |
+          scantpaper --version
+          python3 -c 'import sane, tesserocr, iso639, img2pdf, ocrmypdf; print("imports ok")'
+
+      # An install that succeeds and is then reverted by the next update is
+      # the failure mode the ".0" version suffix exists to prevent, so a
+      # green run that only checks the install's exit status would miss it.
+      - name: Survive a subsequent update
+        if: matrix.scenario == 'seeded'
+        run: |
+          before=$(rpm -q python313-sane)
+          echo "after install: $before"
+          echo "$before" | grep -q '^python313-sane-2\.9\.2\.0-'
+          zypper -n --gpg-auto-import-keys update
+          after=$(rpm -q python313-sane)
+          echo "after update:  $after"
+          echo "$after" | grep -q '^python313-sane-2\.9\.2\.0-'

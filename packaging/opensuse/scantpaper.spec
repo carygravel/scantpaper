@@ -24,15 +24,14 @@ BuildRequires:  gobject-introspection-devel
 BuildRequires:  pkgconf-pkg-config
 BuildRequires:  python313-gobject
 BuildRequires:  python313-pycairo
-# The Python dependencies are the locally built packages; python3dist
-# provider names are resolved by the generated auto-requires.
-BuildRequires:  python3-tesserocr
+# The Python dependencies are the locally built packages.
+BuildRequires:  python313-tesserocr
 BuildRequires:  tesseract-ocr-devel
 BuildRequires:  leptonica-devel
-BuildRequires:  python3-ocrmypdf
-BuildRequires:  python3-img2pdf
-BuildRequires:  python3-sane
-BuildRequires:  python3-iso639
+BuildRequires:  python313-ocrmypdf
+BuildRequires:  python313-img2pdf
+BuildRequires:  python313-sane
+BuildRequires:  python313-python-iso639
 BuildRequires:  python313-Pillow
 BuildRequires:  python313-pikepdf
 
@@ -51,19 +50,19 @@ BuildRequires:  poppler-tools
 BuildRequires:  rsvg-convert
 BuildRequires:  ghostscript
 
-# Python runtime dependencies. openSUSE's pip-based build (no %pyproject_*
-# macros) does not auto-generate python requires, so they are declared
-# explicitly here, matching the pyproject.toml dependencies. The concrete
-# python313-*/python3-* package names are used instead of python3dist(...)
-# virtual provides because third-party OBS python repos (devel:languages:python,
-# system:documentserver:paperless) do not provide python3dist(...); forcing
-# that provide would make zypper downgrade their newer builds to the repo-oss
-# ones.
-Requires:  python3-img2pdf
-Requires:  python3-ocrmypdf
-Requires:  python3-iso639
-Requires:  python3-sane
-Requires:  python3-tesserocr
+# Python runtime dependencies, declared explicitly here to match the
+# pyproject.toml dependencies. These are the concrete python313-*
+# package names, never python3dist(...) virtual provides: the
+# pythondist dependency generator is disabled at the top of this spec,
+# and a hand-written python3dist() requirement would not be satisfiable
+# because neither the distro nor the third-party OBS Python repositories
+# (devel:languages:python, system:documentserver:paperless) provide
+# those names for every dependency.
+Requires:  python313-img2pdf
+Requires:  python313-ocrmypdf
+Requires:  python313-python-iso639
+Requires:  python313-sane
+Requires:  python313-tesserocr
 Requires:  python313-pikepdf
 Requires:  python313-pycairo
 Requires:  python313-gobject

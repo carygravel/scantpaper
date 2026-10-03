@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-10-03
+# Build/packaging/CI infrastructure only: this change fixes how the openSUSE
+# RPMs name their Python dependencies, what they require, and how CI validates
+# them. No application behaviour changes, so no capability specs are produced.
+skip_specs: true

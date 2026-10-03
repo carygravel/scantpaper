@@ -1,4 +1,4 @@
-Name:           python3-hatch-vcs
+Name:           python313-hatch-vcs
 Version:        0.5.0
 Release:        1%{?dist}
 Summary:        Hatch plugin for versioning from VCS tags
@@ -22,7 +22,7 @@ BuildRequires:  python313-packaging
 Requires:       python313-hatchling
 Requires:       python313-packaging
 Requires:       python313-setuptools
-Requires:       python3-setuptools-scm
+Requires:       python313-setuptools-scm
 
 %description
 hatch-vcs is a Hatchling plugin for versioning packages from VCS tags. It

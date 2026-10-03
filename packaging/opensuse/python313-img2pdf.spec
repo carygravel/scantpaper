@@ -1,11 +1,17 @@
-Name:           python3-img2pdf
-Version:        0.6.3
+Name:           python313-img2pdf
+# A repository also offers this package at the same upstream version, so the
+# RPM version carries a trailing ".0". That keeps our build ahead of theirs
+# without an epoch (which openSUSE's packaging guidelines discourage), while
+# still yielding to any future upstream release. pkg_version below is the
+# real upstream version, used for the tarball name and the unpack directory.
+%define pkg_version 0.6.3
+Version:        %{pkg_version}.0
 Release:        1%{?dist}
 Summary:        Lossless conversion of raster images to PDF
 
 License:        LGPL-3.0-or-later
 URL:            https://github.com/josch/img2pdf
-Source0:        https://files.pythonhosted.org/packages/source/i/img2pdf/img2pdf-%{version}.tar.gz
+Source0:        https://files.pythonhosted.org/packages/source/i/img2pdf/img2pdf-%{pkg_version}.tar.gz
 
 BuildArch:      noarch
 
@@ -28,7 +34,7 @@ img2pdf converts raster images to PDF without loss of quality. It is
 rebuilt locally because openSUSE Leap 16.0 does not ship python313-img2pdf.
 
 %prep
-%autosetup -n img2pdf-%{version}
+%autosetup -n img2pdf-%{pkg_version}
 
 %build
 python3 -m pip wheel \
@@ -58,5 +64,5 @@ PYTHONPATH=%{buildroot}%{python3_sitelib} \
 %license LICENSE
 
 %changelog
-* Sat Sep 26 2026 ScantPaper maintainers <scantpaper@example.invalid> - 0.6.3-1
+* Sat Sep 26 2026 ScantPaper maintainers <scantpaper@example.invalid> - 0.6.3.0-1
 - Initial package (PDF conversion tool for scantpaper and ocrmypdf)

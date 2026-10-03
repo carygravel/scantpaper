@@ -1,4 +1,4 @@
-Name:           python3-iso639
+Name:           python313-python-iso639
 Version:        2026.7.23
 Release:        1%{?dist}
 Summary:        ISO 639 language codes, names, and other associated information
@@ -20,8 +20,8 @@ BuildRequires:  python313-build
 %description
 python-iso639 provides ISO 639 language codes, names, and other associated
 information. scantpaper requires the modern API (iso639.Language) which the
-openSUSE python3-iso639 package (based on the old 0.1.x library) does not
-provide, so the current version is built from source.
+older 0.1.x library does not provide, so the current version is built from
+source.
 
 %prep
 %autosetup -n python_iso639-%{version}

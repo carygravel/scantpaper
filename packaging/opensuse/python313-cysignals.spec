@@ -1,4 +1,4 @@
-Name:           python3-cysignals
+Name:           python313-cysignals
 Version:        1.11.4
 Release:        1%{?dist}
 Summary:        Interrupt and signal handling for Cython

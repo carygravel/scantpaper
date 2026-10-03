@@ -1,11 +1,17 @@
-Name:           python3-sane
-Version:        2.9.2
+Name:           python313-sane
+# A repository also offers this package at the same upstream version, so the
+# RPM version carries a trailing ".0". That keeps our build ahead of theirs
+# without an epoch (which openSUSE's packaging guidelines discourage), while
+# still yielding to any future upstream release. pkg_version below is the
+# real upstream version, used for the tarball name and the unpack directory.
+%define pkg_version 2.9.2
+Version:        %{pkg_version}.0
 Release:        1%{?dist}
 Summary:        Python interface to SANE scanners
 
 License:        MIT
 URL:            https://github.com/python-pillow/Sane
-Source0:        https://files.pythonhosted.org/packages/source/p/python-sane/python_sane-%{version}.tar.gz
+Source0:        https://files.pythonhosted.org/packages/source/p/python-sane/python_sane-%{pkg_version}.tar.gz
 # Fix SaneDev.snap() failing with SANE_STATUS_INVAL against backends (e.g.
 # Epson epsonscan2) that return INVAL on a second sane_get_parameters() call
 # after sane_start. https://github.com/python-pillow/Sane/pull/109
@@ -29,12 +35,12 @@ Requires:       python313-Pillow
 
 %description
 python-sane is a Python interface to the SANE scanner API. It is built from
-source with a local patch (PR 109) so that its python3dist(python-sane)
-provide matches what scantpaper expects, and to fix scan failures against
-backends such as Epson epsonscan2.
+source with a local patch (PR 109) that fixes SaneDev.snap() failing with
+SANE_STATUS_INVAL against backends, such as Epson's epsonscan2, that return
+INVAL on a second sane_get_parameters() call after sane_start.
 
 %prep
-%autosetup -n python_sane-%{version}
+%autosetup -n python_sane-%{pkg_version}
 
 %build
 python3 -m pip wheel \
@@ -66,5 +72,5 @@ cd / && PYTHONPATH=%{buildroot}%{python3_sitearch} \
 %license COPYING
 
 %changelog
-* Tue Sep 22 2026 ScantPaper maintainers <scantpaper@example.invalid> - 2.9.2-1
+* Tue Sep 22 2026 ScantPaper maintainers <scantpaper@example.invalid> - 2.9.2.0-1
 - Initial openSUSE package with snap() cached-parameters fix (PR 109)

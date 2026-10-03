@@ -1,4 +1,4 @@
-Name:           python3-tesserocr
+Name:           python313-tesserocr
 Version:        2.11.0
 Release:        1%{?dist}
 Summary:        Python wrapper for the Tesseract OCR API
@@ -25,9 +25,9 @@ BuildRequires:  leptonica-devel
 # tesserocr's build links -lcurl and -larchive directly.
 BuildRequires:  libcurl-devel
 BuildRequires:  libarchive-devel
-BuildRequires:  python3-cysignals >= 1.11.4
+BuildRequires:  python313-cysignals >= 1.11.4
 
-Requires:       python3-cysignals >= 1.11.4
+Requires:       python313-cysignals >= 1.11.4
 Requires:       tesseract-ocr
 
 %description
