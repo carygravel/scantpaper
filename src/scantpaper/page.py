@@ -197,7 +197,9 @@ class Page:
         """Import annotation layer from hocr."""
         bboxtree = Bboxtree()
         bboxtree.from_hocr(hocr)
-        self.annotations = bboxtree.json()
+        # Only set annotations if there's actual content, not an empty tree
+        json_text = bboxtree.json()
+        self.annotations = None if json_text == "[]" else json_text
 
     def import_djvu_ann(self, ann: str) -> None:
         """Import annotation layer from djvu."""

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import html
 import logging
 import math
@@ -11,6 +10,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 import gi
 
+from scantpaper.bboxtree import is_empty_branch
 from scantpaper.const import _100_PERCENT, EMPTY, EMPTY_LIST, NOT_FOUND, SPACE
 from scantpaper.gobject import property_
 
@@ -47,6 +47,7 @@ COLOR_BLUE = 4
 COLOR_YELLOW = 6
 _360_DEGREES = 360
 BATCH_SIZE = 100
+LAYOUT_FONT_DESCRIPTION = "Sans 10"
 HOCR_HEADER = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -168,6 +169,32 @@ def hsv2rgb(hsv: dict[str, float]) -> Gdk.RGBA:
     return Gdk.RGBA(red, green, blue)
 
 
+def _collect_words(node: object, words: list[Bbox]) -> None:
+    """Append every word beneath node to words, in reading order."""
+    for child in node.get_children():  # type: ignore[attr-defined]
+        if child.type == "word":
+            words.append(child)
+        else:
+            _collect_words(child, words)
+
+
+def _reading_order_neighbours(
+    bbox: Bbox, words: list[Bbox]
+) -> tuple[Bbox | None, Bbox | None]:
+    """Return the words immediately after and before bbox in reading order.
+
+    Deleting a word leaves the navigation cursor with nothing to point at, so
+    the neighbours are read off the pre-deletion reading order: the next word
+    is preferred, and the previous one is used when there is no next.
+    """
+    for i, word in enumerate(words):
+        if word is bbox:
+            following = words[i + 1] if i + 1 < len(words) else None
+            preceding = words[i - 1] if i > 0 else None
+            return following, preceding
+    return None, None
+
+
 def _clamp_direction(offset: float, allocation: float, pixbuf_size: float) -> float:
     """Centre the image if it is smaller than the widget."""
     if allocation > pixbuf_size:
@@ -222,13 +249,12 @@ class Bbox:
 
     def __init__(self, **kwargs: object) -> None:
         """Initialise Rectangle."""
-        self.parent = None
-        self.children = []
+        self.parent: Bbox | _CanvasRoot | None = None
+        self.children: list[Bbox] = []
         self._callbacks = {}
         self._text_widget = None
-        self.pango_layout = None
 
-        self.text = kwargs.get("text", EMPTY)
+        self.text: str = cast("str", kwargs.get("text", EMPTY))
         self.bbox = kwargs.get("bbox")
         self.canvas = kwargs.get("canvas")
         self.transformation: list[int] = cast(
@@ -243,7 +269,7 @@ class Bbox:
         )
         self.edit_callback = kwargs.get("edit_callback")
 
-        parent = kwargs.get("parent")
+        parent = cast("Bbox | _CanvasRoot | None", kwargs.get("parent"))
         if parent is not None:
             parent.children.append(self)
             self.parent = parent
@@ -262,8 +288,22 @@ class Bbox:
             callback(*args, *cb_args)
 
     def get_children(self) -> list[Bbox]:
-        """Return bbox children only."""
-        return [c for c in self.children if isinstance(c, Bbox)]
+        """Return bbox children.
+
+        The live ``children`` list is returned so that structural edits made by
+        the caller are reflected in the scene graph. Non-``Bbox`` items are not
+        expected here; ``Bbox.__init__`` is the only place that appends.
+        """
+        return self.children
+
+    def detach_from_parent(self) -> None:
+        """Remove this bbox from its parent by identity."""
+        if self.parent is None:
+            return
+        for i, child in enumerate(self.parent.children):
+            if child is self:
+                del self.parent.children[i]
+                break
 
     def get_n_children(self) -> int:
         """Return number of bbox children."""
@@ -317,61 +357,28 @@ class Bbox:
         """Convert confidence percentage into colour using pre-calculated lookup table."""
         return cast("str", (self.canvas.get_color_for_confidence(self.confidence)))
 
+    def set_word(self, text: str, selection: Gdk.Rectangle) -> None:
+        """Set this word's text, geometry and confidence. No side effects."""
+        self.text = text
+        self.confidence = _100_PERCENT
+        if self.type != "page":
+            self.bbox = selection
+
     def update_box(self, text: str, selection: Gdk.Rectangle) -> None:
-        """Set the text in the given bbox."""
-        if len(text) > 0:
-            old_pos_ind = self.get_position_index()
-            old_conf = self.confidence
+        """Correct this word's text, keeping the canvas indexes consistent.
 
-            if self.canvas is not None:
-                old_conf = self.confidence
-
-            self.text = text
-            self.confidence = _100_PERCENT
-            if self.type != "page":
-                self.bbox = selection
-
-            if old_conf != self.confidence and self.canvas is not None:
-                canvas = self.canvas
-                canvas.confidence_index.remove_current_box_from_index()
-                canvas.confidence_index.add_box_to_index(self, self.confidence)
-
-            new_pos_ind = self.get_position_index()
-            if old_pos_ind != new_pos_ind and self.parent is not None:
-                parent_children = self.parent.get_children()
-                if old_pos_ind < len(parent_children) and new_pos_ind < len(
-                    parent_children
-                ):
-                    parent_children.insert(
-                        new_pos_ind, parent_children.pop(old_pos_ind)
-                    )
-
-            self.emit("text-changed", text)
-            self.emit("bbox-changed", selection)
-            if self.canvas is not None:
-                self.canvas.queue_draw()
-
-        else:
-            self.delete_box()
+        The structural work belongs to the Canvas, which owns the scene graph;
+        this is only the entry point used by the editing controls.
+        """
+        if self.canvas is None:
+            self.set_word(text, selection)
+            return
+        self.canvas.update_word(self, text, selection)
 
     def delete_box(self) -> None:
-        """Delete bbox."""
+        """Delete this word from the canvas scene graph."""
         if self.canvas is not None:
-            self.canvas.confidence_index.remove_current_box_from_index()
-            try:
-                self.canvas.position_index.next_word()
-            except StopIteration:
-                with contextlib.suppress(StopIteration):
-                    self.canvas.position_index.previous_word()
-
-            if self.parent is not None:
-                parent_children = self.parent.get_children()
-                for i, parent_child in enumerate(parent_children):
-                    if parent_child == self:
-                        parent_children.pop(i)
-                        break
-
-            self.canvas.queue_draw()
+            self.canvas.delete_word(self)
 
         logger.info("deleted box %s at %s, %s", self.text, self.bbox.x, self.bbox.y)
 
@@ -512,6 +519,7 @@ class Canvas(Gtk.DrawingArea):
         self._current_index = "position"
         self.position_index = None
         self.confidence_index = None
+        self._layout_cache: dict[tuple[Bbox, str, str], Pango.Layout] = {}
         self.dragging = False
         self._drag_start: dict[str, float] = {}
         self._pixbuf_size = None
@@ -808,10 +816,7 @@ class Canvas(Gtk.DrawingArea):
             rotation, _x0, _y0 = bbox.transformation
             angle = -(bbox.textangle + rotation) % _360_DEGREES
 
-            layout = bbox.pango_layout
-            if layout is None:
-                layout = self._create_pango_layout(ctx, bbox)
-                bbox.pango_layout = layout
+            layout = self._layout_for(ctx, bbox)
 
             if layout is not None:
                 ink_extents = layout.get_pixel_extents()[0]
@@ -849,9 +854,27 @@ class Canvas(Gtk.DrawingArea):
     def _create_pango_layout(self, ctx: object, bbox: Bbox) -> Pango.Layout:
         """Create a PangoLayout for a bbox's text."""
         layout = PangoCairo.create_layout(ctx)
-        font_desc = Pango.FontDescription.from_string("Sans 10")
-        layout.set_font_description(font_desc)
+        layout.set_font_description(
+            Pango.FontDescription.from_string(LAYOUT_FONT_DESCRIPTION)
+        )
         layout.set_text(bbox.text, -1)
+        return layout
+
+    def _layout_for(self, ctx: object, bbox: Bbox) -> Pango.Layout | None:
+        """Return the layout for bbox, creating it if needed.
+
+        The cache lives on the Canvas, never on the Bbox, and is keyed on the
+        text alongside the font description. A corrected word therefore gets a
+        new layout on the next frame instead of redrawing the glyphs it had when
+        it was first drawn, which was the stale-text bug; and because the text is
+        part of the key, no explicit invalidation on edit is needed. Entries are
+        dropped along with the bbox by Canvas.delete_word.
+        """
+        key = (bbox, bbox.text, LAYOUT_FONT_DESCRIPTION)
+        layout = self._layout_cache.get(key)
+        if layout is None:
+            layout = self._create_pango_layout(ctx, bbox)
+            self._layout_cache[key] = layout
         return layout
 
     def get_first_bbox(self) -> Bbox | None:
@@ -927,6 +950,83 @@ class Canvas(Gtk.DrawingArea):
             self.position_index = TreeIter(bbox)
         else:
             self.confidence_index.set_index_by_bbox(bbox, bbox.confidence)
+
+    def update_word(self, bbox: Bbox, text: str, selection: Gdk.Rectangle) -> None:
+        """Apply a correction to a word, keeping both indexes consistent."""
+        old_pos_ind = bbox.get_position_index()
+        old_conf = bbox.confidence
+        bbox.set_word(text, selection)
+
+        if old_conf != bbox.confidence:
+            self.reindex_by_confidence(bbox)
+
+        new_pos_ind = bbox.get_position_index()
+        parent = bbox.parent
+        if old_pos_ind != new_pos_ind and parent is not None:
+            self._move_child(parent, old_pos_ind, new_pos_ind)
+
+        bbox.emit("text-changed", text)
+        bbox.emit("bbox-changed", selection)
+        self.queue_draw()
+
+    def delete_word(self, bbox: Bbox) -> None:
+        """Remove a word from the scene graph and from both indexes."""
+        words = self._words_in_reading_order()
+        following, preceding = _reading_order_neighbours(bbox, words)
+        parent = bbox.parent
+        if self.confidence_index is not None:
+            self.confidence_index.remove_bbox(bbox)
+        bbox.detach_from_parent()
+        if parent is not None:
+            self._prune_empty_ancestors(parent)
+        self._discard_cached_layouts(bbox)
+        if self.position_index is not None:
+            successor = following if following is not None else preceding
+            if successor is not None:
+                self.position_index = TreeIter(successor)
+            else:
+                self.position_index.exhaust()
+        self.queue_draw()
+
+    def reindex_by_confidence(self, bbox: Bbox) -> None:
+        """Move a word to its new rank in the confidence index."""
+        self.confidence_index.remove_bbox(bbox)
+        self.confidence_index.add_box_to_index(bbox, bbox.confidence)
+
+    def _move_child(
+        self, parent: Bbox | _CanvasRoot, old_index: int, new_index: int
+    ) -> None:
+        """Reorder a child of parent to match its new geometry."""
+        children = parent.get_children()
+        if 0 <= old_index < len(children) and 0 <= new_index < len(children):
+            children.insert(new_index, children.pop(old_index))
+
+    def _discard_cached_layouts(self, bbox: Bbox) -> None:
+        """Drop the cached layouts of a box that is leaving the scene graph."""
+        for key in [key for key in self._layout_cache if key[0] is bbox]:
+            del self._layout_cache[key]
+
+    def _prune_empty_ancestors(self, parent: Bbox | _CanvasRoot | None) -> None:
+        """Remove ancestors left with neither text nor descendants.
+
+        The page box is exempt: it carries the page geometry and must survive so
+        that a fully emptied page still serialises valid page bounds.
+        """
+        node = parent
+        while isinstance(node, Bbox) and node.type != "page":
+            grandparent = node.parent if isinstance(node.parent, Bbox) else None
+            if not is_empty_branch(
+                has_text=bool(node.text), has_descendants=bool(node.children)
+            ):
+                break
+            node.detach_from_parent()
+            node = grandparent
+
+    def _words_in_reading_order(self) -> list[Bbox]:
+        """Return every word in the scene graph, in reading order."""
+        words: list[Bbox] = []
+        _collect_words(self.get_root_item(), words)
+        return words
 
     def get_pixbuf_size(self) -> dict[str, int] | None:
         """Return the size of the associated pixbuf."""
@@ -1229,33 +1329,33 @@ class ListIter:
         self.list = []
         self.index = EMPTY_LIST
 
-    def get_first_bbox(self) -> Bbox:
-        """Return first bbox."""
+    def get_first_bbox(self) -> Bbox | None:
+        """Return first bbox, or None when the list is empty."""
         self.index = 0
         return self.get_current_bbox()
 
-    def get_previous_bbox(self) -> Bbox:
-        """Return previous bbox."""
+    def get_previous_bbox(self) -> Bbox | None:
+        """Return previous bbox, or None when there is none."""
         if self.index > 0:
             self.index -= 1
         return self.get_current_bbox()
 
-    def get_next_bbox(self) -> Bbox:
-        """Return next bbox."""
+    def get_next_bbox(self) -> Bbox | None:
+        """Return next bbox, or None when there is none."""
         if self.index < len(self.list) - 1:
             self.index += 1
         return self.get_current_bbox()
 
-    def get_last_bbox(self) -> Bbox:
-        """Return last bbox."""
+    def get_last_bbox(self) -> Bbox | None:
+        """Return last bbox, or None when the list is empty."""
         self.index = len(self.list) - 1
         return self.get_current_bbox()
 
-    def get_current_bbox(self) -> Bbox:
-        """Return bbox currently selected."""
+    def get_current_bbox(self) -> Bbox | None:
+        """Return bbox currently selected, or None when the index is empty."""
         if self.index > EMPTY_LIST:
             return cast("Bbox", (self.list[self.index][0]))
-        raise StopIteration
+        return None
 
     def set_index_by_bbox(self, bbox: Bbox, value: float) -> int:
         """Set the index to the given bbox."""
@@ -1320,13 +1420,21 @@ class ListIter:
             return
         self.insert_before_position(bbox, i, value)
 
-    def remove_current_box_from_index(self) -> None:
-        """Remove the current box from the index."""
-        if self.index < 0:
-            logger.warning("Attempted to delete undefined index from confidence list")
+    def remove_bbox(self, bbox: Bbox) -> None:
+        """Remove bbox from the index by identity, leaving the cursor sensible.
+
+        The cursor is left on the entry that followed the removed one, or on the
+        preceding entry when the removed one was last.
+        """
+        for i, entry in enumerate(self.list):
+            if entry[0] is not bbox:
+                continue
+            del self.list[i]
+            if i < self.index:
+                self.index -= 1
+            self.index = min(self.index, len(self.list) - 1)
             return
-        self.list.pop(self.index)
-        self.index = min(self.index, len(self.list) - 1)
+        logger.warning("Attempted to delete a box that is not in the index")
 
 
 class TreeIter:
@@ -1345,11 +1453,17 @@ class TreeIter:
             self._bbox.insert(0, cast("Bbox", parent))
             bbox = cast("Bbox", parent)
         self._iter.insert(0, 0)
+        self._exhausted = False
+
+    def exhaust(self) -> None:
+        """Mark the iterator as having no current word."""
+        self._exhausted = True
 
     def first_bbox(self) -> Bbox:
         """Return first bbox."""
         self._bbox = [self._bbox[0]]
         self._iter = [0]
+        self._exhausted = False
         return self._bbox[0]
 
     def first_word(self) -> Bbox:
@@ -1386,6 +1500,7 @@ class TreeIter:
 
         self._bbox = old_bbox
         self._iter = old_iter
+        self._exhausted = True
         raise StopIteration
 
     def next_word(self) -> Bbox:
@@ -1400,12 +1515,14 @@ class TreeIter:
             except StopIteration as exc:  # noqa: PERF203 — iterator exhaustion; catch-StopIteration loop is idiomatic here
                 self._iter = current_iter
                 self._bbox = current_bbox
+                self._exhausted = True
                 raise StopIteration from exc
         return bbox
 
     def previous_bbox(self) -> Bbox:
         """Return previous bbox."""
         if len(self._bbox) <= 1:
+            self._exhausted = True
             raise StopIteration
         self._bbox.pop()
         last_idx = self._iter.pop()
@@ -1434,6 +1551,7 @@ class TreeIter:
         if bbox == current_bbox[-1]:
             self._iter = current_iter
             self._bbox = current_bbox
+            self._exhausted = True
             raise StopIteration
         return bbox
 
@@ -1441,6 +1559,7 @@ class TreeIter:
         """Return last bbox."""
         self._bbox = [self._bbox[0]]
         self._iter = [1]
+        self._exhausted = False
         return self.last_leaf()
 
     def last_word(self) -> Bbox | None:
@@ -1460,6 +1579,8 @@ class TreeIter:
             return self.last_leaf()
         return cast("Bbox", (self._bbox[-1]))
 
-    def get_current_bbox(self) -> Bbox:
-        """Return bbox currently being viewed."""
+    def get_current_bbox(self) -> Bbox | None:
+        """Return bbox currently being viewed, or None when exhausted."""
+        if self._exhausted:
+            return None
         return cast("Bbox", (self._bbox[-1]))

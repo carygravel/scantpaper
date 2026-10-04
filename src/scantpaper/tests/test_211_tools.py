@@ -516,9 +516,13 @@ def test_crop(
  </head>
  <body>
   <div class='ocr_page' title='bbox 0 0 10 10'>
-   <span class='ocrx_word' title='bbox 0 0 5 5'>on br</span>
-   <span class='ocrx_word' title='bbox 1 1 9 9'>inside</span>
-   <span class='ocrx_word' title='bbox 5 5 10 10'>on tl</span>
+   <p class='ocr_par' title='bbox 0 0 10 10'>
+    <span class='ocr_line' title='bbox 0 0 10 10'>
+     <span class='ocrx_word' title='bbox 0 0 5 5'>on br</span>
+     <span class='ocrx_word' title='bbox 1 1 9 9'>inside</span>
+     <span class='ocrx_word' title='bbox 5 5 10 10'>on tl</span>
+    </span>
+   </p>
   </div>
  </body>
 </html>
@@ -594,8 +598,12 @@ def test_split(
  </head>
  <body>
   <div class='ocr_page' title='bbox 0 0 35 46'>
-   <span class='ocrx_word' title='bbox 0 0 9 46'>left</span>
-   <span class='ocrx_word' title='bbox 10 0 35 46'>middle</span>
+   <p class='ocr_par' title='bbox 0 0 35 46'>
+    <span class='ocr_line' title='bbox 0 0 35 46'>
+     <span class='ocrx_word' title='bbox 0 0 9 46'>left</span>
+     <span class='ocrx_word' title='bbox 10 0 35 46'>middle</span>
+    </span>
+   </p>
   </div>
  </body>
 </html>
@@ -620,8 +628,12 @@ def test_split(
  </head>
  <body>
   <div class='ocr_page' title='bbox 0 0 35 46'>
-   <span class='ocrx_word' title='bbox 0 0 10 46'>middle</span>
-   <span class='ocrx_word' title='bbox 11 0 35 46'>right</span>
+   <p class='ocr_par' title='bbox 0 0 35 46'>
+    <span class='ocr_line' title='bbox 0 0 35 46'>
+     <span class='ocrx_word' title='bbox 0 0 10 46'>middle</span>
+     <span class='ocrx_word' title='bbox 11 0 35 46'>right</span>
+    </span>
+   </p>
   </div>
  </body>
 </html>

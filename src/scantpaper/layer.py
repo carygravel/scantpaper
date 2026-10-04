@@ -277,18 +277,22 @@ class LayerEditor:
         self._persist(page)
 
     def edit(self, bbox: Bbox | None, _target: object | None = None) -> None:
-        """Focus the editor on the given bbox."""
+        """Focus the editor on the given bbox, or clear it when there is none.
+
+        With nothing left to edit the control is emptied rather than left
+        showing the text of a slice that no longer exists.
+        """
+        self._current_bbox = bbox
         if bbox is None:
             logger.debug("edit did not return a bbox")
+            self.controls.textbuffer.set_text(EMPTY)
             return
-        self._current_bbox = bbox
         self.controls.textbuffer.set_text(bbox.text)
         self.controls.show_all()
         self._view.set_selection(bbox.bbox)
         self._view.setzoom_is_fit(zoom_to_fit=False)
         self._view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
-        if bbox:
-            self.canvas.set_index_by_bbox(bbox)
+        self.canvas.set_index_by_bbox(bbox)
 
     def create(
         self,
@@ -318,12 +322,24 @@ class LayerEditor:
                 finished_callback()
 
     def ok(self, _widget: object) -> None:
-        """Accept the corrections for the current bbox."""
-        old_text = self._current_bbox.text
+        """Accept the corrections for the current bbox.
+
+        An emptied control is a deletion, not a correction. It is routed
+        through the same path as the Delete button rather than being left for
+        the setter to interpret, so that the editor can move on to a surviving
+        slice instead of re-focusing the one that was just removed.
+        """
+        bbox = self._current_bbox
+        if bbox is None:
+            return
         text = self._controls_text()
-        self._current_bbox.update_box(text, self._view.get_selection())
+        if text == EMPTY:
+            self.delete(_widget)
+            return
+        old_text = bbox.text
+        self.canvas.update_word(bbox, text, self._view.get_selection())
         self._commit()
-        self.edit(self._current_bbox)
+        self.edit(bbox)
         logger.info("Corrected '%s'->'%s'", old_text, text)
 
     def copy(self, _widget: object) -> None:
@@ -344,7 +360,7 @@ class LayerEditor:
         if page is None:
             return
         selection = self._view.get_selection()
-        if hasattr(page, self.page_attr):
+        if getattr(page, self.page_attr, None):
             logger.info("Added '%s'", text)
             self._current_bbox = self.canvas.add_box(
                 text=text, bbox=self._view.get_selection()
@@ -355,16 +371,18 @@ class LayerEditor:
             logger.info("Creating new %s with '%s'", self.page_attr, text)
             setattr(page, self.page_attr, self._new_layer_json(selection, text))
 
-            def on_new(_widget: object) -> None:
-                self._current_bbox = self.canvas.get_first_bbox()
-                self.edit(self._current_bbox)
+            def on_new(*_args: object) -> None:
+                self.edit(self.canvas.get_first_bbox())
 
             self.create(page, self._view.get_offset(), finished_callback=on_new)
         self._persist(page)
 
     def delete(self, _widget: object) -> None:
         """Delete the current box and persist the result."""
-        self._current_bbox.delete_box()
+        bbox = self._current_bbox
+        if bbox is None:
+            return
+        self.canvas.delete_word(bbox)
         self._commit()
         self.edit(self.canvas.get_current_bbox())
 
@@ -380,8 +398,9 @@ class LayerEditor:
         page = self._page()
         if page is None or selection is None:
             return ""
+        width, height = page.get_size()
         return (
-            f'[{{"type":"page","bbox":[0,0,{page.width},{page.height}],"depth":0}},'
+            f'[{{"type":"page","bbox":[0,0,{width},{height}],"depth":0}},'
             f'{{"type":"word","bbox":[{selection.x},{selection.y},'
             f"{selection.x + selection.width},"
             f'{selection.y + selection.height}],"text":"{text}","depth":1}}]'

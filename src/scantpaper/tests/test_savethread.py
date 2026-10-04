@@ -3,14 +3,22 @@
 from __future__ import annotations
 
 import datetime
+import json
+import pathlib
+import subprocess
+import tempfile
 from typing import cast
 from unittest.mock import MagicMock, mock_open, patch
 
+import img2pdf
+import ocrmypdf.api
 import pikepdf
 import pytest
 from typing_extensions import override
 
 from scantpaper.basethread import Request
+from scantpaper.bboxtree import Bboxtree
+from scantpaper.const import POINTS_PER_INCH
 from scantpaper.i18n import _
 from scantpaper.page import Page
 from scantpaper.savethread import (
@@ -1243,3 +1251,51 @@ def test_save_pdf_per_page_progress(
     assert writing_pdf_indices[0] < convert_index, (
         '"Writing PDF" message reported before img2pdf.convert'
     )
+
+
+def test_hocr_flat_tree_embeds_searchable_text(
+    rose_png: str,
+) -> None:
+    """A flat text layer still produces a searchable text layer on save."""
+    pdftext = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+<doc>
+  <page width="100.000000" height="60.000000">
+    <word xMin="1.000000" yMin="1.000000" xMax="40.000000" yMax="20.000000">hello</word>
+    <word xMin="45.000000" yMin="1.000000" xMax="90.000000" yMax="20.000000">world</word>
+    <word xMin="1.000000" yMin="30.000000" xMax="50.000000" yMax="50.000000">second</word>
+  </page>
+</doc>
+</body>
+</html>
+"""
+    tree = Bboxtree()
+    tree.from_pdftotext(pdftext, (POINTS_PER_INCH, POINTS_PER_INCH), (100, 60))
+    hocr = tree.to_hocr()
+    assert "class='ocr_par'" in hocr, "flat tree wrapped in ocr_par"
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        outdir = pathlib.Path(tempdir)
+        (outdir / "000001_ocr_hocr.hocr").write_text(hocr, encoding="utf-8")
+        (outdir / "000001_hocr.json").write_text(
+            json.dumps({"pageno": 0, "orientation_correction": 0}),
+            encoding="utf-8",
+        )
+        (outdir / "origin.pdf").write_bytes(img2pdf.convert([rose_png]))
+        result = outdir / "result.pdf"
+        ocrmypdf.api._hocr_to_ocr_pdf(
+            outdir,
+            result,
+            optimize=0,
+            plugins=["scantpaper.savethread"],
+        )
+
+        text = subprocess.run(
+            ["pdftotext", str(result), "-"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        assert "hello world" in text, "flat text layer is searchable after save"
+        assert "second" in text, "second row preserved"

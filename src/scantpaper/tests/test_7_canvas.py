@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import tempfile
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
@@ -16,6 +17,7 @@ from scantpaper.bboxtree import BBox, Bboxtree
 from scantpaper.canvas import (
     EMPTY_LIST,
     HOCR_HEADER,
+    LAYOUT_FONT_DESCRIPTION,
     MAX_ZOOM,
     NOT_FOUND,
     Bbox,
@@ -23,6 +25,7 @@ from scantpaper.canvas import (
     ListIter,
     Rectangle,
     TreeIter,
+    _CanvasRoot,
     button_press_callback,
     hsv2rgb,
     rgb2hsv,
@@ -519,8 +522,9 @@ def test_hocr(rose_pnm: str) -> None:
         bbox.delete_box()
         bbox = canvas.get_next_bbox()
         bbox.delete_box()
-        with pytest.raises(StopIteration):
-            canvas.get_last_bbox()
+        # Every word is gone, so navigation reports that nothing is current.
+        assert canvas.get_current_bbox() is None
+        assert canvas.get_last_bbox() is None
 
 
 def test_bbox_text_placement(rose_pnm: str) -> None:
@@ -774,8 +778,8 @@ def test_list_iter_edge_cases() -> None:
     """Test ListIter edge cases."""
     li = ListIter()
 
-    with pytest.raises(StopIteration):
-        li.get_current_bbox()
+    # An empty index reports "no current word" rather than raising.
+    assert li.get_current_bbox() is None
 
     bbox1 = MagicMock()
     bbox2 = MagicMock()
@@ -788,11 +792,12 @@ def test_list_iter_edge_cases() -> None:
     assert li.get_previous_bbox() == bbox2
     assert li.get_last_bbox() == bbox1
 
-    li.remove_current_box_from_index()
+    li.remove_bbox(bbox1)
     assert li.get_current_bbox() == bbox2
 
-    li.remove_current_box_from_index()
+    li.remove_bbox(bbox2)
     assert len(li.list) == 0
+    assert li.get_current_bbox() is None
 
     with patch("scantpaper.canvas.logger") as mock_logger:
         li.add_box_to_index(None, 100)
@@ -1136,8 +1141,14 @@ def test_canvas_event_handlers(mocker: pytest.MockerFixture) -> None:
     assert not canvas_obj.dragging
 
 
-def test_bbox_update_box_empty_text() -> None:
-    """Test Bbox.update_box with empty text (deletes box)."""
+def test_bbox_update_box_empty_text_does_not_delete() -> None:
+    """Bbox.update_box is a data setter: it never deletes, whatever the text.
+
+    Deleting on empty text is the editor's decision, not the setter's, so that
+    an empty control cannot silently destroy a slice behind the user's back.
+    The user-visible "emptying a slice deletes it" contract is pinned by
+    test_editor_empty_text_deletes_word.
+    """
     canvas_obj = Canvas()
     canvas_obj.confidence_index = ListIter()
     root = canvas_obj.get_root_item()
@@ -1160,10 +1171,11 @@ def test_bbox_update_box_empty_text() -> None:
         parent=line,
     )
 
-    canvas_obj.position_index = MagicMock()
     word.delete_box = MagicMock()
     word.update_box("", Rectangle(x=0, y=0, width=10, height=10))
-    word.delete_box.assert_called_once()
+
+    word.delete_box.assert_not_called()
+    assert word in line.children
 
 
 def test_list_iter_more() -> None:
@@ -2054,7 +2066,7 @@ def test_draw_bbox_full(mocker: pytest.MockerFixture) -> None:
 
     def patched_create_pango_layout(ctx: object, bbox: Bbox) -> object:
         del ctx
-        return make_layout(cast("str", bbox.text))
+        return make_layout(bbox.text)
 
     cast("Any", canvas)._create_pango_layout = patched_create_pango_layout
 
@@ -2228,12 +2240,18 @@ def test_bbox_get_position_index_non_bbox_parent(mocker: pytest.MockerFixture) -
         parent=page,
     )
 
-    class NonBboxParent:
-        """parent object lacking IBbox for get_position_index testing."""
+    class NestedRoot(_CanvasRoot):
+        """A root container that is itself nested under a Bbox parent."""
 
-        parent = page
+        def __init__(self, parent: Bbox | None) -> None:
+            super().__init__()
+            self.parent = parent
 
-    child.parent = NonBboxParent()
+    # A container that is not a Bbox is what get_position_index has to climb
+    # past to reach a word's siblings.
+    root = NestedRoot(page)
+    root.children.append(child)
+    child.parent = root
     idx = child.get_position_index()
     assert idx == 0
 
@@ -2469,7 +2487,7 @@ def test_canvas_on_draw(mocker: pytest.MockerFixture) -> None:
 
 
 def test_draw_bbox_more_branches(mocker: pytest.MockerFixture) -> None:
-    """Test _draw_bbox with layout cached, layout None, zero-width, no rotation."""
+    """Test _draw_bbox with a per-frame layout, no layout, zero ink, no rotation."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
     canvas._pixbuf_size = {"width": 100, "height": 100}
@@ -2497,14 +2515,6 @@ def test_draw_bbox_more_branches(mocker: pytest.MockerFixture) -> None:
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
     ctx = cairo.Context(surface)
 
-    def make_layout(ctx2: object, bbox: Bbox) -> object:
-        layout = PangoCairo.create_layout(ctx2)
-        font_desc = Pango.FontDescription.from_string("Sans 10")
-        layout.set_font_description(font_desc)
-        layout.set_text(bbox.text, -1)
-        return layout
-
-    page.pango_layout = make_layout(ctx, page)
     canvas._draw_scene(ctx)
 
     word = canvas.add_box(
@@ -2524,9 +2534,9 @@ def test_draw_bbox_more_branches(mocker: pytest.MockerFixture) -> None:
     ink.width = 0
     ink.height = 10
     mock_layout.get_pixel_extents.return_value = (ink, MagicMock())
-    word.pango_layout = mock_layout
     del canvas._create_pango_layout
-    canvas._draw_scene(ctx)
+    canvas._layout_cache = {(word, word.text, LAYOUT_FONT_DESCRIPTION): mock_layout}
+    canvas._draw_bbox(ctx, word)
 
     canvas.add_box(
         text="new",
@@ -2667,3 +2677,443 @@ def test_tree_iter_non_bbox_children(mocker: pytest.MockerFixture) -> None:
     ti = TreeIter(page)
     ti.next_bbox()
     ti.next_bbox()
+
+
+# ---------------------------------------------------------------------------
+# Structural edits: the scene graph is the serialisation source of truth
+# ---------------------------------------------------------------------------
+
+THREE_WORD_LINE_HOCR = (
+    HOCR_HEADER
+    + """ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 500 100'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 0 0 500 100">
+    <p class='ocr_par'>
+     <span class='ocr_line' id='line_1_1' title="bbox 0 0 500 100">
+      <span class='ocr_word' id='word_1_1' title="bbox 0 0 100 100">
+       <span class='xocr_word' id='xword_1_1' title="x_wconf 10">ALPHA</span>
+      </span>
+      <span class='ocr_word' id='word_1_2' title="bbox 100 0 200 100">
+       <span class='xocr_word' id='xword_1_2' title="x_wconf 20">BRAVO</span>
+      </span>
+      <span class='ocr_word' id='word_1_3' title="bbox 200 0 300 100">
+       <span class='xocr_word' id='xword_1_3' title="x_wconf 30">CHARLIE</span>
+      </span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+)
+
+TWO_LINE_HOCR = (
+    HOCR_HEADER
+    + """ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 500 200'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 0 0 500 200">
+    <p class='ocr_par'>
+     <span class='ocr_line' id='line_1_1' title="bbox 0 0 300 100">
+      <span class='ocr_word' id='word_1_1' title="bbox 0 0 100 100">
+       <span class='xocr_word' id='xword_1_1' title="x_wconf 10">ALPHA</span>
+      </span>
+      <span class='ocr_word' id='word_1_2' title="bbox 100 0 200 100">
+       <span class='xocr_word' id='xword_1_2' title="x_wconf 20">BRAVO</span>
+      </span>
+     </span>
+     <span class='ocr_line' id='line_1_2' title="bbox 0 100 300 200">
+      <span class='ocr_word' id='word_2_1' title="bbox 0 100 100 200">
+       <span class='xocr_word' id='xword_2_1' title="x_wconf 15">DELTA</span>
+      </span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+)
+
+# The shape layer.py:_new_layer_json builds for a fresh annotation layer: a
+# page box with words hanging directly off it.
+ANNOTATION_LAYER_JSON = json.dumps(
+    [
+        {"type": "page", "bbox": [0, 0, 500, 100], "depth": 0},
+        {"type": "word", "bbox": [0, 0, 100, 100], "text": "NOTE", "depth": 1},
+        {"type": "word", "bbox": [100, 0, 200, 100], "text": "TWO", "depth": 1},
+    ]
+)
+
+
+def canvas_from_hocr(hocr: str, json_string: str | None = None) -> Canvas:
+    """Build a Canvas from hOCR (or a bboxtree JSON string) and wait for it."""
+    if json_string is None:
+        tree = Bboxtree()
+        tree.from_hocr(hocr)
+        json_string = tree.json()
+    bboxes, indices = get_bboxes_and_indices(json_string)
+    canvas = Canvas()
+    loop = safe_mainloop()
+    canvas.set_text(
+        bboxes=bboxes, sorted_word_indices=indices, finished_callback=loop.quit
+    )
+    loop.run()
+    return canvas
+
+
+def words_of(canvas: Canvas) -> list[str]:
+    """Return the text of every word box in the scene graph, in tree order."""
+
+    def walk(item: Bbox | _CanvasRoot) -> Generator[str, None, None]:
+        for child in item.get_children():
+            if child.type == "word":
+                yield child.text
+            yield from walk(child)
+
+    return list(walk(canvas.get_root_item()))
+
+
+def test_delete_word_absent_from_hocr_and_tree() -> None:
+    """A deleted word leaves the scene graph and the serialised hOCR."""
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas.sort_by_confidence()
+    bbox = canvas.get_first_bbox()
+    assert bbox.text == "ALPHA"
+    line = bbox.parent
+
+    bbox.delete_box()
+
+    assert words_of(canvas) == ["BRAVO", "CHARLIE"]
+    assert bbox not in line.children
+    hocr = canvas.hocr()
+    assert "ALPHA" not in hocr
+    assert "BRAVO" in hocr
+    assert "CHARLIE" in hocr
+
+
+def test_delete_word_from_annotation_layer_absent_from_hocr() -> None:
+    """A deleted annotation note leaves the tree and the serialised hOCR."""
+    canvas = canvas_from_hocr("", ANNOTATION_LAYER_JSON)
+    canvas.sort_by_confidence()
+    bbox = canvas.get_first_bbox()
+    assert bbox.text == "NOTE"
+    page = bbox.parent
+    assert page.type == "page"
+
+    bbox.delete_box()
+
+    assert words_of(canvas) == ["TWO"]
+    assert bbox not in page.children
+    assert "NOTE" not in canvas.hocr()
+    assert "TWO" in canvas.hocr()
+
+
+def word_by_text(canvas: Canvas, text: str) -> Bbox:
+    """Return the word box carrying the given text."""
+    return {word.text: word for word in canvas._words_in_reading_order()}[text]
+
+
+def test_delete_last_word_of_line_leaves_no_empty_line() -> None:
+    """Deleting the only word of a line removes the line itself."""
+    canvas = canvas_from_hocr(TWO_LINE_HOCR)
+    canvas.sort_by_position()
+
+    # DELTA is the only word of line_1_2, so that line must go with it.
+    only_word = word_by_text(canvas, "DELTA")
+    line = only_word.parent
+    assert line.id == "line_1_2"
+    assert only_word.parent is not None
+
+    only_word.delete_box()
+
+    hocr = canvas.hocr()
+    assert "DELTA" not in hocr
+    assert "line_1_2" not in hocr
+    assert "line_1_1" in hocr
+    assert "ALPHA" in hocr
+    assert "BRAVO" in hocr
+
+
+def test_delete_every_word_keeps_page_geometry_only() -> None:
+    """Emptying a page leaves the page box and no empty container elements."""
+    canvas = canvas_from_hocr(TWO_LINE_HOCR)
+    canvas.sort_by_position()
+    for text in ["ALPHA", "BRAVO", "DELTA"]:
+        word_by_text(canvas, text).delete_box()
+
+    hocr = canvas.hocr()
+    assert words_of(canvas) == []
+    body = hocr.split("<body>", 1)[1]
+    for element in ["ocr_carea", "ocr_par", "ocr_line", "ocr_word"]:
+        assert f"class='{element}'" not in body
+    assert "class='ocr_page'" in body
+    assert "bbox 0 0 500 200" in hocr
+
+
+def test_changed_text_is_redrawn_on_next_frame(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """After a text change the next drawn frame lays out the new text."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas._pixbuf_size = {"width": 500, "height": 100}
+    canvas.sort_by_confidence()
+    bbox = cast("Bbox", canvas.get_first_bbox())
+    canvas.set_index_by_bbox(bbox)
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 500, 100)
+    ctx = cairo.Context(surface)
+
+    laid_out: list[str] = []
+    original = canvas._create_pango_layout
+
+    def recording_create_pango_layout(ctx_arg: object, box: Bbox) -> Pango.Layout:
+        """Record the text each layout is built from."""
+        if box is bbox:
+            laid_out.append(box.text)
+        return original(ctx_arg, box)
+
+    cast("Any", canvas)._create_pango_layout = recording_create_pango_layout
+
+    canvas._draw_scene(ctx)
+    assert laid_out == ["ALPHA"]
+
+    canvas.update_word(bbox, "ALPHA-CORRECTED", bbox.bbox)
+
+    canvas._draw_scene(ctx)
+    assert laid_out == ["ALPHA", "ALPHA-CORRECTED"]
+    # The layout is cached on the Canvas, keyed on the text, so the corrected
+    # word gets its own layout. Nothing drawing-related is retained on the box.
+    assert canvas._layout_for(ctx, bbox) is not None
+    assert not hasattr(bbox, "pango_layout")
+
+
+def test_one_layout_is_reused_per_box_per_frame(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A box drawn twice in one frame reuses a single layout."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas._pixbuf_size = {"width": 500, "height": 100}
+    canvas.sort_by_confidence()
+    bbox = cast("Bbox", canvas.get_first_bbox())
+    canvas.set_index_by_bbox(bbox)
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 500, 100)
+    ctx = cairo.Context(surface)
+
+    canvas._layout_cache = {}
+    try:
+        first = canvas._layout_for(ctx, bbox)
+        second = canvas._layout_for(ctx, bbox)
+    finally:
+        canvas._layout_cache = None
+    assert first is second
+
+
+def test_forward_navigation_visits_only_survivors_in_position_order() -> None:
+    """Position order skips deleted words and keeps reading order."""
+    for order in ("confidence", "position"):
+        canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+        if order == "confidence":
+            canvas.sort_by_confidence()
+        else:
+            canvas.sort_by_position()
+
+        deleted = cast("Bbox", canvas.get_first_bbox())
+        assert deleted.text == "ALPHA"
+        deleted.delete_box()
+
+        survivors = words_of(canvas)
+        visited = [cast("Bbox", canvas.get_current_bbox()).text]
+        visited += [
+            cast("Bbox", canvas.get_next_bbox()).text for _ in range(len(survivors) - 1)
+        ]
+
+        assert visited == survivors == ["BRAVO", "CHARLIE"], order
+        assert deleted not in [entry[0] for entry in canvas.confidence_index.list], (
+            order
+        )
+
+
+def test_hocr_round_trip_preserves_words() -> None:
+    """Serialising and reparsing the canvas preserves every word."""
+    canvas = canvas_from_hocr(TWO_LINE_HOCR)
+    expected = words_of(canvas)
+    assert expected == ["ALPHA", "BRAVO", "DELTA"]
+
+    tree = Bboxtree()
+    tree.from_hocr(canvas.hocr())
+    reparsed = [box["text"] for box in tree.each_bbox() if box["type"] == "word"]
+    assert reparsed == expected
+
+
+def test_correction_moves_word_in_confidence_order() -> None:
+    """A corrected word leaves its low-confidence rank for the high end."""
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas.sort_by_confidence()
+    lowest = cast("Bbox", canvas.get_first_bbox())
+    assert lowest.text == "ALPHA"
+
+    def confidence_order() -> list[str]:
+        return [word.text for word, _ in canvas.confidence_index.list]
+
+    assert confidence_order() == ["ALPHA", "BRAVO", "CHARLIE"]
+
+    canvas.update_word(lowest, "ALPHA", lowest.bbox)
+
+    assert confidence_order() == ["BRAVO", "CHARLIE", "ALPHA"]
+    assert lowest not in [entry[0] for entry in canvas.confidence_index.list[:2]]
+
+
+def test_deleting_last_word_reports_no_current_bbox() -> None:
+    """Deleting the final word leaves navigation with nothing current."""
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas.sort_by_confidence()
+    for text in ["CHARLIE", "BRAVO", "ALPHA"]:
+        word = word_by_text(canvas, text)
+        canvas.set_index_by_bbox(word)
+        word.delete_box()
+
+    assert words_of(canvas) == []
+    assert canvas.confidence_index.list == []
+    assert canvas.get_current_bbox() is None
+
+
+def test_deleting_does_not_warn_about_index_state(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Deleting words leaves both indexes defined and logs no index warnings."""
+    canvas = canvas_from_hocr(TWO_LINE_HOCR)
+    canvas.sort_by_confidence()
+    for text in ["ALPHA", "BRAVO", "DELTA"]:
+        with caplog.at_level(logging.WARNING):
+            word = word_by_text(canvas, text)
+            canvas.set_index_by_bbox(word)
+            word.delete_box()
+
+    assert "confidence list" not in caplog.text
+    assert "not in the index" not in caplog.text
+
+
+def test_moving_a_word_reorders_it_among_its_siblings() -> None:
+    """A correction that moves a word right reorders it in the tree and hOCR."""
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas.sort_by_position()
+    word = word_by_text(canvas, "ALPHA")
+    line = word.parent
+
+    moved = Rectangle.from_bbox(250, 0, 350, 100)
+    canvas.update_word(word, "ALPHA", moved)
+
+    assert line.get_children()[-1] is word
+    hocr = canvas.hocr()
+    assert hocr.index("BRAVO") < hocr.index("CHARLIE") < hocr.index("ALPHA")
+
+
+def test_unchanged_text_reuses_its_layout_across_frames() -> None:
+    """Redrawing an unchanged page reuses layouts instead of rebuilding them.
+
+    Zoom, pan and resize each trigger a fresh frame, so the cache has to survive
+    the frame or every redraw would re-lay-out the whole page.
+    """
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas._pixbuf_size = {"width": 500, "height": 100}
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 500, 100)
+    ctx = cairo.Context(surface)
+    original = canvas._create_pango_layout
+    created: list[str] = []
+
+    def counting_create(ctx_arg: object, box: Bbox) -> Pango.Layout:
+        created.append(box.text)
+        return original(ctx_arg, box)
+
+    cast("Any", canvas)._create_pango_layout = counting_create
+
+    canvas._draw_scene(ctx)
+    canvas._draw_scene(ctx)
+    canvas._draw_scene(ctx)
+
+    assert created.count("ALPHA") == 1
+    assert len(created) == 3
+
+
+def test_deleting_a_word_drops_its_cached_layout() -> None:
+    """A deleted word does not keep its layout alive."""
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas._pixbuf_size = {"width": 500, "height": 100}
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 500, 100)
+    ctx = cairo.Context(surface)
+    canvas._draw_scene(ctx)
+
+    canvas.delete_word(word_by_text(canvas, "ALPHA"))
+
+    assert not any(key[0].text == "ALPHA" for key in canvas._layout_cache)
+
+
+def test_delete_word_without_indexes_still_detaches(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Deleting a word works even when neither index has been built yet."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    canvas.confidence_index = None
+    canvas.position_index = None
+    bbox = word_by_text(canvas, "ALPHA")
+
+    canvas.delete_word(bbox)
+
+    assert words_of(canvas) == ["BRAVO", "CHARLIE"]
+    assert "ALPHA" not in canvas.hocr()
+
+
+def test_remove_bbox_shifts_a_cursor_pointing_later() -> None:
+    """Removing an entry before the cursor keeps the cursor on the same word."""
+    li = ListIter()
+    first, second, third = MagicMock(), MagicMock(), MagicMock()
+    for bbox, value in [(first, 10), (second, 20), (third, 30)]:
+        li.add_box_to_index(bbox, value)
+
+    li.set_index_by_bbox(third, 30)
+    assert li.get_current_bbox() is third
+
+    li.remove_bbox(first)
+
+    assert li.index == 1
+    assert li.get_current_bbox() is third
+
+
+def test_remove_bbox_of_an_absent_box_warns(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Removing a box that was never indexed warns instead of corrupting."""
+    li = ListIter()
+    present = MagicMock()
+    li.add_box_to_index(present, 50)
+
+    with caplog.at_level(logging.WARNING):
+        li.remove_bbox(MagicMock())
+
+    assert "not in the index" in caplog.text
+    assert li.list == [[present, 50]]
+
+
+def test_fully_emptied_page_round_trips_to_zero_words() -> None:
+    """A page emptied of every word reparses as zero words, not empty lines."""
+    canvas = canvas_from_hocr(THREE_WORD_LINE_HOCR)
+    for word in words_of(canvas):
+        canvas.delete_word(word_by_text(canvas, word))
+
+    assert words_of(canvas) == []
+    hocr = canvas.hocr()
+    # The ocr-capabilities meta still names every supported class, so assert on
+    # the emitted elements rather than on the substring: no line, paragraph,
+    # column or word element survives, while the page keeps its geometry.
+    assert "<span class='ocr_line'" not in hocr
+    assert "<p class='ocr_par'" not in hocr
+    assert "ocrx_word" not in hocr
+    assert "<div class='ocr_page' id='page_1' title='bbox 0 0 500 100'>" in hocr
+
+    tree = Bboxtree()
+    tree.from_hocr(canvas.hocr())
+    reparsed = [box["text"] for box in tree.each_bbox() if box["type"] == "word"]
+    assert reparsed == []

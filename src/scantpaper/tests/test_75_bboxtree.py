@@ -135,12 +135,14 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
  <body>
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
-    <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59; baseline -0.003 -17'>
-     <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; textangle 90; x_wconf -3'>The</span>
-     <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
-     <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
-     <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
-    </span>
+    <p class='ocr_par' title='bbox 1 14 420 59'>
+     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59; baseline -0.003 -17'>
+      <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; textangle 90; x_wconf -3'>The</span>
+      <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+      <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+      <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     </span>
+    </p>
    </div>
   </div>
  </body>
@@ -1008,3 +1010,32 @@ def test_crop() -> None:
 
     tree.crop(0, 40, 200, 30)
     assert tree.bbox_tree == [], "crop outside"
+
+
+def test_to_hocr_flat_tree_wrapped_in_containers() -> None:
+    """A flat page > word tree is wrapped in ocr_par/ocr_line on export."""
+    tree = Bboxtree()
+    tree.from_pdftotext(
+        """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+<doc>
+  <page width="100.000000" height="60.000000">
+    <word xMin="1.000000" yMin="1.000000" xMax="40.000000" yMax="20.000000">first</word>
+    <word xMin="45.000000" yMin="1.000000" xMax="90.000000" yMax="20.000000">row</word>
+    <word xMin="1.000000" yMin="30.000000" xMax="45.000000" yMax="50.000000">second</word>
+  </page>
+</doc>
+</body>
+</html>
+""",
+        (POINTS_PER_INCH, POINTS_PER_INCH),
+        (100, 100),
+    )
+    hocr = tree.to_hocr()
+    assert hocr.count("class='ocr_page'") == 1, "one page"
+    assert hocr.count("class='ocr_par'") == 1, "one paragraph"
+    assert hocr.count("class='ocr_line'") == 2, "two lines from two rows"
+    assert hocr.count("class='ocrx_word'") == 3, "three words"
+    assert "title='bbox 1 1 90 20'" in hocr, "first line spans its row"
+    assert "title='bbox 1 30 45 50'" in hocr, "second line spans its row"

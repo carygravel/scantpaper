@@ -2,17 +2,27 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+import tempfile
+from typing import TYPE_CHECKING, Any, cast
 
-from scantpaper.const import EMPTY
+from scantpaper.basethread import Response, ResponseType
+from scantpaper.bboxtree import Bboxtree
+from scantpaper.const import EMPTY, POINTS_PER_INCH
 from scantpaper.layer import LayerControls, LayerEditor
+from scantpaper.loop_helpers import safe_mainloop
+from scantpaper.page import Page
 
 if TYPE_CHECKING:
     import pytest
 
+    from scantpaper.canvas import Bbox
     from scantpaper.docthread import DocThread
     from scantpaper.imageview import ImageView
-    from scantpaper.page import Page
+
+import gi
+
+gi.require_version("Gdk", "3.0")
+from gi.repository import Gdk, GLib  # noqa: E402
 
 
 def make_editor(
@@ -29,6 +39,7 @@ def make_editor(
     page = cast("Page", mocker.MagicMock())
     page.text_layer = "existing"
     page.annotations = "existing"
+    page.get_size.return_value = (100, 100)
     thread = cast("DocThread", mocker.Mock())
     get_page = mocker.Mock(return_value=page)
     editor = LayerEditor(
@@ -137,13 +148,32 @@ def test_edit_sets_focus(mocker: pytest.MockerFixture) -> None:
     editor.canvas.set_index_by_bbox.assert_called_with(bbox)
 
 
-def test_edit_none_is_noop(mocker: pytest.MockerFixture) -> None:
-    """edit(None) does not touch the canvas or controls."""
+def test_ok_and_delete_with_nothing_focused_are_inert(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Accepting or deleting with no focused slice changes nothing."""
+    editor, page, thread, _view = make_editor(mocker)
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    editor._current_bbox = None
+
+    editor.ok(None)
+    editor.delete(None)
+
+    editor.canvas.update_word.assert_not_called()
+    editor.canvas.delete_word.assert_not_called()
+    page.import_hocr.assert_not_called()
+    thread.set_text.assert_not_called()
+
+
+def test_edit_none_clears_control(mocker: pytest.MockerFixture) -> None:
+    """edit(None) empties the control and focuses nothing."""
     editor, _page, _thread, _view = make_editor(mocker)
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
     editor.edit(None)
-    editor.controls.textbuffer.set_text.assert_not_called()
+    assert editor._current_bbox is None
+    editor.controls.textbuffer.set_text.assert_called_once_with(EMPTY)
     editor.canvas.set_index_by_bbox.assert_not_called()
 
 
@@ -165,7 +195,7 @@ def test_ok_commits_and_reedits(mocker: pytest.MockerFixture) -> None:
 
     editor.ok(None)
 
-    bbox.update_box.assert_called_with("corrected", "sel")
+    editor.canvas.update_word.assert_called_once_with(bbox, "corrected", "sel")
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     editor.controls.textbuffer.set_text.assert_called()
@@ -201,7 +231,7 @@ def test_delete_removes_box(mocker: pytest.MockerFixture) -> None:
 
     editor.delete(None)
 
-    bbox.delete_box.assert_called()
+    editor.canvas.delete_word.assert_called_once_with(bbox)
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     editor.controls.textbuffer.set_text.assert_called()
@@ -258,7 +288,7 @@ def test_add_creates_new_layer(mocker: pytest.MockerFixture) -> None:
     editor.add(None)
 
     assert page.text_layer is not None
-    assert "seed" in page.text_layer
+    assert "seed" in stored_layer(page, editor)
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
 
 
@@ -355,7 +385,7 @@ def test_annotation_delete_uses_own_canvas_and_importer(
 
     editor.delete(None)
 
-    bbox.delete_box.assert_called()
+    editor.canvas.delete_word.assert_called_once_with(bbox)
     page.import_annotations.assert_called_with(editor.canvas.hocr())
     thread.set_annotations.assert_called_once_with(page.id, page.annotations)
     # The old bug used the *text* canvas/importer.
@@ -447,3 +477,419 @@ def test_add_no_page_is_noop(mocker: pytest.MockerFixture) -> None:
     editor.add(None)
     thread.set_text.assert_not_called()
     editor.canvas.add_box.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Integration: a real LayerEditor driving a real Canvas
+# ---------------------------------------------------------------------------
+
+THREE_WORD_HOCR = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name='ocr-system' content='tesseract 4.1.1' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'/>
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 500 100'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 0 0 500 100">
+    <p class='ocr_par'>
+     <span class='ocr_line' id='line_1_1' title="bbox 0 0 500 100">
+      <span class='ocr_word' id='word_1_1' title="bbox 0 0 100 100">
+       <span class='xocr_word' id='xword_1_1' title="x_wconf 10">ALPHA</span>
+      </span>
+      <span class='ocr_word' id='word_1_2' title="bbox 100 0 200 100">
+       <span class='xocr_word' id='xword_1_2' title="x_wconf 20">BRAVO</span>
+      </span>
+      <span class='ocr_word' id='word_1_3' title="bbox 200 0 300 100">
+       <span class='xocr_word' id='xword_1_3' title="x_wconf 30">CHARLIE</span>
+      </span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+
+
+def make_real_editor(
+    mocker: pytest.MockerFixture,
+    page: Page,
+    *,
+    page_attr: str = "text_layer",
+    features: tuple[str, ...] = (),
+) -> LayerEditor:
+    """Build a LayerEditor with a real Canvas and a page-backed thread."""
+    thread = cast("DocThread", mocker.Mock())
+
+    def parse_bboxtree(json_string: str, finished_callback: object = None) -> None:
+        """Parse synchronously and hand the real bboxes to the canvas."""
+        tree = Bboxtree(json_string)
+        bboxes = list(tree.each_bbox())
+        indices = [
+            i
+            for i, box in enumerate(bboxes)
+            if box.get("type") == "word" and box.get("text", "")
+        ]
+        cast("Any", finished_callback)(
+            Response(
+                type=ResponseType.FINISHED,
+                request=cast("Any", None),
+                info={"bboxes": bboxes, "sorted_word_indices": indices},
+                status=None,
+                num_completed_jobs=0,
+                total_jobs=0,
+                pending=None,
+            )
+        )
+
+    cast("Any", thread).parse_bboxtree = parse_bboxtree
+    view = cast("ImageView", mocker.Mock())
+    selection = Gdk.Rectangle()
+    selection.x = 0
+    selection.y = 0
+    selection.width = 10
+    selection.height = 10
+    offset = Gdk.Rectangle()
+    offset.x = 0
+    offset.y = 0
+    view.get_selection.return_value = selection
+    view.get_offset.return_value = offset
+    editor = LayerEditor(
+        page_attr=page_attr,
+        view=view,
+        thread=thread,
+        get_page=lambda: page,
+        features=features,
+    )
+    editor.canvas._pixbuf_size = {"width": page.width, "height": page.height}
+    return editor
+
+
+def create_editor(editor: LayerEditor, page: Page) -> None:
+    """Populate the editor's canvas, spinning the loop until parsing lands."""
+    loop = safe_mainloop()
+    editor.create(page, None, finished_callback=loop.quit)
+    loop.run()
+
+
+def stored_layer(page: Page, editor: LayerEditor) -> str:
+    """Return the page's serialised layer for the editor's page attribute.
+
+    The layer is Optional because a page starts with no text or annotation layer
+    at all; these assertions are all about what the editor has written.
+    """
+    value = cast("str | None", getattr(page, editor.page_attr))
+    assert value is not None
+    return value
+
+
+def settle() -> None:
+    """Let an action that seeds a new layer finish parsing.
+
+    add() seeds the layer through create(), which parses on an idle callback,
+    so the editor is only populated once the main loop has had a turn.
+    safe_mainloop supplies the safety net if that callback never arrives.
+    """
+    loop = safe_mainloop()
+    GLib.idle_add(loop.quit)
+    loop.run()
+
+
+def test_editor_delete_persists_hocr_without_word(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Deleting text through the editor persists hOCR without that word."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+
+        editor.edit(cast("Bbox", editor.canvas.get_first_bbox()))
+        assert editor._current_bbox.text == "ALPHA"
+
+        editor.delete(None)
+
+        assert "ALPHA" not in stored_layer(page, editor)
+        assert "BRAVO" in stored_layer(page, editor)
+        assert "CHARLIE" in stored_layer(page, editor)
+
+
+def test_editor_empty_text_deletes_word(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Clearing the text buffer and accepting removes the word."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+
+        editor.edit(cast("Bbox", editor.canvas.get_first_bbox()))
+        editor.controls.textbuffer.set_text(EMPTY)
+
+        editor.ok(None)
+
+        assert "ALPHA" not in stored_layer(page, editor)
+        assert "BRAVO" in stored_layer(page, editor)
+
+
+def test_editor_empty_ok_focuses_a_different_slice(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Emptying a slice shows another slice, never the deleted text again."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+
+        editor.canvas.sort_by_position()
+        editor.edit(editor.canvas.get_first_bbox())
+        assert editor._current_bbox.text == "ALPHA"
+
+        editor.controls.textbuffer.set_text(EMPTY)
+        editor.ok(None)
+
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text != "ALPHA"
+        assert editor._controls_text() == editor._current_bbox.text
+        assert "ALPHA" not in stored_layer(page, editor)
+
+
+def test_editor_deleting_every_slice_ends_inert(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Deleting the final slice leaves an empty control and no focused slice."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_confidence()
+
+        for text in ["ALPHA", "BRAVO", "CHARLIE"]:
+            word = next(
+                w for w in editor.canvas._words_in_reading_order() if w.text == text
+            )
+            editor.edit(word)
+            editor.delete(None)
+
+        assert editor._current_bbox is None
+        assert editor._controls_text() == EMPTY
+        assert page.text_layer is None
+
+
+def test_editor_navigation_falls_back_to_previous_on_last_delete(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Deleting the last slice in an order focuses the one before it."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        editor.edit(editor.canvas.get_last_bbox())
+        assert cast("Bbox", editor._current_bbox).text == "CHARLIE"
+
+        editor.delete(None)
+
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "BRAVO"
+
+
+def test_editor_typing_after_delete_applies_to_survivor(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A correction typed right after a deletion lands on the survivor."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        editor.edit(editor.canvas.get_first_bbox())
+        editor.delete(None)
+        survivor = editor._current_bbox
+        assert survivor is not None
+        assert survivor.text == "BRAVO"
+
+        editor.controls.textbuffer.set_text("BRAVO-CORRECTED")
+        editor.ok(None)
+
+        assert "ALPHA" not in stored_layer(page, editor)
+        assert '"text": "BRAVO"' not in stored_layer(page, editor)
+        assert "BRAVO-CORRECTED" in stored_layer(page, editor)
+
+
+def test_editor_sort_switch_keeps_focused_slice_and_text(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Switching sort order keeps the same slice focused and nothing lost."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page, features=("sort",))
+        create_editor(editor, page)
+
+        editor.canvas.sort_by_confidence()
+        editor.edit(editor.canvas.get_first_bbox())
+        focused = editor._current_bbox
+        assert focused is not None
+        assert focused.text == "ALPHA"
+
+        editor._sort(None, "position")
+
+        assert editor._current_bbox is focused
+        assert editor._controls_text() == "ALPHA"
+        for text in ["ALPHA", "BRAVO", "CHARLIE"]:
+            assert stored_layer(page, editor).count(text) == 1
+
+
+def test_editor_never_focuses_a_detached_slice(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """After every editor action the focused slice is still in the tree."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page, features=("sort", "copy"))
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        def in_scene_graph() -> bool:
+            bbox = editor._current_bbox
+            return bbox is not None and bbox in editor.canvas._words_in_reading_order()
+
+        editor.edit(editor.canvas.get_first_bbox())
+        assert in_scene_graph()
+
+        editor.add(None)
+        assert in_scene_graph()
+
+        editor.copy(None)
+        assert in_scene_graph()
+
+        editor.controls.textbuffer.set_text("REVISED")
+        editor.ok(None)
+        assert in_scene_graph()
+
+        editor.controls.textbuffer.set_text(EMPTY)
+        editor.ok(None)
+        assert in_scene_graph()
+
+        editor.delete(None)
+        assert in_scene_graph()
+
+
+def test_annotation_layer_parity(rose_pnm: str, mocker: pytest.MockerFixture) -> None:
+    """Add, correct and delete all work for the annotation layer."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        editor = make_real_editor(mocker, page, page_attr="annotations")
+
+        # a page with no annotation layer gains one from the first note
+        editor.create(page, None)
+        editor.add(None)
+        settle()
+        assert editor._current_bbox is not None
+        assert "my-new-annotation" in stored_layer(page, editor)
+        create_editor(editor, page)
+
+        editor.edit(editor.canvas.get_first_bbox())
+        editor.controls.textbuffer.set_text("FIRST-NOTE")
+        editor.ok(None)
+        assert "FIRST-NOTE" in stored_layer(page, editor)
+
+        editor.copy(None)
+        assert stored_layer(page, editor).count("FIRST-NOTE") == 2
+
+        editor.edit(editor.canvas.get_first_bbox())
+        editor.delete(None)
+        assert page.annotations is not None
+        assert stored_layer(page, editor).count("FIRST-NOTE") == 1
+
+        # the surviving note round-trips through the canvas hOCR
+        tree = Bboxtree()
+        tree.from_hocr(editor.canvas.hocr())
+        notes = [box["text"] for box in tree.each_bbox() if box["type"] == "word"]
+        assert notes == ["FIRST-NOTE"]
+
+        editor.edit(editor.canvas.get_first_bbox())
+        editor.delete(None)
+        assert page.annotations is None
+
+
+def test_annotation_placeholder_is_used_for_an_empty_control(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Adding a note to an empty control seeds the documented placeholder."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        editor = make_real_editor(mocker, page, page_attr="annotations")
+
+        editor.create(page, None)
+        editor.add(None)
+        settle()
+
+        assert editor._current_bbox is not None
+        assert page.annotations is not None
+        assert "my-new-annotation" in stored_layer(page, editor)

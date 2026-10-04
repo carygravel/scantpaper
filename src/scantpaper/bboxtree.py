@@ -318,7 +318,7 @@ class Bboxtree:
         """Write the bboxtree as an HOCR string."""
         string = HOCR_HEADER + "\n"
         prev_depth, tags = -1, []
-        for bbox in self.each_bbox():
+        for bbox in _hocr_with_containers(list(self.each_bbox())):
             sub_string, prev_depth = _bbox_to_hocr(bbox, prev_depth, tags)
             string += sub_string
 
@@ -522,6 +522,17 @@ def _hocr2boxes(hocr: str) -> list[BBox]:
     return cast("list[BBox]", (parser.boxes))
 
 
+def is_empty_branch(*, has_text: bool, has_descendants: bool) -> bool:
+    """Return True when a layer box carries neither text nor descendants.
+
+    This is the single definition of "empty" for a layer box. It is used both
+    when parsing hOCR, where a box is a dict that may hold ``text`` or
+    ``contents``, and when deleting a word from the canvas, where the same rule
+    is applied to the scene graph.
+    """
+    return not (has_text or has_descendants)
+
+
 def _prune_empty_branches(boxes: list[BBox]) -> None:
     i = 0
     while i < len(boxes):
@@ -531,7 +542,9 @@ def _prune_empty_branches(boxes: list[BBox]) -> None:
             if len(child["contents"]) == 0:
                 del child["contents"]
 
-        if len(boxes) > 0 and not ("contents" in child or "text" in child):
+        if len(boxes) > 0 and is_empty_branch(
+            has_text="text" in child, has_descendants="contents" in child
+        ):
             del boxes[i]
         else:
             i += 1
@@ -628,6 +641,112 @@ def _pdftotext2boxes(
 def scale(value: float, resolution: float) -> int:
     """Convert the given value from mm to pixels."""
     return int(value * resolution // POINTS_PER_INCH + HALF)
+
+
+def _hocr_with_containers(bboxes: list[BBox]) -> list[BBox]:
+    """Return a bbox list whose words/lines are wrapped in para containers.
+
+    ocrmypdf's text-layer renderer only walks ``ocr_par`` children, so any
+    word or line that is not already nested inside a paragraph must be given a
+    synthetic ``para`` (and, for bare words, ``line``) container.  Trees that
+    already contain a ``para`` are returned unchanged.
+    """
+    if not bboxes or any(b["type"] == "para" for b in bboxes):
+        return bboxes
+
+    root: BBox = {"type": "root", "depth": -1, "contents": []}
+    stack: list[BBox] = [root]
+    for bbox in bboxes:
+        while stack[-1]["depth"] != bbox["depth"] - 1:
+            stack.pop()
+        node: BBox = cast(
+            "BBox",
+            {k: v for k, v in bbox.items() if k != "contents"},
+        )
+        node["contents"] = []
+        stack[-1]["contents"].append(node)
+        stack.append(node)
+
+    _ensure_hocr_containers(root)
+    result: list[BBox] = []
+    for child in root["contents"]:
+        _flatten_nested(child, result)
+    return result
+
+
+def _ensure_hocr_containers(node: BBox) -> None:
+    """Recursively wrap word/line children of a node in a synthetic para."""
+    if node["type"] in ("word", "line", "para"):
+        for child in node.get("contents", []):
+            _ensure_hocr_containers(child)
+        return
+    children = node.get("contents", [])
+    wrap = [c for c in children if c["type"] in ("word", "line")]
+    if not wrap:
+        for child in children:
+            _ensure_hocr_containers(child)
+        return
+
+    para: BBox = {"type": "para", "contents": []}
+    words = [c for c in wrap if c["type"] == "word"]
+    for child in wrap:
+        if child["type"] == "line":
+            para["contents"].append(child)
+    for group in _group_words_into_lines(words):
+        line: BBox = {"type": "line", "contents": group}
+        group_boxes = [w for w in group if "bbox" in w]
+        if group_boxes:
+            line["bbox"] = _union_bbox(group_boxes)
+        para["contents"].append(line)
+
+    para_boxes = [c for c in para["contents"] if "bbox" in c]
+    if para_boxes:
+        para["bbox"] = _union_bbox(para_boxes)
+    node["contents"] = [para] + [c for c in children if c not in wrap]
+    _ensure_hocr_containers(para)
+
+
+def _group_words_into_lines(words: list[BBox]) -> list[list[BBox]]:
+    """Group consecutive words into lines by vertical position."""
+    if not words:
+        return []
+    tolerance = max(b["bbox"][3] - b["bbox"][1] for b in words) * 0.6 or 1.0
+    lines: list[list[BBox]] = []
+    current = [words[0]]
+    for word in words[1:]:
+        if abs(_y_center(word) - _y_center(current[-1])) <= tolerance:
+            current.append(word)
+        else:
+            lines.append(current)
+            current = [word]
+    lines.append(current)
+    return lines
+
+
+def _y_center(bbox: BBox) -> float:
+    """Return the vertical centre of a bbox."""
+    return (bbox["bbox"][1] + bbox["bbox"][3]) / 2.0
+
+
+def _union_bbox(bboxes: list[BBox]) -> list[int]:
+    """Return the bounding box that encloses the given bboxes."""
+    left = min(b["bbox"][0] for b in bboxes)
+    top = min(b["bbox"][1] for b in bboxes)
+    right = max(b["bbox"][2] for b in bboxes)
+    bottom = max(b["bbox"][3] for b in bboxes)
+    return [left, top, right, bottom]
+
+
+def _flatten_nested(node: BBox, out: list[BBox], depth: int = 0) -> None:
+    """Flatten a nested bbox tree into a depth-annotated flat list."""
+    out.append(
+        cast(
+            "BBox",
+            {k: v for k, v in node.items() if k != "contents"} | {"depth": depth},
+        )
+    )
+    for child in node.get("contents", []):
+        _flatten_nested(child, out, depth + 1)
 
 
 def _bbox_to_hocr(bbox: BBox, prev_depth: int, tags: list[str]) -> tuple[str, int]:

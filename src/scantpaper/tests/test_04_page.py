@@ -272,7 +272,34 @@ def test_2(temp_pnm: object) -> None:
             '{"bbox": [355, 14, 420, 48], "confidence": -4, "type": "word", "id": "word_1_4", '
             '"text": "fox", "depth": 3}]'
         ), "import_hocr()"
-        assert page.export_hocr() == hocr, "export_hocr()"
+        assert (
+            page.export_hocr()
+            == f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name='ocr-system' content='scantpaper {VERSION}' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
+   <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
+    <p class='ocr_par' title='bbox 1 14 420 59'>
+     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59; baseline -0.003 -17'>
+      <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; textangle 90; x_wconf -3'>The</span>
+      <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+      <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+      <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+        ), "export_hocr()"
 
         #########################
 

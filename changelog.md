@@ -1,5 +1,19 @@
 ## 3.0.21 (unreleased)
 
+* Fix PDFs imported from another PDF (or any page whose text layer has no
+  paragraph or line grouping) losing their searchable text layer when saved:
+  the saved PDF now embeds an extractable, searchable text layer again instead
+  of a blank one. Previously such pages saved with no usable text at all.
+* Fix deleting a slice in the text layer or annotations window not removing its
+  text from the saved PDF/DjVu. Deletions now remove the word from the stored
+  text layer, including when the last word of a line, paragraph or column is
+  removed, while the page keeps its own geometry.
+* Fix a corrected slice still being drawn with its old text. The page now
+  repaints with the corrected text, and the corrected text is the one written to
+  the saved output.
+* Fix emptying a slice being rejected and springing back to its previous text.
+  Clearing a slice's text and accepting now deletes the slice and moves the
+  editor on to the next one, in both the text layer and the annotations window.
 * Undo and redo now treat an operation applied to several pages at once
   (e.g. rotating or cropping a selection) as a single step: one Undo reverts
   every affected page together, and one Redo re-applies the whole operation,

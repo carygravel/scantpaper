@@ -54,11 +54,17 @@ def test_save_multipage_pdf(
     mlp.run()
 
     capture = subprocess.check_output(["pdffonts", temp_pdf.name], text=True)
-    # not all combinations of ocrmypdf, qpdf & ghostsript embed GlyphLessFont
-    fonts = 1 if re.search(r"GlyphLessFont", capture) else 0
-    assert len(capture.splitlines()) == fonts + 2, (
-        "no other fonts embedded in multipage PDF"
+    # The text layer is now rendered, so the OCR text is embedded in a real
+    # font. Whether that is the NotoSans font or ocrmypdf's GlyphLessFont
+    # fallback depends on the ocrmypdf/qpdf/ghostscript combination, so only
+    # require that the layer is actually present and searchable.
+    assert re.search(r"NotoSans|GlyphLessFont", capture), (
+        "text layer font embedded in multipage PDF"
     )
+    text = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
+    # GlyphLessFont drops spaces (and can merge glyphs), so only require that
+    # the OCR'd word content is extractable, not an exact match.
+    assert "world" in text, "multipage PDF text layer is searchable"
 
 
 @pytest.mark.xfail(reason="OCRmyPDF doesn't yet support non-latin characters")
