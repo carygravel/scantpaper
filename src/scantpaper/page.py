@@ -312,19 +312,47 @@ class Page:
         if self.image_object is None:
             logger.warning("Cannot get pixbuf from None")
             return None
-        with tempfile.NamedTemporaryFile(dir=self.dir, suffix=".png") as filename:
-            # Force PIL to load the data before the file is deleted.
-            # The upgrade to gdk-pixbuf 2.44.5+dfsg-3/4 without this threw
-            # "contains no data", caused by a race condition where PIL attempted
-            # to lazy-load data from a deleted temporary file.
+
+        try:
             self.image_object.load()
-            self.image_object.save(filename.name)
-            pixbuf = None
-            try:
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename.name)
-            except (GLib.Error, TypeError) as exc:
-                logger.warning("Caught error getting pixbuf: %s", exc)
-        return pixbuf
+            image = self.image_object
+            has_alpha = image.mode in ("RGBA", "LA", "PA")
+            if has_alpha:
+                img_pb = image.convert("RGBA") if image.mode in ("LA", "PA") else image
+                data = img_pb.tobytes()
+                rowstride = img_pb.width * 4
+                return GdkPixbuf.Pixbuf.new_from_data(
+                    data,
+                    GdkPixbuf.Colorspace.RGB,
+                    True,  # noqa: FBT003 - positional required by GdkPixbuf C API
+                    8,
+                    img_pb.width,
+                    img_pb.height,
+                    rowstride,
+                    None,
+                    None,
+                )
+
+            if image.mode == "1":
+                img_pb = image.convert("L").convert("RGB")
+            else:
+                img_pb = image.convert("RGB")
+            data = img_pb.tobytes()
+            rowstride = img_pb.width * 3
+            return GdkPixbuf.Pixbuf.new_from_data(
+                data,
+                GdkPixbuf.Colorspace.RGB,
+                False,  # noqa: FBT003 - positional required by GdkPixbuf C API
+                8,
+                img_pb.width,
+                img_pb.height,
+                rowstride,
+                None,
+                None,
+            )
+        except (GLib.Error, TypeError) as exc:
+            logger.warning("Caught error getting pixbuf: %s", exc)
+            return None
 
     def get_pixbuf_at_scale(
         self, max_width: int, max_height: int

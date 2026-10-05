@@ -1,3 +1,10 @@
+## 3.0.22 (unreleased)
+
+* Optimize page display: creating a page pixbuf now uses pixel data directly
+  instead of encoding the full-resolution image as a PNG to a temporary file,
+  dramatically speeding up page switching for large color scans.
+
+
 ## 3.0.21 (2026-10-04)
 
 * Undo and redo now treat an operation applied to several pages at once

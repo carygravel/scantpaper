@@ -396,13 +396,13 @@ def test_2(temp_pnm: object) -> None:
 def test_get_pixbuf_error(mocker: pytest.MockerFixture) -> None:
     """Test error handling in get_pixbuf()."""
     mocker.patch(
-        "scantpaper.page.GdkPixbuf.Pixbuf.new_from_file", side_effect=TypeError
+        "scantpaper.page.GdkPixbuf.Pixbuf.new_from_data", side_effect=TypeError
     )
     mocker.patch(
         "scantpaper.page.GdkPixbuf.Pixbuf.new_from_file_at_scale", side_effect=TypeError
     )
     page = Page(image_object=Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)))
-    assert page.get_pixbuf() is None, "TypeError from Pixbuf.new_from_file not caught"
+    assert page.get_pixbuf() is None, "TypeError from Pixbuf.new_from_data not caught"
     assert page.get_pixbuf_at_scale(1, 1) is None, (
         "TypeError from Pixbuf.new_from_file_at_scale not caught"
     )
@@ -698,3 +698,28 @@ def test_from_bytes_png_blob_readable() -> None:
     assert page.image_object.format == "PNG", "stored format detected"
     assert page.get_size() == (A4_WIDTH_MM, A4_HEIGHT_MM), "page size read from blob"
     assert isinstance(page.get_pixbuf(), GdkPixbuf.Pixbuf), "PNG blob displays"
+
+
+def test_get_pixbuf_alpha_modes() -> None:
+    """Test get_pixbuf() handles alpha modes correctly."""
+    # Test RGBA
+    img = Image.new("RGBA", (10, 10), (255, 0, 0, 128))
+    page = Page(image_object=img)
+    pb = page.get_pixbuf()
+    assert isinstance(pb, GdkPixbuf.Pixbuf)
+
+    # Test LA
+    img = Image.new("LA", (10, 10), (128, 64))
+    page = Page(image_object=img)
+    pb = page.get_pixbuf()
+    assert isinstance(pb, GdkPixbuf.Pixbuf)
+
+    # Test PA
+    img = Image.new("P", (10, 10))
+    img.putpixel((0, 0), 1)
+    img.putpalette([0, 0, 0, 255, 0, 0, 255, 255, 255] + [0] * 252 * 3)
+    # Convert to PA-like by adding transparency
+    img_pa = img.convert("PA")
+    page = Page(image_object=img_pa)
+    pb = page.get_pixbuf()
+    assert isinstance(pb, GdkPixbuf.Pixbuf)
