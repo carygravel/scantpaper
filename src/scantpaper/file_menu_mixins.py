@@ -539,6 +539,8 @@ class FileMenuMixins:
     def _normalize_filetype_suffix(self, filetype: str) -> str:
         if re.search(r"pdf", filetype, re.IGNORECASE):
             return "pdf"
+        if filetype == "sdb":
+            return "sdb"
         return filetype
 
     def _save_with_filetype(
@@ -558,7 +560,7 @@ class FileMenuMixins:
             else:
                 self._save_pdf(filename, uuids, "ps")
 
-        elif filetype == "session":
+        elif filetype == "sdb":
             self.slist.save_session(filename)
 
         elif filetype in ["djvu", "tif", "txt", "hocr"]:

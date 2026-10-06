@@ -3,6 +3,9 @@
 * Optimize page display: creating a page pixbuf now uses pixel data directly
   instead of encoding the full-resolution image as a PNG to a temporary file,
   dramatically speeding up page switching for large color scans.
+* Fix saving a session (SDB) - selecting "scantpaper session" in the Save
+  dialog now actually saves the full session database to the chosen location
+  so it can be reopened and work resumed later.
 
 
 ## 3.0.21 (2026-10-04)

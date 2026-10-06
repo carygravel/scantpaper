@@ -1319,7 +1319,7 @@ class TestFileMenuMixins:
         mock_dialog = unittest.mock.Mock()
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
-        for image_type in ["tif", "txt", "hocr", "ps", "session"]:
+        for image_type in ["tif", "txt", "hocr", "ps", "sdb"]:
             app.settings["image type"] = image_type
             app._save_file_chooser(["uuid1"])
             mock_gtk.FileChooserDialog.assert_called()
@@ -1398,7 +1398,7 @@ class TestFileMenuMixins:
         mock_dialog.get_filename.return_value = "/path/to/session.sdb"
 
         app._file_chooser_response_callback(
-            mock_dialog, Gtk.ResponseType.OK, ["session", []]
+            mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
         )
 
         app.slist.save_session.assert_called()
