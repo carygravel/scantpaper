@@ -324,13 +324,11 @@ class Page:
                 return GdkPixbuf.Pixbuf.new_from_data(
                     data,
                     GdkPixbuf.Colorspace.RGB,
-                    True,  # noqa: FBT003 - positional required by GdkPixbuf C API
-                    8,
-                    img_pb.width,
-                    img_pb.height,
-                    rowstride,
-                    None,
-                    None,
+                    has_alpha=True,
+                    bits_per_sample=8,
+                    width=img_pb.width,
+                    height=img_pb.height,
+                    rowstride=rowstride,
                 )
 
             if image.mode == "1":
@@ -342,13 +340,11 @@ class Page:
             return GdkPixbuf.Pixbuf.new_from_data(
                 data,
                 GdkPixbuf.Colorspace.RGB,
-                False,  # noqa: FBT003 - positional required by GdkPixbuf C API
-                8,
-                img_pb.width,
-                img_pb.height,
-                rowstride,
-                None,
-                None,
+                has_alpha=False,
+                bits_per_sample=8,
+                width=img_pb.width,
+                height=img_pb.height,
+                rowstride=rowstride,
             )
         except (GLib.Error, TypeError) as exc:
             logger.warning("Caught error getting pixbuf: %s", exc)
