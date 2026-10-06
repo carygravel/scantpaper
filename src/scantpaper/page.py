@@ -319,28 +319,16 @@ class Page:
             has_alpha = image.mode in ("RGBA", "LA", "PA")
             if has_alpha:
                 img_pb = image.convert("RGBA") if image.mode in ("LA", "PA") else image
-                data = img_pb.tobytes()
-                rowstride = img_pb.width * 4
-                return GdkPixbuf.Pixbuf.new_from_data(
-                    data,
-                    GdkPixbuf.Colorspace.RGB,
-                    has_alpha=True,
-                    bits_per_sample=8,
-                    width=img_pb.width,
-                    height=img_pb.height,
-                    rowstride=rowstride,
-                )
-
-            if image.mode == "1":
+            elif image.mode == "1":
                 img_pb = image.convert("L").convert("RGB")
             else:
                 img_pb = image.convert("RGB")
             data = img_pb.tobytes()
-            rowstride = img_pb.width * 3
+            rowstride = img_pb.width * (4 if has_alpha else 3)
             return GdkPixbuf.Pixbuf.new_from_data(
                 data,
                 GdkPixbuf.Colorspace.RGB,
-                has_alpha=False,
+                has_alpha=has_alpha,
                 bits_per_sample=8,
                 width=img_pb.width,
                 height=img_pb.height,
