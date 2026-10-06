@@ -227,19 +227,7 @@ class ScanMenuItemMixins:
         vboxp.pack_start(self._rotate_controls, expand=False, fill=False, padding=0)
 
         # CheckButton for alternating rotation
-        abutton = Gtk.CheckButton(label=_("Alternate rotation every 2nd page"))
-        abutton.set_tooltip_text(
-            _(
-                "Rotate odd pages by the chosen angle and even pages by that "
-                "angle plus 180 degrees. Use when scanning a book where every "
-                "sheet is aligned to the same edge, so the back of each sheet "
-                "is rotated 180 degrees relative to its front."
-            )
-        )
-        if self.settings.get("alternate rotation", False):
-            abutton.set_active(is_active=True)
-        abutton.set_visible(False)
-        vboxp.pack_start(abutton, expand=False, fill=False, padding=0)
+        abutton = self._add_alternate_rotation_toggle(vboxp)
         self._alternate_rotation_button = abutton
 
         # CheckButton for unpaper
@@ -264,7 +252,17 @@ class ScanMenuItemMixins:
             logger.info("rotate reverse %s", self.settings["rotate reverse"])
             self.settings["alternate rotation"] = abutton.get_active()
             logger.info("alternate rotation %s", self.settings["alternate rotation"])
-            self._alternate_flatbed_count = 0
+            # Reset parity only for multi-page batches at job start; manual mode
+            # keeps parity stateful across scans
+            windows = self._windows
+            if (
+                windows is not None
+                and isinstance(cast("object", windows.allow_batch_flatbed), bool)
+                and windows.allow_batch_flatbed
+            ):
+                num_pages = cast("object", windows.num_pages)
+                if isinstance(num_pages, int) and num_pages > 1:
+                    self._alternate_flatbed_count = 0
             self.settings["unpaper on scan"] = ubutton.get_active()
             logger.info("unpaper %s", self.settings["unpaper on scan"])
             self.settings["udt_on_scan"] = udtbutton.get_active()
@@ -291,6 +289,30 @@ class ScanMenuItemMixins:
                 self.settings["threshold tool"] = ocr_controls.threshold_value
 
         widget.connect("clicked-scan-button", clicked_scan_button_cb)
+
+    def _add_alternate_rotation_toggle(self, vboxp: Gtk.Box) -> Gtk.CheckButton:
+        """Add alternate rotation toggle button."""
+        abutton = Gtk.CheckButton(label=_("Alternate rotation every 2nd page"))
+        abutton.set_tooltip_text(
+            _(
+                "Rotate odd pages by the chosen angle and even pages by that "
+                "angle plus 180 degrees. Use when scanning a book where every "
+                "sheet is aligned to the same edge, so the back of each sheet "
+                "is rotated 180 degrees relative to its front."
+            )
+        )
+        if self.settings.get("alternate rotation", False):
+            abutton.set_active(is_active=True)
+        abutton.set_visible(False)
+
+        def _on_alternate_rotation_toggled(button: Gtk.CheckButton) -> None:
+            if not button.get_active():
+                self._alternate_flatbed_count = 0
+            self.settings["alternate rotation"] = button.get_active()
+
+        abutton.connect("toggled", _on_alternate_rotation_toggled)
+        vboxp.pack_start(abutton, expand=False, fill=False, padding=0)
+        return abutton
 
     def _add_postprocessing_unpaper(self, vboxp: Gtk.Box) -> Gtk.CheckButton:
         hboxu = Gtk.Box()
@@ -401,16 +423,13 @@ class ScanMenuItemMixins:
         else:
             self._windows = None
 
-    def _flatbed_batch_active(self, widget: SaneScanDialog | None) -> bool:
-        """Return whether the dialog is scanning a flatbed batch of > 1 pages."""
+    def _flatbed_source_active(self, widget: SaneScanDialog | None) -> bool:
+        """Return whether the dialog is scanning from a flatbed with batch allowed."""
         if widget is None or not isinstance(
             cast("object", widget.allow_batch_flatbed), bool
         ):
             return False
         if not widget.allow_batch_flatbed:
-            return False
-        num_pages = cast("object", widget.num_pages)
-        if not isinstance(num_pages, int) or num_pages <= 1:
             return False
         options = cast("Options | None", widget.available_scan_options)
         return bool(
@@ -419,11 +438,18 @@ class ScanMenuItemMixins:
             and options.flatbed_selected(widget.thread.get_option_value)
         )
 
+    def _flatbed_batch_active(self, widget: SaneScanDialog | None) -> bool:
+        """Return whether the dialog is scanning a flatbed batch of > 1 pages."""
+        if not self._flatbed_source_active(widget):
+            return False
+        num_pages = cast("object", widget.num_pages)
+        return isinstance(num_pages, int) and num_pages > 1
+
     def _alternating_rotation_active(self) -> bool:
         """Return whether parity-based rotation applies to the next scan."""
         return bool(
             self.settings.get("alternate rotation", False)
-            and self._flatbed_batch_active(self._windows)
+            and self._flatbed_source_active(self._windows)
         )
 
     def _update_postprocessing_options_callback(
@@ -440,7 +466,7 @@ class ScanMenuItemMixins:
             self._rotate_controls.can_duplex = options.can_duplex()
         button = getattr(self, "_alternate_rotation_button", None)
         if button is not None:
-            button.set_visible(self._flatbed_batch_active(widget))
+            button.set_visible(self._flatbed_source_active(widget))
 
     def _changed_progress_callback(
         self, _widget: Gtk.Widget, progress: float | None, message: str | None

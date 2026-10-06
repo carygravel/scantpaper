@@ -6,6 +6,9 @@
 * Fix saving a session (SDB) - selecting "scantpaper session" in the Save
   dialog now actually saves the full session database to the chosen location
   so it can be reopened and work resumed later.
+* Allow the "Alternate rotation every 2nd page" toggle to be used with
+  one-page-at-a-time flatbed scans (no scanner hardware button). Parity persists
+  across consecutive scans until the toggle is explicitly turned off.
 
 
 ## 3.0.21 (2026-10-04)

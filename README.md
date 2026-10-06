@@ -132,7 +132,10 @@ untorn outer edge to the same rim), enable **Alternate rotation every 2nd
 page** in the **Postprocessing** tab. Odd pages then use the configured
 rotation angle, even pages use that angle plus 180 degrees, so the flipped
 back of each sheet comes out upright too. The toggle is only visible for
-multi-page flatbed batches, and rotation still runs before OCR.
+flatbed scanning (including one-page-at-a-time manual scans) when batch scanning
+from the flatbed is allowed; rotation still runs before OCR. In manual
+(single-page) mode the alternating parity persists across consecutive scans until
+you explicitly turn the toggle off.
 
 ### Main Features
 
@@ -702,7 +705,10 @@ Cut off the binding and scan every sheet one at a time, always aligning the
 untorn outer edge to the same rim. Scan in landscape to save time, set the
 rotation for the front pages in the **Postprocessing** tab, then tick
 **Alternate rotation every 2nd page** so the backs (which are rotated 180
-degrees relative to the fronts) can be scanned too without manual rotation.
+degrees relative to the fronts) can be scanned too without manual rotation. For
+one-page-at-a-time flatbed scanning, the toggle remains active across consecutive
+scans so every second scan is flipped automatically; turn it off to reset
+parity.
 
 ### Why is option xyz ghosted out?
 
