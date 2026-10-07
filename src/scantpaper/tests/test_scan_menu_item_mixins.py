@@ -398,6 +398,82 @@ def test_add_postprocessing_options_alternate_rotation_toggle(
     assert mock_scan_window._alternate_flatbed_count == 2
 
 
+def test_add_postprocessing_options_clicked_cb_batch_parity_reset(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """Starting a multi-page flatbed batch resets the alternation parity."""
+    mock_widget = mocker.Mock()
+    mock_widget.notebook = mocker.Mock()
+    callbacks = {}
+    mock_widget.connect.side_effect = lambda s, c: callbacks.update({s: c})
+
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+    mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    scan_menu_item_mixins.Gtk.CheckButton.side_effect = [
+        mocker.Mock(),
+        mocker.Mock(),
+        mocker.Mock(),
+    ]
+
+    mock_scan_window.add_postprocessing_options(mock_widget)
+
+    mock_window = mocker.Mock()
+    mock_window.allow_batch_flatbed = True
+    mock_window.num_pages = 4
+    mock_scan_window._windows = mock_window
+    mock_scan_window._alternate_flatbed_count = 3
+
+    callbacks["clicked-scan-button"](None)
+
+    assert mock_scan_window._alternate_flatbed_count == 0
+
+    # Manual (single-page) mode keeps the parity counter stateful
+    mock_window.num_pages = 1
+    mock_scan_window._alternate_flatbed_count = 3
+    callbacks["clicked-scan-button"](None)
+    assert mock_scan_window._alternate_flatbed_count == 3
+
+
+def test_alternate_rotation_toggled_handler(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """Toggling the alternate rotation switch updates settings and parity."""
+    mock_widget = mocker.Mock()
+    mock_widget.notebook = mocker.Mock()
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+    mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    abutton = mocker.Mock()
+    scan_menu_item_mixins.Gtk.CheckButton.side_effect = [
+        abutton,
+        mocker.Mock(),
+        mocker.Mock(),
+    ]
+
+    mock_scan_window.add_postprocessing_options(mock_widget)
+
+    toggled = [
+        call.args[1]
+        for call in abutton.connect.call_args_list
+        if call.args[0] == "toggled"
+    ]
+    assert toggled
+    handler = toggled[0]
+
+    # Switching off records the setting and restarts the parity counter
+    mock_scan_window._alternate_flatbed_count = 3
+    abutton.get_active.return_value = False
+    handler(abutton)
+    assert mock_scan_window._alternate_flatbed_count == 0
+    assert mock_scan_window.settings["alternate rotation"] is False
+
+    # Switching on records the setting and keeps the parity counter
+    mock_scan_window._alternate_flatbed_count = 3
+    abutton.get_active.return_value = True
+    handler(abutton)
+    assert mock_scan_window._alternate_flatbed_count == 3
+    assert mock_scan_window.settings["alternate rotation"] is True
+
+
 def test_add_postprocessing_unpaper_disabled(
     mocker: pytest.MockerFixture, mock_scan_window: object
 ) -> None:
@@ -957,6 +1033,38 @@ def test_update_postprocessing_options_callback_alternate_visibility_manual(
     mock_widget.num_pages = 1
     mock_scan_window._update_postprocessing_options_callback(mock_widget)
     assert abutton.set_visible.call_args.args == (True,)
+
+
+def test_flatbed_batch_active(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """Test _flatbed_batch_active for batch and single-page flatbed scans."""
+    # No dialog at all
+    assert mock_scan_window._flatbed_batch_active(None) is False
+
+    mock_window = mocker.Mock()
+    mock_options = mocker.Mock()
+    mock_window.available_scan_options = mock_options
+    mock_window.thread = mocker.Mock()
+    mock_options.flatbed_selected.return_value = True
+
+    # Flatbed batch of more than one page
+    mock_window.allow_batch_flatbed = True
+    mock_window.num_pages = 4
+    assert mock_scan_window._flatbed_batch_active(mock_window) is True
+
+    # Flatbed batch of a single page
+    mock_window.num_pages = 1
+    assert mock_scan_window._flatbed_batch_active(mock_window) is False
+
+    # Batch scanning not allowed
+    mock_window.allow_batch_flatbed = False
+    assert mock_scan_window._flatbed_batch_active(mock_window) is False
+
+    # Flatbed not the selected source
+    mock_window.allow_batch_flatbed = True
+    mock_options.flatbed_selected.return_value = False
+    assert mock_scan_window._flatbed_batch_active(mock_window) is False
 
 
 def test_new_scan_callback_alternate_rotation_manual(
