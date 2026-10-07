@@ -234,7 +234,7 @@ class FileMenuMixins:
             return cast("str | None", (text))
         return None
 
-    def _import_files_finished_callback(self, response: Response) -> None:
+    def _import_files_finished_callback(self, response: Response | None) -> None:
         """import_files finished callback."""
         self.post_process_progress.finish(response)
         # Resume full-resolution loading and show the final imported page.

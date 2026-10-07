@@ -377,6 +377,10 @@ database in a temporary directory named `scantpaper-????????`, created under
 If scantpaper crashes, the session directory survives. On the next start you
 are asked whether to restore it via **File → Open crashed session**.
 
+A session saved as an `.sdb` file (**File → Save As**) can be reopened
+with **File → Open**; the session's pages, edits, and OCR text layer are
+then displayed at full resolution.
+
 ---
 
 ## Dependencies

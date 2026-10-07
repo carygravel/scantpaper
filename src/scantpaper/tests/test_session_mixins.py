@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import pathlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
 
 import gi
@@ -12,6 +12,8 @@ import pytest
 
 from scantpaper.basethread import Request, Response, ResponseType
 from scantpaper.const import EMPTY
+from scantpaper.document import Document
+from scantpaper.file_menu_mixins import FileMenuMixins
 from scantpaper.session_mixins import SessionMixins
 
 if TYPE_CHECKING:
@@ -649,6 +651,87 @@ def test_display_image_not_suppressed_sends(mock_session_window: object) -> None
 
     assert len(sent_requests) == 1
     assert sent_requests[0][0] == "get_page"
+
+
+def test_import_files_session_opens_full_resolution(
+    mocker: pytest.MockerFixture, tmp_path: pathlib.Path
+) -> None:
+    """File→Open of a saved session releases suppression and loads full-res."""
+    mocker.patch("scantpaper.basedocument.DocThread")
+
+    class ImportWindow(Gtk.Window, SessionMixins, FileMenuMixins):
+        """Window combining the mixins used to drive a session import."""
+
+    window = ImportWindow()
+    window.view = mocker.Mock()
+    window.t_canvas = mocker.Mock()
+    window.a_canvas = mocker.Mock()
+    window._text_editor = mocker.Mock()
+    window._ann_editor = mocker.Mock()
+    window._current_page = None
+    window._windowc = None
+    window.settings = {"selection": None, "TMPDIR": "/tmp"}
+    window.post_process_progress = mocker.Mock()
+
+    slist = Document(dir=tmp_path)
+    window.slist = slist
+
+    session_db = tmp_path / "session.sdb"
+    session_db.write_text("saved session", encoding="utf-8")
+
+    page = mocker.Mock()
+    page.text_layer = "some text"
+    page.annotations = None
+    page.get_pixbuf.return_value = mocker.Mock()
+    page.get_size.return_value = (100, 200)
+    page.get_resolution.return_value = (100.0, 100.0, "mm")
+    page_response = mocker.Mock(info=page)
+
+    sent = []
+
+    def fake_get_file_info(
+        _path: object, _password: object = None, **kwargs: object
+    ) -> None:
+        cast("Callable[..., object]", kwargs["finished_callback"])(
+            mocker.Mock(info={"format": "session file", "path": str(session_db)})
+        )
+
+    def fake_send(process: str, *_args: object, **kwargs: object) -> mocker.Mock:
+        sent.append(process)
+        if process == "open" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(mocker.Mock())
+        elif process == "page_number_table" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(
+                mocker.Mock(info=[[1, None, 101]])
+            )
+        elif process == "get_page" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(page_response)
+        return mocker.Mock()
+
+    slist.thread.get_file_info = fake_get_file_info
+    slist.thread.send = fake_send
+
+    # Seed the sidebar row so on_table -> select(0) selects it, like the real UI.
+    slist.get_model().append([1, None, 101])
+
+    mocker.patch(
+        "scantpaper.session_mixins.Bboxtree",
+        return_value=mocker.Mock(valid=lambda: True),
+    )
+
+    window._import_files([str(session_db)])
+
+    assert window._suppress_full_display is False
+    assert window._current_page is page
+    window._text_editor.create.assert_called_once()
+    window.a_canvas.clear_text.assert_called_once()
+    assert sent.count("get_page") == 1
+
+    # Switching pages afterwards loads each page at full resolution.
+    window._display_image(101)
+    assert sent.count("get_page") == 2
+
+    window.destroy()
 
 
 def test_error_callback(

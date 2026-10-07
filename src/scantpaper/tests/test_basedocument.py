@@ -228,6 +228,41 @@ def test_save_open_session() -> None:
         shutil.rmtree(temp_dir)
 
 
+def test_open_session_finalizes_import_flow() -> None:
+    """open_session signals completion to an initiating import flow."""
+    slist = Document()
+    temp_dir = tempfile.mkdtemp()
+    slist.dir = pathlib.Path(temp_dir)
+
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+        tmp_name = tmp.name
+
+    finished_callback = Mock()
+
+    def mock_send(process: str, *_args: object, **kwargs: object) -> MagicMock:
+        if process == "open" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(MagicMock())
+        elif process == "page_number_table" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(
+                MagicMock(info=[[1, None, 101]])
+            )
+        return MagicMock()
+
+    slist.thread.send = mock_send
+
+    try:
+        slist.open_session(db=tmp_name, finished_callback=finished_callback)
+        assert len(slist.data) == 1
+        assert slist.data[0][2] == 101
+        finished_callback.assert_called_once_with(None)
+    finally:
+        if pathlib.Path(tmp_name).exists():
+            pathlib.Path(tmp_name).unlink()
+        if pathlib.Path(str(slist.dir) + ".sdb").exists():
+            pathlib.Path(str(slist.dir) + ".sdb").unlink()
+        shutil.rmtree(temp_dir)
+
+
 def test_renumber_ascending() -> None:
     """Test renumber makes page numbers consecutive 1..n."""
     slist = Document()

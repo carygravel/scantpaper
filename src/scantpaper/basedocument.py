@@ -628,6 +628,12 @@ class BaseDocument(SimpleList):
         self.thread.save_as(filename)
         logger.info("Saved document as %s", filename)
 
+    @staticmethod
+    def _finish_session_open(finished_callback: object) -> None:
+        """Signal completion to an import flow that opened this session."""
+        if finished_callback:
+            cast("Callable[[Response | None], None]", finished_callback)(None)
+
     def open_session(self, **kwargs: object) -> None:
         """Open session file."""
         if "db" not in kwargs:
@@ -653,6 +659,7 @@ class BaseDocument(SimpleList):
             self.get_model().handler_block(self.row_changed_signal)
 
         error_callback = kwargs.get("error_callback")
+        finished_callback = kwargs.get("finished_callback")
 
         def on_open(_response: Response) -> None:
             self.thread.send(
@@ -668,6 +675,7 @@ class BaseDocument(SimpleList):
             logger.info("Opened document %s", db)
             logger.info("Found %i pages", len(self.data))
             self.select(0)
+            self._finish_session_open(finished_callback)
 
         def on_error(response: Response) -> None:
             self._unblock_row_changed()
