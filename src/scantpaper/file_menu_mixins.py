@@ -8,6 +8,7 @@ import logging
 import os
 import pathlib
 import re
+import sqlite3
 import sys
 import tempfile
 from typing import TYPE_CHECKING, Any, cast
@@ -513,7 +514,6 @@ class FileMenuMixins:
                 keywords=self.settings["keywords"],
             )
             file_chooser.set_current_name(filename)
-            file_chooser.set_do_overwrite_confirmation(True)
         add_filter(file_chooser, filter_desc, filter_list)
         file_chooser.set_current_folder(self.settings["cwd"])
         file_chooser.set_default_response(Gtk.ResponseType.OK)
@@ -585,17 +585,42 @@ class FileMenuMixins:
             if not self._file_writable(dialog, filename):
                 return
 
+            if not self._confirm_overwrite(dialog, filename):
+                return
+
             # Update cwd
             self.settings["cwd"] = str(pathlib.Path(filename).parent)
-            self._save_with_filetype(filetype, filename, uuids)
-
-            if (
-                cast("SaveDialog | None", self._windowi) is not None
-                and self.settings["close_dialog_on_save"]
-            ):
-                self._windowi.hide()
+            try:
+                self._save_with_filetype(filetype, filename, uuids)
+            except (OSError, sqlite3.Error) as exc:
+                logger.exception("Error saving %s", filename)
+                self._show_message_dialog(
+                    parent=dialog,
+                    message_type="error",
+                    buttons=Gtk.ButtonsType.CLOSE,
+                    text=_("Error saving %s: %s") % (filename, exc),
+                )
+            else:
+                if (
+                    cast("SaveDialog | None", self._windowi) is not None
+                    and self.settings["close_dialog_on_save"]
+                ):
+                    self._windowi.hide()
 
         dialog.destroy()
+
+    def _confirm_overwrite(self, chooser: Gtk.FileChooser, filename: str) -> bool:
+        """Ask before replacing an existing file; True if saving may proceed."""
+        if not pathlib.Path(filename).is_file():
+            return True
+        response = self._ask_question(
+            parent=chooser,
+            type="question",
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            text=_("A file named %s already exists. Do you want to overwrite it?")
+            % (filename),
+        )
+        return bool(response == Gtk.ResponseType.OK)
 
     def _file_writable(self, chooser: Gtk.FileChooserDialog, filename: str) -> bool:
         """Check if a file or its directory is writable and show an error dialog if not."""

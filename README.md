@@ -164,7 +164,10 @@ you explicitly turn the toggle off.
   conversion step. Imported images are stored in a compact format (JPEG for
   scanned pages, the original bytes for imported JPEG/PNG files, lossless PNG
   for bilevel or transparent pages), and PDF saves embed stored JPEG images
-  directly instead of re-encoding them.
+  directly instead of re-encoding them. Saving to a file that already exists
+  asks for confirmation first: declining leaves the existing file untouched
+  and keeps the save dialog open, and a save that fails reports the error
+  instead of silently doing nothing.
 - **Thumbnails:** Page thumbnails are generated with a decimate-then-LANCZOS
   downscale for a sharp preview in the thumbnail panel without slowing down
   bulk imports, and bilevel or palette pages (common in scanned/OCR PDFs) are
@@ -379,7 +382,9 @@ are asked whether to restore it via **File → Open crashed session**.
 
 A session saved as an `.sdb` file (**File → Save As**) can be reopened
 with **File → Open**; the session's pages, edits, and OCR text layer are
-then displayed at full resolution.
+then displayed at full resolution. Saving over an existing `.sdb` file
+asks for confirmation before the old file is replaced; the replacement is
+atomic, so a failed save leaves the previous file intact.
 
 ---
 

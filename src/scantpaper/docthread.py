@@ -326,8 +326,17 @@ class DocThread(SaveThread):
         super().do_quit(_request)
 
     def save_as(self, db_name: str) -> None:
-        """Save the current database to a new file."""
-        self._execute(f"VACUUM INTO '{db_name}'")
+        """Save the current database to a new file, replacing it if present."""
+        dest = Path(db_name)
+        tmp = dest.with_name(f"{dest.name}.tmp")
+        try:
+            if tmp.is_file():
+                tmp.unlink()
+            self._execute("VACUUM INTO ?", (str(tmp),))
+            tmp.replace(dest)
+        finally:
+            if tmp.is_file():
+                tmp.unlink()
 
     def _insert_image(
         self, page: Page, if_different_from: int | None = None

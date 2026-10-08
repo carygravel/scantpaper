@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import pathlib
+import sqlite3
 import unittest.mock
 from typing import TYPE_CHECKING
 
@@ -1402,6 +1403,152 @@ class TestFileMenuMixins:
         )
 
         app.slist.save_session.assert_called()
+
+    @unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True)
+    def test_file_chooser_response_callback_session_overwrite_declined(
+        self, mock_is_file: MagicMock, app: MockApp
+    ) -> None:
+        """Declining the overwrite prompt on an existing session saves nothing."""
+        del mock_is_file
+        app.slist.save_session = unittest.mock.Mock()
+        app._file_writable = unittest.mock.Mock(return_value=True)
+        app._ask_question.return_value = Gtk.ResponseType.CANCEL
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/session.sdb"
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
+        )
+
+        app._ask_question.assert_called_once()
+        app.slist.save_session.assert_not_called()
+        mock_dialog.destroy.assert_not_called()
+
+    @unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True)
+    def test_file_chooser_response_callback_session_overwrite_accepted(
+        self, mock_is_file: MagicMock, app: MockApp
+    ) -> None:
+        """Accepting the overwrite prompt on an existing session saves it."""
+        del mock_is_file
+        app.slist.save_session = unittest.mock.Mock()
+        app._file_writable = unittest.mock.Mock(return_value=True)
+        app._ask_question.return_value = Gtk.ResponseType.OK
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/session.sdb"
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
+        )
+
+        app._ask_question.assert_called_once()
+        app.slist.save_session.assert_called_once_with("/path/to/session.sdb")
+        mock_dialog.destroy.assert_called_once()
+
+    @pytest.mark.parametrize(
+        ("filetype", "save_method"),
+        [("pdf", "_save_pdf"), ("djvu", "_save_djvu")],
+    )
+    @unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True)
+    def test_file_chooser_response_callback_pdf_djvu_overwrite_prompts(
+        self,
+        mock_is_file: MagicMock,
+        filetype: str,
+        save_method: str,
+        app: MockApp,
+    ) -> None:
+        """PDF and DjVu destinations that exist are confirmed before saving."""
+        del mock_is_file
+        setattr(app, save_method, unittest.mock.Mock())
+        app._file_writable = unittest.mock.Mock(return_value=True)
+        app._ask_question.return_value = Gtk.ResponseType.CANCEL
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = f"/path/to/file.{filetype}"
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, [filetype, ["uuid1"]]
+        )
+
+        app._ask_question.assert_called_once()
+        getattr(app, save_method).assert_not_called()
+
+    @unittest.mock.patch("scantpaper.file_menu_mixins.file_exists")
+    def test_file_chooser_response_callback_overwrite_after_suffix_retry(
+        self, mock_file_exists: MagicMock, app: MockApp
+    ) -> None:
+        """The suffixed retry pass still asks before overwriting."""
+        app._save_pdf = unittest.mock.Mock()
+        app._file_writable = unittest.mock.Mock(return_value=True)
+        app._ask_question.return_value = Gtk.ResponseType.CANCEL
+        mock_file_exists.return_value = True
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/file"
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
+        )
+
+        # Deferred for the re-fire: no confirmation and no save yet
+        app._ask_question.assert_not_called()
+        app._save_pdf.assert_not_called()
+
+        # Retry pass with the suffixed name, which exists
+        mock_file_exists.return_value = False
+        mock_dialog.get_filename.return_value = "/path/to/file.pdf"
+        with unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True):
+            app._file_chooser_response_callback(
+                mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
+            )
+
+        app._ask_question.assert_called_once()
+        app._save_pdf.assert_not_called()
+        mock_dialog.destroy.assert_not_called()
+
+    @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.os")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.expand_metadata_pattern")
+    def test_save_file_chooser_uniform_setup(
+        self,
+        mock_expand_metadata_pattern: MagicMock,
+        mock_os: MagicMock,
+        mock_gtk: MagicMock,
+        app: MockApp,
+    ) -> None:
+        """Every output type gets the same chooser setup as every other type."""
+        del mock_os
+        app._windowi = unittest.mock.Mock()
+        app._windowi.meta_datetime = "datetime"
+        mock_expand_metadata_pattern.return_value = "filename.pdf"
+        mock_dialog = unittest.mock.Mock()
+        mock_gtk.FileChooserDialog.return_value = mock_dialog
+
+        for image_type in ["pdf", "djvu", "tif", "txt", "hocr", "ps", "sdb"]:
+            app.settings["image type"] = image_type
+            app._save_file_chooser(["uuid1"])
+
+            mock_dialog.set_do_overwrite_confirmation.assert_not_called()
+            mock_dialog.connect.assert_called_once()
+            mock_dialog.set_current_folder.assert_called_once()
+            mock_dialog.show.assert_called_once()
+            mock_dialog.reset_mock()
+
+    def test_file_chooser_response_callback_session_save_error_reported(
+        self, app: MockApp
+    ) -> None:
+        """A failing session save is reported and the chooser is dismissed."""
+        app.slist.save_session = unittest.mock.Mock(
+            side_effect=sqlite3.OperationalError("disk failure")
+        )
+        app._file_writable = unittest.mock.Mock(return_value=True)
+        app._show_message_dialog = unittest.mock.Mock()
+        mock_dialog = unittest.mock.Mock()
+        mock_dialog.get_filename.return_value = "/path/to/session.sdb"
+
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
+        )
+
+        app._show_message_dialog.assert_called_once()
+        mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.launch_default_for_file")
     def test_save_tif_finished_callback(

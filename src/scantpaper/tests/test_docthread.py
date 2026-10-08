@@ -1257,12 +1257,79 @@ def test_close(mocker: pytest.MockerFixture) -> None:
     assert tid not in thread._con, "removed connection from pool on close"
 
 
-def test_save_as(temp_db: object, mocker: pytest.MockerFixture) -> None:
-    """Test saving the db."""
-    thread = DocThread(db=":memory:")
-    execute = mocker.patch.object(thread, "_execute")
-    thread.save_as(temp_db.name)
-    execute.assert_called_with(f"VACUUM INTO '{temp_db.name}'")
+def test_save_as_removes_stale_temp_file(tmp_path: pathlib.Path) -> None:
+    """A leftover temp file from a crashed save does not block the next one."""
+    dest = tmp_path / "session.sdb"
+    stale = tmp_path / "session.sdb.tmp"
+    stale.write_bytes(b"leftover from a crashed save")
+
+    thread = DocThread(db=str(tmp_path / "live.sdb"))
+    try:
+        thread.save_as(str(dest))
+    finally:
+        thread.quit()
+
+    assert dest.is_file()
+    assert not stale.exists()
+
+
+def test_save_as_overwrites_existing_session(tmp_path: pathlib.Path) -> None:
+    """save_as replaces an existing, non-empty session file."""
+    dest = tmp_path / "session.sdb"
+    con = sqlite3.connect(dest)
+    con.execute("CREATE TABLE old_session(id INTEGER PRIMARY KEY)")
+    con.execute("INSERT INTO old_session VALUES (1)")
+    con.commit()
+    con.close()
+
+    thread = DocThread(db=str(tmp_path / "live.sdb"))
+    try:
+        thread.save_as(str(dest))
+    finally:
+        thread.quit()
+
+    con = sqlite3.connect(dest)
+    tables = {
+        row[0]
+        for row in con.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    }
+    con.close()
+    assert "page" in tables
+    assert "old_session" not in tables
+
+
+def test_save_as_failure_preserves_existing_file(
+    tmp_path: pathlib.Path, mocker: pytest.MockerFixture
+) -> None:
+    """A failed save leaves the previous destination file untouched."""
+    dest = tmp_path / "session.sdb"
+    dest.write_bytes(b"previous session contents")
+
+    thread = DocThread(db=str(tmp_path / "live.sdb"))
+    mocker.patch.object(pathlib.Path, "replace", side_effect=OSError("replace failed"))
+    try:
+        with pytest.raises(OSError, match="replace failed"):
+            thread.save_as(str(dest))
+    finally:
+        thread.quit()
+
+    assert dest.read_bytes() == b"previous session contents"
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_save_as_destination_path_with_quote(tmp_path: pathlib.Path) -> None:
+    """save_as succeeds for a destination path containing a single quote."""
+    dest = tmp_path / "it's a session.sdb"
+
+    thread = DocThread(db=str(tmp_path / "live.sdb"))
+    try:
+        thread.save_as(str(dest))
+    finally:
+        thread.quit()
+
+    con = sqlite3.connect(dest)
+    con.execute("SELECT count(*) FROM page").fetchone()
+    con.close()
 
 
 def test_init_no_dir_db() -> None:
