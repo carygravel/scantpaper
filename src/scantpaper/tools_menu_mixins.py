@@ -128,7 +128,7 @@ class ToolsMenuMixins:
             pagelist = self.slist.get_page_index(
                 self.settings["Page range"], self._error_callback
             )
-            if not pagelist:
+            if pagelist is None or len(pagelist) == 0:
                 return
             for i in pagelist:
 
@@ -197,7 +197,7 @@ class ToolsMenuMixins:
             pagelist = self.slist.get_page_index(
                 self.settings["Page range"], self._error_callback
             )
-            if not pagelist:
+            if pagelist is None or len(pagelist) == 0:
                 return
             for i in pagelist:
 
@@ -239,7 +239,7 @@ class ToolsMenuMixins:
             pagelist = self.slist.get_page_index(
                 self.settings["Page range"], self._error_callback
             )
-            if not pagelist:
+            if pagelist is None or len(pagelist) == 0:
                 return
             for i in pagelist:
 
@@ -337,7 +337,7 @@ class ToolsMenuMixins:
             pagelist = self.slist.get_page_index(
                 self.settings["Page range"], self._error_callback
             )
-            if not pagelist:
+            if pagelist is None or len(pagelist) == 0:
                 return
             for i in pagelist:
 
@@ -414,10 +414,10 @@ class ToolsMenuMixins:
         if not self.settings["selection"]:
             return
 
-        if not pagelist:
+        if pagelist is None or len(pagelist) == 0:
             pagelist = cast("list[int] | None", self.slist.get_selected_indices())
 
-        if not pagelist:
+        if pagelist is None or len(pagelist) == 0:
             return
 
         self.slist.begin_undo_batch()
@@ -554,7 +554,7 @@ class ToolsMenuMixins:
         pagelist = self.slist.get_page_index(
             self.settings["Page range"], self._error_callback
         )
-        if not pagelist:
+        if pagelist is None or len(pagelist) == 0:
             return
         for i in pagelist:
             self.slist.split_page(
@@ -723,7 +723,7 @@ class ToolsMenuMixins:
         pagelist = self.slist.indices2pages(
             self.slist.get_page_index(self.settings["Page range"], self._error_callback)
         )
-        if not pagelist:
+        if pagelist is None or len(pagelist) == 0:
             return
         kwargs["pages"] = pagelist
         self.slist.ocr_pages(**kwargs)

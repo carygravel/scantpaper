@@ -135,7 +135,7 @@ DEFAULTS = {
 
 def _get_convert_command() -> str:
     """Determine the correct imagemagick command."""
-    if shutil.which("magick"):
+    if shutil.which("magick") is not None:
         return "magick"
     return "convert"
 
@@ -153,7 +153,7 @@ TIMEDELTA_FIELDS = 4
 
 def _version_tuple(version: str | None) -> tuple[int, ...]:
     """Parse a version string into a comparable tuple of integers."""
-    if not version:
+    if version is None:
         return (0,)
     return tuple(int(x) for x in re.findall(r"\d+", str(version))[:3])
 

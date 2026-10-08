@@ -288,7 +288,7 @@ def _generate_msgids() -> list[str]:
     env = dict(os.environ)
     src = str(REPO_ROOT / "src")
     env["PYTHONPATH"] = os.pathsep.join(
-        [src, *([env["PYTHONPATH"]] if env.get("PYTHONPATH") else [])]
+        [src, *([env["PYTHONPATH"]] if env.get("PYTHONPATH") is not None else [])]
     )
     with tempfile.TemporaryDirectory() as tmp:
         pot_path = Path(tmp) / "scantpaper.pot"
@@ -459,7 +459,7 @@ def _catalog_advisories(po: polib.POFile, name: str) -> list[str]:
         for body in _translated_strings(entry)
         if (variant := _normalise_variant(body))
         and variant != _normalise_variant(entry.msgid)
-        and by_variant.get(variant)
+        and by_variant.get(variant) is not None
     )
 
     # (f) Siblings naming different controls, given the same translation.
@@ -494,7 +494,7 @@ def _check_placeholders(path: Path) -> list[str]:
                 if _printf_poison(body)
             )
         id_fields = _format_fields(entry.msgid)
-        if id_fields:
+        if id_fields is not None:
             expected = Counter(id_fields)
             for body in strings:
                 got = _format_fields(body)
@@ -545,7 +545,7 @@ def _hygiene(path: Path) -> tuple[list[str], list[str]]:
     bare_multi = sum(
         1
         for entry in active
-        if (fields := _format_fields(entry.msgid))
+        if (fields := _format_fields(entry.msgid)) is not None
         and len(fields) > 1
         and any(field == "" for field in fields)
     )

@@ -104,11 +104,11 @@ class DocThread(SaveThread):
         self, directory: str | pathlib.Path | None, db: str | pathlib.Path | None
     ) -> tuple[pathlib.Path, pathlib.Path]:
         """Resolve the database and working directory paths."""
-        if db:
+        if db is not None:
             db = pathlib.Path(db)
-        if directory:
+        if directory is not None:
             directory = pathlib.Path(directory)
-        elif db:
+        elif db is not None:
             directory = db.parent
         else:
             directory = pathlib.Path(tempfile.gettempdir())
@@ -197,7 +197,7 @@ class DocThread(SaveThread):
 
     def _check_write_tid(self) -> None:
         tid = threading.get_native_id()
-        if self._write_tid:
+        if self._write_tid is not None:
             if self._write_tid != tid:
                 msg = (
                     f"Attempted to write to database with tid {tid}, but the "
@@ -256,7 +256,7 @@ class DocThread(SaveThread):
         self._execute("PRAGMA application_id")
         application_id = self._fetchone()
         if (
-            application_id
+            application_id is not None
             and application_id[0] is not None
             and application_id[0] != APPLICATION_ID
         ):
@@ -267,7 +267,7 @@ class DocThread(SaveThread):
             raise TypeError(msg)
         self._execute("PRAGMA user_version")
         user_version = self._fetchone()
-        if user_version:
+        if user_version is not None:
             if cast("int", user_version[0]) > USER_VERSION:
                 logger.warning(
                     "%s was created by a newer version of scantpaper.", self._db
@@ -283,7 +283,7 @@ class DocThread(SaveThread):
         self._migrate_page_order_schema()
         self._execute("SELECT MAX(action_id) FROM page_order")
         row = self._fetchone()
-        if row:
+        if row is not None:
             self._action_id = cast("int", row[0])
 
     def _migrate_page_order_schema(self) -> None:
@@ -352,7 +352,7 @@ class DocThread(SaveThread):
                 (if_different_from,),
             )
             row = self._fetchone()
-            if not row:
+            if row is None:
                 msg = f"Image id {if_different_from} not found"
                 raise ValueError(msg)
             if row[0] == bytes_image:
@@ -831,7 +831,7 @@ class DocThread(SaveThread):
             (self._action_id,),
         )
         selection_row = self._fetchone()
-        row_ids = selection_row[0] if selection_row else "[]"
+        row_ids = selection_row[0] if selection_row is not None else "[]"
 
         self._action_id += 1
         snapshot = [(self._action_id, *row) for row in snapshot]
@@ -939,7 +939,8 @@ class DocThread(SaveThread):
         )
         row_ids = self._fetchone()
         return cast(
-            "list[int]", (json.loads(cast("str", row_ids[0])) if row_ids else [])
+            "list[int]",
+            (json.loads(cast("str", row_ids[0])) if row_ids is not None else []),
         )
 
     def do_set_selection(self, request: Request) -> None:
@@ -1434,7 +1435,7 @@ class DocThread(SaveThread):
             resolution=page.resolution,
             dirty_time=page.dirty_time,
         )
-        if page.text_layer:
+        if page.text_layer is not None:
             bboxtree = Bboxtree(page.text_layer)
             bboxtree2 = Bboxtree(page.text_layer)
             page.text_layer = bboxtree.crop(*boxes[0]).json()

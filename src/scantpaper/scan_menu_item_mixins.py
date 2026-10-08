@@ -99,7 +99,7 @@ class ScanMenuItemMixins:
         scan: bool = False,
     ) -> None:
         """Scan."""
-        if self._windows:
+        if self._windows is not None:
             self._windows.show_all()
             self._update_postprocessing_options_callback(self._windows)
             return

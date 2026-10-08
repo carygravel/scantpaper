@@ -212,7 +212,7 @@ class SaveThread(Importhread):
             list_of_pages = self._assemble_pdf(outdir, options, request, metadata)
 
             for pagenr, page in enumerate(list_of_pages):
-                if page.text_layer and page.text_layer != "[]":
+                if page.text_layer is not None and page.text_layer != "[]":
                     with (
                         pathlib.Path(outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr").open(
                             "w", encoding="utf-8"
@@ -369,7 +369,9 @@ class SaveThread(Importhread):
                     ],
                     options["pidfile"],
                 )
-                if proc.returncode or proc.stderr:
+                if proc.returncode != 0 or (
+                    proc.stderr is not None and proc.stderr != ""
+                ):
                     logger.info(proc.stderr)
                     request.error(_("Error converting PDF to PS: %s") % (proc.stderr))
                     return
@@ -514,7 +516,7 @@ class SaveThread(Importhread):
             # MacOS requires the input TIFF to be last argument
             cmd = ["tiff2ps", "-3", "-O", options["options"]["ps"], options["path"]]
             proc = exec_command(cmd, options["pidfile"])
-            if proc.returncode or proc.stderr:
+            if proc.returncode != 0 or (proc.stderr is not None and proc.stderr != ""):
                 logger.info(proc.stderr)
                 request.error(_("Error converting TIFF to PS: %s") % (proc.stderr))
                 return

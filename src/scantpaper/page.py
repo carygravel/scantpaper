@@ -111,7 +111,10 @@ class Page:
 
     def to_stored_bytes(self) -> bytes:
         """Return the image as bytes for SQLite, choosing a compact PDF-compatible format."""
-        if self.image_object.format in ("JPEG", "PNG") and self._stored_bytes:
+        if (
+            self.image_object.format in ("JPEG", "PNG")
+            and self._stored_bytes is not None
+        ):
             return cast("bytes", (self._stored_bytes))
         if self.image_object.mode == "1":
             return self._to_png_bytes()
@@ -419,7 +422,7 @@ class Page:
         """Write the image as a file suitable for embedding in a PDF."""
         image = self.image_object
         opts = {}
-        if options and options.get("options"):
+        if options is not None and options.get("options") is not None:
             opts = options["options"]
         if (
             self._stored_bytes is not None
