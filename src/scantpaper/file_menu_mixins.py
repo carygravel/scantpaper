@@ -297,9 +297,7 @@ class FileMenuMixins:
     def _open_session(self, db: str) -> None:
         """Open session."""
         logger.info("Restoring session in %s", self.session)
-        self.slist.open_session(
-            db=db, delete=False, error_callback=self._error_callback
-        )
+        self.slist.open_session(db=db, error_callback=self._error_callback)
 
     def save_dialog(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None

@@ -54,9 +54,7 @@ class MockSlist:
     def import_files(self, **kwargs: object) -> None:
         """Mock import_files."""
 
-    def open_session(
-        self, _dir: object, delete: object, error_callback: object
-    ) -> None:
+    def open_session(self, *args: object, **kwargs: object) -> None:
         """Mock open_session."""
 
     def save_pdf(self, **kwargs: object) -> None:
@@ -689,7 +687,6 @@ class TestFileMenuMixins:
 
         app.slist.open_session.assert_called_with(
             db="/path/to/session",
-            delete=False,
             error_callback=app._error_callback,
         )
 
@@ -698,7 +695,7 @@ class TestFileMenuMixins:
         app.slist.open_session = unittest.mock.Mock()
         FileMenuMixins._open_session(app, "/some/path")
         app.slist.open_session.assert_called_with(
-            db="/some/path", delete=False, error_callback=app._error_callback
+            db="/some/path", error_callback=app._error_callback
         )
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.datetime")

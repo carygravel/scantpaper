@@ -977,6 +977,51 @@ def test_pages_saved_after_replace(
     assert thread.pages_saved()
 
 
+def test_db_is_temporary_and_pages_saved_short_circuit(
+    temp_db: object, tmp_path: pathlib.Path
+) -> None:
+    """A reopened session is persistent, so its pages report as saved."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    img = Image.new("RGB", (10, 10), color="red")
+    thread.add_page(Page(image_object=img))
+    assert thread.db_is_temporary()
+    assert not thread.pages_saved()
+
+    session = tmp_path / "opened.sdb"
+    thread.save_as(str(session))
+    thread.close()
+    thread.open(str(session))
+    try:
+        assert not thread.db_is_temporary()
+        assert thread.pages_saved()
+    finally:
+        thread.quit()
+
+
+def test_mark_all_pages_saved(temp_db: object) -> None:
+    """mark_all_pages_saved marks every page as saved."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    img = Image.new("RGB", (10, 10), color="red")
+    thread.add_page(Page(image_object=img))
+    assert not thread.pages_saved()
+    thread.mark_all_pages_saved()
+    assert thread.pages_saved()
+    thread.quit()
+
+
+def test_db_is_temporary() -> None:
+    """Test db is temporary."""
+    thread = DocThread()
+    thread._temp_db = None
+    thread._db = None
+    try:
+        assert not thread.db_is_temporary()
+    finally:
+        thread.quit()
+
+
 def test_replace_page_reuse_image(
     temp_db: object, mocker: pytest.MockerFixture
 ) -> None:

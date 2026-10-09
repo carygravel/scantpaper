@@ -6,6 +6,10 @@
 * Fix saving a session (SDB) - selecting "scantpaper session" in the Save
   dialog now actually saves the full session database to the chosen location
   so it can be reopened and work resumed later.
+* Reopened `.sdb` sessions are now edited in place, as intended: the opened
+  file is the working session and keeps your edits. Crash recovery no longer
+  offers a stale snapshot of it, and saving or reopening a session no longer
+  triggers an unsaved-pages warning on quit.
 * Allow the "Alternate rotation every 2nd page" toggle to be used with
   one-page-at-a-time flatbed scans (no scanner hardware button). Parity persists
   across consecutive scans until the toggle is explicitly turned off.

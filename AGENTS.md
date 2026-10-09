@@ -36,7 +36,7 @@ This document provides essential context for anyone working on this project. Adh
         managed by pytest.
 
 ## 4. Coding Conventions & Style Guide
-
+@MEMORY.md
 -   **Markdown line length:** Wrap long lines in Markdown files (`.md`, including
     README.md and the OpenSpec artifacts) at 80 characters. There must be a very
     good reason for having any line longer than 512 characters.

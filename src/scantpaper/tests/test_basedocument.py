@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import pathlib
 import queue
 import shutil
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 gi.require_version("Gtk", "3.0")
+
 from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
@@ -216,16 +218,16 @@ def test_save_open_session() -> None:
         assert slist2.data[0][2] == 101
         error_callback.assert_not_called()
 
-        shutil.rmtree(temp_dir2)
     finally:
         if pathlib.Path(tmp_name).exists():
             pathlib.Path(tmp_name).unlink()
         if pathlib.Path(db_path).exists():
             pathlib.Path(db_path).unlink()
         open_session_db = str(slist2.dir) + ".sdb"
-        if pathlib.Path(open_session_db).exists():
-            pathlib.Path(open_session_db).unlink()
-        shutil.rmtree(temp_dir)
+        pathlib.Path(open_session_db).unlink(missing_ok=True)
+        for d in (temp_dir2, temp_dir):
+            with contextlib.suppress(FileNotFoundError):
+                shutil.rmtree(d)
 
 
 def test_open_session_finalizes_import_flow() -> None:
@@ -258,8 +260,6 @@ def test_open_session_finalizes_import_flow() -> None:
     finally:
         if pathlib.Path(tmp_name).exists():
             pathlib.Path(tmp_name).unlink()
-        if pathlib.Path(str(slist.dir) + ".sdb").exists():
-            pathlib.Path(str(slist.dir) + ".sdb").unlink()
         shutil.rmtree(temp_dir)
 
 
@@ -408,13 +408,54 @@ def test_find_page_by_uuid_none() -> None:
     assert slist.find_page_by_uuid(None) is None
 
 
-def test_open_session_error_copy() -> None:
-    """Test open_session when shutil.copy fails."""
+def test_open_session_error_missing_file() -> None:
+    """Test open_session reports an unreadable session file."""
     slist = Document()
     error_callback = MagicMock()
-    with patch("shutil.copy", side_effect=OSError("copy failed")):
-        slist.open_session(db="some.db", error_callback=error_callback)
-        error_callback.assert_called_once()
+    slist.open_session(db="some-missing.db", error_callback=error_callback)
+    error_callback.assert_called_once()
+
+
+def test_save_session_marks_pages_saved() -> None:
+    """Saving a session marks the pages as saved."""
+    slist = Document()
+    slist.thread.save_as = MagicMock()
+    slist.thread.mark_all_pages_saved = MagicMock()
+    slist.save_session("file.sdb")
+    slist.thread.save_as.assert_called_once_with("file.sdb")
+    slist.thread.mark_all_pages_saved.assert_called_once()
+
+
+def test_open_session_leaves_no_temp_snapshot() -> None:
+    """Opening a session in place leaves no restorable temporary snapshot."""
+    slist = Document()
+    temp_dir = tempfile.mkdtemp()
+    slist.dir = pathlib.Path(temp_dir)
+    scratch = pathlib.Path(str(slist.dir) + ".sdb")
+    scratch.write_text("stale snapshot", encoding="utf-8")
+
+    with tempfile.NamedTemporaryFile(suffix=".sdb", delete=False) as tmp:
+        tmp_name = tmp.name
+
+    def mock_send(process: str, *_args: object, **kwargs: object) -> MagicMock:
+        if process == "open" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(MagicMock())
+        elif process == "page_number_table" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(
+                MagicMock(info=[[1, None, 101]])
+            )
+        return MagicMock()
+
+    slist.thread.send = mock_send
+
+    try:
+        slist.open_session(db=tmp_name, error_callback=MagicMock())
+        assert len(slist.data) == 1
+        assert not scratch.exists()
+    finally:
+        if pathlib.Path(tmp_name).exists():
+            pathlib.Path(tmp_name).unlink()
+        shutil.rmtree(temp_dir)
 
 
 def test_modify_method_callback() -> None:

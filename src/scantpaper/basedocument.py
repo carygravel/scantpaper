@@ -6,7 +6,6 @@ import logging
 import os
 import pathlib
 import queue
-import shutil
 import signal
 import tempfile
 from collections import defaultdict
@@ -624,9 +623,16 @@ class BaseDocument(SimpleList):
             self.get_selection().handler_unblock(self.selection_changed_signal)
 
     def save_session(self, filename: str) -> None:
-        """Copy session db to a file."""
+        """Write the session db to a file."""
         self.thread.save_as(filename)
+        self.thread.mark_all_pages_saved()
         logger.info("Saved document as %s", filename)
+
+    def _remove_temp_session_db(self) -> None:
+        """Remove the temporary scratch database and its sidecars."""
+        base = str(self.dir) + ".sdb"
+        for suffix in ("", "-wal", "-shm"):
+            pathlib.Path(base + suffix).unlink(missing_ok=True)
 
     @staticmethod
     def _finish_session_open(finished_callback: object) -> None:
@@ -644,15 +650,15 @@ class BaseDocument(SimpleList):
             return
 
         db = pathlib.Path(cast("str", kwargs["db"]))
-        self.thread.close()
-        try:
-            shutil.copy(db, str(self.dir) + ".sdb")
-        except OSError:
+        if not db.is_file():
             if kwargs["error_callback"]:
                 cast("Callable[..., object]", kwargs["error_callback"])(
                     None, "Open file", f"Error: Unable to read {db}"
                 )
             return
+
+        self.thread.close()
+        self._remove_temp_session_db()
 
         # Block the row-changed signal for the entire async sequence
         if self.row_changed_signal is not None:

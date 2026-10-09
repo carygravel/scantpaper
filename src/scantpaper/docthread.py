@@ -76,6 +76,7 @@ class DocThread(SaveThread):
     _in_batch = False
     _batch_pending_snapshot = False
     _db = None
+    _temp_db = None
     dir = None
 
     def __init__(self, **kwargs: object) -> None:
@@ -88,6 +89,7 @@ class DocThread(SaveThread):
             cast("str | pathlib.Path | None", self.dir),
             cast("str | pathlib.Path | None", self._db),
         )
+        self._temp_db = self._db
         self.db_files = [
             self._db,
             self.dir / pathlib.Path(self._db.name + "-wal"),
@@ -978,8 +980,21 @@ class DocThread(SaveThread):
         )
         self._con[threading.get_native_id()].commit()
 
+    def mark_all_pages_saved(self) -> None:
+        """Mark every page as saved."""
+        self._execute("UPDATE page SET saved = 1")
+        self._con[threading.get_native_id()].commit()
+
+    def db_is_temporary(self) -> bool:
+        """Return whether the working database is the temporary scratch file."""
+        if self._db is None or self._temp_db is None:
+            return False
+        return str(self._db) == str(self._temp_db)
+
     def pages_saved(self) -> bool:
         """Check that all pages have been saved."""
+        if not self.db_is_temporary():
+            return True
         self._execute(
             """SELECT COUNT(id)
                 FROM page_order, page

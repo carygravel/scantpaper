@@ -372,19 +372,21 @@ to the scan dialog on startup, and are kept when the file is written back.
 
 ### Sessions
 
-All session data (pages, edits, OCR, annotations) is stored in an SQLite
-database in a temporary directory named `scantpaper-????????`, created under
-`$TMPDIR` (or `/tmp`) by default. You can change this location in
-**Edit → Preferences**. On exit the session directory is cleaned up.
+An unsaved session's data (pages, edits, OCR, annotations) is stored in an
+SQLite database in a temporary directory named `scantpaper-????????`, created
+under `$TMPDIR` (or `/tmp`) by default. You can change this location in
+**Edit → Preferences**. On exit the temporary directory is cleaned up. If
+scantpaper crashes, it survives, and on the next start you are asked whether to
+restore it via **File → Open crashed session**.
 
-If scantpaper crashes, the session directory survives. On the next start you
-are asked whether to restore it via **File → Open crashed session**.
-
-A session saved as an `.sdb` file (**File → Save As**) can be reopened
-with **File → Open**; the session's pages, edits, and OCR text layer are
-then displayed at full resolution. Saving over an existing `.sdb` file
-asks for confirmation before the old file is replaced; the replacement is
-atomic, so a failed save leaves the previous file intact.
+A session saved as an `.sdb` file (**File → Save As**) can be reopened with
+**File → Open**. The opened file itself becomes the working session: edits are
+written to it as you work, so they persist even if you quit without saving the
+session again, and quitting does not warn about unsaved pages. Saving over an
+existing `.sdb` file asks for confirmation before the old file is replaced; the
+replacement is atomic, so a failed save leaves the previous file intact.
+Because the opened file is the source of truth, an in-place session is not
+offered for restoration as a crashed session after a crash.
 
 ---
 
