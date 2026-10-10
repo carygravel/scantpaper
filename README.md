@@ -664,6 +664,37 @@ Set locale variables as needed (e.g., for Russian):
 LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LANGUAGE=ru_RU.utf8 PYTHONPATH=src python3 -m scantpaper.app --log=log --locale=locale
 ```
 
+### Checking for upstream translations
+
+```sh
+python3 dev/check_launchpad.py
+```
+
+reports whether anything has moved on
+[Launchpad](https://translations.launchpad.net/scantpaper) since the last sync,
+by comparing the current state of the translation template and of every
+language against the committed baseline `po/launchpad-state.json`. Two triggers
+are watched: the template (the message set / `.pot`), read from the Launchpad
+JSON API with a conditional request, and each language's last-changed time,
+which exists only on the public series translation page. A language is reported
+when its last-changed time is newer than the baseline, when a new locale
+appears, or when the template changes.
+
+The check is advisory by default: it exits successfully whether or not it found
+changes, and it never downloads a catalog (Launchpad requires a login to export
+one). `--fail-on-change` makes a detected change non-zero for CI. The one
+always-non-zero outcome is a state the check could not read, so a broken check
+is loud rather than mistaken for "nothing new". The committed baseline is
+advanced deliberately, after the catalogs have been synced:
+
+```sh
+python3 dev/check_launchpad.py --update
+```
+
+The [translations-check workflow](.github/workflows/translations-check.yml)
+runs the same check daily and on demand (`workflow_dispatch`), and files one
+labelled issue when it detects upstream changes.
+
 ### Validating catalogs and source strings
 
 ```sh

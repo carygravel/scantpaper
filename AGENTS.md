@@ -102,8 +102,18 @@ This document provides essential context for anyone working on this project. Adh
        gated on human review rather than an agent's judgement.
     4. Upload the seeded `.po` files (not just the `.pot`) to Rosetta
        (Launchpad) so translators can confirm and clear the fuzzy entries.
-    5. Download the translated `.po` files from Rosetta before a release.
-    6. Ensure every `po/scantpaper/*.po` passes the deterministic catalog
+    5. Check for upstream changes before a release with
+       `python3 dev/check_launchpad.py`. It compares the template and every
+       language's last-changed time against the committed baseline
+       `po/launchpad-state.json`, and the scheduled translations-check
+       workflow files one labelled issue when anything moved. It never
+       downloads a catalog (Launchpad requires a login to export one) and is
+       advisory: only a state the check could not read — never a detected
+       change — exits non-zero, so "no changes" is a truthful silence.
+       After the download below, advance the baseline with
+       `python3 dev/check_launchpad.py --update`.
+    6. Download the translated `.po` files from Rosetta before a release.
+    7. Ensure every `po/scantpaper/*.po` passes the deterministic catalog
        checks: run
        `PYTHONPATH=src python3 dev/check_po.py` (CI enforces the same via
        `test_po_files.py`), which runs `msgfmt --check` (format-specifier

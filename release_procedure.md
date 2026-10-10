@@ -2,7 +2,25 @@
 
 1. Test scan in lineart, greyscale and colour.
 1. New screendump required? Print screen creates screenshot.png in Desktop.
+1. Check for upstream translation changes
+   ```sh
+   python3 dev/check_launchpad.py
+   ```
+   This reports whether anything moved on
+   [Launchpad](https://translations.launchpad.net/scantpaper) since the last
+   sync: the template (the message set / `.pot`) and any language whose
+   last-changed time is newer than the baseline in
+   [po/launchpad-state.json](po/launchpad-state.json). The scheduled
+   [translations-check workflow](.github/workflows/translations-check.yml) runs
+   the same check daily and files one issue when it detects changes. A
+   "could not determine" result (non-zero exit) means the check could not read
+   Launchpad, not that nothing changed, so the download below is still needed.
 1. Download new translations (https://translations.launchpad.net/scantpaper)
+1. Advance the translation baseline, so the next check compares against the
+   state the catalogs were just synced from
+   ```sh
+   python3 dev/check_launchpad.py --update
+   ```
 1. Update translators in credits (https://launchpad.net/scantpaper/+topcontributors)
 1. Prepare the version files. This bumps the version in pyproject.toml, stamps
    the current `changelog.md` section with the release date, and adds the dated

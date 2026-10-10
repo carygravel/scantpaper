@@ -1,0 +1,54 @@
+name: Check Launchpad translations
+
+on:
+  schedule:
+    # Daily at 07:00 UTC. Like all scheduled workflows this is best-effort on
+    # GitHub: it can be delayed, and is disabled after long repository
+    # inactivity. It is a release reminder, not a gate.
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # The tool only needs typing_extensions (for the @override decorator);
+      # the committed baseline at po/launchpad-state.json comes with the
+      # checkout.
+      - name: Install dependencies
+        run: pip install typing_extensions
+      - name: Check for upstream translation changes
+        id: check
+        run: |
+          python3 dev/check_launchpad.py --json > report.json
+          changed=$(python3 -c "import json; print(json.load(open('report.json'))['changed'])")
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+      # A detected change exits successfully and the tool's JSON report is
+      # filed as one living reminder. A run that "could not determine" the
+      # state exits non-zero, so the step (and job) fails loudly instead of
+      # silently reporting "unchanged"; no issue is filed for that.
+      - name: Report upstream changes in a single issue
+        if: ${{ steps.check.outputs.changed == 'True' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          label="launchpad-translations"
+          gh label create "$label" \
+            --description "Launchpad translation changes were detected" --force
+          body=$(cat report.json)
+          number=$(gh issue list --label "$label" --state open --json number \
+            --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" \
+              --title "Launchpad translations: upstream changes detected" \
+              --body "$body"
+          else
+            gh issue create \
+              --title "Launchpad translations: upstream changes detected" \
+              --body "$body" --label "$label"
+          fi
