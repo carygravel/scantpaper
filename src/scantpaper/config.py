@@ -12,14 +12,9 @@ import shutil
 from types import SimpleNamespace
 from typing import Any, cast
 
-import gi
-
 from scantpaper.const import _LOCAL_TZ, SELECTORDRAGGER_TOOL
 from scantpaper.helpers import slurp
 from scantpaper.i18n import _
-
-gi.require_version("Gdk", "3.0")
-from gi.repository import Gdk  # noqa: E402
 
 DEFAULTS = {
     "window_width": 800,
@@ -352,19 +347,12 @@ def _deserialise_and_migrate(config: ConfigDict) -> None:
             seconds=config["datetime offset"][3],
         )
 
-    # deserialise selection
-    if isinstance(config.get("selection"), dict):
-        selection = Gdk.Rectangle()
-        selection.x, selection.y, selection.width, selection.height = (
-            config["selection"]["x"],
-            config["selection"]["y"],
-            config["selection"]["width"],
-            config["selection"]["height"],
-        )
-        config["selection"] = selection
-
     _remove_legacy_int_tools(config)
     _migrate_threshold_tool(config)
+
+    # selection is transient per-session state; a stale key in the config
+    # file is ignored so it is never re-applied to a fresh document.
+    config.pop("selection", None)
 
 
 def _normalise_scan_options(value: object) -> None:
@@ -494,16 +482,8 @@ def write_config(rc: str, config: dict[str, object]) -> None:
             output["datetime offset"].seconds % 60,
         ]
 
-    # serialise selection
-    if isinstance(output.get("selection"), Gdk.Rectangle):
-        selection = {}
-        selection["x"], selection["y"], selection["width"], selection["height"] = (
-            output["selection"].x,
-            output["selection"].y,
-            output["selection"].width,
-            output["selection"].height,
-        )
-        output["selection"] = selection
+    # selection is transient per-session state; never persist it
+    output.pop("selection", None)
 
     with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(json.dumps(output, sort_keys=True, indent=4))

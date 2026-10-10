@@ -8,6 +8,11 @@
   annotations pane, as well as on the image. A single rectangle is shared
   between the image and the layer panes, so adding or correcting a slice no
   longer requires drawing it on the image tab first.
+* The selection rectangle is no longer remembered across application launches.
+  A stale selection from a previous session is no longer drawn over a freshly
+  opened document, so you can start selecting immediately instead of having to
+  clear a leftover box first. The selection still persists while you work,
+  e.g. across page changes, within a session.
 
 
 ## 3.0.22 (2026-10-10)

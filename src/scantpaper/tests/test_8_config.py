@@ -356,23 +356,19 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
 }"""
     with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
         fh.write(config)
-    selection = Gdk.Rectangle()
-    selection.x, selection.y, selection.width, selection.height = 1, 2, 3, 4
-    example = {"version": "1.7.3", "selection": selection}
     output = read_config(str(rc))
-    assert output["selection"].x == 1, "Deserialise selection x"
-    assert output["selection"].y == 2, "Deserialise selection y"
-    assert output["selection"].width == 3, "Deserialise selection width"
-    assert output["selection"].height == 4, "Deserialise selection height"
+    assert "selection" not in output, "Selection is not restored from config"
 
     #########################
 
+    selection = Gdk.Rectangle()
+    selection.x, selection.y, selection.width, selection.height = 1, 2, 3, 4
+    example = {"version": "1.7.3", "selection": selection}
     write_config(rc, example)
 
-    example = config.split("\n")
-    output = slurp(rc).split("\n")
+    output = json.loads(slurp(rc))
 
-    assert output == example, "Serialise selection"
+    assert "selection" not in output, "Selection is not written to config"
 
     #########################
 
@@ -527,7 +523,7 @@ def test_wrong_typed_structural_settings_preserved() -> None:
         rc.write_text(
             "{"
             '"device list": "broken", "profile": "broken", '
-            '"datetime offset": "broken", "selection": "broken"}',
+            '"datetime offset": "broken"}',
             encoding="utf-8",
         )
 
@@ -536,7 +532,6 @@ def test_wrong_typed_structural_settings_preserved() -> None:
         assert output["device list"] == "broken"
         assert output["profile"] == "broken"
         assert output["datetime offset"] == "broken"
-        assert output["selection"] == "broken"
         assert output.load_warnings, "wrong types record warnings"
 
 
