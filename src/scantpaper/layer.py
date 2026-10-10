@@ -294,13 +294,30 @@ class LayerEditor:
         self._view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         self.canvas.set_index_by_bbox(bbox)
 
+    def clear(self) -> None:
+        """Forget the focused slice and empty the control and canvas.
+
+        Used when the page has no layer to edit, so the editor cannot keep
+        showing, or acting on, a slice from an earlier tree.
+        """
+        self._current_bbox = None
+        self.controls.textbuffer.set_text(EMPTY)
+        self.canvas.clear_text()
+
     def create(
         self,
         page: Page,
         offset: Gdk.Rectangle | None,
         finished_callback: Callable[..., object] | None = None,
     ) -> None:
-        """Create the canvas for the given page, parsing its layer."""
+        """Create the canvas for the given page, parsing its layer.
+
+        The rebuilt tree is a fresh set of slices, so focus and the control
+        are cleared up front; flows that re-focus afterwards (e.g. `add()`
+        on a freshly created layer) still run and set their own focus.
+        """
+        self._current_bbox = None
+        self.controls.textbuffer.set_text(EMPTY)
 
         def on_parsed(result: Response) -> None:
             info = cast("dict[str, object]", result.info)

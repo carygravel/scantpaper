@@ -368,7 +368,7 @@ def test_save_pdf_with_hocr(
     # in the original, we cannot expect to be able to
     # round-trip the text layer. Here, at least we can check
     # that we have scaled the page size correctly.
-    page = get_page_sync(slist.thread, id=2)
+    page = get_page_sync(slist.thread, id=slist.data[1][2])
     regex = re.search(r"bbox\s0\s0\s(\d+)\s(\d+)", page.export_hocr())
     page_width, page_height = None, None
     if regex:

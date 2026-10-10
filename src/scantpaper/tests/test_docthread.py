@@ -413,25 +413,26 @@ def test_do_set_saved(mocker: pytest.MockerFixture) -> None:
     )
 
 
-def test_do_set_text(mocker: pytest.MockerFixture) -> None:
-    """Test do_set_text."""
-    thread = DocThread(db=":memory:")
+def test_do_set_text(temp_db: object) -> None:
+    """Round-trip set_text through undo and redo."""
+    thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
-    mocker.patch.object(thread, "_take_snapshot")
-    mock_execute = mocker.patch.object(thread, "_execute")
-    thread._con[threading.get_native_id()] = mocker.Mock()
+    page = Page(image_object=Image.new("RGB", (10, 10), color="red"))
+    _, _, page_id = thread.add_page(page)
+    image_id = thread.get_page(id=page_id).image_id
 
-    request = mocker.Mock()
-    request.args = [1, "new_text"]
+    request = Request("set_text", (page_id, "new_text"), thread.responses)
     thread.do_set_text(request)
-    mock_execute.assert_called_with(
-        """UPDATE page SET text = ? WHERE id = (
-                SELECT page_id FROM page_order
-                WHERE initial_page_id = ? AND action_id = ?
-            )""",
-        ("new_text", 1, 0),
-    )
+    assert thread.get_text(page_id) == "new_text"
+
+    thread.do_undo(Request("undo", (), thread.responses))
+    assert thread.get_text(page_id) is None, "undo restores the previous text layer"
+    assert thread.get_page(id=page_id).image_id == image_id, "undo keeps image"
+
+    thread.do_redo(Request("redo", (), thread.responses))
+    assert thread.get_text(page_id) == "new_text", "redo restores the edited text layer"
+    assert thread.get_page(id=page_id).image_id == image_id, "redo keeps image"
 
 
 def test_parse_bboxtree(mocker: pytest.MockerFixture) -> None:
@@ -458,65 +459,163 @@ def test_do_parse_bboxtree() -> None:
     assert result["sorted_word_indices"] == [2, 1]
 
 
-def test_do_set_annotations(mocker: pytest.MockerFixture) -> None:
-    """Test do_set_annotations."""
-    thread = DocThread(db=":memory:")
+def test_do_set_annotations(temp_db: object) -> None:
+    """Round-trip set_annotations through undo and redo."""
+    thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
-    mocker.patch.object(thread, "_take_snapshot")
 
-    mock_execute = mocker.patch.object(thread, "_execute")
-    thread._con[threading.get_native_id()] = mocker.Mock()
+    page = Page(image_object=Image.new("RGB", (10, 10), color="red"))
+    _, _, page_id = thread.add_page(page)
+    image_id = thread.get_page(id=page_id).image_id
 
-    request = mocker.Mock()
-    request.args = [1, "new_ann"]
+    request = Request("set_annotations", (page_id, "new_ann"), thread.responses)
     thread.do_set_annotations(request)
-    mock_execute.assert_called_with(
-        """UPDATE page SET annotations = ? WHERE id = (
-                SELECT page_id FROM page_order
-                WHERE initial_page_id = ? AND action_id = ?
-            )""",
-        ("new_ann", 1, 0),
-    )
+    assert thread.get_annotations(page_id) == "new_ann"
+
+    thread.do_undo(Request("undo", (), thread.responses))
+    assert thread.get_annotations(page_id) is None, "undo restores previous annotations"
+    assert thread.get_page(id=page_id).image_id == image_id, "undo keeps image"
+
+    thread.do_redo(Request("redo", (), thread.responses))
+    assert thread.get_annotations(page_id) == "new_ann", "redo restores annotations"
+    assert thread.get_page(id=page_id).image_id == image_id, "redo keeps image"
 
 
-def test_do_set_resolution(mocker: pytest.MockerFixture) -> None:
-    """Test do_set_resolution."""
-    thread = DocThread(db=":memory:")
+def test_do_set_resolution(temp_db: object) -> None:
+    """Round-trip set_resolution through undo and redo."""
+    thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
-    mock_execute = mocker.patch.object(thread, "_execute")
-    thread._con[threading.get_native_id()] = mocker.Mock()
+    page = Page(image_object=Image.new("RGB", (10, 10), color="red"))
+    _, _, page_id = thread.add_page(page)
+    image_id = thread.get_page(id=page_id).image_id
+    initial_resolution = thread.get_resolution(page_id)
+    assert initial_resolution is not None
 
-    request = mocker.Mock()
-    request.args = [1, 300.0, 300.0]
+    request = Request("set_resolution", (page_id, 300.0, 300.0), thread.responses)
     thread.do_set_resolution(request)
-    mock_execute.assert_called_with(
-        """UPDATE page SET x_res = ?, y_res = ? WHERE id = (
-                SELECT page_id FROM page_order
-                WHERE initial_page_id = ? AND action_id = ?
-            )""",
-        (300.0, 300.0, 1, 0),
+    assert thread.get_resolution(page_id) == (300.0, 300.0)
+
+    thread.do_undo(Request("undo", (), thread.responses))
+    assert thread.get_resolution(page_id) == initial_resolution, (
+        "undo restores previous resolution"
     )
+    assert thread.get_page(id=page_id).image_id == image_id, "undo keeps image"
+
+    thread.do_redo(Request("redo", (), thread.responses))
+    assert thread.get_resolution(page_id) == (300.0, 300.0), "redo restores resolution"
+    assert thread.get_page(id=page_id).image_id == image_id, "redo keeps image"
 
 
-def test_do_set_mean_std_dev(mocker: pytest.MockerFixture) -> None:
-    """Test do_set_mean_std_dev."""
-    thread = DocThread(db=":memory:")
+def test_do_set_mean_std_dev(temp_db: object) -> None:
+    """Round-trip set_mean_std_dev through undo and redo."""
+    thread = DocThread(db=temp_db.name)
     thread._write_tid = threading.get_native_id()
 
-    mock_execute = mocker.patch.object(thread, "_execute")
-    thread._con[threading.get_native_id()] = mocker.Mock()
+    page = Page(image_object=Image.new("RGB", (10, 10), color="red"))
+    _, _, page_id = thread.add_page(page)
+    image_id = thread.get_page(id=page_id).image_id
 
-    request = mocker.Mock()
-    request.args = [1, [128.0], [10.0]]
-    thread.do_set_mean_std_dev(request)
-    mock_execute.assert_called_with(
-        """UPDATE page SET mean = ?, std_dev = ? WHERE id = (
-                SELECT page_id FROM page_order
-                WHERE initial_page_id = ? AND action_id = ?
-            )""",
-        ("[128.0]", "[10.0]", 1, 0),
+    first = Request("set_mean_std_dev", (page_id, [100.0], [1.0]), thread.responses)
+    thread.do_set_mean_std_dev(first)
+    second = Request("set_mean_std_dev", (page_id, [200.0], [2.0]), thread.responses)
+    thread.do_set_mean_std_dev(second)
+    assert thread.get_mean_std_dev(page_id) == ([200.0], [2.0])
+
+    thread.do_undo(Request("undo", (), thread.responses))
+    assert thread.get_mean_std_dev(page_id) == ([100.0], [1.0]), (
+        "undo restores the previous mean and std_dev"
     )
+    assert thread.get_page(id=page_id).image_id == image_id, "undo keeps image"
+
+    thread.do_redo(Request("redo", (), thread.responses))
+    assert thread.get_mean_std_dev(page_id) == ([200.0], [2.0]), (
+        "redo restores the edited mean and std_dev"
+    )
+    assert thread.get_page(id=page_id).image_id == image_id, "redo keeps image"
+
+
+def test_content_edit_dirties_saved_page(temp_db: object) -> None:
+    """A content edit marks the page unsaved; undo restores the saved state."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    _, _, page_id = thread.add_page(
+        Page(image_object=Image.new("RGB", (10, 10), color="red"))
+    )
+
+    thread.do_set_saved(Request("set_saved", (page_id, True), thread.responses))
+    assert thread.pages_saved(), "page saved before the edit"
+
+    thread.do_set_text(Request("set_text", (page_id, "text"), thread.responses))
+    assert not thread.pages_saved(), "content edit dirties the page"
+
+    thread.do_undo(Request("undo", (), thread.responses))
+    assert thread.pages_saved(), "undoing the edit restores the saved state"
+
+    thread.do_redo(Request("redo", (), thread.responses))
+    assert not thread.pages_saved(), "redo re-applies the dirty edit"
+
+    thread.do_set_saved(Request("set_saved", (page_id, True), thread.responses))
+    assert thread.pages_saved(), "re-saving after the edit cleans the page"
+
+
+def test_version_page_noops_without_source_row(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """Editing a page that no longer exists does not resurrect it."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    for _ in range(2):
+        thread.add_page(Page(image_object=Image.new("RGB", (10, 10), color="red")))
+    assert len(thread.page_number_table() or []) == 2
+
+    request = Request("delete_pages", ({"row_ids": [1]},), thread.responses)
+    thread.do_delete_pages(request)
+    assert len(thread.page_number_table() or []) == 1
+
+    logger = mocker.patch("scantpaper.docthread.logger")
+    request = Request("set_text", (2, "text"), thread.responses)
+    thread.do_set_text(request)
+    logger.warning.assert_called_once()
+
+    assert len(thread.page_number_table() or []) == 1, "deleted page is not recreated"
+
+
+def test_batched_set_resolution_undoes_in_one_step(temp_db: object) -> None:
+    """Batched resolution changes to several pages form a single undo step."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    ids = []
+    for color in ("red", "green", "blue"):
+        _, _, page_id = thread.add_page(
+            Page(image_object=Image.new("RGB", (10, 10), color=color))
+        )
+        ids.append(page_id)
+    initial = {pid: thread.get_resolution(pid) for pid in ids}
+
+    thread.do_begin_batch(Request("begin_batch", (), thread.responses))
+    for pid in ids:
+        thread.do_set_resolution(
+            Request("set_resolution", (pid, 300.0, 300.0), thread.responses)
+        )
+    thread.do_end_batch(Request("end_batch", (), thread.responses))
+    for pid in ids:
+        assert thread.get_resolution(pid) == (300.0, 300.0), "resolution set"
+
+    thread.do_undo(Request("undo", (), thread.responses))
+    for pid in ids:
+        assert thread.get_resolution(pid) == initial[pid], (
+            "one undo step restores every page's previous resolution"
+        )
+
+    thread.do_redo(Request("redo", (), thread.responses))
+    for pid in ids:
+        assert thread.get_resolution(pid) == (300.0, 300.0), (
+            "one redo step re-applies every page's resolution"
+        )
 
 
 def test_do_delete_pages_ids(mocker: pytest.MockerFixture) -> None:

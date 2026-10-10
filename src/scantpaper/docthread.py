@@ -49,6 +49,10 @@ logger = logging.getLogger(__name__)
 # the document (before position 1), where no existing page precedes it.
 INSERT_AT_START = "<start>"
 
+# Sentinel distinguishing "keep the source row's value" from a genuine None
+# in _version_page's keyword overrides.
+_UNSET = object()
+
 
 def _loggerise(variables: object) -> object:
     logger_vars = None
@@ -406,6 +410,67 @@ class DocThread(SaveThread):
         tid = threading.get_native_id()
         self._con[tid].commit()
         return cast("int", (self._cur[tid].lastrowid))
+
+    def _version_page(self, initial_page_id: int, **overrides: object) -> None:
+        """Create a content version of a page for the current action.
+
+        Clones the page row the current action's `page_order` points to,
+        applies the given content overrides, marks the copy unsaved, and
+        repoints the current action at the copy. Callers take a snapshot
+        first, so undo resolves the previous action to the older row and
+        restores its content; the copy shares the image blob. Overrides may
+        hold any of `text`, `annotations`, `x_res`, `y_res`, `mean`, and
+        `std_dev`; absent keys keep the current row's value.
+
+        A missing source row (e.g. a stale page id) no-ops with a warning,
+        matching the silent no-op of the old in-place UPDATE.
+        """
+        self._check_write_tid()
+        self._execute(
+            """SELECT image_id, x_res, y_res, mean, std_dev, text, annotations
+                FROM page
+                WHERE id = (
+                    SELECT page_id FROM page_order
+                    WHERE initial_page_id = ? AND action_id = ?
+                )""",
+            (initial_page_id, self._action_id),
+        )
+        source = self._fetchone()
+        if source is None:
+            logger.warning(
+                "No page row to version for %s at action %s",
+                initial_page_id,
+                self._action_id,
+            )
+            return
+        image_id, x_res_cur, y_res_cur, mean_cur, std_dev_cur, text_cur, ann_cur = (
+            source
+        )
+
+        def pick(name: str, current: object) -> object:
+            override = overrides.get(name, _UNSET)
+            return current if override is _UNSET else override
+
+        self._execute(
+            """INSERT INTO page (
+                id, image_id, x_res, y_res, mean, std_dev, saved, text, annotations)
+               VALUES (NULL, ?, ?, ?, ?, ?, FALSE, ?, ?)""",
+            (
+                image_id,
+                pick("x_res", x_res_cur),
+                pick("y_res", y_res_cur),
+                pick("mean", mean_cur),
+                pick("std_dev", std_dev_cur),
+                pick("text", text_cur),
+                pick("annotations", ann_cur),
+            ),
+        )
+        new_page_id = cast("int", self._cur[threading.get_native_id()].lastrowid)
+        self._execute(
+            """UPDATE page_order SET page_id = ?
+               WHERE initial_page_id = ? AND action_id = ?""",
+            (new_page_id, initial_page_id, self._action_id),
+        )
 
     def _shift_row_ids(self, start_row_id: int, shift: int) -> None:
         """Shift the row_ids of all rows at or after start_row_id by the given amount."""
@@ -1056,17 +1121,7 @@ class DocThread(SaveThread):
         self._take_snapshot()
         self._check_write_tid()
         page_id, text = request.args
-        self._execute(
-            """UPDATE page SET text = ? WHERE id = (
-                SELECT page_id FROM page_order
-                WHERE initial_page_id = ? AND action_id = ?
-            )""",
-            (
-                text,
-                page_id,
-                self._action_id,
-            ),
-        )
+        self._version_page(cast("int", page_id), text=text)
         self._con[threading.get_native_id()].commit()
 
     def get_annotations(self, page_id: int) -> str | None:
@@ -1090,17 +1145,7 @@ class DocThread(SaveThread):
         self._take_snapshot()
         self._check_write_tid()
         page_id, annotations = request.args
-        self._execute(
-            """UPDATE page SET annotations = ? WHERE id = (
-                SELECT page_id FROM page_order
-                WHERE initial_page_id = ? AND action_id = ?
-            )""",
-            (
-                annotations,
-                page_id,
-                self._action_id,
-            ),
-        )
+        self._version_page(cast("int", page_id), annotations=annotations)
         self._con[threading.get_native_id()].commit()
 
     def get_resolution(self, page_id: int) -> tuple[float | None, float | None] | None:
@@ -1114,20 +1159,10 @@ class DocThread(SaveThread):
 
     def do_set_resolution(self, request: Request) -> None:
         """Set the resolution for the given page."""
+        self._take_snapshot()
         self._check_write_tid()
         page_id, x_res, y_res = request.args
-        self._execute(
-            """UPDATE page SET x_res = ?, y_res = ? WHERE id = (
-                SELECT page_id FROM page_order
-                WHERE initial_page_id = ? AND action_id = ?
-            )""",
-            (
-                x_res,
-                y_res,
-                page_id,
-                self._action_id,
-            ),
-        )
+        self._version_page(cast("int", page_id), x_res=x_res, y_res=y_res)
         self._con[threading.get_native_id()].commit()
 
     def get_mean_std_dev(self, page_id: int) -> tuple[list[float], list[float]]:
@@ -1144,19 +1179,13 @@ class DocThread(SaveThread):
 
     def do_set_mean_std_dev(self, request: Request) -> None:
         """Set the mean and std_dev for the given page."""
+        self._take_snapshot()
         self._check_write_tid()
         page_id, mean, std_dev = request.args
-        self._execute(
-            """UPDATE page SET mean = ?, std_dev = ? WHERE id = (
-                SELECT page_id FROM page_order
-                WHERE initial_page_id = ? AND action_id = ?
-            )""",
-            (
-                json.dumps(mean),
-                json.dumps(std_dev),
-                page_id,
-                self._action_id,
-            ),
+        self._version_page(
+            cast("int", page_id),
+            mean=json.dumps(mean),
+            std_dev=json.dumps(std_dev),
         )
         self._con[threading.get_native_id()].commit()
 

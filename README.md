@@ -179,7 +179,9 @@ you explicitly turn the toggle off.
 
 - **Undo, Redo:** Undo or redo the last action. An operation applied to
   several pages at once (for example rotating or cropping a selection) is
-  undone or redone as a single step, reverting every affected page together.
+  undone or redone as a single step, reverting every affected page
+  together. Text and annotation corrections are undone and redone the same
+  way; undoing an edit also restores the page's previous saved state.
 - **Cut, Copy, Paste:** Cut, copy, or paste selected pages.
 - **Delete:** Remove selected pages.
 - **Select:** Select all, odd, even, inverted, blank, dark, or modified pages, or pages without (up-to-date) OCR.

@@ -610,10 +610,10 @@ def test_split(
 """
     assert page.export_hocr() == hocr, "split hocr"
 
-    page = get_page_sync(slist.thread, id=2)
+    page = get_page_sync(slist.thread, id=slist.data[1][2])
     assert page.width == 35, "2nd page width after split"
     assert page.height == 46, "2nd page height after split"
-    assert page.id == 2, "2nd page id after split"
+    assert page.id == slist.data[1][2], "2nd page id after split"
     image = page.image_object
     assert image.width == 35, "2nd image width after split"
     assert image.height == 46, "2nd image height after split"

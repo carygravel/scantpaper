@@ -386,6 +386,11 @@ def test_properties_dialog(
     mock_edit_window.slist.thread.send.assert_called_with(
         "set_resolution", page, 300, 300
     )
+    assert mock_edit_window.slist.begin_undo_batch.call_count == 1
+    assert mock_edit_window.slist.end_undo_batch.call_count == 1
+    calls = [call[0] for call in mock_edit_window.slist.method_calls]
+    assert calls.index("begin_undo_batch") < calls.index("thread.send")
+    assert calls.index("thread.send") < calls.index("end_undo_batch")
 
 
 def test_properties_window_present(mock_edit_window: object) -> None:

@@ -99,6 +99,8 @@ def mock_session_window(
     window.builder = mocker.Mock()
     window.t_canvas = mocker.Mock()
     window.a_canvas = mocker.Mock()
+    window._text_editor = mocker.Mock()
+    window._ann_editor = mocker.Mock()
     window.post_process_progress = mocker.Mock()
 
     # Mock actions
@@ -581,6 +583,58 @@ def test_display_image(
     mock_session_window._ann_editor.create.assert_called()
     assert mock_session_window._ann_editor.create.call_args[0][0] is mock_page
 
+
+def test_edit_undo_reload_rebuilds_layer_from_restored_text(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Loading a page after an undone layer edit rebuilds from the restored layer.
+
+    The thread-side round-trip (set_text -> undo -> old layer, asserted in
+    test_docthread.py) hands the window a page carrying the pre-edit layer;
+    the editor must rebuild its canvas from that restored text, never the
+    edited text.
+    """
+    restored_layer = (
+        '[{"type":"page","bbox":[0,0,10,10],"depth":0},'
+        '{"type":"word","bbox":[0,0,5,5],"text":"ALPHA",'
+        '"confidence":80,"depth":1}]'
+    )
+    page = mocker.Mock()
+    page.get_pixbuf.return_value = "pixbuf"
+    page.get_resolution.return_value = (300, 300, "in")
+    page.get_size.return_value = (10, 10)
+    page.text_layer = restored_layer
+    page.annotations = None
+
+    mock_session_window._windowc = None
+    mock_session_window.settings["selection"] = None
+    mock_session_window.slist.data = [["page_num", None, "page_id"]]
+    mock_session_window.slist.find_page_by_uuid.return_value = 0
+
+    captured = {}
+
+    def capture_send(process: object, *_args: object, **kwargs: object) -> object:
+        del process
+        captured["finished_callback"] = kwargs.get("finished_callback")
+        return mocker.Mock()
+
+    mock_session_window.slist.thread.send.side_effect = capture_send
+    mocker.patch(
+        "scantpaper.session_mixins.Bboxtree",
+        return_value=mocker.Mock(valid=lambda: True),
+    )
+    mock_session_window._text_editor = mocker.Mock()
+    mock_session_window._ann_editor = mocker.Mock()
+
+    mock_session_window._display_image("page_id")
+    captured["finished_callback"](mocker.Mock(info=page))
+
+    mock_session_window._text_editor.create.assert_called_once()
+    loaded_page = mock_session_window._text_editor.create.call_args[0][0]
+    assert loaded_page is page
+    assert "ALPHA" in cast("str", loaded_page.text_layer)
+    assert "CORRECTED" not in cast("str", loaded_page.text_layer)
+
     # Case 5: No pageid (page not found)
     mock_session_window.slist.find_page_by_uuid.return_value = None
     mock_session_window._display_image("nonexistent_page")
@@ -724,7 +778,7 @@ def test_import_files_session_opens_full_resolution(
     assert window._suppress_full_display is False
     assert window._current_page is page
     window._text_editor.create.assert_called_once()
-    window.a_canvas.clear_text.assert_called_once()
+    window._ann_editor.clear.assert_called_once()
     assert sent.count("get_page") == 1
 
     # Switching pages afterwards loads each page at full resolution.
@@ -1073,6 +1127,8 @@ def test_on_page_loaded_reapplies_selection(
     assert mock_session_window.settings["selection"] is sel, (
         "settings selection is not overwritten"
     )
+    mock_session_window._text_editor.clear.assert_called_once()
+    mock_session_window._ann_editor.clear.assert_called_once()
 
 
 def test_on_page_loaded_does_not_reapply_when_no_selection(

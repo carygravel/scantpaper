@@ -693,10 +693,12 @@ def test_db(temp_db: object) -> None:
 
     request = Request("clone_pages", ({"page_ids": [2], "dest": 1},), thread.responses)
     assert thread.do_clone_pages(request) == [1], "row_ids of cloned pages"
-    assert thread.get_text(3) == "text", "text in cloned page"
-    assert len(thread.page_number_table() or []) == 2, (
-        "cloned page in page number table"
-    )
+    page_number_rows = thread.page_number_table() or []
+    assert len(page_number_rows) == 2, "cloned page in page number table"
+    # The clone is a brand-new document page, so read it by the page id the
+    # table reports for its row (content edits allocate fresh page row ids).
+    cloned_page_id = cast("int", page_number_rows[1][2])
+    assert thread.get_text(cloned_page_id) == "text", "text in cloned page"
 
     request = Request("clone_pages", ({"page_ids": [2], "dest": 0},), thread.responses)
     assert thread.do_clone_pages(request) == [0], "row_ids of inserted pages"

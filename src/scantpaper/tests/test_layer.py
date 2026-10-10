@@ -439,6 +439,37 @@ def test_create_without_layer(mocker: pytest.MockerFixture) -> None:
     finished.assert_called_once()
 
 
+def test_create_clears_stale_focus_before_rebuild(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """create() drops focus on the previous tree's slice before rebuilding."""
+    editor, page, thread, _view = make_editor(mocker)
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    editor._current_bbox = mocker.Mock()
+    page.text_layer = "some json"
+    thread.parse_bboxtree.side_effect = lambda _json_string, **_kwargs: None
+
+    editor.create(page, mocker.Mock(x=0, y=0))
+
+    assert editor._current_bbox is None, "rebuild clears the stale focused slice"
+    editor.controls.textbuffer.set_text.assert_called_once_with(EMPTY)
+
+
+def test_clear_resets_focus_and_empties(mocker: pytest.MockerFixture) -> None:
+    """clear() forgets the focused slice and empties the control and canvas."""
+    editor, _page, _thread, _view = make_editor(mocker)
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    editor._current_bbox = mocker.Mock()
+
+    editor.clear()
+
+    assert editor._current_bbox is None
+    editor.controls.textbuffer.set_text.assert_called_once_with(EMPTY)
+    editor.canvas.clear_text.assert_called_once()
+
+
 def test_set_active_toggles_controls(mocker: pytest.MockerFixture) -> None:
     """set_active() shows or hides the control bar."""
     editor, _page, _thread, _view = make_editor(mocker)
@@ -787,6 +818,57 @@ def test_editor_sort_switch_keeps_focused_slice_and_text(
         assert editor._controls_text() == "ALPHA"
         for text in ["ALPHA", "BRAVO", "CHARLIE"]:
             assert stored_layer(page, editor).count(text) == 1
+
+
+def test_editor_rebuild_while_focused_drops_stale_focus(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Rebuilding the canvas drops the old tree's focus before ok/delete act.
+
+    Loading a page again -- e.g. after an undo -- gives the editor a fresh
+    tree; a correction then must not apply to a slice of the detached tree.
+    """
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        editor.edit(cast("Bbox", editor.canvas.get_first_bbox()))
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "ALPHA"
+
+        # A rebuild (page switch / undo) gives the canvas a fresh tree.
+        editor.create(page, None)
+
+        assert editor._current_bbox is None, "rebuild drops the stale focus"
+        assert editor._controls_text() == EMPTY, "rebuild empties the control"
+
+        editor.ok(None)
+        assert "ALPHA" in stored_layer(page, editor), "inert ok changes nothing"
+
+        editor.delete(None)
+        assert "ALPHA" in stored_layer(page, editor), "inert delete removes nothing"
+
+        # Run the rebuild's idle pass, then a real slice in the rebuilt tree
+        # still corrects and deletes normally.
+        settle()
+        editor.canvas.sort_by_position()
+        editor.edit(cast("Bbox", editor.canvas.get_first_bbox()))
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "ALPHA"
+        editor.controls.textbuffer.set_text("ALPHA-CORRECTED")
+        editor.ok(None)
+        assert "ALPHA-CORRECTED" in stored_layer(page, editor)
+
+        editor.delete(None)
+        assert "ALPHA" not in stored_layer(page, editor)
 
 
 def test_editor_never_focuses_a_detached_slice(

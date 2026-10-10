@@ -94,22 +94,26 @@ class EditMenuMixins:
             self._windowp.hide()
             xresolution = xspinbutton.get_value()
             yresolution = yspinbutton.get_value()
-            self.slist.get_model().handler_block(self.slist.row_changed_signal)
-            for i in self.slist.get_selected_indices():
-                logger.debug(
-                    "setting resolution %s,%s for page %s",
-                    xresolution,
-                    yresolution,
-                    self.slist.data[i][0],
-                )
-                self.slist.thread.send(
-                    "set_resolution",
-                    self.slist.data[i][2],
-                    xresolution,
-                    yresolution,
-                )
-
-            self.slist.get_model().handler_unblock(self.slist.row_changed_signal)
+            # All selected pages change in one undo step.
+            self.slist.begin_undo_batch()
+            try:
+                self.slist.get_model().handler_block(self.slist.row_changed_signal)
+                for i in self.slist.get_selected_indices():
+                    logger.debug(
+                        "setting resolution %s,%s for page %s",
+                        xresolution,
+                        yresolution,
+                        self.slist.data[i][0],
+                    )
+                    self.slist.thread.send(
+                        "set_resolution",
+                        self.slist.data[i][2],
+                        xresolution,
+                        yresolution,
+                    )
+            finally:
+                self.slist.get_model().handler_unblock(self.slist.row_changed_signal)
+                self.slist.end_undo_batch()
 
         self._windowp.add_actions(
             [("gtk-ok", properties_apply_callback), ("gtk-cancel", self._windowp.hide)]

@@ -324,14 +324,14 @@ class SessionMixins:
                 cast("Page", self._current_page), self.view.get_offset()
             )
         else:
-            self.t_canvas.clear_text()
+            self._text_editor.clear()
 
         if self._current_page.annotations:
             self._ann_editor.create(
                 cast("Page", self._current_page), self.view.get_offset()
             )
         else:
-            self.a_canvas.clear_text()
+            self._ann_editor.clear()
 
     def _error_callback(self, response: Response) -> None:
         """Handle errors."""

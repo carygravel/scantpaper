@@ -13,6 +13,18 @@
 * Allow the "Alternate rotation every 2nd page" toggle to be used with
   one-page-at-a-time flatbed scans (no scanner hardware button). Parity persists
   across consecutive scans until the toggle is explicitly turned off.
+* Fix text-layer and annotation corrections not being undoable. Accepting,
+  adding, duplicating or deleting a word or annotation is now a real undo
+  step: one Undo brings the box back, one Redo re-applies the edit, and the
+  page repaints with the restored layer. Previously Undo only reset the view.
+* Editing a page's text, annotations or resolution now marks it unsaved
+  again, so quitting after the edit offers to save it; undoing the edit
+  restores the page's earlier saved/unsaved state.
+* Undo a resolution change applied to several pages from the Properties
+  dialog in a single step, instead of one undo per page.
+* Fix the text-layer and annotation editor keeping a box selected from the
+  old page after switching pages, so a following accept or delete can no
+  longer act on a stale box.
 
 
 ## 3.0.21 (2026-10-04)
