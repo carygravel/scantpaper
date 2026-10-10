@@ -102,16 +102,24 @@ This document provides essential context for anyone working on this project. Adh
        gated on human review rather than an agent's judgement.
     4. Upload the seeded `.po` files (not just the `.pot`) to Rosetta
        (Launchpad) so translators can confirm and clear the fuzzy entries.
-    5. Check for upstream changes before a release with
-       `python3 dev/check_launchpad.py`. It compares the template and every
-       language's last-changed time against the committed baseline
-       `po/launchpad-state.json`, and the scheduled translations-check
-       workflow files one labelled issue when anything moved. It never
-       downloads a catalog (Launchpad requires a login to export one) and is
-       advisory: only a state the check could not read — never a detected
-       change — exits non-zero, so "no changes" is a truthful silence.
-       After the download below, advance the baseline with
-       `python3 dev/check_launchpad.py --update`.
+     5. Check for upstream changes before a release with
+        `python3 dev/check_launchpad.py`. It compares the template and every
+        language's last-changed time against the committed baseline
+        `po/launchpad-state.json`, and the scheduled translations-check
+        workflow files one labelled issue when anything moved. It also reports
+        the reverse direction — whether the local template is stale relative
+        to the last pot uploaded to Launchpad — by comparing the generated
+        message set against the `uploaded_pot` fingerprint in the baseline,
+        and the workflow files a separate issue when new strings are ready to
+        upload. It never
+        downloads a catalog (Launchpad requires a login to export one) and is
+        advisory: only a state the check could not read — never a detected
+        change — exits non-zero, so "no changes" is a truthful silence.
+        After the download below, advance the baseline with
+        `python3 dev/check_launchpad.py --update`. After a new template has
+        been uploaded to Rosetta, record its message set with
+        `python3 dev/check_launchpad.py --record-pot`, so the next check no
+        longer reports the pot as stale.
     6. Download the translated `.po` files from Rosetta before a release.
     7. Ensure every `po/scantpaper/*.po` passes the deterministic catalog
        checks: run

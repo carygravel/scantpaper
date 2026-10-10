@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import copy
+import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
+
+if TYPE_CHECKING:
+    from types import ModuleType
 
 
 class LanguageJson(TypedDict):
@@ -28,15 +32,28 @@ class TemplateJson(TypedDict):
     etag: str
 
 
+class LocalPotJson(TypedDict):
+    """The local-pot entry in the JSON report."""
+
+    determined: bool
+    changed: bool | None
+    added: list[str]
+    removed: list[str]
+    msgid_count: int | None
+    reason: str | None
+
+
 class PayloadJson(TypedDict):
     """The JSON report the tool emits with --json."""
 
     determined: bool
     problems: list[str]
     changed: bool
+    local_pot_changed: bool | None
     baseline_captured: str | None
     template: TemplateJson | None
     languages: dict[str, LanguageJson]
+    local_pot: LocalPotJson
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
@@ -134,6 +151,41 @@ def _api_text() -> str:
     )
 
 
+# A template exercising the message-set parsing: a header entry, a multi-line
+# msgid, a plural entry, and `#:` reference comments that must be ignored.
+_POT = """\
+# messages.pot
+msgid ""
+msgstr ""
+"Project-Id-Version: scantpaper\\n"
+"POT-Creation-Date: 2026-10-10\\n"
+
+#: app_window.py:480
+msgid "Save image"
+msgstr ""
+
+#: app_window.py:481
+msgid ""
+"Save and "
+"rescan"
+msgstr ""
+
+#: app_window.py:482
+msgid "%dMb free in %s."
+msgid_plural "%dMb free in %s."
+msgstr[0] ""
+msgstr[1] ""
+"""
+
+
+def _pot_with(msgids: list[str]) -> str:
+    """Build a template whose non-empty msgids are exactly ``msgids``."""
+    blocks = []
+    for i, msgid in enumerate(msgids):
+        blocks.append(f'#: a.py:{i}\nmsgid {json.dumps(msgid)}\nmsgstr ""\n')
+    return 'msgid ""\nmsgstr ""\n\n' + "\n".join(blocks)
+
+
 def _baseline(languages: dict[str, object] | None = None) -> dict[str, object]:
     """Return a baseline matching the page and API fixtures."""
     return {
@@ -151,13 +203,17 @@ def _run(
     baseline: dict[str, object] | str | None = None,
     page: str | None = None,
     api: str | None = None,
+    pot: str | Path | None = _POT,
 ) -> subprocess.CompletedProcess[str]:
     """Run dev/check_launchpad.py over file:// fixtures in ``tmp_path``.
 
-    ``baseline`` is written to po/launchpad-state.json-style file; ``None``
-    writes the default matching baseline, a dict writes those contents, a raw
-    string is written verbatim (for malformed files), and the sentinel string
-    ``"keep"`` leaves whatever is already there untouched.
+    ``baseline`` is written to launchpad-state.json-style file; ``None`` writes
+    the default matching baseline, a dict writes those contents, a raw string
+    is written verbatim (for malformed files), and the sentinel string
+    ``"keep"`` leaves whatever is already there untouched. ``pot`` is written
+    to a template file and passed via ``--pot``; a ``Path`` is passed directly
+    without writing it, and ``None`` omits the option so the tool falls back to
+    generating the template on demand.
     """
     baseline_path = tmp_path / "launchpad-state.json"
     if baseline != "keep":
@@ -174,18 +230,26 @@ def _run(
         page if page is not None else _PAGE, encoding="utf-8"
     )
 
+    args = [
+        sys.executable,
+        str(CHECK),
+        "--baseline",
+        str(baseline_path),
+        "--api-url",
+        (tmp_path / "api.json").as_uri(),
+        "--html-url",
+        (tmp_path / "page.html").as_uri(),
+    ]
+    if isinstance(pot, str):
+        pot_path = tmp_path / "pot.pot"
+        pot_path.write_text(pot, encoding="utf-8")
+        args += ["--pot", str(pot_path)]
+    elif isinstance(pot, Path):
+        args += ["--pot", str(pot)]
+    args += list(flags)
+
     return subprocess.run(
-        [
-            sys.executable,
-            str(CHECK),
-            "--baseline",
-            str(baseline_path),
-            "--api-url",
-            (tmp_path / "api.json").as_uri(),
-            "--html-url",
-            (tmp_path / "page.html").as_uri(),
-            *flags,
-        ],
+        args,
         capture_output=True,
         text=True,
         check=False,
@@ -325,6 +389,129 @@ def test_update_dry_run_writes_nothing(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stdout + result.stderr
     assert "Dry run" in result.stdout
     assert baseline_path.read_text(encoding="utf-8") == "{}"
+
+
+def _load_check() -> ModuleType:
+    """Import dev/check_launchpad.py directly, bypassing the dev namespace."""
+    spec = importlib.util.spec_from_file_location("cl", str(CHECK))
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["cl"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_fingerprint_pot_parses_the_message_set() -> None:
+    """A template's fingerprint is its sorted, unique, decoded msgids."""
+    check = _load_check()
+    assert check.fingerprint_pot(_POT) == [
+        "%dMb free in %s.",
+        "Save and rescan",
+        "Save image",
+    ]
+
+
+def test_local_pot_new_string_is_stale(tmp_path: Path) -> None:
+    """A new msgid absent from the last upload makes the local pot stale."""
+    baseline = _baseline()
+    baseline["uploaded_pot"] = {
+        "msgid_count": 2,
+        "digest": "x",
+        "msgids": ["Save image", "Save and rescan"],
+    }
+    result = _run(tmp_path, "--json", baseline=baseline)
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = _payload(result)
+    assert payload["local_pot_changed"] is True
+    assert payload["local_pot"]["changed"] is True
+    assert payload["local_pot"]["added"] == ["%dMb free in %s."]
+    assert payload["local_pot"]["removed"] == []
+    assert payload["local_pot"]["msgid_count"] == 3
+    assert payload["changed"] is False
+
+
+def test_local_pot_reordering_and_refs_are_ignored(tmp_path: Path) -> None:
+    """Moving strings between files or reordering does not signal a change."""
+    baseline = _baseline()
+    baseline["uploaded_pot"] = {
+        "msgid_count": 3,
+        "digest": "x",
+        "msgids": ["%dMb free in %s.", "Save and rescan", "Save image"],
+    }
+    reordered = _pot_with(["Save image", "%dMb free in %s.", "Save and rescan"])
+    result = _run(tmp_path, "--json", baseline=baseline, pot=reordered)
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = _payload(result)
+    assert payload["local_pot_changed"] is False
+    assert payload["local_pot"]["changed"] is False
+    assert payload["local_pot"]["added"] == []
+    assert payload["local_pot"]["removed"] == []
+
+
+def test_local_pot_header_only_change_is_unchanged(tmp_path: Path) -> None:
+    """A regenerated template whose msgid set matches the last upload is clean."""
+    baseline = _baseline()
+    baseline["uploaded_pot"] = {
+        "msgid_count": 3,
+        "digest": "x",
+        "msgids": ["%dMb free in %s.", "Save and rescan", "Save image"],
+    }
+    header_tweaked = _POT.replace(
+        "POT-Creation-Date: 2026-10-10", "POT-Creation-Date: 2026-10-11"
+    )
+    result = _run(tmp_path, "--json", baseline=baseline, pot=header_tweaked)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _payload(result)["local_pot_changed"] is False
+
+
+def test_record_pot_stamps_then_reports_unchanged(tmp_path: Path) -> None:
+    """--record-pot records the current pot; the next run is then clean."""
+    baseline = _baseline()
+    result = _run(tmp_path, "--record-pot", baseline=baseline)
+    assert result.returncode == 0, result.stdout + result.stderr
+    updated = json.loads(
+        (tmp_path / "launchpad-state.json").read_text(encoding="utf-8")
+    )
+    assert set(updated["uploaded_pot"]["msgids"]) == {
+        "%dMb free in %s.",
+        "Save and rescan",
+        "Save image",
+    }
+    assert updated["uploaded_pot"]["msgid_count"] == 3
+    assert updated["template"]["etag"] == _ETAG
+
+    quiet = _run(tmp_path, "--json", baseline="keep")
+    assert quiet.returncode == 0, quiet.stdout + quiet.stderr
+    assert _payload(quiet)["local_pot_changed"] is False
+
+
+def test_local_pot_without_record_is_not_unchanged(tmp_path: Path) -> None:
+    """No recorded upload is reported as not determined, not as unchanged."""
+    result = _run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "local pot not determined" in result.stdout
+
+    payload = _payload(_run(tmp_path, "--json"))
+    assert payload["local_pot"]["determined"] is False
+    assert payload["local_pot"]["changed"] is None
+    reason = payload["local_pot"]["reason"]
+    assert reason is not None
+    assert "no pot upload is recorded" in reason
+    assert payload["local_pot_changed"] is None
+    assert payload["changed"] is False
+
+
+def test_record_pot_refused_when_pot_unreadable(tmp_path: Path) -> None:
+    """An unreadable pot can never be recorded into the baseline."""
+    baseline_path = tmp_path / "launchpad-state.json"
+    baseline_path.write_text(json.dumps(_baseline(), indent=2), encoding="utf-8")
+    before = baseline_path.read_text(encoding="utf-8")
+    missing = tmp_path / "missing.pot"
+    result = _run(tmp_path, "--record-pot", baseline="keep", pot=missing)
+    assert result.returncode == 1
+    assert "refusing to record the pot" in result.stdout
+    assert baseline_path.read_text(encoding="utf-8") == before
 
 
 def test_malformed_baseline_fails(tmp_path: Path) -> None:

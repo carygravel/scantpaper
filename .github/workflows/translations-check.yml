@@ -19,15 +19,21 @@ jobs:
       - uses: actions/checkout@v7
       # The tool only needs typing_extensions (for the @override decorator);
       # the committed baseline at po/launchpad-state.json comes with the
-      # checkout.
+      # checkout. gettext (xgettext/msgcat) is preinstalled on ubuntu-latest
+      # and is used to regenerate the local template on demand; the generator
+      # imports scantpaper.const, so src must be on PYTHONPATH.
       - name: Install dependencies
         run: pip install typing_extensions
-      - name: Check for upstream translation changes
+      - name: Check for upstream and local translation changes
         id: check
+        env:
+          PYTHONPATH: src
         run: |
           python3 dev/check_launchpad.py --json > report.json
           changed=$(python3 -c "import json; print(json.load(open('report.json'))['changed'])")
+          local_pot_changed=$(python3 -c "import json; print(json.load(open('report.json'))['local_pot_changed'])")
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          echo "local_pot_changed=$local_pot_changed" >> "$GITHUB_OUTPUT"
       # A detected change exits successfully and the tool's JSON report is
       # filed as one living reminder. A run that "could not determine" the
       # state exits non-zero, so the step (and job) fails loudly instead of
@@ -50,5 +56,26 @@ jobs:
           else
             gh issue create \
               --title "Launchpad translations: upstream changes detected" \
+              --body "$body" --label "$label"
+          fi
+      - name: Report a stale local pot in a separate issue
+        if: ${{ steps.check.outputs.local_pot_changed == 'True' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          label="launchpad-pot-stale"
+          gh label create "$label" \
+            --description "New source strings are ready to upload to Launchpad" \
+            --force
+          body=$(cat report.json)
+          number=$(gh issue list --label "$label" --state open --json number \
+            --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" \
+              --title "Launchpad pot is out of date: new strings ready to upload" \
+              --body "$body"
+          else
+            gh issue create \
+              --title "Launchpad pot is out of date: new strings ready to upload" \
               --body "$body" --label "$label"
           fi

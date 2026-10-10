@@ -31,23 +31,30 @@ catalogs have been synced (see `release_procedure.md`).
 Usage:
     python3 dev/check_launchpad.py [--json] [--fail-on-change]
     python3 dev/check_launchpad.py --update [--dry-run]
+    python3 dev/check_launchpad.py --record-pot [--pot PATH] [--dry-run]
 """
 
 from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import http.client
+import importlib.util
 import json
 import re
+import subprocess
 import sys
 import urllib.parse
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from typing_extensions import override
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -93,6 +100,24 @@ class LanguageState:
     suggestions: int
 
 
+@dataclass(frozen=True)
+class LocalPotState:
+    """The message-set fingerprint of a local template."""
+
+    msgids: tuple[str, ...]
+    digest: str
+
+
+@dataclass(frozen=True)
+class LocalPotResult:
+    """How the local message set compares with the last uploaded pot."""
+
+    changed: bool
+    added: list[str]
+    removed: list[str]
+    msgid_count: int
+
+
 @dataclass
 class CheckResult:
     """The outcome of comparing Launchpad against the baseline."""
@@ -103,6 +128,8 @@ class CheckResult:
     template_changed: bool
     changed_languages: dict[str, LanguageState]
     new_languages: dict[str, LanguageState]
+    local: LocalPotResult | None
+    local_undetermined_reason: str | None
 
     @property
     def determined(self) -> bool:
@@ -111,12 +138,19 @@ class CheckResult:
 
     @property
     def changed(self) -> bool:
-        """Return True when any unit differs from the baseline."""
+        """Return True when any upstream unit differs from the baseline."""
         return (
             self.template_changed
             or bool(self.changed_languages)
             or bool(self.new_languages)
         )
+
+    @property
+    def local_pot_changed(self) -> bool | None:
+        """Return True when the local template is stale, None when unknown."""
+        if self.local is None:
+            return None
+        return self.local.changed
 
 
 class _TranslationPageParser(HTMLParser):
@@ -212,6 +246,129 @@ def parse_languages(html: str) -> dict[str, LanguageState]:
     parser.feed(html)
     parser.close()
     return parser.languages
+
+
+def _decode_po_quoted(text: str) -> str:
+    """Decode one gettext quoted string, dropping its surrounding quotes."""
+    body = text[1:-1] if len(text) > 1 and text[0] == '"' and text[-1] == '"' else text
+    return (
+        body.replace("\\n", "\n")
+        .replace("\\t", "\t")
+        .replace("\\r", "\r")
+        .replace('\\"', '"')
+        .replace("\\\\", "\\")
+    )
+
+
+def _msgids(pot_text: str) -> list[str]:
+    """Return the non-empty msgid values of a template, in file order."""
+    values: list[str] = []
+    lines = pot_text.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("msgid "):
+            value = _decode_po_quoted(line[len("msgid ") :])
+            i += 1
+            while i < len(lines) and lines[i].lstrip().startswith('"'):
+                value += _decode_po_quoted(lines[i].strip())
+                i += 1
+            if value:
+                values.append(value)
+            continue
+        i += 1
+    return values
+
+
+def fingerprint_pot(pot_text: str) -> list[str]:
+    """Return the sorted, unique msgid strings of a template.
+
+    Only the message set is considered: the volatile header, the `#: file:line`
+    reference comments and `msgid_plural` forms are ignored, so a refactor that
+    moves a string between files, or a gettext upgrade that reorders output,
+    does not change the fingerprint.
+    """
+    return sorted(set(_msgids(pot_text)))
+
+
+def _pot_state(pot_text: str) -> LocalPotState:
+    """Fingerprint a template's message set into a compact local state."""
+    msgids = tuple(fingerprint_pot(pot_text))
+    digest = hashlib.sha256("\n".join(msgids).encode("utf-8")).hexdigest()
+    return LocalPotState(msgids=msgids, digest=digest)
+
+
+def _load_template_generator() -> Callable[[], str]:
+    """Return the ``generate_template`` callable from ``dev/generate_pot.py``.
+
+    ``generate_pot`` is loaded lazily and dynamically because importing it needs
+    the ``scantpaper`` package on ``sys.path``, which the plain
+    ``dev/check_launchpad.py`` invocation does not provide.
+    """
+    path = REPO_ROOT / "dev" / "generate_pot.py"
+    spec = importlib.util.spec_from_file_location("generate_pot", path)
+    if spec is None or spec.loader is None:
+        message = f"cannot resolve the template generator at {path}"
+        raise LaunchpadError(message)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["generate_pot"] = module
+    spec.loader.exec_module(module)
+    function = module.generate_template
+    if not callable(function):
+        message = "the template generator has no generate_template()"
+        raise LaunchpadError(message)
+    return cast("Callable[[], str]", function)
+
+
+def _read_local_pot(pot_path: Path | None) -> tuple[str | None, str | None]:
+    """Return (pot_text, problem) for the current local template.
+
+    When ``pot_path`` is given it is read directly; otherwise the template is
+    generated from source.
+    """
+    if pot_path is not None:
+        try:
+            return pot_path.read_text(encoding="utf-8"), None
+        except OSError as error:
+            return None, f"the local pot ({pot_path}): {error}"
+    try:
+        generate = _load_template_generator()
+    except (ImportError, LaunchpadError, OSError) as error:
+        return None, f"the local pot: cannot import the template generator: {error}"
+    try:
+        return generate(), None
+    except (OSError, subprocess.CalledProcessError) as error:
+        return None, f"the local pot: generation failed: {error}"
+    return None, "the local pot: generation failed"
+
+
+def _local_result(
+    pot_text: str | None, baseline: dict[str, object]
+) -> tuple[LocalPotResult | None, str | None]:
+    """Compare the local message set against the recorded uploaded pot.
+
+    Returns ``(result, reason)`` where a ``reason`` means the local state could
+    not be determined (no pot upload recorded yet). A ``None`` ``pot_text``
+    leaves the result undetermined without a reason, because the pot problem is
+    reported as a hard failure by the caller instead.
+    """
+    if pot_text is None:
+        return None, None
+    current = _pot_state(pot_text)
+    previous = baseline.get("uploaded_pot")
+    if not isinstance(previous, dict) or not isinstance(previous.get("msgids"), list):
+        return None, "no pot upload is recorded in the baseline"
+    known = set(previous["msgids"])
+    current_set = set(current.msgids)
+    added = sorted(current_set - known)
+    removed = sorted(known - current_set)
+    result = LocalPotResult(
+        changed=bool(added or removed),
+        added=added,
+        removed=removed,
+        msgid_count=len(current.msgids),
+    )
+    return result, None
 
 
 def _get(url: str, *, etag: str | None = None) -> tuple[int, bytes]:
@@ -364,9 +521,14 @@ def _changed_languages(
 
 
 def run_check(
-    baseline: dict[str, object], *, api_url: str, html_url: str
+    baseline: dict[str, object],
+    *,
+    api_url: str,
+    html_url: str,
+    pot_text: str | None = None,
+    pot_problem: str | None = None,
 ) -> CheckResult:
-    """Read both public surfaces and compare them against the baseline."""
+    """Read both public surfaces and the local pot, then compare the baseline."""
     problems: list[str] = []
     template, template_problem = _read_template(api_url, baseline)
     if template_problem is not None:
@@ -374,6 +536,8 @@ def run_check(
     languages, languages_problem = _read_languages(html_url)
     if languages_problem is not None:
         problems.append(languages_problem)
+    if pot_problem is not None:
+        problems.append(pot_problem)
 
     template_changed = template is not None and _template_changed(baseline, template)
     if languages is None:
@@ -382,6 +546,8 @@ def run_check(
     else:
         changed, new = _changed_languages(baseline, languages)
 
+    local, local_undetermined_reason = _local_result(pot_text, baseline)
+
     return CheckResult(
         template=template,
         languages=languages,
@@ -389,6 +555,8 @@ def run_check(
         template_changed=template_changed,
         changed_languages=changed,
         new_languages=new,
+        local=local,
+        local_undetermined_reason=local_undetermined_reason,
     )
 
 
@@ -398,6 +566,28 @@ def _language_line(code: str, state: LanguageState, status: str) -> str:
         f"  {code} ({status}): {state.last_changed}, "
         f"{state.untranslated} untranslated, {state.suggestions} suggestions"
     )
+
+
+def _report_local(result: CheckResult) -> None:
+    """Print the local-pot section of the human-readable report."""
+    if result.local is None:
+        if result.local_undetermined_reason is not None:
+            print(
+                f"[info] local pot not determined: {result.local_undetermined_reason}"
+            )
+        return
+    if not result.local.changed:
+        print("Local pot is in sync with the last upload.")
+        return
+    print(
+        f"Local pot is stale: {result.local.msgid_count} strings, "
+        f"{len(result.local.added)} added, {len(result.local.removed)} removed"
+    )
+    for msgid in result.local.added[:5]:
+        print(f"  added: {msgid!r}")
+    for msgid in result.local.removed[:5]:
+        print(f"  removed: {msgid!r}")
+    print("  Regenerate and upload a new pot, then run --record-pot.")
 
 
 def _report(result: CheckResult, baseline: dict[str, object]) -> None:
@@ -414,6 +604,9 @@ def _report(result: CheckResult, baseline: dict[str, object]) -> None:
         captured = baseline.get("captured")
         suffix = f" (captured {captured})" if captured else ""
         print(f"No Launchpad translation changes since the baseline{suffix}.")
+
+    _report_local(result)
+
     for problem in result.problems:
         print(f"[FAIL] could not determine {problem}")
 
@@ -437,13 +630,23 @@ def _payload(result: CheckResult, baseline: dict[str, object]) -> dict[str, obje
             "date_last_updated": result.template.date_last_updated,
             "etag": result.template.etag,
         }
+    local: dict[str, object] = {
+        "determined": result.local is not None,
+        "changed": result.local_pot_changed,
+        "added": result.local.added if result.local is not None else [],
+        "removed": result.local.removed if result.local is not None else [],
+        "msgid_count": result.local.msgid_count if result.local is not None else None,
+        "reason": result.local_undetermined_reason,
+    }
     return {
         "determined": result.determined,
         "problems": result.problems,
         "changed": result.changed,
+        "local_pot_changed": result.local_pot_changed,
         "baseline_captured": baseline.get("captured"),
         "template": template,
         "languages": languages,
+        "local_pot": local,
     }
 
 
@@ -481,7 +684,12 @@ def _build_baseline(
 
 
 def _apply_update(
-    result: CheckResult, path: Path, *, dry_run: bool, now: datetime.datetime
+    result: CheckResult,
+    previous: dict[str, object],
+    path: Path,
+    *,
+    dry_run: bool,
+    now: datetime.datetime,
 ) -> int:
     """Advance the committed baseline, refusing an incomplete read."""
     if result.template is None or result.languages is None:
@@ -490,9 +698,49 @@ def _apply_update(
             print(f"[FAIL] could not determine {problem}")
         return 1
     baseline = _build_baseline(result.template, result.languages, now)
+    uploaded = previous.get("uploaded_pot")
+    if isinstance(uploaded, dict):
+        baseline["uploaded_pot"] = uploaded
     if dry_run:
         print(f"Dry run: would write {path} from the current Launchpad state.")
         return 0
+    return _write_baseline(path, baseline)
+
+
+def _uploaded_pot_section(pot_text: str) -> dict[str, object]:
+    """Return the uploaded-pot record for the current template's message set."""
+    state = _pot_state(pot_text)
+    return {
+        "msgid_count": len(state.msgids),
+        "digest": state.digest,
+        "msgids": list(state.msgids),
+    }
+
+
+def _apply_record_pot(
+    pot_text: str | None,
+    pot_problem: str | None,
+    previous: dict[str, object],
+    path: Path,
+    *,
+    dry_run: bool,
+) -> int:
+    """Record the current pot's fingerprint as the last uploaded pot."""
+    if pot_text is None:
+        print("[FAIL] refusing to record the pot: the template could not be read")
+        if pot_problem is not None:
+            print(f"[FAIL] could not determine {pot_problem}")
+        return 1
+    baseline = dict(previous)
+    baseline["uploaded_pot"] = _uploaded_pot_section(pot_text)
+    if dry_run:
+        print(f"Dry run: would record the current pot in {path}.")
+        return 0
+    return _write_baseline(path, baseline)
+
+
+def _write_baseline(path: Path, baseline: dict[str, object]) -> int:
+    """Write the baseline document, returning a process exit code."""
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
@@ -502,7 +750,7 @@ def _apply_update(
     except OSError as error:
         print(f"[FAIL] cannot write baseline {path}: {error}")
         return 1
-    print(f"Updated {path} (captured {baseline['captured']}).")
+    print(f"Updated {path} (captured {baseline.get('captured')}).")
     return 0
 
 
@@ -533,14 +781,25 @@ def main() -> int:
         help="Emit the report as JSON for the workflow to consume",
     )
     parser.add_argument(
+        "--pot",
+        type=Path,
+        default=None,
+        help="Read the local template from this file instead of generating it",
+    )
+    parser.add_argument(
         "--update",
         action="store_true",
         help="Advance the baseline to the current state instead of reporting",
     )
     parser.add_argument(
+        "--record-pot",
+        action="store_true",
+        help="Record the current pot's fingerprint as the last uploaded pot",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="With --update, report what would be written without writing it",
+        help="With --update or --record-pot, report without writing anything",
     )
     parser.add_argument(
         "--fail-on-change",
@@ -555,11 +814,25 @@ def main() -> int:
         print(f"[FAIL] {error}")
         return 1
 
-    result = run_check(baseline, api_url=args.api_url, html_url=args.html_url)
+    pot_text, pot_problem = _read_local_pot(args.pot)
+    result = run_check(
+        baseline,
+        api_url=args.api_url,
+        html_url=args.html_url,
+        pot_text=pot_text,
+        pot_problem=pot_problem,
+    )
     now = datetime.datetime.now(tz=datetime.timezone.utc)
 
+    if args.record_pot:
+        return _apply_record_pot(
+            pot_text, pot_problem, baseline, args.baseline, dry_run=args.dry_run
+        )
+
     if args.update:
-        return _apply_update(result, args.baseline, dry_run=args.dry_run, now=now)
+        return _apply_update(
+            result, baseline, args.baseline, dry_run=args.dry_run, now=now
+        )
 
     _emit(result, baseline, as_json=args.json)
 

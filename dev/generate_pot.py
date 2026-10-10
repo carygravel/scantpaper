@@ -23,21 +23,16 @@ from scantpaper.const import (  # noqa: E402
 )
 
 
-def main() -> None:
-    """Run the application entry point."""
-    parser = argparse.ArgumentParser(description="Generate the POT template")
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=None,
-        help="Write the template here (default: po/scantpaper/scantpaper.pot)",
-    )
-    args = parser.parse_args()
-    output = args.output or repo_root / "po" / "scantpaper" / (NAME + ".pot")
+def generate_template() -> str:
+    """Extract the message template from the source tree and return its text.
 
+    ``gettext`` (xgettext and msgcat) is the only external tool required. The
+    caller is responsible for writing the returned template where it wants it;
+    the CLI writes it to the default path (see ``main``).
+    """
     # contextlib.chdir needs Python 3.11, but the minimum supported version
     # (see requires-python) is 3.10, so change directory by hand and always
-    # restore it before writing the template.
+    # restore it before returning the template.
     previous_cwd = Path.cwd()
     try:
         os.chdir(pkg_dir)
@@ -88,7 +83,7 @@ def main() -> None:
 
     local_tz = datetime.datetime.now().astimezone().tzinfo
     year = datetime.datetime.now(local_tz).year
-    out = (
+    return (
         out.replace("SOME DESCRIPTIVE TITLE", f"messages.pot for {NAME}", 1)
         .replace("PACKAGE VERSION", f"{NAME}-{VERSION}", 1)
         .replace("YEAR THE PACKAGE'S COPYRIGHT HOLDER", f"{year} {AUTHOR}", 1)
@@ -96,6 +91,20 @@ def main() -> None:
         .replace("FIRST AUTHOR <EMAIL@ADDRESS>, YEAR", f"{AUTHOR} <{EMAIL}>, {year}", 1)
         .replace("Report-Msgid-Bugs-To: ", f"Report-Msgid-Bugs-To: {EMAIL}", 1)
     )
+
+
+def main() -> None:
+    """Generate and write the POT template, printing the output path."""
+    parser = argparse.ArgumentParser(description="Generate the POT template")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Write the template here (default: po/scantpaper/scantpaper.pot)",
+    )
+    args = parser.parse_args()
+    output = args.output or repo_root / "po" / "scantpaper" / (NAME + ".pot")
+    out = generate_template()
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8") as fhd:
         fhd.write(out)

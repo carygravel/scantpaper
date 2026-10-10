@@ -10,9 +10,12 @@
    [Launchpad](https://translations.launchpad.net/scantpaper) since the last
    sync: the template (the message set / `.pot`) and any language whose
    last-changed time is newer than the baseline in
-   [po/launchpad-state.json](po/launchpad-state.json). The scheduled
-   [translations-check workflow](.github/workflows/translations-check.yml) runs
-   the same check daily and files one issue when it detects changes. A
+   [po/launchpad-state.json](po/launchpad-state.json). It also reports whether
+   the local template is stale relative to the last pot uploaded to Launchpad
+   (a `Local pot is stale:` line listing the added and removed strings). The
+   scheduled [translations-check workflow](.github/workflows/translations-check.yml)
+   runs the same check daily and files one issue when it detects upstream
+   changes and a separate one when new strings are ready to upload. A
    "could not determine" result (non-zero exit) means the check could not read
    Launchpad, not that nothing changed, so the download below is still needed.
 1. Download new translations (https://translations.launchpad.net/scantpaper)
@@ -34,6 +37,12 @@
 1. Upload .pot
    ```sh
    python3 dev/generate_pot.py
+   ```
+   After the new template has been uploaded to Launchpad, record its message
+   set as the baseline for the local staleness check, so the next run no longer
+   reports the pot as stale
+   ```sh
+   python3 dev/check_launchpad.py --record-pot
    ```
 1. Tag the release
    ```sh

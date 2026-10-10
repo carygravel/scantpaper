@@ -680,6 +680,13 @@ which exists only on the public series translation page. A language is reported
 when its last-changed time is newer than the baseline, when a new locale
 appears, or when the template changes.
 
+It also reports the reverse direction: whether the local template generated
+from source is stale relative to the last pot uploaded to Launchpad. The local
+message set is compared against the `uploaded_pot` fingerprint recorded in the
+baseline; a difference (new, removed or changed strings) is reported as
+`Local pot is stale:` naming the added and removed strings, and the exit code
+is unaffected unless `--fail-on-change` is given.
+
 The check is advisory by default: it exits successfully whether or not it found
 changes, and it never downloads a catalog (Launchpad requires a login to export
 one). `--fail-on-change` makes a detected change non-zero for CI. The one
@@ -691,9 +698,17 @@ advanced deliberately, after the catalogs have been synced:
 python3 dev/check_launchpad.py --update
 ```
 
+After a new template has been uploaded to Launchpad, record its message set so
+the next run no longer reports the pot as stale:
+
+```sh
+python3 dev/check_launchpad.py --record-pot
+```
+
 The [translations-check workflow](.github/workflows/translations-check.yml)
 runs the same check daily and on demand (`workflow_dispatch`), and files one
-labelled issue when it detects upstream changes.
+labelled issue when it detects upstream changes and a separate one when new
+strings are ready to upload.
 
 ### Validating catalogs and source strings
 
