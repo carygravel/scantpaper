@@ -42,6 +42,9 @@ class MockImageView(Gtk.DrawingArea):
     offset = GObject.Property(
         type=Gdk.Rectangle, nick="Image offset", blurb="Gdk.Rectangle of x, y"
     )
+    selection = GObject.Property(
+        type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
+    )
 
     def set_tool(self, tool: object) -> None:
         """Mock set_tool."""
@@ -55,6 +58,10 @@ class MockImageView(Gtk.DrawingArea):
     def set_selection(self, selection: object) -> None:
         """Mock set_selection."""
 
+    def get_selection(self) -> object:
+        """Mock get_selection."""
+        return self.selection
+
 
 class MockCanvas(Gtk.DrawingArea):
     """Mock Canvas class."""
@@ -62,10 +69,14 @@ class MockCanvas(Gtk.DrawingArea):
     __gsignals__: ClassVar[dict[str, tuple[Any, ...]]] = {
         "zoom-changed": (GObject.SignalFlags.RUN_LAST, None, (float,)),
         "offset-changed": (GObject.SignalFlags.RUN_LAST, None, (int, int)),
+        "selection-drawn": (GObject.SignalFlags.RUN_LAST, None, (Gdk.Rectangle,)),
     }
     zoom = GObject.Property(type=float, default=1.0, nick="zoom", blurb="zoom level")
     offset = GObject.Property(
         type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y"
+    )
+    selection = GObject.Property(
+        type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
     )
 
     def clear_text(self) -> None:

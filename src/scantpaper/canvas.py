@@ -494,6 +494,11 @@ class Canvas(Gtk.DrawingArea):
                 int,
             ),
         ),
+        "selection-drawn": (
+            GObject.SignalFlags.RUN_FIRST,
+            None,
+            (Gdk.Rectangle,),
+        ),
     }
 
     def __init__(self, *args: object, **kwargs: object) -> None:
@@ -525,6 +530,10 @@ class Canvas(Gtk.DrawingArea):
         self._pixbuf_size = None
         self._color_lookup_table = None
         self._root_item = _CanvasRoot()
+        self._selection: Gdk.Rectangle | None = None
+        self._drawing = False
+        self._draw_start: tuple[float, float] | None = None
+        self._drag_selection: Gdk.Rectangle | None = None
 
         self._max_color = "black"
         self._max_color_hsv = None
@@ -578,6 +587,19 @@ class Canvas(Gtk.DrawingArea):
             self._zoom = newval
             self.queue_draw()
             self.emit("zoom-changed", newval)
+
+    @property_(
+        type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
+    )
+    def selection(self) -> Gdk.Rectangle | None:
+        """Getter for the selection attribute."""
+        return self._selection
+
+    @selection.setter
+    def selection(self, newval: Gdk.Rectangle | None) -> None:
+        """Setter for the selection attribute."""
+        self._selection = newval
+        self.queue_draw()
 
     @property_(
         type=str,
@@ -780,6 +802,25 @@ class Canvas(Gtk.DrawingArea):
         self._draw_tree(ctx, self._root_item)
 
         ctx.restore()
+
+        rect = self._drag_selection if self._drawing else self.selection
+        if rect is not None:
+            self._draw_selection_rubberband(ctx, rect)
+
+    def _draw_selection_rubberband(self, ctx: object, rect: Gdk.Rectangle) -> None:
+        """Draw the selection rectangle in widget coordinates."""
+        if rect.width <= 0 or rect.height <= 0:
+            return
+        wx = rect.x * self._zoom + self._offset.x
+        wy = rect.y * self._zoom + self._offset.y
+        ww = rect.width * self._zoom
+        wh = rect.height * self._zoom
+        style = self.get_style_context()
+        style.save()
+        style.add_class(Gtk.STYLE_CLASS_RUBBERBAND)
+        Gtk.render_background(style, ctx, wx, wy, ww, wh)
+        Gtk.render_frame(style, ctx, wx, wy, ww, wh)
+        style.restore()
 
     def _draw_tree(self, ctx: object, item: _CanvasRoot | Bbox | None) -> None:
         """Recursively draw bbox tree."""
@@ -1242,6 +1283,7 @@ class Canvas(Gtk.DrawingArea):
                 Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grabbing")
             )
         elif event.button == 1:
+            focus = False
             try:
                 bbox = self._hit_test(event.x, event.y)
                 if (
@@ -1255,10 +1297,49 @@ class Canvas(Gtk.DrawingArea):
                         event,
                         cast("Callable[..., object]", bbox.edit_callback),
                     )
+                    focus = True
             except ReferenceError:
                 pass
+            self._drawing = False
+            self._drag_selection = None
+            if not focus and self.get_pixbuf_size() is not None:
+                self._start_draw(event)
+
+    def _start_draw(self, event: Gdk.EventButton) -> None:
+        """Begin drawing a selection rectangle at the press position."""
+        self._drawing = True
+        self._draw_start = (event.x, event.y)
+        self._drag_selection = self._widget_to_image_rect(
+            event.x, event.y, event.x, event.y
+        )
+
+    def _widget_to_image_rect(
+        self, x1: float, y1: float, x2: float, y2: float
+    ) -> Gdk.Rectangle:
+        """Convert two widget points into an image-coordinate rectangle."""
+        scale = self._zoom
+        offset = self._offset
+        image_x1 = min(x1, x2) / scale - offset.x
+        image_y1 = min(y1, y2) / scale - offset.y
+        image_x2 = max(x1, x2) / scale - offset.x
+        image_y2 = max(y1, y2) / scale - offset.y
+        rect = Gdk.Rectangle()
+        rect.x, rect.y = int(image_x1 + 0.5), int(image_y1 + 0.5)
+        rect.width, rect.height = (
+            int(image_x2 - image_x1 + 0.5),
+            int(image_y2 - image_y1 + 0.5),
+        )
+        return rect
 
     def _button_released(self, _widget: Gtk.Widget, event: Gdk.EventButton) -> bool:
+        if event.button == 1 and self._drawing:
+            rect = self._drag_selection
+            self._drawing = False
+            self._drag_selection = None
+            if rect is not None and rect.width > 0 and rect.height > 0:
+                self.emit("selection-drawn", rect)
+            self.queue_draw()
+            return True
         if event.button == Gdk.BUTTON_MIDDLE:
             self.dragging = False
             win = self.get_window()
@@ -1266,6 +1347,12 @@ class Canvas(Gtk.DrawingArea):
         return True
 
     def _motion(self, _widget: Gtk.Widget, _event: Gdk.EventMotion) -> bool:
+        if self._drawing and self._draw_start is not None:
+            self._drag_selection = self._widget_to_image_rect(
+                self._draw_start[0], self._draw_start[1], _event.x, _event.y
+            )
+            self.queue_draw()
+            return True
         if not self.dragging:
             return False
         offset = self.get_offset()

@@ -123,6 +123,56 @@ def test_layer_controls_cancel_button_hides() -> None:
     assert not controls.get_visible()
 
 
+def test_layer_controls_set_add_enabled_switches_tooltip() -> None:
+    """set_add_enabled() toggles sensitivity and explains the disabled state."""
+    controls = LayerControls()
+    controls.set_add_enabled(enabled=True)
+    assert controls.add_button.get_sensitive()
+    assert controls.add_button.get_tooltip_text() == "Add text"
+
+    controls.set_add_enabled(enabled=False)
+    assert not controls.add_button.get_sensitive()
+    assert "rectangle" in controls.add_button.get_tooltip_text()
+
+
+# ---------------------------------------------------------------------------
+# LayerEditor - Add button gating
+# ---------------------------------------------------------------------------
+
+
+def test_add_button_ghosted_without_selection(mocker: pytest.MockerFixture) -> None:
+    """The Add control is disabled when there is no selection."""
+    editor, _page, _thread, view = make_editor(mocker)
+    view.get_selection.return_value = None
+    editor._update_add_state()
+    assert not editor.controls.add_button.get_sensitive()
+
+
+def test_add_button_enabled_with_selection(mocker: pytest.MockerFixture) -> None:
+    """The Add control is enabled once a selection exists."""
+    editor, _page, _thread, view = make_editor(mocker)
+    view.get_selection.return_value = Gdk.Rectangle()
+    editor._update_add_state()
+    assert editor.controls.add_button.get_sensitive()
+
+
+def test_add_button_tooltip_explains_disabled(mocker: pytest.MockerFixture) -> None:
+    """The disabled Add control tells the user a rectangle is required."""
+    editor, _page, _thread, view = make_editor(mocker)
+    view.get_selection.return_value = None
+    editor._update_add_state()
+    assert "rectangle" in editor.controls.add_button.get_tooltip_text()
+
+
+def test_selection_drawn_commits_to_view(mocker: pytest.MockerFixture) -> None:
+    """A rectangle drawn in the layer pane becomes the shared selection."""
+    editor, _page, _thread, view = make_editor(mocker)
+    rect = Gdk.Rectangle()
+    rect.x, rect.y, rect.width, rect.height = 1, 2, 3, 4
+    editor._on_selection_drawn(editor.canvas, rect)
+    view.set_selection.assert_called_once_with(rect)
+
+
 # ---------------------------------------------------------------------------
 # LayerEditor - edit
 # ---------------------------------------------------------------------------

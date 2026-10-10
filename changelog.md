@@ -1,3 +1,15 @@
+## 3.0.23 (unreleased)
+
+* The "+" (Add) control in the text layer and annotations editor is now
+  disabled until a rectangle has been drawn or selected, and shows a tooltip
+  explaining that one is needed, instead of silently doing nothing or placing
+  a box at an unpredictable position.
+* You can now draw the selection rectangle directly in the text layer or
+  annotations pane, as well as on the image. A single rectangle is shared
+  between the image and the layer panes, so adding or correcting a slice no
+  longer requires drawing it on the image tab first.
+
+
 ## 3.0.22 (2026-10-10)
 
 * Optimize page display: creating a page pixbuf now uses pixel data directly

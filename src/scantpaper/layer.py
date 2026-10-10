@@ -131,7 +131,9 @@ class LayerControls(Gtk.Box):
                 fill=False,
                 padding=0,
             )
-        abutton = self._make_icon_button("list-add", _("Add text"), "add-clicked")
+        self.add_button = self._make_icon_button(
+            "list-add", _("Add text"), "add-clicked"
+        )
 
         obutton = self._make_mnemonic_button(
             _("_OK"), _("Accept corrections"), "ok-clicked"
@@ -154,7 +156,7 @@ class LayerControls(Gtk.Box):
         self.pack_end(obutton, expand=False, fill=False, padding=0)
         if copy:
             self.pack_end(ubutton, expand=False, fill=False, padding=0)
-        self.pack_end(abutton, expand=False, fill=False, padding=0)
+        self.pack_end(self.add_button, expand=False, fill=False, padding=0)
 
     def _make_icon_button(self, icon: str, tooltip: str, signal: str) -> Gtk.Button:
         """Build an icon button that emits the given signal."""
@@ -180,6 +182,20 @@ class LayerControls(Gtk.Box):
         else:
             button.connect("clicked", lambda _: self.emit(signal))
         return button
+
+    def set_add_enabled(self, *, enabled: bool) -> None:
+        """Enable or disable the Add control and set its explanatory tooltip.
+
+        A disabled Add control cannot place a slice without a selection, so it
+        explains that a rectangle must be drawn or selected first.
+        """
+        self.add_button.set_sensitive(enabled)
+        if enabled:
+            self.add_button.set_tooltip_text(_("Add text"))
+        else:
+            self.add_button.set_tooltip_text(
+                _("Draw or select a rectangle before adding")
+            )
 
 
 class LayerEditor:
@@ -210,6 +226,9 @@ class LayerEditor:
             sort=self._sort_enabled, nav=self._nav_enabled, copy=self._copy_enabled
         )
         self._connect_controls()
+        self.canvas.connect("selection-drawn", self._on_selection_drawn)
+        self._view.connect("notify::selection", lambda *_: self._update_add_state())
+        self._update_add_state()
 
     def _parse(
         self, json_string: str, finished_callback: Callable[..., object] | None = None
@@ -245,6 +264,14 @@ class LayerEditor:
         controls.connect("delete-clicked", self.delete)
         if self._copy_enabled:
             controls.connect("copy-clicked", self.copy)
+
+    def _on_selection_drawn(self, _canvas: object, rect: Gdk.Rectangle) -> None:
+        """Commit a rectangle drawn in the layer pane to the shared selection."""
+        self._view.set_selection(rect)
+
+    def _update_add_state(self) -> None:
+        """Enable the Add control only when a selection exists."""
+        self.controls.set_add_enabled(enabled=self._view.get_selection() is not None)
 
     def _sort(self, _widget: object, sort_method: str) -> None:
         """Sort the canvas by the selected method."""

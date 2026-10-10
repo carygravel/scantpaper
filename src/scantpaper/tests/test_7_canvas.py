@@ -2633,6 +2633,155 @@ def test_button_pressed_released_more(mocker: pytest.MockerFixture) -> None:
     canvas._button_pressed(None, event)
 
 
+def test_canvas_draw_selection_rectangle(mocker: pytest.MockerFixture) -> None:
+    """Dragging on empty space emits a selection-drawn rectangle in image coords."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    canvas._zoom = 1.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    root = canvas.get_root_item()
+    canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    received = []
+    canvas.connect(
+        "selection-drawn",
+        lambda _c, rect: received.append((rect.x, rect.y, rect.width, rect.height)),
+    )
+
+    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
+    canvas._motion(None, MagicMock(x=40, y=30))
+    canvas._button_released(None, MagicMock(button=1))
+
+    assert received == [(10, 10, 30, 20)]
+
+
+def test_canvas_click_on_bbox_does_not_draw_selection(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A plain click on an editable box focuses it and never draws a selection."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    canvas._zoom = 1.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+    canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+        edit_callback=MagicMock(),
+    )
+    received = []
+    canvas.connect("selection-drawn", lambda _c, rect: received.append(rect))
+
+    canvas._button_pressed(None, MagicMock(button=1, x=50, y=50))
+    canvas._motion(None, MagicMock(x=60, y=60))
+    canvas._button_released(None, MagicMock(button=1))
+
+    assert received == []
+    assert not canvas._drawing
+
+
+def test_canvas_click_without_pixbuf_does_not_draw(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Pressing with no image displayed must not start a selection draw."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = None
+    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
+    assert not canvas._drawing
+
+
+def test_canvas_selection_property_redraws(mocker: pytest.MockerFixture) -> None:
+    """Setting the canvas selection stores it and schedules a redraw."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    qd = mocker.patch.object(canvas, "queue_draw")
+    rect = Rectangle(x=0, y=0, width=10, height=10)
+    canvas.selection = rect
+    assert canvas.selection.x == 0
+    assert canvas.selection.width == 10
+    qd.assert_called()
+
+
+def test_canvas_draw_scene_skips_degenerate_selection(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A zero-size in-progress selection draws no rubberband."""
+    render_bg = mocker.patch("gi.repository.Gtk.render_background")
+    render_frame = mocker.patch("gi.repository.Gtk.render_frame")
+    canvas = _canvas_with_page(mocker)
+
+    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
+    canvas._draw_scene(MagicMock())
+
+    render_bg.assert_not_called()
+    render_frame.assert_not_called()
+
+
+def _canvas_with_page(mocker: pytest.MockerFixture) -> Canvas:
+    """Return a real Canvas with a page box and an image size."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    canvas._zoom = 1.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    root = canvas.get_root_item()
+    canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    return canvas
+
+
+def test_canvas_draw_scene_renders_selection(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """_draw_scene draws the shared selection as a rubberband rectangle."""
+    render_bg = mocker.patch("gi.repository.Gtk.render_background")
+    render_frame = mocker.patch("gi.repository.Gtk.render_frame")
+    canvas = _canvas_with_page(mocker)
+    canvas.selection = Rectangle(x=5, y=5, width=10, height=10)
+
+    canvas._draw_scene(MagicMock())
+
+    render_bg.assert_called()
+    render_frame.assert_called()
+
+
+def test_canvas_draw_scene_renders_in_progress_drag(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """While dragging, _draw_scene renders the live rectangle instead."""
+    render_bg = mocker.patch("gi.repository.Gtk.render_background")
+    render_frame = mocker.patch("gi.repository.Gtk.render_frame")
+    canvas = _canvas_with_page(mocker)
+
+    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
+    canvas._motion(None, MagicMock(x=40, y=30))
+    canvas._draw_scene(MagicMock())
+
+    render_bg.assert_called()
+    render_frame.assert_called()
+
+
 def test_list_iter_get_previous_bbox_at_zero() -> None:
     """Test get_previous_bbox when index is already 0."""
     li = ListIter()
