@@ -798,10 +798,12 @@ class ApplicationWindow(
             self.settings["available-tmp-warning"],
         )
         if df < cast("int", self.settings["available-tmp-warning"]):
-            text = ngettext("%dMb free in %s.", "%dMb free in %s.", int(df)) % (
-                int(df),
-                self.session.name,
-            )
+            text = ngettext(
+                "%(mb)dMb free in %(name)s.", "%(mb)dMb free in %(name)s.", int(df)
+            ) % {
+                "mb": int(df),
+                "name": self.session.name,
+            }
             self._show_message_dialog(
                 parent=self,
                 message_type="warning",

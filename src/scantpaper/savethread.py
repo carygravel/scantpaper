@@ -261,11 +261,11 @@ class SaveThread(Importhread):
                 list_of_pages.append(page)
                 request.data(i / (len(options["list_of_pages"]) + 1))
                 request.data(
-                    _("Writing page %i of %i")
-                    % (
-                        i,
-                        len(options["list_of_pages"]),
-                    )
+                    _("Writing page %(current)i of %(total)i")
+                    % {
+                        "current": i,
+                        "total": len(options["list_of_pages"]),
+                    }
                 )
 
                 # store the filename and not the tempfile object to avoid potentially
@@ -404,11 +404,11 @@ class SaveThread(Importhread):
             page = self.get_page(id=page_id)
             request.data(i / (len(args["list_of_pages"]) + 1))
             request.data(
-                _("Writing page %i of %i")
-                % (
-                    i,
-                    len(args["list_of_pages"]),
-                )
+                _("Writing page %(current)i of %(total)i")
+                % {
+                    "current": i,
+                    "total": len(args["list_of_pages"]),
+                }
             )
             with tempfile.NamedTemporaryFile(
                 dir=args.get("dir"), suffix=".djvu", delete=False

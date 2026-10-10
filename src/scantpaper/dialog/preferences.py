@@ -349,11 +349,14 @@ All document date codes use strftime codes with a leading D, e.g.:
         entry = Gtk.Entry()
         entry.set_text(tool)
         entry.set_tooltip_text(
-            _("""Use %i and %o for the input and output filenames respectively,
-or a single %i if the image is to be modified in-place.
+            _(
+                """Use %%i and %%o for the input and output filenames respectively,
+or a single %%i if the image is to be modified in-place.
 
 The other variable available is:
-%r resolution""")
+%%r resolution"""
+            )
+            % ()
         )
         hbox.pack_start(entry, expand=True, fill=True, padding=0)
         button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))

@@ -72,10 +72,13 @@ class SessionMixins:
             ):
                 logger.warning(
                     _(
-                        "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+                        "Warning: unable to use %(configured)s for temporary "
+                        "storage. Defaulting to %(default)s instead."
                     ),
-                    self.settings["TMPDIR"],
-                    tmpdir,
+                    {
+                        "configured": self.settings["TMPDIR"],
+                        "default": tmpdir,
+                    },
                 )
             self.settings["TMPDIR"] = tmpdir
 

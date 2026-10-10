@@ -319,8 +319,10 @@ def munge_message(messages: str) -> str | list[str]:
             )
             + " "
             + _(
-                "Please see https://imagemagick.org/script/resources.php for more information"
+                "Please see the ImageMagick resource documentation for more "
+                "information: %(url)s"
             )
+            % {"url": "https://imagemagick.org/script/resources.php"}
         )
 
     return messages

@@ -287,10 +287,15 @@ class SaneScanDialog(Scan):
         constraint = cast("tuple[float, float, float]", opt.constraint)
         if constraint[0] > constraint[1]:
             logger.error(
-                _("Ignoring scan option '%s', minimum range (%s) > maximum (%s)"),
-                opt.name,
-                constraint[0],
-                constraint[1],
+                _(
+                    "Ignoring scan option '%(name)s', minimum range "
+                    "(%(minimum)s) > maximum (%(maximum)s)"
+                ),
+                {
+                    "name": opt.name,
+                    "minimum": constraint[0],
+                    "maximum": constraint[1],
+                },
             )
             return None
         step = spin_step(constraint)

@@ -89,7 +89,8 @@ class Importhread(BaseThread):
         proc = exec_command(["file", "-Lb", path], pidfile)
         if proc.stdout is None:
             raise RuntimeError(
-                _("Error getting file info for %s: %s") % (path, proc.stderr)
+                _("Error getting file info for %(path)s: %(error)s")
+                % {"path": path, "error": proc.stderr}
             )
         proc.stdout = proc.stdout.rstrip()
         logger.info("Format: '%s'", proc.stdout)
@@ -325,10 +326,10 @@ class Importhread(BaseThread):
             elif args["last"] >= args["first"] and args["first"] > 0:
                 for i in range(args["first"] - 1, args["last"] - 1 + 1):
                     self.progress = i / (args["last"] - args["first"] + 1)
-                    self.message = _("Importing page %i of %i") % (
-                        i,
-                        args["last"] - args["first"] + 1,
-                    )
+                    self.message = _("Importing page %(current)i of %(total)i") % {
+                        "current": i,
+                        "total": args["last"] - args["first"] + 1,
+                    }
                     with tempfile.NamedTemporaryFile(
                         dir=args["dir"], suffix=".tif"
                     ) as tif:
@@ -385,10 +386,10 @@ class Importhread(BaseThread):
         if args["last"] >= args["first"] and args["first"] > 0:
             for i in range(args["first"], args["last"] + 1):
                 self.progress = (i - 1) / (args["last"] - args["first"] + 1)
-                self.message = _("Importing page %i of %i") % (
-                    i,
-                    args["last"] - args["first"] + 1,
-                )
+                self.message = _("Importing page %(current)i of %(total)i") % {
+                    "current": i,
+                    "total": args["last"] - args["first"] + 1,
+                }
                 with tempfile.NamedTemporaryFile(dir=args["dir"], suffix=".tif") as tif:
                     exec_command_run(
                         [

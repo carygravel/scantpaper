@@ -260,9 +260,9 @@ def _normalise_types(config: ConfigDict) -> None:
         coerced = _coerce_to_type(value, type(default))
         if coerced is None:
             message = _(
-                "The setting %s is %r and cannot be used as %s, so it has "
-                "been left unchanged."
-            ) % (key, value, type(default).__name__)
+                "The setting %(key)s is %(value)r and cannot be used as "
+                "%(type)s, so it has been left unchanged."
+            ) % {"key": key, "value": value, "type": type(default).__name__}
             config.load_warnings.append(message)
             logger.warning(message)
         else:
@@ -296,17 +296,21 @@ def read_config(filename: str) -> ConfigDict:
             config = _salvage_config(configstr)
             if config:
                 message = _(
-                    "The settings file %s could not be read in full. The "
-                    "following settings were restored: %s. The rest were "
-                    "reset to their defaults. A backup of the original "
-                    "file has been saved as %s."
-                ) % (filename, ", ".join(sorted(config)), backup)
+                    "The settings file %(filename)s could not be read in "
+                    "full. These settings were restored: %(settings)s. The "
+                    "rest were reset to their defaults. A backup has been "
+                    "saved as %(backup)s."
+                ) % {
+                    "filename": filename,
+                    "settings": ", ".join(sorted(config)),
+                    "backup": backup,
+                }
             else:
                 message = _(
-                    "The settings file %s could not be read, so all "
-                    "settings have been reset to their defaults. A backup "
-                    "of the original file has been saved as %s."
-                ) % (filename, backup)
+                    "The settings file %(filename)s could not be read, so all "
+                    "settings have been reset to their defaults. A backup of "
+                    "the original file has been saved as %(backup)s."
+                ) % {"filename": filename, "backup": backup}
             config.load_warnings.append(message)
             logger.warning(message)
 

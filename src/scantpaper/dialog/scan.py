@@ -767,11 +767,15 @@ class Scan(PageControls):
                 "process-error",
                 "update_options",
                 _(
-                    "Reload recursion limit (%d) exceeded: %d reloads for %d "
-                    "scan options. Please file a bug, attaching a log file "
-                    "reproducing the problem."
+                    "Reload recursion limit (%(limit)d) exceeded: "
+                    "%(reloads)d reloads for %(options)d scan options. Please "
+                    "file a bug, attaching a log file reproducing the problem."
                 )
-                % (limit, self.num_reloads, self.available_scan_options.num_options()),
+                % {
+                    "limit": limit,
+                    "reloads": self.num_reloads,
+                    "options": self.available_scan_options.num_options(),
+                },
             )
             return
 
@@ -1753,5 +1757,8 @@ def _new_val(oldval: object, newval: object) -> bool:
 def make_progress_string(i: int, num_pages: int) -> str:
     """Return a progress string."""
     if num_pages > 0:
-        return _("Scanning page %d of %d") % (i, num_pages)
-    return _("Scanning page %d") % (i)
+        return _("Scanning page %(current)d of %(total)d") % {
+            "current": i,
+            "total": num_pages,
+        }
+    return _("Scanning page %(current)d") % {"current": i}

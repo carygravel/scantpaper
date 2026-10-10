@@ -596,7 +596,8 @@ class FileMenuMixins:
                     parent=dialog,
                     message_type="error",
                     buttons=Gtk.ButtonsType.CLOSE,
-                    text=_("Error saving %s: %s") % (filename, exc),
+                    text=_("Error saving %(filename)s: %(error)s")
+                    % {"filename": filename, "error": exc},
                 )
             else:
                 if (

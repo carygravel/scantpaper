@@ -1245,7 +1245,10 @@ class DocThread(SaveThread):
         for page_id in list_of_pages:
             page = self.get_page(id=page_id)
             self.progress = (i - 1) / total
-            self.message = _("Analysing page %i of %i") % (i, total)
+            self.message = _("Analysing page %(current)i of %(total)i") % {
+                "current": i,
+                "total": total,
+            }
             i += 1
             self.check_cancelled()
 

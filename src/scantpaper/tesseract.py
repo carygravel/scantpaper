@@ -247,10 +247,11 @@ def locale_installed(locale: str, installed_codes: list[str]) -> str:
             + " "
             + (
                 _(
-                    "Please install tesseract package 'tesseract-ocr-%s' and "
-                    "restart scantpaper for OCR for %s with tesseract."
+                    "Please install tesseract package 'tesseract-ocr-%(package)s' "
+                    "and restart scantpaper for OCR for %(language)s with "
+                    "tesseract."
                 )
-                % (code3, installable_languages()[code3])
+                % {"package": code3, "language": installable_languages()[code3]}
             )
             + "\n"
         )

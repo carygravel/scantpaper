@@ -138,8 +138,9 @@ def test_1() -> None:
 
 This error is normally due to ImageMagick exceeding its resource limits. These """
         """can be extended by editing its policy file, which on my system is found at """
-        "/etc/ImageMagick-6/policy.xml Please see "
-        "https://imagemagick.org/script/resources.php for more information"
+        "/etc/ImageMagick-6/policy.xml Please see the ImageMagick resource "
+        "documentation for more information: "
+        "https://imagemagick.org/script/resources.php"
     )
     assert munge_message("Exception 400: memory allocation failed") == expected, (
         "extend imagemagick Exception 400"

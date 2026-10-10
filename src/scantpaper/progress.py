@@ -73,7 +73,12 @@ class Progress(Gtk.Box):
         )
         if total and cast("str | None", process_name) is not None:
             self.set_text(
-                _("Process %i of %i (%s)") % (num_completed + 1, total, process_name)
+                _("Process %(current)i of %(total)i (%(process)s)")
+                % {
+                    "current": num_completed + 1,
+                    "total": total,
+                    "process": process_name,
+                }
             )
             self.set_fraction(min(1.0, (num_completed + 0.5) / total))
             self.show()
@@ -107,20 +112,20 @@ class Progress(Gtk.Box):
         if response.total_jobs is not None:
             if response.request.process:
                 self.set_text(
-                    _("Process %i of %i (%s)")
-                    % (
-                        cast("int", response.num_completed_jobs) + 1,
-                        response.total_jobs,
-                        response.request.process,
-                    )
+                    _("Process %(current)i of %(total)i (%(process)s)")
+                    % {
+                        "current": cast("int", response.num_completed_jobs) + 1,
+                        "total": response.total_jobs,
+                        "process": response.request.process,
+                    }
                 )
             else:
                 self.set_text(
-                    _("Process %i of %i")
-                    % (
-                        cast("int", response.num_completed_jobs) + 1,
-                        response.total_jobs,
-                    )
+                    _("Process %(current)i of %(total)i")
+                    % {
+                        "current": cast("int", response.num_completed_jobs) + 1,
+                        "total": response.total_jobs,
+                    }
                 )
             self.set_fraction(
                 min(
