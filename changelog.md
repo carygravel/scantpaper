@@ -1,4 +1,4 @@
-## 3.0.22 (unreleased)
+## 3.0.22 (2026-10-10)
 
 * Optimize page display: creating a page pixbuf now uses pixel data directly
   instead of encoding the full-resolution image as a PNG to a temporary file,
