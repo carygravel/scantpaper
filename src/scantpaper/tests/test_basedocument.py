@@ -928,6 +928,49 @@ def test_find_page_by_uuid_index() -> None:
     assert slist.find_page_by_uuid(999) is None, "missing page returns None"
 
 
+def test_remove_page_by_uuid() -> None:
+    """A stale page can be removed and the remaining pages renumbered."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.add_page(3, None, 103)
+
+    assert slist.remove_page_by_uuid(102) is True
+    assert slist.find_page_by_uuid(102) is None, "removed page is gone"
+    assert len(slist.data) == 2
+    assert slist.data[0][2] == 101
+    assert slist.data[1][2] == 103
+    assert slist.data[0][0] == 1, "page numbers stay consecutive"
+    assert slist.data[1][0] == 2
+
+
+def test_remove_page_by_uuid_missing() -> None:
+    """Removing a page that is not in the list returns False and changes nothing."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    assert slist.remove_page_by_uuid(999) is False
+    assert len(slist.data) == 1
+    assert slist.data[0][2] == 101
+
+
+def test_remove_page_by_uuid_first_and_last() -> None:
+    """Removing the first or last page renumbers the survivors consistently."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.add_page(3, None, 103)
+
+    slist.remove_page_by_uuid(101)
+    assert len(slist.data) == 2
+    assert [row[0] for row in slist.data] == [1, 2]
+    assert [row[2] for row in slist.data] == [102, 103]
+
+    slist.remove_page_by_uuid(103)
+    assert len(slist.data) == 1
+    assert [row[0] for row in slist.data] == [1]
+    assert [row[2] for row in slist.data] == [102]
+
+
 def test_get_page_index_selected_none() -> None:
     """Test get_page_index with 'selected' and no pages selected."""
     slist = Document()

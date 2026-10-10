@@ -274,6 +274,26 @@ class BaseDocument(SimpleList):
                 return i
         return None
 
+    def remove_page_by_uuid(self, uid: object) -> bool:
+        """Remove a stale page from the list by its id.
+
+        Used to reconcile the page list when a referenced page no longer
+        exists in the document (e.g. it was dropped from the current undo
+        snapshot), so it is not repeatedly reported as missing. Returns True
+        if the page was present and removed.
+        """
+        i = self.find_page_by_uuid(uid)
+        if i is None:
+            return False
+        logger.info("Removing stale page %s from the page list", uid)
+        if self.row_changed_signal is not None:
+            self.get_model().handler_block(self.row_changed_signal)
+        del self.data[i]
+        if self.row_changed_signal is not None:
+            self.get_model().handler_unblock(self.row_changed_signal)
+        self.renumber()
+        return True
+
     def _find_page_by_ref(self, uid: object) -> int:
         i = self.find_page_by_uuid(uid)
         if i is None:

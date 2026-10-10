@@ -13,6 +13,15 @@
   opened document, so you can start selecting immediately instead of having to
   clear a leftover box first. The selection still persists while you work,
   e.g. across page changes, within a session.
+* Cropping no longer fails with a confusing internal error when the selection
+  is invalid (e.g. has zero or negative width). An empty or corrupted
+  selection is rejected with a clear message instead of leaving the page
+  unchanged mid-operation.
+* A page that no longer exists in the document (for example one lost after an
+  interrupted scan) is now removed from the page list the first time it fails
+  to load, instead of being reported as missing on every display. The view
+  shows a valid page (or clears if none remain), and the remaining pages are
+  renumbered to stay consecutive.
 
 
 ## 3.0.22 (2026-10-10)

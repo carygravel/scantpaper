@@ -1420,6 +1420,10 @@ class DocThread(SaveThread):
         width = options["w"]
         height = options["h"]
 
+        if width <= 0 or height <= 0:
+            msg = "Cannot crop with a selection of zero or negative size"
+            raise ValueError(msg)
+
         logger.info("Crop %s x %s y %s w %s h %s", page.id, left, top, width, height)
 
         page.image_object = page.image_object.crop(

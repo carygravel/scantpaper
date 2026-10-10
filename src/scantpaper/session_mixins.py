@@ -281,6 +281,11 @@ class SessionMixins:
 
         def on_page_error(response: Response) -> None:
             logger.error("Error loading page %s: %s", pageid, response.status)
+            # The page no longer exists in the document: drop it from the list
+            # so it is not repeatedly reported as missing, and show a valid
+            # page instead of the stale thumbnail.
+            if self.slist.remove_page_by_uuid(pageid):
+                self._redisplay_after_page_removed(i)
 
         self.slist.thread.send(
             "get_page",
@@ -288,6 +293,14 @@ class SessionMixins:
             finished_callback=self._on_page_loaded,
             error_callback=on_page_error,
         )
+
+    def _redisplay_after_page_removed(self, removed_index: int) -> None:
+        """Show a valid page (or clear the view) after a stale page is removed."""
+        if not self.slist.data:
+            self.view.set_pixbuf(None)
+            return
+        idx = min(removed_index, len(self.slist.data) - 1)
+        self._display_image(self.slist.data[idx][2])
 
     def _on_page_loaded(self, response: Response) -> None:
         """Display a fully loaded page."""

@@ -918,6 +918,11 @@ class ImageView(Gtk.DrawingArea):
                 if selection.y + selection.height > pixbuf_size.height:
                     selection.height = pixbuf_size.height - selection.y
 
+                # Clamping must never yield a negative width/height: a fully
+                # out-of-bounds selection clamps to zero area, never negative.
+                selection.width = max(selection.width, 0)
+                selection.height = max(selection.height, 0)
+
             self.selection = selection
             self.queue_draw()
             self.emit("selection-changed", selection)

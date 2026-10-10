@@ -138,6 +138,38 @@ def test_selection(rose_png: str) -> None:
     assert selection.height == 36, "selection cannot overlap bottom right border heigth"
 
 
+def test_selection_clamp_never_negative(rose_png: str) -> None:
+    """A selection fully outside the image clamps to zero area, never negative."""
+    view = ImageView()
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=True)
+    # rose.png is 70x46.
+    selection = Gdk.Rectangle()
+    selection.x, selection.y, selection.width, selection.height = -50, -50, 30, 30
+    view.set_selection(selection)
+    assert selection.width >= 0, "negative-x clamp must not yield negative width"
+    assert selection.height >= 0, "negative-y clamp must not yield negative height"
+
+    selection.x, selection.y, selection.width, selection.height = 60, 40, 80, 50
+    view.set_selection(selection)
+    assert selection.width >= 0, "right-overflow clamp must not yield negative width"
+    assert selection.height >= 0, "bottom-overflow clamp must not yield negative height"
+    assert selection.x <= 70, "clamped x stays within image"
+    assert selection.y <= 46, "clamped y stays within image"
+
+
+def test_selection_clamp_keeps_stored_selection_valid(rose_png: str) -> None:
+    """The stored shared selection is never left with a negative rectangle."""
+    view = ImageView()
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=True)
+    stored = Gdk.Rectangle()
+    stored.x, stored.y, stored.width, stored.height = -50, -50, 30, 30
+    # set_selection clamps the passed object in place, as the shared
+    # settings["selection"] would be; it must not become negative.
+    view.set_selection(stored)
+    assert stored.width >= 0
+    assert stored.height >= 0
+
+
 def test_viewport(rose_png: str) -> None:
     """Basic tests for imageview."""
     view = ImageView()

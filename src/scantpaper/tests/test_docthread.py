@@ -1007,6 +1007,84 @@ def test_get_page_errors(mocker: pytest.MockerFixture) -> None:
         thread.get_page(id=1)
 
 
+def test_do_crop_rejects_zero_width(mocker: pytest.MockerFixture) -> None:
+    """A crop with zero width is rejected without touching the image."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = mocker.Mock()
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "x": 10, "y": 10, "w": 0, "h": 20}]
+
+    with pytest.raises(ValueError, match="zero or negative size"):
+        thread.do_crop(request)
+
+    mock_page.image_object.crop.assert_not_called()
+
+
+def test_do_crop_rejects_negative_width(mocker: pytest.MockerFixture) -> None:
+    """A crop with negative width is rejected."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = mocker.Mock()
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "x": 10, "y": 10, "w": -5, "h": 20}]
+
+    with pytest.raises(ValueError, match="zero or negative size"):
+        thread.do_crop(request)
+
+    mock_page.image_object.crop.assert_not_called()
+
+
+def test_do_crop_rejects_negative_height(mocker: pytest.MockerFixture) -> None:
+    """A crop with negative height is rejected."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = mocker.Mock()
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "x": 10, "y": 10, "w": 20, "h": -5}]
+
+    with pytest.raises(ValueError, match="zero or negative size"):
+        thread.do_crop(request)
+
+    mock_page.image_object.crop.assert_not_called()
+
+
+def test_do_crop_valid_succeeds(mocker: pytest.MockerFixture) -> None:
+    """A valid crop still crops the page image."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+    cropped = mocker.Mock()
+    cropped.width = 10
+    cropped.height = 10
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.id = 1
+    mock_page.image_object = mocker.Mock()
+    crop_method = mock_page.image_object.crop
+    crop_method.return_value = cropped
+    mock_page.text_layer = None
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    mocker.patch.object(thread, "check_cancelled")
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "x": 10, "y": 10, "w": 20, "h": 20}]
+
+    thread.do_crop(request)
+
+    crop_method.assert_called_once_with((10, 10, 30, 30))
+    thread.replace_page.assert_called_once_with(mock_page, 1)
+    request.data.assert_called_once()
+
+
 def test_do_tesseract_no_lang(mocker: pytest.MockerFixture) -> None:
     """Test do_tesseract with no language."""
     thread = DocThread(db=":memory:")

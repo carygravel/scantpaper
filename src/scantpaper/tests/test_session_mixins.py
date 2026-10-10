@@ -668,6 +668,106 @@ def test_display_image_error(
     assert "Error loading page page_id: Some error" in caplog.text
 
 
+def test_display_image_error_reconciles(
+    caplog: pytest.LogCaptureFixture,
+    mocker: pytest.MockerFixture,
+    mock_session_window: object,
+) -> None:
+    """On a not-found page, the stale page is removed and the view redisplayed."""
+    mock_session_window.slist.find_page_by_uuid.return_value = 0
+    mock_session_window.slist.data = [["page_num", None, "page_id"]]
+    mock_session_window.slist.remove_page_by_uuid.return_value = True
+    mock_session_window._redisplay_after_page_removed = mocker.Mock()
+
+    captured_callbacks = {}
+
+    def capture_send(process: object, *_args: object, **kwargs: object) -> object:
+        del process
+        captured_callbacks["error_callback"] = kwargs.get("error_callback")
+        return mocker.Mock()
+
+    mock_session_window.slist.thread.send.side_effect = capture_send
+
+    mock_session_window._display_image("page_id")
+
+    mock_response = mocker.Mock()
+    mock_response.status = "Some error"
+    with caplog.at_level(logging.ERROR):
+        captured_callbacks["error_callback"](mock_response)
+
+    mock_session_window.slist.remove_page_by_uuid.assert_called_with("page_id")
+    # The page at the removed index is redisplayed (valid pages unaffected).
+    mock_session_window._redisplay_after_page_removed.assert_called_once_with(0)
+
+
+def test_display_image_error_clears_when_no_pages_remain(
+    caplog: pytest.LogCaptureFixture,
+    mocker: pytest.MockerFixture,
+    mock_session_window: object,
+) -> None:
+    """When the last page is reconciled away, the view is cleared."""
+    mock_session_window.slist.find_page_by_uuid.return_value = 0
+    mock_session_window.slist.data = [["page_num", None, "page_id"]]
+
+    def remove_side_effect(_uid: object) -> bool:
+        mock_session_window.slist.data.clear()
+        return True
+
+    mock_session_window.slist.remove_page_by_uuid.side_effect = remove_side_effect
+
+    captured_callbacks = {}
+
+    def capture_send(process: object, *_args: object, **kwargs: object) -> object:
+        del process
+        captured_callbacks["error_callback"] = kwargs.get("error_callback")
+        return mocker.Mock()
+
+    mock_session_window.slist.thread.send.side_effect = capture_send
+
+    mock_session_window._display_image("page_id")
+
+    mock_response = mocker.Mock()
+    mock_response.status = "Some error"
+    with caplog.at_level(logging.ERROR):
+        captured_callbacks["error_callback"](mock_response)
+
+    mock_session_window.view.set_pixbuf.assert_called_with(None)
+
+
+def test_display_image_error_removed_page_not_reported_again(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Once reconciled, a stale page is not loaded (and reported) again."""
+    mock_session_window.slist.find_page_by_uuid.return_value = None
+    mock_session_window.slist.remove_page_by_uuid.return_value = False
+    mock_session_window.slist.thread.send = mocker.Mock()
+    mock_session_window._display_image("page_id")
+    mock_session_window.slist.thread.send.assert_not_called()
+
+
+def test_redisplay_after_page_removed_shows_next_page(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """After removing a stale page, the page at its position is shown."""
+    mock_session_window.slist.data = [
+        ["1", None, "page-a"],
+        ["2", None, "page-b"],
+    ]
+    mock_session_window._display_image = mocker.Mock()
+    mock_session_window._redisplay_after_page_removed(1)
+    mock_session_window._display_image.assert_called_with("page-b")
+
+
+def test_redisplay_after_page_removed_clamps_index(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """A removed last page clamps to the new last page."""
+    mock_session_window.slist.data = [["1", None, "page-a"]]
+    mock_session_window._display_image = mocker.Mock()
+    mock_session_window._redisplay_after_page_removed(5)
+    mock_session_window._display_image.assert_called_with("page-a")
+
+
 def test_display_image_suppressed_no_get_page(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
