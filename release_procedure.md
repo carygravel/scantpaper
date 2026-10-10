@@ -4,8 +4,15 @@
 1. New screendump required? Print screen creates screenshot.png in Desktop.
 1. Download new translations (https://translations.launchpad.net/scantpaper)
 1. Update translators in credits (https://launchpad.net/scantpaper/+topcontributors)
-1. Update version in pyproject.toml
-1. Update version and date in `<release>` element in [org.scantpaper.desktop.metainfo.xml](org.scantpaper.desktop.metainfo.xml)
+1. Prepare the version files. This bumps the version in pyproject.toml, stamps
+   the current `changelog.md` section with the release date, and adds the dated
+   `<release>` element to [org.scantpaper.desktop.metainfo.xml](org.scantpaper.desktop.metainfo.xml).
+   The version is taken from the `(unreleased)` heading in `changelog.md`; the
+   same date is written to both the changelog and the metainfo file.
+   ```sh
+   python3 dev/release.py --dry-run  # preview the changes
+   python3 dev/release.py            # write them
+   ```
 1. Upload .pot
    ```sh
    python3 dev/generate_pot.py
