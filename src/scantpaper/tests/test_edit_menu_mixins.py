@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime
 from typing import TYPE_CHECKING
-from unittest.mock import ANY, MagicMock
+from unittest.mock import ANY, MagicMock, call
 
 import gi
 import pytest
@@ -260,16 +260,48 @@ def test_select_no_ocr(mock_edit_window: object) -> None:
 
 def test_clear_ocr(mock_edit_window: object) -> None:
     """Test clear_ocr."""
-    page1 = MagicMock()
-    page1.text_layer = "text"
-
     mock_edit_window.slist.get_selected_indices.return_value = [0]
-    mock_edit_window.slist.data = [[0, 0, page1]]
+    mock_edit_window.slist.data = [[0, 0, 101]]
 
     mock_edit_window.clear_ocr(None, None)
 
     mock_edit_window.t_canvas.clear_text.assert_called_once()
-    assert page1.text_layer is None
+    mock_edit_window.slist.thread.send.assert_called_once_with("set_text", 101, "[]")
+    assert mock_edit_window.slist.begin_undo_batch.call_count == 1
+    assert mock_edit_window.slist.end_undo_batch.call_count == 1
+    calls = [call[0] for call in mock_edit_window.slist.method_calls]
+    assert calls.index("begin_undo_batch") < calls.index("thread.send")
+    assert calls.index("thread.send") < calls.index("end_undo_batch")
+
+
+def test_clear_ocr_multiple_pages(mock_edit_window: object) -> None:
+    """Test clear_ocr over several selected pages forms a single undo step."""
+    mock_edit_window.slist.get_selected_indices.return_value = [0, 1]
+    mock_edit_window.slist.data = [[0, 0, 101], [0, 0, 102]]
+
+    mock_edit_window.clear_ocr(None, None)
+
+    mock_edit_window.slist.thread.send.assert_has_calls(
+        [call("set_text", 101, "[]"), call("set_text", 102, "[]")]
+    )
+    assert mock_edit_window.slist.begin_undo_batch.call_count == 1
+    assert mock_edit_window.slist.end_undo_batch.call_count == 1
+    calls = [call[0] for call in mock_edit_window.slist.method_calls]
+    assert calls.index("begin_undo_batch") < calls.index("thread.send")
+    assert calls.index("thread.send") < calls.index("end_undo_batch")
+
+
+def test_clear_ocr_no_selection(mock_edit_window: object) -> None:
+    """Test clear_ocr with no pages selected is a no-op."""
+    mock_edit_window.slist.get_selected_indices.return_value = []
+    mock_edit_window.slist.data = [[0, 0, 101]]
+
+    mock_edit_window.clear_ocr(None, None)
+
+    mock_edit_window.t_canvas.clear_text.assert_called_once()
+    mock_edit_window.slist.thread.send.assert_not_called()
+    mock_edit_window.slist.begin_undo_batch.assert_not_called()
+    mock_edit_window.slist.end_undo_batch.assert_not_called()
 
 
 def test_select_blank(mock_edit_window: object) -> None:

@@ -225,8 +225,15 @@ class EditMenuMixins:
         # Clear the existing canvas
         self.t_canvas.clear_text()
         selection = self.slist.get_selected_indices()
-        for i in selection:
-            self.slist.data[i][2].text_layer = None
+        if not selection:
+            return
+        # All selected pages change in one undo step.
+        self.slist.begin_undo_batch()
+        try:
+            for i in selection:
+                self.slist.thread.send("set_text", self.slist.data[i][2], "[]")
+        finally:
+            self.slist.end_undo_batch()
 
     def select_blank(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None

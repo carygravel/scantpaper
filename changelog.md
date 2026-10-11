@@ -10,6 +10,10 @@
   attached (the tabbed view stayed in place) so the image only appeared after
   cycling through the view modes. The split divider's position is remembered
   across sessions.
+* "Clear OCR" no longer fails with an internal error. It now removes the
+  OCR text layer from every selected page, saves the change so it survives a
+  reload, and makes clearing several pages at once a single undoable step
+  (one Undo restores all of them).
 
 
 ## 3.0.23 (2026-10-11)
