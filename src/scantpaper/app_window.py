@@ -552,7 +552,40 @@ class ApplicationWindow(
         settings = toolbar.get_settings()
         settings.gtk_toolbar_style = "icons"  # only icons
 
+    def _init_split_pane(
+        self, pane: Gtk.Paned, orientation: Gtk.Orientation, saved_position: int | None
+    ) -> None:
+        """Give a split pane a usable divider position on startup.
+
+        A freshly created GtkPaned derives its divider from the children's
+        initial size requests, which are empty before any image loads, so it
+        can collapse to an edge and hide the image. Restore a saved position,
+        or set a half-split default on the first allocation, so both panes are
+        visible.
+        """
+        if saved_position is not None:
+            pane.set_position(int(saved_position))
+            return
+
+        def on_size_allocate(_pane: Gtk.Widget, alloc: Gtk.Allocation) -> None:
+            size = (
+                alloc.width
+                if orientation == Gtk.Orientation.HORIZONTAL
+                else alloc.height
+            )
+            pane.set_position(size // 2)
+            pane.disconnect(handler_id)
+
+        handler_id = pane.connect("size-allocate", on_size_allocate)
+
     def _pack_viewer_tools(self) -> None:
+        # The .ui and _populate_panes leave _vnotebook in _vpaned's pack1.
+        # GtkPaned.pack1 silently keeps an existing pack1 child, so it must be
+        # removed before packing the (possibly different) view container, or a
+        # split view would never become visible on startup.
+        child1 = self._vpaned.get_child1()
+        if child1 is not None:
+            self._vpaned.remove(child1)
         if self.settings["viewer_tools"] == "tabbed":
             self._vnotebook.append_page(self.view, Gtk.Label(label=_("Image")))
             self._vnotebook.append_page(self.t_canvas, Gtk.Label(label=_("Text layer")))
@@ -567,12 +600,22 @@ class ApplicationWindow(
             if self.a_canvas.get_parent():
                 self._vnotebook.remove(self.a_canvas)
             self._vpaned.pack1(self._hpanei, resize=True, shrink=True)
+            self._init_split_pane(
+                self._hpanei,
+                Gtk.Orientation.HORIZONTAL,
+                self.settings.get("split panel h"),
+            )
         else:  # vertical
             self._vpanei.pack1(self.view, resize=True, shrink=True)
             self._vpanei.pack2(self.t_canvas, resize=True, shrink=True)
             if self.a_canvas.get_parent():
                 self._vnotebook.remove(self.a_canvas)
             self._vpaned.pack1(self._vpanei, resize=True, shrink=True)
+            self._init_split_pane(
+                self._vpanei,
+                Gtk.Orientation.VERTICAL,
+                self.settings.get("split panel v"),
+            )
 
     def _handle_clicks(self, widget: Gtk.Widget, event: Gdk.EventButton) -> bool:
         if event.button == Gdk.BUTTON_SECONDARY:

@@ -1166,6 +1166,7 @@ def test_pack_viewer_tools(app_window: ApplicationWindow) -> None:
     app_window.view = MagicMock()
     app_window.t_canvas = MagicMock()
     app_window.a_canvas = MagicMock()
+    app_window._init_split_pane = MagicMock()
 
     # Tabbed
     app_window.settings["viewer_tools"] = "tabbed"
@@ -1174,6 +1175,7 @@ def test_pack_viewer_tools(app_window: ApplicationWindow) -> None:
 
     # Horizontal
     app_window.settings["viewer_tools"] = "horizontal"
+    app_window.settings["split panel h"] = 123
     app_window._pack_viewer_tools()
     app_window._hpanei.pack1.assert_called_with(
         app_window.view, resize=True, shrink=True
@@ -1181,9 +1183,13 @@ def test_pack_viewer_tools(app_window: ApplicationWindow) -> None:
     app_window._hpanei.pack2.assert_called_with(
         app_window.t_canvas, resize=True, shrink=True
     )
+    app_window._init_split_pane.assert_called_with(
+        app_window._hpanei, Gtk.Orientation.HORIZONTAL, 123
+    )
 
     # Vertical
     app_window.settings["viewer_tools"] = "vertical"
+    app_window.settings["split panel v"] = 456
     app_window._pack_viewer_tools()
     app_window._vpanei.pack1.assert_called_with(
         app_window.view, resize=True, shrink=True
@@ -1191,6 +1197,82 @@ def test_pack_viewer_tools(app_window: ApplicationWindow) -> None:
     app_window._vpanei.pack2.assert_called_with(
         app_window.t_canvas, resize=True, shrink=True
     )
+    app_window._init_split_pane.assert_called_with(
+        app_window._vpanei, Gtk.Orientation.VERTICAL, 456
+    )
+
+
+def test_pack_viewer_tools_split_attaches_on_startup(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """A split view replaces the vnotebook left in _vpaned at startup."""
+    # The fixture patches Gtk paned pack methods globally; restore the real
+    # GTK behaviour so this test exercises actual packing.
+    mocker.stopall()
+    app_window._vpaned = Gtk.VPaned()
+    app_window._vnotebook = Gtk.Notebook()
+    app_window._vpaned.pack1(app_window._vnotebook, resize=True)
+    app_window._hpanei = Gtk.HPaned()
+    app_window._vpanei = Gtk.VPaned()
+    app_window.view = Gtk.Box()
+    app_window.t_canvas = Gtk.Box()
+    app_window.a_canvas = Gtk.Box()
+    app_window._init_split_pane = MagicMock()
+
+    app_window.settings["viewer_tools"] = "vertical"
+    app_window._pack_viewer_tools()
+    assert app_window._vpaned.get_child1() is app_window._vpanei
+    assert app_window._vnotebook.get_parent() is None
+
+    app_window._vpaned.pack1(app_window._vnotebook, resize=True)
+    app_window.settings["viewer_tools"] = "horizontal"
+    app_window._pack_viewer_tools()
+    assert app_window._vpaned.get_child1() is app_window._hpanei
+    assert app_window._vnotebook.get_parent() is None
+
+
+def test_init_split_pane_saved_position(app_window: ApplicationWindow) -> None:
+    """A saved split position is applied directly."""
+    pane = MagicMock()
+    app_window._init_split_pane(pane, Gtk.Orientation.HORIZONTAL, 321)
+    pane.set_position.assert_called_once_with(321)
+    pane.connect.assert_not_called()
+
+
+def test_init_split_pane_default_half(app_window: ApplicationWindow) -> None:
+    """Without a saved position, a half-split default is set on first allocation."""
+    pane = MagicMock()
+    app_window._init_split_pane(pane, Gtk.Orientation.VERTICAL, None)
+    assert pane.connect.call_count == 1
+    handler_id = pane.connect.return_value
+
+    allocation = MagicMock()
+    allocation.width = 800
+    allocation.height = 600
+    callback = pane.connect.call_args.args[1]
+    callback(pane, allocation)
+
+    pane.set_position.assert_called_once_with(300)
+    pane.disconnect.assert_called_once_with(handler_id)
+
+
+def test_init_split_pane_default_half_horizontal(
+    app_window: ApplicationWindow,
+) -> None:
+    """A horizontal split uses the allocated width for its half-split default."""
+    pane = MagicMock()
+    app_window._init_split_pane(pane, Gtk.Orientation.HORIZONTAL, None)
+    assert pane.connect.call_count == 1
+    handler_id = pane.connect.return_value
+
+    allocation = MagicMock()
+    allocation.width = 900
+    allocation.height = 600
+    callback = pane.connect.call_args.args[1]
+    callback(pane, allocation)
+
+    pane.set_position.assert_called_once_with(450)
+    pane.disconnect.assert_called_once_with(handler_id)
 
 
 def test_show_message_dialog(

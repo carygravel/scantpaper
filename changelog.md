@@ -5,6 +5,11 @@
   up correctly with the scanned image.
 * hOCR font metrics (x_size, x_height, x_ascenders, x_descenders,
   x_fsize) are now preserved when loading and saving documents.
+* A horizontal or vertical split view is now shown on startup and the
+  imported image appears immediately, instead of the split panes never being
+  attached (the tabbed view stayed in place) so the image only appeared after
+  cycling through the view modes. The split divider's position is remembered
+  across sessions.
 
 
 ## 3.0.23 (2026-10-11)

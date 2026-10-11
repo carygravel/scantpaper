@@ -23,6 +23,8 @@ DEFAULTS = {
     "window_x": 0,
     "window_y": 0,
     "thumb panel": 100,
+    "split panel h": None,
+    "split panel v": None,
     "viewer_tools": "tabbed",
     "image_control_tool": SELECTORDRAGGER_TOOL,
     "scan_window_width": None,

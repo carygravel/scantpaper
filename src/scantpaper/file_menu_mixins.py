@@ -987,6 +987,10 @@ class FileMenuMixins:
         self.settings["window_width"], self.settings["window_height"] = self.get_size()
         self.settings["window_x"], self.settings["window_y"] = self.get_position()
         self.settings["thumb panel"] = self._hpaned.get_position()
+        if self.settings.get("viewer_tools") == "horizontal":
+            self.settings["split panel h"] = self._hpanei.get_position()
+        elif self.settings.get("viewer_tools") == "vertical":
+            self.settings["split panel v"] = self._vpanei.get_position()
         if self._windows:
             (
                 self.settings["scan_window_width"],

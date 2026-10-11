@@ -133,6 +133,10 @@ class MockApp(unittest.mock.Mock, FileMenuMixins):
         self._lockfd = 9
         self._hpaned = unittest.mock.Mock()
         self._hpaned.get_position.return_value = 100
+        self._hpanei = unittest.mock.Mock()
+        self._hpanei.get_position.return_value = 250
+        self._vpanei = unittest.mock.Mock()
+        self._vpanei.get_position.return_value = 400
         self._current_page = 1
         self._ask_question = unittest.mock.Mock()
         self._import_files = unittest.mock.Mock()
@@ -419,6 +423,59 @@ class TestFileMenuMixins:
 
         assert app._can_quit()
 
+        mock_config.write_config.assert_called_with(app._configfile, app.settings)
+        mock_os.chdir.assert_called_with(app.settings["cwd"])
+        mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
+
+    @unittest.mock.patch("scantpaper.file_menu_mixins.os")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.fcntl")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.config")
+    def test_can_quit_persists_horizontal_split_position(
+        self,
+        mock_config: MagicMock,
+        mock_fcntl: MagicMock,
+        mock_os: MagicMock,
+        mocker: pytest.MockerFixture,
+        app: MockApp,
+    ) -> None:
+        """_can_quit saves the active horizontal split position."""
+        app._pages_saved = unittest.mock.Mock(return_value=True)
+        mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = []
+        mocker.patch.object(pathlib.Path, "unlink", autospec=True)
+        mocker.patch.object(pathlib.Path, "rmdir", autospec=True)
+        app.settings["viewer_tools"] = "horizontal"
+
+        assert app._can_quit()
+
+        assert app.settings["split panel h"] == 250
+        assert (
+            "split panel v" not in app.settings or app.settings["split panel v"] is None
+        )
+        mock_config.write_config.assert_called_with(app._configfile, app.settings)
+        mock_os.chdir.assert_called_with(app.settings["cwd"])
+        mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
+
+    @unittest.mock.patch("scantpaper.file_menu_mixins.os")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.fcntl")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.config")
+    def test_can_quit_persists_vertical_split_position(
+        self,
+        mock_config: MagicMock,
+        mock_fcntl: MagicMock,
+        mock_os: MagicMock,
+        mocker: pytest.MockerFixture,
+        app: MockApp,
+    ) -> None:
+        """_can_quit saves the active vertical split position."""
+        app._pages_saved = unittest.mock.Mock(return_value=True)
+        mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = []
+        mocker.patch.object(pathlib.Path, "unlink", autospec=True)
+        mocker.patch.object(pathlib.Path, "rmdir", autospec=True)
+        app.settings["viewer_tools"] = "vertical"
+
+        assert app._can_quit()
+
+        assert app.settings["split panel v"] == 400
         mock_config.write_config.assert_called_with(app._configfile, app.settings)
         mock_os.chdir.assert_called_with(app.settings["cwd"])
         mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
