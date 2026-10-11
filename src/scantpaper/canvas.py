@@ -11,7 +11,14 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast
 import gi
 
 from scantpaper.bboxtree import is_empty_branch
-from scantpaper.const import _100_PERCENT, EMPTY, EMPTY_LIST, NOT_FOUND, SPACE
+from scantpaper.const import (
+    _100_PERCENT,
+    EMPTY,
+    EMPTY_LIST,
+    MIN_BASELINE_COEFFICIENTS,
+    NOT_FOUND,
+    SPACE,
+)
 from scantpaper.gobject import property_
 
 if TYPE_CHECKING:
@@ -267,6 +274,12 @@ class Bbox:
         self.baseline: list[int | float] | None = cast(
             "list[int | float] | None", kwargs.get("baseline")
         )
+        # font metrics from hOCR (optional)
+        self.x_size = kwargs.get("x_size")
+        self.x_height = kwargs.get("x_height")
+        self.x_ascenders = kwargs.get("x_ascenders")
+        self.x_descenders = kwargs.get("x_descenders")
+        self.x_fsize = kwargs.get("x_fsize")
         self.edit_callback = kwargs.get("edit_callback")
 
         parent = cast("Bbox | _CanvasRoot | None", kwargs.get("parent"))
@@ -401,24 +414,7 @@ class Bbox:
                 tag = "p"
 
             idn = f"id='{self.id}'" if self.id else EMPTY
-            title = (
-                "title="
-                "'"
-                "bbox "
-                + SPACE.join([str(x) for x in rect2bboxarray(self.bbox)])
-                + ("; textangle " + str(self.textangle) if self.textangle else EMPTY)
-                + (
-                    "; baseline " + SPACE.join([str(x) for x in self.baseline])
-                    if self.baseline is not None
-                    else EMPTY
-                )
-                + (
-                    "; x_wconf " + str(self.confidence)
-                    if self.confidence is not None
-                    else EMPTY
-                )
-                + "'"
-            )
+            title = "title='" + "; ".join(self._hocr_title_parts()) + "'"
 
             string += (
                 SPACE * indent
@@ -435,6 +431,27 @@ class Bbox:
             string += childstr + f"</{tag}>\n"
 
         return string
+
+    def _hocr_title_parts(self) -> list[str]:
+        """Return the hOCR ``title`` attribute parts for this bbox."""
+        parts = ["bbox " + SPACE.join([str(x) for x in rect2bboxarray(self.bbox)])]
+        if self.textangle:
+            parts.append("textangle " + str(self.textangle))
+        if self.baseline is not None:
+            parts.append("baseline " + SPACE.join([str(x) for x in self.baseline]))
+        if self.confidence is not None:
+            parts.append("x_wconf " + str(self.confidence))
+        if self.x_size is not None:
+            parts.append("x_size " + str(self.x_size))
+        if self.x_height is not None:
+            parts.append("x_height " + str(self.x_height))
+        if self.x_ascenders is not None:
+            parts.append("x_ascenders " + str(self.x_ascenders))
+        if self.x_descenders is not None:
+            parts.append("x_descenders " + str(self.x_descenders))
+        if self.x_fsize is not None:
+            parts.append("x_fsize " + str(self.x_fsize))
+        return parts
 
     def get_stack_index_by_position(self, bbox: Bbox) -> int:
         """Given a parent bbox and a new box, return the stack insertion index.
@@ -877,7 +894,38 @@ class Canvas(Gtk.DrawingArea):
                     ctx.scale(scale, scale)
 
                     centered_x = -(text_w / 2)
+                    # baseline alignment
+                    use_baseline = False
                     centered_y = -(text_h / 2)
+                    try:
+                        # The hOCR `baseline` attribute lives on the *line*
+                        # (Tesseract does not emit it on words), and it is
+                        # relative to the line's own bbox. Walk up to the
+                        # nearest ancestor that carries a baseline so that every
+                        # word on a line shares one absolute baseline Y; using
+                        # each word's own bbox would misalign words whose
+                        # height differs (descenders extend the word bbox).
+                        baseline_y_abs = self._baseline_y_abs(bbox)
+                        if baseline_y_abs is not None:
+                            layout_baseline = (
+                                layout.get_baseline() / Pango.SCALE
+                                if hasattr(layout, "get_baseline")
+                                else text_h
+                            )
+                            # in scaled coords after translate to center and
+                            # scale, position so the layout baseline matches the
+                            # target absolute baseline Y
+                            target_baseline_rel_center = baseline_y_abs - (y + h / 2)
+                            centered_y = (
+                                (target_baseline_rel_center / scale) - layout_baseline
+                                if scale != 0
+                                else -layout_baseline
+                            )
+                            use_baseline = True
+                    except (ValueError, TypeError, IndexError, AttributeError):
+                        use_baseline = False
+                    if not use_baseline:
+                        centered_y = -(text_h / 2)
 
                     ctx.set_source_rgba(
                         color_rgba.red,
@@ -891,6 +939,28 @@ class Canvas(Gtk.DrawingArea):
                     ctx.restore()
 
         ctx.restore()
+
+    def _baseline_y_abs(self, bbox: Bbox) -> float | None:
+        """Return the absolute baseline Y for ``bbox`` or None if unavailable.
+
+        The hOCR baseline offset is measured from the bottom of the bbox that
+        carries the attribute (the line). Walk up to the nearest ancestor with
+        a baseline so every word on a line shares one absolute baseline Y.
+        """
+        src: Bbox | None = bbox
+        while src is not None and (
+            src.baseline is None or len(src.baseline) < MIN_BASELINE_COEFFICIENTS
+        ):
+            parent = src.parent
+            src = parent if isinstance(parent, Bbox) else None
+        if src is None or src.baseline is None or src.bbox is None:
+            return None
+        try:
+            intercept = float(src.baseline[1])
+        except (ValueError, TypeError, IndexError):
+            return None
+        rect = cast("Rectangle", src.bbox)
+        return float(rect.y) + float(rect.height) + intercept
 
     def _create_pango_layout(self, ctx: object, bbox: Bbox) -> Pango.Layout:
         """Create a PangoLayout for a bbox's text."""
@@ -1184,7 +1254,19 @@ class Canvas(Gtk.DrawingArea):
             "text": kwargs["text"],
         }
 
-        for key in ["baseline", "confidence", "id", "text", "textangle", "type"]:
+        for key in [
+            "baseline",
+            "confidence",
+            "id",
+            "text",
+            "textangle",
+            "type",
+            "x_size",
+            "x_height",
+            "x_ascenders",
+            "x_descenders",
+            "x_fsize",
+        ]:
             if key in kwargs:
                 options[key] = kwargs[key]
 
@@ -1217,7 +1299,18 @@ class Canvas(Gtk.DrawingArea):
                 "skip_confidence_index", False
             )
 
-            for key in ["baseline", "confidence", "id", "textangle", "type"]:
+            for key in [
+                "baseline",
+                "confidence",
+                "id",
+                "textangle",
+                "type",
+                "x_size",
+                "x_height",
+                "x_ascenders",
+                "x_descenders",
+                "x_fsize",
+            ]:
                 if key in box:
                     options2[key] = box[key]
 

@@ -1039,3 +1039,33 @@ def test_to_hocr_flat_tree_wrapped_in_containers() -> None:
     assert hocr.count("class='ocrx_word'") == 3, "three words"
     assert "title='bbox 1 1 90 20'" in hocr, "first line spans its row"
     assert "title='bbox 1 30 45 50'" in hocr, "second line spans its row"
+
+    #########################
+
+    # test hocr with font metrics
+    hocr = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name='ocr-system' content='tesseract 5.5.0' />
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 200 100'>
+   <span class='ocr_line' id='line_1' title="bbox 0 10 200 60; baseline 0 0; x_size 60; x_ascenders 10; x_descenders 5; x_height 50; x_fsize 12">
+    <span class='ocrx_word' id='word_1' title="bbox 0 10 100 60; x_wconf 95; x_size 60; x_ascenders 10; x_descenders 5; x_height 50; x_fsize 12">hi</span>
+   </span>
+  </div>
+ </body>
+</html>
+"""
+    tree = Bboxtree()
+    tree.from_hocr(hocr)
+    boxes = list(tree.each_bbox())
+    # find word
+    word = boxes[-1]
+    assert word["x_size"] == 60
+    assert word["x_ascenders"] == 10
+    assert word["x_descenders"] == 5
+    assert word["x_height"] == 50
+    assert word["x_fsize"] == 12

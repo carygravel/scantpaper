@@ -1,3 +1,12 @@
+## 3.0.24 (unreleased)
+
+* OCR text is now aligned to its baseline instead of being vertically
+  centred in each bounding box, so words with and without descenders line
+  up correctly with the scanned image.
+* hOCR font metrics (x_size, x_height, x_ascenders, x_descenders,
+  x_fsize) are now preserved when loading and saving documents.
+
+
 ## 3.0.23 (2026-10-11)
 
 * The "+" (Add) control in the text layer and annotations editor is now

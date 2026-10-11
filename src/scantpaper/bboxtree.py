@@ -11,7 +11,13 @@ from typing import TYPE_CHECKING, TypedDict, cast
 
 from typing_extensions import override
 
-from scantpaper.const import ANNOTATION_COLOR, HALF, POINTS_PER_INCH, VERSION
+from scantpaper.const import (
+    ANNOTATION_COLOR,
+    HALF,
+    MIN_BASELINE_COEFFICIENTS,
+    POINTS_PER_INCH,
+    VERSION,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -19,7 +25,6 @@ if TYPE_CHECKING:
 DOUBLE_QUOTES = '"'
 BBOX_REGEX = r"(\d+)\s+(\d+)\s+(\d+)\s+(\d+)"
 HILITE_REGEX = r"[(]hilite\s+[#][A-Fa-f\d]{6}[)]\s+[(]xor[)]"
-MIN_BASELINE_COEFFICIENTS = 2
 CLASS_NAME_PARTS = 2
 HOCR_HEADER = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -51,6 +56,11 @@ class BBox(TypedDict, total=False):
     textangle: int
     confidence: int
     style: list[str]
+    x_size: float
+    x_height: float
+    x_ascenders: float
+    x_descenders: float
+    x_fsize: float
 
 
 def flatten_tree(oldbox: BBox, newtree: list[object]) -> None:
@@ -479,6 +489,18 @@ class HOCRParser(HTMLParser):
             if len(values) < MIN_BASELINE_COEFFICIENTS:
                 values.insert(0, 0)
             data["baseline"] = values
+
+        # extract font metrics
+        for key, pattern in [
+            ("x_size", r"\bx_size\s+([\d.]+)"),
+            ("x_height", r"\bx_height\s+([\d.]+)"),
+            ("x_ascenders", r"\bx_ascenders\s+([\d.]+)"),
+            ("x_descenders", r"\bx_descenders\s+([\d.]+)"),
+            ("x_fsize", r"\bx_fsize\s+([\d.]+)"),
+        ]:
+            regex = re.search(pattern, title, re.MULTILINE | re.DOTALL | re.VERBOSE)
+            if regex:
+                data[key] = float(regex.group(1))
 
         self.data = data
 

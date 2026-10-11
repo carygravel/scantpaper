@@ -3266,3 +3266,267 @@ def test_fully_emptied_page_round_trips_to_zero_words() -> None:
     tree.from_hocr(canvas.hocr())
     reparsed = [box["text"] for box in tree.each_bbox() if box["type"] == "word"]
     assert reparsed == []
+
+
+def test_bbox_to_hocr_with_font_metrics() -> None:
+    """Test that Bbox.to_hocr preserves font metrics."""
+    b = Bbox(
+        text="hi",
+        bbox=Rectangle(x=0, y=0, width=10, height=20),
+        x_size=12,
+        x_height=18,
+        x_ascenders=5,
+        x_descenders=3,
+        x_fsize=10,
+        textangle=0,
+        confidence=95,
+        baseline=[0, 0],
+        id="w1",
+        type="word",
+    )
+    hocr = b.to_hocr()
+    assert "x_size 12" in hocr
+    assert "x_height 18" in hocr
+    assert "x_ascenders 5" in hocr
+    assert "x_descenders 3" in hocr
+    assert "x_fsize 10" in hocr
+
+
+def test_bbox_text_placement_with_baseline_coverage() -> None:
+    """Test baseline alignment path."""
+    c = Canvas()
+    rect = Gdk.Rectangle()
+    rect.x = rect.y = 0
+    rect.width = rect.height = 200
+    c.get_allocation = MagicMock(return_value=rect)
+    c.confidence_index = ListIter()
+    root = c.get_root_item()
+
+    page = c.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=200, height=200),
+        type="page",
+        parent=root,
+        confidence=100,
+    )
+    w = c.add_box(
+        text="hello",
+        bbox=Rectangle(x=10, y=10, width=50, height=50),
+        type="word",
+        parent=page,
+        confidence=100,
+    )
+    w.baseline = [0, 5]
+    pg_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
+    pg_ctx = cairo.Context(pg_surface)
+    c._draw_bbox(pg_ctx, w)
+
+
+def test_bbox_text_placement_with_bad_baseline() -> None:
+    """Test baseline alignment with bad baseline data falls back to centering."""
+    c = Canvas()
+    rect = Gdk.Rectangle()
+    rect.x = rect.y = 0
+    rect.width = rect.height = 200
+    c.get_allocation = MagicMock(return_value=rect)
+    c.confidence_index = ListIter()
+    root = c.get_root_item()
+
+    page = c.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=200, height=200),
+        type="page",
+        parent=root,
+        confidence=100,
+    )
+    w = c.add_box(
+        text="hello",
+        bbox=Rectangle(x=10, y=10, width=50, height=50),
+        type="word",
+        parent=page,
+        confidence=100,
+    )
+    w.baseline = [None, None]  # ty: ignore[invalid-assignment]  # bad baseline data
+    pg_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
+    pg_ctx = cairo.Context(pg_surface)
+    c._draw_bbox(pg_ctx, w)
+
+
+def test_bbox_text_placement_with_bad_baseline2() -> None:
+    """Test baseline alignment with short baseline list."""
+    c = Canvas()
+    rect = Gdk.Rectangle()
+    rect.x = rect.y = 0
+    rect.width = rect.height = 200
+    c.get_allocation = MagicMock(return_value=rect)
+    c.confidence_index = ListIter()
+    root = c.get_root_item()
+
+    page = c.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=200, height=200),
+        type="page",
+        parent=root,
+        confidence=100,
+    )
+    w = c.add_box(
+        text="hello",
+        bbox=Rectangle(x=10, y=10, width=50, height=50),
+        type="word",
+        parent=page,
+        confidence=100,
+    )
+    w.baseline = [5]  # short baseline
+    pg_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
+    pg_ctx = cairo.Context(pg_surface)
+    c._draw_bbox(pg_ctx, w)
+
+
+def test_bbox_text_placement_with_bad_baseline3() -> None:
+    """Test baseline alignment with bad baseline types."""
+    c = Canvas()
+    rect = Gdk.Rectangle()
+    rect.x = rect.y = 0
+    rect.width = rect.height = 200
+    c.get_allocation = MagicMock(return_value=rect)
+    c.confidence_index = ListIter()
+    root = c.get_root_item()
+
+    page = c.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=200, height=200),
+        type="page",
+        parent=root,
+        confidence=100,
+    )
+    w = c.add_box(
+        text="hello",
+        bbox=Rectangle(x=10, y=10, width=50, height=50),
+        type="word",
+        parent=page,
+        confidence=100,
+    )
+    w.baseline = ["bad", "also bad"]  # ty: ignore[invalid-assignment]  # string values
+    pg_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
+    pg_ctx = cairo.Context(pg_surface)
+    c._draw_bbox(pg_ctx, w)
+
+
+def test_bbox_text_placement_with_baseline_raises() -> None:
+    """Force exception in baseline computation."""
+    c = Canvas()
+    rect = Gdk.Rectangle()
+    rect.x = rect.y = 0
+    rect.width = rect.height = 200
+    c.get_allocation = MagicMock(return_value=rect)
+    c.confidence_index = ListIter()
+    root = c.get_root_item()
+
+    page = c.add_box(
+        text="page",
+        bbox=Rectangle(x=0, y=0, width=200, height=200),
+        type="page",
+        parent=root,
+        confidence=100,
+    )
+    w = c.add_box(
+        text="hello",
+        bbox=Rectangle(x=10, y=10, width=50, height=50),
+        type="word",
+        parent=page,
+        confidence=100,
+    )
+    w.baseline = [0, 0]
+    # Make layout.get_baseline raise
+    pg_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 200, 200)
+    pg_ctx = cairo.Context(pg_surface)
+    # Monkey patch
+    original = c._layout_for
+
+    def bad_layout_for(ctx: object, bbox: Bbox) -> Pango.Layout | None:
+        layout = original(ctx, bbox)
+        # break it
+        layout.get_baseline = MagicMock(  # ty: ignore[invalid-assignment]
+            side_effect=TypeError()
+        )
+        return layout
+
+    c._layout_for = cast("Any", bad_layout_for)
+    try:
+        c._draw_bbox(pg_ctx, w)
+    finally:
+        c._layout_for = cast("Any", original)
+
+
+def test_baseline_y_abs_shared_from_line() -> None:
+    """Baseline Y is derived from the line and shared across words."""
+    c = Canvas()
+    root = c.get_root_item()
+    c.confidence_index = ListIter()
+    page = c.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=400, height=400),
+        type="page",
+        parent=root,
+        confidence=100,
+    )
+    # line bbox y=100..160 (h=60), baseline offset -13 -> absolute Y = 100+60-13 = 147
+    line = c.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=100, width=400, height=60),
+        type="line",
+        parent=page,
+        confidence=100,
+        baseline=[0, -13],
+    )
+    # words with different heights on the same line
+    tall = c.add_box(
+        text="quick",
+        bbox=Rectangle(x=0, y=100, width=100, height=60),
+        type="word",
+        parent=line,
+        confidence=100,
+    )
+    short = c.add_box(
+        text="The",
+        bbox=Rectangle(x=100, y=100, width=100, height=47),
+        type="word",
+        parent=line,
+        confidence=100,
+    )
+    assert c._baseline_y_abs(tall) == 147
+    assert c._baseline_y_abs(short) == 147
+
+
+def test_baseline_y_abs_own_and_missing() -> None:
+    """Baseline Y uses the word's own bbox or None when unavailable."""
+    c = Canvas()
+    root = c.get_root_item()
+    c.confidence_index = ListIter()
+    page = c.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=400, height=400),
+        type="page",
+        parent=root,
+        confidence=100,
+    )
+    # no line baseline anywhere -> None
+    plain = c.add_box(
+        text="hi",
+        bbox=Rectangle(x=0, y=10, width=50, height=50),
+        type="word",
+        parent=page,
+        confidence=100,
+    )
+    assert c._baseline_y_abs(plain) is None
+
+    # word with its own baseline -> uses its own bbox bottom + offset
+    own = c.add_box(
+        text="hi",
+        bbox=Rectangle(x=0, y=10, width=50, height=50),
+        type="word",
+        parent=page,
+        confidence=100,
+    )
+    own.baseline = [0, 5]
+    assert c._baseline_y_abs(own) == 10 + 50 + 5
