@@ -1,4 +1,4 @@
-## 3.0.23 (unreleased)
+## 3.0.23 (2026-10-11)
 
 * The "+" (Add) control in the text layer and annotations editor is now
   disabled until a rectangle has been drawn or selected, and shows a tooltip

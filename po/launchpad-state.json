@@ -224,8 +224,8 @@
     }
   },
   "uploaded_pot": {
-    "msgid_count": 549,
-    "digest": "d355239666cca9f5f1c0b6e03a2e2f3f7af39772f5c4f0a0f458b1dfbfc8ddd2",
+    "msgid_count": 550,
+    "digest": "50f0a7912c066014e11edece68dd19b3a40fa12438460203c8d64a3c23e9ad70",
     "msgids": [
       "# Output pages",
       "# Pages",
@@ -334,6 +334,7 @@
       "Double",
       "Double sided",
       "Downsample to",
+      "Draw or select a rectangle before adding",
       "Duplicate text",
       "Edge to which to align the page.",
       "Edges from which to scan for rotation. Each edge of a mask can be used to detect the mask's rotation. If multiple edges are specified, the average value will be used, unless the statistical deviation exceeds --deskew-scan-deviation.",
