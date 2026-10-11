@@ -1,225 +1,225 @@
 {
   "series": "trunk",
   "pot": "scantpaper",
-  "captured": "2026-10-10T10:07:53.011596+00:00",
+  "captured": "2026-10-11T17:41:35.736134+00:00",
   "template": {
-    "date_last_updated": "2026-09-27T14:19:54.066364+00:00",
-    "etag": "\"1052062c48e45f408d3ada80eb26c7e06fda396c-ce98fe81e1b1f6f97b7f5de7a4fd8dcc73a8d2f1\""
+    "date_last_updated": "2026-10-11T09:45:21.437164+00:00",
+    "etag": "\"6f35b84e103d568aa0d348c596207feb5eaaeeca-b3450e699ee1748c459556f2cd999e097bac3789\""
   },
   "languages": {
     "ab": {
       "last_changed": "2026-07-10 20:20:50",
-      "untranslated": 549,
+      "untranslated": 550,
       "suggestions": 0
     },
     "af": {
       "last_changed": "2026-09-27 15:24:49",
-      "untranslated": 549,
+      "untranslated": 550,
       "suggestions": 0
     },
     "ar": {
       "last_changed": "2026-09-27 15:24:49",
-      "untranslated": 549,
+      "untranslated": 550,
       "suggestions": 0
     },
     "be": {
       "last_changed": "2026-09-27 14:10:56",
-      "untranslated": 492,
+      "untranslated": 493,
       "suggestions": 0
     },
     "bg": {
       "last_changed": "2026-09-27 14:11:01",
-      "untranslated": 402,
+      "untranslated": 403,
       "suggestions": 0
     },
     "ca": {
       "last_changed": "2026-09-27 14:11:14",
-      "untranslated": 16,
+      "untranslated": 37,
       "suggestions": 0
     },
     "cs": {
       "last_changed": "2026-09-27 14:12:29",
-      "untranslated": 11,
+      "untranslated": 32,
       "suggestions": 0
     },
     "da": {
       "last_changed": "2026-09-27 14:12:45",
-      "untranslated": 15,
+      "untranslated": 36,
       "suggestions": 0
     },
     "de": {
       "last_changed": "2026-09-27 14:13:16",
-      "untranslated": 0,
+      "untranslated": 21,
       "suggestions": 0
     },
     "el": {
       "last_changed": "2026-09-27 14:13:29",
-      "untranslated": 260,
+      "untranslated": 266,
       "suggestions": 0
     },
     "en_GB": {
       "last_changed": "2026-09-27 14:13:37",
-      "untranslated": 0,
+      "untranslated": 21,
       "suggestions": 0
     },
     "es": {
       "last_changed": "2026-09-27 14:14:31",
-      "untranslated": 8,
+      "untranslated": 28,
       "suggestions": 0
     },
     "eu": {
       "last_changed": "2026-09-27 14:14:44",
-      "untranslated": 228,
+      "untranslated": 236,
       "suggestions": 0
     },
     "fa": {
       "last_changed": "2026-09-27 14:14:57",
-      "untranslated": 529,
+      "untranslated": 530,
       "suggestions": 0
     },
     "fi": {
       "last_changed": "2026-09-27 14:15:25",
-      "untranslated": 69,
+      "untranslated": 82,
       "suggestions": 0
     },
     "fr": {
       "last_changed": "2026-09-27 14:15:39",
-      "untranslated": 8,
+      "untranslated": 28,
       "suggestions": 0
     },
     "gl": {
       "last_changed": "2026-09-27 14:15:57",
-      "untranslated": 198,
+      "untranslated": 206,
       "suggestions": 0
     },
     "gu": {
       "last_changed": "2026-09-27 14:16:18",
-      "untranslated": 406,
+      "untranslated": 410,
       "suggestions": 0
     },
     "he": {
       "last_changed": "2026-09-27 14:16:27",
-      "untranslated": 410,
+      "untranslated": 411,
       "suggestions": 0
     },
     "hi": {
       "last_changed": "2026-09-27 15:24:49",
-      "untranslated": 549,
+      "untranslated": 550,
       "suggestions": 0
     },
     "hr": {
       "last_changed": "2026-09-27 14:16:33",
-      "untranslated": 434,
+      "untranslated": 435,
       "suggestions": 0
     },
     "hu": {
       "last_changed": "2026-09-27 14:16:39",
-      "untranslated": 68,
+      "untranslated": 82,
       "suggestions": 0
     },
     "id": {
       "last_changed": "2026-09-27 15:24:49",
-      "untranslated": 549,
+      "untranslated": 550,
       "suggestions": 0
     },
     "it": {
       "last_changed": "2026-09-27 16:07:54",
-      "untranslated": 7,
-      "suggestions": 14
+      "untranslated": 27,
+      "suggestions": 11
     },
     "ja": {
       "last_changed": "2026-09-27 14:16:49",
-      "untranslated": 18,
+      "untranslated": 38,
       "suggestions": 0
     },
     "ko": {
       "last_changed": "2026-09-27 14:17:17",
-      "untranslated": 23,
+      "untranslated": 43,
       "suggestions": 0
     },
     "nb": {
       "last_changed": "2026-09-27 14:17:42",
-      "untranslated": 321,
+      "untranslated": 322,
       "suggestions": 0
     },
     "nl": {
       "last_changed": "2026-09-27 14:17:49",
-      "untranslated": 16,
+      "untranslated": 36,
       "suggestions": 0
     },
     "oc": {
       "last_changed": "2026-09-27 14:18:24",
-      "untranslated": 513,
+      "untranslated": 514,
       "suggestions": 0
     },
     "pl": {
       "last_changed": "2026-09-27 14:18:30",
-      "untranslated": 16,
+      "untranslated": 37,
       "suggestions": 0
     },
     "pt": {
       "last_changed": "2026-09-27 14:18:51",
-      "untranslated": 19,
+      "untranslated": 39,
       "suggestions": 0
     },
     "pt_BR": {
       "last_changed": "2026-09-27 14:19:19",
-      "untranslated": 11,
+      "untranslated": 31,
       "suggestions": 0
     },
     "ro": {
       "last_changed": "2026-09-27 15:24:50",
-      "untranslated": 549,
+      "untranslated": 550,
       "suggestions": 0
     },
     "ru": {
       "last_changed": "2026-09-27 14:19:37",
-      "untranslated": 6,
+      "untranslated": 26,
       "suggestions": 0
     },
     "sk": {
       "last_changed": "2026-09-27 14:21:24",
-      "untranslated": 108,
+      "untranslated": 118,
       "suggestions": 0
     },
     "sl": {
       "last_changed": "2026-09-27 14:21:34",
-      "untranslated": 323,
+      "untranslated": 324,
       "suggestions": 0
     },
     "sr": {
       "last_changed": "2026-09-27 15:24:50",
-      "untranslated": 549,
+      "untranslated": 550,
       "suggestions": 0
     },
     "sv": {
       "last_changed": "2026-09-27 14:21:41",
-      "untranslated": 17,
+      "untranslated": 38,
       "suggestions": 0
     },
     "tr": {
       "last_changed": "2026-09-27 14:21:58",
-      "untranslated": 131,
+      "untranslated": 141,
       "suggestions": 0
     },
     "uk": {
       "last_changed": "2026-09-27 14:22:20",
-      "untranslated": 5,
+      "untranslated": 26,
       "suggestions": 0
     },
     "vi": {
       "last_changed": "2026-09-27 15:24:50",
-      "untranslated": 549,
+      "untranslated": 550,
       "suggestions": 0
     },
     "zh_CN": {
       "last_changed": "2026-09-27 14:22:32",
-      "untranslated": 18,
+      "untranslated": 38,
       "suggestions": 0
     },
     "zh_TW": {
       "last_changed": "2026-09-27 14:22:50",
-      "untranslated": 495,
+      "untranslated": 496,
       "suggestions": 0
     }
   },
