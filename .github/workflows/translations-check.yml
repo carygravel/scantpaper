@@ -29,7 +29,7 @@ jobs:
         env:
           PYTHONPATH: src
         run: |
-          python3 dev/check_launchpad.py --json > report.json
+          python3 dev/check_launchpad.py --json | tee report.json
           changed=$(python3 -c "import json; print(json.load(open('report.json'))['changed'])")
           local_pot_changed=$(python3 -c "import json; print(json.load(open('report.json'))['local_pot_changed'])")
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
