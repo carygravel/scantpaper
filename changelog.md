@@ -22,6 +22,7 @@
   to load, instead of being reported as missing on every display. The view
   shows a valid page (or clears if none remain), and the remaining pages are
   renumbered to stay consecutive.
+* Fix error preventing running OCR from Tools menu
 
 
 ## 3.0.22 (2026-10-10)
