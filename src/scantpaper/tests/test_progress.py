@@ -394,6 +394,22 @@ def test_progress_visibility_after_hide_then_show() -> None:
     assert btn.get_visible()
 
 
+def test_progress_update_no_total() -> None:
+    """Test update does nothing when total_jobs is 0 (no division by zero)."""
+    progress = Progress()
+
+    response = Mock()
+    response.request.process = "test_process"
+    response.num_completed_jobs = 0
+    response.total_jobs = 0
+
+    progress.update(response)
+
+    pbar = next(c for c in progress.get_children() if isinstance(c, Gtk.ProgressBar))
+    assert pbar.get_text() is None
+    assert not progress.get_visible()
+
+
 def test_progress_update_none() -> None:
     """Test that update returns early on falsy response."""
     progress = Progress()

@@ -759,7 +759,7 @@ def test_ocr_dialog_no_pages(
     }
     mock_tool_window._ocr_engine = ["tesseract"]
     mock_tool_window.slist.get_page_index.return_value = []
-    mock_tool_window.slist.indices2pages.return_value = []
+    mock_tool_window.slist.indices2pages.return_value = (x for x in ())
 
     mock_tool_window._ocr_finished_callback = mocker.Mock()
     mock_tool_window._ocr_display_callback = mocker.Mock()
@@ -770,6 +770,8 @@ def test_ocr_dialog_no_pages(
     mock_ocr_controls_cls.assert_called()
 
     _trigger_apply(mock_dialog_instance)
+
+    mock_tool_window.slist.ocr_pages.assert_not_called()
 
 
 def test_ocr_dialog_existing(

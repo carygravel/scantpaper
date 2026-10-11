@@ -109,7 +109,7 @@ class Progress(Gtk.Box):
                 self.set_fraction(response.info)
                 self.show()
             return
-        if response.total_jobs is not None:
+        if response.total_jobs is not None and response.total_jobs > 0:
             if response.request.process:
                 self.set_text(
                     _("Process %(current)i of %(total)i (%(process)s)")

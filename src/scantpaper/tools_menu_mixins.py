@@ -720,11 +720,12 @@ class ToolsMenuMixins:
         # fill pagelist with filenames
         # depending on which radiobutton is active
         self.settings["Page range"] = self._windowo.page_range
-        pagelist = self.slist.indices2pages(
-            self.slist.get_page_index(self.settings["Page range"], self._error_callback)
+        index = self.slist.get_page_index(
+            self.settings["Page range"], self._error_callback
         )
-        if pagelist is None or len(pagelist) == 0:
+        if not index:
             return
+        pagelist = self.slist.indices2pages(index)
         kwargs["pages"] = pagelist
         self.slist.ocr_pages(**kwargs)
         self._windowo.hide()
