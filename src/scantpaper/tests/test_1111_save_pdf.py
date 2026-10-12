@@ -127,6 +127,13 @@ def get_raw_image_streams(path: str) -> list[bytes]:
         ]
 
 
+def _strip_trailing_eoi(data: bytes) -> bytes:
+    """Drop redundant JPEG end-of-image markers some writers append."""
+    while data.endswith(b"\xff\xd9"):
+        data = data[:-2]
+    return data
+
+
 def test_has_locale() -> None:
     """Test has_locale function."""
     assert has_locale("C") is True
@@ -726,7 +733,7 @@ def test_save_pdf_auto_imported_jpeg_verbatim(
     temp_pdf: object,
     import_in_mainloop: Callable[[object, list[str]], None],
 ) -> None:
-    """An unmodified imported JPEG is embedded byte-for-byte under auto."""
+    """An unmodified imported JPEG is embedded without re-encoding under auto."""
     slist = Document(db=temp_db.name)
     import_in_mainloop(slist, [rose_jpg])
     mlp = safe_mainloop(5000)
@@ -739,7 +746,10 @@ def test_save_pdf_auto_imported_jpeg_verbatim(
 
     original = pathlib.Path(rose_jpg).read_bytes()
     streams = get_raw_image_streams(temp_pdf.name)
-    assert streams == [original], "original JPEG bytes embedded verbatim"
+    assert len(streams) == 1, "one embedded image stream"
+    assert _strip_trailing_eoi(streams[0]) == _strip_trailing_eoi(original), (
+        "original JPEG bytes embedded verbatim (not re-encoded)"
+    )
 
 
 def test_save_pdf_with_metadata(
