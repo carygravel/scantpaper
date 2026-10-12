@@ -58,24 +58,50 @@ def _page_content(page: pikepdf.Page) -> bytes:
     return bytes(cast("pikepdf.Stream", contents).read_bytes())
 
 
+def _ccitt_group(parms: object) -> str:
+    """Return ``Group4`` for a negative CCITT ``/K``, otherwise ``Group3``.
+
+    ``/DecodeParms`` is a dictionary for a bare filter and an array when the
+    filter itself is an array (img2pdf's XObject form).
+    """
+    if isinstance(parms, pikepdf.Array):
+        entries: list[object] = [parms[i] for i in range(len(parms))]
+    elif parms is None:
+        entries = []
+    else:
+        entries = [parms]
+    for entry in entries:
+        if isinstance(entry, pikepdf.Dictionary):
+            k = entry.get("/K")
+            if k is not None and int(k) < 0:
+                return "Group4"
+    return "Group3"
+
+
 def get_pdf_image_codecs(path: str) -> list[str]:
     """Return the codecs used by every image, whether XObject or inline.
 
-    Inline images carry shortened filter names; a CCITT image with ``/K -1``
-    is reported additionally as ``Group4`` so tests can distinguish Group 4
-    from Group 3.
+    A CCITT image is reported additionally as ``Group4`` or ``Group3`` so tests
+    can distinguish the two, whether the image survives as an XObject (its
+    ``/DecodeParms`` carries ``/K``) or is inlined into the content stream
+    (shortened filter ``/F/CCF``).
     """
     codecs: list[str] = []
     with pikepdf.open(path) as pdf:
         for page in pdf.pages:
             for key in page.images:
-                img = pikepdf.PdfImage(cast("pikepdf.Stream", page.images[key]))
-                codecs.extend(str(f) for f in img.filters)
+                stream = cast("pikepdf.Stream", page.images[key])
+                img = pikepdf.PdfImage(stream)
+                filters = [str(f) for f in img.filters]
+                codecs.extend(filters)
+                if "/CCITTFaxDecode" in filters:
+                    codecs.append(_ccitt_group(stream.get("/DecodeParms")))
             content = _page_content(page)
             if b"/F/CCF" in content:
                 codecs.append("/CCITTFaxDecode")
-                if re.search(rb"/K\s+-1", content):
-                    codecs.append("Group4")
+                codecs.append(
+                    "Group4" if re.search(rb"/K\s*-1\b", content) else "Group3"
+                )
     return codecs
 
 
@@ -105,6 +131,39 @@ def test_has_locale() -> None:
     """Test has_locale function."""
     assert has_locale("C") is True
     assert has_locale("non-existent-locale") is False
+
+
+def test_ccitt_group_from_decodeparms() -> None:
+    """Group 4 is detected from a bare or array-wrapped DecodeParms /K."""
+    assert _ccitt_group(None) == "Group3"
+    assert _ccitt_group(pikepdf.Dictionary(K=0)) == "Group3"
+    assert _ccitt_group(pikepdf.Dictionary(K=-1)) == "Group4"
+    assert _ccitt_group(pikepdf.Array([pikepdf.Dictionary(K=-1)])) == "Group4"
+    assert _ccitt_group(pikepdf.Array([pikepdf.Dictionary(K=0)])) == "Group3"
+
+
+def test_get_pdf_image_codecs_ccitt_xobject(tmp_path: pathlib.Path) -> None:
+    """A CCITT Group 4 XObject is reported from its DecodeParms.
+
+    This covers the XObject form independently of whether ocrmypdf inlines the
+    bilevel image in the content stream.
+    """
+    pdf = pikepdf.new()
+    page = pdf.add_blank_page(page_size=(72, 72))
+    page.obj["/Contents"] = pdf.make_stream(b"")
+    image = pdf.make_stream(b"\x00")
+    image["/Type"] = pikepdf.Name("/XObject")
+    image["/Subtype"] = pikepdf.Name("/Image")
+    image["/Width"] = 1
+    image["/Height"] = 1
+    image["/BitsPerComponent"] = 1
+    image["/ColorSpace"] = pikepdf.Name("/DeviceGray")
+    image["/Filter"] = pikepdf.Name("/CCITTFaxDecode")
+    image["/DecodeParms"] = pikepdf.Dictionary(Columns=1, Rows=1, K=-1, BlackIs1=True)
+    page.obj["/Resources"] = pikepdf.Dictionary(XObject=pikepdf.Dictionary(Im0=image))
+    path = tmp_path / "ccitt.pdf"
+    pdf.save(str(path))
+    assert get_pdf_image_codecs(str(path)) == ["/CCITTFaxDecode", "Group4"]
 
 
 def test_do_save_pdf(rose_pnm: str, temp_db: object, temp_pdf: object) -> None:
