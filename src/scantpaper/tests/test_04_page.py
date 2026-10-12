@@ -22,7 +22,14 @@ from scantpaper.const import (
     VERSION,
 )
 from scantpaper.helpers import Proc
-from scantpaper.page import Page, _prepare_scale
+from scantpaper.page import (
+    PDF_CODEC_FLATE,
+    PDF_CODEC_G4,
+    PDF_CODEC_JPEG,
+    Page,
+    _prepare_scale,
+    resolve_pdf_codec,
+)
 
 if TYPE_CHECKING:
     import os
@@ -653,12 +660,84 @@ def test_get_pixbuf_at_scale_antialiases_palette_source(
     assert levels > 2, "palette thumbnail must be anti-aliased"
 
 
-def test_write_image_for_pdf_passthrough() -> None:
+@pytest.mark.parametrize(
+    ("mode", "compression", "expected"),
+    [
+        ("1", "auto", PDF_CODEC_G4),
+        ("1", None, PDF_CODEC_G4),
+        ("L", "auto", PDF_CODEC_JPEG),
+        ("RGB", "auto", PDF_CODEC_JPEG),
+        ("CMYK", "auto", PDF_CODEC_JPEG),
+        ("RGBA", "auto", PDF_CODEC_FLATE),
+        ("LA", "auto", PDF_CODEC_FLATE),
+        ("RGB", "g3", PDF_CODEC_G4),
+        ("RGB", "g4", PDF_CODEC_G4),
+        ("1", "jpg", PDF_CODEC_JPEG),
+        ("RGB", "jpg", PDF_CODEC_JPEG),
+        ("RGB", "jpeg", PDF_CODEC_JPEG),
+        ("RGB", "png", PDF_CODEC_FLATE),
+        ("RGB", "lzw", PDF_CODEC_FLATE),
+        ("RGB", "none", PDF_CODEC_FLATE),
+    ],
+)
+def test_resolve_pdf_codec(mode: str, compression: str | None, expected: str) -> None:
+    """The resolver maps colour models and options to a concrete codec."""
+    image = Image.new(mode, (4, 4))
+    assert resolve_pdf_codec(image, compression) == expected
+
+
+def test_resolve_pdf_codec_palette_transparency() -> None:
+    """A palette image with transparency resolves losslessly; otherwise JPEG."""
+    image = Image.new("P", (4, 4))
+    assert resolve_pdf_codec(image, "auto") == PDF_CODEC_JPEG
+    image.info["transparency"] = 0
+    assert resolve_pdf_codec(image, "auto") == PDF_CODEC_FLATE
+
+
+def test_write_image_for_pdf_bilevel_auto_writes_pnm() -> None:
+    """An ``auto`` save of a bilevel page writes 1-bit PNM for Group 4."""
+    page = Page(image_object=Image.new("1", (A4_WIDTH_MM, A4_HEIGHT_MM), 1))
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(filename.name, {"options": {"compression": "auto"}})
+        with pathlib.Path(filename.name).open("rb") as fhd:
+            output = fhd.read()
+    assert output[:2] == b"P4", "bilevel PBM header written for Group 4"
+
+
+def test_write_image_for_pdf_flate_writes_png() -> None:
+    """A Flate save (explicit ``png`` or ``auto`` with alpha) writes a PNG."""
+    image = Image.new("RGBA", (A4_WIDTH_MM, A4_HEIGHT_MM), (1, 2, 3, 4))
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(filename.name, {"options": {"compression": "png"}})
+        with pathlib.Path(filename.name).open("rb") as fhd:
+            output = fhd.read()
+    assert output[:8] == b"\x89PNG\r\n\x1a\n", "PNG written for Flate"
+    with Image.open(io.BytesIO(output)) as saved:
+        assert saved.mode == "RGBA", "alpha preserved"
+
+
+def test_write_image_for_pdf_quality_controls_jpeg() -> None:
+    """Lower JPEG quality produces a smaller generated stream."""
+    image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128).convert("RGB")
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    sizes = {}
+    for quality in (30, 95):
+        with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+            page.write_image_for_pdf(
+                filename.name, {"options": {"compression": "jpg", "quality": quality}}
+            )
+            sizes[quality] = pathlib.Path(filename.name).stat().st_size
+    assert sizes[30] < sizes[95], "lower quality stream is smaller"
+
     """Stored JPEG bytes are written to the PDF without re-encoding."""
     buf = io.BytesIO()
     Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
     stored = buf.getvalue()
-    page = Page.from_bytes(stored)
+    page = Page.from_bytes(stored, original=True)
     page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
     with tempfile.NamedTemporaryFile(suffix=".png") as filename:
         page.write_image_for_pdf(filename.name, None)

@@ -52,6 +52,55 @@ def get_page_size(path: str) -> tuple[float, float]:
         return width, height
 
 
+def _page_content(page: pikepdf.Page) -> bytes:
+    """Return a page's decoded content stream bytes."""
+    contents = page.obj.get("/Contents")
+    return bytes(cast("pikepdf.Stream", contents).read_bytes())
+
+
+def get_pdf_image_codecs(path: str) -> list[str]:
+    """Return the codecs used by every image, whether XObject or inline.
+
+    Inline images carry shortened filter names; a CCITT image with ``/K -1``
+    is reported additionally as ``Group4`` so tests can distinguish Group 4
+    from Group 3.
+    """
+    codecs: list[str] = []
+    with pikepdf.open(path) as pdf:
+        for page in pdf.pages:
+            for key in page.images:
+                img = pikepdf.PdfImage(cast("pikepdf.Stream", page.images[key]))
+                codecs.extend(str(f) for f in img.filters)
+            content = _page_content(page)
+            if b"/F/CCF" in content:
+                codecs.append("/CCITTFaxDecode")
+                if re.search(rb"/K\s+-1", content):
+                    codecs.append("Group4")
+    return codecs
+
+
+def _page_image_xobjects(page: pikepdf.Page) -> list[pikepdf.Stream]:
+    """Return the image XObject streams referenced by a page."""
+    resources = page.obj.get("/Resources")
+    xobjects = resources.get("/XObject")
+    return [
+        obj
+        for _key, obj in xobjects.items()
+        if isinstance(obj, pikepdf.Stream)
+        and obj.get("/Subtype") == pikepdf.Name("/Image")
+    ]
+
+
+def get_raw_image_streams(path: str) -> list[bytes]:
+    """Return the raw (undecoded) bytes of each XObject image in a PDF."""
+    with pikepdf.open(path) as pdf:
+        return [
+            bytes(obj.read_raw_bytes())
+            for page in pdf.pages
+            for obj in _page_image_xobjects(page)
+        ]
+
+
 def test_has_locale() -> None:
     """Test has_locale function."""
     assert has_locale("C") is True
@@ -444,6 +493,10 @@ def test_save_pdf_with_1bpp(
     subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
     img = Image.open(next(pathlib.Path().glob("x-000.p*m")))
     assert img.mode == "1", "PDF with 1bpp created"
+    assert "/CCITTFaxDecode" in get_pdf_image_codecs(temp_pdf.name), (
+        "auto-selected bilevel page embedded with Group 4"
+    )
+    assert "Group4" in get_pdf_image_codecs(temp_pdf.name), "CCITT Group 4, not G3"
 
     #########################
 
@@ -474,6 +527,10 @@ def test_save_pdf_g4(
     subprocess.run(["pdfimages", temp_pdf.name, "x"], check=True)
     img = Image.open(next(pathlib.Path().glob("x-000.p*m")))
     assert img.mode == "1", "PDF with 1bpp created from 8-bit image"
+    assert "/CCITTFaxDecode" in get_pdf_image_codecs(temp_pdf.name), (
+        "explicit Group 4 page embedded with CCITT Group 4"
+    )
+    assert "Group4" in get_pdf_image_codecs(temp_pdf.name), "CCITT Group 4, not G3"
 
     #########################
 
@@ -556,6 +613,74 @@ def test_save_pdf_g4_alpha(
         text=True,
     )
     assert example == expected, "valid G4 PDF created from multi-strip TIFF"
+
+
+def test_save_pdf_auto_colour_is_jpeg(
+    rose_png: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """Automatic compression embeds a continuous-tone page as JPEG."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_png])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"quality": 75},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    assert "/DCTDecode" in get_pdf_image_codecs(temp_pdf.name), "colour page as JPEG"
+
+
+def test_save_pdf_quality_shrinks_jpeg_stream(
+    rose_png: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """A lower JPEG quality produces a smaller embedded image stream."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_png])
+    sizes = {}
+    for quality in (20, 95):
+        with tempfile.NamedTemporaryFile(suffix=".pdf") as out:
+            mlp = safe_mainloop(5000)
+            slist.save_pdf(
+                path=out.name,
+                list_of_pages=[slist.data[0][2]],
+                options={"quality": quality},
+                finished_callback=lambda _response, mlp=mlp: mlp.quit(),
+            )
+            mlp.run()
+            streams = get_raw_image_streams(out.name)
+            assert streams, "PDF contains an image"
+            sizes[quality] = sum(len(stream) for stream in streams)
+    assert sizes[20] < sizes[95], "lower quality stream is smaller"
+
+
+def test_save_pdf_auto_imported_jpeg_verbatim(
+    rose_jpg: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """An unmodified imported JPEG is embedded byte-for-byte under auto."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_jpg])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    original = pathlib.Path(rose_jpg).read_bytes()
+    streams = get_raw_image_streams(temp_pdf.name)
+    assert streams == [original], "original JPEG bytes embedded verbatim"
 
 
 def test_save_pdf_with_metadata(

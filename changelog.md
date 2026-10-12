@@ -14,6 +14,12 @@
   OCR text layer from every selected page, saves the change so it survives a
   reload, and makes clearing several pages at once a single undoable step
   (one Undo restores all of them).
+* Saving a PDF with "Automatic" compression now produces much smaller files
+  for the same scan: bilevel pages are encoded as CCITT Group 4, pages with
+  transparency use lossless Flate, and colour/grayscale pages use JPEG.
+* The JPEG quality setting in the Save dialog now affects PDF output, so
+  lowering it reduces the file size. An imported JPEG saved with "Automatic"
+  compression is still embedded unchanged.
 
 
 ## 3.0.23 (2026-10-11)

@@ -49,6 +49,59 @@ MODE2DEPTH = {
 }
 logger = logging.getLogger(__name__)
 
+# Concrete image codecs embedded in a PDF.
+PDF_CODEC_G4 = "g4"
+PDF_CODEC_JPEG = "jpeg"
+PDF_CODEC_FLATE = "flate"
+
+# Colour modes that carry an alpha channel and therefore cannot use JPEG.
+ALPHA_MODES = ("RGBA", "LA", "PA")
+
+
+def _has_alpha(image: Image.Image) -> bool:
+    """Return True if the image carries an alpha channel."""
+    if image.mode in ALPHA_MODES:
+        return True
+    return image.mode == "P" and "transparency" in image.info
+
+
+def resolve_pdf_codec(image: Image.Image, compression: str | None) -> str:
+    """Resolve a compression option and colour model to a concrete PDF codec.
+
+    ``auto`` (and an unset option) selects CCITT Group 4 for bilevel images,
+    lossless Flate for images with an alpha channel, and JPEG for
+    continuous-tone images. Explicit options map directly to their codec;
+    anything else falls back to lossless Flate.
+    """
+    if compression in ("g3", "g4"):
+        return PDF_CODEC_G4
+    if compression in ("jpg", "jpeg"):
+        return PDF_CODEC_JPEG
+    if compression not in (None, "", "auto"):
+        return PDF_CODEC_FLATE
+    if image.mode == "1":
+        return PDF_CODEC_G4
+    if _has_alpha(image):
+        return PDF_CODEC_FLATE
+    return PDF_CODEC_JPEG
+
+
+def _encode_jpeg(image: Image.Image, quality: int) -> bytes:
+    """Encode an image as JPEG bytes at the given quality."""
+    img_byte_arr = io.BytesIO()
+    if image.mode in ("I", "F", "P"):
+        image = image.convert("RGB" if image.mode == "P" else "L")
+    image.save(img_byte_arr, format="JPEG", quality=quality)
+    return img_byte_arr.getvalue()
+
+
+def _to_bilevel(image: Image.Image) -> Image.Image:
+    """Threshold an image to 1 bit for CCITT encoding."""
+    image = image.convert("L")
+    threshold = 0.4 * 255
+    image = image.point(lambda p: 255 if p > threshold else 0)
+    return image.convert("1")
+
 
 class Page:
     """Class of data and methods for handling page objects."""
@@ -67,6 +120,7 @@ class Page:
     image_id = None
     id = None
     _stored_bytes = None
+    original = False
     image_object: Image.Image | None
 
     def __init__(self, **kwargs: object) -> None:
@@ -89,6 +143,7 @@ class Page:
             if self.image_object.format in ("JPEG", "PNG"):
                 with pathlib.Path(cast("str", kwargs["filename"])).open("rb") as fhd:
                     self._stored_bytes = fhd.read()
+                self.original = True
 
         # set this before setting attributes from kwargs in order to reuse uuid
         # if necessary. Therefore, the uuid tracks the page through import,
@@ -131,12 +186,7 @@ class Page:
 
     def _to_jpeg_bytes(self) -> bytes:
         """Return the image encoded as JPEG bytes at the storage quality."""
-        img_byte_arr = io.BytesIO()
-        image = self.image_object
-        if image.mode in ("I", "F", "P"):
-            image = image.convert("RGB" if image.mode == "P" else "L")
-        image.save(img_byte_arr, format="JPEG", quality=92)
-        return img_byte_arr.getvalue()
+        return _encode_jpeg(cast("Image.Image", self.image_object), 92)
 
     @classmethod
     def from_bytes(cls: type[Page], blob: bytes, **kwargs: object) -> Page:
@@ -153,6 +203,7 @@ class Page:
             "saved",
             "text_layer",
             "annotations",
+            "original",
         ]:
             if key in kwargs and kwargs[key] is not None:
                 setattr(page, key, kwargs[key])
@@ -419,45 +470,54 @@ class Page:
     def write_image_for_pdf(
         self, filename: str, options: dict[str, Any] | None
     ) -> None:
-        """Write the image as a file suitable for embedding in a PDF."""
-        image = self.image_object
-        opts = {}
+        """Write the image as a file suitable for embedding in a PDF.
+
+        The temporary file's format is chosen from the resolved codec and is
+        detected by ``img2pdf`` from its content, not its suffix: JPEG bytes
+        are embedded with DCTDecode, 1-bit PNM is transcoded to CCITT Group 4
+        and PNG is embedded with Flate.
+        """
+        image = cast("Image.Image", self.image_object)
+        opts: dict[str, Any] = {}
         if options is not None and options.get("options") is not None:
-            opts = options["options"]
+            opts = cast("dict[str, Any]", options["options"])
+        compression = cast("str | None", opts.get("compression"))
+        quality = cast("int | None", opts.get("quality"))
+        if quality is None:
+            quality = cast("int", config.DEFAULTS["quality"])
+        codec = resolve_pdf_codec(image, compression)
+
+        # An unmodified imported JPEG is already in the desired encoding, so
+        # embed the stored bytes verbatim rather than re-encoding them.
         if (
-            self._stored_bytes is not None
-            and self.image_object.format == "JPEG"
+            self.original
+            and codec == PDF_CODEC_JPEG
+            and compression in (None, "", "auto")
             and not opts.get("downsample")
-            and not (opts.get("compression") and opts["compression"][0] == "g")
+            and self._stored_bytes is not None
+            and image.format == "JPEG"
         ):
             with pathlib.Path(filename).open("wb") as fhd:
                 fhd.write(self._stored_bytes)
             return
+
         resolution = cast("tuple[float, float, str]", self.resolution)
         if (
-            opts
-            and "downsample" in cast("dict[str, Any]", opts)
-            and opts["downsample"]
+            opts.get("downsample")
+            and "downsample dpi" in opts
             and opts["downsample dpi"] < min(resolution[0], resolution[1])
         ):
             width = int(self.width * opts["downsample dpi"] // resolution[0])
             height = int(self.height * opts["downsample dpi"] // resolution[1])
             image = image.resize((width, height))
-        if (
-            opts
-            and "compression" in cast("dict[str, Any]", opts)
-            and opts["compression"][0] == "g"
-        ):  # g3 or g4
-            # Grayscale
-            image = image.convert("L")
-            # Threshold
-            threshold = 0.4 * 255
-            image = image.point(lambda p: 255 if p > threshold else 0)
-            # To mono
-            image = image.convert("1")
 
-        xresolution, yresolution, _units = self.get_resolution()
-        image.save(filename, dpi=(xresolution, yresolution))
+        if codec == PDF_CODEC_G4:
+            _to_bilevel(image).save(filename, format="PPM")
+        elif codec == PDF_CODEC_JPEG:
+            pathlib.Path(filename).write_bytes(_encode_jpeg(image, quality))
+        else:
+            xresolution, yresolution, _units = self.get_resolution()
+            image.save(filename, format="PNG", dpi=(xresolution, yresolution))
 
     def write_image_for_djvu(self, filename: str, options: dict[str, Any]) -> None:
         """Save the image as a DjVu file."""

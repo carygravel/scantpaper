@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import pathlib
 import sqlite3
 import subprocess
@@ -1403,6 +1404,55 @@ def test_open_migration_v1_to_v2(temp_db: object) -> None:
 
     thread._execute("SELECT initial_page_id FROM page_order WHERE page_id = 1")
     assert cast("tuple[object, ...]", thread._fetchone())[0] == 1
+
+
+def test_open_migration_v2_to_v3(temp_db: object) -> None:
+    """Test migration from version 2 to 3 adds the image.original column."""
+    db_path = temp_db.name
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute(f"PRAGMA application_id = {APPLICATION_ID}")
+    cur.execute("PRAGMA user_version = 2")
+    cur.execute("CREATE TABLE image(id INTEGER PRIMARY KEY, image BLOB, thumb BLOB)")
+    cur.execute("""CREATE TABLE page(
+                id INTEGER PRIMARY KEY,
+                image_id INTEGER NOT NULL,
+                x_res FLOAT,
+                y_res FLOAT,
+                std_dev TEXT,
+                mean TEXT,
+                saved BOOL,
+                text TEXT,
+                annotations TEXT,
+                FOREIGN KEY (image_id) REFERENCES image(id))""")
+    cur.execute("""CREATE TABLE page_order(
+                action_id INTEGER NOT NULL,
+                row_id INTEGER NOT NULL,
+                page_id INTEGER NOT NULL,
+                initial_page_id INTEGER NOT NULL,
+                PRIMARY KEY (action_id, row_id))""")
+    buf = io.BytesIO()
+    Image.new("RGB", (4, 4)).save(buf, format="JPEG")
+    cur.execute("INSERT INTO image VALUES (1, ?, NULL)", (buf.getvalue(),))
+    cur.execute("INSERT INTO page (id, image_id, x_res, y_res) VALUES (1, 1, 300, 300)")
+    cur.execute("INSERT INTO page_order VALUES (0, 0, 1, 1)")
+    conn.commit()
+    conn.close()
+
+    thread = DocThread(db=db_path)
+
+    thread._execute("PRAGMA user_version")
+    assert cast("tuple[object, ...]", thread._fetchone())[0] == USER_VERSION
+
+    thread._execute("SELECT original FROM image WHERE id = 1")
+    assert cast("tuple[object, ...]", thread._fetchone())[0] == 0, (
+        "legacy rows default to generated"
+    )
+
+    # A pre-existing blob still loads, and is treated as generated.
+    page = thread.get_page(id=1)
+    assert page.original is False, "legacy image is not an original import"
+    assert page.get_size() == (4, 4), "legacy blob readable"
 
 
 def test_pixbuf_to_bytes() -> None:

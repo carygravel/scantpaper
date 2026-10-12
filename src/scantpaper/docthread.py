@@ -53,6 +53,10 @@ INSERT_AT_START = "<start>"
 # in _version_page's keyword overrides.
 _UNSET = object()
 
+# Schema version at which page_order gained its initial_page_id column. Used by
+# the stepwise open() migration; the current version is USER_VERSION.
+_SCHEMA_VERSION_PAGE_ORDER = 2
+
 
 def _loggerise(variables: object) -> object:
     logger_vars = None
@@ -232,7 +236,8 @@ class DocThread(SaveThread):
         self._execute("""CREATE TABLE image(
                 id INTEGER PRIMARY KEY,
                 image BLOB,
-                thumb BLOB)""")
+                thumb BLOB,
+                original INTEGER NOT NULL DEFAULT 0)""")
         self._execute("""CREATE TABLE page(
                 id INTEGER PRIMARY KEY,
                 image_id INTEGER NOT NULL,
@@ -274,18 +279,33 @@ class DocThread(SaveThread):
         self._execute("PRAGMA user_version")
         user_version = self._fetchone()
         if user_version is not None:
-            if cast("int", user_version[0]) > USER_VERSION:
+            version = cast("int", user_version[0])
+            if version > USER_VERSION:
                 logger.warning(
                     "%s was created by a newer version of scantpaper.", self._db
                 )
-            elif user_version[0] == 1:
-                # migration from 1 to 2
-                self._execute(
-                    "ALTER TABLE page_order ADD COLUMN initial_page_id INTEGER"
-                )
-                self._execute("UPDATE page_order SET initial_page_id = page_id")
-                self._execute(f"PRAGMA user_version = {USER_VERSION}")
-                self._con[threading.get_native_id()].commit()
+            else:
+                migrated = version
+                if version == 1:
+                    # migration from 1 to 2
+                    self._execute(
+                        "ALTER TABLE page_order ADD COLUMN initial_page_id INTEGER"
+                    )
+                    self._execute("UPDATE page_order SET initial_page_id = page_id")
+                    migrated = _SCHEMA_VERSION_PAGE_ORDER
+                if migrated == _SCHEMA_VERSION_PAGE_ORDER:
+                    # migration from 2 to 3: record whether the stored bytes
+                    # are an unmodified imported original so PDF saves can
+                    # embed them without re-encoding. Legacy rows default to
+                    # 0 (generated).
+                    self._execute(
+                        "ALTER TABLE image ADD COLUMN original INTEGER NOT NULL"
+                        " DEFAULT 0"
+                    )
+                    migrated = USER_VERSION
+                if migrated != version:
+                    self._execute(f"PRAGMA user_version = {USER_VERSION}")
+                    self._con[threading.get_native_id()].commit()
         self._migrate_page_order_schema()
         self._execute("SELECT MAX(action_id) FROM page_order")
         row = self._fetchone()
@@ -367,10 +387,11 @@ class DocThread(SaveThread):
         if insert:
             thumb = page.get_pixbuf_at_scale(self.heightt, self.widtht)
             self._execute(
-                "INSERT INTO image (id, image, thumb) VALUES (NULL, ?, ?)",
+                "INSERT INTO image (id, image, thumb, original) VALUES (NULL, ?, ?, ?)",
                 (
                     bytes_image,
                     self._pixbuf_to_bytes(thumb),
+                    1 if page.original else 0,
                 ),
             )
             return self._cur[threading.get_native_id()].lastrowid, thumb
@@ -665,7 +686,7 @@ class DocThread(SaveThread):
         if "id" in kwargs:
             self._execute(
                 """SELECT
-                    image, x_res, y_res, mean, std_dev, text, annotations, initial_page_id, image.id
+                    image, x_res, y_res, mean, std_dev, text, annotations, initial_page_id, image.id, image.original
                    FROM page, page_order, image
                    WHERE page.id = page_id
                     AND image_id = image.id
@@ -693,6 +714,7 @@ class DocThread(SaveThread):
             text_layer=row[5],
             annotations=row[6],
             image_id=row[8],
+            original=bool(row[9]),
         )
 
     def do_get_page(self, request: Request) -> Page:
