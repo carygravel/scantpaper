@@ -1433,15 +1433,16 @@ def test_convert_bilevel_images_to_jbig2_noop_without_images(
 def test_jbig2_options_expose_fields_ocrmypdf_reads() -> None:
     """The options namespace must satisfy OCRmyPDF's optimize pass.
 
-    Newer OCRmyPDF reads ``jbig2_lossy`` and ``jbig2_page_group_size``
-    directly (the latter without getattr), so the no-effect defaults must be
-    present or the conversion raises AttributeError.
+    OCRmyPDF 16.x groups bitonal pages when ``jbig2_page_group_size > 1``
+    (lossy) and computes ``pageno // jbig2_page_group_size``, so the lossless
+    single-image path requires exactly 1. Newer OCRmyPDF reads these fields
+    without getattr, so they must be present either way.
     """
     assert _JBIG2_OPTIONS.jbig2_threshold == 0.85
     assert _JBIG2_OPTIONS.jobs == 1
     assert _JBIG2_OPTIONS.progress_bar is False
     assert _JBIG2_OPTIONS.jbig2_lossy is False
-    assert _JBIG2_OPTIONS.jbig2_page_group_size == 0
+    assert _JBIG2_OPTIONS.jbig2_page_group_size == 1
 
 
 def test_estimate_page_pdf_size_uses_stream_for_verbatim_codecs(
