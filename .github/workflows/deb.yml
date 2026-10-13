@@ -124,6 +124,7 @@ jobs:
                    \${misc:Depends},
                    \${python3:Depends}
           Recommends: djvulibre-bin,
+                      jbig2,
                       qpdf,
                       tesseract-ocr,
                       unpaper,

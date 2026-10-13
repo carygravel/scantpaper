@@ -11,12 +11,14 @@ import re
 import shutil
 import tempfile
 from collections import defaultdict
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, TextIO, cast
 
 import img2pdf
 import ocrmypdf
 import pikepdf
-from ocrmypdf import hookimpl
+from ocrmypdf import hookimpl, optimize
+from ocrmypdf._concurrent import SerialExecutor
 from ocrmypdf.pluginspec import ProgressBar
 from PIL import Image
 from typing_extensions import override
@@ -24,10 +26,16 @@ from typing_extensions import override
 from scantpaper.basethread import Request
 from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
-from scantpaper.helpers import exec_command, exec_command_run
+from scantpaper.helpers import exec_command, exec_command_run, jbig2_available
 from scantpaper.i18n import _
 from scantpaper.importthread import Importhread, _note_callbacks
-from scantpaper.page import Page
+from scantpaper.page import (
+    PDF_CODEC_JBIG2,
+    PDF_CODEC_JP2,
+    PDF_CODEC_JPEG,
+    Page,
+    resolve_pdf_codec,
+)
 
 if TYPE_CHECKING:
     import uuid
@@ -42,6 +50,11 @@ img2pdf.default_dpi = 72.0
 # linearizing engine, Ghostscript's PDF/A conversion, and pikepdf's
 # xref-stream linearization, producing truncated or corrupt output.
 _2GIB = 2 * 1024 * 1024 * 1024
+
+# Options for OCRmyPDF's JBIG2 helpers: lossless single-image encoding with
+# no progress bar. The threshold only affects grayscale input, which never
+# reaches this path (only pure 1-bit images are converted).
+_JBIG2_OPTIONS = SimpleNamespace(jbig2_threshold=0.85, jobs=1, progress_bar=False)
 
 # Bytes per pixel used to estimate PDF size from the source image mode.
 _PIXEL_BPP = {
@@ -230,6 +243,9 @@ class SaveThread(Importhread):
             # Embed text layer using ocrmypdf (also applies PDF/A metadata such
             # as the title), so it runs even when no page has a text layer.
             embed_ok = self._embed_text_layer(outdir, filename, request)
+
+            self._maybe_convert_to_jbig2(options, outdir, filename, request)
+
             self._finalize_pdf(
                 filename, options, request, embed_ok=embed_ok, metadata=metadata
             )
@@ -237,6 +253,25 @@ class SaveThread(Importhread):
             self.do_set_saved(
                 Request("set_saved", (options["list_of_pages"], True), self.responses)
             )
+
+    def _maybe_convert_to_jbig2(
+        self,
+        options: dict[str, Any],
+        outdir: pathlib.Path,
+        filename: str,
+        request: Request,
+    ) -> None:
+        """Best-effort JBIG2 pass on the OCR'd PDF when a ``jb2`` save asked for it."""
+        if not (_jbig2_requested(options) and jbig2_available()):
+            return
+        request.data(_("Converting to JBIG2"))
+        try:
+            _convert_bilevel_images_to_jbig2(pathlib.Path(filename), outdir)
+        except Exception as err:  # noqa: BLE001
+            # BLE001 — the pass is best-effort: a failure leaves the valid
+            # Group 4 image in place, so degrade gracefully rather than
+            # failing the whole save.
+            logger.warning("Could not convert bilevel images to JBIG2: %s", err)
 
     def _assemble_pdf(
         self,
@@ -752,17 +787,41 @@ def _estimate_page_pdf_size(
     image: Image.Image, temp_filename: str, opts: dict[str, Any]
 ) -> int:
     """Estimate a page's contribution to the output PDF size in bytes."""
-    if (
-        image.format == "JPEG"
-        and not opts.get("downsample")
-        and not (opts.get("compression") and opts["compression"][0] == "g")
-    ):
-        # JPEG is stored verbatim, so the written file size is the size it
-        # will take in the PDF.
+    codec = resolve_pdf_codec(image, opts.get("compression"))
+    if codec in (PDF_CODEC_JPEG, PDF_CODEC_JP2) and not opts.get("downsample"):
+        # JPEG and JPEG 2000 are stored verbatim, so the written file size is
+        # the size it will take in the PDF.
         return pathlib.Path(temp_filename).stat().st_size
     # Other formats are stored uncompressed, so estimate from the pixel data.
     bpp = _PIXEL_BPP.get(image.mode, 4)
     return int(image.width * image.height * bpp)
+
+
+def _jbig2_requested(options: dict[str, Any]) -> bool:
+    """Return True when this save asks for bilevel JBIG2 encoding."""
+    opts = options.get("options") or {}
+    compression = opts.get("compression")
+    if compression == PDF_CODEC_JBIG2:
+        return True
+    return bool(
+        compression in (None, "", "auto")
+        and opts.get("bilevel compression") == PDF_CODEC_JBIG2
+    )
+
+
+def _convert_bilevel_images_to_jbig2(path: pathlib.Path, root: pathlib.Path) -> None:
+    """Replace bilevel Group 4 image streams with lossless JBIG2.
+
+    Runs on the OCR'd PDF (after the text layer is embedded, since OCRmyPDF's
+    PDF/A step re-encodes images and would otherwise undo the conversion).
+    ``root`` is scratch space for OCRmyPDF's intermediate files.
+    """
+    with pikepdf.open(path, allow_overwriting_input=True) as pdf:
+        images = optimize.extract_images_jbig2(pdf, root, _JBIG2_OPTIONS)
+        if not images:
+            return
+        optimize.convert_to_jbig2(pdf, images, root, _JBIG2_OPTIONS, SerialExecutor())
+        pdf.save(path)
 
 
 def _fix_pdf_metadata(path: str, *, remove_title: bool) -> None:

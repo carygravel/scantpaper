@@ -9,7 +9,11 @@ import gi
 
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.dialog import Dialog
-from scantpaper.helpers import configure_fractional_spinbutton, get_tmp_dir
+from scantpaper.helpers import (
+    configure_fractional_spinbutton,
+    get_tmp_dir,
+    jbig2_available,
+)
 from scantpaper.i18n import _
 
 gi.require_version("Gtk", "3.0")
@@ -325,6 +329,8 @@ All document date codes use strftime codes with a leading D, e.g.:
         self._comboo.set_active_index(self.settings["OCR output"])
         hbox.pack_end(self._comboo, expand=True, fill=True, padding=0)
 
+        self._add_bilevel_compression(vbox)
+
         # Manage user-defined tools
         frame = Gtk.Frame(label=_("Manage user-defined tools"))
         vbox.pack_start(frame, expand=True, fill=True, padding=0)
@@ -337,6 +343,31 @@ All document date codes use strftime codes with a leading D, e.g.:
         abutton.set_image(Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
         self._vboxt.pack_start(abutton, expand=True, fill=True, padding=0)
         abutton.connect("clicked", self._clicked_add_udt)
+
+    def _add_bilevel_compression(self, vbox: Gtk.Box) -> None:
+        """Add the codec preference for bilevel pages under automatic compression."""
+        hbox = Gtk.Box()
+        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        label = Gtk.Label(label=_("Bilevel compression"))
+        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        bilevel_function = [
+            [
+                "g4",
+                _("Group 4"),
+                _("Compress bilevel images with CCITT Group 4 encoding."),
+            ],
+        ]
+        if jbig2_available():
+            bilevel_function.append(
+                [
+                    "jb2",
+                    _("JBIG2"),
+                    _("Compress bilevel images with JBIG2 encoding."),
+                ]
+            )
+        self._combobc = ComboBoxText(data=bilevel_function)
+        self._combobc.set_active_index(self.settings["bilevel compression"])
+        hbox.pack_end(self._combobc, expand=True, fill=True, padding=0)
 
     def _clicked_add_udt(self, button: Gtk.Button) -> None:
         self._add_user_defined_tool_entry("my-tool %i %o")
@@ -431,6 +462,7 @@ The other variable available is:
         self.settings["Blank threshold"] = self._spinbuttonb.get_value()
         self.settings["Dark threshold"] = self._spinbuttond.get_value()
         self.settings["OCR output"] = self._comboo.get_active_index()
+        self.settings["bilevel compression"] = self._combobc.get_active_index()
 
         self.settings["user_defined_tools"] = tools
 

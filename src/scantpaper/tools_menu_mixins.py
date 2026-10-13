@@ -834,6 +834,7 @@ class ToolsMenuMixins:
             # Compile options
             options = {
                 "compression": self.settings["pdf compression"],
+                "bilevel compression": self.settings["bilevel compression"],
                 "downsample": self.settings["downsample"],
                 "downsample dpi": self.settings["downsample dpi"],
                 "quality": self.settings["quality"],

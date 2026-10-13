@@ -1,0 +1,104 @@
+## Why
+
+Continuous-tone scanned pages dominate the size of a saved PDF, and JPEG
+2000 lossy embeds 25–45% smaller streams than baseline JPEG at matched
+quality (measured on 300 dpi A4 scans). The save dialog already offers a
+per-image compression choice, so a JPEG 2000 option gives users a real
+size lever without changing what anyone gets by default. It is not a
+good default: JPEG 2000 encodes roughly 60× and decodes roughly 27×
+more slowly than JPEG (about 1 s vs 18 ms to encode one 300 dpi page)
+and is rendered by a narrower set of PDF viewers. It must therefore be
+an explicit opt-in, not the `auto` choice.
+
+Bilevel pages have a separate, larger gap: lossless JBIG2 is roughly 2×
+smaller than the CCITT Group 4 they use today (measured 21.7 KB vs
+41.6 KB for a 300 dpi A4 text page). JBIG2 needs the external `jbig2`
+encoder (jbig2enc), which is packaged on Debian, Ubuntu 24.04+, Alpine,
+Arch (AUR), Gentoo and Nix but is absent on older Ubuntu (22.04),
+Fedora and stock Arch. The option must therefore be offered only where
+the encoder is present and degrade to Group 4 everywhere else.
+
+## What Changes
+
+- Add an explicit **JPEG 2000** option (`jp2`) to the PDF compression
+  menu. When selected, continuous-tone (8-bit grayscale, RGB, CMYK)
+  pages are embedded with lossy JPEG 2000 (JPXDecode).
+- Add an explicit **JBIG2** option (`jb2`), offered only when the
+  `jbig2` encoder is available. When selected, bilevel pages are
+  embedded with lossless JBIG2; where the encoder is missing the
+  option is not offered and bilevel pages stay CCITT Group 4.
+- Add a **bilevel codec preference** that steering `auto` for bilevel
+  pages: CCITT Group 4 by default, or lossless JBIG2 when configured and
+  the encoder is available. Users who want the ~2× size win from JBIG2
+  without choosing an explicit option can set it once in Preferences.
+  The default keeps today's output byte-for-byte, and the preference
+  never affects how Flate (alpha) or JPEG (continuous-tone) are picked.
+- Leave every existing default unchanged: with the default preference,
+  `auto` still selects CCITT Group 4 for bilevel, Flate for alpha, and
+  JPEG for continuous-tone. No default output changes for existing
+  users.
+- Preserve the existing colour-model rules under `jp2` and `jb2`:
+  bilevel pages stay CCITT Group 4 under `jp2` and images with an alpha
+  channel stay lossless Flate under both, because neither codec helps
+  there.
+- Reuse the existing quality control to steer JPEG 2000 compression:
+  relabel it from "JPEG Quality" to "Quality" and show it for both
+  `jpg` and `jp2`.
+- Do not passthrough original imported images under `jp2`: the stored
+  stream is JPEG, so a JPEG 2000 page is re-encoded from the decoded
+  pixels.
+- Convert bilevel pages to JBIG2 in a targeted pass over the assembled
+  PDF rather than through the whole-document OCRmyPDF optimizer, so
+  continuous-tone pages keep the JPEG quality the user chose.
+- Teach the PDF size estimator about JPEG 2000 so the size-limit warning
+  stays accurate.
+
+## Capabilities
+
+### New Capabilities
+
+None.
+
+### Modified Capabilities
+
+- `pdf-image-compression`: add JPEG 2000 and JBIG2 as explicit
+  compression options, define their behaviour (lossy JPXDecode for
+  continuous-tone, availability-gated lossless JBIG2 for bilevel,
+  colour-model rules, quality control), and add the bilevel codec
+  preference that guides `auto` for bilevel pages, defaulting to Group 4.
+- `configuration`: carry the new `"bilevel compression"` preference with
+  a default of `g4`.
+
+## Impact
+
+- `src/scantpaper/dialog/save.py`: add `jp2` and, when the encoder is
+  present, `jb2` to `PDF_COMPRESSION_ALGS`; show and relabel the quality
+  spin-button.
+- `src/scantpaper/config.py`: add the `"bilevel compression"` preference
+  (values `g4`/`jb2`) to `DEFAULTS`, default `g4`.
+- `src/scantpaper/dialog/preferences.py`: add the bilevel codec combo-box,
+  offered only when the `jbig2` encoder is present.
+- `src/scantpaper/page.py`: add `PDF_CODEC_JP2` and `PDF_CODEC_JBIG2`
+  constants, extend `resolve_pdf_codec`, and encode JPEG 2000 in
+  `write_image_for_pdf`.
+- `src/scantpaper/savethread.py`: run the targeted JBIG2 pass over the
+  assembled PDF, and detect `jbig2` availability; extend
+  `_estimate_page_pdf_size`.
+- `src/scantpaper/const.py`: register the optional `jbig2` tool if the
+  project tracks external binaries there.
+- OCRmyPDF's bitonal-only optimizer helpers are reused; the whole
+  optimizer is deliberately not run, so JPEG/PNG pages are untouched.
+- Optional external dependency: `jbig2` (jbig2enc). Not installed by
+  this change; its absence degrades the `jb2` option to Group 4.
+- Build workflows: `.github/workflows/test.yml` gains `jbig2` in the
+  Ubuntu 24.04 jobs (`latest`, `latest_w_ppa`); the jammy `oldest` job is
+  left without it on purpose. `fedora.yml` and `opensuse.yml` are
+  untouched (neither distro packages jbig2enc). The debian/control
+  generated by `deb.yml` lists `jbig2` in `Recommends`.
+- Translation template (`po/scantpaper/*.pot`) gains the new menu
+  entries and label.
+- No new Python dependency: Pillow (with OpenJPEG) and img2pdf already
+  present; PDF/A-2 permits JPXDecode and JBIG2Decode, and both survive
+  the OCRmyPDF pass.
+- `README.md`: document the new options, the optional `jbig2` binary and
+  their trade-offs.

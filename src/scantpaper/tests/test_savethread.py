@@ -14,6 +14,7 @@ import img2pdf
 import ocrmypdf.api
 import pikepdf
 import pytest
+from PIL import Image
 from typing_extensions import override
 
 from scantpaper.basethread import Request
@@ -27,9 +28,12 @@ from scantpaper.savethread import (
     SaveThreadProgressBar,
     _add_annotations_to_pdf,
     _append_pdf,
+    _convert_bilevel_images_to_jbig2,
     _current_request_for_progress,
     _encrypt_pdf,
+    _estimate_page_pdf_size,
     _fix_pdf_metadata,
+    _jbig2_requested,
     _post_save_hook,
     _set_timestamp,
     get_progressbar_class,
@@ -90,6 +94,9 @@ def mock_page_instance() -> MagicMock:
         "<html><body><div class='ocr_page'>HOCR</div></body></html>"
     )
     page.image_object = MagicMock()
+    page.image_object.mode = "1"
+    page.image_object.width = 10
+    page.image_object.height = 10
     return page
 
 
@@ -1299,3 +1306,154 @@ def test_hocr_flat_tree_embeds_searchable_text(
         ).stdout
         assert "hello world" in text, "flat text layer is searchable after save"
         assert "second" in text, "second row preserved"
+
+
+class TestJbig2Requested:
+    """Test ``_jbig2_requested`` selection logic."""
+
+    def test_explicit_jb2(self) -> None:
+        """An explicit jb2 compression requests the pass."""
+        assert _jbig2_requested({"options": {"compression": "jb2"}}) is True
+
+    def test_auto_with_jb2_preference(self) -> None:
+        """Auto with the jb2 bilevel preference requests the pass."""
+        options = {"options": {"bilevel compression": "jb2"}}
+        assert _jbig2_requested(options) is True
+
+    @pytest.mark.parametrize("compression", [None, "", "auto"])
+    def test_auto_with_g4_preference(self, compression: str | None) -> None:
+        """Auto with the g4 preference does not request the pass."""
+        options = {"options": {"compression": compression, "bilevel compression": "g4"}}
+        assert _jbig2_requested(options) is False
+
+    def test_explicit_other_compression_ignores_preference(self) -> None:
+        """An explicit non-bilevel compression wins over the preference."""
+        options = {"options": {"compression": "jpg", "bilevel compression": "jb2"}}
+        assert _jbig2_requested(options) is False
+
+    def test_missing_options(self) -> None:
+        """No options never requests the pass."""
+        assert _jbig2_requested({}) is False
+
+
+def test_maybe_convert_to_jbig2_skips_when_not_requested(
+    mock_thread_instance: MockSaveThread,
+) -> None:
+    """The pass is not run when the save did not ask for JBIG2."""
+    with patch(
+        "scantpaper.savethread._convert_bilevel_images_to_jbig2"
+    ) as mock_convert:
+        mock_thread_instance._maybe_convert_to_jbig2(
+            {"options": {"compression": "g4"}},
+            pathlib.Path("/tmp"),
+            "/tmp/output.pdf",
+            MagicMock(),
+        )
+    mock_convert.assert_not_called()
+
+
+def test_maybe_convert_to_jbig2_skips_without_encoder(
+    mock_thread_instance: MockSaveThread,
+) -> None:
+    """The pass is not run when the encoder is absent."""
+    with (
+        patch("scantpaper.savethread.jbig2_available", return_value=False),
+        patch("scantpaper.savethread._convert_bilevel_images_to_jbig2") as mock_convert,
+    ):
+        mock_thread_instance._maybe_convert_to_jbig2(
+            {"options": {"compression": "jb2"}},
+            pathlib.Path("/tmp"),
+            "/tmp/output.pdf",
+            MagicMock(),
+        )
+    mock_convert.assert_not_called()
+
+
+def test_maybe_convert_to_jbig2_runs_when_requested(
+    mock_thread_instance: MockSaveThread,
+) -> None:
+    """A jb2 request with the encoder present runs the pass and reports it."""
+    request = MagicMock()
+    with (
+        patch("scantpaper.savethread.jbig2_available", return_value=True),
+        patch("scantpaper.savethread._convert_bilevel_images_to_jbig2") as mock_convert,
+    ):
+        mock_thread_instance._maybe_convert_to_jbig2(
+            {"options": {"compression": "jb2"}},
+            pathlib.Path("/tmp"),
+            "/tmp/output.pdf",
+            request,
+        )
+    mock_convert.assert_called_once_with(
+        pathlib.Path("/tmp/output.pdf"), pathlib.Path("/tmp")
+    )
+    request.data.assert_called_once_with(_("Converting to JBIG2"))
+
+
+def test_maybe_convert_to_jbig2_is_best_effort(
+    mock_thread_instance: MockSaveThread,
+) -> None:
+    """A conversion failure warns but does not fail the save."""
+    with (
+        patch("scantpaper.savethread.jbig2_available", return_value=True),
+        patch(
+            "scantpaper.savethread._convert_bilevel_images_to_jbig2",
+            side_effect=RuntimeError("boom"),
+        ),
+        patch("scantpaper.savethread.logger.warning") as mock_warning,
+    ):
+        mock_thread_instance._maybe_convert_to_jbig2(
+            {"options": {"compression": "jb2"}},
+            pathlib.Path("/tmp"),
+            "/tmp/output.pdf",
+            MagicMock(),
+        )
+    mock_warning.assert_called_once()
+    assert "Could not convert bilevel images to JBIG2" in str(mock_warning.call_args)
+
+
+def test_convert_bilevel_images_to_jbig2_noop_without_images(
+    temp_pdf: object,
+) -> None:
+    """A PDF with no bilevel images is left untouched."""
+    with pikepdf.Pdf.new() as pdf:
+        pdf.add_blank_page(page_size=(200, 200))
+        pdf.save(temp_pdf.name)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        _convert_bilevel_images_to_jbig2(
+            pathlib.Path(temp_pdf.name), pathlib.Path(tempdir)
+        )
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        assert len(pdf.pages) == 1, "blank page still present"
+
+
+def test_estimate_page_pdf_size_uses_stream_for_verbatim_codecs(
+    tmp_path: pathlib.Path,
+) -> None:
+    """JPEG and JPEG 2000 are embedded verbatim, so the file size is exact."""
+    written = tmp_path / "page.bin"
+    written.write_bytes(b"\x00" * 1234)
+    image = Image.new("RGB", (100, 100))
+    assert _estimate_page_pdf_size(image, str(written), {"compression": "jpg"}) == 1234
+    assert _estimate_page_pdf_size(image, str(written), {"compression": "jp2"}) == 1234
+
+
+def test_estimate_page_pdf_size_uses_pixels_for_bilevel() -> None:
+    """A JBIG2-requested bilevel page is estimated from pixel data."""
+    image = Image.new("1", (10, 20))
+    assert (
+        _estimate_page_pdf_size(image, "/does/not/exist", {"compression": "jb2"}) == 25
+    )
+
+
+def test_estimate_page_pdf_size_downsample_uses_pixels() -> None:
+    """A downsampled JPEG page is re-encoded, so the pixel estimate is used."""
+    image = Image.new("RGB", (10, 10))
+    assert (
+        _estimate_page_pdf_size(
+            image, "/does/not/exist", {"compression": "jpg", "downsample": 2}
+        )
+        == 300
+    )

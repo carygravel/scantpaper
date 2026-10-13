@@ -869,6 +869,7 @@ def test_email_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) ->
         "downsample dpi": 300,
         "downsample": False,
         "pdf compression": "auto",
+        "bilevel compression": "g4",
         "default filename": "doc",
         "convert whitespace to underscores": True,
     }
@@ -939,6 +940,7 @@ def test_email_execution_flow(
         "downsample dpi": 300,
         "downsample": False,
         "pdf compression": "auto",
+        "bilevel compression": "g4",
         "default filename": "doc",
         "convert whitespace to underscores": True,
         "view files toggle": True,
@@ -1011,6 +1013,7 @@ def test_email_default_filename(
         "downsample dpi": 300,
         "downsample": False,
         "pdf compression": "auto",
+        "bilevel compression": "g4",
         "default filename": "doc",
         "convert whitespace to underscores": True,
         "view files toggle": False,

@@ -13,6 +13,7 @@ from scantpaper.const import _LOCAL_TZ, MAX_DPI
 from scantpaper.dialog import Dialog
 from scantpaper.entry_completion import EntryCompletion
 from scantpaper.gobject import property_
+from scantpaper.helpers import jbig2_available
 from scantpaper.i18n import _
 
 gi.require_version("Gdk", "3.0")
@@ -53,8 +54,28 @@ PDF_COMPRESSION_ALGS = [
     ("g4", _("G4"), _("Compress output with CCITT Group 4 encoding.")),
     ("png", _("Flate"), _("Compress output with flate encoding.")),
     ("jpg", _("JPEG"), _("Compress output with JPEG (DCT) encoding.")),
+    ("jp2", _("JPEG 2000"), _("Compress output with JPEG 2000 encoding.")),
     ("none", _("None"), _("Use no compression algorithm on output.")),
 ]
+# Row before which the availability-gated JBIG2 entry is inserted.
+_JBIG2_ALG_INDEX = 4
+
+
+def pdf_compression_algs() -> list[tuple[str, str, str]]:
+    """Return the PDF compression choices for this system.
+
+    The JBIG2 entry is added after Group 4 only when its encoder is
+    installed; without it the option cannot be honoured.
+    """
+    algs = list(PDF_COMPRESSION_ALGS)
+    if jbig2_available():
+        algs.insert(
+            _JBIG2_ALG_INDEX,
+            ("jb2", _("JBIG2"), _("Compress output with JBIG2 encoding.")),
+        )
+    return algs
+
+
 PS_BACKENDS = [
     (
         "libtiff",
@@ -723,7 +744,7 @@ class Save(Dialog):
         else:  # don't show metadata for pre-/append to pdf
             self._meta_box_widget.hide()
 
-        if self.pdf_compression == "jpg":
+        if self.pdf_compression in ("jpg", "jp2"):
             hboxpq.show()
         else:
             hboxpq.hide()
@@ -732,7 +753,7 @@ class Save(Dialog):
         """Set up quality spinbutton here so that it can be shown or hidden by callback."""
         hbox = Gtk.Box()
         vbox.pack_start(hbox, expand=True, fill=True, padding=0)
-        label = Gtk.Label(label=_("JPEG Quality"))
+        label = Gtk.Label(label=_("Quality"))
         hbox.pack_start(label, expand=False, fill=False, padding=0)
         spinbutton = Gtk.SpinButton.new_with_range(1, 100, 1)
         spinbutton.set_value(self.jpeg_quality)
@@ -756,7 +777,7 @@ class Save(Dialog):
 
         # Set up quality spinbutton here so that it can be shown or hidden by callback
         hboxq, spinbuttonq = self.add_quality_spinbutton(vboxp)
-        combob = ComboBoxText(data=PDF_COMPRESSION_ALGS)
+        combob = ComboBoxText(data=pdf_compression_algs())
         combob.connect("changed", self._pdf_compression_changed_callback, hboxq)
 
         def jpg_quality_changed_callback(_widget: Gtk.SpinButton) -> None:
@@ -807,7 +828,7 @@ class Save(Dialog):
         self, widget: Gtk.ComboBox, hboxq: Gtk.Box
     ) -> None:
         self.pdf_compression = widget.get_active_index()
-        if self.pdf_compression == "jpg":
+        if self.pdf_compression in ("jpg", "jp2"):
             hboxq.show()
         else:
             hboxq.hide()

@@ -55,6 +55,7 @@ DEFAULTS = {
     "use_timezone": True,
     "datetime offset": datetime.timedelta(seconds=0),
     "pdf compression": "auto",
+    "bilevel compression": "g4",
     "tiff compression": None,
     "quality": 75,
     "image type": "pdf",

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 import gi
 
-from scantpaper.dialog.save import Save, filter_table
+from scantpaper.dialog.save import Save, filter_table, pdf_compression_algs
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -182,6 +182,21 @@ def test_image_type_changed_callback(mocker: pytest.MockerFixture) -> None:
     assert dialog.image_type == "ps"
 
 
+def test_pdf_compression_algs_include_jp2() -> None:
+    """JPEG 2000 is always offered as a PDF compression choice."""
+    assert "jp2" in [alg[0] for alg in pdf_compression_algs()]
+
+
+def test_pdf_compression_algs_jb2_gated_on_encoder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """JBIG2 appears only when the encoder is installed on this system."""
+    monkeypatch.setattr("scantpaper.dialog.save.jbig2_available", lambda: True)
+    assert "jb2" in [alg[0] for alg in pdf_compression_algs()]
+    monkeypatch.setattr("scantpaper.dialog.save.jbig2_available", lambda: False)
+    assert "jb2" not in [alg[0] for alg in pdf_compression_algs()]
+
+
 def test_pdf_compression_changed_callback() -> None:
     """Test PDF compression changed callback."""
     dialog = Save()
@@ -190,6 +205,12 @@ def test_pdf_compression_changed_callback() -> None:
 
     # Set to JPEG (should show quality)
     mock_combo.get_active_index.return_value = "jpg"
+    dialog._pdf_compression_changed_callback(mock_combo, mock_hboxq)
+    mock_hboxq.show.assert_called()
+
+    # Set to JPEG 2000 (should also show quality)
+    mock_hboxq.reset_mock()
+    mock_combo.get_active_index.return_value = "jp2"
     dialog._pdf_compression_changed_callback(mock_combo, mock_hboxq)
     mock_hboxq.show.assert_called()
 

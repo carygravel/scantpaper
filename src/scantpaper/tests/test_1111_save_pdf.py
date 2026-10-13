@@ -17,13 +17,14 @@ from unittest.mock import MagicMock
 import img2pdf
 import pikepdf
 import pytest
-from PIL import Image
+from PIL import Image, features
 
 from scantpaper import config
 from scantpaper.basethread import Request
 from scantpaper.const import POINTS_PER_INCH
 from scantpaper.docthread import DocThread
 from scantpaper.document import Document
+from scantpaper.helpers import jbig2_available
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
@@ -56,6 +57,36 @@ def _page_content(page: pikepdf.Page) -> bytes:
     """Return a page's decoded content stream bytes."""
     contents = page.obj.get("/Contents")
     return bytes(cast("pikepdf.Stream", contents).read_bytes())
+
+
+def _write_large_bilevel(path: str) -> None:
+    """Write a page-sized bilevel image with a substantial CCITT stream.
+
+    OCRmyPDF's PDF/A step (Ghostscript) inlines very small images, which would
+    leave the post-embed JBIG2 pass nothing to convert, so the JBIG2 tests must
+    use a realistically sized page.
+    """
+    subprocess.run(
+        [
+            config.CONVERT_COMMAND,
+            "-size",
+            "2480x3508",
+            "xc:white",
+            "-fill",
+            "black",
+            "-pointsize",
+            "120",
+            "-annotate",
+            "+100+300",
+            "scantpaper JBIG2 test page",
+            "-threshold",
+            "50%",
+            "-type",
+            "bilevel",
+            path,
+        ],
+        check=True,
+    )
 
 
 def _ccitt_group(parms: object) -> str:
@@ -725,6 +756,298 @@ def test_save_pdf_quality_shrinks_jpeg_stream(
             assert streams, "PDF contains an image"
             sizes[quality] = sum(len(stream) for stream in streams)
     assert sizes[20] < sizes[95], "lower quality stream is smaller"
+
+
+@pytest.mark.skipif(
+    not bool(features.check("jpg_2000")),
+    reason="Pillow built without JPEG 2000 support",
+)
+def test_save_pdf_jp2(
+    rose_png: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    clean_up_files: Callable[[list[str]], None],
+) -> None:
+    """An explicit jp2 save embeds a continuous-tone page as JPEG 2000."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_png])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"compression": "jp2", "quality": 75},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    subprocess.run(["pdfimages", "-all", temp_pdf.name, "x"], check=True)
+    with Image.open("x-000.jp2") as img:
+        assert img.size == (70, 46), "JPEG 2000 image extracted"
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/JPXDecode" in codecs, "page as JPEG 2000"
+    assert "/DCTDecode" not in codecs, "not JPEG"
+
+    clean_up_files(["x-000.jp2"])
+
+
+@pytest.mark.skipif(
+    not bool(features.check("jpg_2000")),
+    reason="Pillow built without JPEG 2000 support",
+)
+def test_save_pdf_jp2_quality_shrinks_stream(
+    rose_png: str,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """A lower jp2 quality produces a smaller embedded image stream."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_png])
+    sizes = {}
+    for quality in (20, 95):
+        with tempfile.NamedTemporaryFile(suffix=".pdf") as out:
+            mlp = safe_mainloop(5000)
+            slist.save_pdf(
+                path=out.name,
+                list_of_pages=[slist.data[0][2]],
+                options={"compression": "jp2", "quality": quality},
+                finished_callback=lambda _response, mlp=mlp: mlp.quit(),
+            )
+            mlp.run()
+            streams = get_raw_image_streams(out.name)
+            assert streams, "PDF contains an image"
+            sizes[quality] = sum(len(stream) for stream in streams)
+    assert sizes[20] < sizes[95], "lower quality stream is smaller"
+
+
+def test_save_pdf_jp2_bilevel_is_group4(
+    temp_pbm: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """An explicit jp2 save of a bilevel page stays CCITT Group 4."""
+    subprocess.run(
+        [config.CONVERT_COMMAND, "magick:netscape", temp_pbm.name], check=True
+    )
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_pbm.name])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"compression": "jp2", "quality": 75},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/CCITTFaxDecode" in codecs, "bilevel page as Group 4"
+    assert "Group4" in codecs, "CCITT Group 4, not G3"
+    assert "/JPXDecode" not in codecs, "bilevel page not JPEG 2000"
+
+
+def test_save_pdf_jp2_alpha_is_flate(
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """An explicit jp2 save of an image with alpha stays lossless Flate."""
+    with tempfile.NamedTemporaryFile(suffix=".png") as alpha:
+        subprocess.run(
+            [config.CONVERT_COMMAND, "rose:", "-alpha", "set", alpha.name], check=True
+        )
+        slist = Document(db=temp_db.name)
+        import_in_mainloop(slist, [alpha.name])
+        mlp = safe_mainloop(5000)
+        slist.save_pdf(
+            path=temp_pdf.name,
+            list_of_pages=[slist.data[0][2]],
+            options={"compression": "jp2", "quality": 75},
+            finished_callback=lambda _response: mlp.quit(),
+        )
+        mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/JPXDecode" not in codecs, "alpha page not JPEG 2000"
+
+
+@pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
+def test_save_pdf_jb2(
+    temp_pbm: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """An explicit jb2 save embeds a bilevel page as lossless JBIG2."""
+    _write_large_bilevel(temp_pbm.name)
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_pbm.name])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"compression": "jb2"},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/JBIG2Decode" in codecs, "bilevel page embedded with JBIG2"
+    assert "/CCITTFaxDecode" not in codecs, "not Group 4"
+
+
+@pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
+def test_save_pdf_jb2_smaller_than_g4(
+    temp_pbm: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """A bilevel page saved as JBIG2 is smaller than the same page as Group 4."""
+    _write_large_bilevel(temp_pbm.name)
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_pbm.name])
+    sizes = {}
+    for compression in ("g4", "jb2"):
+        with tempfile.NamedTemporaryFile(suffix=".pdf") as out:
+            mlp = safe_mainloop(5000)
+            slist.save_pdf(
+                path=out.name,
+                list_of_pages=[slist.data[0][2]],
+                options={"compression": compression},
+                finished_callback=lambda _response, mlp=mlp: mlp.quit(),
+            )
+            mlp.run()
+            streams = get_raw_image_streams(out.name)
+            assert streams, "PDF contains an image"
+            sizes[compression] = sum(len(stream) for stream in streams)
+    assert sizes["jb2"] < sizes["g4"], "JBIG2 stream smaller than Group 4"
+
+
+def test_save_pdf_jb2_without_encoder_falls_back_to_g4(
+    temp_pbm: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A jb2 request without the encoder degrades to Group 4, not an error."""
+    monkeypatch.setattr("scantpaper.savethread.jbig2_available", lambda: False)
+    _write_large_bilevel(temp_pbm.name)
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_pbm.name])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"compression": "jb2"},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/CCITTFaxDecode" in codecs, "fell back to Group 4"
+    assert "Group4" in codecs, "CCITT Group 4, not G3"
+    assert "/JBIG2Decode" not in codecs, "no JBIG2 without the encoder"
+
+
+def test_save_pdf_auto_bilevel_prefers_g4_by_default(
+    temp_pbm: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """Under auto, the default bilevel preference keeps Group 4."""
+    _write_large_bilevel(temp_pbm.name)
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_pbm.name])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"bilevel compression": "g4"},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/CCITTFaxDecode" in codecs, "Group 4 under auto with g4 preference"
+    assert "/JBIG2Decode" not in codecs, "no JBIG2 under auto with g4 preference"
+
+
+@pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
+def test_save_pdf_auto_bilevel_jbig2_preference(
+    temp_pbm: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """Under auto, a jb2 preference embeds bilevel pages as JBIG2."""
+    _write_large_bilevel(temp_pbm.name)
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_pbm.name])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"bilevel compression": "jb2"},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/JBIG2Decode" in codecs, "JBIG2 under auto with jb2 preference"
+
+
+def test_save_pdf_auto_bilevel_jbig2_preference_without_encoder(
+    temp_pbm: object,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Under auto, a jb2 preference without the encoder falls back to Group 4."""
+    monkeypatch.setattr("scantpaper.savethread.jbig2_available", lambda: False)
+    _write_large_bilevel(temp_pbm.name)
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_pbm.name])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"bilevel compression": "jb2"},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/CCITTFaxDecode" in codecs, "fell back to Group 4 without the encoder"
+    assert "Group4" in codecs, "CCITT Group 4, not G3"
+    assert "/JBIG2Decode" not in codecs, "no JBIG2 without the encoder"
+
+
+@pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
+def test_save_pdf_auto_jbig2_preference_keeps_jpeg(
+    rose_png: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """The bilevel preference never switches continuous-tone pages from JPEG."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_png])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"bilevel compression": "jb2", "quality": 75},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/DCTDecode" in codecs, "continuous-tone page stays JPEG"
+    assert "/JBIG2Decode" not in codecs, "continuous-tone page not JBIG2"
 
 
 def test_save_pdf_auto_imported_jpeg_verbatim(

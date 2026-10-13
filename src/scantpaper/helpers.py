@@ -300,6 +300,15 @@ def _program_version(
     return None
 
 
+@lru_cache
+def jbig2_available() -> bool:
+    """Return True when the JBIG2 encoder (``jbig2``) is installed."""
+    return (
+        program_version("stderr", r"jbig2enc\s+([\d.]+)", ["jbig2", "--version"])
+        is not None
+    )
+
+
 def collate_metadata(
     settings: dict[str, object], today_and_now: datetime.datetime
 ) -> dict[str, object]:

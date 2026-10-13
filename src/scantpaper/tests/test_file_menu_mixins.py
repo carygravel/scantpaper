@@ -246,6 +246,7 @@ class TestFileMenuMixins:
             "close_dialog_on_save": False,
             "post_save_hook": False,
             "pdf compression": "jpeg",
+            "bilevel compression": "g4",
             "downsample": True,
             "downsample dpi": 150,
             "quality": 80,
@@ -1098,6 +1099,7 @@ class TestFileMenuMixins:
             metadata="metadata",
             options={
                 "compression": "jpeg",
+                "bilevel compression": "g4",
                 "downsample": True,
                 "downsample dpi": 150,
                 "quality": 80,

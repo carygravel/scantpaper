@@ -25,6 +25,8 @@ from scantpaper.helpers import Proc
 from scantpaper.page import (
     PDF_CODEC_FLATE,
     PDF_CODEC_G4,
+    PDF_CODEC_JBIG2,
+    PDF_CODEC_JP2,
     PDF_CODEC_JPEG,
     Page,
     _prepare_scale,
@@ -678,6 +680,21 @@ def test_get_pixbuf_at_scale_antialiases_palette_source(
         ("RGB", "png", PDF_CODEC_FLATE),
         ("RGB", "lzw", PDF_CODEC_FLATE),
         ("RGB", "none", PDF_CODEC_FLATE),
+        ("1", "jp2", PDF_CODEC_G4),
+        ("1", "jpeg2000", PDF_CODEC_G4),
+        ("L", "jp2", PDF_CODEC_JP2),
+        ("RGB", "jp2", PDF_CODEC_JP2),
+        ("RGB", "jpeg2000", PDF_CODEC_JP2),
+        ("CMYK", "jp2", PDF_CODEC_JP2),
+        ("RGBA", "jp2", PDF_CODEC_FLATE),
+        ("LA", "jp2", PDF_CODEC_FLATE),
+        ("1", "jb2", PDF_CODEC_G4),
+        ("L", "jb2", PDF_CODEC_JPEG),
+        ("RGB", "jb2", PDF_CODEC_JPEG),
+        ("CMYK", "jb2", PDF_CODEC_JPEG),
+        ("RGBA", "jb2", PDF_CODEC_FLATE),
+        ("LA", "jb2", PDF_CODEC_FLATE),
+        ("RGB", PDF_CODEC_JBIG2, PDF_CODEC_JPEG),
     ],
 )
 def test_resolve_pdf_codec(mode: str, compression: str | None, expected: str) -> None:
@@ -766,6 +783,105 @@ def test_write_image_for_pdf_reenocodes_with_options() -> None:
             output = fhd.read()
         assert output != stored, "compressed image re-encoded"
         assert Image.open(io.BytesIO(output)).mode == "1", "thresholded to bilevel"
+
+
+def test_write_image_for_pdf_jp2_writes_jpeg2000() -> None:
+    """An explicit ``jp2`` save writes a JPEG 2000 (JP2) stream."""
+    image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128).convert("RGB")
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(
+            filename.name, {"options": {"compression": "jp2", "quality": 75}}
+        )
+        output = pathlib.Path(filename.name).read_bytes()
+    assert output[4:8] == b"jP  ", "JP2 signature box written for JPEG 2000"
+
+
+def test_write_image_for_pdf_jp2_bilevel_writes_pnm() -> None:
+    """A ``jp2`` save of a bilevel page stays Group 4, not JPEG 2000."""
+    page = Page(image_object=Image.new("1", (A4_WIDTH_MM, A4_HEIGHT_MM), 1))
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(filename.name, {"options": {"compression": "jp2"}})
+        output = pathlib.Path(filename.name).read_bytes()
+    assert output[:2] == b"P4", "bilevel PBM written for Group 4"
+
+
+def test_write_image_for_pdf_jp2_alpha_writes_png() -> None:
+    """A ``jp2`` save of an image with alpha stays lossless Flate."""
+    image = Image.new("RGBA", (A4_WIDTH_MM, A4_HEIGHT_MM), (1, 2, 3, 4))
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(filename.name, {"options": {"compression": "jp2"}})
+        output = pathlib.Path(filename.name).read_bytes()
+    assert output[:8] == b"\x89PNG\r\n\x1a\n", "PNG written when alpha present"
+
+
+def test_write_image_for_pdf_jp2_quality_controls_stream() -> None:
+    """Lower JPEG 2000 quality produces a smaller generated stream."""
+    image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128).convert("RGB")
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    sizes = {}
+    for quality in (30, 95):
+        with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+            page.write_image_for_pdf(
+                filename.name, {"options": {"compression": "jp2", "quality": quality}}
+            )
+            sizes[quality] = pathlib.Path(filename.name).stat().st_size
+    assert sizes[30] < sizes[95], "lower quality stream is smaller"
+
+
+@pytest.mark.parametrize("mode", ["P", "I"])
+def test_write_image_for_pdf_jp2_converts_unsupported_modes(mode: str) -> None:
+    """Palette and 16-bit integer modes are converted before JPEG 2000 encoding."""
+    image = Image.new(mode, (A4_WIDTH_MM, A4_HEIGHT_MM))
+    if mode == "P":
+        image.putpalette([0, 0, 0, 255, 255, 255] + [0] * 254 * 3)
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(
+            filename.name, {"options": {"compression": "jp2", "quality": 75}}
+        )
+        output = pathlib.Path(filename.name).read_bytes()
+    assert output[4:8] == b"jP  ", "JP2 written after mode conversion"
+
+
+def test_write_image_for_pdf_jp2_oserror_falls_back_to_flate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A JPEG 2000 encoder failure degrades to a lossless PNG instead of failing."""
+
+    def _boom(_image: Image.Image, _quality: int) -> bytes:
+        msg = "no JPEG 2000 support"
+        raise OSError(msg)
+
+    monkeypatch.setattr("scantpaper.page._encode_jp2", _boom)
+    page = Page(image_object=Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)))
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(filename.name, {"options": {"compression": "jp2"}})
+        output = pathlib.Path(filename.name).read_bytes()
+    assert output[:8] == b"\x89PNG\r\n\x1a\n", "fell back to PNG (Flate)"
+
+
+def test_write_image_for_pdf_jp2_does_not_passthrough_stored_jpeg() -> None:
+    """A ``jp2`` save re-encodes a stored JPEG rather than embedding it."""
+    buf = io.BytesIO()
+    Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
+    stored = buf.getvalue()
+    page = Page.from_bytes(stored, original=True)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(
+            filename.name, {"options": {"compression": "jp2", "quality": 75}}
+        )
+        output = pathlib.Path(filename.name).read_bytes()
+    assert output != stored, "stored bytes not passed through"
+    assert output[4:8] == b"jP  ", "re-encoded as JPEG 2000"
 
 
 def test_from_bytes_png_blob_readable() -> None:

@@ -20,6 +20,14 @@
 * The JPEG quality setting in the Save dialog now affects PDF output, so
   lowering it reduces the file size. An imported JPEG saved with "Automatic"
   compression is still embedded unchanged.
+* The Save dialog gained two new PDF compression choices: "JPEG 2000" for
+  smaller continuous-tone images and, when the `jbig2` program is installed,
+  "JBIG2" for roughly half-size bilevel (black-and-white) pages. Both are
+  opt-in; "Automatic" behaves as before.
+* A new "Bilevel compression" preference (Edit → Preferences) chooses the
+  codec "Automatic" uses for black-and-white pages: CCITT Group 4 (the
+  default) or JBIG2 when the encoder is available. It leaves colour and
+  transparent pages unaffected.
 
 
 ## 3.0.23 (2026-10-11)

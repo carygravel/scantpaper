@@ -1,0 +1,60 @@
+## 1. Codec resolution
+
+- [x] 1.1 Add `PDF_CODEC_JP2 = "jp2"` and `PDF_CODEC_JBIG2 = "jb2"` constants in `src/scantpaper/page.py`
+- [x] 1.2 Extend `resolve_pdf_codec` so `jp2`/`jpeg2000` resolve to Group 4 for bilevel, Flate for alpha, and JPEG 2000 otherwise, leaving the `auto` branch unchanged
+- [x] 1.3 Extend `resolve_pdf_codec` so `jb2` resolves to Group 4 for bilevel, Flate for alpha, and JPEG otherwise (the bilevel stream is upgraded to JBIG2 later)
+- [x] 1.4 Add unit tests covering `jp2` and `jb2` for continuous-tone, bilevel, alpha, and the unchanged `auto` behaviour
+
+## 2. JPEG 2000 encoding
+
+- [x] 2.1 Encode `PDF_CODEC_JP2` in `write_image_for_pdf` with Pillow `JPEG2000` (`irreversible=True`, `quality_mode="rates"`, `quality_layers=[rate]`)
+- [x] 2.2 Convert modes Pillow cannot write as JPEG 2000 (`P`, `I`) to `RGB`/`L`, mirroring `_encode_jpeg`
+- [x] 2.3 Map the save quality (1–100) to a JPEG 2000 rate with `rate = max(1, round((100 - quality) * 0.32) + 1)`
+- [x] 2.4 Fall back to lossless Flate if JPEG 2000 encoding raises `OSError`
+- [x] 2.5 Confirm the verbatim-passthrough branch does not apply to `jp2` (it stays gated on JPEG + `auto`)
+- [x] 2.6 Add tests asserting a `jp2` page embeds as `jpx` (via `pdfimages`), that a bilevel `jp2` page is Group 4, that an alpha page is Flate, and that lower quality yields a smaller stream
+
+## 3. JBIG2 conversion
+
+- [x] 3.1 Add a `jbig2` availability probe (binary present plus version parse), exposed as a helper
+- [x] 3.2 Add a targeted pass in `src/scantpaper/savethread.py` that, only for a `jb2` save, opens the OCR'd PDF with pikepdf and reuses OCRmyPDF's `extract_images_jbig2` + `convert_to_jbig2` to replace bilevel Group 4 streams with lossless JBIG2
+- [x] 3.3 Run the pass after `_embed_text_layer` and before `_finalize_pdf` (OCRmyPDF's PDF/A step re-encodes images, so an earlier pass is reverted), and make it a no-op when the encoder is missing or the compression is not `jb2`
+- [x] 3.4 Add a test (skipped when `jbig2` is absent) asserting a page-sized bilevel `jb2` page extracts as JBIG2 and is smaller than the same page saved as Group 4
+- [x] 3.5 Add an unconditional test that without the encoder a `jb2` request falls back to Group 4 rather than failing
+
+## 4. Bilevel codec preference
+
+- [x] 4.1 Add the `"bilevel compression"` key (`g4`/`jb2`) to `DEFAULTS` in `src/scantpaper/config.py`, default `g4`
+- [x] 4.2 Add a Group 4 / JBIG2 combo-box to `src/scantpaper/dialog/preferences.py`, with the `jb2` entry present only when the encoder probe succeeds, and have it round-trip through `self.settings`
+- [x] 4.3 At save time, resolve the effective bilevel codec for `auto`: the preference when it is `jb2` and the encoder is present (so the targeted JBIG2 pass runs), otherwise Group 4
+- [x] 4.4 Add tests: the default preference yields Group 4 under `auto`; with the preference `jb2` and the encoder present an `auto` save embeds JBIG2 (skipped when absent); with the preference `jb2` but no encoder `auto` falls back to Group 4; the preference never switches Flate (alpha) or JPEG (continuous-tone) under `auto`
+
+## 5. Size estimation
+
+- [x] 5.1 Update `_estimate_page_pdf_size` in `src/scantpaper/savethread.py` to return the written stream size for JPEG 2000 pages, keyed off the resolved compression rather than `image.format`
+- [x] 5.2 Add a test that the estimate for a `jp2` page reflects the written stream rather than the pixel-data fallback
+
+## 6. Save dialog
+
+- [x] 6.1 Add `("jp2", _("JPEG 2000"), ...)` to `PDF_COMPRESSION_ALGS` in `src/scantpaper/dialog/save.py`
+- [x] 6.2 Add `("jb2", _("JBIG2"), ...)` to `PDF_COMPRESSION_ALGS` only when the encoder is available
+- [x] 6.3 Relabel the quality spin-button label from "JPEG Quality" to "Quality" and show it for both `jpg` and `jp2`
+- [x] 6.4 Add tests for the compression list (including `jb2` present/absent) and quality spin visibility
+
+## 7. Docs and translations
+
+- [x] 7.1 Document the JPEG 2000 and JBIG2 options, the `"bilevel compression"` preference and the optional `jbig2` binary in `README.md`
+- [x] 7.2 Regenerate the translation template with `PYTHONPATH=src python3 dev/generate_pot.py` (the `.pot` is generated and git-ignored; catalogs are seeded from Rosetta, so no `.po` entry is added here). If a translation is added locally, mark it `#, fuzzy`
+- [x] 7.3 Run `PYTHONPATH=src python3 dev/check_po.py` and resolve any advisories
+
+## 8. Build-workflow dependencies
+
+- [x] 8.1 In `.github/workflows/test.yml`, add `jbig2` to the apt install list of the `latest` job (noble has it) and the `latest_w_ppa` job, so the encoder-present JBIG2 tests run in CI; leave `oldest` (jammy, no `jbig2` package) unchanged so the encoder-absent fallback stays covered there
+- [x] 8.2 Do not touch `fedora.yml` or `opensuse.yml`: neither Fedora nor openSUSE packages jbig2enc, so the RPM specs cannot require it — `jb2` stays availability-gated for both
+- [x] 8.3 Add `jbig2` to the `Recommends` list of the debian/control generated by `.github/workflows/deb.yml`, alongside `djvulibre-bin`, so the optional dependency is declared for PPA users
+- [x] 8.4 Add a test that the encoder-absent code paths (menu omission, Group 4 fallback) pass independently of whether `jbig2` is installed, so the `oldest` job's skip is expected and not silent
+
+## 9. Verification
+
+- [x] 9.1 Run `pytest` and confirm all tests pass with coverage at or above the threshold
+- [x] 9.2 Run `ruff format`, `ruff check` and `ty check .` with no diagnostics

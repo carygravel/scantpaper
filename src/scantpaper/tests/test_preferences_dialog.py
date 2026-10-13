@@ -193,6 +193,44 @@ def test_delete_udt() -> None:
     assert len(dialog._vboxt.get_children()) == 1, "Only 'Add' button should remain"
 
 
+def test_bilevel_compression_combo_defaults_to_g4() -> None:
+    """The bilevel codec preference defaults to Group 4."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    dialog = PreferencesDialog(settings=settings)
+    assert dialog._combobc.get_active_index() == "g4"
+
+
+def test_bilevel_compression_combo_selects_jb2(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The combo offers and selects JBIG2 when configured and available."""
+    monkeypatch.setattr("scantpaper.dialog.preferences.jbig2_available", lambda: True)
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["bilevel compression"] = "jb2"
+    dialog = PreferencesDialog(settings=settings)
+    assert dialog._combobc.get_active_index() == "jb2"
+
+
+def test_apply_callback_saves_bilevel_compression(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Applying the dialog persists the bilevel codec preference."""
+    monkeypatch.setattr(
+        "scantpaper.dialog.preferences.shutil.which", lambda _name: "/usr/bin/convert"
+    )
+    monkeypatch.setattr("scantpaper.dialog.preferences.jbig2_available", lambda: True)
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    settings["user_defined_tools"] = []
+    settings["bilevel compression"] = "g4"
+    dialog = PreferencesDialog(settings=settings)
+    dialog._combobc.set_active_index("jb2")
+    dialog._apply_callback()
+    assert dialog.settings["bilevel compression"] == "jb2"
+
+
 @patch("scantpaper.dialog.preferences.shutil.which")
 @patch("scantpaper.dialog.preferences.Gtk.MessageDialog")
 def test_apply_callback_shows_error_for_nonexistent_tool(

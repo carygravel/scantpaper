@@ -474,8 +474,8 @@ def test_tiff_compression_selection(mocker: pytest.MockerFixture) -> None:
                 break
         return box
 
-    hboxtq = find_box_containing_label(content_area, "JPEG Quality")
-    assert hboxtq is not None, "Could not find JPEG Quality Box"
+    hboxtq = find_box_containing_label(content_area, "Quality")
+    assert hboxtq is not None, "Could not find Quality Box"
 
     # Test setting to 'jpeg'
     combobtc.set_active_index("jpeg")
@@ -575,8 +575,8 @@ def test_other_save_dialog_callbacks() -> None:
     assert dialog.downsample_dpi == 300
 
     # Test jpg_quality_changed_callback
-    # Find all JPEG Quality spinbuttons and test the one that is NOT the TIFF one
-    quality_spins = find_all_spinbuttons_near_label(content_area, "JPEG Quality")
+    # Find all Quality spinbuttons and test the one that is NOT the TIFF one
+    quality_spins = find_all_spinbuttons_near_label(content_area, "Quality")
     assert len(quality_spins) > 0
 
     # Let's just test all of them and see if any updates jpeg_quality
@@ -588,7 +588,7 @@ def test_other_save_dialog_callbacks() -> None:
         if dialog.jpeg_quality == 95:
             found_pdf_spin = True
             break
-    assert found_pdf_spin, "Could not find PDF JPEG Quality SpinButton"
+    assert found_pdf_spin, "Could not find PDF Quality SpinButton"
 
 
 def test_date_entry_inc_dec(mocker: pytest.MockerFixture) -> None:

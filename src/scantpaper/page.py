@@ -52,10 +52,15 @@ logger = logging.getLogger(__name__)
 # Concrete image codecs embedded in a PDF.
 PDF_CODEC_G4 = "g4"
 PDF_CODEC_JPEG = "jpeg"
+PDF_CODEC_JP2 = "jp2"
+PDF_CODEC_JBIG2 = "jb2"
 PDF_CODEC_FLATE = "flate"
 
 # Colour modes that carry an alpha channel and therefore cannot use JPEG.
 ALPHA_MODES = ("RGBA", "LA", "PA")
+
+# Lower JPEG 2000 quality means a higher compression rate, mirroring JPEG.
+JP2_RATE_FACTOR = 0.32
 
 
 def _has_alpha(image: Image.Image) -> bool:
@@ -65,25 +70,36 @@ def _has_alpha(image: Image.Image) -> bool:
     return image.mode == "P" and "transparency" in image.info
 
 
+def _codec_for_colour_model(image: Image.Image, continuous: str) -> str:
+    """Resolve a colour model to a codec, using ``continuous`` for the rest."""
+    if image.mode == "1":
+        return PDF_CODEC_G4
+    if _has_alpha(image):
+        return PDF_CODEC_FLATE
+    return continuous
+
+
 def resolve_pdf_codec(image: Image.Image, compression: str | None) -> str:
     """Resolve a compression option and colour model to a concrete PDF codec.
 
     ``auto`` (and an unset option) selects CCITT Group 4 for bilevel images,
     lossless Flate for images with an alpha channel, and JPEG for
-    continuous-tone images. Explicit options map directly to their codec;
-    anything else falls back to lossless Flate.
+    continuous-tone images. ``jp2`` follows the same colour-model rules with
+    JPEG 2000 for continuous-tone images, and ``jb2`` with JPEG (the bilevel
+    stream is upgraded to JBIG2 later). Explicit options map directly to
+    their codec; anything else falls back to lossless Flate.
     """
     if compression in ("g3", "g4"):
         return PDF_CODEC_G4
     if compression in ("jpg", "jpeg"):
         return PDF_CODEC_JPEG
+    if compression in ("jp2", "jpeg2000"):
+        return _codec_for_colour_model(image, PDF_CODEC_JP2)
+    if compression == PDF_CODEC_JBIG2:
+        return _codec_for_colour_model(image, PDF_CODEC_JPEG)
     if compression not in (None, "", "auto"):
         return PDF_CODEC_FLATE
-    if image.mode == "1":
-        return PDF_CODEC_G4
-    if _has_alpha(image):
-        return PDF_CODEC_FLATE
-    return PDF_CODEC_JPEG
+    return _codec_for_colour_model(image, PDF_CODEC_JPEG)
 
 
 def _encode_jpeg(image: Image.Image, quality: int) -> bytes:
@@ -92,6 +108,22 @@ def _encode_jpeg(image: Image.Image, quality: int) -> bytes:
     if image.mode in ("I", "F", "P"):
         image = image.convert("RGB" if image.mode == "P" else "L")
     image.save(img_byte_arr, format="JPEG", quality=quality)
+    return img_byte_arr.getvalue()
+
+
+def _encode_jp2(image: Image.Image, quality: int) -> bytes:
+    """Encode an image as lossy JPEG 2000 bytes at the given quality."""
+    rate = max(1, round((100 - quality) * JP2_RATE_FACTOR) + 1)
+    img_byte_arr = io.BytesIO()
+    if image.mode in ("I", "F", "P"):
+        image = image.convert("RGB" if image.mode == "P" else "L")
+    image.save(
+        img_byte_arr,
+        format="JPEG2000",
+        irreversible=True,
+        quality_mode="rates",
+        quality_layers=[rate],
+    )
     return img_byte_arr.getvalue()
 
 
@@ -474,8 +506,8 @@ class Page:
 
         The temporary file's format is chosen from the resolved codec and is
         detected by ``img2pdf`` from its content, not its suffix: JPEG bytes
-        are embedded with DCTDecode, 1-bit PNM is transcoded to CCITT Group 4
-        and PNG is embedded with Flate.
+        are embedded with DCTDecode, JPEG 2000 bytes with JPXDecode, 1-bit
+        PNM is transcoded to CCITT Group 4 and PNG is embedded with Flate.
         """
         image = cast("Image.Image", self.image_object)
         opts: dict[str, Any] = {}
@@ -515,6 +547,13 @@ class Page:
             _to_bilevel(image).save(filename, format="PPM")
         elif codec == PDF_CODEC_JPEG:
             pathlib.Path(filename).write_bytes(_encode_jpeg(image, quality))
+        elif codec == PDF_CODEC_JP2:
+            try:
+                pathlib.Path(filename).write_bytes(_encode_jp2(image, quality))
+            except OSError:
+                logger.warning("Falling back to Flate: JPEG 2000 encoding failed")
+                xresolution, yresolution, _units = self.get_resolution()
+                image.save(filename, format="PNG", dpi=(xresolution, yresolution))
         else:
             xresolution, yresolution, _units = self.get_resolution()
             image.save(filename, format="PNG", dpi=(xresolution, yresolution))
