@@ -352,6 +352,7 @@ def _deserialise_and_migrate(config: ConfigDict) -> None:
 
     _remove_legacy_int_tools(config)
     _migrate_threshold_tool(config)
+    _migrate_pdf_compression(config)
 
     # selection is transient per-session state; a stale key in the config
     # file is ignored so it is never re-applied to a fresh document.
@@ -433,6 +434,30 @@ def _migrate_threshold_tool(config: ConfigDict) -> None:
         and _version_tuple(config.get("version")) < THRESHOLD_MIGRATION_VERSION
     ):
         config["threshold tool"] = 100 - config["threshold tool"]
+
+
+# Legacy PDF compression options that were aliases: ``lzw`` produced Flate
+# and ``g3`` produced Group 4, exactly like the ``png``/``g4`` options that
+# remain. Migrate a stored value to the option key that keeps the same output.
+PDF_COMPRESSION_MIGRATIONS = {"lzw": "png", "g3": "g4"}
+
+
+def _migrate_pdf_compression(config: ConfigDict) -> None:
+    """Migrate removed PDF compression options to their equivalent codecs.
+
+    The LZW and G3 PDF menu choices were aliases of the Flate (``png``) and
+    Group 4 (``g4``) options, so a configuration that selected them is
+    rewritten to the option key that produces the identical stream.
+    """
+    value = config.get("pdf compression")
+    if value in PDF_COMPRESSION_MIGRATIONS:
+        new = PDF_COMPRESSION_MIGRATIONS[value]
+        config["pdf compression"] = new
+        logger.info(
+            "The setting pdf compression is %r and has been migrated to %r.",
+            value,
+            new,
+        )
 
 
 def add_defaults(config: ConfigDict) -> None:

@@ -49,8 +49,6 @@ PDF_COMPRESSION_ALGS = [
         _("Automatic"),
         _("Let scantpaper which type of compression to use."),
     ),
-    ("lzw", _("LZW"), _("Compress output with Lempel-Ziv & Welch encoding.")),
-    ("g3", _("G3"), _("Compress output with CCITT Group 3 encoding.")),
     ("g4", _("G4"), _("Compress output with CCITT Group 4 encoding.")),
     ("png", _("Flate"), _("Compress output with flate encoding.")),
     ("jpg", _("JPEG"), _("Compress output with JPEG (DCT) encoding.")),
@@ -58,7 +56,7 @@ PDF_COMPRESSION_ALGS = [
     ("none", _("None"), _("Use no compression algorithm on output.")),
 ]
 # Row before which the availability-gated JBIG2 entry is inserted.
-_JBIG2_ALG_INDEX = 4
+_JBIG2_ALG_INDEX = 2
 
 
 def pdf_compression_algs() -> list[tuple[str, str, str]]:

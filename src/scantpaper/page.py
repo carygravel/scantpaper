@@ -89,7 +89,7 @@ def resolve_pdf_codec(image: Image.Image, compression: str | None) -> str:
     stream is upgraded to JBIG2 later). Explicit options map directly to
     their codec; anything else falls back to lossless Flate.
     """
-    if compression in ("g3", "g4"):
+    if compression == "g4":
         return PDF_CODEC_G4
     if compression in ("jpg", "jpeg"):
         return PDF_CODEC_JPEG

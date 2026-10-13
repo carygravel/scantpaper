@@ -422,6 +422,32 @@ def test_threshold_tool_default() -> None:
         assert output["threshold tool"] == 20, "default threshold tool is 20"
 
 
+def test_pdf_compression_removed_options_migrated() -> None:
+    """LZW/G3 PDF compression settings migrate to Flate/Group 4 options."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "config"
+
+        with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
+            fh.write('{"pdf compression": "lzw"}')
+        output = read_config(str(rc))
+        assert output["pdf compression"] == "png", "lzw maps to Flate option"
+
+        with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
+            fh.write('{"pdf compression": "g3"}')
+        output = read_config(str(rc))
+        assert output["pdf compression"] == "g4", "g3 maps to Group 4 option"
+
+
+def test_pdf_compression_valid_value_unchanged() -> None:
+    """A still-valid PDF compression setting is left alone by migration."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "config"
+        with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
+            fh.write('{"pdf compression": "auto"}')
+        output = read_config(str(rc))
+        assert output["pdf compression"] == "auto", "valid value unchanged"
+
+
 def test_get_convert_command(mocker: pytest.MockerFixture) -> None:
     """Test _get_convert_command."""
     mock_which = mocker.patch("scantpaper.config.shutil.which")

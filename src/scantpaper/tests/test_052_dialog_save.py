@@ -252,9 +252,9 @@ def test_pdf_options(mocker: pytest.MockerFixture) -> None:
     assert dialog.pdf_compression == "jpg"
     hboxq.show.assert_called_once()
 
-    widget.get_active_index.return_value = "lzw"
+    widget.get_active_index.return_value = "g4"
     dialog._pdf_compression_changed_callback(widget, hboxq)
-    assert dialog.pdf_compression == "lzw"
+    assert dialog.pdf_compression == "g4"
     hboxq.hide.assert_called_once()
 
 

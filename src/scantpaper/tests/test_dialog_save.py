@@ -187,6 +187,26 @@ def test_pdf_compression_algs_include_jp2() -> None:
     assert "jp2" in [alg[0] for alg in pdf_compression_algs()]
 
 
+def test_pdf_compression_algs_exclude_g3_and_lzw() -> None:
+    """G3 and LZW are not offered for PDF, being aliases of G4 and Flate."""
+    keys = [alg[0] for alg in pdf_compression_algs()]
+    assert "g3" not in keys
+    assert "lzw" not in keys
+    assert "g4" in keys
+    assert "png" in keys
+
+
+def test_pdf_compression_algs_jb2_inserts_after_g4(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """JBIG2 is offered directly after Group 4 when the encoder is present."""
+    monkeypatch.setattr("scantpaper.dialog.save.jbig2_available", lambda: True)
+    keys = [alg[0] for alg in pdf_compression_algs()]
+    assert "g4" in keys
+    assert "jb2" in keys
+    assert keys.index("jb2") == keys.index("g4") + 1
+
+
 def test_pdf_compression_algs_jb2_gated_on_encoder(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -214,8 +234,8 @@ def test_pdf_compression_changed_callback() -> None:
     dialog._pdf_compression_changed_callback(mock_combo, mock_hboxq)
     mock_hboxq.show.assert_called()
 
-    # Set to LZW (should hide quality)
-    mock_combo.get_active_index.return_value = "lzw"
+    # Set to Group 4 (should hide quality)
+    mock_combo.get_active_index.return_value = "g4"
     dialog._pdf_compression_changed_callback(mock_combo, mock_hboxq)
     mock_hboxq.hide.assert_called()
 

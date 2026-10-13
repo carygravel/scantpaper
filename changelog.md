@@ -28,6 +28,11 @@
   codec "Automatic" uses for black-and-white pages: CCITT Group 4 (the
   default) or JBIG2 when the encoder is available. It leaves colour and
   transparent pages unaffected.
+* The PDF "Compression" menu no longer offers "LZW" or "G3". Both were
+  misleading: "LZW" always produced the same Flate output as the "Flate"
+  option, and "G3" produced CCITT Group 4 like the "G4" option. A saved
+  preference for one of the removed options keeps its output (Flate or
+  Group 4) automatically.
 
 
 ## 3.0.23 (2026-10-11)
