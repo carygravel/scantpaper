@@ -29,6 +29,7 @@ from scantpaper.const import (
     URL,
     VERSION,
 )
+from scantpaper.dependencies import DEPS
 from scantpaper.dialog import MultipleMessage
 from scantpaper.document import Document
 from scantpaper.edit_menu_mixins import EditMenuMixins
@@ -476,35 +477,27 @@ class ApplicationWindow(
     def _missing_packages_message(self) -> str:
         """Return the warning message for packages needed by the tools."""
         msg = EMPTY
-        missing = [
-            ("imagemagick", _("Save image and Save as PDF both require imagemagick")),
-            ("libtiff", _("Save image requires libtiff")),
-            ("djvu", _("Save as DjVu requires djvulibre-bin")),
-            ("xdg", _("Email as PDF requires xdg-email")),
-            ("unpaper", _("unpaper missing")),
-        ]
-        for dependency, message in missing:
-            if not self._dependencies[dependency]:
-                msg += message + "\n"
-
         self._dependencies["ocr"] = self._dependencies["tesseract"]
-        if not self._dependencies["ocr"]:
-            msg += _("OCR requires tesseract") + "\n"
-
-        if self._dependencies["tesseract"]:
-            lc_messages = locale.setlocale(locale.LC_MESSAGES)
-            lang_msg = locale_installed(lc_messages, get_tesseract_codes())
-            if lang_msg == "":
-                logger.info(
-                    "Using GUI language %s, for which a tesseract language package is present",
-                    lc_messages,
-                )
-            else:
-                logger.warning(lang_msg)
-                msg += lang_msg
-
-        if not self._dependencies["qpdf"]:
-            msg += _("PDF encryption requires qpdf") + "\n"
+        for dep in DEPS:
+            if not dep.warn_at_startup:
+                continue
+            if dep.name == "tesseract":
+                if not self._dependencies["ocr"]:
+                    msg += dep.message + "\n"
+                else:
+                    lc_messages = locale.setlocale(locale.LC_MESSAGES)
+                    lang_msg = locale_installed(lc_messages, get_tesseract_codes())
+                    if lang_msg == "":
+                        logger.info(
+                            "Using GUI language %s, for which a tesseract language package is present",
+                            lc_messages,
+                        )
+                    else:
+                        logger.warning(lang_msg)
+                        msg += lang_msg
+                continue
+            if not self._dependencies[dep.name]:
+                msg += dep.message + "\n"
 
         return msg
 

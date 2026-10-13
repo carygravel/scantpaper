@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING, Any, cast
 
 import gi
 
-from scantpaper.helpers import configure_fractional_spinbutton, program_version
+from scantpaper.dependencies import probe_unpaper
+from scantpaper.helpers import configure_fractional_spinbutton
 from scantpaper.i18n import _
 
 if TYPE_CHECKING:
@@ -633,7 +634,7 @@ class Unpaper:
     def program_version(self) -> str | None:
         """Return program version."""
         if self._version is None:
-            version = program_version("stdout", r"([\d.]+)", ["unpaper", "--version"])
+            version = probe_unpaper().version
             if version is not None:
                 self._version = version
         return cast("str | None", (self._version))

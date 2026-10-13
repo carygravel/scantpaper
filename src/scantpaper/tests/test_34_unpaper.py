@@ -29,7 +29,7 @@ def test_unpaper_program_version(mocker: pytest.MockerFixture) -> None:
     """Test Unpaper.program_version caching and retrieval."""
     unpaper = Unpaper()
     assert unpaper._version is None
-    mocker.patch("scantpaper.unpaper.program_version", return_value="6.2")
+    mocker.patch("scantpaper.dependencies.program_version", return_value="6.2")
     assert unpaper.program_version() == "6.2"
     assert unpaper._version == "6.2"
     # Subsequent call should use cached version

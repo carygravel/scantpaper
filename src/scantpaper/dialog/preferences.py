@@ -8,11 +8,11 @@ from typing import ClassVar, cast
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
+from scantpaper.dependencies import jbig2_available
 from scantpaper.dialog import Dialog
 from scantpaper.helpers import (
     configure_fractional_spinbutton,
     get_tmp_dir,
-    jbig2_available,
 )
 from scantpaper.i18n import _
 

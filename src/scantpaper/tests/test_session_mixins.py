@@ -237,13 +237,8 @@ def test_check_dependencies(
 ) -> None:
     """Test _check_dependencies."""
     mocker.patch("tesserocr.tesseract_version", return_value="4.0")
-    mocker.patch("tesserocr.__version__", return_value="2.5")
-
-    mock_unpaper = mocker.patch("scantpaper.session_mixins.Unpaper")
-    mock_unpaper.return_value.program_version.return_value = "6.1"
-
-    mock_program_version = mocker.patch("scantpaper.session_mixins.program_version")
-    mock_program_version.side_effect = lambda _stream, _regex, _cmd: "1.0"
+    mocker.patch("tesserocr.__version__", "2.5")
+    mocker.patch("scantpaper.dependencies.program_version", return_value="1.0")
 
     mocker.patch("tempfile.NamedTemporaryFile")
 
@@ -253,8 +248,10 @@ def test_check_dependencies(
     mock_session_window._check_dependencies()
 
     assert mock_session_window._dependencies["tesseract"] == "4.0"
-    assert mock_session_window._dependencies["unpaper"] == "6.1"
+    assert mock_session_window._dependencies["tesserocr"] == "2.5"
+    assert mock_session_window._dependencies["unpaper"] == "1.0"
     assert mock_session_window._dependencies["imagemagick"] == "1.0"
+    assert mock_session_window._dependencies["qpdf"] == "1.0"
 
 
 def test_check_dependencies_graphicsmagick_fallback(
@@ -262,18 +259,9 @@ def test_check_dependencies_graphicsmagick_fallback(
 ) -> None:
     """Test _check_dependencies with GraphicsMagick fallback."""
     mocker.patch("tesserocr.tesseract_version", return_value=None)
-    mocker.patch("tesserocr.__version__", return_value="2.5")
-    mocker.patch("scantpaper.session_mixins.Unpaper")
-
-    mock_program_version = mocker.patch("scantpaper.session_mixins.program_version")
-
-    def side_effect(stream: str, regex: object, cmd: list[str]) -> str | None:
-        del stream, regex
-        if "gm" in cmd:
-            return "1.3"
-        return None
-
-    mock_program_version.side_effect = side_effect
+    mocker.patch("tesserocr.__version__", "2.5")
+    mocker.patch("scantpaper.dependencies.program_version", return_value=None)
+    mocker.patch("scantpaper.dependencies._graphicsmagick_version", return_value="1.3")
 
     mock_session_window._check_dependencies()
     assert mock_session_window._dependencies["imagemagick"] == "1.3"

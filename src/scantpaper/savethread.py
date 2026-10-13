@@ -26,7 +26,8 @@ from typing_extensions import override
 from scantpaper.basethread import Request
 from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import ANNOTATION_COLOR, POINTS_PER_INCH, VERSION
-from scantpaper.helpers import exec_command, exec_command_run, jbig2_available
+from scantpaper.dependencies import jbig2_available
+from scantpaper.helpers import exec_command, exec_command_run
 from scantpaper.i18n import _
 from scantpaper.importthread import Importhread, _note_callbacks
 from scantpaper.page import (

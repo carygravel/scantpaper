@@ -22,9 +22,9 @@ from PIL import Image, features
 from scantpaper import config
 from scantpaper.basethread import Request
 from scantpaper.const import POINTS_PER_INCH
+from scantpaper.dependencies import jbig2_available
 from scantpaper.docthread import DocThread
 from scantpaper.document import Document
-from scantpaper.helpers import jbig2_available
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 

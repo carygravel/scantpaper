@@ -10,20 +10,18 @@ from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, cast
 
 import gi
-import tesserocr
 
-from scantpaper import config
 from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import (
     EMPTY,
     SPACE,
 )
+from scantpaper.dependencies import DEPS
 from scantpaper.dialog import filter_message, response_stored
-from scantpaper.helpers import get_tmp_dir, program_version
+from scantpaper.helpers import get_tmp_dir
 from scantpaper.i18n import _
 from scantpaper.layer import LayerEditor
 from scantpaper.simplelist import SimpleList
-from scantpaper.unpaper import Unpaper
 
 if TYPE_CHECKING:
     from gi.repository import Gio
@@ -142,55 +140,12 @@ class SessionMixins:
 
     def _check_dependencies(self) -> None:
         """Check for presence of various packages."""
-        self._dependencies["tesseract"] = tesserocr.tesseract_version()
-        self._dependencies["tesserocr"] = tesserocr.__version__
-        if self._dependencies["tesseract"]:
-            logger.info(
-                "Found tesserocr %s, %s",
-                self._dependencies["tesserocr"],
-                self._dependencies["tesseract"],
-            )
-        self._dependencies["unpaper"] = Unpaper().program_version()
-        if self._dependencies["unpaper"]:
-            logger.info("Found unpaper %s", self._dependencies["unpaper"])
-
-        self._dependencies["imagemagick"] = None
-        self._dependencies["graphicsmagick"] = None
-        dependency_rules = [
-            [
-                "imagemagick",
-                "stdout",
-                r"Version:\sImageMagick\s([\d.-]+)",
-                [config.CONVERT_COMMAND, "--version"],
-            ],
-            [
-                "graphicsmagick",
-                "stdout",
-                r"GraphicsMagick\s([\d.-]+)",
-                ["gm", "-version"],
-            ],
-            ["xdg", "stdout", r"xdg-email\s([^\n]+)", ["xdg-email", "--version"]],
-            ["djvu", "stderr", r"DjVuLibre-([\d.]+)", ["cjb2", "--version"]],
-            ["libtiff", "both", r"LIBTIFF,\sVersion\s([\d.]+)", ["tiffcp", "-h"]],
-            # pdftops and pdfunite are both in poppler-utils, and so the version is
-            # the version is the same.
-            # Both are needed, though to update %dependencies
-            ["pdftops", "stderr", r"pdftops\sversion\s([\d.]+)", ["pdftops", "-v"]],
-            ["pdfunite", "stderr", r"pdfunite\sversion\s([\d.]+)", ["pdfunite", "-v"]],
-            ["pdf2ps", "stdout", r"([\d.]+)", ["gs", "--version"]],
-            ["qpdf", "stdout", r"([\d.]+)", ["qpdf", "--version"]],
-        ]
-
-        for name, stream, regex, cmd in dependency_rules:
-            name = cast("str", name)
-            stream = cast("str", stream)
-            regex = cast("str", regex)
-            cmd = cast("list[str]", cmd)
-            self._dependencies[name] = program_version(stream, regex, cmd)
-            if (
-                not self._dependencies["imagemagick"]
-                and self._dependencies["graphicsmagick"]
-            ):
+        for dep in DEPS:
+            result = dep.probe()
+            self._dependencies[dep.name] = result.version
+            if bool(result.version):
+                logger.info("Found %s %s", dep.name, result.version)
+            if dep.name == "imagemagick" and result.using_fallback:
                 msg = (
                     _("GraphicsMagick is being used in ImageMagick compatibility mode.")
                     + SPACE
@@ -205,10 +160,6 @@ class SessionMixins:
                     text=msg,
                     store_response=True,
                 )
-                self._dependencies["imagemagick"] = self._dependencies["graphicsmagick"]
-
-            if self._dependencies[name]:
-                logger.info("Found %s %s", name, self._dependencies[name])
 
         # OCR engine options
         if self._dependencies["tesseract"]:

@@ -10,10 +10,10 @@ import gi
 
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import _LOCAL_TZ, MAX_DPI
+from scantpaper.dependencies import jbig2_available
 from scantpaper.dialog import Dialog
 from scantpaper.entry_completion import EntryCompletion
 from scantpaper.gobject import property_
-from scantpaper.helpers import jbig2_available
 from scantpaper.i18n import _
 
 gi.require_version("Gdk", "3.0")

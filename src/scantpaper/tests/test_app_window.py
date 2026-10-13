@@ -13,6 +13,7 @@ import pytest
 
 from scantpaper.app_window import ApplicationWindow, drag_motion_callback, view_html
 from scantpaper.config import ConfigDict
+from scantpaper.i18n import _
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -106,6 +107,7 @@ def _make_create_temp_func(
             "unpaper": True,
             "tesseract": True,
             "qpdf": True,
+            "jbig2": True,
             "ocr": True,
         }
 
@@ -276,6 +278,7 @@ def app_window(
             "unpaper": True,
             "tesseract": True,
             "qpdf": True,
+            "jbig2": True,
             "ocr": True,
         }
 
@@ -632,6 +635,7 @@ def test_create_toolbar_missing_deps(app_window: ApplicationWindow) -> None:
         "unpaper": False,
         "tesseract": False,
         "qpdf": False,
+        "jbig2": False,
         "ocr": False,
     }
     app_window._show_message_dialog = MagicMock()
@@ -724,6 +728,32 @@ def test_update_uimanager_unpaper_missing(app_window: ApplicationWindow) -> None
     # tries to set_enabled(False) on a deleted key.
     # If it's already deleted, self._actions["unpaper"] will raise KeyError.
     app_window._update_uimanager()
+
+
+def test_missing_packages_message_order(app_window: ApplicationWindow) -> None:
+    """The startup warning lists missing packages in registry order."""
+    app_window._dependencies = {
+        "imagemagick": False,
+        "libtiff": True,
+        "djvu": False,
+        "xdg": True,
+        "unpaper": False,
+        "tesseract": False,
+        "qpdf": False,
+        "jbig2": False,
+        "ocr": False,
+    }
+    lines = [
+        line for line in app_window._missing_packages_message().split("\n") if line
+    ]
+    assert lines == [
+        _("Save image and Save as PDF both require imagemagick"),
+        _("Save as DjVu requires djvulibre-bin"),
+        _("unpaper missing"),
+        _("OCR requires tesseract"),
+        _("PDF encryption requires qpdf"),
+        _("JBIG2 PDF compression requires jbig2"),
+    ]
 
 
 def test_update_uimanager_ocr_missing(app_window: ApplicationWindow) -> None:
@@ -1359,6 +1389,7 @@ def test_pre_flight_linux(mocker: pytest.MockerFixture) -> None:
             "unpaper": True,
             "tesseract": True,
             "qpdf": True,
+            "jbig2": True,
             "ocr": True,
         }
 
