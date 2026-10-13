@@ -55,7 +55,17 @@ _2GIB = 2 * 1024 * 1024 * 1024
 # Options for OCRmyPDF's JBIG2 helpers: lossless single-image encoding with
 # no progress bar. The threshold only affects grayscale input, which never
 # reaches this path (only pure 1-bit images are converted).
-_JBIG2_OPTIONS = SimpleNamespace(jbig2_threshold=0.85, jobs=1, progress_bar=False)
+# Options OCRmyPDF's optimize pass reads. ``jbig2_lossy`` and
+# ``jbig2_page_group_size`` are deprecated-but-still-read in newer OCRmyPDF
+# (the latter is accessed directly, not via getattr), so they are supplied
+# with their no-effect defaults to keep the pass working across versions.
+_JBIG2_OPTIONS = SimpleNamespace(
+    jbig2_threshold=0.85,
+    jobs=1,
+    progress_bar=False,
+    jbig2_lossy=False,
+    jbig2_page_group_size=0,
+)
 
 # Bytes per pixel used to estimate PDF size from the source image mode.
 _PIXEL_BPP = {

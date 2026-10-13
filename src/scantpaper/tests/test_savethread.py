@@ -24,6 +24,7 @@ from scantpaper.i18n import _
 from scantpaper.page import Page
 from scantpaper.savethread import (
     _2GIB,
+    _JBIG2_OPTIONS,
     SaveThread,
     SaveThreadProgressBar,
     _add_annotations_to_pdf,
@@ -1427,6 +1428,20 @@ def test_convert_bilevel_images_to_jbig2_noop_without_images(
 
     with pikepdf.open(temp_pdf.name) as pdf:
         assert len(pdf.pages) == 1, "blank page still present"
+
+
+def test_jbig2_options_expose_fields_ocrmypdf_reads() -> None:
+    """The options namespace must satisfy OCRmyPDF's optimize pass.
+
+    Newer OCRmyPDF reads ``jbig2_lossy`` and ``jbig2_page_group_size``
+    directly (the latter without getattr), so the no-effect defaults must be
+    present or the conversion raises AttributeError.
+    """
+    assert _JBIG2_OPTIONS.jbig2_threshold == 0.85
+    assert _JBIG2_OPTIONS.jobs == 1
+    assert _JBIG2_OPTIONS.progress_bar is False
+    assert _JBIG2_OPTIONS.jbig2_lossy is False
+    assert _JBIG2_OPTIONS.jbig2_page_group_size == 0
 
 
 def test_estimate_page_pdf_size_uses_stream_for_verbatim_codecs(
