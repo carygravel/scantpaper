@@ -416,6 +416,7 @@ class Scan(PageControls):
         return self._current_scan_options
 
     @current_scan_options.setter
+    @override
     def current_scan_options(self, newval: Profile) -> None:
         self._current_scan_options = newval
 
