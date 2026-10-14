@@ -247,6 +247,107 @@ def test_edit_none_clears_control(mocker: pytest.MockerFixture) -> None:
 
 
 # ---------------------------------------------------------------------------
+# LayerEditor - rotate
+# ---------------------------------------------------------------------------
+
+
+def test_rotate_clockwise_updates_textangle_and_commits(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """rotate_clockwise() turns the focused slice's text 90 degrees and persists."""
+    editor, page, thread, _view = make_editor(mocker, features=("rotate",))
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    bbox = mocker.Mock()
+    bbox.textangle = 0
+    editor._current_bbox = bbox
+
+    editor.rotate_clockwise(None)
+
+    assert bbox.textangle == 90
+    editor.canvas.queue_draw.assert_called_once()
+    page.import_hocr.assert_called_with(editor.canvas.hocr())
+    thread.set_text.assert_called_once_with(page.id, page.text_layer)
+
+
+def test_rotate_anticlockwise_updates_textangle(mocker: pytest.MockerFixture) -> None:
+    """rotate_anticlockwise() turns the focused slice's text to 270 degrees."""
+    editor, page, thread, _view = make_editor(mocker, features=("rotate",))
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    bbox = mocker.Mock()
+    bbox.textangle = 0
+    editor._current_bbox = bbox
+
+    editor.rotate_anticlockwise(None)
+
+    assert bbox.textangle == 270
+    page.import_hocr.assert_called_with(editor.canvas.hocr())
+    thread.set_text.assert_called_once_with(page.id, page.text_layer)
+
+
+def test_rotate_wraps_past_360(mocker: pytest.MockerFixture) -> None:
+    """Repeated clockwise rotations wrap at 360 degrees."""
+    editor, _page, _thread, _view = make_editor(mocker, features=("rotate",))
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    bbox = mocker.Mock()
+    bbox.textangle = 270
+    editor._current_bbox = bbox
+
+    editor.rotate_clockwise(None)
+
+    assert bbox.textangle == 0
+
+
+def test_rotate_with_no_focus_is_inert(mocker: pytest.MockerFixture) -> None:
+    """Rotating with no focused slice changes nothing."""
+    editor, page, thread, _view = make_editor(mocker, features=("rotate",))
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    editor._current_bbox = None
+
+    editor.rotate_clockwise(None)
+    editor.rotate_anticlockwise(None)
+
+    editor.canvas.queue_draw.assert_not_called()
+    page.import_hocr.assert_not_called()
+    thread.set_text.assert_not_called()
+
+
+def test_rotate_controls_disabled_without_focus(mocker: pytest.MockerFixture) -> None:
+    """The rotate controls are enabled only while a slice is focused."""
+    editor, _page, _thread, _view = make_editor(mocker, features=("rotate",))
+    editor.controls = mocker.Mock()
+    editor._current_bbox = mocker.Mock()
+    editor._update_rotate_state()
+    editor.controls.set_rotate_enabled.assert_called_with(enabled=True)
+
+    editor._current_bbox = None
+    editor._update_rotate_state()
+    editor.controls.set_rotate_enabled.assert_called_with(enabled=False)
+
+
+def test_add_inherits_focused_rotation(mocker: pytest.MockerFixture) -> None:
+    """A slice added while a rotated slice is focused inherits that rotation."""
+    editor, page, thread, view = make_editor(mocker, features=("rotate",))
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    editor.controls.textbuffer.get_text.return_value = "new"
+    view.get_selection.return_value = "sel"
+    new_bbox = mocker.Mock()
+    editor.canvas.add_box.return_value = new_bbox
+    focused = mocker.Mock()
+    focused.textangle = 90
+    editor._current_bbox = focused
+
+    editor.add(None)
+
+    editor.canvas.add_box.assert_called_with(text="new", bbox="sel", textangle=90)
+    thread.set_text.assert_called_once_with(page.id, page.text_layer)
+
+
+# ---------------------------------------------------------------------------
 # LayerEditor - ok / copy / delete
 # ---------------------------------------------------------------------------
 
@@ -328,7 +429,7 @@ def test_add_existing_layer(mocker: pytest.MockerFixture) -> None:
 
     editor.add(None)
 
-    editor.canvas.add_box.assert_called_with(text="newword", bbox="sel")
+    editor.canvas.add_box.assert_called_with(text="newword", bbox="sel", textangle=0)
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is new_bbox
@@ -344,7 +445,9 @@ def test_add_default_text_when_empty(mocker: pytest.MockerFixture) -> None:
 
     editor.add(None)
 
-    editor.canvas.add_box.assert_called_with(text="my-new-word", bbox="sel")
+    editor.canvas.add_box.assert_called_with(
+        text="my-new-word", bbox="sel", textangle=0
+    )
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
 
 
@@ -992,6 +1095,65 @@ def test_editor_sort_switch_keeps_focused_slice_and_text(
         assert editor._controls_text() == "ALPHA"
         for text in ["ALPHA", "BRAVO", "CHARLIE"]:
             assert stored_layer(page, editor).count(text) == 1
+
+
+def test_editor_rotate_persists_and_leaves_others_unchanged(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Rotating one slice persists it and leaves the other slices' angles alone."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page, features=("rotate",))
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+        editor.edit(cast("Bbox", editor.canvas.get_first_bbox()))
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "ALPHA"
+
+        editor.rotate_clockwise(None)
+
+        words = editor.canvas._words_in_reading_order()
+        assert [w.textangle for w in words] == [90, 0, 0]
+
+        tree = Bboxtree(stored_layer(page, editor))
+        word_boxes = [b for b in tree.each_bbox() if b.get("type") == "word"]
+        assert [b.get("textangle") for b in word_boxes] == [90, None, None]
+
+
+def test_editor_rotate_round_trips_through_layer(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A rotated slice stays rotated after the canvas is rebuilt from the layer."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page, features=("rotate",))
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+        editor.edit(cast("Bbox", editor.canvas.get_first_bbox()))
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "ALPHA"
+
+        editor.rotate_clockwise(None)
+
+        # Rebuild the canvas from the persisted layer (page switch / undo path).
+        editor.create(page, None)
+        settle()
+        alpha = next(
+            w for w in editor.canvas._words_in_reading_order() if w.text == "ALPHA"
+        )
+        assert alpha.textangle == 90
 
 
 def test_editor_rebuild_while_focused_drops_stale_focus(

@@ -406,7 +406,7 @@ class SessionMixins:
             view=view,
             thread=self.slist.thread,
             get_page=get_page,
-            features=("sort", "nav", "copy"),
+            features=("sort", "nav", "copy", "rotate"),
         )
         self._ann_editor = LayerEditor(
             page_attr="annotations",

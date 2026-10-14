@@ -74,6 +74,8 @@ class LayerControls(Gtk.Box):
         "copy-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
         "add-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
         "delete-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "rotate-clockwise-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "rotate-anticlockwise-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
     }
 
     def __init__(
@@ -82,11 +84,13 @@ class LayerControls(Gtk.Box):
         sort: bool = False,
         nav: bool = False,
         copy: bool = False,
+        rotate: bool = False,
         **kwargs: object,
     ) -> None:
-        """Initialise the control bar with optional sort, navigation, and copy."""
+        """Initialise the control bar with optional sort, navigation, copy, rotation."""
         super().__init__(*args, **kwargs)
         self._sort_enabled = sort
+        self._rotate_enabled = rotate
         textview = Gtk.TextView()
         textview.set_tooltip_text(_("Text layer"))
         self.textbuffer = textview.get_buffer()
@@ -138,6 +142,20 @@ class LayerControls(Gtk.Box):
             "list-add", _("Add text"), "add-clicked"
         )
 
+        self.rotate_cw_button = None
+        self.rotate_ccw_button = None
+        if self._rotate_enabled:
+            self.rotate_cw_button = self._make_icon_button(
+                "object-rotate-right",
+                _("Rotate text clockwise"),
+                "rotate-clockwise-clicked",
+            )
+            self.rotate_ccw_button = self._make_icon_button(
+                "object-rotate-left",
+                _("Rotate text anticlockwise"),
+                "rotate-anticlockwise-clicked",
+            )
+
         obutton = self._make_mnemonic_button(
             _("_OK"), _("Accept corrections"), "ok-clicked"
         )
@@ -159,6 +177,9 @@ class LayerControls(Gtk.Box):
         self.pack_end(obutton, expand=False, fill=False, padding=0)
         if copy:
             self.pack_end(ubutton, expand=False, fill=False, padding=0)
+        if self._rotate_enabled:
+            self.pack_end(self.rotate_ccw_button, expand=False, fill=False, padding=0)
+            self.pack_end(self.rotate_cw_button, expand=False, fill=False, padding=0)
         self.pack_end(self.add_button, expand=False, fill=False, padding=0)
 
     def _make_icon_button(self, icon: str, tooltip: str, signal: str) -> Gtk.Button:
@@ -200,6 +221,18 @@ class LayerControls(Gtk.Box):
                 _("Draw or select a rectangle before adding")
             )
 
+    def set_rotate_enabled(self, *, enabled: bool) -> None:
+        """Enable or disable the rotate controls.
+
+        The rotate controls act on the focused slice, so they are disabled
+        while no slice is focused.
+        """
+        if not self._rotate_enabled:
+            return
+        for button in (self.rotate_cw_button, self.rotate_ccw_button):
+            if button is not None:
+                button.set_sensitive(enabled)
+
     def get_sort_method(self) -> str:
         """Return the sort method currently selected, defaulting to confidence.
 
@@ -236,16 +269,21 @@ class LayerEditor:
         self._sort_enabled = "sort" in features
         self._nav_enabled = "nav" in features
         self._copy_enabled = "copy" in features
+        self._rotate_enabled = "rotate" in features
         self._default_text = _DEFAULT_TEXT_BY_ATTR[page_attr]
         self._current_bbox: Bbox | None = None
         self.canvas = Canvas()
         self.controls = LayerControls(
-            sort=self._sort_enabled, nav=self._nav_enabled, copy=self._copy_enabled
+            sort=self._sort_enabled,
+            nav=self._nav_enabled,
+            copy=self._copy_enabled,
+            rotate=self._rotate_enabled,
         )
         self._connect_controls()
         self.canvas.connect("selection-drawn", self._on_selection_drawn)
         self._view.connect("notify::selection", lambda *_: self._update_add_state())
         self._update_add_state()
+        self._update_rotate_state()
 
     def _parse(
         self, json_string: str, finished_callback: Callable[..., object] | None = None
@@ -282,6 +320,9 @@ class LayerEditor:
         controls.connect("delete-clicked", self.delete)
         if self._copy_enabled:
             controls.connect("copy-clicked", self.copy)
+        if self._rotate_enabled:
+            controls.connect("rotate-clockwise-clicked", self.rotate_clockwise)
+            controls.connect("rotate-anticlockwise-clicked", self.rotate_anticlockwise)
 
     def _on_selection_drawn(self, _canvas: object, rect: Gdk.Rectangle) -> None:
         """Commit a rectangle drawn in the layer pane to the shared selection."""
@@ -290,6 +331,35 @@ class LayerEditor:
     def _update_add_state(self) -> None:
         """Enable the Add control only when a selection exists."""
         self.controls.set_add_enabled(enabled=self._view.get_selection() is not None)
+
+    def _update_rotate_state(self) -> None:
+        """Enable the rotate controls only when a slice is focused."""
+        if not self._rotate_enabled:
+            return
+        self.controls.set_rotate_enabled(enabled=self._current_bbox is not None)
+
+    def rotate_clockwise(self, _widget: object) -> None:
+        """Rotate the focused slice's text 90 degrees clockwise."""
+        self._apply_rotation(90)
+
+    def rotate_anticlockwise(self, _widget: object) -> None:
+        """Rotate the focused slice's text 90 degrees anticlockwise."""
+        self._apply_rotation(-90)
+
+    def _apply_rotation(self, delta: int) -> None:
+        """Apply a 90-degree rotation delta to the focused slice.
+
+        A no-op when no slice is focused. The box rectangle stays axis-aligned;
+        only the text angle changes. The layer is committed through the same
+        undoable path as the other edits.
+        """
+        bbox = self._current_bbox
+        if bbox is None:
+            return
+        bbox.textangle = (bbox.textangle + delta) % 360
+        self.canvas.queue_draw()
+        self._commit()
+        self._update_rotate_state()
 
     def _sort(self, _widget: object, sort_method: str) -> None:
         """Sort the canvas by the selected method."""
@@ -331,6 +401,7 @@ class LayerEditor:
         if bbox is None:
             logger.debug("edit did not return a bbox")
             self.controls.textbuffer.set_text(EMPTY)
+            self._update_rotate_state()
             return
         self.controls.textbuffer.set_text(bbox.text)
         self.controls.show_all()
@@ -338,6 +409,7 @@ class LayerEditor:
         self._view.setzoom_is_fit(zoom_to_fit=False)
         self._view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
         self.canvas.set_index_by_bbox(bbox)
+        self._update_rotate_state()
 
     def clear(self) -> None:
         """Forget the focused slice and empty the control and canvas.
@@ -348,6 +420,7 @@ class LayerEditor:
         self._current_bbox = None
         self.controls.textbuffer.set_text(EMPTY)
         self.canvas.clear_text()
+        self._update_rotate_state()
 
     def create(
         self,
@@ -363,6 +436,7 @@ class LayerEditor:
         """
         self._current_bbox = None
         self.controls.textbuffer.set_text(EMPTY)
+        self._update_rotate_state()
 
         def on_parsed(result: Response) -> None:
             info = cast("dict[str, object]", result.info)
@@ -429,16 +503,17 @@ class LayerEditor:
         if page is None:
             return
         selection = self._view.get_selection()
+        angle = self._current_bbox.textangle if self._current_bbox is not None else 0
         if getattr(page, self.page_attr, None):
             logger.info("Added '%s'", text)
             self._current_bbox = self.canvas.add_box(
-                text=text, bbox=self._view.get_selection()
+                text=text, bbox=self._view.get_selection(), textangle=angle
             )
             getattr(page, self.import_method)(self.canvas.hocr())
             self.edit(self._current_bbox)
         else:
             logger.info("Creating new %s with '%s'", self.page_attr, text)
-            setattr(page, self.page_attr, self._new_layer_json(selection, text))
+            setattr(page, self.page_attr, self._new_layer_json(selection, text, angle))
 
             def on_new(*_args: object) -> None:
                 self.edit(self.canvas.get_first_bbox())
@@ -462,7 +537,9 @@ class LayerEditor:
         else:
             self.controls.hide()
 
-    def _new_layer_json(self, selection: Gdk.Rectangle | None, text: str) -> str:
+    def _new_layer_json(
+        self, selection: Gdk.Rectangle | None, text: str, textangle: int = 0
+    ) -> str:
         """Build the bboxtree JSON for a freshly created layer."""
         page = self._page()
         if page is None or selection is None:
@@ -472,5 +549,6 @@ class LayerEditor:
             f'[{{"type":"page","bbox":[0,0,{width},{height}],"depth":0}},'
             f'{{"type":"word","bbox":[{selection.x},{selection.y},'
             f"{selection.x + selection.width},"
-            f'{selection.y + selection.height}],"text":"{text}","depth":1}}]'
+            f'{selection.y + selection.height}],"text":"{text}",'
+            f'"textangle":{textangle},"depth":1}}]'
         )

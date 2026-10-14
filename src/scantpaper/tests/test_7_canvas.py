@@ -1471,6 +1471,54 @@ def test_bbox_to_hocr_more() -> None:
     assert "textangle 90" in hocr
 
 
+def test_add_box_textangle_serializes_and_round_trips() -> None:
+    """A box added with a textangle is drawn/serialised and round-trips."""
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    canvas_obj._pixbuf_size = {"width": 100, "height": 100}
+    root = canvas_obj.get_root_item()
+    canvas_obj.add_box(
+        text="p",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    word = canvas_obj.add_box(
+        text="VERT",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        parent=root.get_child(0),
+        textangle=90,
+    )
+    assert word.textangle == 90
+
+    hocr = canvas_obj.hocr()
+    assert "textangle 90" in hocr
+
+    tree = Bboxtree()
+    tree.from_hocr(hocr)
+    angles = [b.get("textangle") for b in tree.each_bbox() if b.get("type") == "word"]
+    assert angles == [90]
+
+
+def test_add_box_default_textangle_is_zero() -> None:
+    """A box added without a textangle defaults to 0."""
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="p",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    word = canvas_obj.add_box(
+        text="W",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        parent=page,
+    )
+    assert word.textangle == 0
+
+
 def test_bbox_stack_index_coverage() -> None:
     """Test get_stack_index_by_position coverage and robust binary search."""
     canvas_obj = Canvas()

@@ -273,10 +273,13 @@ you explicitly turn the toggle off.
   confident text without re-selecting each one. To add a slice, first draw a
   rectangle - on the image or
   directly in the text layer pane - then type the text and press the +
-  control; the Add control stays disabled, with an explanatory tooltip, until
-  a rectangle has been drawn or selected. Page pixels are fed to tesseract in
-  memory and the stored image is reused, so OCR is faster than in previous
-  versions.
+   control; the Add control stays disabled, with an explanatory tooltip, until
+   a rectangle has been drawn or selected. A focused slice can be rotated 90°
+   clockwise or anticlockwise to author vertical text (e.g. rotated index
+   columns) whose glyphs tesseract read wrongly; slices added while a slice is
+   rotated inherit that rotation. Page pixels are fed to tesseract in
+   memory and the stored image is reused, so OCR is faster than in previous
+   versions.
 - **User-defined:** Run user-defined commands.
 
 #### User-defined Tool Variables

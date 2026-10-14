@@ -37,6 +37,12 @@
   a word) is now included in the text layer of the saved PDF. Previously such
   manually added words were silently dropped, so the saved PDF's searchable
   text contained only the automatic OCR output.
+* A focused OCR text slice can now be rotated 90 degrees clockwise or
+  anticlockwise from the text layer controls, so vertical text (e.g. rotated
+  index columns) that tesseract read wrongly can be authored by hand: the
+  corrected glyphs are drawn and saved at the rotated angle, and the box
+  itself stays axis-aligned. Slices added while a slice is rotated inherit
+  that rotation, letting you type a run of vertical text in one go.
 * The selection rectangle now stays aligned between the image and text
   windows in a split view at every zoom level, and when the scan has a
   non-square resolution or the display uses HiDPI scaling. Previously the

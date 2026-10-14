@@ -89,3 +89,53 @@ def test_layer_controls_annotation_has_no_sort_nav_copy() -> None:
     assert get_child_by_tooltip(controls, "Accept corrections") is not None
     assert get_child_by_tooltip(controls, "Add text") is not None
     assert get_child_by_tooltip(controls, "Delete text") is not None
+
+
+def test_layer_controls_rotate_buttons_emit_signals() -> None:
+    """The rotate buttons emit their signals on the text bar."""
+    controls = LayerControls(rotate=True)
+    received: list[str] = []
+    controls.connect("rotate-clockwise-clicked", lambda _w: received.append("cw"))
+    controls.connect("rotate-anticlockwise-clicked", lambda _w: received.append("ccw"))
+
+    cw = get_child_by_tooltip(controls, "Rotate text clockwise")
+    ccw = get_child_by_tooltip(controls, "Rotate text anticlockwise")
+    assert cw is not None
+    assert isinstance(cw, Gtk.Button)
+    assert ccw is not None
+    assert isinstance(ccw, Gtk.Button)
+
+    cw.clicked()
+    ccw.clicked()
+    assert received == ["cw", "ccw"]
+
+
+def test_layer_controls_annotation_has_no_rotate() -> None:
+    """The annotation bar must not expose rotate controls."""
+    controls = LayerControls()
+    assert get_child_by_tooltip(controls, "Rotate text clockwise") is None
+    assert get_child_by_tooltip(controls, "Rotate text anticlockwise") is None
+
+
+def test_layer_controls_set_rotate_enabled() -> None:
+    """set_rotate_enabled() toggles the rotate buttons' sensitivity."""
+    controls = LayerControls(rotate=True)
+    controls.set_rotate_enabled(enabled=True)
+    assert controls.rotate_cw_button.get_sensitive()
+    assert controls.rotate_ccw_button.get_sensitive()
+
+    controls.set_rotate_enabled(enabled=False)
+    assert not controls.rotate_cw_button.get_sensitive()
+    assert not controls.rotate_ccw_button.get_sensitive()
+
+
+def test_layer_controls_set_rotate_enabled_noop_without_rotate() -> None:
+    """set_rotate_enabled() is a no-op on a bar with no rotate controls.
+
+    The annotation bar is built without rotate controls; enabling rotation
+    there must not create buttons or raise.
+    """
+    controls = LayerControls()
+    controls.set_rotate_enabled(enabled=True)
+    assert controls.rotate_cw_button is None
+    assert controls.rotate_ccw_button is None
