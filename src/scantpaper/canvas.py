@@ -538,6 +538,7 @@ class Canvas(Gtk.DrawingArea):
         self._device = Gdk.Display.get_default().get_default_seat().get_pointer()
         self._offset = Gdk.Rectangle()
         self._zoom = 1.0
+        self._resolution_ratio = 1.0
         self._current_index = "position"
         self.position_index = None
         self.confidence_index = None
@@ -604,6 +605,23 @@ class Canvas(Gtk.DrawingArea):
             self._zoom = newval
             self.queue_draw()
             self.emit("zoom-changed", newval)
+
+    @property_(
+        type=float,
+        default=1,
+        nick="resolution-ratio",
+        blurb="Ratio of x-resolution/y-resolution",
+    )
+    def resolution_ratio(self) -> float:
+        """Getter for the resolution ratio attribute."""
+        return cast("float", (self._resolution_ratio))
+
+    @resolution_ratio.setter
+    def resolution_ratio(self, newval: float) -> None:
+        """Setter for the resolution ratio attribute."""
+        if newval != self._resolution_ratio:
+            self._resolution_ratio = newval
+            self.queue_draw()
 
     @property_(
         type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
@@ -805,6 +823,18 @@ class Canvas(Gtk.DrawingArea):
         """GTK3 draw signal handler."""
         self._draw_scene(ctx)
 
+    def _scale_factors(self) -> tuple[float, float]:
+        """Return the image-to-widget scale factors (x, y) for the current view.
+
+        Matches ImageView.to_widget_coords: the x axis is additionally divided
+        by the resolution ratio (x-resolution/y-resolution) and both axes by the
+        display scale factor.
+        """
+        factor = cast("float", self.get_scale_factor())
+        ratio = cast("float", self._resolution_ratio)
+        zoom = cast("float", self._zoom)
+        return zoom / factor / ratio, zoom / factor
+
     def _draw_scene(self, ctx: object) -> None:
         """Draw the scene graph using Cairo."""
         if self._pixbuf_size is None:
@@ -812,8 +842,8 @@ class Canvas(Gtk.DrawingArea):
 
         ctx.save()
 
-        scale = self._zoom
-        ctx.scale(scale, scale)
+        sx, sy = self._scale_factors()
+        ctx.scale(sx, sy)
         ctx.translate(self._offset.x, self._offset.y)
 
         self._draw_tree(ctx, self._root_item)
@@ -828,10 +858,11 @@ class Canvas(Gtk.DrawingArea):
         """Draw the selection rectangle in widget coordinates."""
         if rect.width <= 0 or rect.height <= 0:
             return
-        wx = rect.x * self._zoom + self._offset.x
-        wy = rect.y * self._zoom + self._offset.y
-        ww = rect.width * self._zoom
-        wh = rect.height * self._zoom
+        sx, sy = self._scale_factors()
+        wx = (rect.x + self._offset.x) * sx
+        wy = (rect.y + self._offset.y) * sy
+        ww = rect.width * sx
+        wh = rect.height * sy
         style = self.get_style_context()
         style.save()
         style.add_class(Gtk.STYLE_CLASS_RUBBERBAND)
@@ -1353,7 +1384,8 @@ class Canvas(Gtk.DrawingArea):
 
     def _to_image_distance(self, x: float, y: float) -> tuple[float, float]:
         """Convert x, y in widget distance to image distance."""
-        return x / self.zoom, y / self.zoom
+        sx, sy = self._scale_factors()
+        return x / sx, y / sy
 
     def _set_zoom_with_center(
         self, zoom: float, center_x: float, center_y: float
@@ -1361,8 +1393,10 @@ class Canvas(Gtk.DrawingArea):
         """Set zoom with centre in image coordinates."""
         zoom = min(zoom, MAX_ZOOM)
         allocation = self.get_allocation()
-        offset_x = allocation.width / 2 / zoom - center_x
-        offset_y = allocation.height / 2 / zoom - center_y
+        factor = self.get_scale_factor()
+        ratio = self._resolution_ratio
+        offset_x = allocation.width * factor / 2 / zoom * ratio - center_x
+        offset_y = allocation.height * factor / 2 / zoom - center_y
         self.zoom = zoom
         self.set_offset(offset_x, offset_y)
 
@@ -1410,12 +1444,12 @@ class Canvas(Gtk.DrawingArea):
         self, x1: float, y1: float, x2: float, y2: float
     ) -> Gdk.Rectangle:
         """Convert two widget points into an image-coordinate rectangle."""
-        scale = self._zoom
+        sx, sy = self._scale_factors()
         offset = self._offset
-        image_x1 = min(x1, x2) / scale - offset.x
-        image_y1 = min(y1, y2) / scale - offset.y
-        image_x2 = max(x1, x2) / scale - offset.x
-        image_y2 = max(y1, y2) / scale - offset.y
+        image_x1 = min(x1, x2) / sx - offset.x
+        image_y1 = min(y1, y2) / sy - offset.y
+        image_x2 = max(x1, x2) / sx - offset.x
+        image_y2 = max(y1, y2) / sy - offset.y
         rect = Gdk.Rectangle()
         rect.x, rect.y = int(image_x1 + 0.5), int(image_y1 + 0.5)
         rect.width, rect.height = (
@@ -1449,25 +1483,15 @@ class Canvas(Gtk.DrawingArea):
         if not self.dragging:
             return False
         offset = self.get_offset()
-        zoom = self.zoom
+        sx, sy = self._scale_factors()
         _screen, x, y = self._device.get_position()
-        offset_x = offset.x + (x - self._drag_start["x"]) / zoom
-        offset_y = offset.y + (y - self._drag_start["y"]) / zoom
+        offset_x = offset.x + (x - self._drag_start["x"]) / sx
+        offset_y = offset.y + (y - self._drag_start["y"]) / sy
         self._drag_start["x"], self._drag_start["y"] = (x, y)
         self.set_offset(offset_x, offset_y)
         return True
 
     def _scroll(self, _widget: Gtk.Widget, event: Gdk.EventScroll) -> bool:
-        allocation = self.get_allocation()
-        centre_x = allocation.width / 2
-        centre_y = allocation.height / 2
-        image_x = (
-            (event.x - centre_x) / self._zoom + centre_x / self._zoom - self._offset.x
-        )
-        image_y = (
-            (event.y - centre_y) / self._zoom + centre_y / self._zoom - self._offset.y
-        )
-
         if event.direction == Gdk.ScrollDirection.UP:
             zoom = self.zoom * 2
         else:
@@ -1476,8 +1500,14 @@ class Canvas(Gtk.DrawingArea):
         zoom = min(zoom, MAX_ZOOM)
         zoom = max(zoom, MIN_ZOOM)
 
-        offset_x = (event.x - centre_x) / zoom + centre_x / zoom - image_x
-        offset_y = (event.y - centre_y) / zoom + centre_y / zoom - image_y
+        sx, sy = self._scale_factors()
+        image_x = event.x / sx - self._offset.x
+        image_y = event.y / sy - self._offset.y
+
+        factor = self.get_scale_factor()
+        ratio = self._resolution_ratio
+        offset_x = event.x / zoom * factor * ratio - image_x
+        offset_y = event.y / zoom * factor - image_y
 
         self.zoom = zoom
         self.set_offset(offset_x, offset_y)

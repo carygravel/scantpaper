@@ -37,6 +37,10 @@
   a word) is now included in the text layer of the saved PDF. Previously such
   manually added words were silently dropped, so the saved PDF's searchable
   text contained only the automatic OCR output.
+* The selection rectangle now stays aligned between the image and text
+  windows in a split view at every zoom level, and when the scan has a
+  non-square resolution or the display uses HiDPI scaling. Previously the
+  rectangle in the text window drifted out of alignment as you zoomed in or out.
 
 
 ## 3.0.23 (2026-10-11)

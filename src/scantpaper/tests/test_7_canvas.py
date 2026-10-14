@@ -2717,6 +2717,27 @@ def test_canvas_selection_property_redraws(mocker: pytest.MockerFixture) -> None
     qd.assert_called()
 
 
+def test_canvas_resolution_ratio_property_redraws(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Setting resolution_ratio via the property stores it and redraws.
+
+    A changed value is stored and queues a redraw; the unchanged value does
+    not. This exercises the property getter and the changed-value branch of
+    the setter.
+    """
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    qd = mocker.patch.object(canvas, "queue_draw")
+    assert canvas.resolution_ratio == 1.0
+    canvas.resolution_ratio = 0.5
+    assert canvas.resolution_ratio == 0.5
+    qd.assert_called_once()
+    qd.reset_mock()
+    canvas.resolution_ratio = 0.5
+    qd.assert_not_called()
+
+
 def test_canvas_draw_scene_skips_degenerate_selection(
     mocker: pytest.MockerFixture,
 ) -> None:
@@ -2764,6 +2785,101 @@ def test_canvas_draw_scene_renders_selection(
 
     render_bg.assert_called()
     render_frame.assert_called()
+
+
+@pytest.mark.parametrize(
+    ("zoom", "offset_x", "offset_y"),
+    [
+        (2.0, 100, 50),
+        (1.0, 100, 50),
+        (2.0, 0, 0),
+    ],
+)
+def test_canvas_selection_aligns_with_scene(
+    mocker: pytest.MockerFixture, zoom: float, offset_x: float, offset_y: int
+) -> None:
+    """The selection rubberband lands at the scene-corrected widget coords."""
+    calls: list[tuple[float, float, float, float]] = []
+
+    def capture_bg(
+        _style: object, _cr: object, x: float, y: float, w: float, h: float
+    ) -> None:
+        calls.append((x, y, w, h))
+
+    mocker.patch("gi.repository.Gtk.render_background", side_effect=capture_bg)
+    mocker.patch("gi.repository.Gtk.render_frame")
+
+    canvas = _canvas_with_page(mocker)
+    canvas._zoom = zoom
+    canvas._offset.x = offset_x
+    canvas._offset.y = offset_y
+    canvas.selection = Rectangle(x=500, y=300, width=100, height=40)
+
+    canvas._draw_scene(MagicMock())
+
+    assert calls == [
+        (
+            (500 + offset_x) * zoom,
+            (300 + offset_y) * zoom,
+            100 * zoom,
+            40 * zoom,
+        )
+    ]
+
+
+@pytest.mark.parametrize(
+    ("ratio", "factor", "expected"),
+    [
+        # non-square resolution: x axis scaled by zoom / factor / ratio
+        (0.5, 1.0, (20.0, 20.0, 60.0, 40.0)),
+        # HiDPI: both axes divided by the display scale factor
+        (1.0, 2.0, (5.0, 10.0, 15.0, 20.0)),
+    ],
+)
+def test_canvas_selection_matches_imageview_ratio_and_factor(
+    mocker: pytest.MockerFixture,
+    ratio: float,
+    factor: float,
+    expected: tuple[float, float, float, float],
+) -> None:
+    """The selection rubberband applies the ImageView's ratio and scale factor."""
+    calls: list[tuple[float, float, float, float]] = []
+
+    def capture_bg(
+        _style: object, _cr: object, x: float, y: float, w: float, h: float
+    ) -> None:
+        calls.append((x, y, w, h))
+
+    mocker.patch("gi.repository.Gtk.render_background", side_effect=capture_bg)
+    mocker.patch("gi.repository.Gtk.render_frame")
+
+    canvas = _canvas_with_page(mocker)
+    canvas._zoom = 1.0
+    canvas._resolution_ratio = ratio
+    canvas.get_scale_factor = MagicMock(return_value=factor)
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    canvas.selection = Rectangle(x=10, y=20, width=30, height=40)
+
+    canvas._draw_scene(MagicMock())
+
+    assert calls == [expected]
+
+
+def test_canvas_widget_to_image_rect_is_inverse_transform(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A widget drag round-trips through the same non-uniform transform."""
+    canvas = _canvas_with_page(mocker)
+    canvas._zoom = 1.0
+    canvas._resolution_ratio = 0.5
+    canvas.get_scale_factor = MagicMock(return_value=2.0)
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+
+    rect = canvas._widget_to_image_rect(10, 5, 70, 15)
+
+    assert (rect.x, rect.y, rect.width, rect.height) == (10, 10, 60, 20)
 
 
 def test_canvas_draw_scene_renders_in_progress_drag(

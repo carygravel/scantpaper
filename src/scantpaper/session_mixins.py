@@ -433,6 +433,12 @@ class SessionMixins:
                 GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
             )
             self.view.bind_property(
+                "resolution_ratio",
+                canvas,
+                "resolution_ratio",
+                GObject.BindingFlags.BIDIRECTIONAL | GObject.BindingFlags.SYNC_CREATE,
+            )
+            self.view.bind_property(
                 "selection",
                 canvas,
                 "selection",

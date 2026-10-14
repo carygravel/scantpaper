@@ -46,6 +46,12 @@ class MockImageView(Gtk.DrawingArea):
     selection = GObject.Property(
         type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
     )
+    resolution_ratio = GObject.Property(
+        type=float,
+        default=1.0,
+        nick="resolution-ratio",
+        blurb="Ratio of x-resolution/y-resolution",
+    )
 
     def set_tool(self, tool: object) -> None:
         """Mock set_tool."""
@@ -78,6 +84,12 @@ class MockCanvas(Gtk.DrawingArea):
     )
     selection = GObject.Property(
         type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
+    )
+    resolution_ratio = GObject.Property(
+        type=float,
+        default=1.0,
+        nick="resolution-ratio",
+        blurb="Ratio of x-resolution/y-resolution",
     )
 
     def clear_text(self) -> None:
