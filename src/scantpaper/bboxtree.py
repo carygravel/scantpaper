@@ -670,10 +670,12 @@ def _hocr_with_containers(bboxes: list[BBox]) -> list[BBox]:
 
     ocrmypdf's text-layer renderer only walks ``ocr_par`` children, so any
     word or line that is not already nested inside a paragraph must be given a
-    synthetic ``para`` (and, for bare words, ``line``) container.  Trees that
-    already contain a ``para`` are returned unchanged.
+    synthetic ``para`` (and, for bare words, ``line``) container.  This applies
+    even when the tree already contains paragraphs from OCR: a word the user
+    added outside those paragraphs would otherwise be left bare and dropped by
+    the renderer.
     """
-    if not bboxes or any(b["type"] == "para" for b in bboxes):
+    if not bboxes:
         return bboxes
 
     root: BBox = {"type": "root", "depth": -1, "contents": []}
@@ -697,8 +699,13 @@ def _hocr_with_containers(bboxes: list[BBox]) -> list[BBox]:
 
 
 def _ensure_hocr_containers(node: BBox) -> None:
-    """Recursively wrap word/line children of a node in a synthetic para."""
-    if node["type"] in ("word", "line", "para"):
+    """Recursively wrap word/line children of a node in a synthetic para.
+
+    ``line`` and the other line-level containers (``header``, ``footer``,
+    ``caption``) already group their words and must be left untouched, whether
+    they sit under a ``para`` or directly under a ``page``/``carea``.
+    """
+    if node["type"] in ("word", "line", "para", "header", "footer", "caption"):
         for child in node.get("contents", []):
             _ensure_hocr_containers(child)
         return

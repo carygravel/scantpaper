@@ -33,6 +33,10 @@
   option, and "G3" produced CCITT Group 4 like the "G4" option. A saved
   preference for one of the removed options keeps its output (Flate or
   Group 4) automatically.
+* Text you add manually to the OCR text layer (drawing a rectangle and typing
+  a word) is now included in the text layer of the saved PDF. Previously such
+  manually added words were silently dropped, so the saved PDF's searchable
+  text contained only the automatic OCR output.
 
 
 ## 3.0.23 (2026-10-11)

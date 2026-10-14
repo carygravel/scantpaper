@@ -1069,3 +1069,47 @@ def test_to_hocr_flat_tree_wrapped_in_containers() -> None:
     assert word["x_descenders"] == 5
     assert word["x_height"] == 50
     assert word["x_fsize"] == 12
+
+
+def test_to_hocr_ocr_paras_plus_manual_word_wrapped() -> None:
+    """A manually added word outside OCR paragraphs is wrapped in containers."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 1000, 1400]},
+        {"type": "carea", "depth": 1, "bbox": [10, 10, 990, 500]},
+        {"type": "para", "depth": 2, "bbox": [20, 20, 900, 400]},
+        {"type": "line", "depth": 3, "bbox": [30, 30, 880, 80]},
+        {"type": "word", "depth": 4, "bbox": [40, 40, 200, 70], "text": "hello"},
+        {"type": "word", "depth": 4, "bbox": [210, 40, 300, 70], "text": "world"},
+        {"type": "word", "depth": 1, "bbox": [500, 900, 700, 960], "text": "MANUALADD"},
+    ]
+    hocr = tree.to_hocr()
+    assert hocr.count("class='ocr_par'") == 2, "OCR para plus synthetic para"
+    assert ">MANUALADD<" in hocr, "manual word present"
+    para = hocr.index("class='ocr_par'")
+    manual = hocr.index(">MANUALADD<")
+    assert para < manual, "manual word sits inside a paragraph"
+    assert hocr.count("class='ocrx_word'") == 3, "all three words survive"
+
+
+def test_to_hocr_manual_word_under_carea_and_bare_line() -> None:
+    """A word under a carea and a bare line are each wrapped in a para."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 1000, 1400]},
+        {"type": "carea", "depth": 1, "bbox": [10, 10, 990, 500]},
+        {"type": "para", "depth": 2, "bbox": [20, 20, 900, 400]},
+        {"type": "line", "depth": 3, "bbox": [30, 30, 880, 80]},
+        {"type": "word", "depth": 4, "bbox": [40, 40, 200, 70], "text": "hello"},
+        {"type": "line", "depth": 1, "bbox": [400, 1000, 600, 1060]},
+        {
+            "type": "word",
+            "depth": 2,
+            "bbox": [410, 1010, 590, 1050],
+            "text": "baredline",
+        },
+    ]
+    hocr = tree.to_hocr()
+    assert hocr.count("class='ocr_par'") == 2, "OCR para plus synthetic para"
+    assert ">baredline<" in hocr, "bare line's word present"
+    assert hocr.count("class='ocrx_word'") == 2, "both words survive"

@@ -15,8 +15,11 @@ text layer being saved, positioned according to that text layer's geometry.
 
 The hOCR structure that scantpaper emits for a page SHALL include the container
 levels (`ocr_par`/`ocr_line`) that a PDF text-layer renderer walks, so that
-pages whose text layer has no explicit paragraph or line structure still produce
-a rendered, extractable text layer.
+every word in the text layer is nested under a paragraph and therefore rendered
+and extractable. This SHALL hold for pages whose text layer has no explicit
+paragraph or line structure, and SHALL also hold for pages that mix automatic
+OCR paragraphs with individually added words that are not themselves inside a
+paragraph.
 
 #### Scenario: Saving an imported page preserves its searchable text
 - **WHEN** the user imports a PDF page, edits its text layer, and saves the
@@ -30,6 +33,14 @@ a rendered, extractable text layer.
   paragraph or line grouping
 - **THEN** the output PDF SHALL still contain an extractable, searchable text
   layer for that page
+
+#### Scenario: Saving a page with OCR paragraphs and a manually added word
+- **WHEN** the user has a page whose text layer already contains OCR paragraphs
+  and then adds a new word in an area outside those paragraphs
+- **AND** saves the document as a PDF
+- **THEN** the output PDF SHALL contain a searchable text layer
+- **AND** the extracted text SHALL contain the manually added word alongside
+  the OCR-recognised words
 
 ### Requirement: Text layer survives a save round trip
 When a page's text layer is exported for saving and then read back from the
