@@ -399,9 +399,16 @@ class LayerEditor:
             self.delete(_widget)
             return
         old_text = bbox.text
+        # Capture the successor while the corrected slice still occupies its
+        # original rank: update_word relocates it to the high-confidence end of
+        # the confidence index, so the next slice is only reachable beforehand.
+        try:
+            successor = self.canvas.get_next_bbox()
+        except StopIteration:
+            successor = bbox
         self.canvas.update_word(bbox, text, self._view.get_selection())
         self._commit()
-        self.edit(bbox)
+        self.edit(successor)
         logger.info("Corrected '%s'->'%s'", old_text, text)
 
     def copy(self, _widget: object) -> None:

@@ -268,7 +268,10 @@ you explicitly turn the toggle off.
   viewed and edited in the text layer window. Deleting a slice in that window
   removes the corresponding text from the saved PDF's text layer, and
   correcting one replaces the text that is saved and drawn; emptying a slice
-  deletes it. To add a slice, first draw a rectangle - on the image or
+  deletes it. Accepting a correction moves on to the next slice in the current
+  sort order, so a confidence-sorted pass walks from the least to the most
+  confident text without re-selecting each one. To add a slice, first draw a
+  rectangle - on the image or
   directly in the text layer pane - then type the text and press the +
   control; the Add control stays disabled, with an explanatory tooltip, until
   a rectangle has been drawn or selected. Page pixels are fed to tesseract in

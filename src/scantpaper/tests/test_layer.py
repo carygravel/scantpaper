@@ -251,8 +251,8 @@ def test_edit_none_clears_control(mocker: pytest.MockerFixture) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_ok_commits_and_reedits(mocker: pytest.MockerFixture) -> None:
-    """ok() updates the box, imports hocr, persists, and re-edits."""
+def test_ok_commits_and_advances(mocker: pytest.MockerFixture) -> None:
+    """ok() updates the box, persists, and advances focus to the next slice."""
     editor, page, thread, view = make_editor(mocker)
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
@@ -260,14 +260,19 @@ def test_ok_commits_and_reedits(mocker: pytest.MockerFixture) -> None:
     view.get_selection.return_value = "sel"
     bbox = mocker.Mock()
     bbox.text = "old"
+    successor = mocker.Mock()
+    successor.text = "next"
+    editor.canvas.get_next_bbox.return_value = successor
     editor._current_bbox = bbox
 
     editor.ok(None)
 
     editor.canvas.update_word.assert_called_once_with(bbox, "corrected", "sel")
+    editor.canvas.get_next_bbox.assert_called_once_with()
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
-    editor.controls.textbuffer.set_text.assert_called()
+    assert editor._current_bbox is successor
+    editor.controls.textbuffer.set_text.assert_called_with("next")
 
 
 def test_copy_duplicates_box(mocker: pytest.MockerFixture) -> None:
@@ -877,6 +882,89 @@ def test_editor_typing_after_delete_applies_to_survivor(
         assert "BRAVO-CORRECTED" in stored_layer(page, editor)
 
 
+def test_editor_ok_advances_to_next_least_confident(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Accepting a correction under confidence sort focuses the next survivor."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_confidence()
+
+        editor.edit(editor.canvas.get_first_bbox())
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "ALPHA"
+
+        editor.controls.textbuffer.set_text("ALPHA-CORRECTED")
+        editor.ok(None)
+
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "BRAVO"
+        assert "ALPHA-CORRECTED" in stored_layer(page, editor)
+
+
+def test_editor_ok_advances_in_reading_order(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Accepting a correction under position sort focuses the next in order."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        editor.edit(editor.canvas.get_first_bbox())
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "ALPHA"
+
+        editor.controls.textbuffer.set_text("ALPHA-CORRECTED")
+        editor.ok(None)
+
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "BRAVO"
+
+
+def test_editor_ok_on_final_slice_stays_focused(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Correcting the final slice in navigation order keeps it focused."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        editor.edit(editor.canvas.get_last_bbox())
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "CHARLIE"
+        charlie = editor._current_bbox
+
+        editor.controls.textbuffer.set_text("CHARLIE-CORRECTED")
+        editor.ok(None)
+
+        assert editor._current_bbox is charlie
+        assert editor._current_bbox.text == "CHARLIE-CORRECTED"
+
+
 def test_editor_sort_switch_keeps_focused_slice_and_text(
     rose_pnm: str, mocker: pytest.MockerFixture
 ) -> None:
@@ -952,9 +1040,13 @@ def test_editor_rebuild_while_focused_drops_stale_focus(
         editor.controls.textbuffer.set_text("ALPHA-CORRECTED")
         editor.ok(None)
         assert "ALPHA-CORRECTED" in stored_layer(page, editor)
+        # ok() advanced focus to the next surviving slice (BRAVO).
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "BRAVO"
 
         editor.delete(None)
-        assert "ALPHA" not in stored_layer(page, editor)
+        assert "BRAVO" not in stored_layer(page, editor)
+        assert "ALPHA-CORRECTED" in stored_layer(page, editor)
 
 
 def test_editor_never_focuses_a_detached_slice(

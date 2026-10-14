@@ -46,6 +46,11 @@
   actually went by position until you changed the selection and changed it
   back; now the selected order is applied immediately, so the first entry
   navigates the way the control says.
+* Accepting a correction in the text layer editor now moves on to the next
+  slice in the current sort order, instead of staying on the one you just
+  corrected. In a confidence-sorted pass this walks from the least to the
+  most confident text automatically, so you no longer have to re-select the
+  next slice after every fix. Correcting the final slice keeps it focused.
 
 
 ## 3.0.23 (2026-10-11)
