@@ -173,9 +173,6 @@ This document provides essential context for anyone working on this project. Adh
     - no `ty` type-check diagnostics (`ty check .` reports none). As with
       ruff, do not add rules to the `[tool.ty.rules]` blacklist without
       explicit agreement from the maintainer.
-      On this development machine `ty` is not on `PATH`; it is installed by
-      Zed and can be run directly at
-      `/home/jeff/.local/share/zed/languages/ty/ty-0.0.84/ty-x86_64-unknown-linux-gnu/ty`.
 -   **Security:** Be mindful of security. Do not hardcode secrets or keys.
 -   **Dependencies:** To add a new Python dependency, add it to `pyproject.toml`. Ensure it is available on common distributions or via `pip`.
 -   **OpenSpec:** The `openspec` CLI manages change workflows. It is installed globally via npm: `npm install -g @fission-ai/openspec@latest`.
