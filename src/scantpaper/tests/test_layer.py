@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from scantpaper.basethread import Response, ResponseType
 from scantpaper.bboxtree import Bboxtree
+from scantpaper.canvas import Canvas
 from scantpaper.const import EMPTY, POINTS_PER_INCH
 from scantpaper.layer import LayerControls, LayerEditor
 from scantpaper.loop_helpers import safe_mainloop
@@ -107,6 +108,24 @@ def test_layer_controls_sort_signal() -> None:
     assert received[-1] == "position"
     sort_combo.set_active(0)
     assert received[-1] == "confidence"
+
+
+def test_layer_controls_get_sort_method() -> None:
+    """get_sort_method() reports the currently selected sort method."""
+    controls = LayerControls(sort=True)
+    assert controls.get_sort_method() == "confidence"
+
+    controls.sort_cmbx.set_active(1)
+    assert controls.get_sort_method() == "position"
+
+    controls.sort_cmbx.set_active(0)
+    assert controls.get_sort_method() == "confidence"
+
+
+def test_layer_controls_get_sort_method_defaults_when_no_sort() -> None:
+    """get_sort_method() on an annotation bar returns the confidence default."""
+    controls = LayerControls()
+    assert controls.get_sort_method() == "confidence"
 
 
 def test_layer_controls_cancel_button_hides() -> None:
@@ -538,6 +557,23 @@ def test_sort_method(mocker: pytest.MockerFixture) -> None:
     editor.canvas.sort_by_confidence.assert_called_once()
     editor._sort(None, "position")
     editor.canvas.sort_by_position.assert_called_once()
+
+
+def test_editor_applies_initial_sort_selection(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Constructing a sort-enabled editor applies the default confidence sort.
+
+    The combo is initialised to confidence before the editor's handlers are
+    wired, so the editor must replay that selection onto the canvas; otherwise
+    navigation stays on the canvas's default position index.
+    """
+    canvas = Canvas()
+    sort_spy = mocker.spy(canvas, "sort_by_confidence")
+    mocker.patch("scantpaper.layer.Canvas", return_value=canvas)
+    editor, _page, _thread, _view = make_editor(mocker, features=("sort",))
+    sort_spy.assert_called_once()
+    assert editor.canvas._current_index == "confidence"
 
 
 def test_commit_no_page_is_noop(mocker: pytest.MockerFixture) -> None:

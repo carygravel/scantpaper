@@ -86,6 +86,7 @@ class LayerControls(Gtk.Box):
     ) -> None:
         """Initialise the control bar with optional sort, navigation, and copy."""
         super().__init__(*args, **kwargs)
+        self._sort_enabled = sort
         textview = Gtk.TextView()
         textview.set_tooltip_text(_("Text layer"))
         self.textbuffer = textview.get_buffer()
@@ -108,14 +109,16 @@ class LayerControls(Gtk.Box):
                 padding=0,
             )
         if sort:
-            sort_cmbx = ComboBoxText(data=INDEX)
-            sort_cmbx.set_tooltip_text(_("Select sort method for OCR boxes"))
-            sort_cmbx.connect(
+            self.sort_cmbx = ComboBoxText(data=INDEX)
+            self.sort_cmbx.set_tooltip_text(_("Select sort method for OCR boxes"))
+            self.sort_cmbx.connect(
                 "changed",
-                lambda _: self.emit("sort-changed", INDEX[sort_cmbx.get_active()][0]),
+                lambda _: self.emit(
+                    "sort-changed", INDEX[self.sort_cmbx.get_active()][0]
+                ),
             )
-            sort_cmbx.set_active(0)
-            self.pack_start(sort_cmbx, expand=False, fill=False, padding=0)
+            self.sort_cmbx.set_active(0)
+            self.pack_start(self.sort_cmbx, expand=False, fill=False, padding=0)
         if nav:
             self.pack_start(
                 self._make_icon_button("go-next", _("Go to next text"), "go-to-next"),
@@ -197,6 +200,20 @@ class LayerControls(Gtk.Box):
                 _("Draw or select a rectangle before adding")
             )
 
+    def get_sort_method(self) -> str:
+        """Return the sort method currently selected, defaulting to confidence.
+
+        Used to replay the initial selection onto the canvas once the editor
+        has wired its handlers, so the displayed selection and the navigation
+        order agree on first entry.
+        """
+        if not self._sort_enabled:
+            return "confidence"
+        return cast(
+            "str",
+            self.sort_cmbx.get_active_index() or INDEX[0][0],
+        )
+
 
 class LayerEditor:
     """Edit one layer (text or annotations) over a page."""
@@ -259,6 +276,7 @@ class LayerEditor:
             )
         if self._sort_enabled:
             controls.connect("sort-changed", self._sort)
+            self._sort(None, controls.get_sort_method())
         controls.connect("ok-clicked", self.ok)
         controls.connect("add-clicked", self.add)
         controls.connect("delete-clicked", self.delete)

@@ -41,6 +41,11 @@
   windows in a split view at every zoom level, and when the scan has a
   non-square resolution or the display uses HiDPI scaling. Previously the
   rectangle in the text window drifted out of alignment as you zoomed in or out.
+* The text layer's sort criteria now takes effect as soon as you enter the
+  editor. Previously it was shown as "Sort by confidence" but navigation
+  actually went by position until you changed the selection and changed it
+  back; now the selected order is applied immediately, so the first entry
+  navigates the way the control says.
 
 
 ## 3.0.23 (2026-10-11)
