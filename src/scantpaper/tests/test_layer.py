@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from scantpaper.basethread import Response, ResponseType
 from scantpaper.bboxtree import Bboxtree
-from scantpaper.canvas import Canvas
+from scantpaper.canvas import Bbox, Canvas
 from scantpaper.const import EMPTY, POINTS_PER_INCH
 from scantpaper.layer import LayerControls, LayerEditor
 from scantpaper.loop_helpers import safe_mainloop
@@ -16,7 +16,6 @@ from scantpaper.page import Page
 if TYPE_CHECKING:
     import pytest
 
-    from scantpaper.canvas import Bbox
     from scantpaper.docthread import DocThread
     from scantpaper.imageview import ImageView
 
@@ -254,7 +253,7 @@ def test_edit_none_clears_control(mocker: pytest.MockerFixture) -> None:
 def test_rotate_clockwise_updates_textangle_and_commits(
     mocker: pytest.MockerFixture,
 ) -> None:
-    """rotate_clockwise() turns the focused slice's text 90 degrees and persists."""
+    """rotate_clockwise() turns the focused slice's text and persists."""
     editor, page, thread, _view = make_editor(mocker, features=("rotate",))
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
@@ -264,14 +263,40 @@ def test_rotate_clockwise_updates_textangle_and_commits(
 
     editor.rotate_clockwise(None)
 
-    assert bbox.textangle == 90
+    # Cairo rotates clockwise for positive angles, and the draw formula negates
+    # the stored angle, so clockwise stores 270 (i.e. -90).
+    assert bbox.textangle == 270
     editor.canvas.queue_draw.assert_called_once()
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
 
 
+def test_rotate_clockwise_draws_glyphs_clockwise(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Clockwise makes the drawn angle increase; anticlockwise makes it decrease."""
+    editor, _page, _thread, _view = make_editor(mocker, features=("rotate",))
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    bbox = mocker.Mock()
+    bbox.textangle = 0
+    bbox.transformation = [0, 0, 0]
+    editor._current_bbox = bbox
+
+    def drawn_angle() -> int:
+        angle = cast("int", bbox.textangle)
+        rotation = cast("int", bbox.transformation[0])
+        return (-(angle + rotation)) % 360
+
+    assert drawn_angle() == 0
+    editor.rotate_clockwise(None)
+    assert drawn_angle() == 90, "clockwise turns the drawn glyphs by +90"
+    editor.rotate_anticlockwise(None)
+    assert drawn_angle() == 0
+
+
 def test_rotate_anticlockwise_updates_textangle(mocker: pytest.MockerFixture) -> None:
-    """rotate_anticlockwise() turns the focused slice's text to 270 degrees."""
+    """rotate_anticlockwise() turns the focused slice's text to 90 degrees."""
     editor, page, thread, _view = make_editor(mocker, features=("rotate",))
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
@@ -281,7 +306,8 @@ def test_rotate_anticlockwise_updates_textangle(mocker: pytest.MockerFixture) ->
 
     editor.rotate_anticlockwise(None)
 
-    assert bbox.textangle == 270
+    # Anticlockwise is the negation of the clockwise sign above.
+    assert bbox.textangle == 90
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
 
@@ -292,7 +318,7 @@ def test_rotate_wraps_past_360(mocker: pytest.MockerFixture) -> None:
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
     bbox = mocker.Mock()
-    bbox.textangle = 270
+    bbox.textangle = 90
     editor._current_bbox = bbox
 
     editor.rotate_clockwise(None)
@@ -337,13 +363,20 @@ def test_add_inherits_focused_rotation(mocker: pytest.MockerFixture) -> None:
     view.get_selection.return_value = "sel"
     new_bbox = mocker.Mock()
     editor.canvas.add_box.return_value = new_bbox
+    parent = mocker.Mock()
+    editor.canvas.get_bbox_at.return_value = parent
     focused = mocker.Mock()
     focused.textangle = 90
+    editor.canvas.accumulated_textangle.side_effect = lambda b: (
+        90 if b is focused else 0
+    )
     editor._current_bbox = focused
 
     editor.add(None)
 
-    editor.canvas.add_box.assert_called_with(text="new", bbox="sel", textangle=90)
+    editor.canvas.add_box.assert_called_with(
+        text="new", bbox="sel", textangle=90, parent=parent
+    )
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
 
 
@@ -426,10 +459,14 @@ def test_add_existing_layer(mocker: pytest.MockerFixture) -> None:
     view.get_selection.return_value = "sel"
     new_bbox = mocker.Mock()
     editor.canvas.add_box.return_value = new_bbox
+    parent = mocker.Mock()
+    editor.canvas.get_bbox_at.return_value = parent
 
     editor.add(None)
 
-    editor.canvas.add_box.assert_called_with(text="newword", bbox="sel", textangle=0)
+    editor.canvas.add_box.assert_called_with(
+        text="newword", bbox="sel", textangle=0, parent=parent
+    )
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is new_bbox
@@ -442,11 +479,13 @@ def test_add_default_text_when_empty(mocker: pytest.MockerFixture) -> None:
     editor.controls = mocker.Mock()
     editor.controls.textbuffer.get_text.return_value = EMPTY
     view.get_selection.return_value = "sel"
+    parent = mocker.Mock()
+    editor.canvas.get_bbox_at.return_value = parent
 
     editor.add(None)
 
     editor.canvas.add_box.assert_called_with(
-        text="my-new-word", bbox="sel", textangle=0
+        text="my-new-word", bbox="sel", textangle=0, parent=parent
     )
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
 
@@ -739,6 +778,38 @@ THREE_WORD_HOCR = """<?xml version="1.0" encoding="UTF-8"?>
  </body>
 </html>
 """
+
+ROTATED_LINE_HOCR = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name='ocr-system' content='tesseract 4.1.1' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'/>
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 500 100'>
+   <div class='ocr_carea' id='block_1_1' title="bbox 0 0 500 100">
+    <span class='ocr_line' id='line_1_1' title="bbox 0 0 500 100; textangle 90">
+     <span class='ocr_word' id='word_1_1' title="bbox 0 0 100 100">
+      <span class='xocr_word' id='xword_1_1' title="x_wconf 10">ALPHA</span>
+     </span>
+     <span class='ocr_word' id='word_1_2' title="bbox 100 0 200 100">
+      <span class='xocr_word' id='xword_1_2' title="x_wconf 20">BRAVO</span>
+     </span>
+    </span>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+
+
+def _drawn_angle(bbox: Bbox) -> int:
+    """Return the angle a slice's glyphs are drawn at, as the canvas computes it."""
+    return (-(bbox.textangle + bbox.transformation[0])) % 360
 
 
 def make_real_editor(
@@ -1119,11 +1190,11 @@ def test_editor_rotate_persists_and_leaves_others_unchanged(
         editor.rotate_clockwise(None)
 
         words = editor.canvas._words_in_reading_order()
-        assert [w.textangle for w in words] == [90, 0, 0]
+        assert [w.textangle for w in words] == [270, 0, 0]
 
         tree = Bboxtree(stored_layer(page, editor))
         word_boxes = [b for b in tree.each_bbox() if b.get("type") == "word"]
-        assert [b.get("textangle") for b in word_boxes] == [90, None, None]
+        assert [b.get("textangle") for b in word_boxes] == [270, None, None]
 
 
 def test_editor_rotate_round_trips_through_layer(
@@ -1153,7 +1224,85 @@ def test_editor_rotate_round_trips_through_layer(
         alpha = next(
             w for w in editor.canvas._words_in_reading_order() if w.text == "ALPHA"
         )
-        assert alpha.textangle == 90
+        assert alpha.textangle == 270
+
+
+def test_editor_add_when_focused_is_the_new_parent(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A slice added under the focused slice is drawn at its angle, once.
+
+    The focused slice is the new slice's own parent, so the inherited angle is
+    shared and must be subtracted rather than added twice.
+    """
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(ROTATED_LINE_HOCR)
+        editor = make_real_editor(mocker, page, features=("rotate",))
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        alpha = cast("Bbox", editor.canvas.get_first_bbox())
+        line = alpha.parent
+        assert isinstance(line, Bbox)
+        assert line.textangle == 90
+        # Focus the rotated line directly (lines are not focusable through edit()).
+        editor._current_bbox = line
+
+        # A selection over the line but outside every word makes the line the
+        # new slice's parent -- i.e. the focused slice is its own parent.
+        selection = Gdk.Rectangle()
+        selection.x, selection.y = 440, 40
+        selection.width, selection.height = 20, 20
+        cast("Any", editor._view).get_selection.return_value = selection
+
+        editor.add(None)
+
+        added = editor._current_bbox
+        assert added is not None
+        assert _drawn_angle(added) == _drawn_angle(line), (
+            "the added slice renders at the focused slice's angle, applied once"
+        )
+
+
+def test_editor_add_sibling_inherits_focused_angle(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A slice added beside a rotated slice renders at the focused angle."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page, features=("rotate",))
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        alpha = cast("Bbox", editor.canvas.get_first_bbox())
+        editor.edit(alpha)
+        editor.rotate_clockwise(None)
+        assert editor._current_bbox is alpha
+
+        # A selection over the shared line but outside every word puts the new
+        # slice beside the focused one, under the same parent.
+        selection = Gdk.Rectangle()
+        selection.x, selection.y = 440, 40
+        selection.width, selection.height = 20, 20
+        cast("Any", editor._view).get_selection.return_value = selection
+
+        editor.add(None)
+
+        added = editor._current_bbox
+        assert added is not None
+        assert _drawn_angle(added) == _drawn_angle(alpha)
 
 
 def test_editor_rebuild_while_focused_drops_stale_focus(

@@ -340,11 +340,11 @@ class LayerEditor:
 
     def rotate_clockwise(self, _widget: object) -> None:
         """Rotate the focused slice's text 90 degrees clockwise."""
-        self._apply_rotation(90)
+        self._apply_rotation(-90)
 
     def rotate_anticlockwise(self, _widget: object) -> None:
         """Rotate the focused slice's text 90 degrees anticlockwise."""
-        self._apply_rotation(-90)
+        self._apply_rotation(90)
 
     def _apply_rotation(self, delta: int) -> None:
         """Apply a 90-degree rotation delta to the focused slice.
@@ -503,11 +503,21 @@ class LayerEditor:
         if page is None:
             return
         selection = self._view.get_selection()
-        angle = self._current_bbox.textangle if self._current_bbox is not None else 0
+        angle = 0
         if getattr(page, self.page_attr, None):
             logger.info("Added '%s'", text)
+            parent = self.canvas.get_bbox_at(selection)
+            focused = self._current_bbox
+            if focused is not None:
+                angle = (
+                    self.canvas.accumulated_textangle(focused)
+                    - self.canvas.accumulated_textangle(parent)
+                ) % 360
             self._current_bbox = self.canvas.add_box(
-                text=text, bbox=self._view.get_selection(), textangle=angle
+                text=text,
+                bbox=selection,
+                textangle=angle,
+                parent=parent,
             )
             getattr(page, self.import_method)(self.canvas.hocr())
             self.edit(self._current_bbox)

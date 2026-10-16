@@ -812,7 +812,6 @@ class Canvas(Gtk.DrawingArea):
             "box": box,
             "bbox_map": bbox_map,
             "parents": [root],
-            "transformations": [[0, 0, 0]],
             "edit_callback": kwargs.get("edit_callback"),
             "finished_callback": finished_with_rebuild,
             "skip_confidence_index": True,
@@ -1237,6 +1236,20 @@ class Canvas(Gtk.DrawingArea):
             return result.parent
         return result
 
+    def accumulated_textangle(self, bbox: Bbox) -> int:
+        """Return the total text angle of a box's local frame.
+
+        The local frame angle is ``bbox.textangle`` plus every ancestor's,
+        i.e. the value that a child's ``transformation[0]`` inherits from
+        ``bbox``.
+        """
+        total = 0
+        item: Bbox | _CanvasRoot | None = bbox
+        while isinstance(item, Bbox):
+            total += item.textangle
+            item = item.parent
+        return total % _360_DEGREES
+
     def add_box(self, **kwargs: object) -> Bbox:
         """Add box to canvas."""
         if "parent" in kwargs:
@@ -1248,7 +1261,11 @@ class Canvas(Gtk.DrawingArea):
         if "transformation" in kwargs:
             transformation = kwargs["transformation"]
         elif isinstance(parent, Bbox):
-            transformation = [parent.textangle, parent.bbox.x, parent.bbox.y]
+            transformation = [
+                self.accumulated_textangle(parent),
+                parent.bbox.x,
+                parent.bbox.y,
+            ]
         else:
             transformation = [0, 0, 0]
 
@@ -1318,10 +1335,7 @@ class Canvas(Gtk.DrawingArea):
             box = cast("dict[str, Any]", options["box"])
             depth = cast("int", box["depth"])
 
-            transformations = options["transformations"]
             parents = cast("list[Bbox]", options["parents"])
-            rotation, _, _ = transformations[depth]
-            textangle = box.get("textangle", 0)
 
             options2 = {"parent": parents[depth]}
             options2["edit_callback"] = options["edit_callback"]
@@ -1353,10 +1367,6 @@ class Canvas(Gtk.DrawingArea):
                 parents.append(bbox)
             else:
                 parents[depth + 1] = bbox
-
-            transformations.append(
-                [textangle + rotation, options2["bbox"].x, options2["bbox"].y]
-            )
             try:
                 options["idx"], options["box"] = next(options["iter"])
             except StopIteration:

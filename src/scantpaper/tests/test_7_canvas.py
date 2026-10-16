@@ -1519,6 +1519,71 @@ def test_add_box_default_textangle_is_zero() -> None:
     assert word.textangle == 0
 
 
+def test_add_box_inherits_textangle_at_every_depth() -> None:
+    """A new box inherits the accumulated textangle of its whole ancestor chain."""
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="p",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    page.textangle = 90
+    column = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="column",
+        parent=page,
+    )
+    para = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="para",
+        parent=column,
+    )
+    line = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="line",
+        parent=para,
+    )
+    word = canvas_obj.add_box(
+        text="W",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        parent=line,
+    )
+
+    # The page's rotation reaches the word through three unrotated levels.
+    assert word.transformation[0] == 90
+
+
+def test_add_box_unrotated_tree_has_no_inherited_angle() -> None:
+    """With no ancestor rotation the inherited textangle stays zero."""
+    canvas_obj = Canvas()
+    canvas_obj.confidence_index = ListIter()
+    root = canvas_obj.get_root_item()
+    page = canvas_obj.add_box(
+        text="p",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    line = canvas_obj.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="line",
+        parent=page,
+    )
+    word = canvas_obj.add_box(
+        text="W",
+        bbox=Rectangle(x=0, y=0, width=10, height=10),
+        parent=line,
+    )
+    assert word.transformation[0] == 0
+
+
 def test_bbox_stack_index_coverage() -> None:
     """Test get_stack_index_by_position coverage and robust binary search."""
     canvas_obj = Canvas()
@@ -2630,7 +2695,6 @@ def test_boxed_text_no_callback(mocker: pytest.MockerFixture) -> None:
         "iter": iter([]),
         "idx": 0,
         "box": {"depth": 0, "bbox": (0, 0, 10, 10), "text": "t"},
-        "transformations": [[0, 0, 0]],
         "parents": [parent_mock],
         "edit_callback": None,
         "bbox_map": {},
