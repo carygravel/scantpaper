@@ -332,7 +332,7 @@ class Save(Dialog):
         blurb="Currently selected TIFF compression method",
     )
     jpeg_quality = GObject.Property(
-        type=float,
+        type=int,
         minimum=1,
         maximum=100,
         default=75,
@@ -779,7 +779,7 @@ class Save(Dialog):
         combob.connect("changed", self._pdf_compression_changed_callback, hboxq)
 
         def jpg_quality_changed_callback(_widget: Gtk.SpinButton) -> None:
-            self.jpeg_quality = spinbuttonq.get_value()
+            self.jpeg_quality = int(spinbuttonq.get_value())
 
         spinbuttonq.connect("value-changed", jpg_quality_changed_callback)
         hbox.pack_end(combob, expand=False, fill=False, padding=0)

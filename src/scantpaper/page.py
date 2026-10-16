@@ -102,12 +102,12 @@ def resolve_pdf_codec(image: Image.Image, compression: str | None) -> str:
     return _codec_for_colour_model(image, PDF_CODEC_JPEG)
 
 
-def _encode_jpeg(image: Image.Image, quality: int) -> bytes:
+def _encode_jpeg(image: Image.Image, quality: float) -> bytes:
     """Encode an image as JPEG bytes at the given quality."""
     img_byte_arr = io.BytesIO()
     if image.mode in ("I", "F", "P"):
         image = image.convert("RGB" if image.mode == "P" else "L")
-    image.save(img_byte_arr, format="JPEG", quality=quality)
+    image.save(img_byte_arr, format="JPEG", quality=round(quality))
     return img_byte_arr.getvalue()
 
 

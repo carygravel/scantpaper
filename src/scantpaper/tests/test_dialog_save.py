@@ -240,6 +240,15 @@ def test_pdf_compression_changed_callback() -> None:
     mock_hboxq.hide.assert_called()
 
 
+def test_jpeg_quality_property_is_integer_typed() -> None:
+    """The JPEG quality property is integer-typed and spinbutton values coerce to int."""
+    dialog = Save()
+    assert dialog.jpeg_quality == 75
+    dialog.jpeg_quality = 82.7
+    assert isinstance(dialog.jpeg_quality, int), "property stores an integer"
+    assert dialog.jpeg_quality == 82
+
+
 def test_encrypt_clicked_callback(mocker: pytest.MockerFixture) -> None:
     """Test encryption dialog creation and callbacks."""
     dialog = Save()

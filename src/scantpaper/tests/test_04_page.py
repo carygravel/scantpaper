@@ -748,6 +748,36 @@ def test_write_image_for_pdf_quality_controls_jpeg() -> None:
             sizes[quality] = pathlib.Path(filename.name).stat().st_size
     assert sizes[30] < sizes[95], "lower quality stream is smaller"
 
+
+def test_write_image_for_pdf_float_quality_writes_jpeg() -> None:
+    """A float-typed quality is coerced to an integer for JPEG encoding."""
+    image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128).convert("RGB")
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(
+            filename.name, {"options": {"compression": "jpg", "quality": 75.0}}
+        )
+        output = pathlib.Path(filename.name).read_bytes()
+    assert output[:2] == b"\xff\xd8", "valid JPEG stream written"
+    with Image.open(io.BytesIO(output)) as saved:
+        assert saved.format == "JPEG"
+
+
+def test_write_image_for_pdf_float_quality_jb2_writes_jpeg() -> None:
+    """A float-typed quality works through the JBIG2 JPEG codec path."""
+    image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128).convert("RGB")
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(
+            filename.name, {"options": {"compression": "jb2", "quality": 75.0}}
+        )
+        output = pathlib.Path(filename.name).read_bytes()
+    assert output[:2] == b"\xff\xd8", "valid JPEG stream written for JBIG2 page"
+
+
+def test_write_image_for_pdf_stored_jpeg_passes_through() -> None:
     """Stored JPEG bytes are written to the PDF without re-encoding."""
     buf = io.BytesIO()
     Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
