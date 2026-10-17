@@ -13,7 +13,7 @@ from scantpaper.i18n import _
 if TYPE_CHECKING:
     from typing import ClassVar
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
@@ -38,12 +38,15 @@ class Progress(Gtk.Box):
         self._pbar = Gtk.ProgressBar()
         self._pbar.set_show_text(True)
         self._pbar.set_hexpand(True)
-        self.pack_start(self._pbar, expand=True, fill=True, padding=0)
+        self.append(self._pbar)
         self._pbar.show()
         self._button = Gtk.Button.new_with_mnemonic(label=_("_Cancel"))
         self._button.connect("clicked", self._on_button_clicked)
-        self.pack_end(self._button, expand=False, fill=False, padding=0)
+        self.append(self._button)
         self._button.show()
+        # GTK4 widgets are visible by default; keep the container hidden until
+        # work starts, matching the GTK3 behaviour (where it was never shown).
+        self.hide()
 
     def _on_button_clicked(self, _button: Gtk.Button) -> None:
         self.emit("clicked")

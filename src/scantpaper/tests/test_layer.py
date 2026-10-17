@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 import gi
 
-gi.require_version("Gdk", "3.0")
+gi.require_version("Gdk", "4.0")
 from gi.repository import Gdk, GLib  # noqa: E402
 
 
@@ -62,7 +62,7 @@ def test_layer_controls_text_features_present() -> None:
     controls = LayerControls(sort=True, nav=True, copy=True)
     tooltips = {
         child.get_tooltip_text()
-        for child in controls.get_children()
+        for child in list(controls.observe_children())
         if child.get_tooltip_text() is not None
     }
     assert "Select sort method for OCR boxes" in tooltips
@@ -79,7 +79,7 @@ def test_layer_controls_annotation_bar_has_no_sort_nav_copy() -> None:
     controls = LayerControls()
     tooltips = {
         child.get_tooltip_text()
-        for child in controls.get_children()
+        for child in list(controls.observe_children())
         if child.get_tooltip_text() is not None
     }
     assert "Select sort method for OCR boxes" not in tooltips
@@ -97,7 +97,7 @@ def test_layer_controls_sort_signal() -> None:
     controls.connect("sort-changed", lambda _w, value: received.append(value))
 
     sort_combo = None
-    for child in controls.get_children():
+    for child in list(controls.observe_children()):
         if child.get_tooltip_text() == "Select sort method for OCR boxes":
             sort_combo = child
             break
@@ -130,14 +130,14 @@ def test_layer_controls_get_sort_method_defaults_when_no_sort() -> None:
 def test_layer_controls_cancel_button_hides() -> None:
     """The cancel button hides the control bar."""
     controls = LayerControls()
-    controls.show_all()
+    controls.show()
     cancel = None
-    for child in controls.get_children():
+    for child in list(controls.observe_children()):
         if child.get_tooltip_text() == "Cancel corrections":
             cancel = child
             break
     assert cancel is not None
-    cancel.clicked()
+    cancel.emit("clicked")
     assert not controls.get_visible()
 
 
@@ -209,7 +209,7 @@ def test_edit_sets_focus(mocker: pytest.MockerFixture) -> None:
 
     assert editor._current_bbox is bbox
     editor.controls.textbuffer.set_text.assert_called_with("word")
-    editor.controls.show_all.assert_called()
+    editor.controls.show.assert_called()
     view.set_selection.assert_called_with("rect")
     view.setzoom_is_fit.assert_called_with(zoom_to_fit=False)
     view.zoom_to_selection.assert_called()
@@ -567,9 +567,11 @@ def test_first_selection_drawn_in_layer_pane_without_layer(
     editor._update_add_state()
     assert not editor.controls.add_button.get_sensitive()
 
-    editor.canvas._button_pressed(None, mocker.Mock(button=1, x=10, y=10))
-    editor.canvas._motion(None, mocker.Mock(x=40, y=30))
-    editor.canvas._button_released(None, mocker.Mock(button=1))
+    gesture = mocker.Mock()
+    gesture.get_current_button.return_value = 1
+    editor.canvas._button_pressed(gesture, 1, 10, 10)
+    editor.canvas._motion(None, 40, 30)
+    editor.canvas._button_released(gesture, 1, 40, 30)
 
     selection = shared["selection"]
     assert (selection.x, selection.y, selection.width, selection.height) == (
@@ -796,7 +798,7 @@ def test_set_active_toggles_controls(mocker: pytest.MockerFixture) -> None:
     editor, _page, _thread, _view = make_editor(mocker)
     editor.controls = mocker.Mock()
     editor.set_active(active=True)
-    editor.controls.show_all.assert_called_once()
+    editor.controls.show.assert_called_once()
     editor.set_active(active=False)
     editor.controls.hide.assert_called_once()
 

@@ -11,14 +11,14 @@ This document provides essential context for anyone working on this project. Adh
 
 -   **Languages:** Python 3.
 -   **Frameworks & Runtimes:**
-    -   GUI: PyGObject with GTK3.
+    -   GUI: PyGObject with GTK4.
     -   Runtime: Python 3.
 -   **Databases:** SQLite is used to store all session data, which was a major architectural change in the rewrite from Perl to Python.
 -   **Key Libraries/Dependencies:**
     -   `ocrmypdf`: Core dependency for creating OCR'd PDFs.
     -   `img2pdf`: Used for PDF conversion.
     -   `python-sane`: For interfacing with SANE-compatible scanners.
-    -   `PyGObject`: Python bindings for GTK3.
+    -   `PyGObject`: Python bindings for GTK4.
     -   `pycairo`: For 2D graphics.
     -   `tesserocr`: OCR.
 -   **Package Manager(s):** `pip` is used for Python dependencies, managed via `pyproject.toml`. System-level dependencies are managed by the OS package manager (e.g., `apt`).

@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
     from scantpaper.basethread import Response
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -62,21 +62,25 @@ class EditMenuMixins:
         )
         vbox = self._windowp.get_content_area()
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=d_sane("X Resolution"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         xspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
-        hbox.pack_start(xspinbutton, expand=True, fill=True, padding=0)
+        hbox.append(xspinbutton)
+        xspinbutton.set_hexpand(True)
         label = Gtk.Label(label=_("dpi"))
-        hbox.pack_end(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=d_sane("Y Resolution"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         yspinbutton = Gtk.SpinButton.new_with_range(0, MAX_DPI, 1)
-        hbox.pack_start(yspinbutton, expand=True, fill=True, padding=0)
+        hbox.append(yspinbutton)
+        yspinbutton.set_hexpand(True)
         label = Gtk.Label(label=_("dpi"))
-        hbox.pack_end(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         xresolution, yresolution = self.slist.get_selected_properties()
         xspinbutton.set_value(xresolution)
         yspinbutton.set_value(yresolution)
@@ -116,9 +120,9 @@ class EditMenuMixins:
                 self.slist.end_undo_batch()
 
         self._windowp.add_actions(
-            [("gtk-ok", properties_apply_callback), ("gtk-cancel", self._windowp.hide)]
+            [(_("_OK"), properties_apply_callback), (_("_Cancel"), self._windowp.hide)]
         )
-        self._windowp.show_all()
+        self._windowp.present()
 
     def cut_selection(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None
@@ -359,7 +363,7 @@ class EditMenuMixins:
 
         self._windowr = PreferencesDialog(transient_for=self, settings=self.settings)
         self._windowr.connect("changed-preferences", self._changed_preferences)
-        self._windowr.show_all()
+        self._windowr.present()
 
     def _changed_preferences(
         self, _widget: Gtk.Widget, settings: dict[str, object]

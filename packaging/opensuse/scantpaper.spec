@@ -18,8 +18,8 @@ BuildRequires:  python313-wheel
 BuildRequires:  python313-build
 
 # Native/system dependencies needed at runtime.
-BuildRequires:  gtk3-devel
-BuildRequires:  typelib-1_0-Gtk-3_0
+BuildRequires:  gtk4-devel
+BuildRequires:  typelib-1_0-Gtk-4_0
 BuildRequires:  gobject-introspection-devel
 BuildRequires:  pkgconf-pkg-config
 BuildRequires:  python313-gobject
@@ -87,8 +87,8 @@ Recommends: unpaper
 Recommends: xdg-utils
 
 # GTK runtime pieces that the Python introspection bindings need.
-Requires:  libgtk-3-0
-Requires:  typelib-1_0-Gtk-3_0
+Requires:  libgtk-4-1
+Requires:  typelib-1_0-Gtk-4_0
 
 %description
 ScantPaper is a GUI application for scanning documents and producing

@@ -13,25 +13,59 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, cast
 
+import gi
+
 from scantpaper.const import FRACTIONAL_DIGITS
 from scantpaper.dialog import MultipleMessage
 from scantpaper.i18n import _
+
+gi.require_version("Gtk", "4.0")
+from gi.repository import (  # noqa: E402
+    GLib,
+    Gtk,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
     from os import PathLike
     from typing import BinaryIO, TextIO
 
-    import gi
-
-    gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk
-
 logger = logging.getLogger(__name__)
 
 PROCESS_FAILED = -1
 SETTING = {}
 _MESSAGE_DIALOG = {"dialog": None}
+
+
+def pack_box(
+    box: Gtk.Box,
+    child: Gtk.Widget,
+    *,
+    expand: bool = False,
+) -> Gtk.Widget:
+    """Add a child to a box, translating GTK3 packing to GTK4 child props.
+
+    Replaces the GTK3 ``pack_start`` calls, preserving their behaviour by
+    setting the GTK4 child property (hexpand/vexpand) that used to be an
+    argument.
+    """
+    box.append(child)
+
+    if expand:
+        if box.get_orientation() == Gtk.Orientation.VERTICAL:
+            child.set_vexpand(True)
+        else:
+            child.set_hexpand(True)
+
+    return child
+
+
+def set_margins(widget: Gtk.Widget, value: int) -> None:
+    """Set the same margin on all four sides of a widget."""
+    widget.set_margin_top(value)
+    widget.set_margin_bottom(value)
+    widget.set_margin_start(value)
+    widget.set_margin_end(value)
 
 
 @lru_cache
@@ -162,12 +196,19 @@ def configure_fractional_spinbutton(
 
     def commit_validate_cb(_widget: Gtk.SpinButton, *_args: object) -> None:
         try:
-            parse_number(_widget.get_text())
+            value = float(parse_number(_widget.get_text()))
         except ValueError:
-            _widget.set_value(_widget.get_value())
+            # Invalid input: revert the text to the current value.
+            value = _widget.get_value()
+        _widget.set_value(value)
+
+    def focus_leave_cb(_controller: Gtk.EventControllerFocus) -> None:
+        commit_validate_cb(widget)
 
     widget.connect("value-changed", value_changed_trim_cb)
-    widget.connect("focus-out-event", commit_validate_cb)
+    focus_controller = Gtk.EventControllerFocus()
+    focus_controller.connect("leave", focus_leave_cb)
+    widget.add_controller(focus_controller)
     widget.connect("activate", commit_validate_cb)
     widget.set_digits(fractional_digits(widget.get_value(), digits))
 
@@ -365,6 +406,27 @@ def expand_metadata_pattern(**kwargs: object) -> str:
     return cast("str", (kwargs["template"]))
 
 
+def run_dialog(dialog: Gtk.Dialog) -> int | None:
+    """Run a modal dialog synchronously, returning its response id.
+
+    Gtk.Dialog.run() was removed in GTK4. GTK3 implemented run() as a nested
+    main loop, so reimplement the same behaviour here to preserve the
+    synchronous call sites that use it.
+    """
+    loop = GLib.MainLoop()
+    response: list[int | None] = [None]
+
+    def on_response(_widget: Gtk.Widget, resp: int) -> None:
+        response[0] = resp
+        loop.quit()
+
+    dialog.connect("response", on_response)
+    dialog.set_modal(True)
+    dialog.present()
+    loop.run()
+    return response[0]
+
+
 def show_message_dialog(**options: object) -> None:
     """Show message dialog."""
     dialog = _MESSAGE_DIALOG["dialog"]
@@ -380,15 +442,13 @@ def show_message_dialog(**options: object) -> None:
 
     response = None
     if dialog.grid_rows > 1:
-        dialog.show_all()
-        response = dialog.run()
+        response = run_dialog(dialog)
 
     if response is not None:
         dialog.store_responses(response, SETTING["message"])
-    (
-        SETTING["message_window_width"],
-        SETTING["message_window_height"],
-    ) = dialog.get_size()
+    # GTK4 removed the Gtk3 PyGObject Widget.get_size() tuple helper.
+    SETTING["message_window_width"] = dialog.get_width()
+    SETTING["message_window_height"] = dialog.get_height()
     dialog.destroy()
 
 

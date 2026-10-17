@@ -1,7 +1,6 @@
 """scantpaper --- to aid the scan to PDF or DjVu process."""
 
 # Roadmap and wishlist:
-# migrate to Gtk4
 # improve translations, including those in org.scantpaper.desktop.metainfo.xml
 # look again at translating docs
 # + scan profile viewer/editor
@@ -20,6 +19,7 @@ import shutil
 import sys
 import warnings
 from types import TracebackType
+from typing import cast
 
 # check for pyinstaller
 if hasattr(sys, "frozen"):
@@ -33,8 +33,10 @@ from scantpaper.app_window import ApplicationWindow
 from scantpaper.const import LOCAL_DOCS_URI, PROG_NAME, SPACE, VERSION
 from scantpaper.i18n import log_i18n_status
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
+    Gdk,
     Gio,
     Gtk,
 )
@@ -59,11 +61,56 @@ class Application(Gtk.Application):
         iconpath = str((pathlib.Path(BASE_DIR) / "icons").resolve())
         if not pathlib.Path(iconpath).is_dir():
             iconpath = "/usr/share/scantpaper/icons"
-        Gtk.IconTheme.get_default().prepend_search_path(iconpath)
+        # GTK4: the icon theme is per-display (Gtk.IconTheme.get_default() and
+        # prepend_search_path() are gone). Prepend the application's icon
+        # directory, keeping the system search path.
+        display = Gdk.Display.get_default()
+        if display is not None:
+            theme = Gtk.IconTheme.get_for_display(display)
+            theme.set_search_path(
+                [iconpath, *cast("list[str]", theme.get_search_path())]
+            )
 
     def do_startup(self, *_args: object, **_kwargs: object) -> None:
         """Do startup."""
         Gtk.Application.do_startup(self)
+        self._setup_accelerators()
+
+    def _setup_accelerators(self) -> None:
+        """Register the keyboard shortcuts formerly declared in the menu model.
+
+        GTK4 does not honour ``accel`` attributes inside a GMenuModel, so the
+        shortcuts are registered here against the window actions.
+        """
+        accels: dict[str, list[str]] = {
+            "win.new": ["<Primary>n"],
+            "win.open": ["<Primary>o"],
+            "win.scan": ["<Primary>g"],
+            "win.save": ["<Primary>s"],
+            "win.email": ["<Primary>e"],
+            "win.print": ["<Primary>p"],
+            "win.quit": ["<Primary>q"],
+            "win.undo": ["<Primary>z"],
+            "win.redo": ["<Primary><Shift>z"],
+            "win.cut": ["<Primary>x"],
+            "win.copy": ["<Primary>c"],
+            "win.paste": ["<Primary>v"],
+            "win.select-all": ["<Primary>a"],
+            "win.select-odd": ["<Primary>1"],
+            "win.select-even": ["<Primary>2"],
+            "win.select-invert": ["<Primary>i"],
+            "win.select-blank": ["<Primary>b"],
+            "win.select-dark": ["<Primary>d"],
+            "win.select-modified": ["<Primary>m"],
+            "win.zoom-in": ["plus"],
+            "win.zoom-out": ["minus"],
+            "win.rotate-90": ["<Primary><Shift>r"],
+            "win.rotate-180": ["<Primary><Shift>f"],
+            "win.rotate-270": ["<Primary><Shift>c"],
+            "win.help": ["<Primary>h"],
+        }
+        for action, shortcuts in accels.items():
+            self.set_accels_for_action(action, shortcuts)
 
     def do_activate(self, *_args: object, **_kwargs: object) -> None:
         """Only allow a single window and raise any existing ones."""

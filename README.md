@@ -2,7 +2,7 @@
 
 A GUI to produce PDFs or DjVus from scanned documents.
 
-Scantpaper is a Linux application (it needs GTK3, SANE, and a Python 3
+Scantpaper is a Linux application (it needs GTK4, SANE, and a Python 3
 interpreter, all of which are available on other Unix-like systems like MacOS or BSD as well).
 It is the Python rewrite (v3) of the popular
 [gscan2pdf](https://gscan2pdf.sourceforge.net/).
@@ -450,7 +450,7 @@ instructions.
 ### Required
 
 - gir1.2-gdkpixbuf-2.0
-- gir1.2-gtk-3.0
+- gir1.2-gtk-4.0
 - imagemagick
 - img2pdf
 - libtiff-tools
@@ -845,7 +845,7 @@ Use `pdftotext` or `djvutxt` to extract text. Many viewers support searching the
 
 ### How can I change the colour of the selection box or OCR output?
 
-Create or edit `~/.config/gtk-3.0/gtk.css`:
+Create or edit `~/.config/gtk-4.0/gtk.css`:
 
 ```css
 .rubberband,

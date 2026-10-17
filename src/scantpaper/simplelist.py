@@ -10,7 +10,7 @@ from typing_extensions import override
 
 from scantpaper.helpers import _weak_callback, format_number, parse_number
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GdkPixbuf,
     Gtk,

@@ -79,7 +79,7 @@ jobs:
                                fonts-noto-extra,
                                gettext,
                                ghostscript,
-                                gir1.2-gtk-3.0,
+                                gir1.2-gtk-4.0,
                                 gsfonts,
                                help2man,
                                imagemagick,
@@ -109,7 +109,7 @@ jobs:
 
           Package: ${GITHUB_REPO_NAME}
           Architecture: ${DEB_ARCHITECTURE}
-          Depends: gir1.2-gtk-3.0,
+          Depends: gir1.2-gtk-4.0,
                    imagemagick,
                    librsvg2-common,
                    libtiff-tools,

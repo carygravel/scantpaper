@@ -14,14 +14,14 @@ from scantpaper import config
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM, POINTS_PER_INCH
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
-from scantpaper.unpaper import Unpaper
+from scantpaper.unpaper import Unpaper, count_active_children
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from scantpaper.basethread import Response
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 
@@ -498,17 +498,17 @@ def test_unpaper_ui_fractional_thresholds() -> None:
     assert black.get_value() == 0.33
     assert black.get_text() == "0.33"
 
-    white.get_buffer().set_text("0.8", -1)
-    white.emit("focus-out-event", None)
+    white.set_text("0.8")
+    white.emit("activate")
     assert white.get_value() == 0.8
     assert white.get_text() == "0.8"
 
-    white.get_buffer().set_text("0,8", -1)
-    white.emit("focus-out-event", None)
+    white.set_text("0,8")
+    white.emit("activate")
     assert white.get_value() == 0.8
     assert white.get_text() == "0.8"
 
-    white.get_buffer().set_text("abc", -1)
+    white.set_text("abc")
     white.emit("activate")
     assert white.get_value() == 0.8
     assert white.get_text() == "0.8"
@@ -537,8 +537,8 @@ def test_unpaper_ui_toggles() -> None:
     def find_checkbuttons(widget: Gtk.Widget) -> None:
         if isinstance(widget, Gtk.CheckButton):
             checkbuttons.append(widget)
-        elif hasattr(widget, "get_children"):
-            for child in widget.get_children():
+        else:
+            for child in list(widget.observe_children()):
                 find_checkbuttons(child)
 
     find_checkbuttons(dframe)
@@ -581,8 +581,8 @@ def test_unpaper_ui_border_margins() -> None:
     def find_checkbuttons(widget: Gtk.Widget) -> None:
         if isinstance(widget, Gtk.CheckButton):
             checkbuttons.append(widget)
-        elif hasattr(widget, "get_children"):
-            for child in widget.get_children():
+        else:
+            for child in list(widget.observe_children()):
                 find_checkbuttons(child)
 
     find_checkbuttons(bframe)
@@ -689,3 +689,8 @@ def test_get_cmdline_branches() -> None:
     assert "0.8" in cmd
     assert "--output-pages" in cmd
     assert "2" in cmd
+
+
+def test_count_active_children_empty_frame() -> None:
+    """A frame without a child has no active children."""
+    assert count_active_children(Gtk.Frame()) == 0

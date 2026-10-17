@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
     from scantpaper.loop_helpers import _MainLoopWrapper
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
@@ -242,7 +242,7 @@ def test_delete_profile_frontend_item(mocker: pytest.MockerFixture) -> None:
 
     # Find the delete button
     # vbox children: frameb, framef
-    children = vbox.get_children()
+    children = list(vbox.observe_children())
     framef = None
     for child in children:
         if isinstance(child, Gtk.Frame) and child.get_label() == "Frontend options":
@@ -252,11 +252,11 @@ def test_delete_profile_frontend_item(mocker: pytest.MockerFixture) -> None:
     assert framef is not None, "Frontend options frame not found"
 
     listbox = framef.get_child()
-    rows = listbox.get_children()
+    rows = list(listbox.observe_children())
     assert len(rows) == 1, "Should have 1 row"
 
     hbox = rows[0].get_child()
-    hbox_children = hbox.get_children()
+    hbox_children = list(hbox.observe_children())
     button = None
     for child in hbox_children:
         if isinstance(child, Gtk.Button):
@@ -269,7 +269,7 @@ def test_delete_profile_frontend_item(mocker: pytest.MockerFixture) -> None:
     mock_logger = mocker.patch("scantpaper.dialog.scan.logger")
 
     # Click the button
-    button.clicked()
+    button.emit("clicked")
 
     # Verify option removed
     assert "test_option" not in profile.frontend
@@ -280,7 +280,7 @@ def test_delete_profile_frontend_item(mocker: pytest.MockerFixture) -> None:
     )
 
     # Verify UI updated (listbox should be empty)
-    children = vbox.get_children()
+    children = list(vbox.observe_children())
     framef_new = None
     for child in children:
         if isinstance(child, Gtk.Frame) and child.get_label() == "Frontend options":
@@ -288,7 +288,7 @@ def test_delete_profile_frontend_item(mocker: pytest.MockerFixture) -> None:
             break
 
     listbox_new = framef_new.get_child()
-    rows_new = listbox_new.get_children()
+    rows_new = list(listbox_new.observe_children())
     assert len(rows_new) == 0, "Should have 0 rows after deletion"
 
 
@@ -310,7 +310,7 @@ def test_delete_profile_backend_item(mocker: pytest.MockerFixture) -> None:
 
     # Find the delete button
     # vbox children: frameb, framef
-    children = vbox.get_children()
+    children = list(vbox.observe_children())
     frameb = None
     for child in children:
         if isinstance(child, Gtk.Frame) and child.get_label() == "Backend options":
@@ -320,11 +320,11 @@ def test_delete_profile_backend_item(mocker: pytest.MockerFixture) -> None:
     assert frameb is not None, "Backend options frame not found"
 
     listbox = frameb.get_child()
-    rows = listbox.get_children()
+    rows = list(listbox.observe_children())
     assert len(rows) == 1, "Should have 1 row"
 
     hbox = rows[0].get_child()
-    hbox_children = hbox.get_children()
+    hbox_children = list(hbox.observe_children())
     button = None
     for child in hbox_children:
         if isinstance(child, Gtk.Button):
@@ -337,7 +337,7 @@ def test_delete_profile_backend_item(mocker: pytest.MockerFixture) -> None:
     mock_logger = mocker.patch("scantpaper.dialog.scan.logger")
 
     # Click the button
-    button.clicked()
+    button.emit("clicked")
 
     # Verify option removed
     # profile.backend is a list of tuples or dicts, depending on init
@@ -349,7 +349,7 @@ def test_delete_profile_backend_item(mocker: pytest.MockerFixture) -> None:
     mock_logger.debug.assert_called_with("removing option '%s' from profile", "mode")
 
     # Verify UI updated (listbox should be empty)
-    children = vbox.get_children()
+    children = list(vbox.observe_children())
     frameb_new = None
     for child in children:
         if isinstance(child, Gtk.Frame) and child.get_label() == "Backend options":
@@ -357,7 +357,7 @@ def test_delete_profile_backend_item(mocker: pytest.MockerFixture) -> None:
             break
 
     listbox_new = frameb_new.get_child()
-    rows_new = listbox_new.get_children()
+    rows_new = list(listbox_new.observe_children())
     assert len(rows_new) == 0, "Should have 0 rows after deletion"
 
 
@@ -374,7 +374,7 @@ def test_rescan_hides_widgets(mocker: pytest.MockerFixture) -> None:
 
     # Find labeld
     # hboxd contains labeld (start) and combobd (end)
-    children = dialog.hboxd.get_children()
+    children = list(dialog.hboxd.observe_children())
     labeld = None
     for child in children:
         if isinstance(child, Gtk.Label):
@@ -399,27 +399,21 @@ def test_rescan_hides_widgets(mocker: pytest.MockerFixture) -> None:
 
 
 def test_cursor_setter_with_window(mocker: pytest.MockerFixture) -> None:
-    """Test cursor setter when window exists."""
+    """Test cursor setter sets the cursor on the widget (GTK4)."""
     dialog = Scan(title="title", transient_for=Gtk.Window())
-
-    # Mock get_window
-    mock_window = mocker.Mock()
-    mocker.patch.object(dialog, "get_window", return_value=mock_window)
 
     # Mock Gdk interactions
     mock_gdk = mocker.patch("scantpaper.dialog.scan.Gdk")
-    mock_display = mocker.Mock()
-    mock_gdk.Display.get_default.return_value = mock_display
     mock_cursor = mocker.Mock()
     mock_gdk.Cursor.new_from_name.return_value = mock_cursor
+    mocker.patch.object(dialog, "set_cursor")
 
     # Set cursor
     dialog.cursor = "wait"
 
     # Assertions
-    mock_gdk.Display.get_default.assert_called_once()
-    mock_gdk.Cursor.new_from_name.assert_called_once_with(mock_display, "wait")
-    mock_window.set_cursor.assert_called_once_with(mock_cursor)
+    mock_gdk.Cursor.new_from_name.assert_called_once_with("wait", None)
+    dialog.set_cursor.assert_called_once_with(mock_cursor)
     assert dialog.cursor == "wait"
 
 
@@ -430,6 +424,35 @@ def test_cursor_setter_none() -> None:
     assert dialog.cursor == "wait"
     dialog.cursor = None
     assert dialog.cursor == "wait", "Cursor should not change if None is passed"
+
+
+def test_sided_buttons_do_not_fire_on_programmatic_change() -> None:
+    """Programmatic button changes must not run the user-click handlers.
+
+    Regression test: the handlers were connected to "toggled", so the
+    set_active(True) calls during __init__ ran them before ``combobs``
+    existed, raising AttributeError and leaving the dialog half-initialised.
+    """
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    assert dialog.sided == "single"
+
+    dialog.buttons.set_active(False)
+    assert dialog.sided == "single", "no user activation happened"
+
+    dialog.buttons.set_active(True)
+    assert dialog.sided == "single", "no user activation happened"
+
+
+def test_scan_dialog_close_button_label() -> None:
+    """The dismiss button shows a localised label, not a GTK stock ID."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    button = dialog.get_widget_for_response(Gtk.ResponseType.CANCEL)
+    assert button is not None
+    label = button.get_label()
+    assert label == "_Close", "label with its mnemonic"
+    assert not label.startswith("gtk-"), "label is not a stock ID"
+    assert button.get_use_underline(), "the mnemonic is rendered"
 
 
 def test_scan_button(mocker: pytest.MockerFixture) -> None:
@@ -452,7 +475,7 @@ def test_scan_button(mocker: pytest.MockerFixture) -> None:
     dialog.connect("clicked-scan-button", on_scan)
 
     # Click the button
-    dialog.scan_button.clicked()
+    dialog.scan_button.emit("clicked")
 
     # Verify signal and method call
     assert signal_triggered
@@ -1143,8 +1166,8 @@ def test_get_label_for_option() -> None:
     hbox = Gtk.Box()
     label = Gtk.Label(label="My Option")
     widget = Gtk.Entry()
-    hbox.pack_start(label, expand=False, fill=False, padding=0)
-    hbox.pack_start(widget, expand=False, fill=False, padding=0)
+    hbox.append(label)
+    hbox.append(widget)
 
     dialog.option_widgets["my_opt"] = widget
     assert dialog._get_label_for_option("my_opt") == "My Option"
@@ -1245,7 +1268,7 @@ def test_get_label_for_option_none() -> None:
     hbox = Gtk.Box()
     # No Gtk.Label child
     widget = Gtk.Entry()
-    hbox.pack_start(widget, expand=False, fill=False, padding=0)
+    hbox.append(widget)
 
     dialog.option_widgets["my_opt"] = widget
     assert dialog._get_label_for_option("my_opt") is None

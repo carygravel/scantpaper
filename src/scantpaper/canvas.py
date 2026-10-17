@@ -19,6 +19,7 @@ from scantpaper.const import (
     MIN_BASELINE_COEFFICIENTS,
     NOT_FOUND,
     SPACE,
+    STYLE_CLASS_RUBBERBAND,
 )
 from scantpaper.gobject import property_
 
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
 
     from scantpaper.bboxtree import BBox
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("Gtk", "4.0")
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
 
@@ -220,11 +221,11 @@ def _clamp_direction(offset: float, allocation: float, pixbuf_size: float) -> fl
 def button_press_callback(
     bbox: Bbox,
     _target: Gtk.Widget,
-    event: Gdk.EventButton,
+    button: int,
     edit_callback: Callable[..., object],
 ) -> None:
     """Button press callback."""
-    if event.button == 1:
+    if button == 1:
         canvas = cast("Canvas", bbox.canvas)
         if canvas:
             canvas.dragging = False
@@ -523,20 +524,26 @@ class Canvas(Gtk.DrawingArea):
         """Initialise Canvas."""
         super().__init__(*args, **kwargs)
 
-        self.add_events(
-            Gdk.EventMask.BUTTON_PRESS_MASK
-            | Gdk.EventMask.BUTTON_RELEASE_MASK
-            | Gdk.EventMask.POINTER_MOTION_MASK
-            | Gdk.EventMask.SCROLL_MASK
-        )
+        # GTK4: draw via a draw function and handle input with controllers
+        # (the GTK3 "draw" signal, add_events() and event signals are gone).
+        self.set_draw_func(self._draw_func)
 
-        self.connect("draw", self._on_draw)
-        self.connect("button-press-event", self._button_pressed)
-        self.connect("button-release-event", self._button_released)
-        self.connect("motion-notify-event", self._motion)
-        self.connect("scroll-event", self._scroll)
+        click = Gtk.GestureClick()
+        click.connect("pressed", self._button_pressed)
+        click.connect("released", self._button_released)
+        self.add_controller(click)
 
-        self._device = Gdk.Display.get_default().get_default_seat().get_pointer()
+        motion = Gtk.EventControllerMotion()
+        motion.connect("motion", self._motion)
+        self.add_controller(motion)
+
+        scroll = Gtk.EventControllerScroll.new(Gtk.EventControllerScrollFlags.VERTICAL)
+        scroll.connect("scroll", self._scroll)
+        self.add_controller(scroll)
+
+        # Last known pointer position in widget coordinates (the scroll
+        # controller provides deltas but no coordinates).
+        self._pointer: tuple[float, float] = (0.0, 0.0)
         self._offset = Gdk.Rectangle()
         self._zoom = 1.0
         self._resolution_ratio = 1.0
@@ -819,8 +826,10 @@ class Canvas(Gtk.DrawingArea):
         }
         GLib.idle_add(self._boxed_text, options)
 
-    def _on_draw(self, _widget: Gtk.Widget, ctx: object) -> None:
-        """GTK3 draw signal handler."""
+    def _draw_func(
+        self, _area: Gtk.DrawingArea, ctx: object, _width: int, _height: int
+    ) -> None:
+        """GTK4 draw function."""
         self._draw_scene(ctx)
 
     def _scale_factors(self) -> tuple[float, float]:
@@ -865,7 +874,7 @@ class Canvas(Gtk.DrawingArea):
         wh = rect.height * sy
         style = self.get_style_context()
         style.save()
-        style.add_class(Gtk.STYLE_CLASS_RUBBERBAND)
+        style.add_class(STYLE_CLASS_RUBBERBAND)
         Gtk.render_background(style, ctx, wx, wy, ww, wh)
         Gtk.render_frame(style, ctx, wx, wy, ww, wh)
         style.restore()
@@ -1438,19 +1447,18 @@ class Canvas(Gtk.DrawingArea):
         self.zoom = zoom
         self.set_offset(offset_x, offset_y)
 
-    def _button_pressed(self, _widget: Gtk.Widget, event: Gdk.EventButton) -> None:
-        if event.button == Gdk.BUTTON_MIDDLE:
-            _screen, x, y = self._device.get_position()
+    def _button_pressed(
+        self, gesture: Gtk.GestureClick, _n_press: int, x: float, y: float
+    ) -> None:
+        button = gesture.get_current_button()
+        if button == Gdk.BUTTON_MIDDLE:
             self._drag_start = {"x": x, "y": y}
             self.dragging = True
-            win = self.get_window()
-            win.set_cursor(
-                Gdk.Cursor.new_from_name(Gdk.Display.get_default(), "grabbing")
-            )
-        elif event.button == 1:
+            self.set_cursor(Gdk.Cursor.new_from_name("grabbing", None))
+        elif button == 1:
             focus = False
             try:
-                bbox = self._hit_test(event.x, event.y)
+                bbox = self._hit_test(x, y)
                 if (
                     bbox is not None
                     and hasattr(bbox, "edit_callback")
@@ -1458,8 +1466,8 @@ class Canvas(Gtk.DrawingArea):
                 ):
                     button_press_callback(
                         bbox,
-                        _widget,
-                        event,
+                        self,
+                        button,
                         cast("Callable[..., object]", bbox.edit_callback),
                     )
                     focus = True
@@ -1468,15 +1476,13 @@ class Canvas(Gtk.DrawingArea):
             self._drawing = False
             self._drag_selection = None
             if not focus and self.get_pixbuf_size() is not None:
-                self._start_draw(event)
+                self._start_draw(x, y)
 
-    def _start_draw(self, event: Gdk.EventButton) -> None:
+    def _start_draw(self, x: float, y: float) -> None:
         """Begin drawing a selection rectangle at the press position."""
         self._drawing = True
-        self._draw_start = (event.x, event.y)
-        self._drag_selection = self._widget_to_image_rect(
-            event.x, event.y, event.x, event.y
-        )
+        self._draw_start = (x, y)
+        self._drag_selection = self._widget_to_image_rect(x, y, x, y)
 
     def _widget_to_image_rect(
         self, x1: float, y1: float, x2: float, y2: float
@@ -1496,56 +1502,59 @@ class Canvas(Gtk.DrawingArea):
         )
         return rect
 
-    def _button_released(self, _widget: Gtk.Widget, event: Gdk.EventButton) -> bool:
-        if event.button == 1 and self._drawing:
+    def _button_released(
+        self, gesture: Gtk.GestureClick, _n_press: int, _x: float, _y: float
+    ) -> None:
+        button = gesture.get_current_button()
+        if button == 1 and self._drawing:
             rect = self._drag_selection
             self._drawing = False
             self._drag_selection = None
             if rect is not None and rect.width > 0 and rect.height > 0:
                 self.emit("selection-drawn", rect)
             self.queue_draw()
-            return True
-        if event.button == Gdk.BUTTON_MIDDLE:
+            return
+        if button == Gdk.BUTTON_MIDDLE:
             self.dragging = False
-            win = self.get_window()
-            win.set_cursor(None)
-        return True
+            self.set_cursor(None)
 
-    def _motion(self, _widget: Gtk.Widget, _event: Gdk.EventMotion) -> bool:
+    def _motion(
+        self, _controller: Gtk.EventControllerMotion, x: float, y: float
+    ) -> None:
+        self._pointer = (x, y)
         if self._drawing and self._draw_start is not None:
             self._drag_selection = self._widget_to_image_rect(
-                self._draw_start[0], self._draw_start[1], _event.x, _event.y
+                self._draw_start[0], self._draw_start[1], x, y
             )
             self.queue_draw()
-            return True
+            return
         if not self.dragging:
-            return False
+            return
         offset = self.get_offset()
         sx, sy = self._scale_factors()
-        _screen, x, y = self._device.get_position()
         offset_x = offset.x + (x - self._drag_start["x"]) / sx
         offset_y = offset.y + (y - self._drag_start["y"]) / sy
         self._drag_start["x"], self._drag_start["y"] = (x, y)
         self.set_offset(offset_x, offset_y)
-        return True
 
-    def _scroll(self, _widget: Gtk.Widget, event: Gdk.EventScroll) -> bool:
-        if event.direction == Gdk.ScrollDirection.UP:
-            zoom = self.zoom * 2
-        else:
-            zoom = self.zoom / 2
+    def _scroll(
+        self, _controller: Gtk.EventControllerScroll, _dx: float, dy: float
+    ) -> bool:
+        # Scrolling up (negative delta) zooms in, matching the GTK3 behaviour.
+        zoom = self.zoom * 2 if dy < 0 else self.zoom / 2
 
         zoom = min(zoom, MAX_ZOOM)
         zoom = max(zoom, MIN_ZOOM)
 
+        x, y = self._pointer
         sx, sy = self._scale_factors()
-        image_x = event.x / sx - self._offset.x
-        image_y = event.y / sy - self._offset.y
+        image_x = x / sx - self._offset.x
+        image_y = y / sy - self._offset.y
 
         factor = self.get_scale_factor()
         ratio = self._resolution_ratio
-        offset_x = event.x / zoom * factor * ratio - image_x
-        offset_y = event.y / zoom * factor - image_y
+        offset_x = x / zoom * factor * ratio - image_x
+        offset_y = y / zoom * factor - image_y
 
         self.zoom = zoom
         self.set_offset(offset_x, offset_y)

@@ -6,7 +6,7 @@ from typing import cast
 
 import gi
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
@@ -82,9 +82,8 @@ class ComboBoxText(Gtk.ComboBoxText):
 
     def get_num_rows(self) -> int:
         """Return number of rows."""
-        model = self.get_model()
-        if model is None:
-            return 0
+        # A Gtk.ComboBoxText always has an internal model.
+        model = cast("Gtk.TreeModel", self.get_model())
         return len(model)
 
     def remove_item_by_text(self, text: object) -> None:

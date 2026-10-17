@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from scantpaper.frontend.image_sane import SaneThread
     from scantpaper.loop_helpers import _MainLoopWrapper
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GLib,
     Gtk,

@@ -11,6 +11,7 @@ from io import BytesIO
 from typing import cast
 from unittest.mock import MagicMock, patch
 
+import gi
 import pytest
 
 from scantpaper import helpers
@@ -20,6 +21,7 @@ from scantpaper.helpers import (
     _program_version,
     _weak_callback,
     collate_metadata,
+    configure_fractional_spinbutton,
     decimal_separator,
     exec_command,
     exec_command_run,
@@ -32,10 +34,14 @@ from scantpaper.helpers import (
     parse_number,
     program_version,
     recursive_slurp,
+    run_dialog,
     show_message_dialog,
     slurp,
     spin_step,
 )
+
+gi.require_version("Gtk", "4.0")
+from gi.repository import GLib, Gtk  # noqa: E402
 
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
@@ -442,8 +448,9 @@ def test_show_message_dialog(mocker: pytest.MockerFixture) -> None:
 
     mock_mm = mock_multiple_message.return_value
     mock_mm.grid_rows = 2
-    mock_mm.run.return_value = 1
-    mock_mm.get_size.return_value = (200, 200)
+    mocker.patch("scantpaper.helpers.run_dialog", return_value=1)
+    mock_mm.get_width.return_value = 200
+    mock_mm.get_height.return_value = 200
 
     show_message_dialog(parent=MagicMock())
 
@@ -505,3 +512,66 @@ def test_recursive_slurp(tmp_path: pathlib.Path, mocker: pytest.MockerFixture) -
     # Test slurp returning None (simulated via mock because real slurp returns string or raises)
     mocker.patch("scantpaper.helpers.slurp", return_value=None)
     recursive_slurp([str(f1)])
+
+
+def test_configure_fractional_spinbutton_focus_leave_commits() -> None:
+    """Losing focus commits valid text and reverts invalid text."""
+    widget = Gtk.SpinButton.new_with_range(0, 1, 0.01)
+    widget.set_value(0.9)
+    configure_fractional_spinbutton(widget)
+    focus_controller = next(
+        c
+        for c in widget.observe_controllers()
+        if isinstance(c, Gtk.EventControllerFocus)
+    )
+
+    widget.set_text("0.8")
+    focus_controller.emit("leave")
+    assert widget.get_value() == 0.8
+    assert widget.get_text() == "0.8"
+
+    widget.set_text("abc")
+    focus_controller.emit("leave")
+    assert widget.get_value() == 0.8
+    assert widget.get_text() == "0.8"
+
+
+def test_run_dialog_returns_response() -> None:
+    """run_dialog runs a nested main loop until the dialog responds."""
+    dialog = Gtk.Dialog()
+    dialog.add_button("OK", Gtk.ResponseType.OK)
+    GLib.timeout_add(0, dialog.response, Gtk.ResponseType.OK)
+    try:
+        assert run_dialog(dialog) == Gtk.ResponseType.OK
+    finally:
+        dialog.destroy()
+
+
+def test_show_message_dialog_real_dialog_size(mocker: pytest.MockerFixture) -> None:
+    """show_message_dialog reads the size via the GTK4 widget API.
+
+    Regression test: Gtk3's PyGObject Widget.get_size() tuple helper does not
+    exist in GTK4, where get_size() takes an orientation, so the real dialog
+    must be read with get_width()/get_height().
+    """
+    original_dialog = helpers._MESSAGE_DIALOG
+    original_setting = helpers.SETTING
+    helpers._MESSAGE_DIALOG = {"dialog": None}
+    helpers.SETTING = {
+        "message_window_width": 100,
+        "message_window_height": 100,
+        # already acknowledged, so no row is added and no dialog is run
+        "message": {"already seen": {"response": Gtk.ResponseType.OK}},
+    }
+    mock_run = mocker.patch(
+        "scantpaper.helpers.run_dialog", return_value=Gtk.ResponseType.OK
+    )
+    try:
+        show_message_dialog(parent=Gtk.Window(), text="already seen")
+
+        mock_run.assert_not_called()
+        assert isinstance(helpers.SETTING["message_window_width"], int)
+        assert isinstance(helpers.SETTING["message_window_height"], int)
+    finally:
+        helpers._MESSAGE_DIALOG = original_dialog
+        helpers.SETTING = original_setting

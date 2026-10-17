@@ -18,7 +18,7 @@ from scantpaper.const import (
 )
 from scantpaper.dependencies import DEPS
 from scantpaper.dialog import filter_message, response_stored
-from scantpaper.helpers import get_tmp_dir
+from scantpaper.helpers import get_tmp_dir, run_dialog
 from scantpaper.i18n import _
 from scantpaper.layer import LayerEditor
 from scantpaper.simplelist import SimpleList
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from scantpaper.dialog.sane import SaneScanDialog
     from scantpaper.page import Page
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GLib,
     GObject,
@@ -121,17 +121,16 @@ class SessionMixins:
                 transient_for=self,
                 modal=True,
             )
-            dialog.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.OK)
+            dialog.add_button(_("OK"), Gtk.ResponseType.OK)
             label = Gtk.Label(label=_("Pick crashed session to restore"))
             box = dialog.get_content_area()
-            box.add(label)
+            box.append(label)
             columns = {_("Session"): "text"}
             sessionlist = SimpleList(**columns)
             for db in crashed:
                 sessionlist.data.append([db])
-            box.add(sessionlist)
-            dialog.show_all()
-            if dialog.run() == Gtk.ResponseType.OK:
+            box.append(sessionlist)
+            if run_dialog(dialog) == Gtk.ResponseType.OK:
                 selected = sessionlist.get_selected_indices()
 
             dialog.destroy()
@@ -376,13 +375,12 @@ class SessionMixins:
         logger.debug("Displayed MessageDialog with '%s'", kwargs["text"])
         if "store-response" in kwargs:
             cb = Gtk.CheckButton.new_with_label(_("Don't show this message again"))
-            dialog.get_message_area().add(cb)
+            dialog.get_message_area().append(cb)
 
         if "default-response" in kwargs:
             dialog.set_default_response(kwargs["default-response"])
 
-        dialog.show_all()
-        response = dialog.run()
+        response = run_dialog(dialog)
         dialog.destroy()
         if "store-response" in kwargs and cb.get_active():
             flag = True
@@ -453,12 +451,10 @@ class SessionMixins:
             )
 
         edit_hbox = self.builder.get_object("edit_hbox")
-        edit_hbox.pack_start(
-            self._text_editor.controls, expand=True, fill=True, padding=0
-        )
-        edit_hbox.pack_start(
-            self._ann_editor.controls, expand=True, fill=True, padding=0
-        )
+        edit_hbox.append(self._text_editor.controls)
+        self._text_editor.controls.set_hexpand(True)
+        edit_hbox.append(self._ann_editor.controls)
+        self._ann_editor.controls.set_hexpand(True)
         self._pack_viewer_tools()
 
     def _edit_mode_callback(

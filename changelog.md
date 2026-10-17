@@ -1,5 +1,6 @@
-## 3.0.25 (unreleased)
+## 4.0.0 (unreleased)
 
+* Migrated Gtk3->4
 * User-defined tools can now process all selected pages in a single
   invocation: tick "Process selected pages at once" in the user-defined tools
   dialog and `%i` expands to every page's working file, space-separated, so a

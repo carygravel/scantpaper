@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from unittest.mock import MagicMock
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # noqa: E402
+gi.require_version("Gtk", "4.0")
+from gi.repository import GLib, Gtk  # noqa: E402
 
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
@@ -99,9 +99,13 @@ class MockWindows:
     def reset_start_page(self) -> None:
         """Reset the start page to its default value."""
 
-    def get_size(self) -> tuple[int, int]:
-        """Return the size of the window."""
-        return (100, 100)
+    def get_width(self) -> int:
+        """Return the width of the window."""
+        return 100
+
+    def get_height(self) -> int:
+        """Return the height of the window."""
+        return 100
 
     def __bool__(self) -> bool:
         """Mock boolean."""
@@ -144,13 +148,13 @@ class MockApp(unittest.mock.Mock, FileMenuMixins):
         self._windowi = None
         self._windowe = None
 
-    def get_size(self) -> tuple[int, int]:
-        """Mock get_size."""
-        return (800, 600)
+    def get_width(self) -> int:
+        """Mock get_width."""
+        return 800
 
-    def get_position(self) -> tuple[int, int]:
-        """Mock get_position."""
-        return (0, 0)
+    def get_height(self) -> int:
+        """Mock get_height."""
+        return 600
 
     def _show_message_dialog(self, **kwargs: object) -> None:
         """Mock _show_message_dialog."""
@@ -226,8 +230,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         self, mock_logger: MagicMock, mock_gio: MagicMock
     ) -> None:
         """Test launch with error."""
-        mock_gio.Error = Exception
-        mock_gio.AppInfo.launch_default_for_uri.side_effect = Exception("error")
+        mock_gio.AppInfo.launch_default_for_uri.side_effect = GLib.Error("error")
 
         launch_default_for_file("test.pdf")
 
@@ -372,6 +375,11 @@ class TestFileMenuMixins:
 
         assert app._can_quit()
 
+        assert app.settings["window_width"] == 800
+        assert app.settings["window_height"] == 600
+        assert app.settings["scan_window_width"] == 100
+        assert app.settings["scan_window_height"] == 100
+        assert "window_x" not in app.settings, "GTK4 cannot position windows"
         mock_os.chdir.assert_called_with(app.settings["cwd"])
         mock_unlink.assert_called()
         mock_rmdir.assert_called_once()
@@ -507,7 +515,6 @@ class TestFileMenuMixins:
     ) -> None:
         """Test open_dialog imports files on OK response."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_dialog.get_filenames.return_value = [
             "/path/to/file1.jpg",
             "/path/to/file2.png",
@@ -515,7 +522,11 @@ class TestFileMenuMixins:
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         app._import_files = unittest.mock.Mock()
 
-        app.open_dialog(None, None)
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app.open_dialog(None, None)
 
         mock_gtk.FileChooserDialog.assert_called_once()
         mock_dialog.get_filenames.assert_called_once()
@@ -530,11 +541,14 @@ class TestFileMenuMixins:
     def test_open_dialog_cancel(self, mock_gtk: MagicMock, app: MockApp) -> None:
         """Test open_dialog does not import files on cancel."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         app._import_files = unittest.mock.Mock()
 
-        app.open_dialog(None, None)
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.CANCEL,
+        ):
+            app.open_dialog(None, None)
 
         mock_gtk.FileChooserDialog.assert_called_once()
         mock_dialog.destroy.assert_called_once()
@@ -546,7 +560,6 @@ class TestFileMenuMixins:
     ) -> None:
         """Test _select_pagerange_callback returns correct range on OK."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_gtk.Dialog.return_value = mock_dialog
         mock_spinbuttonf = unittest.mock.Mock()
         mock_spinbuttonf.get_value.return_value = 1
@@ -559,7 +572,11 @@ class TestFileMenuMixins:
         vbox = unittest.mock.Mock()
         mock_dialog.get_content_area.return_value = vbox
 
-        first, last = app._select_pagerange_callback({"pages": 10})
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            first, last = app._select_pagerange_callback({"pages": 10})
 
         assert first == 1
         assert last == 10
@@ -571,10 +588,13 @@ class TestFileMenuMixins:
     ) -> None:
         """Test _select_pagerange_callback returns None on cancel."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
         mock_gtk.Dialog.return_value = mock_dialog
 
-        first, last = app._select_pagerange_callback({"pages": 10})
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.CANCEL,
+        ):
+            first, last = app._select_pagerange_callback({"pages": 10})
 
         assert first is None
         assert last is None
@@ -586,7 +606,6 @@ class TestFileMenuMixins:
     ) -> None:
         """Test _import_files_password_callback returns password on OK."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_entry = unittest.mock.Mock()
         mock_entry.get_text.return_value = "password"
         mock_gtk.MessageDialog.return_value = mock_dialog
@@ -594,7 +613,11 @@ class TestFileMenuMixins:
         mock_dialog.get_content_area.return_value = vbox
         mock_gtk.Entry.return_value = mock_entry
 
-        password = app._import_files_password_callback("file.pdf")
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            password = app._import_files_password_callback("file.pdf")
 
         assert password == "password"
         mock_dialog.destroy.assert_called_once()
@@ -605,7 +628,6 @@ class TestFileMenuMixins:
     ) -> None:
         """Test _import_files_password_callback returns None on cancel."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
         mock_entry = unittest.mock.Mock()
         mock_entry.get_text.return_value = "password"
         mock_gtk.MessageDialog.return_value = mock_dialog
@@ -613,7 +635,11 @@ class TestFileMenuMixins:
         mock_dialog.get_content_area.return_value = vbox
         mock_gtk.Entry.return_value = mock_entry
 
-        password = app._import_files_password_callback("file.pdf")
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.CANCEL,
+        ):
+            password = app._import_files_password_callback("file.pdf")
 
         assert password is None
         mock_dialog.destroy.assert_called_once()
@@ -624,7 +650,6 @@ class TestFileMenuMixins:
     ) -> None:
         """Test _import_files_password_callback returns None if empty."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_entry = unittest.mock.Mock()
         mock_entry.get_text.return_value = ""
         mock_gtk.MessageDialog.return_value = mock_dialog
@@ -632,7 +657,11 @@ class TestFileMenuMixins:
         mock_dialog.get_content_area.return_value = vbox
         mock_gtk.Entry.return_value = mock_entry
 
-        password = app._import_files_password_callback("file.pdf")
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            password = app._import_files_password_callback("file.pdf")
 
         assert password is None
         mock_dialog.destroy.assert_called_once()
@@ -710,11 +739,14 @@ class TestFileMenuMixins:
         """Test _open_session_action opens session on OK."""
         app._open_session = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_dialog.get_filenames.return_value = ["/path/to/session"]
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
-        app._open_session_action(None, None)
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app._open_session_action(None, None)
 
         mock_gtk.FileChooserDialog.assert_called_once()
         mock_dialog.get_filenames.assert_called_once()
@@ -728,10 +760,13 @@ class TestFileMenuMixins:
         """Test _open_session_action does not open session on cancel."""
         app._open_session = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
-        app._open_session_action(None, None)
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.CANCEL,
+        ):
+            app._open_session_action(None, None)
 
         mock_gtk.FileChooserDialog.assert_called_once()
         app._open_session.assert_not_called()
@@ -780,10 +815,10 @@ class TestFileMenuMixins:
         mock_dialog.add_page_range.assert_called_once()
         mock_dialog.add_image_type.assert_called_once()
         mock_dialog.add_actions.assert_called_once()
-        mock_dialog.show_all.assert_called_once()
-        mock_dialog.resize.assert_called_with(1, 1)
+        mock_dialog.present.assert_called_once()
 
         # Test existing windowi
+        mock_dialog.present.reset_mock()
         app.save_dialog(None, None)
         mock_dialog.present.assert_called_once()
 
@@ -1213,19 +1248,26 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=True)
         app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_dialog.get_filename.return_value = "/path/to/image"
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         mock_file_exists.return_value = False
 
         # Multiple pages overwrite case
         mock_isfile.return_value = True
-        app._save_image(["uuid1", "uuid2"])
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app._save_image(["uuid1", "uuid2"])
         app._show_message_dialog.assert_called()
 
         # Single page success
         mock_isfile.return_value = False
-        app._save_image(["uuid1"])
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app._save_image(["uuid1"])
         app.slist.save_image.assert_called()
         app._windowi.hide.assert_called_once()
 
@@ -1239,11 +1281,14 @@ class TestFileMenuMixins:
         app.settings["image type"] = "png"
         app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_dialog.get_filename.return_value = "/path/to/image"
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         mock_file_exists.return_value = True
-        app._save_image(["uuid1"])
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app._save_image(["uuid1"])
         app.slist.save_image.assert_not_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
@@ -1257,11 +1302,14 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=False)
         app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_dialog.get_filename.return_value = "/path/to/image.png"
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         mock_file_exists.return_value = False
-        app._save_image(["uuid1"])
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app._save_image(["uuid1"])
         app._file_writable.assert_called_once_with(mock_dialog, "/path/to/image.png")
         app.slist.save_image.assert_not_called()
 
@@ -1318,11 +1366,14 @@ class TestFileMenuMixins:
         app.slist.save_image = unittest.mock.Mock()
         app.settings["image type"] = "png"
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_dialog.get_filename.return_value = "/path/to/image.png"
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
-        app._save_image(["uuid1", "uuid2"])
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app._save_image(["uuid1", "uuid2"])
 
         app.slist.save_image.assert_called()
         args = app.slist.save_image.call_args[1]
@@ -1688,7 +1739,6 @@ class TestFileMenuMixins:
 
         # Mock dialog to return success
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.OK
         mock_dialog.get_filename.return_value = "/path/to/file.jpg"
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
@@ -1701,14 +1751,22 @@ class TestFileMenuMixins:
 
         # Single file
         app.slist.save_image = mock_save_image
-        app._save_image(["uuid1"])
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app._save_image(["uuid1"])
         mock_launch.assert_called_with("file%d.jpg")
 
         # Multiple files
         mock_launch.reset_mock()
         # The callback logic uses the length of uuids captured in closure.
         # calling _save_image(["uuid1", "uuid2"]) -> len(uuids) is 2.
-        app._save_image(["uuid1", "uuid2"])
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.OK,
+        ):
+            app._save_image(["uuid1", "uuid2"])
         assert mock_launch.call_count == 2
 
     def test_list_of_page_uuids_empty(self, app: MockApp) -> None:
@@ -1725,10 +1783,13 @@ class TestFileMenuMixins:
         app.settings["cwd"] = "/non/existent/path"
         mock_chdir.side_effect = [FileNotFoundError, None, None]
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.run.return_value = mock_gtk.ResponseType.CANCEL
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
-        app.open_dialog(None, None)
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.run_dialog",
+            return_value=mock_gtk.ResponseType.CANCEL,
+        ):
+            app.open_dialog(None, None)
 
         assert app.settings["cwd"] == str(pathlib.Path("~").expanduser())
         assert mock_chdir.call_count >= 2

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
     import pytest
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 _LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
@@ -69,11 +69,11 @@ def test_include_time_toggle() -> None:
     dialog.include_time = True
     assert dialog.include_time is True
     # Verify it updates widgets
-    assert dialog.meta_now_widget.get_child().get_text() == "Now"
+    assert dialog.meta_now_widget.get_label() == "Now"
 
     dialog.include_time = False
     assert dialog.include_time is False
-    assert dialog.meta_now_widget.get_child().get_text() == "Today"
+    assert dialog.meta_now_widget.get_label() == "Today"
 
 
 def test_meta_datetime_property(mocker: pytest.MockerFixture) -> None:
@@ -109,7 +109,7 @@ def test_insert_text_handler_inc_dec(mocker: pytest.MockerFixture) -> None:
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
     )
     dialog = Save()
-    dialog.show_all()
+    dialog.present()
     dialog._meta_specify_widget.set_active(True)
     entry = dialog._meta_datetime_widget
     entry.get_buffer().set_text("2023-01-01", -1)
@@ -130,7 +130,7 @@ def test_insert_text_handler_filtering(mocker: pytest.MockerFixture) -> None:
         "scantpaper.dialog.save.GLib.idle_add", side_effect=lambda f, *a: f(*a)
     )
     dialog = Save()
-    dialog.show_all()
+    dialog.present()
     entry = dialog._meta_datetime_widget
     cast("Any", entry).stop_emission_by_name = mocker.Mock()
 
@@ -275,14 +275,9 @@ def test_encrypt_clicked_callback(mocker: pytest.MockerFixture) -> None:
     dialog._encrypt_clicked_callback(None)
     mock_dialog_cls.assert_called()
 
-    # Find OK and Cancel callbacks
-    ok_cb = None
-    cancel_cb = None
-    for name, cb in actions:
-        if name == "gtk-ok":
-            ok_cb = cb
-        elif name == "gtk-cancel":
-            cancel_cb = cb
+    # add_actions maps the buttons positionally: confirm then cancel
+    ok_cb = actions[0][1]
+    cancel_cb = actions[1][1]
 
     assert ok_cb is not None
     assert cancel_cb is not None
@@ -292,7 +287,7 @@ def test_encrypt_clicked_callback(mocker: pytest.MockerFixture) -> None:
     # In _encrypt_clicked_callback: passvbox.pack_start(grid, ...)
     # grid has userentry at (1, 0)
     grid = None
-    for child in mock_box.get_children():
+    for child in list(mock_box.observe_children()):
         if isinstance(child, Gtk.Grid):
             grid = child
             break
@@ -330,8 +325,8 @@ def test_update_config_dict() -> None:
 def test_update_config_dict_adds_typed_metadata_to_suggestions() -> None:
     """Test that user-typed metadata is added to suggestions."""
     dialog = Save()
-    dialog._meta_title_widget.get_buffer().set_text("New typed title", -1)
-    dialog._meta_author_widget.get_buffer().set_text("New typed author", -1)
+    dialog._meta_title_widget.set_text("New typed title")
+    dialog._meta_author_widget.set_text("New typed author")
 
     config = {}
     dialog.update_config_dict(config)
@@ -385,12 +380,20 @@ def test_datetime_focus_out_callback() -> None:
     """Test _datetime_focus_out_callback."""
     dialog = Save()
     dialog._meta_specify_widget.set_active(True)
-    mock_entry = MagicMock()
-    mock_entry.get_text.return_value = "2023-01-01"
+    dialog._meta_datetime_widget.set_text("2023-01-01")
 
-    dialog._datetime_focus_out_callback(mock_entry, None)
+    dialog._datetime_focus_out_callback(MagicMock())
     # DTZ001 — widget text parses via naive fromisoformat, matching tz-less user entry
     assert dialog.meta_datetime == dt.datetime(2023, 1, 1)  # noqa: DTZ001
+
+
+def test_specify_widget_does_not_fire_on_programmatic_change() -> None:
+    """Programmatically setting the specify button is not a user click."""
+    dialog = Save()
+    dialog.select_datetime = False
+
+    dialog._meta_specify_widget.set_active(True)
+    assert dialog.select_datetime is False, "no user activation happened"
 
 
 def test_clicked_specify_date_button() -> None:
@@ -402,13 +405,13 @@ def test_clicked_specify_date_button() -> None:
     # Active
     mock_widget.get_active.return_value = True
     dialog._clicked_specify_date_button(mock_widget, mock_hboxe)
-    mock_hboxe.show.assert_called()
+    assert mock_hboxe.set_visible.call_args.args == (True,)
     assert dialog.select_datetime is True
 
     # Inactive
     mock_widget.get_active.return_value = False
     dialog._clicked_specify_date_button(mock_widget, mock_hboxe)
-    mock_hboxe.hide.assert_called()
+    assert mock_hboxe.set_visible.call_args.args == (False,)
     assert dialog.select_datetime is False
 
 
@@ -462,12 +465,12 @@ def test_meta_datetime_reads_from_widget_immediately() -> None:
         select_datetime=True,
     )
 
-    dialog.show_all()
+    dialog.present()
     # Ensure "Specify" is active so it doesn't just return 'now'
     dialog._meta_specify_widget.set_active(True)
 
     # Simulate the user typing a new date into the entry widget
-    dialog._meta_datetime_widget.get_buffer().set_text("2026-01-01", -1)
+    dialog._meta_datetime_widget.set_text("2026-01-01")
 
     # ASSERTION: The property getter should return the NEW date parsed from the widget,
     # even though we haven't triggered a focus-out signal or updated the property setter.
@@ -490,7 +493,7 @@ def test_meta_datetime_preserves_time_when_not_included() -> None:
         select_datetime=True,
         include_time=False,
     )
-    dialog.show_all()
+    dialog.present()
     dialog._meta_specify_widget.set_active(True)
 
     # Widget text will be "2026-05-08" (time truncated in UI)
@@ -515,7 +518,7 @@ def test_meta_datetime_preserves_datetime_when_not_changed() -> None:
         select_datetime=True,
         include_time=True,
     )
-    dialog.show_all()
+    dialog.present()
     dialog._meta_specify_widget.set_active(True)
 
     # Widget text will be "2026-05-08 12:34:56"
@@ -538,11 +541,11 @@ def test_meta_datetime_returns_date_when_initial_was_date() -> None:
         select_datetime=True,
         include_time=False,
     )
-    dialog.show_all()
+    dialog.present()
     dialog._meta_specify_widget.set_active(True)
 
     # Change the date in the widget
-    dialog._meta_datetime_widget.get_buffer().set_text("2026-01-01", -1)
+    dialog._meta_datetime_widget.set_text("2026-01-01")
 
     # Should return a date object
     res = dialog.meta_datetime
@@ -560,9 +563,9 @@ def test_meta_datetime_when_initial_is_none() -> None:
         select_datetime=True,
         include_time=True,
     )
-    dialog.show_all()
+    dialog.present()
     dialog._meta_specify_widget.set_active(True)
-    dialog._meta_datetime_widget.get_buffer().set_text("2026-05-08 12:34:56", -1)
+    dialog._meta_datetime_widget.set_text("2026-05-08 12:34:56")
 
     # DTZ001 — widget text parses via naive fromisoformat, matching tz-less user entry
     assert dialog.meta_datetime == dt.datetime(2026, 5, 8, 12, 34, 56)  # noqa: DTZ001

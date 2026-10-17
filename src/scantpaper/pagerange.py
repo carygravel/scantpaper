@@ -11,7 +11,7 @@ from scantpaper.i18n import _
 if TYPE_CHECKING:
     from typing import ClassVar
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
@@ -48,29 +48,31 @@ class PageRange(Gtk.Box):
         }
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.add(vbox)
+        self.append(vbox)
 
-        # the first radio button has to set the group,
-        # which is None for the first button
+        # GTK4 has no Gtk.RadioButton: grouped Gtk.CheckButtons behave like
+        # radio buttons. The first button sets the group leader.
         group = None
         self.button = {}
 
-        def on_toggled_event(button: Gtk.RadioButton, active: str) -> None:
+        def on_toggled_event(button: Gtk.CheckButton, active: str) -> None:
             if button.get_active():
                 self.set_active(active)
 
         for nick in sorted(buttons.keys()):
-            self.button[nick] = Gtk.RadioButton.new_with_label_from_widget(
-                group, buttons[nick]
-            )
-            self.button[nick].connect("toggled", on_toggled_event, nick)
-            vbox.pack_start(self.button[nick], expand=True, fill=True, padding=0)
-            if not group:
-                group = self.button["all"]
+            widget = Gtk.CheckButton.new_with_label(buttons[nick])
+            if group is not None:
+                widget.set_group(group)
+            self.button[nick] = widget
+            widget.connect("toggled", on_toggled_event, nick)
+            vbox.append(widget)
+            widget.set_vexpand(True)
+            if group is None:
+                group = widget
 
             # initial state
             if self.active == nick:
-                self.button[nick].set_active(True)
+                widget.set_active(True)
 
         self.widget_list.append(self)
 

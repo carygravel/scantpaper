@@ -69,7 +69,8 @@ class SaneScanDialog(Scan):
             pbar.set_show_text(True)
             pbar.set_pulse_step(self.progress_pulse_step)
             pbar.set_text(_("Fetching list of devices"))
-            hboxd.pack_start(pbar, expand=True, fill=True, padding=0)
+            hboxd.append(pbar)
+            pbar.set_hexpand(True)
             hboxd.hide()
             hboxd.show()
             pbar.show()
@@ -81,7 +82,7 @@ class SaneScanDialog(Scan):
         def finished_callback(response: Response) -> None:
             nonlocal self
             nonlocal pbar
-            pbar.destroy()
+            pbar.unparent()
             device_list = response.info
             logger.info("sane.get_devices() returned: %s", device_list)
             self.device_list = device_list
@@ -89,7 +90,7 @@ class SaneScanDialog(Scan):
                 self.emit("process-error", "get_devices", _("No devices found"))
                 self.destroy()
 
-            hboxd.show_all()
+            hboxd.show()
             self.cursor = "default"
 
         self.thread.get_devices(
@@ -189,7 +190,7 @@ class SaneScanDialog(Scan):
 
         # Show new pages
         for i in range(2, self.notebook.get_n_pages()):
-            self.notebook.get_nth_page(i).show_all()
+            self.notebook.get_nth_page(i).show()
 
         self.set_response_sensitive(Gtk.ResponseType.OK, setting=True)
 
@@ -209,7 +210,7 @@ class SaneScanDialog(Scan):
         scwin = Gtk.ScrolledWindow()
         self.notebook.append_page(scwin, Gtk.Label(label=text))
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scwin.add(vbox)
+        scwin.set_child(vbox)
         return vbox
 
     def _initialise_option(
@@ -238,11 +239,11 @@ class SaneScanDialog(Scan):
         # so that it can be put before first geometry option
         if hboxp is None and _geometry_option(opt):
             hboxp = Gtk.Box()
-            vbox.pack_start(hboxp, expand=False, fill=False, padding=0)
+            vbox.append(hboxp)
 
         # HBox for option
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
+        vbox.append(hbox)
         if opt.cap & enums.CAP_INACTIVE or not opt.cap & enums.CAP_SOFT_SELECT:
             hbox.set_sensitive(False)
 
@@ -398,7 +399,7 @@ class SaneScanDialog(Scan):
                 text = opt.name
 
             label = Gtk.Label(label=d_sane(text))
-            hbox.pack_start(label, expand=False, fill=False, padding=0)
+            hbox.append(label)
 
         widget = None
         if opt.type == enums.TYPE_BOOL:

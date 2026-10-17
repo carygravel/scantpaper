@@ -24,14 +24,12 @@ if TYPE_CHECKING:
 
     from scantpaper.basethread import Response
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
+    GObject,
     Gtk,
 )
-
-ID_PAGE = 1
-ID_URI = 0
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +49,6 @@ class BaseDocument(SimpleList):
         self.thread.register_callback("updated_page", "after", "data")
         self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_headers_visible(False)
-        self.set_reorderable(True)
         self.dir: str | pathlib.Path | None = None
         self._context = {}
         self._suppress_delete = False
@@ -62,62 +59,34 @@ class BaseDocument(SimpleList):
         if isinstance(self.dir, str):
             self.dir = pathlib.Path(self.dir)
 
-        dnd_source = Gtk.TargetEntry.new(
-            "Glib::Scalar",  # some string representing the drag type
-            Gtk.TargetFlags.SAME_WIDGET,
-            ID_PAGE,  # some app-defined integer identifier
+        # GTK4 drag-and-drop (replaces the GTK3 Gtk.TargetEntry /
+        # drag_source_set / drag_dest_set API). A Gtk.DragSource starts an
+        # internal row drag; one Gtk.DropTarget handles our own row drops and
+        # another handles external file drops (GTK converts text/uri-list
+        # into a Gdk.FileList automatically).
+        #
+        # Note: Gtk.TreeView.set_reorderable() is deliberately NOT enabled; it
+        # would install its own drag source/drop target that reorders the
+        # model directly, bypassing the worker reorder used here.
+        self._internal_drag: bool = False
+        drag_source = Gtk.DragSource()
+        drag_source.set_actions(Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
+        drag_source.connect("prepare", self._on_drag_prepare)
+        drag_source.connect("drag-end", self._on_drag_end)
+        self.add_controller(drag_source)
+
+        files_target = Gtk.DropTarget.new(Gdk.FileList, Gdk.DragAction.COPY)
+        files_target.connect("drop", self._on_drop_files)
+        self.add_controller(files_target)
+        self.files_drop_target = files_target
+
+        rows_target = Gtk.DropTarget.new(
+            GObject.TYPE_STRING, Gdk.DragAction.COPY | Gdk.DragAction.MOVE
         )
-        self.drag_source_set(
-            Gdk.ModifierType.BUTTON1_MASK,
-            [dnd_source],
-            Gdk.DragAction.COPY | Gdk.DragAction.MOVE,
-        )
-        dnd_dest = Gtk.TargetEntry.new(
-            "text/uri-list",  # some string representing the drag type
-            0,  # flags
-            ID_URI,  # some app-defined integer identifier
-        )
-        self.drag_dest_set(
-            Gtk.DestDefaults.DROP
-            | Gtk.DestDefaults.MOTION
-            | Gtk.DestDefaults.HIGHLIGHT,
-            [dnd_source, dnd_dest],
-            Gdk.DragAction.COPY | Gdk.DragAction.MOVE,
-        )
-
-        def drag_data_get_callback(
-            _tree: Gtk.TreeView,
-            _context: Gdk.DragContext,
-            sel: Gtk.SelectionData,
-            _info: int,
-            _time: int,
-            _user_data: object | None = None,
-        ) -> None:
-            # set dummy data which we'll ignore and use selected rows
-            sel.set(sel.get_target(), 8, [])  # 8 == string format
-
-        self.connect("drag-data-get", drag_data_get_callback)
-        self.connect("drag-data-delete", _weak_callback(self, "delete_selection"))
-        self.connect("drag-data-received", drag_data_received_callback)
-        self.connect("drag-end", _weak_callback(self, "_on_drag_end"))
-
-        def drag_drop_callback(
-            tree: Gtk.TreeView,
-            context: Gdk.DragContext,
-            _x: int,
-            _y: int,
-            when: int,
-        ) -> bool:
-            """Handle the dropped signal."""
-            targets = tree.drag_dest_get_target_list()
-            target = tree.drag_dest_find_target(context, targets)
-            if target:
-                tree.drag_get_data(context, target, when)
-                return True
-
-            return False
-
-        self.connect("drag-drop", drag_drop_callback)
+        rows_target.connect("accept", self._on_rows_accept)
+        rows_target.connect("drop", self._on_drop_rows)
+        self.add_controller(rows_target)
+        self.rows_drop_target = rows_target
 
         # Set the page number to be editable
         self.set_column_editable(0, editable=True)
@@ -472,22 +441,21 @@ class BaseDocument(SimpleList):
     def delete_selection(
         self,
         _self: object | None = None,
-        context: Gdk.DragContext | None = None,
+        context: object | None = None,
         **kwargs: object,
     ) -> None:
         """Delete the selected pages."""
-        # A drag-and-drop reorder triggers drag-data-delete after the drop;
-        # suppress that deletion so the reorder is not followed by a delete.
-        # NOTE: the flag is deliberately NOT cleared here. drag-data-delete can
-        # be emitted more than once per drop, so consuming the flag on the
-        # first call would let a later call delete the just-moved page. The flag
-        # is cleared by _on_drag_end once the whole drag is over.
+        # A drop during a reorder must not delete the just-moved pages, so
+        # deletion is suppressed for the duration of the drag. NOTE: the flag
+        # is deliberately NOT cleared here: it is cleared by _on_drag_end once
+        # the whole drag is over, because the reorder may still be in flight.
         if getattr(self, "_suppress_delete", False):
             return
 
-        # The drag-data-delete callback seems to be fired twice. Therefore, create
-        # a hash of the context hashes and ignore the second drop. There must be a
-        # less hacky way of solving this. FIXME
+        # Historical guard against the same drop being reported twice (GTK3
+        # emitted drag-data-delete more than once per drop). Kept because
+        # callers may still pass a context; there must be a less hacky way of
+        # solving this. FIXME
         if context is not None:
             if context in self._context:
                 self._context = {}
@@ -585,17 +553,16 @@ class BaseDocument(SimpleList):
             if isinstance(info, dict) and "type" in info and info["type"] == "page":
                 self._reorder_data(page_ids, info["new_pages"])
 
-        # The drag triggers drag-data-delete after the drop; suppress the
-        # resulting deletion so the reorder is not followed by a delete.
-        # NOTE: the flag is deliberately NOT cleared here, in _data_callback or
-        # in delete_selection. The worker reorder response (which updates self.data)
-        # can be delivered on the main thread before the drag-data-delete signal is
-        # processed, and drag-data-delete can itself be emitted more than once per
-        # drop. Clearing the flag on any of those paths would let the drop's
-        # deletion go through and remove the just-moved page from the database while
-        # self.data still holds it, making a subsequent save fail with "Page id ...
-        # not found". Instead delete_selection just returns (leaving the flag set) for
-        # the duration of the drag, and _on_drag_end clears it once the drag is over.
+        # A drop during a reorder must not delete the just-moved pages, so
+        # deletion is suppressed for the duration of the drag. NOTE: the flag
+        # is deliberately NOT cleared here, in _data_callback or in
+        # delete_selection: the worker reorder response (which updates self.data)
+        # can be delivered on the main thread before the drag has fully ended.
+        # Clearing the flag on any of those paths would let a stray deletion
+        # remove the just-moved page from the database while self.data still
+        # holds it, making a subsequent save fail with "Page id ... not found".
+        # Instead delete_selection just returns (leaving the flag set) for the
+        # duration of the drag, and _on_drag_end clears it once the drag is over.
         self._suppress_delete = True
         self.thread.send(
             "reorder_pages",
@@ -603,8 +570,64 @@ class BaseDocument(SimpleList):
             data_callback=_data_callback,
         )
 
-    def _on_drag_end(self, _widget: Gtk.Widget, _context: Gdk.DragContext) -> None:
-        """Clear any leftover reorder suppression once the drag is over."""
+    def _on_drag_prepare(
+        self, _source: Gtk.DragSource, _x: float, _y: float
+    ) -> Gdk.ContentProvider | None:
+        """Start an internal row drag when at least one page is selected."""
+        if not self.get_selected_indices():
+            return None
+        self._internal_drag = True
+        return Gdk.ContentProvider.new_for_value("scantpaper-rows")
+
+    def _on_rows_accept(self, _target: Gtk.DropTarget, _drop: Gdk.Drop) -> bool:
+        """Accept only our own row drags, not external text drops."""
+        return bool(self._internal_drag)
+
+    def _on_drop_rows(
+        self, _target: Gtk.DropTarget, _value: str, x: float, y: float
+    ) -> bool:
+        """Reorder the dragged pages at the drop position."""
+        rows = self.get_selected_indices()
+        if not rows:
+            return False
+
+        row = self.get_dest_row_at_pos(int(x), int(y))
+        path, how = None, None
+        if row:
+            path, how = row
+            if path is not None:
+                path = path.to_string()
+
+        dest = len(self.data)
+        if path is not None:
+            dest = int(path)
+            if how in (
+                Gtk.TreeViewDropPosition.AFTER,
+                Gtk.TreeViewDropPosition.INTO_OR_AFTER,
+            ):
+                dest += 1
+
+        page_ids = [cast("int", self.data[i][2]) for i in rows]
+        self.reorder_pages(page_ids, dest, how)
+        return True
+
+    def _on_drop_files(
+        self, _target: Gtk.DropTarget, value: Gdk.FileList, _x: float, _y: float
+    ) -> bool:
+        """Import the files that were dropped onto the thumbnail list."""
+        paths = [gio_file.get_uri() for gio_file in value.get_files()]
+        self.import_files(paths=paths)
+        return True
+
+    def _on_drag_end(
+        self, _source: Gtk.DragSource, _drag: Gdk.Drag, _delete_data: object
+    ) -> None:
+        """Clear the drag state and any leftover reorder suppression.
+
+        The signal passes whether the drop was a move (delete_data), which is
+        ignored: reordering never deletes the dragged pages.
+        """
+        self._internal_drag = False
         self._suppress_delete = False
 
     def delete_selection_extra(self, **kwargs: object) -> None:
@@ -808,68 +831,3 @@ for method_name_ in [
     "user_defined",
 ]:
     setattr(BaseDocument, method_name_, _modify_method_generator(method_name_))
-
-
-def drag_data_received_callback(  # noqa: PLR0913, PLR0917 - GTK DnD callback signature fixed by the toolkit
-    tree: Gtk.TreeView,
-    context: Gdk.DragContext,
-    xpos: int,
-    ypos: int,
-    data: Gtk.SelectionData,
-    info: int,
-    time: int,
-) -> None:
-    """Handle DnD data reception."""
-    # This callback is fired twice, seemingly once for the drop flag,
-    # and once for the copy flag,
-    # or possible once for the new data and once for the old data.
-    # If the drop flag is disabled, the URI
-    # drop does not work. If the copy flag is disabled, the drag-with-copy
-    # does not work. Therefore if copying, create a hash of the drop times
-    # and ignore the second drop.
-    # https://stackoverflow.com/questions/48469655/drop-file-in-python-gui-gtk
-    if hasattr(tree, "drops") and time in tree.drops:
-        tree.drops = {}
-        # Gdk.drag_finish() takes position-only args; PyGObject rejects keywords
-        Gtk.drag_finish(context, True, False, time)  # noqa: FBT003
-        return
-
-    if not hasattr(tree, "drops"):
-        tree.drops = {}
-    tree.drops[time] = 1
-
-    if info == ID_URI:
-        uris = data.get_uris()
-
-        tree.import_files(paths=uris)
-        # Gdk.drag_finish() takes position-only args; PyGObject rejects keywords
-        Gtk.drag_finish(context, True, False, time)  # noqa: FBT003
-
-    elif info == ID_PAGE:
-        rows = tree.get_selected_indices()
-        if not rows:
-            return
-
-        row = tree.get_dest_row_at_pos(xpos, ypos)
-        path, how = None, None
-        if row:
-            path, how = row
-            if path is not None:
-                path = path.to_string()
-
-        dest = len(tree.data)
-        if path is not None:
-            dest = int(path)
-            if how in (
-                Gtk.TreeViewDropPosition.AFTER,
-                Gtk.TreeViewDropPosition.INTO_OR_AFTER,
-            ):
-                dest += 1
-
-        page_ids = [tree.data[i][2] for i in rows]
-        tree.reorder_pages(page_ids, dest, how)
-        # Gdk.drag_finish() takes position-only args; PyGObject rejects keywords
-        Gtk.drag_finish(context, True, False, time)  # noqa: FBT003
-
-    else:
-        context.abort()

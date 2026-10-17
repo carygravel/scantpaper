@@ -13,8 +13,8 @@ from scantpaper.pagerange import PageRange
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     GObject,
@@ -35,37 +35,43 @@ class Dialog(Gtk.Dialog):
         type=str, default="selected", nick="page-range", blurb="Either selected or all"
     )
 
-    def do_delete_event(self, _event: Gdk.Event) -> bool:
-        """Delete event."""
+    def _on_close_request(self, _widget: Gtk.Widget) -> bool:
+        """Handle the close-request signal (replaces the GTK3 delete-event)."""
         if self.hide_on_delete:
             self.hide()
-            return cast(
-                "bool", (Gdk.EVENT_STOP)
-            )  # ensures that the window is not destroyed
+            return True  # prevent the dialog from being destroyed
 
         self.destroy()
-        return cast("bool", (Gdk.EVENT_PROPAGATE))
+        return False
 
-    def do_key_press_event(self, event: Gdk.EventKey) -> bool:
-        """Key press event."""
-        if event.keyval == Gdk.KEY_Escape:
+    def _on_key_pressed(
+        self,
+        _controller: Gtk.EventControllerKey,
+        keyval: int,
+        _keycode: int,
+        _state: Gdk.ModifierType,
+    ) -> bool:
+        """Handle a key press via the GTK4 event controller."""
+        if keyval == Gdk.KEY_Escape:
             if self.hide_on_delete:
                 self.hide()
             else:
                 self.destroy()
-            return cast("bool", (Gdk.EVENT_STOP))
-        Gtk.Dialog.do_key_press_event(self, event)
-        return cast("bool", (Gdk.EVENT_PROPAGATE))
+            return True
+        return False
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
-        self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
+        self.connect("close-request", self._on_close_request)
+        self._key_controller = Gtk.EventControllerKey()
+        self._key_controller.connect("key-pressed", self._on_key_pressed)
+        self.add_controller(self._key_controller)
 
     def add_page_range(self) -> None:
         """Add a frame and radio buttons to content area."""
         frame = Gtk.Frame(label=_("Page Range"))
-        self.get_content_area().pack_start(frame, expand=False, fill=False, padding=0)
+        self.get_content_area().append(frame)
         prng = PageRange()
         prng.set_active(self.page_range)
 
@@ -73,7 +79,7 @@ class Dialog(Gtk.Dialog):
             self.page_range = data
 
         prng.connect("changed", page_range_changed_callback)
-        frame.add(prng)
+        frame.set_child(prng)
 
     def add_actions(
         self, button_list: list[tuple[str, Callable[[], object]]]
@@ -118,7 +124,7 @@ class MultipleMessage(Dialog):
 
         # to ensure dialog can't grow too big if we have too many messages
         scwin = Gtk.ScrolledWindow()
-        self.get_content_area().pack_start(scwin, expand=True, fill=True, padding=0)
+        self.get_content_area().append(scwin)
         self.grid = Gtk.Grid()
         self.grid_rows = 0
         self.stored_responses = {}
@@ -138,9 +144,9 @@ class MultipleMessage(Dialog):
         self.cbn = Gtk.CheckButton()
         self.cbn.set_halign(Gtk.Align.CENTER)
         self.grid.attach(self.cbn, COL_CHECKBUTTON, self.grid_rows, 1, 1)
-        scwin.add(self.grid)
+        scwin.set_child(self.grid)
         self.cbn.connect("toggled", self.on_toggled)
-        self.add_actions([("gtk-close", close_callback)])
+        self.add_actions([(_("_Close"), close_callback)])
 
     def on_toggled(self, _data: object | None = None) -> None:
         """Handle a checkbutton toggle."""
@@ -229,7 +235,7 @@ class MultipleMessage(Dialog):
             self.add_row(row)
 
     def store_responses(
-        self, response: str, responses: dict[str, dict[str, object]]
+        self, response: str | int | None, responses: dict[str, dict[str, object]]
     ) -> None:
         """Store response in responses."""
         for raw_text in self.list_messages_to_ignore(response):
@@ -246,7 +252,7 @@ class MultipleMessage(Dialog):
 
         return cbs
 
-    def list_messages_to_ignore(self, response: str) -> list[str]:
+    def list_messages_to_ignore(self, response: str | int | None) -> list[str]:
         """Return messages that can be ignored."""
         messages = []
         for row in range(1, self.grid_rows):

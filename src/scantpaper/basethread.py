@@ -126,42 +126,64 @@ class BaseThread(threading.Thread):
         self.after = {}
         self.num_completed_jobs = 0
         self.total_jobs = 0
+        self._notify_r: int | None
+        self._notify_w: int | None
         self._notify_r, self._notify_w = os.pipe()
         os.set_blocking(self._notify_r, False)
         os.set_blocking(self._notify_w, False)
         self.LiveThreads.add(self)
-        self._io_watch_id = GLib.io_add_watch(
+        self._io_watch_id: int | None = GLib.io_add_watch(
             self._notify_r, GLib.PRIORITY_DEFAULT, GLib.IO_IN, self._on_readable
         )
-        self._tick_id = GLib.timeout_add(_RUNNING_TICK_MS, self._tick)
+        self._tick_id: int | None = GLib.timeout_add(_RUNNING_TICK_MS, self._tick)
         for callback in CALLBACKS:
             self.before[callback] = set()
             self.after[callback] = set()
+
+    def release_glib_sources(self) -> None:
+        """Remove this thread's GLib io-watch and tick sources, if installed.
+
+        Idempotent. Normally called through GLib.idle_add() by
+        _release_sources() once the worker exits; tests also call it directly
+        so a lingering worker's sources cannot fire callbacks during a later
+        test.
+        """
+        if self._io_watch_id is not None:
+            GLib.source_remove(self._io_watch_id)
+            self._io_watch_id = None
+        if self._tick_id is not None:
+            GLib.source_remove(self._tick_id)
+            self._tick_id = None
 
     def _release_sources(self) -> None:
         """Schedule removal of GLib sources and pipe FDs on the main thread."""
 
         def _cleanup() -> bool:
-            GLib.source_remove(self._io_watch_id)
-            GLib.source_remove(self._tick_id)
-            with contextlib.suppress(OSError):
-                os.close(self._notify_r)
-            with contextlib.suppress(OSError):
-                os.close(self._notify_w)
+            self.release_glib_sources()
+            for name in ("_notify_r", "_notify_w"):
+                fd = getattr(self, name)
+                if fd is not None:
+                    with contextlib.suppress(OSError):
+                        os.close(fd)
+                    setattr(self, name, None)
             return cast("bool", (GLib.SOURCE_REMOVE))
 
         GLib.idle_add(_cleanup)
 
     def _notify(self) -> None:
         """Wake up the GLib main loop to process responses."""
+        if self._notify_w is None:
+            return
         with contextlib.suppress(OSError):
             os.write(self._notify_w, b"\x01")
 
     def _on_readable(self, _fd: int, _condition: int) -> bool:
         """React when the notification pipe is readable."""
+        # The io-watch is removed before _notify_r is closed, so it is an
+        # open fd for the whole lifetime of this handler.
         try:
             while True:
-                os.read(self._notify_r, 1024)
+                os.read(cast("int", self._notify_r), 1024)
         except BlockingIOError:
             pass
         # A failure here must not remove the pipe watch. Nothing else drains

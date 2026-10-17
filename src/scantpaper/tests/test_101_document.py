@@ -39,7 +39,7 @@ from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 from scantpaper.savethread import _bbox2markup, _set_timestamp, prepare_output_metadata
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 
 from gi.repository import (  # noqa: E402
     GLib,

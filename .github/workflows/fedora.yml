@@ -213,7 +213,7 @@ jobs:
       - name: Install scantpaper build dependencies
         run: |
           dnf -y install \
-            gtk3 \
+            gtk4 \
             gobject-introspection-devel \
             cairo-devel \
             python3-gobject \

@@ -574,6 +574,18 @@ def test_quit_all_live_threads_stops_dropped_thread() -> None:
     assert thread_ref() is None, "dropped worker ended by LiveThreads teardown"
 
 
+def test_notify_is_noop_after_release() -> None:
+    """_notify is a no-op once the notification pipe has been released."""
+    thread = BaseThread()
+    thread._release_sources()
+    context = GLib.MainContext.default()
+    while context.pending():
+        context.iteration(may_block=False)
+    assert thread._notify_w is None, "cleanup closed the notification pipe"
+
+    thread._notify()  # must not raise
+
+
 def test_run_releases_sources_when_input_handler_raises(
     mocker: pytest.MockerFixture,
 ) -> None:
@@ -588,6 +600,10 @@ def test_run_releases_sources_when_input_handler_raises(
             raise RuntimeError(msg)
 
     thread = ExplodingThread()
+    # release_glib_sources() clears the ids when it removes them, so record
+    # them first.
+    io_watch_id = thread._io_watch_id
+    tick_id = thread._tick_id
     original_hook = threading.excepthook
 
     def record_excepthook(args: threading.ExceptHookArgs) -> None:
@@ -610,8 +626,8 @@ def test_run_releases_sources_when_input_handler_raises(
     GLib.timeout_add(100, mlp.quit)
     mlp.run()
 
-    mock_source_remove.assert_any_call(thread._io_watch_id)
-    mock_source_remove.assert_any_call(thread._tick_id)
+    mock_source_remove.assert_any_call(io_watch_id)
+    mock_source_remove.assert_any_call(tick_id)
     assert mock_os_close.call_count >= 2, "notification pipe closed after cleanup"
 
 

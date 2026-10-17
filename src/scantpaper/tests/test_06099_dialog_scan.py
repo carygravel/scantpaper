@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from scantpaper.dialog.sane import SaneScanDialog
     from scantpaper.frontend.image_sane import SaneThread
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 
 logger = logging.getLogger(__name__)
 
@@ -145,10 +145,6 @@ class MockScan(Scan):
         self._available_scan_options = cast("Options", MockOptions([]))
 
     # Mock methods that would otherwise interact with GUI or SANE
-    def get_window(self) -> None:
-        """Get the parent window."""
-        return
-
     def emit(self, *args: object) -> object:
         """Mock emit method."""
         return GObject.GObject.emit(self, *args)
@@ -275,7 +271,7 @@ class TestScanDialog:
             callback = args[1]
             callback(None)
 
-            scan._geometry_boxes["br-x"].show_all.assert_called()
+            scan._geometry_boxes["br-x"].show.assert_called()
             assert scan.paper is None
 
     def test_create_paper_widget_edit(self) -> None:
@@ -566,7 +562,8 @@ class TestScanDialog:
                 cast("object", (scan._available_scan_options, opt, hbox, hboxp)),
             ),
         )
-        hbox.pack_end.assert_called_with(widget, expand=True, fill=True, padding=0)
+        hbox.append.assert_called_with(widget)
+        assert widget.set_hexpand.call_args.args == (True,)
 
     def test_update_widget_value_entry_empty(self) -> None:
         """Test _update_widget_value with Gtk.Entry and empty value."""
@@ -670,9 +667,12 @@ class TestScanDialog:
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Entry") as mockentryclass,
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Box"),
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Label"),
+            unittest.mock.patch(
+                "scantpaper.dialog.scan.run_dialog",
+                side_effect=[Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL],
+            ),
         ):
             mock_dialog = mockdialogclass.return_value
-            mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
 
             mock_entry = mockentryclass.return_value
@@ -691,9 +691,12 @@ class TestScanDialog:
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Entry") as mockentryclass,
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Box"),
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Label"),
+            unittest.mock.patch(
+                "scantpaper.dialog.scan.run_dialog",
+                return_value=Gtk.ResponseType.CANCEL,
+            ),
         ):
             mock_dialog = mockdialogclass.return_value
-            mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
 
             mock_entry = mockentryclass.return_value
@@ -713,9 +716,12 @@ class TestScanDialog:
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Dialog") as mockdialogclass,
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Label"),
             unittest.mock.patch("scantpaper.dialog.scan._build_profile_table"),
+            unittest.mock.patch(
+                "scantpaper.dialog.scan.run_dialog",
+                return_value=Gtk.ResponseType.OK,
+            ),
         ):
             mock_dialog = mockdialogclass.return_value
-            mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
 
             _edit_profile_callback(None, parent)
@@ -740,9 +746,12 @@ class TestScanDialog:
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Dialog") as mockdialogclass,
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Label"),
             unittest.mock.patch("scantpaper.dialog.scan._build_profile_table"),
+            unittest.mock.patch(
+                "scantpaper.dialog.scan.run_dialog",
+                return_value=Gtk.ResponseType.OK,
+            ),
         ):
             mock_dialog = mockdialogclass.return_value
-            mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
 
             _edit_profile_callback(None, parent)
@@ -761,9 +770,12 @@ class TestScanDialog:
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Dialog") as mockdialogclass,
             unittest.mock.patch("scantpaper.dialog.scan.Gtk.Label"),
             unittest.mock.patch("scantpaper.dialog.scan._build_profile_table"),
+            unittest.mock.patch(
+                "scantpaper.dialog.scan.run_dialog",
+                return_value=Gtk.ResponseType.OK,
+            ),
         ):
             mock_dialog = mockdialogclass.return_value
-            mock_dialog.run.return_value = Gtk.ResponseType.OK
             mock_dialog.get_content_area.return_value = unittest.mock.Mock()
 
             _edit_profile_callback(None, parent)
@@ -790,9 +802,9 @@ class TestScanDialog:
         profile.add_frontend_option("fopt", "val")
         options = MockOptions([MockOption("opt", enums.TYPE_INT)])
         vbox = unittest.mock.Mock()
-        vbox.show_all = unittest.mock.Mock()
+        vbox.show = unittest.mock.Mock()
         _build_profile_table(profile, cast("Options", options), vbox)
-        vbox.show_all.assert_called()
+        vbox.show.assert_called()
 
     def test_set_paper_with_geometry(self) -> None:
         """Test _set_paper with geometry options."""
@@ -813,24 +825,14 @@ class TestScanDialog:
         scan._add_current_scan_options.assert_called()
 
 
-def find_button_with_icon(
-    container: Gtk.Container, icon_name: str
-) -> Gtk.Button | None:
+def find_button_with_icon(container: Gtk.Widget, icon_name: str) -> Gtk.Button | None:
     """Find a button with the given icon name."""
-    children = container.get_children()
-    for child in children:
+    for child in list(container.observe_children()):
         if isinstance(child, Gtk.Button):
-            image = child.get_image()
-            if isinstance(image, Gtk.Image):
-                # In GTK3 get_icon_name might return None if set from stock or otherwise.
-                # The code uses Gtk.Image.new_from_icon_name("list-remove", ...)
-                storage_type = image.get_storage_type()
-                if (
-                    storage_type == Gtk.ImageType.ICON_NAME
-                    and image.get_icon_name()[0] == icon_name
-                ):
-                    return child
-        if isinstance(child, Gtk.Container):
+            image = child.get_child()
+            if isinstance(image, Gtk.Image) and image.get_icon_name() == icon_name:
+                return child
+        if isinstance(child, Gtk.Widget):
             found = find_button_with_icon(child, icon_name)
             if found:
                 return found
@@ -965,7 +967,7 @@ def test_reproduce_bug(
     assert rbutton is not None
 
     # Click the remove button
-    rbutton.clicked()
+    rbutton.emit("clicked")
 
 
 def test_insert_target_checkx_active() -> None:

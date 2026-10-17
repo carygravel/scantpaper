@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, Mock, patch
 import gi
 import pytest
 
-from scantpaper.basedocument import ID_PAGE, ID_URI, drag_data_received_callback
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.docthread import INSERT_AT_START
 from scantpaper.document import Document
@@ -25,7 +24,7 @@ from scantpaper.loop_helpers import safe_mainloop
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 
 from gi.repository import (  # noqa: E402
     GLib,
@@ -498,66 +497,98 @@ def test_open_session_error_no_db() -> None:
     error_callback.assert_called_once()
 
 
-def test_drag_data_received_callback_no_rows() -> None:
-    """Test drag_data_received_callback with no selection."""
-    tree = MagicMock(spec=Document)
-    tree.get_selected_indices.return_value = []
-    drag_data_received_callback(tree, MagicMock(), 0, 0, MagicMock(), ID_PAGE, 123)
-    tree.paste_selection.assert_not_called()
+def test_on_drag_prepare_requires_selection() -> None:
+    """Test _on_drag_prepare returns None when no page is selected."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.get_selection().unselect_all()
+
+    assert slist._on_drag_prepare(MagicMock(), 0.0, 0.0) is None
+    assert slist._internal_drag is False
 
 
-def test_drag_data_received_callback_abort() -> None:
-    """Test drag_data_received_callback abort case."""
-    context = MagicMock()
-    drag_data_received_callback(MagicMock(), context, 0, 0, MagicMock(), 999, 123)
-    context.abort.assert_called_once()
+def test_on_drag_prepare_starts_internal_drag() -> None:
+    """Test _on_drag_prepare provides data and flags an internal drag."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.select(0)
+
+    provider = slist._on_drag_prepare(MagicMock(), 0.0, 0.0)
+    assert provider is not None
+    assert slist._internal_drag is True
 
 
-def test_drag_data_received_callback_uri(mocker: pytest.MockerFixture) -> None:
-    """Test drag_data_received_callback with URI list."""
-    mocker.patch("scantpaper.basedocument.Gtk.drag_finish")
-    tree = MagicMock(spec=Document)
-    context = MagicMock()
-    data = MagicMock()
-    data.get_uris.return_value = ["file:///tmp/test.png"]
+def test_on_rows_accept_only_internal_drags() -> None:
+    """Test _on_rows_accept accepts only our own row drags."""
+    slist = Document()
 
-    drag_data_received_callback(tree, context, 0, 0, data, ID_URI, 123)
-    tree.import_files.assert_called_with(paths=["file:///tmp/test.png"])
+    slist._internal_drag = True
+    assert slist._on_rows_accept(MagicMock(), MagicMock()) is True
+
+    slist._internal_drag = False
+    assert slist._on_rows_accept(MagicMock(), MagicMock()) is False
 
 
-def test_drag_data_received_callback_path_to_string() -> None:
-    """Test that path.to_string() is called and reorder_pages is dispatched."""
-    # Mock the tree and context
-    tree = MagicMock()
-    context = MagicMock()
+def test_on_drop_rows_reorders() -> None:
+    """Test _on_drop_rows dispatches reorder_pages with the drop position."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.add_page(3, None, 103)
+    slist.get_selection().unselect_all()
+    slist.select(0)
+    slist.reorder_pages = MagicMock()
 
-    # Mock the row returned by get_dest_row_at_pos
     mock_path = MagicMock()
     mock_path.to_string.return_value = "2"
-    tree.get_dest_row_at_pos.return_value = (mock_path, Gtk.TreeViewDropPosition.AFTER)
-    tree.get_selected_indices.return_value = [0]
-    tree.data = [[1, None, 101], [2, None, 102], [3, None, 103]]
+    slist.get_dest_row_at_pos = MagicMock(
+        return_value=(mock_path, Gtk.TreeViewDropPosition.AFTER)
+    )
 
-    # Mock the data and other parameters
-    data = MagicMock()
-    xpos, ypos, info, time = 0, 0, ID_PAGE, 0
+    assert slist._on_drop_rows(MagicMock(), "scantpaper-rows", 0.0, 0.0) is True
+    mock_path.to_string.assert_called_once()
+    # AFTER at path "2" → dest = 2 + 1 = 3
+    slist.reorder_pages.assert_called_once_with(
+        [101], 3, Gtk.TreeViewDropPosition.AFTER
+    )
 
-    # Patch Gtk.drag_finish to avoid the TypeError
-    with patch("gi.repository.Gtk.drag_finish") as mock_drag_finish:
-        # Call the drag_data_received_callback
-        drag_data_received_callback(tree, context, xpos, ypos, data, info, time)
 
-        # Assert that path.to_string() was called
-        mock_path.to_string.assert_called_once()
+def test_on_drop_rows_no_selection() -> None:
+    """Test _on_drop_rows declines a drop without a selection."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.get_selection().unselect_all()
+    slist.reorder_pages = MagicMock()
 
-        # AFTER at path "2" → dest = 2 + 1 = 3
-        tree.reorder_pages.assert_called_once_with(
-            [101], 3, Gtk.TreeViewDropPosition.AFTER
-        )
+    assert slist._on_drop_rows(MagicMock(), "scantpaper-rows", 0.0, 0.0) is False
+    slist.reorder_pages.assert_not_called()
 
-        # Assert that Gtk.drag_finish was called
-        # Gtk.drag_finish() takes position-only args; PyGObject rejects keywords
-        mock_drag_finish.assert_called_once_with(context, True, False, time)  # noqa: FBT003
+
+def test_on_drop_rows_appends_without_dest_row() -> None:
+    """Test _on_drop_rows appends at the end when there is no dest row."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.add_page(2, None, 102)
+    slist.get_selection().unselect_all()
+    slist.select(0)
+    slist.reorder_pages = MagicMock()
+    slist.get_dest_row_at_pos = MagicMock(return_value=None)
+
+    assert slist._on_drop_rows(MagicMock(), "scantpaper-rows", 0.0, 500.0) is True
+    slist.reorder_pages.assert_called_once_with([101], 2, None)
+
+
+def test_on_drop_files_imports_files() -> None:
+    """Test _on_drop_files imports the dropped files."""
+    slist = Document()
+    slist.import_files = MagicMock()
+    gio_file = MagicMock()
+    gio_file.get_uri.return_value = "file:///tmp/test.png"
+    file_list = MagicMock()
+    file_list.get_files.return_value = [gio_file]
+
+    assert slist._on_drop_files(MagicMock(), file_list, 0.0, 0.0) is True
+    slist.import_files.assert_called_with(paths=["file:///tmp/test.png"])
 
 
 def test_reorder_data_moves_pages() -> None:
@@ -587,7 +618,7 @@ def test_reorder_pages_data_callback() -> None:
     assert slist._suppress_delete is True, "deletion suppressed during reorder"
 
     # invoke the data callback captured from thread.send to simulate the
-    # worker thread's async response arriving before the drag-data-delete
+    # worker thread's async response arriving before the drag has ended
     data_callback = slist.thread.send.call_args.kwargs["data_callback"]
     response = MagicMock()
     response.info = {"type": "page", "new_pages": [[2, None, 101]]}
@@ -595,12 +626,13 @@ def test_reorder_pages_data_callback() -> None:
 
     assert [row[2] for row in slist.data] == [102, 103, 101], "page moved to end"
     assert slist._suppress_delete is True, (
-        "suppress flag survives the worker response so the later drag-data-delete is suppressed"
+        "suppress flag survives the worker response so a stray deletion "
+        "during the drag is suppressed"
     )
 
 
-def test_reorder_then_drag_data_delete_not_double_deleted() -> None:
-    """Test the drag-data-delete after a reorder is suppressed even after the reorder completes."""
+def test_reorder_then_stray_deletion_not_double_deleted() -> None:
+    """Test a stray deletion after a reorder is suppressed even after the reorder completes."""
     slist = Document()
     slist.add_page(1, None, 101)
     slist.add_page(2, None, 102)
@@ -609,14 +641,13 @@ def test_reorder_then_drag_data_delete_not_double_deleted() -> None:
 
     slist.reorder_pages([101], 2, None)
 
-    # the worker reorder response is delivered (fast path) before drag-data-delete
+    # the worker reorder response is delivered (fast path) before the drag ends
     data_callback = slist.thread.send.call_args.kwargs["data_callback"]
     data_callback(MagicMock(info={"type": "page", "new_pages": [[2, None, 101]]}))
     assert slist._suppress_delete is True, "still suppressed after reorder response"
 
-    # drag-data-delete can be emitted more than once per drop; every one of
-    # those delete_selection calls must be suppressed, otherwise the second
-    # call would delete the just-moved page while self.data still holds it.
+    # A deletion during the drag must be suppressed, otherwise it would
+    # remove the just-moved page while self.data still holds it.
     slist.select([0])
     slist.delete_selection()
     slist.delete_selection()
@@ -628,7 +659,7 @@ def test_reorder_then_drag_data_delete_not_double_deleted() -> None:
     assert slist._suppress_delete is True, "flag stays set until the drag ends"
 
     # once the whole drag is over the suppression is lifted
-    slist._on_drag_end(None, None)
+    slist._on_drag_end(None, None, None)
     assert slist._suppress_delete is False, "flag cleared at drag-end"
 
 
@@ -638,7 +669,7 @@ def test_drag_end_clears_suppress_flag() -> None:
     slist.add_page(1, None, 101)
     slist._suppress_delete = True
 
-    slist._on_drag_end(None, None)
+    slist._on_drag_end(None, None, None)
 
     assert slist._suppress_delete is False, "drag-end clears the suppress flag"
 
@@ -672,15 +703,6 @@ def test_on_row_changed_moves_page() -> None:
     slist.data[0][0] = 3
     assert [row[2] for row in slist.data] == [102, 103, 101], "page moved to position 3"
     assert [row[0] for row in slist.data] == [1, 2, 3], "renumbered consecutively"
-
-
-def test_drag_data_received_callback_repeat(mocker: pytest.MockerFixture) -> None:
-    """Test drag_data_received_callback ignore repeated drops."""
-    mocker.patch("scantpaper.basedocument.Gtk.drag_finish")
-    tree = MagicMock()
-    tree.drops = {123: 1}
-    drag_data_received_callback(tree, MagicMock(), 0, 0, MagicMock(), ID_PAGE, 123)
-    assert not tree.drops
 
 
 def test_cut_selection() -> None:
@@ -803,69 +825,16 @@ def test_selection_changed_blocked(mock_thread: MagicMock) -> None:
     assert calls
 
 
-def test_drag_drop_callback_logic() -> None:
-    """Test drag_drop_callback logic."""
-    # This is an internal function defined in __init__, so we can't test it directly easily
-    # without emitting the signal.
-    slist = Document()
-    tree = slist
-
-    # Mock the necessary Gtk methods on the tree instance
-    tree.drag_dest_get_target_list = MagicMock()
-    tree.drag_dest_find_target = MagicMock()
-    tree.drag_get_data = MagicMock()
-
-    MagicMock()
-
-    # Case 1: No target found
-    tree.drag_dest_find_target.return_value = None
-    # We emit "drag-drop" signal
-    # But connecting to the signal and emitting it runs the real callback.
-    # The real callback uses methods on 'tree' which is 'slist'.
-    # So mocking slist methods should work.
-
-    # However, Gtk signal emission might be tricky without a main loop or realized widget.
-    # But we can try to find the callback function in the signal connections?
-    # Easier to trigger it via emit if possible.
-    # Or just rely on the fact that we can't easily reach it without heavy mocking of Gtk.
-
-
-def test_drag_data_get_and_drop_callbacks(mocker: pytest.MockerFixture) -> None:
-    """Test drag_data_get_callback and drag_drop_callback by capturing them."""
-    captured_callbacks = {}
-    original_connect = Gtk.TreeView.connect
-
-    def mocked_connect(
-        self: Gtk.TreeView,
-        signal_name: str,
-        callback: Callable[..., object],
-    ) -> int:
-        captured_callbacks[signal_name] = callback
-        return cast("int", (original_connect(self, signal_name, callback)))
-
-    mocker.patch("gi.repository.Gtk.TreeView.connect", mocked_connect)
+def test_dnd_controllers_installed() -> None:
+    """Test that BaseDocument installs the GTK4 drag source and drop targets."""
     slist = Document()
 
-    # Test drag_data_get_callback
-    assert "drag-data-get" in captured_callbacks
-    selection_data = MagicMock()
-    selection_data.get_target.return_value = "Glib::Scalar"
-    captured_callbacks["drag-data-get"](slist, MagicMock(), selection_data, ID_PAGE, 0)
-    selection_data.set.assert_called_with("Glib::Scalar", 8, [])
-
-    # Test drag_drop_callback
-    assert "drag-drop" in captured_callbacks
-    slist.drag_dest_get_target_list = MagicMock(return_value=True)
-    slist.drag_dest_find_target = MagicMock(return_value="text/uri-list")
-    slist.drag_get_data = MagicMock()
-    result = captured_callbacks["drag-drop"](slist, MagicMock(), 0, 0, 0)
-    assert result is True
-    slist.drag_get_data.assert_called_once()
-
-    # Case where no target found
-    slist.drag_dest_find_target.return_value = None
-    result = captured_callbacks["drag-drop"](slist, MagicMock(), 0, 0, 0)
-    assert result is False
+    controllers = list(slist.observe_controllers())
+    assert any(isinstance(c, Gtk.DragSource) for c in controllers)
+    drop_targets = [c for c in controllers if isinstance(c, Gtk.DropTarget)]
+    assert len(drop_targets) == 2
+    assert slist.rows_drop_target in drop_targets
+    assert slist.files_drop_target in drop_targets
 
 
 def test_delete_selection_extra_reselect() -> None:

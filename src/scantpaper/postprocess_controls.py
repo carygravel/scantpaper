@@ -12,7 +12,7 @@ from scantpaper.gobject import property_
 from scantpaper.i18n import _
 from scantpaper.tesseract import get_tesseract_codes, languages
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
@@ -38,16 +38,17 @@ class RotateControlRow(Gtk.Box):
         super().__init__(*args, **kwargs)
         self.cbutton = Gtk.CheckButton(label=_("Rotate"))
         self.cbutton.set_tooltip_text(_("Rotate image after scanning"))
-        self.pack_start(self.cbutton, expand=True, fill=True, padding=0)
+        self.append(self.cbutton)
+        self.cbutton.set_hexpand(True)
         self.side_cmbx = ComboBoxText(data=SIDE)
         self.side_cmbx.set_tooltip_text(_("Select side to rotate"))
-        self.pack_start(self.side_cmbx, expand=True, fill=True, padding=0)
+        self.append(self.side_cmbx)
+        self.side_cmbx.set_hexpand(True)
         self.angle_cmbx = ComboBoxText(data=ROTATE)
         self.angle_cmbx.set_tooltip_text(_("Select angle of rotation"))
-        self.pack_start(self.angle_cmbx, expand=True, fill=True, padding=0)
-        self.pack_end(
-            Gtk.Label(label=_("Anticlockwise")), expand=False, fill=True, padding=0
-        )
+        self.append(self.angle_cmbx)
+        self.angle_cmbx.set_hexpand(True)
+        self.append(Gtk.Label(label=_("Anticlockwise")))
 
 
 class RotateControls(Gtk.Box):
@@ -124,9 +125,10 @@ class RotateControls(Gtk.Box):
         super().__init__(*args, **kwargs)
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         self._side1 = RotateControlRow()
-        self.pack_start(self._side1, expand=True, fill=True, padding=0)
+        self.append(self._side1)
+        self._side1.set_vexpand(True)
         self._side2 = RotateControlRow()
-        self.pack_start(self._side2, expand=False, fill=False, padding=0)
+        self.append(self._side2)
         self._side1.cbutton.connect("toggled", self._toggled_rotate_callback)
         self._side2.cbutton.connect("toggled", self._update_attributes)
         self._side1.side_cmbx.connect("changed", self._toggled_rotate_side_callback)
@@ -346,7 +348,7 @@ class OCRControls(Gtk.Box):
         super().__init__(*args, **kwargs)
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         hboxo = Gtk.Box()
-        self.pack_start(hboxo, expand=False, fill=False, padding=0)
+        self.append(hboxo)
         self._active_button = Gtk.CheckButton(label=_("OCR scanned pages"))
         self._active_button.set_tooltip_text(_("OCR scanned pages"))
 
@@ -361,7 +363,8 @@ class OCRControls(Gtk.Box):
         elif self.active:
             self._active_button.set_active(self.active)
 
-        hboxo.pack_start(self._active_button, expand=True, fill=True, padding=0)
+        hboxo.append(self._active_button)
+        self._active_button.set_hexpand(True)
         hboxtl = None
 
         if tesseract:
@@ -374,7 +377,7 @@ class OCRControls(Gtk.Box):
 
         # Checkbox & SpinButton for threshold
         hboxt = Gtk.Box()
-        self.pack_start(hboxt, expand=False, fill=True, padding=0)
+        self.append(hboxt)
         self._threshold_button = Gtk.CheckButton(label=_("Threshold before OCR"))
         self._threshold_button.set_tooltip_text(
             _(
@@ -383,9 +386,8 @@ class OCRControls(Gtk.Box):
             )
         )
         self._threshold_button.set_active(self.threshold)
-        hboxt.pack_start(self._threshold_button, expand=False, fill=True, padding=0)
+        hboxt.append(self._threshold_button)
         labelp = Gtk.Label(label=PERCENT)
-        hboxt.pack_end(labelp, expand=False, fill=True, padding=0)
         self._threshold_spin = Gtk.SpinButton.new_with_range(0, 100, 1)
         self._threshold_spin.set_tooltip_text(
             _(
@@ -396,7 +398,8 @@ class OCRControls(Gtk.Box):
         )
         self._threshold_spin.set_value(self.threshold_value)
         self._threshold_spin.set_sensitive(self.threshold)
-        hboxt.pack_end(self._threshold_spin, expand=False, fill=True, padding=0)
+        hboxt.append(self._threshold_spin)
+        hboxt.append(labelp)
         self._threshold_button.connect(
             "toggled", self.on_toggled_threshold, self._threshold_spin
         )
@@ -424,9 +427,9 @@ class OCRControls(Gtk.Box):
 
     def _add_tess_languages(self) -> Gtk.Box:
         hbox = Gtk.Box()
-        self.pack_start(hbox, expand=False, fill=False, padding=0)
+        self.append(hbox)
         label = Gtk.Label(label=_("Language to recognise"))
-        hbox.pack_start(label, expand=False, fill=True, padding=0)
+        hbox.append(label)
 
         # Tesseract language files
         tesscodes = get_tesseract_codes()
@@ -439,5 +442,5 @@ class OCRControls(Gtk.Box):
             combobox.set_active(0)
             self.language = combobox.get_active_index()
         combobox.connect("changed", self.on_language_changed)
-        hbox.pack_end(combobox, expand=False, fill=True, padding=0)
+        hbox.append(combobox)
         return hbox

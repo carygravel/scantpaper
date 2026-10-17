@@ -15,7 +15,7 @@ from scantpaper.edit_menu_mixins import EditMenuMixins
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
@@ -390,19 +390,15 @@ def test_properties_dialog(
     assert mock_y_spin.set_numeric.call_args[0] == (False,)
     mock_x_spin.set_digits.assert_called()
     mock_y_spin.set_digits.assert_called()
-    mock_x_spin.connect.assert_any_call("focus-out-event", ANY)
+    mock_x_spin.add_controller.assert_called()
     mock_x_spin.connect.assert_any_call("activate", ANY)
-    mock_y_spin.connect.assert_any_call("focus-out-event", ANY)
+    mock_y_spin.add_controller.assert_called()
     mock_y_spin.connect.assert_any_call("activate", ANY)
 
     # Test apply callback
     args, _kwargs = mock_dialog_instance.add_actions.call_args
     actions = args[0]
-    apply_callback = None
-    for action_name, callback in actions:
-        if action_name == "gtk-ok":
-            apply_callback = callback
-            break
+    apply_callback = actions[0][1]
 
     assert apply_callback
 
@@ -492,7 +488,7 @@ def test_preferences_dialog(
     mock_pref_cls.assert_called_with(
         transient_for=mock_edit_window, settings=mock_edit_window.settings
     )
-    mock_pref_instance.show_all.assert_called_once()
+    mock_pref_instance.present.assert_called_once()
     mock_pref_instance.connect.assert_called_with(
         "changed-preferences", mock_edit_window._changed_preferences
     )

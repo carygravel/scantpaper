@@ -25,7 +25,12 @@ from scantpaper.dialog import Dialog
 from scantpaper.dialog.crop import Crop
 from scantpaper.dialog.save import Save as SaveDialog
 from scantpaper.file_menu_mixins import launch_default_for_file
-from scantpaper.helpers import collate_metadata, exec_command, expand_metadata_pattern
+from scantpaper.helpers import (
+    collate_metadata,
+    exec_command,
+    expand_metadata_pattern,
+    run_dialog,
+)
 from scantpaper.i18n import _
 from scantpaper.postprocess_controls import OCRControls
 
@@ -36,7 +41,7 @@ if TYPE_CHECKING:
 
     from scantpaper.basethread import Response
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     GLib,
@@ -106,11 +111,10 @@ class ToolsMenuMixins:
         # SpinButton for threshold
         hboxt = Gtk.Box()
         vbox = windowt.get_content_area()
-        vbox.pack_start(hboxt, expand=False, fill=True, padding=0)
+        vbox.append(hboxt)
         label = Gtk.Label(label=_("Ink strength"))
-        hboxt.pack_start(label, expand=False, fill=True, padding=0)
+        hboxt.append(label)
         labelp = Gtk.Label(label=PERCENT)
-        hboxt.pack_end(labelp, expand=False, fill=True, padding=0)
         spinbutton = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
         spinbutton.set_value(self.settings["threshold tool"])
         spinbutton.set_tooltip_text(
@@ -120,7 +124,8 @@ class ToolsMenuMixins:
                 "stronger marks."
             )
         )
-        hboxt.pack_end(spinbutton, expand=False, fill=True, padding=0)
+        hboxt.append(spinbutton)
+        hboxt.append(labelp)
 
         def threshold_apply_callback() -> None:
             self.settings["threshold tool"] = spinbutton.get_value()
@@ -148,11 +153,11 @@ class ToolsMenuMixins:
 
         windowt.add_actions(
             [
-                ("gtk-apply", threshold_apply_callback),
-                ("gtk-cancel", windowt.destroy),
+                (_("_Apply"), threshold_apply_callback),
+                (_("_Cancel"), windowt.destroy),
             ]
         )
-        windowt.show_all()
+        windowt.present()
 
     def brightness_contrast(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None
@@ -170,25 +175,25 @@ class ToolsMenuMixins:
         # SpinButton for brightness
         hbox = Gtk.Box()
         vbox = windowt.get_content_area()
-        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
+        vbox.append(hbox)
         label = Gtk.Label(label=_("Brightness"))
-        hbox.pack_start(label, expand=False, fill=True, padding=0)
+        hbox.append(label)
         label = Gtk.Label(label=PERCENT)
-        hbox.pack_end(label, expand=False, fill=True, padding=0)
         spinbuttonb = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
         spinbuttonb.set_value(self.settings["brightness tool"])
-        hbox.pack_end(spinbuttonb, expand=False, fill=True, padding=0)
+        hbox.append(spinbuttonb)
+        hbox.append(label)
 
         # SpinButton for contrast
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
+        vbox.append(hbox)
         label = Gtk.Label(label=_("Contrast"))
-        hbox.pack_start(label, expand=False, fill=True, padding=0)
+        hbox.append(label)
         label = Gtk.Label(label=PERCENT)
-        hbox.pack_end(label, expand=False, fill=True, padding=0)
         spinbuttonc = Gtk.SpinButton.new_with_range(0, _100_PERCENT, 1)
         spinbuttonc.set_value(self.settings["contrast tool"])
-        hbox.pack_end(spinbuttonc, expand=False, fill=True, padding=0)
+        hbox.append(spinbuttonc)
+        hbox.append(label)
 
         def brightness_contrast_callback() -> None:
             self.settings["brightness tool"] = spinbuttonb.get_value()
@@ -218,11 +223,11 @@ class ToolsMenuMixins:
 
         windowt.add_actions(
             [
-                ("gtk-apply", brightness_contrast_callback),
-                ("gtk-cancel", windowt.destroy),
+                (_("_Apply"), brightness_contrast_callback),
+                (_("_Cancel"), windowt.destroy),
             ]
         )
-        windowt.show_all()
+        windowt.present()
 
     def negate(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display page selector and on apply negate accordingly."""
@@ -257,9 +262,9 @@ class ToolsMenuMixins:
                 )
 
         windowt.add_actions(
-            [("gtk-apply", negate_callback), ("gtk-cancel", windowt.destroy)]
+            [(_("_Apply"), negate_callback), (_("_Cancel"), windowt.destroy)]
         )
-        windowt.show_all()
+        windowt.present()
 
     def unsharp(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display page selector and on apply unsharp accordingly."""
@@ -303,23 +308,25 @@ class ToolsMenuMixins:
         # grid for layout
         grid = Gtk.Grid()
         vbox = windowum.get_content_area()
-        vbox.pack_start(grid, expand=True, fill=True, padding=0)
+        vbox.append(grid)
+        grid.set_vexpand(True)
         for i, row in enumerate(layout):
             col = 0
             hbox = Gtk.Box()
             label = Gtk.Label(label=row[col])
             grid.attach(hbox, col, i, 1, 1)
             col += 1
-            hbox.pack_start(label, expand=False, fill=True, padding=0)
+            hbox.append(label)
             hbox = Gtk.Box()
-            hbox.pack_end(row[col], expand=True, fill=True, padding=0)
+            hbox.append(row[col])
+            hbox.set_hexpand(True)
             grid.attach(hbox, col, i, 1, 1)
             col += 1
             if len(row) > col and row[col] is not None:
                 hbox = Gtk.Box()
                 grid.attach(hbox, col, i, 1, 1)
                 label = Gtk.Label(label=row[col])
-                hbox.pack_start(label, expand=False, fill=True, padding=0)
+                hbox.append(label)
 
             col += 1
             if len(row) > col and row[col] is not None:
@@ -358,9 +365,9 @@ class ToolsMenuMixins:
                 )
 
         windowum.add_actions(
-            [("gtk-apply", unsharp_callback), ("gtk-cancel", windowum.destroy)]
+            [(_("_Apply"), unsharp_callback), (_("_Cancel"), windowum.destroy)]
         )
-        windowum.show_all()
+        windowum.present()
 
     def crop_dialog(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None
@@ -400,9 +407,9 @@ class ToolsMenuMixins:
             )
 
         self._windowc.add_actions(
-            [("gtk-apply", crop_callback), ("gtk-cancel", self._windowc.hide)]
+            [(_("_Apply"), crop_callback), (_("_Cancel"), self._windowc.hide)]
         )
-        self._windowc.show_all()
+        self._windowc.present()
 
     def crop_selection(
         self,
@@ -457,9 +464,9 @@ class ToolsMenuMixins:
         windowsp.add_page_range()
         hbox = Gtk.Box()
         vbox = windowsp.get_content_area()
-        vbox.pack_start(hbox, expand=False, fill=False, padding=0)
+        vbox.append(hbox)
         label = Gtk.Label(label=_("Direction"))
-        hbox.pack_start(label, expand=False, fill=True, padding=0)
+        hbox.append(label)
         direction = [
             [
                 "v",
@@ -487,14 +494,14 @@ class ToolsMenuMixins:
 
         combob.connect("changed", changed_split_direction)
         combob.set_active_index("v")
-        hbox.pack_end(combob, expand=False, fill=True, padding=0)
+        hbox.append(combob)
 
         # SpinButton for position
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=False, fill=True, padding=0)
+        vbox.append(hbox)
         label = Gtk.Label(label=_("Position"))
-        hbox.pack_start(label, expand=False, fill=True, padding=0)
-        hbox.pack_end(sb_pos, expand=False, fill=True, padding=0)
+        hbox.append(label)
+        hbox.append(sb_pos)
         sb_pos.connect(
             "value-changed",
             lambda _: self._update_view_position(
@@ -523,7 +530,7 @@ class ToolsMenuMixins:
         windowsp.add_actions(
             [
                 (
-                    "gtk-apply",
+                    _("_Apply"),
                     partial(
                         self._split_apply_callback,
                         windowsp,
@@ -533,12 +540,12 @@ class ToolsMenuMixins:
                     ),
                 ),
                 (
-                    "gtk-cancel",
+                    _("_Cancel"),
                     split_cancel_callback,
                 ),
             ]
         )
-        windowsp.show_all()
+        windowsp.present()
 
     def _split_apply_callback(
         self,
@@ -640,9 +647,9 @@ class ToolsMenuMixins:
             self._windowu.hide()
 
         self._windowu.add_actions(
-            [("gtk-ok", unpaper_apply_callback), ("gtk-cancel", self._windowu.hide)]
+            [(_("_OK"), unpaper_apply_callback), (_("_Cancel"), self._windowu.hide)]
         )
-        self._windowu.show_all()
+        self._windowu.present()
 
     def ocr_dialog(
         self, _action: Gio.SimpleAction, _parma: GLib.Variant | None
@@ -671,7 +678,7 @@ class ToolsMenuMixins:
             threshold_value=self.settings["threshold tool"],
         )
         vbox = self._windowo.get_content_area()
-        vbox.pack_start(ocr_controls, expand=False, fill=True, padding=0)
+        vbox.append(ocr_controls)
 
         def ocr_apply_callback() -> None:
             self._run_ocr(
@@ -682,9 +689,9 @@ class ToolsMenuMixins:
             )
 
         self._windowo.add_actions(
-            [("gtk-ok", ocr_apply_callback), ("gtk-cancel", self._windowo.hide)]
+            [(_("_OK"), ocr_apply_callback), (_("_Cancel"), self._windowo.hide)]
         )
-        self._windowo.show_all()
+        self._windowo.present()
 
     def _run_ocr(
         self,
@@ -744,14 +751,14 @@ class ToolsMenuMixins:
         windowudt.add_page_range()
         hbox = Gtk.Box()
         vbox = windowudt.get_content_area()
-        vbox.pack_start(hbox, expand=False, fill=False, padding=0)
+        vbox.append(hbox)
         label = Gtk.Label(label=_("Selected tool"))
-        hbox.pack_start(label, expand=False, fill=True, padding=0)
+        hbox.append(label)
         self._pref_udt_cmbx = self._add_udt_combobox(hbox)
 
         batch_button = Gtk.CheckButton(label=_("Process selected pages at once"))
         batch_button.set_active(False)
-        vbox.pack_start(batch_button, expand=False, fill=False, padding=0)
+        vbox.append(batch_button)
 
         def udt_apply_callback() -> None:
             self.settings["Page range"] = windowudt.page_range
@@ -783,9 +790,9 @@ class ToolsMenuMixins:
             windowudt.hide()
 
         windowudt.add_actions(
-            [("gtk-ok", udt_apply_callback), ("gtk-cancel", windowudt.hide)]
+            [(_("_OK"), udt_apply_callback), (_("_Cancel"), windowudt.hide)]
         )
-        windowudt.show_all()
+        windowudt.present()
 
     def _apply_udt_batch(self, pagelist: Iterator[object], command: str | None) -> None:
         """Run a user-defined tool on all selected pages at once."""
@@ -950,9 +957,9 @@ class ToolsMenuMixins:
             self._windowe.hide()
 
         self._windowe.add_actions(
-            [("gtk-ok", email_callback), ("gtk-cancel", self._windowe.hide)]
+            [(_("_OK"), email_callback), (_("_Cancel"), self._windowe.hide)]
         )
-        self._windowe.show_all()
+        self._windowe.present()
 
     def about(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display about dialog."""
@@ -1057,5 +1064,5 @@ class ToolsMenuMixins:
         about.set_artists(["lodp, Andreas E."])
         about.set_logo_icon_name("scantpaper")
         about.set_transient_for(self)
-        about.run()
+        run_dialog(about)
         about.destroy()

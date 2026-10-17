@@ -17,7 +17,7 @@ from scantpaper.dialog.pagecontrols import (
 from scantpaper.dialog.scan import Scan
 from scantpaper.document import Document
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 if TYPE_CHECKING:
@@ -56,6 +56,57 @@ def test_do_start_page_changed() -> None:
     assert page_controls.page_number_start == 5
 
 
+def test_do_clicked_scan_all() -> None:
+    """Test that activating the 'all pages' button selects all pages."""
+    page_controls = PageControls()
+    page_controls.allow_batch_flatbed = True
+    page_controls.num_pages = 3
+
+    bscanall = MagicMock()
+    bscanall.get_active.return_value = True
+    page_controls._do_clicked_scan_all(bscanall, None)
+    assert page_controls.num_pages == 0, "all pages selected"
+
+    page_controls.num_pages = 3
+    bscanall.get_active.return_value = False
+    page_controls._do_clicked_scan_all(bscanall, None)
+    assert page_controls.num_pages == 3, "inactive button leaves num_pages alone"
+
+
+def test_do_clicked_scan_number() -> None:
+    """Test that activating the '# pages' button takes the spin button value."""
+    page_controls = PageControls()
+    page_controls.allow_batch_flatbed = True
+    page_controls.num_pages = 0
+
+    bscannum = MagicMock()
+    bscannum.get_active.return_value = True
+    spin_buttonn = MagicMock()
+    spin_buttonn.get_value.return_value = 5
+
+    page_controls._do_clicked_scan_number(bscannum, spin_buttonn)
+    assert page_controls.num_pages == 5, "page count taken from the spin button"
+
+    page_controls.num_pages = 0
+    bscannum.get_active.return_value = False
+    page_controls._do_clicked_scan_number(bscannum, spin_buttonn)
+    assert page_controls.num_pages == 0, "inactive button leaves num_pages alone"
+
+
+def test_do_buttons_clicked() -> None:
+    """Test that the sided buttons set the sided property."""
+    page_controls = PageControls()
+
+    buttons = MagicMock()
+    buttons.get_active.return_value = True
+    page_controls._do_buttons_clicked(buttons)
+    assert page_controls.sided == "single"
+
+    buttons.get_active.return_value = False
+    page_controls._do_buttons_clicked(buttons)
+    assert page_controls.sided == "double"
+
+
 def test_reset_batch() -> None:
     """Test that _reset_batch clears the facing batch tracking."""
     page_controls = PageControls()
@@ -91,14 +142,14 @@ def test_extended_pagenumber_checkbox_callback() -> None:
     widget.get_active.return_value = True
     _extended_pagenumber_checkbox_callback(widget, None, [page_controls])
     page_controls.frames.hide.assert_called_once()
-    page_controls.framex.show_all.assert_called_once()
+    page_controls.framex.show.assert_called_once()
 
     # Extended numbering inactive
     page_controls.frames.hide.reset_mock()
-    page_controls.framex.show_all.reset_mock()
+    page_controls.framex.show.reset_mock()
     widget.get_active.return_value = False
     _extended_pagenumber_checkbox_callback(widget, None, [page_controls])
-    page_controls.frames.show_all.assert_called_once()
+    page_controls.frames.show.assert_called_once()
     page_controls.framex.hide.assert_called_once()
 
 

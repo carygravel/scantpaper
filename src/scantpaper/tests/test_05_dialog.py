@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import gi
 
 from scantpaper.dialog import Dialog, MultipleMessage
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     Gtk,
@@ -26,45 +28,35 @@ def test_dialog() -> None:
     assert dialog.page_range == "selected", "default page-range"
 
     dialog = Dialog()
-
-    finalized = False
-
-    def on_finalized() -> None:
-        nonlocal finalized
-        finalized = True
-
-    dialog.weak_ref(on_finalized)
-    dialog.emit("delete_event", None)
-    assert finalized, "destroyed on delete_event"
+    with patch.object(Dialog, "destroy", autospec=True) as mock_destroy:
+        dialog.emit("close-request")
+        mock_destroy.assert_called_once()
 
     dialog = Dialog(hide_on_delete=True)
-    dialog.emit("delete_event", None)
-    assert isinstance(dialog, Dialog), "not destroyed on delete_event"
-    assert not dialog.get_visible(), "hidden on delete_event"
+    with patch.object(Dialog, "destroy", autospec=True) as mock_destroy:
+        dialog.emit("close-request")
+        mock_destroy.assert_not_called()
+    assert not dialog.get_visible(), "hidden on close-request"
 
-    finalized = False
     dialog = Dialog()
-    event = Gdk.Event().new(Gdk.EventType.KEY_PRESS)
-    event.keyval = Gdk.KEY_Escape
-    dialog.weak_ref(on_finalized)
-    dialog.emit("key_press_event", event)
-    assert finalized, "destroyed on escape"
+    with patch.object(Dialog, "destroy", autospec=True) as mock_destroy:
+        assert (
+            dialog._on_key_pressed(None, Gdk.KEY_Escape, 0, Gdk.ModifierType(0)) is True
+        )
+        mock_destroy.assert_called_once()
 
     dialog = Dialog(hide_on_delete=True)
-    dialog.weak_ref(on_finalized)
-    dialog.emit("key_press_event", event)
-    assert isinstance(dialog, Dialog), "not destroyed on escape"
+    with patch.object(Dialog, "destroy", autospec=True) as mock_destroy:
+        assert (
+            dialog._on_key_pressed(None, Gdk.KEY_Escape, 0, Gdk.ModifierType(0)) is True
+        )
+        mock_destroy.assert_not_called()
     assert not dialog.get_visible(), "hidden on escape"
 
     dialog = Dialog()
-
-    def on_key_press_event(_widget: Gtk.Widget, _event: Gdk.Event) -> None:
-        assert event.keyval == Gdk.KEY_Delete, "other key press events still propagate"
-
-    dialog.connect_after("key-press-event", on_key_press_event)
-    event = Gdk.Event().new(Gdk.EventType.KEY_PRESS)
-    event.keyval = Gdk.KEY_Delete
-    dialog.emit("key_press_event", event)
+    assert (
+        dialog._on_key_pressed(None, Gdk.KEY_Delete, 0, Gdk.ModifierType(0)) is False
+    ), "other key press events still propagate"
 
     dialog = Dialog()
     dialog.response(Gtk.ResponseType.NONE)
@@ -135,7 +127,7 @@ def test_dialog_page_range() -> None:
 
     # Traverse the widget tree to find PageRange
     content_area = dialog.get_content_area()
-    frame = content_area.get_children()[0]
+    frame = next(iter(content_area.observe_children()))
     prng = frame.get_child()
 
     assert prng.get_active() == "selected", "default page-range"

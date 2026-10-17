@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, tzinfo
 from typing import TYPE_CHECKING, Any, cast
+from unittest.mock import MagicMock
 
 import gi
 from typing_extensions import override
@@ -14,8 +15,8 @@ from scantpaper.dialog.save import Save
 if TYPE_CHECKING:
     import pytest
 
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # noqa: E402
+gi.require_version("Gtk", "4.0")
+from gi.repository import GLib, Gtk  # noqa: E402
 
 _LOCAL_TZ = datetime.now().astimezone().tzinfo
 
@@ -147,13 +148,13 @@ def test_image_type_selection(mocker: pytest.MockerFixture) -> None:
 
     dialog.add_image_type()
 
-    def find_combobox(container: Gtk.Container) -> Gtk.ComboBox | None:
+    def find_combobox(container: Gtk.Widget) -> Gtk.ComboBox | None:
         """Find the image type combobox by searching children."""
         cb = None
-        for child in container.get_children():
+        for child in list(container.observe_children()):
             if not isinstance(child, Gtk.Box) or child == dialog._meta_box_widget:
                 continue
-            grand_children = child.get_children()
+            grand_children = list(child.observe_children())
             has_label = any(
                 isinstance(gc, Gtk.Label) and gc.get_text() == "Document type"
                 for gc in grand_children
@@ -211,7 +212,8 @@ def test_pdf_options(mocker: pytest.MockerFixture) -> None:
     # Capture the actions passed to add_actions
     args, _ = mock_instance.add_actions.call_args
     actions = args[0]
-    ok_callback = next(cb for name, cb in actions if name == "gtk-ok")
+    # add_actions maps the buttons positionally: confirm first
+    ok_callback = actions[0][1]
 
     # Now we need to set the text in the userentry.
     # But we don't have reference to userentry. It was created locally.
@@ -219,12 +221,12 @@ def test_pdf_options(mocker: pytest.MockerFixture) -> None:
     # The grid was added to passvbox (the mock content area).
     # passvbox.pack_start(grid, ...) called.
     # args[0] of pack_start is the grid.
-    pack_args, _ = mock_content_area.pack_start.call_args
+    pack_args, _ = mock_content_area.append.call_args
     grid = pack_args[0]
 
     # Find entry in grid
     userentry = None
-    for child in grid.get_children():
+    for child in list(grid.observe_children()):
         if isinstance(child, Gtk.Entry):
             userentry = child
             break
@@ -357,17 +359,25 @@ def test_edit_date_button(mocker: pytest.MockerFixture) -> None:
 
     # Simulate day selection on calendar
     mocker.patch.object(
-        calendar, "get_date", return_value=(2021, 1, 2)
+        calendar,
+        "get_date",
+        return_value=GLib.DateTime.new_local(2021, 2, 2, 0, 0, 0),
     )  # 2021, Feb 2nd
     calendar.emit("day-selected")
     assert dialog.meta_datetime == datetime(2021, 2, 2, tzinfo=_LOCAL_TZ)
 
-    # Simulate double click
-    calendar.emit("day-selected-double-click")
+    # Simulate double click: GTK4 replaced the day-selected-double-click signal
+    # with a Gtk.GestureClick
+    gesture = next(
+        c
+        for c in list(calendar.observe_controllers())
+        if isinstance(c, Gtk.GestureClick)
+    )
+    gesture.emit("pressed", 2, 0.0, 0.0)
     passwin.destroy.assert_called_once()
 
     # Simulate "Today" button click
-    today_b.clicked()
+    today_b.emit("clicked")
     expected_today = datetime.now(_LOCAL_TZ).date().isoformat()
     assert dialog._meta_datetime_widget.get_text() == expected_today
 
@@ -429,7 +439,7 @@ def test_datetime_focus_out(mocker: pytest.MockerFixture) -> None:
     entry.get_buffer().set_text("2022-02-22", -1)
 
     # Simulate focus out
-    dialog._datetime_focus_out_callback(entry, None)
+    dialog._datetime_focus_out_callback(MagicMock())
     # DTZ001 — widget text parses via naive fromisoformat, matching tz-less user entry
     assert dialog.meta_datetime == datetime(2022, 2, 22)  # noqa: DTZ001
 
@@ -461,14 +471,14 @@ def test_tiff_compression_selection(mocker: pytest.MockerFixture) -> None:
     assert combobtc is not None, "Could not find Compression ComboBox"
 
     def find_box_containing_label(
-        container: Gtk.Container, label_text: str
+        container: Gtk.Widget, label_text: str
     ) -> Gtk.Box | None:
         """Find a Box that contains a Label with the given text."""
         box = None
-        for child in container.get_children():
+        for child in list(container.observe_children()):
             if any(
                 isinstance(gc, Gtk.Label) and gc.get_text() == label_text
-                for gc in child.get_children()
+                for gc in list(child.observe_children())
             ):
                 box = child
                 break
@@ -486,16 +496,15 @@ def test_tiff_compression_selection(mocker: pytest.MockerFixture) -> None:
     combobtc.set_active_index("lzw")
     assert dialog.tiff_compression == "lzw"
     assert not hboxtq.get_visible()
-    dialog.resize.assert_called()
 
 
 def find_widget_by_label(
-    container: Gtk.Container, label_text: str, widget_type: type[Gtk.Widget]
+    container: Gtk.Widget, label_text: str, widget_type: type[Gtk.Widget]
 ) -> Gtk.Widget | None:
     """Find a widget by its sibling label text."""
     widget = None
-    for child in container.get_children():
-        grand_children = child.get_children()
+    for child in list(container.observe_children()):
+        grand_children = list(child.observe_children())
         has_label = any(
             isinstance(gc, Gtk.Label) and gc.get_text() == label_text
             for gc in grand_children
@@ -508,11 +517,9 @@ def find_widget_by_label(
     return widget
 
 
-def find_checkbutton(
-    container: Gtk.Container, label_text: str
-) -> Gtk.CheckButton | None:
+def find_checkbutton(container: Gtk.Widget, label_text: str) -> Gtk.CheckButton | None:
     """Find a checkbutton by its label text."""
-    for child in container.get_children():
+    for child in list(container.observe_children()):
         if isinstance(child, Gtk.CheckButton) and child.get_label() == label_text:
             return child
         if isinstance(child, Gtk.Box):
@@ -523,13 +530,13 @@ def find_checkbutton(
 
 
 def find_all_spinbuttons_near_label(
-    container: Gtk.Container, label_text: str
+    container: Gtk.Widget, label_text: str
 ) -> list[Gtk.SpinButton]:
     """Find all spinbuttons that share a box with a label."""
     found = []
-    for child in container.get_children():
+    for child in list(container.observe_children()):
         if isinstance(child, Gtk.Box):
-            grand_children = child.get_children()
+            grand_children = list(child.observe_children())
             if any(
                 isinstance(gc, Gtk.Label) and gc.get_text() == label_text
                 for gc in grand_children

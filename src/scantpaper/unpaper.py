@@ -15,7 +15,7 @@ from scantpaper.i18n import _
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -257,7 +257,11 @@ class Unpaper:
 
     def _add_notebook_page_1(self, vbox: Gtk.Box, options: dict[str, Any]) -> Gtk.Box:
         vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox1.set_border_width(vbox.get_border_width())
+        margin = vbox.get_margin_top()
+        vbox1.set_margin_top(margin)
+        vbox1.set_margin_bottom(margin)
+        vbox1.set_margin_start(margin)
+        vbox1.set_margin_end(margin)
         dsbutton = self.add_widget(vbox1, options, "no-deskew")
 
         # Frame for Deskew Scan Direction
@@ -283,7 +287,11 @@ class Unpaper:
 
     def _add_notebook_page_2(self, vbox: Gtk.Box, options: dict[str, Any]) -> Gtk.Box:
         vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox2.set_border_width(vbox.get_border_width())
+        margin = vbox.get_margin_top()
+        vbox2.set_margin_top(margin)
+        vbox2.set_margin_bottom(margin)
+        vbox2.set_margin_start(margin)
+        vbox2.set_margin_end(margin)
         bsbutton = self.add_widget(vbox2, options, "no-border-scan")
         babutton = self.add_widget(vbox2, options, "no-border-align")
 
@@ -350,7 +358,8 @@ class Unpaper:
 
         # Notebook to collate options
         notebook = Gtk.Notebook()
-        vbox.pack_start(notebook, expand=True, fill=True, padding=0)
+        vbox.append(notebook)
+        notebook.set_vexpand(True)
 
         vbox1 = self._add_notebook_page_1(vbox, options)
         notebook.append_page(vbox1, Gtk.Label(label=_("Deskew")))
@@ -361,7 +370,11 @@ class Unpaper:
 
         # Notebook page 3
         vbox3 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox3.set_border_width(vbox.get_border_width())
+        margin = vbox.get_margin_top()
+        vbox3.set_margin_top(margin)
+        vbox3.set_margin_bottom(margin)
+        vbox3.set_margin_start(margin)
+        vbox3.set_margin_end(margin)
         notebook.append_page(vbox3, Gtk.Label(label=_("Filters")))
         self.add_widget(vbox3, options, "white-threshold")
         self.add_widget(vbox3, options, "black-threshold")
@@ -388,11 +401,12 @@ class Unpaper:
         self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.ComboBoxText:
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=hashref[option]["string"])
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         widget = Gtk.ComboBoxText()
-        hbox.pack_end(widget, expand=False, fill=False, padding=0)
+        hbox.append(widget)
 
         # Add text and tooltips
         tooltip = []
@@ -413,17 +427,23 @@ class Unpaper:
     ) -> Gtk.CheckButton:
         widget = Gtk.CheckButton(label=hashref[option]["string"])
         widget.set_tooltip_text(hashref[option]["tooltip"])
-        vbox.pack_start(widget, expand=True, fill=True, padding=0)
+        vbox.append(widget)
+        widget.set_vexpand(True)
         return widget
 
     def _add_checkbuttongroup(
         self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.Frame:
         widget = Gtk.Frame(label=hashref[option]["string"])
-        vbox.pack_start(widget, expand=True, fill=True, padding=0)
+        vbox.append(widget)
+        widget.set_vexpand(True)
         vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vboxf.set_border_width(vbox.get_border_width())
-        widget.add(vboxf)
+        margin = vbox.get_margin_top()
+        vboxf.set_margin_top(margin)
+        vboxf.set_margin_bottom(margin)
+        vboxf.set_margin_start(margin)
+        vboxf.set_margin_end(margin)
+        widget.set_child(vboxf)
         widget.set_tooltip_text(hashref[option]["tooltip"])
         for key in hashref[option]["options"]:
             self.add_widget(vboxf, hashref[option]["options"], key)
@@ -434,13 +454,14 @@ class Unpaper:
     ) -> Gtk.SpinButton:
         default = self.default
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=hashref[option]["string"])
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         widget = Gtk.SpinButton.new_with_range(
             hashref[option]["min"], hashref[option]["max"], hashref[option]["step"]
         )
-        hbox.pack_end(widget, expand=False, fill=False, padding=0)
+        hbox.append(widget)
         widget.set_tooltip_text(hashref[option]["tooltip"])
         if option in default:
             widget.set_value(default[option])
@@ -452,10 +473,15 @@ class Unpaper:
         self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.Frame:
         widget = Gtk.Frame(label=hashref[option]["string"])
-        vbox.pack_start(widget, expand=True, fill=True, padding=0)
+        vbox.append(widget)
+        widget.set_vexpand(True)
         vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vboxf.set_border_width(vbox.get_border_width())
-        widget.add(vboxf)
+        margin = vbox.get_margin_top()
+        vboxf.set_margin_top(margin)
+        vboxf.set_margin_bottom(margin)
+        vboxf.set_margin_start(margin)
+        vboxf.set_margin_end(margin)
+        widget.set_child(vboxf)
         for key in sorted(hashref[option]["options"].keys()):
             self.add_widget(vboxf, hashref[option]["options"], key)
         return widget
@@ -643,7 +669,10 @@ class Unpaper:
 def count_active_children(frame: Gtk.Frame) -> int:
     """Count active children in the frame."""
     num = 0
-    for child in frame.get_child().get_children():
+    child_widget = frame.get_child()
+    if child_widget is None:
+        return num
+    for child in list(child_widget.observe_children()):
         if child.get_active():
             num += 1
     return num

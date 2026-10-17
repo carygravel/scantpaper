@@ -48,6 +48,10 @@ PERCENT = "%"
 SPACE = " "
 ZOOM_CONTEXT_FACTOR = 0.5
 ANNOTATION_COLOR = "cccf00"
+# GTK4 removed the Gtk.STYLE_CLASS_* constants; the CSS class names are the
+# same strings in the default theme.
+STYLE_CLASS_BACKGROUND = "background"
+STYLE_CLASS_RUBBERBAND = "rubberband"
 
 BITS_PER_BYTE = 8
 CM_PER_INCH = 2.54

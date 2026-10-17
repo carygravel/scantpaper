@@ -22,7 +22,9 @@ from scantpaper.gobject import property_
 from scantpaper.helpers import (
     _weak_callback,
     format_number_precise,
+    pack_box,
     parse_number,
+    run_dialog,
     show_message_dialog,
     spin_step,
 )
@@ -395,14 +397,13 @@ class Scan(PageControls):
     @cursor.setter
     def cursor(self, newval: str | None) -> None:
         """Set the cursor."""
-        win = self.get_window()
         if newval is None:
             return
         self._cursor = newval
 
-        if win is not None:
-            display = Gdk.Display.get_default()
-            win.set_cursor(Gdk.Cursor.new_from_name(display, newval))
+        # GTK4: set the cursor on the widget itself; cursors are created
+        # without a display argument.
+        self.set_cursor(Gdk.Cursor.new_from_name(newval, None))
 
         self.scan_button.set_sensitive(newval == "default")
 
@@ -445,13 +446,9 @@ class Scan(PageControls):
         # Scan profiles
         self.profiles = {}
         framesp = Gtk.Frame(label=_("Scan profiles"))
-        self._notebook_pages[0].pack_start(framesp, expand=False, fill=False, padding=0)
+        self._notebook_pages[0].append(framesp)
         vboxsp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        border_width = (
-            self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
-        )  # ._get('content-area-border')
-        vboxsp.set_border_width(border_width)
-        framesp.add(vboxsp)
+        framesp.set_child(vboxsp)
         self.combobsp = ComboBoxText()
         for profile in profiles:
             self._add_profile(
@@ -464,41 +461,41 @@ class Scan(PageControls):
         self.combobsp_changed_signal = self.combobsp.connect(
             "changed", _weak_callback(self, "_do_profile_changed")
         )
-        vboxsp.pack_start(self.combobsp, expand=False, fill=False, padding=0)
+        vboxsp.append(self.combobsp)
         hboxsp = Gtk.Box()
-        vboxsp.pack_end(hboxsp, expand=False, fill=False, padding=0)
+        vboxsp.append(hboxsp)
 
         # Save button
         ref = weakref.ref(self)
-        icon = Gtk.Image.new_from_icon_name("document-save", Gtk.IconSize.BUTTON)
+        icon = Gtk.Image.new_from_icon_name("document-save")
         vbutton = Gtk.Button()
-        vbutton.set_image(icon)
+        vbutton.set_child(icon)
         vbutton.connect(
             "clicked", lambda w: _save_profile_callback(w, cast("Scan", ref()))
         )
-        hboxsp.pack_start(vbutton, expand=True, fill=True, padding=0)
+        pack_box(hboxsp, vbutton, expand=True)
 
         # Edit button
-        icon = Gtk.Image.new_from_icon_name("document-edit", Gtk.IconSize.BUTTON)
+        icon = Gtk.Image.new_from_icon_name("document-edit")
         ebutton = Gtk.Button()
-        ebutton.set_image(icon)
+        ebutton.set_child(icon)
         ebutton.connect(
             "clicked", lambda w: _edit_profile_callback(w, cast("Scan", ref()))
         )
-        hboxsp.pack_start(ebutton, expand=False, fill=False, padding=0)
+        hboxsp.append(ebutton)
 
         # Delete button
-        icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)
+        icon = Gtk.Image.new_from_icon_name("edit-delete")
         dbutton = Gtk.Button()
-        dbutton.set_image(icon)
+        dbutton.set_child(icon)
         dbutton.connect(
             "clicked",
             lambda _x: ref() and ref().remove_profile(ref().combobsp.get_active_text()),
         )
-        hboxsp.pack_start(dbutton, expand=False, fill=False, padding=0)
+        hboxsp.append(dbutton)
 
         self.scan_button = self.add_actions(
-            [(_("Scan"), self._do_scan), ("gtk-close", self.hide)]
+            [(_("Scan"), self._do_scan), (_("_Close"), self.hide)]
         )[0]
 
         # initialise stack of uuids - needed for cases where setting a profile
@@ -513,7 +510,7 @@ class Scan(PageControls):
     def _add_device_combobox(self) -> None:
         self.hboxd = Gtk.Box()
         labeld = Gtk.Label(label=_("Device"))
-        self.hboxd.pack_start(labeld, expand=False, fill=False, padding=0)
+        self.hboxd.append(labeld)
         self.combobd = ComboBoxText()
         self.combobd.append_text(_("Rescan for devices"))
 
@@ -551,10 +548,8 @@ class Scan(PageControls):
 
         self.connect("changed-device", do_changed_device)
         self.combobd.set_tooltip_text(_("Sets the device to be used for the scan"))
-        self.hboxd.pack_end(self.combobd, expand=False, fill=False, padding=0)
-        self.get_content_area().pack_start(
-            self.hboxd, expand=False, fill=False, padding=0
-        )
+        self.hboxd.append(self.combobd)
+        self.get_content_area().append(self.hboxd)
 
     def _do_scan(self) -> None:
         self.emit("clicked-scan-button")
@@ -627,19 +622,18 @@ class Scan(PageControls):
         """Pack the given widget in the dialog."""
         options, opt, hbox, hboxp = data
         if widget is not None:
+            if opt.type == enums.TYPE_BUTTON:
+                pack_box(hbox, widget, expand=True)
+
+            else:
+                hbox.append(widget)
+
             # Add label for units
             unit_text = self._unit_text(opt.unit)
             if unit_text is not None:
-                hbox.pack_end(
-                    Gtk.Label(label=unit_text), expand=False, fill=False, padding=0
-                )
+                hbox.append(Gtk.Label(label=unit_text))
 
             self.option_widgets[opt.name] = widget
-            if opt.type == enums.TYPE_BUTTON:
-                hbox.pack_end(widget, expand=True, fill=True, padding=0)
-
-            else:
-                hbox.pack_end(widget, expand=False, fill=False, padding=0)
 
             widget.set_tooltip_text(d_sane(opt.desc))
 
@@ -685,12 +679,12 @@ class Scan(PageControls):
 
         # Paper list
         label = Gtk.Label(label=_("Paper size"))
-        hboxp.pack_start(label, expand=False, fill=False, padding=0)
+        hboxp.append(label)
         self.combobp = ComboBoxText()
         self.combobp.append_text(_("Manual"))
         self.combobp.append_text(_("Edit"))
         self.combobp.set_tooltip_text(_("Selects or edits the paper size"))
-        hboxp.pack_end(self.combobp, expand=False, fill=False, padding=0)
+        hboxp.append(self.combobp)
         self.combobp.set_active(0)
         self.combobp.connect("changed", self._do_paper_size_changed)
 
@@ -717,7 +711,7 @@ class Scan(PageControls):
                 "page-width",
             ):
                 if option in self._geometry_boxes:
-                    self._geometry_boxes[option].show_all()
+                    self._geometry_boxes[option].show()
 
             self.paper = None
         else:
@@ -1031,28 +1025,30 @@ class Scan(PageControls):
         vbox = window.get_content_area()
 
         hboxl = Gtk.Box()
-        vbox.pack_start(hboxl, expand=False, fill=False, padding=0)
+        vbox.append(hboxl)
         vboxb = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        hboxl.pack_start(vboxb, expand=False, fill=False, padding=0)
-        icon = Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON)
+        hboxl.append(vboxb)
+        icon = Gtk.Image.new_from_icon_name("list-add")
         dbutton = Gtk.Button()
-        dbutton.set_image(icon)
-        vboxb.pack_start(dbutton, expand=True, fill=False, padding=0)
-        icon = Gtk.Image.new_from_icon_name("list-remove", Gtk.IconSize.BUTTON)
+        dbutton.set_child(icon)
+        pack_box(vboxb, dbutton, expand=True)
+        dbutton.set_halign(Gtk.Align.START)
+        icon = Gtk.Image.new_from_icon_name("list-remove")
         rbutton = Gtk.Button()
-        rbutton.set_image(icon)
-        vboxb.pack_end(rbutton, expand=True, fill=False, padding=0)
+        rbutton.set_child(icon)
+        pack_box(vboxb, rbutton, expand=True)
+        rbutton.set_halign(Gtk.Align.START)
 
         slist = PaperList(self.paper_sizes)
         dbutton.connect("clicked", slist.do_add_clicked)
         rbutton.connect("clicked", slist.do_remove_paper, self)
         slist.get_model().connect("row-changed", slist.do_paper_sizes_row_changed)
 
-        hboxl.pack_end(slist, expand=False, fill=False, padding=0)
+        hboxl.append(slist)
 
         # Buttons
         hboxb = Gtk.Box()
-        vbox.pack_start(hboxb, expand=False, fill=False, padding=0)
+        vbox.append(hboxb)
         abutton = Gtk.Button.new_with_label(_("Apply"))
 
         def do_apply_paper_sizes(_widget: Gtk.Button) -> None:
@@ -1081,7 +1077,8 @@ class Scan(PageControls):
             window.destroy()
 
         abutton.connect("clicked", do_apply_paper_sizes)
-        hboxb.pack_start(abutton, expand=True, fill=False, padding=0)
+        pack_box(hboxb, abutton, expand=True)
+        abutton.set_valign(Gtk.Align.START)
         cbutton = Gtk.Button.new_with_label(_("Cancel"))
 
         def do_cancel_paper_sizes(_widget: Gtk.Button) -> None:
@@ -1090,8 +1087,9 @@ class Scan(PageControls):
             window.destroy()
 
         cbutton.connect("clicked", do_cancel_paper_sizes)
-        hboxb.pack_end(cbutton, expand=True, fill=False, padding=0)
-        window.show_all()
+        pack_box(hboxb, cbutton, expand=True)
+        cbutton.set_valign(Gtk.Align.START)
+        window.present()
 
     def save_current_profile(self, name: str) -> None:
         """Save the current profile for testing as a separate sub."""
@@ -1509,8 +1507,10 @@ class Scan(PageControls):
     def _get_label_for_option(self, name: str) -> str | None:
         """Return the label text of the option."""
         widget = self.option_widgets[name]
-        hbox = widget.get_parent()
-        for child in hbox.get_children():
+        # Option widgets are always packed into their hbox before being
+        # recorded in option_widgets and are never re-parented.
+        hbox = cast("Gtk.Widget", widget.get_parent())
+        for child in list(hbox.observe_children()):
             if isinstance(child, Gtk.Label):
                 return cast("str | None", (child.get_text()))
         return None
@@ -1521,7 +1521,7 @@ class Scan(PageControls):
         name: str,
         value: object,
         _uuid: object,
-        bscannum: Gtk.RadioButton,
+        bscannum: Gtk.CheckButton,
     ) -> None:
         options = self.available_scan_options
         opt = options.by_name("source")
@@ -1574,20 +1574,19 @@ def _save_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
         destroy_with_parent=True,
     )
     dialog.add_buttons(
-        Gtk.STOCK_OK, Gtk.ResponseType.OK, Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL
+        _("OK"), Gtk.ResponseType.OK, _("Cancel"), Gtk.ResponseType.CANCEL
     )
     hbox = Gtk.Box()
     label = Gtk.Label(label=_("Name of scan profile"))
-    hbox.pack_start(label, expand=False, fill=False, padding=0)
+    hbox.append(label)
     entry = Gtk.Entry()
     entry.set_activates_default(True)
-    hbox.pack_end(entry, expand=True, fill=True, padding=0)
-    dialog.get_content_area().add(hbox)
+    pack_box(hbox, entry, expand=True)
+    dialog.get_content_area().append(hbox)
     dialog.set_default_response(Gtk.ResponseType.OK)
-    dialog.show_all()
     flag = True
     while flag:
-        if dialog.run() == Gtk.ResponseType.OK:
+        if run_dialog(dialog) == Gtk.ResponseType.OK:
             name = entry.get_text()
             if not re.search(r"^\s*$", name, re.MULTILINE | re.DOTALL | re.VERBOSE):
                 if name in parent.profiles:
@@ -1604,9 +1603,8 @@ def _save_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
                         Gtk.ResponseType.CANCEL,
                     )
                     label = Gtk.Label(label=warning)
-                    dialog2.get_content_area().add(label)
-                    label.show()
-                    if dialog2.run() == Gtk.ResponseType.OK:
+                    dialog2.get_content_area().append(label)
+                    if run_dialog(dialog2) == Gtk.ResponseType.OK:
                         parent.save_current_profile(entry.get_text())
                         flag = False
 
@@ -1643,7 +1641,7 @@ def _edit_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
         _("OK"), Gtk.ResponseType.OK, _("Cancel"), Gtk.ResponseType.CANCEL
     )
     label = Gtk.Label(label=msg)
-    dialog.get_content_area().pack_start(label, expand=True, fill=True, padding=0)
+    pack_box(dialog.get_content_area(), label, expand=True)
 
     # Clone so that we can cancel the changes, if necessary
     profile = copy(profile)
@@ -1651,10 +1649,9 @@ def _edit_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
         profile, parent.available_scan_options, dialog.get_content_area()
     )
     dialog.set_default_response(Gtk.ResponseType.OK)
-    dialog.show_all()
 
     # save the profile and reload
-    if dialog.run() == Gtk.ResponseType.OK:
+    if run_dialog(dialog) == Gtk.ResponseType.OK:
         if (name is None) or name == "":
             parent.set_current_scan_options(profile)
 
@@ -1685,8 +1682,8 @@ def do_delete_profile_backend_item(_widget: Gtk.Button, data: list[object]) -> N
     profile, options, vbox, frameb, framef, name, i = data
     logger.debug("removing option '%s' from profile", name)
     profile.remove_backend_option_by_index(i)
-    frameb.destroy()
-    framef.destroy()
+    frameb.unparent()
+    framef.unparent()
     _build_profile_table(cast("Profile", profile), cast("Options", options), vbox)
 
 
@@ -1694,59 +1691,59 @@ def _build_profile_table(profile: Profile, options: Options, vbox: Gtk.Box) -> N
 
     frameb = Gtk.Frame(label=_("Backend options"))
     framef = Gtk.Frame(label=_("Frontend options"))
-    vbox.pack_start(frameb, expand=True, fill=True, padding=0)
-    vbox.pack_start(framef, expand=True, fill=True, padding=0)
+    pack_box(vbox, frameb, expand=True)
+    pack_box(vbox, framef, expand=True)
 
     # listbox to align widgets
     listbox = Gtk.ListBox()
     listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-    frameb.add(listbox)
+    frameb.set_child(listbox)
     for i in profile.each_backend_option():
         name, _val = profile.get_backend_option_by_index(i)
         opt = options.by_name(name)
         row = Gtk.ListBoxRow()
         hbox = Gtk.Box()
         label = Gtk.Label(label=d_sane(opt.title))
-        hbox.pack_start(label, expand=False, fill=True, padding=0)
-        icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)
+        hbox.append(label)
+        icon = Gtk.Image.new_from_icon_name("edit-delete")
         button = Gtk.Button()
-        button.set_image(icon)
-        hbox.pack_end(button, expand=False, fill=False, padding=0)
+        button.set_child(icon)
+        hbox.append(button)
 
         button.connect(
             "clicked",
             do_delete_profile_backend_item,
             [profile, options, vbox, frameb, framef, name, i],
         )
-        row.add(hbox)
-        listbox.add(row)
+        row.set_child(hbox)
+        listbox.append(row)
 
     listbox = Gtk.ListBox()
     listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-    framef.add(listbox)
+    framef.set_child(listbox)
 
     for name in profile.each_frontend_option():
         row = Gtk.ListBoxRow()
         hbox = Gtk.Box()
         label = Gtk.Label(label=name)
-        hbox.pack_start(label, expand=False, fill=True, padding=0)
-        icon = Gtk.Image.new_from_icon_name("edit-delete", Gtk.IconSize.BUTTON)
+        hbox.append(label)
+        icon = Gtk.Image.new_from_icon_name("edit-delete")
         button = Gtk.Button()
-        button.set_image(icon)
-        hbox.pack_end(button, expand=False, fill=False, padding=0)
+        button.set_child(icon)
+        hbox.append(button)
 
         def do_delete_profile_frontend_item(_widget: Gtk.Button, _name: str) -> None:
             logger.debug("removing option '%s' from profile", _name)
             profile.remove_frontend_option(_name)
-            frameb.destroy()
-            framef.destroy()
+            frameb.unparent()
+            framef.unparent()
             _build_profile_table(profile, options, vbox)
 
         button.connect("clicked", do_delete_profile_frontend_item, name)
-        row.add(hbox)
-        listbox.add(row)
+        row.set_child(hbox)
+        listbox.append(row)
 
-    vbox.show_all()
+    vbox.show()
 
 
 def _new_val(oldval: object, newval: object) -> bool:

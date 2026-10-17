@@ -7,6 +7,7 @@ import locale
 import logging
 import os
 import pathlib
+import queue
 import subprocess
 import tempfile
 from types import SimpleNamespace
@@ -32,7 +33,7 @@ if TYPE_CHECKING:
     from scantpaper.frontend.image_sane import SaneThread
     from scantpaper.scanner.options import Option
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 
 from gi.repository import (  # noqa: E402
     GLib,
@@ -56,6 +57,17 @@ def quit_lingering_threads() -> Generator[None, None, None]:
     """Quit any BaseThread still alive after a test, releasing its resources."""
     yield
     BaseThread.quit_all_live_threads()
+    # A worker can still be draining its queue after the test that created it.
+    # BaseThread defers removing its GLib io-watch and tick through
+    # GLib.idle_add(), and schedules a response-draining idle; either firing in
+    # the next test runs that worker's callbacks against a dead thread (e.g.
+    # blocking for 10s in get_option_value()). Remove the sources and drop any
+    # queued responses now so the next test starts clean.
+    for thread in list(BaseThread.LiveThreads):
+        thread.release_glib_sources()
+        while not thread.responses.empty():
+            with contextlib.suppress(queue.Empty):
+                thread.responses.get_nowait()
 
 
 def has_numeric_locale(name: str) -> bool:

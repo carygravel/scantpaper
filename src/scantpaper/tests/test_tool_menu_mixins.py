@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
     from typing import ClassVar
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
@@ -80,7 +80,8 @@ def mock_tool_window(
 def _trigger_apply(mock_dialog_instance: object) -> None:
     """Find and trigger the apply/ok action."""
     args, _ = mock_dialog_instance.add_actions.call_args
-    apply_cb = next(cb for name, cb in args[0] if name in ("gtk-apply", "gtk-ok"))
+    # add_actions maps the buttons positionally: confirm first
+    apply_cb = args[0][0][1]
     apply_cb()
 
 
@@ -186,12 +187,12 @@ def test_threshold_dialog_ink_strength_label(
 
     hboxt = next(
         call.args[0]
-        for call in mock_vbox.pack_start.call_args_list
+        for call in mock_vbox.append.call_args_list
         if isinstance(call.args[0], Gtk.Box)
     )
     labels = [
         child.get_text()
-        for child in hboxt.get_children()
+        for child in list(hboxt.observe_children())
         if isinstance(child, Gtk.Label)
     ]
     assert "Ink strength" in labels
@@ -545,7 +546,7 @@ def test_split_dialog_interaction(
     # 3. Test Apply callback with H
     args, _ = mock_dialog.add_actions.call_args
     actions = args[0]
-    apply_cb = next(cb for name, cb in actions if name == "gtk-apply")
+    apply_cb = actions[0][1]
     apply_cb()
 
     mock_tool_window.slist.split_page.assert_called_with(
@@ -561,7 +562,7 @@ def test_split_dialog_interaction(
     )
 
     # 4. Test Cancel callback
-    cancel_cb = next(cb for name, cb in actions if name == "gtk-cancel")
+    cancel_cb = actions[1][1]
     cancel_cb()
     mock_dialog.destroy.assert_called()
     mock_tool_window.view.disconnect.assert_called()
@@ -1159,14 +1160,15 @@ def test_about_dialog_runs(
 ) -> None:
     """Test that ToolsMenuMixins.about runs without error."""
     mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
+    mock_run = mocker.patch("scantpaper.tools_menu_mixins.run_dialog")
 
     mock_tool_window.get_application().iconpath = "."
 
     mock_tool_window.about(None, None)
 
     mock_about_dialog.assert_called_once()
+    mock_run.assert_called_once()
     instance = mock_about_dialog.return_value
-    instance.run.assert_called_once()
     instance.destroy.assert_called_once()
 
     instance.set_program_name.assert_called()

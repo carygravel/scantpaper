@@ -13,7 +13,7 @@ from scantpaper.simplelist import (
     scalar_cell_renderer,
 )
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 
@@ -156,8 +156,8 @@ def test_renderer() -> None:
     window = Gtk.Window()
     slist = SimpleList(col="scalar")
     slist.data.append(["row1"])
-    window.add(slist)
-    window.show_all()
+    window.set_child(slist)
+    window.present()
     assert True, "scalar_cell_renderer() threw no error"
 
 

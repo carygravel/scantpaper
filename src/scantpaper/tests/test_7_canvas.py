@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import tempfile
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, patch
 
@@ -38,7 +37,7 @@ from scantpaper.page import Page
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-gi.require_version("Gdk", "3.0")
+gi.require_version("Gdk", "4.0")
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
 from gi.repository import (  # noqa: E402
@@ -54,6 +53,13 @@ def assert_rgba_equal(c1: Gdk.RGBA, c2: Gdk.RGBA) -> None:
     assert c1.red == pytest.approx(c2.red)
     assert c1.green == pytest.approx(c2.green)
     assert c1.blue == pytest.approx(c2.blue)
+
+
+def _gesture(button: int) -> MagicMock:
+    """Fake Gtk.GestureClick carrying the button being pressed/released."""
+    gesture = MagicMock()
+    gesture.get_current_button.return_value = button
+    return gesture
 
 
 def test_color_functions_more() -> None:
@@ -582,15 +588,6 @@ def test_initialisation(mocker: pytest.MockerFixture) -> None:
 
 def test_drag_text_layer(mocker: pytest.MockerFixture) -> None:
     """Test dragging a text layer."""
-
-    @dataclass
-    class MockEvent:
-        """mock enough of the event class to test it."""
-
-        button: int
-        x: int
-        y: int
-
     mock_display = mocker.patch("gi.repository.Gdk.Display.get_default")
     mock_display.return_value.get_default_seat.return_value.get_pointer.return_value.get_position.side_effect = [
         (None, 10, 10),
@@ -598,8 +595,7 @@ def test_drag_text_layer(mocker: pytest.MockerFixture) -> None:
     ]
     mocker.patch("gi.repository.Gdk.Cursor.new_from_name")
     canvas = Canvas()
-    mock_window = MagicMock()
-    canvas.get_window = MagicMock(return_value=mock_window)
+    canvas.set_cursor = MagicMock()
     canvas.set_size_request(600, 800)
     page = Bbox(
         canvas=canvas,
@@ -613,11 +609,8 @@ def test_drag_text_layer(mocker: pytest.MockerFixture) -> None:
         "height": 100,
     }
 
-    event = MockEvent(button=2, x=10, y=10)
-    canvas._button_pressed(canvas, event)
-    event.x = 20
-    event.y = 20
-    canvas._motion(canvas, event)
+    canvas._button_pressed(_gesture(2), 1, 10, 10)
+    canvas._motion(canvas, 20, 20)
     assert canvas.get_offset().x == 0, "canvas has moved"
 
 
@@ -632,25 +625,19 @@ def test_canvas_drag_cursor(mocker: pytest.MockerFixture) -> None:
     mock_cursor_new = mocker.patch("gi.repository.Gdk.Cursor.new_from_name")
 
     canvas = Canvas()
-    mock_window = MagicMock()
-    # We need to mock get_window() because the canvas is not in a real window
-    canvas.get_window = MagicMock(return_value=mock_window)
+    set_cursor = mocker.patch.object(canvas, "set_cursor")
 
     # 1. Test button press: cursor should change to "grabbing"
-    press_event = MagicMock()
-    press_event.button = 2
-    canvas._button_pressed(canvas, press_event)
+    canvas._button_pressed(_gesture(2), 1, 0.0, 0.0)
 
-    mock_cursor_new.assert_called_once_with(mocker.ANY, "grabbing")
-    mock_window.set_cursor.assert_called_once_with(mock_cursor_new.return_value)
+    mock_cursor_new.assert_called_once_with("grabbing", None)
+    set_cursor.assert_called_once_with(mock_cursor_new.return_value)
 
     # 2. Test button release: cursor should change back to default
-    mock_window.set_cursor.reset_mock()
-    release_event = MagicMock()
-    release_event.button = 2
-    canvas._button_released(canvas, release_event)
+    set_cursor.reset_mock()
+    canvas._button_released(_gesture(2), 1, 0.0, 0.0)
 
-    mock_window.set_cursor.assert_called_once_with(None)
+    set_cursor.assert_called_once_with(None)
 
 
 def test_canvas_hocr_empty(mocker: pytest.MockerFixture) -> None:
@@ -707,11 +694,6 @@ def test_canvas_scroll() -> None:
 
     canvas_obj.get_scale_factor = MagicMock(return_value=1)
 
-    event = MagicMock()
-    event.x = 50
-    event.y = 50
-    event.direction = Gdk.ScrollDirection.UP
-
     canvas_obj._pixbuf_size = {
         "width": 1000,
         "height": 1000,
@@ -721,15 +703,17 @@ def test_canvas_scroll() -> None:
     rect.height = 200
     canvas_obj.get_allocation = MagicMock(return_value=rect)
 
+    # _scroll zooms around the last pointer position tracked by _motion.
+    canvas_obj._motion(None, 50, 50)
+
     with patch.object(
         canvas_obj, "set_offset", wraps=canvas_obj.set_offset
     ) as mock_set_offset:
-        canvas_obj._scroll(canvas_obj, event)
+        canvas_obj._scroll(canvas_obj, 0.0, -1.0)
         assert canvas_obj.zoom == 2.0
         mock_set_offset.assert_called()
 
-    event.direction = Gdk.ScrollDirection.DOWN
-    canvas_obj._scroll(canvas_obj, event)
+    canvas_obj._scroll(canvas_obj, 0.0, 1.0)
     assert canvas_obj.zoom == 1.0
 
 
@@ -986,10 +970,8 @@ def test_add_box_callbacks() -> None:
         parent=parent,
     )
 
-    event = MagicMock()
-    event.button = 1
     # Call callback directly to avoid GdkEvent conversion issues in tests
-    button_press_callback(child, None, event, mock_edit)
+    button_press_callback(child, None, 1, mock_edit)
     mock_edit.assert_called_once()
 
 
@@ -1114,30 +1096,24 @@ def test_canvas_event_handlers(mocker: pytest.MockerFixture) -> None:
     mocker.patch("gi.repository.Gdk.Display.get_default", return_value=mock_display)
 
     canvas_obj = Canvas()
-    canvas_obj._device = MagicMock()
-    canvas_obj._device.get_position.return_value = (None, 100, 100)
-    canvas_obj.get_window = MagicMock()
+    canvas_obj.set_cursor = MagicMock()
 
     # _button_pressed
-    event = MagicMock()
-    event.button = 2
-
     with patch("gi.repository.Gdk.Cursor.new_from_name") as mock_cursor_new:
-        canvas_obj._button_pressed(None, event)
+        canvas_obj._button_pressed(_gesture(2), 1, 100, 100)
         assert canvas_obj.dragging
         assert canvas_obj._drag_start == {"x": 100, "y": 100}
         mock_cursor_new.assert_called()
 
     # _motion: zoom is used in drag calculation
     canvas_obj.get_offset = MagicMock(return_value=Gdk.Rectangle())
-    canvas_obj._device.get_position.return_value = (None, 110, 110)
     canvas_obj.set_offset = MagicMock()
 
-    canvas_obj._motion(None, None)
+    canvas_obj._motion(None, 110, 110)
     canvas_obj.set_offset.assert_called()
 
     # _button_released
-    canvas_obj._button_released(None, event)
+    canvas_obj._button_released(_gesture(2), 1, 110, 110)
     assert not canvas_obj.dragging
 
 
@@ -1373,8 +1349,6 @@ def test_bbox_button_press_callback() -> None:
         parent=root,
     )
     mock_edit = MagicMock()
-    event = MagicMock()
-    event.button = 1
 
     # We need a parent for the bbox that is NOT root to avoid _dragging check issue
     parent = canvas_obj.add_box(
@@ -1383,7 +1357,7 @@ def test_bbox_button_press_callback() -> None:
     child = canvas_obj.add_box(
         text="c", bbox=Rectangle(x=0, y=0, width=10, height=10), parent=parent
     )
-    button_press_callback(child, None, event, mock_edit)
+    button_press_callback(child, None, 1, mock_edit)
     mock_edit.assert_called_once()
 
 
@@ -2045,10 +2019,12 @@ def test_canvas_no_stack_overflow(rose_pnm: str) -> None:
 
 
 def test_canvas_motion_no_dragging() -> None:
-    """Test _motion returns False when not dragging (line 678)."""
+    """Moving the pointer while not dragging leaves the offset alone."""
     canvas = Canvas()
     canvas.dragging = False
-    assert canvas._motion(None, None) is False
+    canvas.set_offset = MagicMock()
+    canvas._motion(None, 0.0, 0.0)
+    canvas.set_offset.assert_not_called()
 
 
 def test_bbox_connect_new_signal(mocker: pytest.MockerFixture) -> None:
@@ -2310,17 +2286,13 @@ def test_button_press_callback_edge_cases() -> None:
     bbox = MagicMock()
     bbox.canvas = None
 
-    event = MagicMock()
-    event.button = 2
     callback = MagicMock()
-    button_press_callback(bbox, None, event, callback)
+    button_press_callback(bbox, None, 2, callback)
     callback.assert_not_called()
     bbox.emit.assert_not_called()
 
-    event = MagicMock()
-    event.button = 1
     callback = MagicMock()
-    button_press_callback(bbox, None, event, callback)
+    button_press_callback(bbox, None, 1, callback)
     callback.assert_called_once_with(bbox, None)
     bbox.emit.assert_called_once_with("clicked")
 
@@ -2585,8 +2557,8 @@ def test_canvas_set_text_finished_with_rebuild_edge(
         callback_mock.assert_called_once()
 
 
-def test_canvas_on_draw(mocker: pytest.MockerFixture) -> None:
-    """Test _on_draw handler."""
+def test_canvas_draw_func(mocker: pytest.MockerFixture) -> None:
+    """Test the GTK4 draw function handler."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
     canvas._pixbuf_size = {"width": 100, "height": 100}
@@ -2596,7 +2568,7 @@ def test_canvas_on_draw(mocker: pytest.MockerFixture) -> None:
     canvas._offset.y = 0
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 100, 100)
     ctx = cairo.Context(surface)
-    canvas._on_draw(None, ctx)
+    canvas._draw_func(canvas, ctx, 1, 1)
 
 
 def test_draw_bbox_more_branches(mocker: pytest.MockerFixture) -> None:
@@ -2718,7 +2690,6 @@ def test_button_pressed_released_more(mocker: pytest.MockerFixture) -> None:
     rect.width = 200
     rect.height = 200
     canvas.get_allocation = MagicMock(return_value=rect)
-    canvas.get_window = MagicMock(return_value=MagicMock())
     canvas.confidence_index = ListIter()
     root = canvas.get_root_item()
     canvas.add_box(
@@ -2729,20 +2700,11 @@ def test_button_pressed_released_more(mocker: pytest.MockerFixture) -> None:
         edit_callback=MagicMock(),
     )
 
-    event = MagicMock()
-    event.button = 1
-    event.x = 50
-    event.y = 50
-    canvas._button_pressed(None, event)
-
-    event = MagicMock()
-    event.button = 3
-    canvas._button_pressed(None, event)
+    canvas._button_pressed(_gesture(1), 1, 50, 50)
+    canvas._button_pressed(_gesture(3), 1, 50, 50)
 
     canvas._pixbuf_size = None
-    event = MagicMock()
-    event.button = 1
-    canvas._button_pressed(None, event)
+    canvas._button_pressed(_gesture(1), 1, 50, 50)
 
 
 def test_canvas_draw_selection_rectangle(mocker: pytest.MockerFixture) -> None:
@@ -2767,9 +2729,9 @@ def test_canvas_draw_selection_rectangle(mocker: pytest.MockerFixture) -> None:
         lambda _c, rect: received.append((rect.x, rect.y, rect.width, rect.height)),
     )
 
-    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
-    canvas._motion(None, MagicMock(x=40, y=30))
-    canvas._button_released(None, MagicMock(button=1))
+    canvas._button_pressed(_gesture(1), 1, 10, 10)
+    canvas._motion(None, 40, 30)
+    canvas._button_released(_gesture(1), 1, 40, 30)
 
     assert received == [(10, 10, 30, 20)]
 
@@ -2797,9 +2759,9 @@ def test_canvas_click_on_bbox_does_not_draw_selection(
     received = []
     canvas.connect("selection-drawn", lambda _c, rect: received.append(rect))
 
-    canvas._button_pressed(None, MagicMock(button=1, x=50, y=50))
-    canvas._motion(None, MagicMock(x=60, y=60))
-    canvas._button_released(None, MagicMock(button=1))
+    canvas._button_pressed(_gesture(1), 1, 50, 50)
+    canvas._motion(None, 60, 60)
+    canvas._button_released(_gesture(1), 1, 60, 60)
 
     assert received == []
     assert not canvas._drawing
@@ -2812,7 +2774,7 @@ def test_canvas_click_without_pixbuf_does_not_draw(
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
     canvas._pixbuf_size = None
-    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
+    canvas._button_pressed(_gesture(1), 1, 10, 10)
     assert not canvas._drawing
 
 
@@ -2839,13 +2801,13 @@ def test_set_page_extent_allows_drag_without_layer(
         lambda _c, rect: received.append((rect.x, rect.y, rect.width, rect.height)),
     )
 
-    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
+    canvas._button_pressed(_gesture(1), 1, 10, 10)
     assert canvas._drawing
-    canvas._motion(None, MagicMock(x=40, y=30))
+    canvas._motion(None, 40, 30)
     canvas._draw_scene(MagicMock())
     render_background.assert_called_once()
     render_frame.assert_called_once()
-    canvas._button_released(None, MagicMock(button=1))
+    canvas._button_released(_gesture(1), 1, 40, 30)
 
     assert received == [(10, 10, 30, 20)]
 
@@ -2902,7 +2864,7 @@ def test_canvas_draw_scene_skips_degenerate_selection(
     render_frame = mocker.patch("gi.repository.Gtk.render_frame")
     canvas = _canvas_with_page(mocker)
 
-    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
+    canvas._button_pressed(_gesture(1), 1, 10, 10)
     canvas._draw_scene(MagicMock())
 
     render_bg.assert_not_called()
@@ -3046,8 +3008,8 @@ def test_canvas_draw_scene_renders_in_progress_drag(
     render_frame = mocker.patch("gi.repository.Gtk.render_frame")
     canvas = _canvas_with_page(mocker)
 
-    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
-    canvas._motion(None, MagicMock(x=40, y=30))
+    canvas._button_pressed(_gesture(1), 1, 10, 10)
+    canvas._motion(None, 40, 30)
     canvas._draw_scene(MagicMock())
 
     render_bg.assert_called()

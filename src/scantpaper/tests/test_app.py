@@ -18,7 +18,9 @@ import pytest
 from scantpaper import app as app_module
 from scantpaper.app import PROG_NAME, Application, _parse_arguments, main
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gdk, Gtk  # noqa: E402
 
 
 @pytest.fixture
@@ -218,16 +220,32 @@ def test_main(mocker: pytest.MockerFixture) -> None:
         mock_app.run.assert_called()
 
 
+def test_application_init_real_icon_theme() -> None:
+    """Application.__init__ prepends the icon path to the real icon theme."""
+    Application()
+
+    theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
+    search_path = theme.get_search_path() or []
+    in_package = str((pathlib.Path(app_module.__file__).parent / "icons").resolve())
+    assert search_path[0] == in_package, "application icons come first"
+
+
 @pytest.mark.usefixtures("mock_deps")
 def test_application_init_iconpath_fallback(mocker: pytest.MockerFixture) -> None:
     """Test Application.__init__ with iconpath fallback."""
     mock_is_dir = mocker.patch.object(pathlib.Path, "is_dir", return_value=False)
+    mock_display = mocker.patch.object(
+        app_module.Gdk.Display, "get_default", return_value=MagicMock()
+    )
     mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
-    # It should have called prepend_search_path with the fallback path
+    mock_theme = mock_icon_theme.get_for_display.return_value
+    mock_theme.get_search_path.return_value = ["/usr/share"]
+    # It should have prepended the fallback path to the search path
     Application()
     mock_is_dir.assert_called()
-    mock_icon_theme.get_default().prepend_search_path.assert_called_with(
-        "/usr/share/scantpaper/icons"
+    mock_icon_theme.get_for_display.assert_called_once_with(mock_display.return_value)
+    mock_theme.set_search_path.assert_called_with(
+        ["/usr/share/scantpaper/icons", "/usr/share"]
     )
 
 
@@ -235,10 +253,23 @@ def test_application_init_iconpath_fallback(mocker: pytest.MockerFixture) -> Non
 def test_application_init_iconpath_in_package(mocker: pytest.MockerFixture) -> None:
     """Test Application.__init__ resolves icons from inside the package."""
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
+    mocker.patch.object(app_module.Gdk.Display, "get_default", return_value=MagicMock())
     mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
+    mock_icon_theme.get_for_display().get_search_path.return_value = []
     Application()
     in_package = str((pathlib.Path(app_module.__file__).parent / "icons").resolve())
-    mock_icon_theme.get_default().prepend_search_path.assert_called_with(in_package)
+    mock_icon_theme.get_for_display().set_search_path.assert_called_with([in_package])
+
+
+@pytest.mark.usefixtures("mock_deps")
+def test_application_init_no_display(mocker: pytest.MockerFixture) -> None:
+    """Test Application.__init__ without a display skips the icon theme."""
+    mocker.patch.object(app_module.Gdk.Display, "get_default", return_value=None)
+    mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
+
+    Application()
+
+    mock_icon_theme.get_for_display.assert_not_called()
 
 
 @pytest.mark.usefixtures("mock_deps")
@@ -256,10 +287,12 @@ def test_pyinstaller_path(mocker: pytest.MockerFixture) -> None:
     # Simulate the pyinstaller branch, where BASE_DIR is _MEIPASS
     mocker.patch.object(app_module, "BASE_DIR", "/fake/meipass")
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
+    mocker.patch.object(app_module.Gdk.Display, "get_default", return_value=MagicMock())
     mock_icon_theme = mocker.patch.object(app_module.Gtk, "IconTheme")
+    mock_icon_theme.get_for_display().get_search_path.return_value = []
     Application()
-    mock_icon_theme.get_default().prepend_search_path.assert_called_with(
-        "/fake/meipass/icons"
+    mock_icon_theme.get_for_display().set_search_path.assert_called_with(
+        ["/fake/meipass/icons"]
     )
 
 

@@ -85,6 +85,7 @@ def test_edit_profile_dialog(
     patch_dialog = mocker.patch(
         "scantpaper.dialog.scan.Gtk.Dialog", return_value=dialog_mock
     )
+    mocker.patch("scantpaper.dialog.scan.run_dialog", return_value=Gtk.ResponseType.OK)
 
     _edit_profile_callback(None, parent)
 
@@ -116,9 +117,8 @@ def test_save_profile_overwrite_dialog(mocker: pytest.MockerFixture) -> None:
     name_dialog_mock = MagicMock(spec=Gtk.Dialog)
     overwrite_dialog_mock = MagicMock(spec=Gtk.Dialog)
 
-    # First call to run() on name_dialog returns OK, second returns CANCEL to exit loop.
-    name_dialog_mock.run.side_effect = [Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL]
-    overwrite_dialog_mock.run.return_value = Gtk.ResponseType.OK
+    # The name dialog returns OK, then the overwrite dialog returns OK to save.
+    mocker.patch("scantpaper.dialog.scan.run_dialog", return_value=Gtk.ResponseType.OK)
 
     def dialog_side_effect(*_args: object, **kwargs: object) -> object:
         if "exists. Overwrite?" in cast("str", kwargs.get("title", "")):
@@ -160,10 +160,10 @@ def test_edit_paper_cancel(mocker: pytest.MockerFixture) -> None:
     # 2. Mock dialog.Dialog (scantpaper.dialog.Dialog)
     mock_editor_window = MagicMock(spec=Gtk.Dialog)
     mock_editor_window.get_content_area.return_value = MagicMock(spec=Gtk.Box)
-    mock_editor_window.run.return_value = (
-        Gtk.ResponseType.CANCEL
-    )  # Simulate clicking Cancel
     mock_editor_window.parent = mock_self
+    mocker.patch(
+        "scantpaper.dialog.scan.run_dialog", return_value=Gtk.ResponseType.CANCEL
+    )
 
     # Path to Dialog is now relative to dialog.scan module
     patched_dialog_class = mocker.patch(
@@ -214,8 +214,8 @@ def test_edit_paper_cancel(mocker: pytest.MockerFixture) -> None:
         transient_for=mock_self,
         title="Edit paper size",
     )
-    # 2. window.show_all() was called
-    mock_editor_window.show_all.assert_called_once()
+    # 2. window.present() was called
+    mock_editor_window.present.assert_called_once()
 
     # Simulate Cancel button click
     # The cbutton (Cancel) is the fourth button created.

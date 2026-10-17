@@ -7,6 +7,7 @@ from gi.repository import GObject, Gtk
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.dialog import Dialog
 from scantpaper.gobject import property_
+from scantpaper.helpers import pack_box, set_margins
 from scantpaper.i18n import _
 from scantpaper.scanner.options import Options
 from scantpaper.scanner.profile import Profile
@@ -178,9 +179,7 @@ class PageControls(Dialog):
         # Notebook to collate options
         self.notebook = Gtk.Notebook()
         self.notebook.set_scrollable(True)
-        self.get_content_area().pack_end(
-            self.notebook, expand=True, fill=True, padding=0
-        )
+        pack_box(self.get_content_area(), self.notebook, expand=True)
 
         # Notebook page 1
         scwin = Gtk.ScrolledWindow()
@@ -189,41 +188,40 @@ class PageControls(Dialog):
         )
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self._notebook_pages = [Gtk.Box(orientation=Gtk.Orientation.VERTICAL)]
-        border_width = (
-            self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
-        )  # ._get('content-area-border')
-        self._notebook_pages[0].set_border_width(border_width)
-        scwin.add(self._notebook_pages[0])
+        set_margins(self._notebook_pages[0], 0)
+        scwin.set_child(self._notebook_pages[0])
 
         # Frame for # pages
         self.framen = Gtk.Frame(label=_("# Pages"))
-        self._notebook_pages[0].pack_start(
-            self.framen, expand=False, fill=False, padding=0
-        )
+        self._notebook_pages[0].append(self.framen)
         vboxn = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vboxn.set_border_width(border_width)
-        self.framen.add(vboxn)
+        set_margins(vboxn, 0)
+        self.framen.set_child(vboxn)
 
-        # the first radio button has to set the group,
-        # which is None for the first button
+        # GTK4 has no Gtk.RadioButton: grouped Gtk.CheckButtons behave like
+        # radio buttons. The first button sets the group leader.
         # All button
-        bscanall = Gtk.RadioButton.new_with_label_from_widget(None, _("All"))
+        bscanall = Gtk.CheckButton.new_with_label(_("All"))
         bscanall.set_tooltip_text(_("Scan all pages"))
-        vboxn.pack_start(bscanall, expand=True, fill=True, padding=0)
-        bscanall.connect("clicked", self._do_clicked_scan_all, bscanall)
+        pack_box(vboxn, bscanall, expand=True)
+        bscanall.connect("activate", self._do_clicked_scan_all, bscanall)
+        # GTK3 made the first radio button of a group active by default;
+        # grouped check buttons in GTK4 do not, so activate it explicitly.
+        bscanall.set_active(True)
 
         # Entry button
         hboxn = Gtk.Box()
-        vboxn.pack_start(hboxn, expand=True, fill=True, padding=0)
-        self._bscannum = Gtk.RadioButton.new_with_label_from_widget(bscanall, "#:")
+        pack_box(vboxn, hboxn, expand=True)
+        self._bscannum = Gtk.CheckButton.new_with_label("#:")
+        self._bscannum.set_group(bscanall)
         self._bscannum.set_tooltip_text(_("Set number of pages to scan"))
-        hboxn.pack_start(self._bscannum, expand=False, fill=False, padding=0)
+        hboxn.append(self._bscannum)
 
         # Number of pages
         spin_buttonn = Gtk.SpinButton.new_with_range(1, MAX_PAGES, 1)
         spin_buttonn.set_tooltip_text(_("Set number of pages to scan"))
-        hboxn.pack_end(spin_buttonn, expand=False, fill=False, padding=0)
-        self._bscannum.connect("clicked", self._do_clicked_scan_number, spin_buttonn)
+        hboxn.append(spin_buttonn)
+        self._bscannum.connect("activate", self._do_clicked_scan_number, spin_buttonn)
         self.connect(
             "changed-num-pages",
             self._do_changed_num_pages,
@@ -238,33 +236,28 @@ class PageControls(Dialog):
         # vbox for duplex/simplex page numbering in order to be able to show/hide
         # them together.
         self._vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self._notebook_pages[0].pack_start(
-            self._vboxx, expand=False, fill=False, padding=0
-        )
+        self._notebook_pages[0].append(self._vboxx)
 
         # Switch between basic and extended modes
         hbox = Gtk.Box()
         label = Gtk.Label(label=_("Extended page numbering"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         self.checkx = Gtk.Switch()
-        hbox.pack_end(self.checkx, expand=False, fill=False, padding=0)
-        self._vboxx.pack_start(hbox, expand=False, fill=False, padding=0)
+        hbox.append(self.checkx)
+        self._vboxx.append(hbox)
 
         self._create_extended_mode(spin_buttonn, self._bscannum)
 
     def _create_extended_mode(
-        self, spin_buttonn: Gtk.SpinButton, bscannum: Gtk.RadioButton
+        self, spin_buttonn: Gtk.SpinButton, bscannum: Gtk.CheckButton
     ) -> None:
 
         # Frame for extended mode
         self.framex = Gtk.Frame(label=_("Page number"))
-        self._vboxx.pack_start(self.framex, expand=False, fill=False, padding=0)
+        self._vboxx.append(self.framex)
         vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        border_width = (
-            self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
-        )  # ._get('content-area-border')
-        vboxx.set_border_width(border_width)
-        self.framex.add(vboxx)
+        set_margins(vboxx, 0)
+        self.framex.set_child(vboxx)
 
         # SpinButton for starting page number
         spin_buttons = spinbutton_in_hbox(
@@ -303,31 +296,31 @@ class PageControls(Dialog):
 
         # Frame for standard mode
         self.frames = Gtk.Frame(label=_("Source document"))
-        self._vboxx.pack_start(self.frames, expand=False, fill=False, padding=0)
+        self._vboxx.append(self.frames)
         vboxs = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vboxs.set_border_width(border_width)
-        self.frames.add(vboxs)
+        set_margins(vboxs, 0)
+        self.frames.set_child(vboxs)
 
         # Single sided button
-        self.buttons = Gtk.RadioButton.new_with_label_from_widget(
-            None, _("Single sided")
-        )
+        self.buttons = Gtk.CheckButton.new_with_label(_("Single sided"))
         self.buttons.set_tooltip_text(_("Source document is single-sided"))
-        vboxs.pack_start(self.buttons, expand=True, fill=True, padding=0)
-        self.buttons.connect("clicked", self._do_buttons_clicked)
+        pack_box(vboxs, self.buttons, expand=True)
+        self.buttons.connect("activate", self._do_buttons_clicked)
+        # GTK3 made the first radio button of a group active by default;
+        # grouped check buttons in GTK4 do not, so activate it explicitly.
+        self.buttons.set_active(True)
 
         # Double sided button
-        self.buttond = Gtk.RadioButton.new_with_label_from_widget(
-            self.buttons, _("Double sided")
-        )
+        self.buttond = Gtk.CheckButton.new_with_label(_("Double sided"))
+        self.buttond.set_group(self.buttons)
         self.buttond.set_tooltip_text(_("Source document is double-sided"))
-        vboxs.pack_start(self.buttond, expand=False, fill=False, padding=0)
+        vboxs.append(self.buttond)
 
         # Facing/reverse page button
         hboxs = Gtk.Box()
-        vboxs.pack_start(hboxs, expand=True, fill=True, padding=0)
+        pack_box(vboxs, hboxs, expand=True)
         labels = Gtk.Label(label=_("Side to scan"))
-        hboxs.pack_start(labels, expand=False, fill=False, padding=0)
+        hboxs.append(labels)
         self.combobs = ComboBoxText()
         for text in (_("Facing"), _("Reverse")):
             self.combobs.append_text(text)
@@ -341,7 +334,7 @@ class PageControls(Dialog):
         # Have to do this here because setting the facing combobox switches it
         self.buttons.set_active(True)
         self.num_pages = 1
-        hboxs.pack_end(self.combobs, expand=False, fill=False, padding=0)
+        hboxs.append(self.combobs)
 
         # Have to put the extended pagenumber checkbox here
         # to reference simple controls
@@ -352,7 +345,7 @@ class PageControls(Dialog):
         )
 
     def _do_clicked_scan_all(
-        self, bscanall: Gtk.RadioButton, _value: object | None
+        self, bscanall: Gtk.CheckButton, _value: object | None
     ) -> None:
         if bscanall.get_active():
             self.num_pages = 0
@@ -374,7 +367,7 @@ class PageControls(Dialog):
         spin_buttoni.set_value(value)
 
     def _do_clicked_scan_number(
-        self, bscannum: Gtk.RadioButton, spin_buttonn: Gtk.SpinButton
+        self, bscannum: Gtk.CheckButton, spin_buttonn: Gtk.SpinButton
     ) -> None:
         if bscannum.get_active():
             self.num_pages = spin_buttonn.get_value()
@@ -383,8 +376,8 @@ class PageControls(Dialog):
         self,
         _self: Gtk.Widget,
         value: int,
-        bscanall: Gtk.RadioButton,
-        bscannum: Gtk.RadioButton,
+        bscanall: Gtk.CheckButton,
+        bscannum: Gtk.CheckButton,
         spin_buttonn: Gtk.SpinButton,
     ) -> None:
         if value == 0:
@@ -397,13 +390,13 @@ class PageControls(Dialog):
             spin_buttonn.set_value(value)
 
     def _do_num_pages_changed(
-        self, spin_buttonn: Gtk.SpinButton, bscannum: Gtk.RadioButton
+        self, spin_buttonn: Gtk.SpinButton, bscannum: Gtk.CheckButton
     ) -> None:
         """React to a change in the number of pages."""
         self.num_pages = spin_buttonn.get_value()
         bscannum.set_active(True)  # Set the radiobutton active
 
-    def _do_buttons_clicked(self, buttons: Gtk.RadioButton) -> None:
+    def _do_buttons_clicked(self, buttons: Gtk.CheckButton) -> None:
         self.sided = "single" if buttons.get_active() == 1 else "double"
 
     def _do_side_to_scan_combo_changed(self, combobs: ComboBoxText) -> None:
@@ -446,10 +439,10 @@ def spinbutton_in_hbox(
 ) -> Gtk.SpinButton:
     """Pack a label and a spinbutton in an hbox."""
     hbox = Gtk.Box()
-    vbox.pack_start(hbox, expand=False, fill=False, padding=0)
-    hbox.pack_start(Gtk.Label(label=label), expand=False, fill=False, padding=0)
+    vbox.append(hbox)
+    hbox.append(Gtk.Label(label=label))
     spin_button = Gtk.SpinButton.new_with_range(vmin, vmax, step)
-    hbox.pack_end(spin_button, expand=False, fill=False, padding=0)
+    hbox.append(spin_button)
     return spin_button
 
 
@@ -459,7 +452,7 @@ def _extended_pagenumber_checkbox_callback(
     dialog = data[0]
     if widget.get_active():
         dialog.frames.hide()
-        dialog.framex.show_all()
+        dialog.framex.show()
     else:
-        dialog.frames.show_all()
+        dialog.frames.show()
         dialog.framex.hide()

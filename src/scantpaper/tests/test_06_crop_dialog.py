@@ -5,8 +5,8 @@ import gi
 from scantpaper.dialog.crop import Crop
 from scantpaper.loop_helpers import safe_mainloop
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     Gtk,

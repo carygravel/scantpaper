@@ -1137,10 +1137,8 @@ def test_multiple_values_option(
             and container.get_label() == "Test Multiple"
         ):
             return True
-        if hasattr(container, "get_children"):
-            for child in cast(
-                "list[object]", cast("Callable[[], object]", container.get_children)()
-            ):
+        if isinstance(container, Gtk.Widget):
+            for child in list(container.observe_children()):
                 if find_button(child):
                     return True
         return False
@@ -1216,7 +1214,7 @@ def test_switch_and_button_widgets(
     dialog.set_option.assert_called_with(bool_opt, value=True)
 
     # Trigger button (Line 257-258)
-    button_widget.clicked()
+    button_widget.emit("clicked")
     dialog.set_option.assert_called_with(button_opt, value=None)
 
 
@@ -1505,8 +1503,8 @@ def test_spin_typing_keeps_locale_separator(
     widget = _spin_dialog(dialog, mocker, 174.0)
     assert widget.get_numeric() is False
     dialog.set_option = MagicMock()
-    widget.get_buffer().set_text("174,2", -1)
-    widget.emit("focus-out-event", None)
+    widget.set_text("174,2")
+    widget.emit("activate")
     assert widget.get_value() == 174.2
     dialog.set_option.assert_called_with(_spin_option()[1], value=174.2)
 
@@ -1521,8 +1519,8 @@ def test_spin_accepts_locale_fraction(
     dialog = sane_scan_dialog
     widget = _spin_dialog(dialog, mocker, 174.0)
     dialog.set_option = MagicMock()
-    widget.get_buffer().set_text("115,2", -1)
-    widget.emit("focus-out-event", None)
+    widget.set_text("115,2")
+    widget.emit("activate")
     assert widget.get_value() == 115.2
     dialog.set_option.assert_called_with(_spin_option()[1], value=115.2)
 
@@ -1537,8 +1535,8 @@ def test_spin_rejects_non_locale_separator(
     dialog = sane_scan_dialog
     widget = _spin_dialog(dialog, mocker, 174.0)
     dialog.set_option = MagicMock()
-    widget.get_buffer().set_text("115.2", -1)
-    widget.emit("focus-out-event", None)
+    widget.set_text("115.2")
+    widget.emit("activate")
     assert widget.get_value() == 174.0
     assert widget.get_text() == "174"
     dialog.set_option.assert_not_called()
@@ -1592,8 +1590,8 @@ def test_helper_fractional_spinbutton_commits_locale_fraction(
     widget = Gtk.SpinButton.new_with_range(0, 500, 1)
     widget.set_value(174.0)
     configure_fractional_spinbutton(widget)
-    widget.get_buffer().set_text("115,9", -1)
-    widget.emit("focus-out-event", None)
+    widget.set_text("115,9")
+    widget.emit("activate")
     assert widget.get_value() == 115.9
 
 
@@ -1605,11 +1603,11 @@ def test_helper_fractional_spinbutton_rejects_non_locale(
     widget = Gtk.SpinButton.new_with_range(0, 500, 1)
     widget.set_value(174.0)
     configure_fractional_spinbutton(widget)
-    widget.get_buffer().set_text("115.9", -1)
-    widget.emit("focus-out-event", None)
+    widget.set_text("115.9")
+    widget.emit("activate")
     assert widget.get_value() == 174.0
     assert widget.get_text() == "174"
-    widget.get_buffer().set_text("abc", -1)
+    widget.set_text("abc")
     widget.emit("activate")
     assert widget.get_value() == 174.0
     assert widget.get_text() == "174"

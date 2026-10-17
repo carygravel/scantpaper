@@ -20,8 +20,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Generator
     from typing import ClassVar
 
-gi.require_version("Gtk", "3.0")
-gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "4.0")
+gi.require_version("Gdk", "4.0")
 from gi.repository import Gdk, Gtk  # noqa: E402
 
 
@@ -366,9 +366,10 @@ def test_find_crashed_sessions_recoverable(
     mock_session_window._create_lockfile = mocker.Mock()
 
     # Mock Dialog
-    mock_dialog_cls = mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
-    mock_dialog = mock_dialog_cls.return_value
-    mock_dialog.run.return_value = Gtk.ResponseType.OK
+    mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
+    mocker.patch(
+        "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.OK
+    )
 
     # Mock SimpleList
     mock_simplelist_cls = mocker.patch("scantpaper.session_mixins.SimpleList")
@@ -390,9 +391,10 @@ def test_find_crashed_sessions_recoverable_no_select(
     mock_session_window.session.name = "/tmp/scantpaper-running"
     mock_session_window._create_lockfile = mocker.Mock()
     mocker.patch("os.access", return_value=True)
-    mock_dialog_cls = mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
-    mock_dialog = mock_dialog_cls.return_value
-    mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
+    mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
+    mocker.patch(
+        "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.CANCEL
+    )
     mock_simplelist_cls = mocker.patch("scantpaper.session_mixins.SimpleList")
     mock_simplelist = mock_simplelist_cls.return_value
     mock_simplelist.get_selected_indices.return_value = []
@@ -421,9 +423,10 @@ def test_find_crashed_sessions_with_path_objects(
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
     mock_session_window._create_lockfile = mocker.Mock()
 
-    mock_dialog_cls = mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
-    mock_dialog = mock_dialog_cls.return_value
-    mock_dialog.run.return_value = Gtk.ResponseType.CANCEL
+    mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
+    mocker.patch(
+        "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.CANCEL
+    )
 
     mock_session_window._open_session = mocker.Mock()
 
@@ -916,9 +919,10 @@ def test_ask_question(
     )
     mocker.patch("scantpaper.session_mixins.response_stored", return_value=False)
 
-    mock_dialog_cls = mocker.patch("scantpaper.session_mixins.Gtk.MessageDialog")
-    mock_dialog = mock_dialog_cls.return_value
-    mock_dialog.run.return_value = Gtk.ResponseType.OK
+    mocker.patch("scantpaper.session_mixins.Gtk.MessageDialog")
+    mocker.patch(
+        "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.OK
+    )
 
     # Standard call
     response = mock_session_window._ask_question(
@@ -968,7 +972,9 @@ def test_ask_question_with_default_response(
 
     mock_dialog_cls = mocker.patch("scantpaper.session_mixins.Gtk.MessageDialog")
     mock_dialog = mock_dialog_cls.return_value
-    mock_dialog.run.return_value = Gtk.ResponseType.OK
+    mocker.patch(
+        "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.OK
+    )
 
     kwargs = {
         "parent": None,
@@ -1035,7 +1041,7 @@ def test_add_text_view_layers(
     assert len(captured) == 2
     assert mock_session_window.t_canvas is not None
     assert mock_session_window.a_canvas is not None
-    mock_edit_hbox.pack_start.assert_called()
+    mock_edit_hbox.append.assert_called()
     mock_session_window._pack_viewer_tools.assert_called()
 
     # Exercise the injected get_page closure and verify the shared thread.

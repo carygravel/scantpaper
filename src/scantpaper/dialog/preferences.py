@@ -13,10 +13,13 @@ from scantpaper.dialog import Dialog
 from scantpaper.helpers import (
     configure_fractional_spinbutton,
     get_tmp_dir,
+    pack_box,
+    run_dialog,
+    set_margins,
 )
 from scantpaper.i18n import _
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
@@ -52,21 +55,22 @@ class PreferencesDialog(Dialog):
 
         # Notebook for scan and general options
         notebook = Gtk.Notebook()
-        vbox.pack_start(notebook, expand=True, fill=True, padding=0)
+        vbox.append(notebook)
+        notebook.set_vexpand(True)
 
         vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, valign=Gtk.Align.START)
-        vbox1.set_border_width(self.get_border_width())
+        set_margins(vbox1, 0)
         self._add_scan_options(vbox1)
         notebook.append_page(vbox1, Gtk.Label(label=_("Scan options")))
 
         vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vbox2.set_border_width(self.get_border_width())
+        set_margins(vbox2, 0)
         notebook.append_page(vbox2, Gtk.Label(label=_("General options")))
         self._add_general_options1(vbox2)
         self._add_general_options2(vbox2)
 
-        self.add_actions([("gtk-ok", self._apply_callback), ("gtk-cancel", self.hide)])
-        self.show_all()
+        self.add_actions([(_("_OK"), self._apply_callback), (_("_Cancel"), self.hide)])
+        self.present()
 
     def _add_scan_options(self, vbox: Gtk.Box) -> None:
         self._cbo = Gtk.CheckButton(label=_("Open scanner at program start"))
@@ -79,15 +83,16 @@ class PreferencesDialog(Dialog):
         )
         if "auto-open-scan-dialog" in self.settings:
             self._cbo.set_active(self.settings["auto-open-scan-dialog"])
-        vbox.pack_start(self._cbo, expand=True, fill=True, padding=0)
+        vbox.append(self._cbo)
+        self._cbo.set_vexpand(True)
 
         # Device blacklist
         hboxb = Gtk.Box()
-        vbox.pack_start(hboxb, expand=False, fill=False, padding=0)
+        vbox.append(hboxb)
         label = Gtk.Label(label=_("Device blacklist"))
-        hboxb.pack_start(label, expand=False, fill=False, padding=0)
+        hboxb.append(label)
         self._blacklist = Gtk.Entry()
-        hboxb.add(self._blacklist)
+        hboxb.append(self._blacklist)
         hboxb.set_tooltip_text(_("Device blacklist (regular expression)"))
         if (
             "device blacklist" in self.settings
@@ -102,7 +107,7 @@ class PreferencesDialog(Dialog):
         )
         if "cycle sane handle" in self.settings:
             self._cbcsh.set_active(self.settings["cycle sane handle"])
-        vbox.pack_start(self._cbcsh, expand=False, fill=False, padding=0)
+        vbox.append(self._cbcsh)
 
         # Allow batch scanning from flatbed
         self._cb_batch_flatbed = Gtk.CheckButton(
@@ -115,7 +120,7 @@ class PreferencesDialog(Dialog):
             )
         )
         self._cb_batch_flatbed.set_active(self.settings["allow-batch-flatbed"])
-        vbox.pack_start(self._cb_batch_flatbed, expand=False, fill=False, padding=0)
+        vbox.append(self._cb_batch_flatbed)
 
         # Ignore duplex capabilities
         self._cb_ignore_duplex = Gtk.CheckButton(
@@ -128,7 +133,7 @@ class PreferencesDialog(Dialog):
             )
         )
         self._cb_ignore_duplex.set_active(self.settings["ignore-duplex-capabilities"])
-        vbox.pack_start(self._cb_ignore_duplex, expand=False, fill=False, padding=0)
+        vbox.append(self._cb_ignore_duplex)
 
         # Force new scan job between pages
         self._cb_cancel_btw_pages = Gtk.CheckButton(
@@ -141,7 +146,7 @@ class PreferencesDialog(Dialog):
             )
         )
         self._cb_cancel_btw_pages.set_active(self.settings["cancel-between-pages"])
-        vbox.pack_start(self._cb_cancel_btw_pages, expand=False, fill=False, padding=0)
+        vbox.append(self._cb_cancel_btw_pages)
         self._cb_cancel_btw_pages.set_sensitive(self.settings["allow-batch-flatbed"])
         self._cb_batch_flatbed.connect(
             "toggled",
@@ -160,7 +165,7 @@ class PreferencesDialog(Dialog):
             )
         )
         self._cb_adf_all_pages.set_active(self.settings["adf-defaults-scan-all-pages"])
-        vbox.pack_start(self._cb_adf_all_pages, expand=False, fill=False, padding=0)
+        vbox.append(self._cb_adf_all_pages)
 
         # Cache device list
         self._cb_cache_device_list = Gtk.CheckButton(label=_("Cache device list"))
@@ -174,25 +179,28 @@ class PreferencesDialog(Dialog):
             )
         )
         self._cb_cache_device_list.set_active(self.settings["cache-device-list"])
-        vbox.pack_start(self._cb_cache_device_list, expand=False, fill=False, padding=0)
+        vbox.append(self._cb_cache_device_list)
 
     def _add_general_options1(self, vbox: Gtk.Box) -> None:
 
         # Restore window setting
         self._cbw = Gtk.CheckButton(label=_("Restore window settings on startup"))
         self._cbw.set_active(self.settings["restore window"])
-        vbox.pack_start(self._cbw, expand=True, fill=True, padding=0)
+        vbox.append(self._cbw)
+        self._cbw.set_vexpand(True)
 
         # View saved files
         self._cbv = Gtk.CheckButton(label=_("View files on saving"))
         self._cbv.set_active(self.settings["view files toggle"])
-        vbox.pack_start(self._cbv, expand=True, fill=True, padding=0)
+        vbox.append(self._cbv)
+        self._cbv.set_vexpand(True)
 
         # Default filename
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Default PDF & DjVu filename"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         self._fileentry = Gtk.Entry()
         self._fileentry.set_tooltip_text(
             _("""strftime codes, e.g.:
@@ -211,7 +219,7 @@ All document date codes use strftime codes with a leading D, e.g.:
 %Dd	document day
 """)
         )
-        hbox.add(self._fileentry)
+        hbox.append(self._fileentry)
         self._fileentry.set_text(self.settings["default filename"])
 
         # Replace whitespace in filenames with underscores
@@ -219,36 +227,42 @@ All document date codes use strftime codes with a leading D, e.g.:
             _("Replace whitespace in filenames with underscores")
         )
         self._cbb.set_active(self.settings["convert whitespace to underscores"])
-        vbox.pack_start(self._cbb, expand=True, fill=True, padding=0)
+        vbox.append(self._cbb)
+        self._cbb.set_vexpand(True)
 
         # Timezone
         self._cbtz = Gtk.CheckButton.new_with_label(_("Use timezone from locale"))
         self._cbtz.set_active(self.settings["use_timezone"])
-        vbox.pack_start(self._cbtz, expand=True, fill=True, padding=0)
+        vbox.append(self._cbtz)
+        self._cbtz.set_vexpand(True)
 
         # Time
         self._cbtm = Gtk.CheckButton.new_with_label(_("Specify time as well as date"))
         self._cbtm.set_active(self.settings["use_time"])
-        vbox.pack_start(self._cbtm, expand=True, fill=True, padding=0)
+        vbox.append(self._cbtm)
+        self._cbtm.set_vexpand(True)
 
         # Set file timestamp with metadata
         self._cbts = Gtk.CheckButton.new_with_label(
             _("Set access and modification times to metadata date")
         )
         self._cbts.set_active(self.settings["set_timestamp"])
-        vbox.pack_start(self._cbts, expand=True, fill=True, padding=0)
+        vbox.append(self._cbts)
+        self._cbts.set_vexpand(True)
 
         # Temporary directory settings
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Temporary directory"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         self._tmpentry = Gtk.Entry()
-        hbox.add(self._tmpentry)
+        hbox.append(self._tmpentry)
         self._tmpentry.set_text(self.settings["TMPDIR"])
         button = Gtk.Button(label=_("Browse"))
         button.connect("clicked", self._choose_temp_dir)
-        hbox.pack_end(button, expand=True, fill=True, padding=0)
+        hbox.append(button)
+        button.set_hexpand(True)
 
     def _choose_temp_dir(self, _button: Gtk.Button) -> None:
         file_chooser = Gtk.FileChooserDialog(
@@ -257,13 +271,13 @@ All document date codes use strftime codes with a leading D, e.g.:
             action=Gtk.FileChooserAction.SELECT_FOLDER,
         )
         file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
+            _("Cancel"),
             Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_OK,
+            _("OK"),
             Gtk.ResponseType.OK,
         )
         file_chooser.set_current_folder(self._tmpentry.get_text())
-        if file_chooser.run() == Gtk.ResponseType.OK:
+        if run_dialog(file_chooser) == Gtk.ResponseType.OK:
             self._tmpentry.set_text(
                 get_tmp_dir(file_chooser.get_filename(), r"scantpaper-\w\w\w\w")
             )
@@ -273,9 +287,9 @@ All document date codes use strftime codes with a leading D, e.g.:
 
         # Available space in temporary directory
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        pack_box(vbox, hbox, expand=True)
         label = Gtk.Label(label=_("Warn if available space less than (Mb)"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         self._spinbuttonw = Gtk.SpinButton.new_with_range(0, 100_000, 1)
         self._spinbuttonw.set_value(self.settings["available-tmp-warning"])
         self._spinbuttonw.set_tooltip_text(
@@ -283,37 +297,37 @@ All document date codes use strftime codes with a leading D, e.g.:
                 "Warn if the available space in the temporary directory is less than this value"
             )
         )
-        hbox.add(self._spinbuttonw)
+        hbox.append(self._spinbuttonw)
 
         # Blank page standard deviation threshold
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        pack_box(vbox, hbox, expand=True)
         label = Gtk.Label(label=_("Blank threshold"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         self._spinbuttonb = Gtk.SpinButton.new_with_range(0, 1, UNIT_SLIDER_STEP)
         self._spinbuttonb.set_value(self.settings["Blank threshold"])
         self._spinbuttonb.set_tooltip_text(
             _("Threshold used for selecting blank pages")
         )
         configure_fractional_spinbutton(self._spinbuttonb, digits=3)
-        hbox.add(self._spinbuttonb)
+        hbox.append(self._spinbuttonb)
 
         # Dark page mean threshold
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        pack_box(vbox, hbox, expand=True)
         label = Gtk.Label(label=_("Dark threshold"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         self._spinbuttond = Gtk.SpinButton.new_with_range(0, 1, UNIT_SLIDER_STEP)
         self._spinbuttond.set_value(self.settings["Dark threshold"])
         self._spinbuttond.set_tooltip_text(_("Threshold used for selecting dark pages"))
         configure_fractional_spinbutton(self._spinbuttond, digits=3)
-        hbox.add(self._spinbuttond)
+        hbox.append(self._spinbuttond)
 
         # OCR output
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        pack_box(vbox, hbox, expand=True)
         label = Gtk.Label(label=_("OCR output"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         ocr_function = [
             [
                 "replace",
@@ -327,29 +341,29 @@ All document date codes use strftime codes with a leading D, e.g.:
         ]
         self._comboo = ComboBoxText(data=ocr_function)
         self._comboo.set_active_index(self.settings["OCR output"])
-        hbox.pack_end(self._comboo, expand=True, fill=True, padding=0)
+        pack_box(hbox, self._comboo, expand=True)
 
         self._add_bilevel_compression(vbox)
 
         # Manage user-defined tools
         frame = Gtk.Frame(label=_("Manage user-defined tools"))
-        vbox.pack_start(frame, expand=True, fill=True, padding=0)
+        pack_box(vbox, frame, expand=True)
         self._vboxt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self._vboxt.set_border_width(self.get_border_width())
-        frame.add(self._vboxt)
+        frame.set_child(self._vboxt)
         for tool in cast("list[object]", self.settings["user_defined_tools"]):
             self._add_user_defined_tool_entry(cast("str", tool))
         abutton = Gtk.Button()
-        abutton.set_image(Gtk.Image.new_from_icon_name("list-add", Gtk.IconSize.BUTTON))
-        self._vboxt.pack_start(abutton, expand=True, fill=True, padding=0)
+        abutton.set_child(Gtk.Image.new_from_icon_name("list-add"))
+        pack_box(self._vboxt, abutton, expand=True)
         abutton.connect("clicked", self._clicked_add_udt)
 
     def _add_bilevel_compression(self, vbox: Gtk.Box) -> None:
         """Add the codec preference for bilevel pages under automatic compression."""
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Bilevel compression"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         bilevel_function = [
             [
                 "g4",
@@ -367,16 +381,20 @@ All document date codes use strftime codes with a leading D, e.g.:
             )
         self._combobc = ComboBoxText(data=bilevel_function)
         self._combobc.set_active_index(self.settings["bilevel compression"])
-        hbox.pack_end(self._combobc, expand=True, fill=True, padding=0)
+        hbox.append(self._combobc)
+        self._combobc.set_hexpand(True)
 
     def _clicked_add_udt(self, button: Gtk.Button) -> None:
         self._add_user_defined_tool_entry("my-tool %i %o")
-        self._vboxt.reorder_child(button, -1)
+        children = list(self._vboxt.observe_children())
+        if children:
+            self._vboxt.reorder_child_after(button, children[-1])
 
     def _add_user_defined_tool_entry(self, tool: str) -> None:
         """Add user-defined tool entry."""
         hbox = Gtk.Box()
-        self._vboxt.pack_start(hbox, expand=True, fill=True, padding=0)
+        self._vboxt.append(hbox)
+        hbox.set_vexpand(True)
         entry = Gtk.Entry()
         entry.set_text(tool)
         entry.set_tooltip_text(
@@ -389,25 +407,26 @@ The other variable available is:
             )
             % ()
         )
-        hbox.pack_start(entry, expand=True, fill=True, padding=0)
+        hbox.append(entry)
+        entry.set_hexpand(True)
         button = Gtk.Button.new_with_mnemonic(label=_("_Delete"))
 
         def delete_udt(_widget: Gtk.Button) -> None:
-            hbox.destroy()
+            self._vboxt.remove(hbox)
 
         button.connect("clicked", delete_udt)
-        hbox.pack_end(button, expand=False, fill=False, padding=0)
-        hbox.show_all()
+        hbox.append(button)
+        hbox.show()
 
     def _apply_callback(self) -> None:
         # Validate user-defined tools before hiding
         tools = []
-        for hbox in self._vboxt.get_children():
+        for hbox in list(self._vboxt.observe_children()):
             if (
                 isinstance(hbox, Gtk.Box)
                 and hbox.get_orientation() == Gtk.Orientation.HORIZONTAL
             ):
-                for widget in hbox.get_children():
+                for widget in list(hbox.observe_children()):
                     if isinstance(widget, Gtk.Entry):
                         text = widget.get_text()
                         tools.append(text)
@@ -434,7 +453,7 @@ The other variable available is:
                 + _("Please check that the command is installed and in your PATH."),
             )
             dialog.set_title(_("User-defined tool not found"))
-            dialog.run()
+            run_dialog(dialog)
             dialog.destroy()
             return
 

@@ -93,6 +93,40 @@
    Note: when we drop jammy, we can bump target-version & requires-python and
    drop the tomli conditional (;python_version<'3.11')
 
+### When jammy is dropped: modernise GTK4
+
+The GTK3→GTK4 port deliberately kept the already-deprecated GTK4 widgets so
+it runs on jammy's GTK 4.6.9. Once jammy (GTK 4.6) is dropped, the CI floor
+rises to noble (GTK 4.14), which unlocks GTK4 widgets introduced after 4.6
+and lets us clear the deprecations. Each item below becomes available only
+after the floor moves; they are independent and can be done one per release.
+
+- Raise the minimum supported distro to noble and drop jammy from the PPA
+  build list (and the `oldest` CI job if it is the jammy one).
+- Bump `requires-python` / `target-version` and drop the tomli conditional
+  (`;python_version<'3.11'`), as noted above.
+- Replace `Gtk.Dialog` usage with `Gtk.AlertDialog` / plain `Gtk.Window`
+  (deprecated since 4.10).
+- Replace `Gtk.ComboBox` / `Gtk.ComboBoxText` with `Gtk.DropDown` +
+  `Gtk.StringList` (4.10 / 4.4).
+- Replace `Gtk.EntryCompletion` with the list-model completion / `Gtk.DropDown`.
+- Replace `Gtk.TreeView` / `Gtk.ListStore` / cell renderers with
+  `Gtk.ListView` + `Gtk.ListItemFactory` (or `Gtk.ColumnView`) where a
+  columned list is wanted.
+- Replace `Gtk.Notebook` with `Gtk.Stack` + `Gtk.StackSwitcher` (or keep
+  Notebook if preferred - it still exists, only deprecated).
+- Optionally move the custom canvas/imageview rendering from the Cairo
+  `set_draw_func` path to the snapshot / `GtkGLArea` API; only if a
+  rendering feature requires it.
+- Optionally drop the local `graphene.Rect` wrapper (if introduced during
+  the port) now that the floor is newer.
+- Remove the corresponding `gi.require_version` workarounds introduced to
+  stay on 4.6-compatible APIs, and clear any GTK4 deprecation warnings.
+
+A release that ships a GTK4 widget must drop jammy in the same release, so a
+jammy user never installs a build that requires a widget its GTK4 cannot
+provide.
+
 
 1. gscan2pdf-announce@lists.sourceforge.net, gscan2pdf-help@lists.sourceforge.net,
    sane-devel@lists.alioth.debian.org

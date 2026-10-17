@@ -127,12 +127,13 @@ class Crop(Dialog):
         # grid for layout
         grid = Gtk.Grid()
         vbox = self.get_content_area()
-        vbox.pack_start(grid, expand=True, fill=True, padding=0)
+        vbox.append(grid)
+        grid.set_vexpand(True)
         for i, row in enumerate(LAYOUT):
             hbox = Gtk.Box()
             label = Gtk.Label(label=row[1])
             grid.attach(hbox, 1, i, 1, 1)
-            hbox.pack_start(label, expand=False, fill=True, padding=0)
+            hbox.append(label)
             hbox = Gtk.Box()
 
             dim = row[0]
@@ -146,13 +147,14 @@ class Crop(Dialog):
             )
             setattr(self, attr_name, widget)
             widget.connect("value-changed", self.on_sb_selector_value_changed, dim)
-            hbox.pack_end(widget, expand=True, fill=True, padding=0)
+            hbox.append(widget)
+            widget.set_hexpand(True)
 
             grid.attach(hbox, 2, i, 1, 1)
             hbox = Gtk.Box()
             grid.attach(hbox, 3, i, 1, 1)
             label = Gtk.Label(label=_("pixels"))
-            hbox.pack_start(label, expand=False, fill=True, padding=0)
+            hbox.append(label)
             widget.set_tooltip_text(row[2])
 
     def on_sb_selector_value_changed(

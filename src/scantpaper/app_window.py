@@ -34,7 +34,7 @@ from scantpaper.dialog import MultipleMessage
 from scantpaper.document import Document
 from scantpaper.edit_menu_mixins import EditMenuMixins
 from scantpaper.file_menu_mixins import FileMenuMixins
-from scantpaper.helpers import recursive_slurp
+from scantpaper.helpers import pack_box, recursive_slurp, run_dialog
 from scantpaper.i18n import _, ngettext
 from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger
 from scantpaper.progress import Progress
@@ -44,7 +44,7 @@ from scantpaper.tesseract import get_tesseract_codes, locale_installed
 from scantpaper.tools_menu_mixins import ToolsMenuMixins
 from scantpaper.unpaper import Unpaper
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     Gio,
@@ -60,34 +60,35 @@ GLib.set_prgname("com.github.scantpaper")
 
 
 def drag_motion_callback(
-    tree: Gtk.TreeView, context: Gdk.DragContext, x: int, y: int, t: int
-) -> None:
-    """Handle drag motion."""
+    target: Gtk.DropTarget, x: float, y: float, tree: Gtk.TreeView
+) -> Gdk.DragAction:
+    """Handle drag motion over the thumbnail list."""
     try:
-        path, how = tree.get_dest_row_at_pos(x, y)
+        path, how = tree.get_dest_row_at_pos(int(x), int(y))
     except TypeError:  # for NoneType, which can't be unpacked
-        return
-    scroll = tree.get_parent()
+        return Gdk.DragAction.MOVE
 
     # Add the marker showing the drop in the tree
     tree.set_drag_dest_row(path, how)
 
     # Make move the default
     action = Gdk.DragAction.MOVE
-    if context.get_actions() == Gdk.DragAction.COPY:
+    if target.get_actions() == Gdk.DragAction.COPY:
         action = Gdk.DragAction.COPY
 
-    Gdk.drag_status(context, action, t)
-    adj = scroll.get_vadjustment()
-    value, step = adj.get_value(), adj.get_step_increment()
-    if y > adj.get_page_size() - step / 2:
-        v = value + step
-        m = adj.get_upper(-adj.get_page_size())
-        adj.set_value(min(v, m))
-    elif y < step / 2:
-        v = value - step
-        m = adj.get_lower()
-        adj.set_value(max(v, m))
+    scroll = cast("Gtk.ScrolledWindow | None", tree.get_parent())
+    if scroll is not None:
+        adj = scroll.get_vadjustment()
+        value, step = adj.get_value(), adj.get_step_increment()
+        if y > adj.get_page_size() - step / 2:
+            v = value + step
+            m = adj.get_upper() - adj.get_page_size()
+            adj.set_value(min(v, m))
+        elif y < step / 2:
+            v = value - step
+            m = adj.get_lower()
+            adj.set_value(max(v, m))
+    return action
 
 
 def view_html(_action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
@@ -150,7 +151,8 @@ class ApplicationWindow(
         # Ensure Gtk.Builder uses the same gettext domain as the application
         self.builder.set_translation_domain(PROG_NAME)
         self.builder.add_from_file(str(base_path / "app.ui"))
-        self.builder.connect_signals(self)
+        # GTK4 removed Gtk.Builder.connect_signals; app.ui declares no
+        # <signal> handlers, they are all wired in Python below.
         self.detail_popup = self.builder.get_object("detail_popup")
 
         # These will be in the window group and have the "win" prefix
@@ -188,18 +190,16 @@ class ApplicationWindow(
         self._hpaned = self.builder.get_object("hpaned")
         self._vpaned = self.builder.get_object("vpaned")
         self._vnotebook = self.builder.get_object("vnotebook")
-        self._hpanei = Gtk.HPaned()
-        self._vpanei = Gtk.VPaned()
-        self.connect("delete-event", lambda _w, _e: not self._can_quit())
-        self.connect("window-state-event", self._window_state_event_callback)
+        self._hpanei = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
+        self._vpanei = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
+        self.connect("close-request", self._close_request)
+        self.connect("notify::maximized", self._maximized_notify)
 
         # If defined in the config file, set the window state, size and position
         if self.settings["restore window"]:
             self.set_default_size(
                 self.settings["window_width"], self.settings["window_height"]
             )
-            if "window_x" in self.settings and "window_y" in self.settings:
-                self.move(self.settings["window_x"], self.settings["window_y"])
 
             if self.settings["window_maximize"]:
                 self.maximize()
@@ -276,13 +276,13 @@ class ApplicationWindow(
             "editmode", GLib.VariantType("s"), GLib.Variant("s", "text")
         )
 
-    def _window_state_event_callback(
-        self, _w: Gtk.Widget, event: Gdk.EventWindowState
+    def _close_request(self, _widget: Gtk.Widget) -> bool:
+        return not self._can_quit()
+
+    def _maximized_notify(
+        self, _widget: GObject.Object, _pspec: GObject.ParamSpec
     ) -> None:
-        """Note when the window is maximised or not."""
-        self.settings["window_maximize"] = bool(
-            event.new_window_state & Gdk.WindowState.MAXIMIZED
-        )
+        self.settings["window_maximize"] = bool(self.is_maximized())
 
     def _pre_flight(self) -> None:
         """Initialise variables, read configuration, and initialise components."""
@@ -328,8 +328,6 @@ class ApplicationWindow(
             GLib.Variant("s", self.settings["image_control_tool"]),
         )
 
-        self.get_application().set_menubar(self.builder.get_object("menubar"))
-
     def _read_config(self) -> None:
         """Read the configuration file."""
         # config files: XDG_CONFIG_HOME/scantpaperrc or HOME/.config/scantpaperrc
@@ -355,6 +353,7 @@ class ApplicationWindow(
 
     def _populate_main_window(self) -> None:
         """Populate the main window with various UI components and set up necessary callbacks."""
+        self._connect_popover_signals()
         self._create_temp_directory()
 
         # Set up an SimpleList for the thumbnail view
@@ -364,7 +363,7 @@ class ApplicationWindow(
         self.slist.set_paper_sizes(self.settings["Paper"])
 
         main_vbox = self.builder.get_object("main_vbox")
-        self.add(main_vbox)
+        self.set_child(main_vbox)
 
         self._populate_panes()
 
@@ -380,28 +379,24 @@ class ApplicationWindow(
 
         # Without these, the imageviewer and page list steal -/+/ctrl x/c/v keys
         # from the OCR textview
-        self.connect("key-press-event", Gtk.Window.propagate_key_event)
-        self.connect("key-release-event", Gtk.Window.propagate_key_event)
-
-        # _after ensures that Editables get first bite
-        self.connect_after("key-press-event", self._on_key_press)
+        self._key_controller = Gtk.EventControllerKey()
+        self._key_controller.connect("key-pressed", self._on_key_press)
+        self.add_controller(self._key_controller)
 
         # If defined in the config file, set the current directory
         if "cwd" not in self.settings:
             self.settings["cwd"] = str(pathlib.Path.cwd())
         self._unpaper = Unpaper(self.settings["unpaper options"])
         self._update_uimanager()
-        self.show_all()
 
         self._notify_config_load_warnings()
 
         # Progress bars below window
         phbox = self.builder.get_object("progress_hbox")
-        phbox.show()
         self._scan_progress = Progress()
-        phbox.pack_start(self._scan_progress, expand=True, fill=True, padding=0)
+        pack_box(phbox, self._scan_progress, expand=True)
         self.post_process_progress = Progress()
-        phbox.pack_start(self.post_process_progress, expand=True, fill=True, padding=0)
+        pack_box(phbox, self.post_process_progress, expand=True)
         # Child widgets are already shown in Progress.__init__, container starts hidden
         self.post_process_progress.cancel_callback = self._cancel_post_process
 
@@ -437,26 +432,26 @@ class ApplicationWindow(
         # resize = FALSE to stop the panel expanding on being resized
         # (Debian #507032)
         # controls in pack1/2 don't seem to be available via UI XML in Gtk4
-        self._hpaned.remove(scwin_thumbs)
-        self._hpaned.pack1(scwin_thumbs, resize=False)
+        self._hpaned.set_start_child(None)
+        self._hpaned.set_start_child(scwin_thumbs)
 
-        # If dragged below the bottom of the window, scroll it.
-        self.slist.connect("drag-motion", drag_motion_callback)
+        # Highlight the drop position and auto-scroll while dragging. The GTK4
+        # replacement for the old "drag-motion" signal is the "motion" signal
+        # of the drop targets that BaseDocument installs.
+        self.slist.rows_drop_target.connect("motion", drag_motion_callback, self.slist)
+        self.slist.files_drop_target.connect("motion", drag_motion_callback, self.slist)
 
-        # Set up callback for right mouse clicks.
-        self.slist.connect("button-press-event", self._handle_clicks)
-        self.slist.connect("button-release-event", self._handle_clicks)
-        scwin_thumbs.add(self.slist)
+        # Set up callback for right mouse clicks (GTK4: Gtk.GestureClick).
+        self._add_secondary_click_controller(self.slist)
+        scwin_thumbs.set_child(self.slist)
 
         # Notebook, split panes for detail view and OCR output
         # controls in pack1/2 don't seem to be available via UI XML in Gtk4
-        self._vpaned.remove(self._vnotebook)
-        self._vpaned.pack1(self._vnotebook, resize=True)
+        self._vpaned.set_start_child(None)
+        self._vpaned.set_start_child(self._vnotebook)
         edit_hbox = self.builder.get_object("edit_hbox")
-        self._vpaned.remove(edit_hbox)
-        self._vpaned.pack2(edit_hbox, resize=False)
-        self._hpanei.show()
-        self._vpanei.show()
+        self._vpaned.set_end_child(None)
+        self._vpaned.set_end_child(edit_hbox)
 
         # ImageView for detail view
         self.view = ImageView()
@@ -467,8 +462,7 @@ class ApplicationWindow(
         else:
             self.view.set_tool(SelectorDragger(self.view))
 
-        self.view.connect("button-press-event", self._handle_clicks)
-        self.view.connect("button-release-event", self._handle_clicks)
+        self._add_secondary_click_controller(self.view)
         self.view.selection_changed_signal = self.view.connect(
             "selection-changed", self._view_selection_changed_callback
         )
@@ -538,13 +532,6 @@ class ApplicationWindow(
                 store_response=True,
             )
 
-        # extract the toolbar
-        toolbar = self.builder.get_object("toolbar")
-
-        # turn off labels
-        settings = toolbar.get_settings()
-        settings.gtk_toolbar_style = "icons"  # only icons
-
     def _init_split_pane(
         self, pane: Gtk.Paned, orientation: Gtk.Orientation, saved_position: int | None
     ) -> None:
@@ -560,71 +547,122 @@ class ApplicationWindow(
             pane.set_position(int(saved_position))
             return
 
-        def on_size_allocate(_pane: Gtk.Widget, alloc: Gtk.Allocation) -> None:
+        def on_tick(_widget: Gtk.Widget, _clock: Gdk.FrameClock) -> bool:
             size = (
-                alloc.width
+                pane.get_width()
                 if orientation == Gtk.Orientation.HORIZONTAL
-                else alloc.height
+                else pane.get_height()
             )
+            if size <= 1:
+                # Not allocated yet; keep ticking until the pane has a size.
+                return True
             pane.set_position(size // 2)
-            pane.disconnect(handler_id)
+            # Returning False removes the tick callback.
+            return False
 
-        handler_id = pane.connect("size-allocate", on_size_allocate)
+        pane.add_tick_callback(on_tick)
 
     def _pack_viewer_tools(self) -> None:
         # The .ui and _populate_panes leave _vnotebook in _vpaned's pack1.
         # GtkPaned.pack1 silently keeps an existing pack1 child, so it must be
         # removed before packing the (possibly different) view container, or a
         # split view would never become visible on startup.
-        child1 = self._vpaned.get_child1()
+        child1 = self._vpaned.get_start_child()
         if child1 is not None:
-            self._vpaned.remove(child1)
+            self._vpaned.set_start_child(None)
         if self.settings["viewer_tools"] == "tabbed":
             self._vnotebook.append_page(self.view, Gtk.Label(label=_("Image")))
             self._vnotebook.append_page(self.t_canvas, Gtk.Label(label=_("Text layer")))
             self._vnotebook.append_page(
                 self.a_canvas, Gtk.Label(label=_("Annotations"))
             )
-            self._vpaned.pack1(self._vnotebook, resize=True, shrink=True)
-            self._vnotebook.show_all()
+            self._vpaned.set_start_child(self._vnotebook)
         elif self.settings["viewer_tools"] == "horizontal":
-            self._hpanei.pack1(self.view, resize=True, shrink=True)
-            self._hpanei.pack2(self.t_canvas, resize=True, shrink=True)
+            self._hpanei.set_start_child(self.view)
+            self._hpanei.set_end_child(self.t_canvas)
             if self.a_canvas.get_parent():
-                self._vnotebook.remove(self.a_canvas)
-            self._vpaned.pack1(self._hpanei, resize=True, shrink=True)
+                self._vnotebook.detach_tab(self.a_canvas)
+            self._vpaned.set_start_child(self._hpanei)
             self._init_split_pane(
                 self._hpanei,
                 Gtk.Orientation.HORIZONTAL,
                 self.settings.get("split panel h"),
             )
         else:  # vertical
-            self._vpanei.pack1(self.view, resize=True, shrink=True)
-            self._vpanei.pack2(self.t_canvas, resize=True, shrink=True)
+            self._vpanei.set_start_child(self.view)
+            self._vpanei.set_end_child(self.t_canvas)
             if self.a_canvas.get_parent():
-                self._vnotebook.remove(self.a_canvas)
-            self._vpaned.pack1(self._vpanei, resize=True, shrink=True)
+                self._vnotebook.detach_tab(self.a_canvas)
+            self._vpaned.set_start_child(self._vpanei)
             self._init_split_pane(
                 self._vpanei,
                 Gtk.Orientation.VERTICAL,
                 self.settings.get("split panel v"),
             )
 
-    def _handle_clicks(self, widget: Gtk.Widget, event: Gdk.EventButton) -> bool:
-        if event.button == Gdk.BUTTON_SECONDARY:
-            if isinstance(widget, ImageView):  # main image
-                self.detail_popup.show_all()
-                self.detail_popup.popup_at_pointer(event)
-            else:  # Thumbnail SimpleList
-                self.settings["Page range"] = "selected"
-                self._thumb_popup.show_all()
-                self._thumb_popup.popup_at_pointer(event)
+    def _connect_popover_signals(self) -> None:
+        detail = {
+            "detail_zoom_100": self._on_zoom_100,
+            "detail_zoom_to_fit": self._on_zoom_to_fit,
+            "detail_zoom_in": self._on_zoom_in,
+            "detail_zoom_out": self._on_zoom_out,
+            "detail_rotate_90": self._on_rotate_90,
+            "detail_rotate_180": self._on_rotate_180,
+            "detail_rotate_270": self._on_rotate_270,
+            "detail_crop": self._on_crop,
+            "detail_cut": self._on_cut,
+            "detail_copy": self._on_copy,
+            "detail_paste": self._on_paste,
+            "detail_delete": self._on_delete,
+            "detail_properties": self._on_properties,
+        }
+        thumb = {
+            "thumb_save": self._on_save,
+            "thumb_email": self._on_email,
+            "thumb_print": self._on_print,
+            "thumb_select_all": self._on_select_all,
+            "thumb_select_odd": self._on_select_odd,
+            "thumb_select_even": self._on_select_even,
+            "thumb_invert_selection": self._on_invert_selection,
+            "thumb_rotate_90": self._on_rotate_90,
+            "thumb_rotate_180": self._on_rotate_180,
+            "thumb_rotate_270": self._on_rotate_270,
+            "thumb_crop": self._on_crop,
+            "thumb_cut": self._on_cut,
+            "thumb_copy": self._on_copy,
+            "thumb_paste": self._on_paste,
+            "thumb_delete": self._on_delete,
+            "thumb_clear_ocr": self._on_clear_ocr,
+            "thumb_properties": self._on_properties,
+        }
+        self.detail_popup.set_parent(self)
+        self._thumb_popup.set_parent(self)
+        for mapping in (detail, thumb):
+            for object_id, handler in mapping.items():
+                self.builder.get_object(object_id).connect("clicked", handler)
 
-            # block event propagation
-            return True
+    def _add_secondary_click_controller(self, widget: Gtk.Widget) -> None:
+        """Attach the right-click popup handler to a widget (GTK4 gestures)."""
+        gesture = Gtk.GestureClick(button=Gdk.BUTTON_SECONDARY)
+        gesture.connect("pressed", self._handle_clicks)
+        widget.add_controller(gesture)
 
-        # allow event propagation
-        return False
+    def _handle_clicks(
+        self,
+        gesture: Gtk.GestureClick,
+        _n_press: int,
+        _x: float,
+        _y: float,
+    ) -> None:
+        widget = gesture.get_widget()
+        if isinstance(widget, ImageView):  # main image
+            self.detail_popup.popup()
+        else:  # Thumbnail SimpleList
+            self.settings["Page range"] = "selected"
+            self._thumb_popup.popup()
+
+        # block event propagation
+        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
 
     def _view_selection_changed_callback(
         self, _view: ImageView, sel: Gdk.Rectangle
@@ -641,13 +679,17 @@ class ApplicationWindow(
         if sel is not None:
             self.settings["selection"] = sel.copy()
 
-    def _on_key_press(self, _widget: Gtk.Widget, event: Gdk.EventKey) -> bool:
-
-        # Let the keypress propagate
-        if event.keyval != Gdk.KEY_Delete:
-            return cast("bool", (Gdk.EVENT_PROPAGATE))
+    def _on_key_press(
+        self,
+        _controller: Gtk.EventControllerKey,
+        keyval: int,
+        _keycode: int,
+        _state: Gdk.ModifierType,
+    ) -> bool:
+        if keyval != Gdk.KEY_Delete:
+            return False
         self.delete_selection(None, None)
-        return cast("bool", (Gdk.EVENT_STOP))
+        return True
 
     _in_tool_change = False
 
@@ -694,18 +736,17 @@ class ApplicationWindow(
 
         # self.settings["viewer_tools"] still has old value
         if self.settings["viewer_tools"] == "tabbed":
-            self._vpaned.remove(self._vnotebook)
-            self._vnotebook.remove(self.view)
-            self._vnotebook.remove(self.t_canvas)
+            self._vpaned.set_start_child(None)
+            self._vnotebook.detach_tab(self.view)
+            self._vnotebook.detach_tab(self.t_canvas)
         elif self.settings["viewer_tools"] == "horizontal":
-            self._vpaned.remove(self._hpanei)
-            self._hpanei.remove(self.view)
-            self._hpanei.remove(self.t_canvas)
+            self._vpaned.set_start_child(None)
+            self._hpanei.set_start_child(None)
+            self._hpanei.set_end_child(None)
         else:  # vertical
-            self._vpaned.remove(self._vpanei)
-            self._vpanei.remove(self.view)
-            self._vpanei.remove(self.t_canvas)
-            self._vpanei.remove(self.a_canvas)
+            self._vpaned.set_start_child(None)
+            self._vpanei.set_start_child(None)
+            self._vpanei.set_end_child(None)
 
         self.settings["viewer_tools"] = parameter.get_string()
         self._pack_viewer_tools()
@@ -874,17 +915,15 @@ class ApplicationWindow(
         self._message_dialog.add_message(kwargs)
         response = None
         if self._message_dialog.grid_rows > 1:
-            self._message_dialog.show_all()
-            response = self._message_dialog.run()
+            response = run_dialog(self._message_dialog)
 
         self._message_dialog.store_responses(
-            cast("str", response),
+            response,
             cast("dict[str, dict[str, object]]", self.settings["message"]),
         )
-        (
-            self.settings["message_window_width"],
-            self.settings["message_window_height"],
-        ) = self._message_dialog.get_size()
+        # GTK4 removed the Gtk3 PyGObject Widget.get_size() tuple helper.
+        self.settings["message_window_width"] = self._message_dialog.get_width()
+        self.settings["message_window_height"] = self._message_dialog.get_height()
         self._message_dialog.destroy()
         self._message_dialog = None
 
@@ -951,32 +990,31 @@ class ApplicationWindow(
         dialog.set_title(_("Error opening the last device used."))
         area = dialog.get_message_area()
         label = Gtk.Label(label=_("There was an error opening the last device used."))
-        area.add(label)
-        radio1 = Gtk.RadioButton.new_with_label(
-            None, label=_("Whoops! I forgot to turn it on. Try again now.")
+        area.append(label)
+        radio1 = Gtk.CheckButton.new_with_label(
+            label=_("Whoops! I forgot to turn it on. Try again now.")
         )
-        area.add(radio1)
-        area.add(
-            Gtk.RadioButton.new_with_label_from_widget(
-                radio1, label=_("Rescan for devices")
-            )
-        )
-        radio3 = Gtk.RadioButton.new_with_label_from_widget(
-            radio1, label=_("Restart scantpaper.")
-        )
-        area.add(radio3)
-        radio4 = Gtk.RadioButton.new_with_label_from_widget(
-            radio1,
+        area.append(radio1)
+        # GTK3 made the first radio button of a group active by default;
+        # grouped check buttons in GTK4 do not, so activate it explicitly.
+        radio1.set_active(True)
+        radio2 = Gtk.CheckButton.new_with_label(label=_("Rescan for devices"))
+        radio2.set_group(radio1)
+        area.append(radio2)
+        radio3 = Gtk.CheckButton.new_with_label(label=_("Restart scantpaper."))
+        radio3.set_group(radio1)
+        area.append(radio3)
+        radio4 = Gtk.CheckButton.new_with_label(
             label=_("Just ignore the error. I don't need the scanner yet."),
         )
-        area.add(radio4)
+        radio4.set_group(radio1)
+        area.append(radio4)
         cb_cache_device_list = Gtk.CheckButton.new_with_label(_("Cache device list"))
         cb_cache_device_list.set_active(self.settings["cache-device-list"])
-        area.add(cb_cache_device_list)
+        area.append(cb_cache_device_list)
         cb = Gtk.CheckButton.new_with_label(label=_("Don't show this message again"))
-        area.add(cb)
-        dialog.show_all()
-        response = dialog.run()
+        area.append(cb)
+        response = run_dialog(dialog)
         dialog.destroy()
         if response != Gtk.ResponseType.OK or radio4.get_active():
             response = "ignore"
@@ -987,5 +1025,7 @@ class ApplicationWindow(
         else:
             response = "rescan"
         if cb.get_active():
-            self.settings["message"][error_name]["response"] = response
+            # The key need not exist yet: this dialog is shown precisely when
+            # there is no stored response for it.
+            self.settings["message"].setdefault(error_name, {})["response"] = response
         return response

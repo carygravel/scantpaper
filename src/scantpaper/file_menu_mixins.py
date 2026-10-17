@@ -19,14 +19,18 @@ from scantpaper import config
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import _LOCAL_TZ, ASTERISK, EMPTY, EMPTY_LIST
 from scantpaper.dialog.save import Save as SaveDialog
-from scantpaper.helpers import collate_metadata, expand_metadata_pattern
+from scantpaper.helpers import (
+    collate_metadata,
+    expand_metadata_pattern,
+    run_dialog,
+)
 from scantpaper.i18n import _
 from scantpaper.print_operation import PrintOperation
 
 if TYPE_CHECKING:
     from scantpaper.basethread import Response
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 
 from gi.repository import (  # noqa: E402
     Gio,
@@ -84,7 +88,7 @@ def launch_default_for_file(filename: str) -> None:
     context = Gio.AppLaunchContext()
     try:
         Gio.AppInfo.launch_default_for_uri(uri, context)
-    except Gio.Error:
+    except GLib.Error:
         logger.exception("Unable to launch viewer")
 
 
@@ -132,9 +136,9 @@ class FileMenuMixins:
             action=Gtk.FileChooserAction.OPEN,
         )
         file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
+            _("Cancel"),
             Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_OPEN,
+            _("Open"),
             Gtk.ResponseType.OK,
         )
         file_chooser.set_select_multiple(True)
@@ -158,7 +162,7 @@ class FileMenuMixins:
                 "sdb",
             ],
         )
-        if file_chooser.run() == Gtk.ResponseType.OK:
+        if run_dialog(file_chooser) == Gtk.ResponseType.OK:
             # cd back to tempdir to import
             os.chdir(self.session.name)
 
@@ -184,27 +188,28 @@ class FileMenuMixins:
             destroy_with_parent=True,
         )
         dialog.add_buttons(
-            Gtk.STOCK_OK,
+            _("OK"),
             Gtk.ResponseType.OK,
-            Gtk.STOCK_CANCEL,
+            _("Cancel"),
             Gtk.ResponseType.CANCEL,
         )
         vbox = dialog.get_content_area()
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("First page to extract"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         spinbuttonf = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
-        hbox.pack_end(spinbuttonf, expand=False, fill=False, padding=0)
+        hbox.append(spinbuttonf)
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Last page to extract"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         spinbuttonl = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
         spinbuttonl.set_value(info["pages"])
-        hbox.pack_end(spinbuttonl, expand=False, fill=False, padding=0)
-        dialog.show_all()
-        response = dialog.run()
+        hbox.append(spinbuttonl)
+        response = run_dialog(dialog)
         dialog.destroy()
         if response == Gtk.ResponseType.OK:
             return int(spinbuttonf.get_value()), int(spinbuttonl.get_value())
@@ -226,9 +231,8 @@ class FileMenuMixins:
         entry = Gtk.Entry()
         entry.set_visibility(False)
         entry.set_invisible_char(ASTERISK)
-        vbox.pack_end(entry, expand=False, fill=False, padding=0)
-        dialog.show_all()
-        response = dialog.run()
+        vbox.append(entry)
+        response = run_dialog(dialog)
         text = entry.get_text()
         dialog.destroy()
         if response == Gtk.ResponseType.OK and text != EMPTY:
@@ -284,11 +288,14 @@ class FileMenuMixins:
             action=Gtk.FileChooserAction.SELECT_FOLDER,
         )
         file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK
+            _("Cancel"),
+            Gtk.ResponseType.CANCEL,
+            _("OK"),
+            Gtk.ResponseType.OK,
         )
         file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder(self.settings["cwd"])
-        if file_chooser.run() == Gtk.ResponseType.OK:
+        if run_dialog(file_chooser) == Gtk.ResponseType.OK:
             filename = file_chooser.get_filenames()
             self._open_session(filename[0])
 
@@ -371,15 +378,15 @@ class FileMenuMixins:
             )
         )
         vbox = self._windowi.get_content_area()
-        vbox.pack_start(pshbutton, expand=False, fill=True, padding=0)
+        vbox.append(pshbutton)
         self._update_post_save_hooks()
         # Wrap combobox in a scrolled window to avoid the dialog becoming
         # excessively wide for users with long tool names.
         sw = Gtk.ScrolledWindow()
         sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
         sw.set_propagate_natural_width(False)
-        sw.add(self._windowi.comboboxpsh)
-        vbox.pack_start(sw, expand=False, fill=True, padding=0)
+        sw.set_child(self._windowi.comboboxpsh)
+        vbox.append(sw)
         pshbutton.connect(
             "toggled",
             lambda _action: self._windowi.comboboxpsh.set_sensitive(
@@ -391,19 +398,18 @@ class FileMenuMixins:
         kbutton = Gtk.CheckButton(label=_("Close dialog on save"))
         kbutton.set_tooltip_text(_("Close dialog on save"))
         kbutton.set_active(self.settings["close_dialog_on_save"])
-        vbox.pack_start(kbutton, expand=False, fill=True, padding=0)
+        vbox.append(kbutton)
 
         self._windowi.add_actions(
             [
                 (
-                    "gtk-save",
+                    _("_Save"),
                     lambda: self._save_button_clicked_callback(kbutton, pshbutton),
                 ),
-                ("gtk-cancel", self._windowi.hide),
+                (_("_Cancel"), self._windowi.hide),
             ]
         )
-        self._windowi.show_all()
-        self._windowi.resize(1, 1)
+        self._windowi.present()
 
     def _save_button_clicked_callback(
         self, kbutton: Gtk.CheckButton, pshbutton: Gtk.CheckButton
@@ -494,9 +500,9 @@ class FileMenuMixins:
             action=Gtk.FileChooserAction.SAVE,
         )
         file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
+            _("Cancel"),
             Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_OK,
+            _("OK"),
             Gtk.ResponseType.OK,
         )
         if self.settings["image type"] in ["pdf", "djvu"]:
@@ -831,9 +837,9 @@ class FileMenuMixins:
             action=Gtk.FileChooserAction.SAVE,
         )
         file_chooser.add_buttons(
-            Gtk.STOCK_CANCEL,
+            _("Cancel"),
             Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_SAVE,
+            _("Save"),
             Gtk.ResponseType.OK,
         )
         file_chooser.set_default_response(Gtk.ResponseType.OK)
@@ -844,7 +850,7 @@ class FileMenuMixins:
             ["jpg", "png", "pnm", "gif", "tif", "tiff", "pdf", "djvu", "ps"],
         )
         file_chooser.set_do_overwrite_confirmation(True)
-        if file_chooser.run() == Gtk.ResponseType.OK:
+        if run_dialog(file_chooser) == Gtk.ResponseType.OK:
             filename = file_chooser.get_filename()
 
             # Update cwd
@@ -984,19 +990,19 @@ class FileMenuMixins:
         ):
             file.unlink()
         pathlib.Path(self.session.name).rmdir()
-        # Write window state to settings
-        self.settings["window_width"], self.settings["window_height"] = self.get_size()
-        self.settings["window_x"], self.settings["window_y"] = self.get_position()
+        # Write window state to settings. GTK4 has no Widget.get_size() (it
+        # now takes an orientation) or Window.get_position(); windows cannot
+        # be positioned in GTK4, so no position is stored.
+        self.settings["window_width"] = self.get_width()
+        self.settings["window_height"] = self.get_height()
         self.settings["thumb panel"] = self._hpaned.get_position()
         if self.settings.get("viewer_tools") == "horizontal":
             self.settings["split panel h"] = self._hpanei.get_position()
         elif self.settings.get("viewer_tools") == "vertical":
             self.settings["split panel v"] = self._vpanei.get_position()
         if self._windows:
-            (
-                self.settings["scan_window_width"],
-                self.settings["scan_window_height"],
-            ) = self._windows.get_size()
+            self.settings["scan_window_width"] = self._windows.get_width()
+            self.settings["scan_window_height"] = self._windows.get_height()
             logger.info("Killing Sane thread(s)")
             self._windows.thread.quit()
 

@@ -14,7 +14,7 @@ from scantpaper.postprocess_controls import (
 )
 from scantpaper.session_mixins import SessionMixins
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 
@@ -285,7 +285,7 @@ class TestOCRControls:
         """Test initialization with no engines."""
         controls = OCRControls(available_engines=[])
         assert not controls._active_button.get_active()
-        assert not controls.get_children()[0].get_sensitive()
+        assert not next(iter(controls.observe_children())).get_sensitive()
 
     def test_init_with_tesseract(self) -> None:
         """Test initialization with tesseract."""

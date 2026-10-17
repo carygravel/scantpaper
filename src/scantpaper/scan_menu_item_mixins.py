@@ -13,6 +13,7 @@ import gi
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.sane import SaneScanDialog
+from scantpaper.helpers import run_dialog, set_margins
 from scantpaper.i18n import _
 from scantpaper.postprocess_controls import OCRControls, RotateControls
 from scantpaper.scanner.profile import Profile
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     from scantpaper.basethread import Response
     from scantpaper.scanner.options import Options
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -77,9 +78,8 @@ def _confirm_libusb_caching(
         )
         + _("Are you sure you want to do this?")
     )
-    area.add(label)
-    dialog.show_all()
-    response = dialog.run()
+    area.append(label)
+    response = run_dialog(dialog)
     dialog.destroy()
     if response == Gtk.ResponseType.OK:
         return True
@@ -100,7 +100,7 @@ class ScanMenuItemMixins:
     ) -> None:
         """Scan."""
         if self._windows is not None:
-            self._windows.show_all()
+            self._windows.present()
             self._update_postprocessing_options_callback(self._windows)
             return
 
@@ -135,7 +135,7 @@ class ScanMenuItemMixins:
         self._connect_scan_dialog_signals(self._windows)
         self.add_postprocessing_options(self._windows)
         if not hidden:
-            self._windows.show_all()
+            self._windows.present()
         self._update_postprocessing_options_callback(self._windows)
         args = self.get_application().args
         if args.device:
@@ -216,15 +216,15 @@ class ScanMenuItemMixins:
         widget.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         vboxp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vboxp.set_border_width(widget.get_border_width())
-        scwin.add(vboxp)
+        set_margins(vboxp, 0)
+        scwin.set_child(vboxp)
 
         # Rotate
         self._rotate_controls = RotateControls(
             rotate_facing=self.settings["rotate facing"],
             rotate_reverse=self.settings["rotate reverse"],
         )
-        vboxp.pack_start(self._rotate_controls, expand=False, fill=False, padding=0)
+        vboxp.append(self._rotate_controls)
 
         # CheckButton for alternating rotation
         abutton = self._add_alternate_rotation_toggle(vboxp)
@@ -243,7 +243,7 @@ class ScanMenuItemMixins:
             threshold=self.settings["threshold-before-ocr"],
             threshold_value=self.settings["threshold tool"],
         )
-        vboxp.pack_start(ocr_controls, expand=False, fill=False, padding=0)
+        vboxp.append(ocr_controls)
 
         def clicked_scan_button_cb(_w: Gtk.Widget) -> None:
             self.settings["rotate facing"] = self._rotate_controls.rotate_facing
@@ -311,15 +311,16 @@ class ScanMenuItemMixins:
             self.settings["alternate rotation"] = button.get_active()
 
         abutton.connect("toggled", _on_alternate_rotation_toggled)
-        vboxp.pack_start(abutton, expand=False, fill=False, padding=0)
+        vboxp.append(abutton)
         return abutton
 
     def _add_postprocessing_unpaper(self, vboxp: Gtk.Box) -> Gtk.CheckButton:
         hboxu = Gtk.Box()
-        vboxp.pack_start(hboxu, expand=False, fill=False, padding=0)
+        vboxp.append(hboxu)
         ubutton = Gtk.CheckButton(label=_("Clean up images"))
         ubutton.set_tooltip_text(_("Clean up scanned images with unpaper"))
-        hboxu.pack_start(ubutton, expand=True, fill=True, padding=0)
+        hboxu.append(ubutton)
+        ubutton.set_hexpand(True)
         if not self._dependencies["unpaper"]:
             ubutton.set_sensitive(sensitive=False)
             ubutton.set_active(is_active=False)
@@ -328,7 +329,8 @@ class ScanMenuItemMixins:
 
         button = Gtk.Button(label=_("Options"))
         button.set_tooltip_text(_("Set unpaper options"))
-        hboxu.pack_end(button, expand=True, fill=True, padding=0)
+        hboxu.append(button)
+        button.set_hexpand(True)
         button.connect("clicked", self._show_unpaper_options)
         return ubutton
 
@@ -345,23 +347,24 @@ class ScanMenuItemMixins:
 
         windowuo.add_actions(
             [
-                ("gtk-ok", unpaper_options_callback),
-                ("gtk-cancel", windowuo.destroy),
+                (_("_OK"), unpaper_options_callback),
+                (_("_Cancel"), windowuo.destroy),
             ]
         )
-        windowuo.show_all()
+        windowuo.present()
 
     def _add_postprocessing_udt(
         self, vboxp: Gtk.Box
     ) -> tuple[Gtk.CheckButton, ComboBoxText]:
         """Add a user-defined tool (UDT) post-processing option to the given VBox."""
         hboxudt = Gtk.Box()
-        vboxp.pack_start(hboxudt, expand=False, fill=False, padding=0)
+        vboxp.append(hboxudt)
         self._scan_udt_hbox = hboxudt
         udtbutton = Gtk.CheckButton(label=_("Process with user-defined tool"))
         udtbutton.set_tooltip_text(_("Process scanned images with user-defined tool"))
         self._scan_udt_button = udtbutton
-        hboxudt.pack_start(udtbutton, expand=True, fill=True, padding=0)
+        hboxudt.append(udtbutton)
+        udtbutton.set_hexpand(True)
         if not self.settings["user_defined_tools"]:
             hboxudt.set_sensitive(sensitive=False)
             udtbutton.set_active(is_active=False)
@@ -377,7 +380,8 @@ class ScanMenuItemMixins:
 
         combobox = ComboBoxText(data=toolarray)
         combobox.set_active_index(self.settings["current_udt"])
-        hbox.pack_start(combobox, expand=True, fill=True, padding=0)
+        hbox.append(combobox)
+        combobox.set_hexpand(True)
         return combobox
 
     def _changed_device_callback(

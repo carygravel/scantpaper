@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
     from scantpaper.basethread import Response
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 
 
 def test_rotate(

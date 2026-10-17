@@ -8,10 +8,11 @@ import cairo
 import gi
 from typing_extensions import override
 
+from scantpaper.const import STYLE_CLASS_BACKGROUND, STYLE_CLASS_RUBBERBAND
 from scantpaper.gobject import property_
 
-gi.require_version("Gtk", "3.0")
-gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "4.0")
+gi.require_version("Gdk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     GdkPixbuf,
@@ -36,25 +37,24 @@ class Tool:
         """Provide the base view accessor."""
         return self._view
 
-    def button_pressed(self, event: Gdk.EventButton) -> bool:
+    def button_pressed(self, button: int, x: float, y: float) -> bool:
         """Provide the base button-pressed handler."""
-        del event
+        del button, x, y
         return False
 
-    def button_released(self, event: Gdk.EventButton) -> None:
+    def button_released(self, button: int, x: float, y: float) -> None:
         """Provide the base button-released handler."""
-        del event
+        del button, x, y
 
-    def motion(self, event: Gdk.EventMotion) -> None:
+    def motion(self, x: float, y: float) -> None:
         """Provide the base motion handler."""
-        del event
+        del x, y
 
     def cursor_at_point(self, ptx: float, pty: float) -> Gdk.Cursor | None:
         """Return the name of the cursor at the specified coords."""
-        display = Gdk.Display.get_default()
         cursor_type: str | None = self.cursor_type_at_point(ptx, pty)
         if cursor_type is not None:
-            return Gdk.Cursor.new_from_name(display, cursor_type)
+            return Gdk.Cursor.new_from_name(cursor_type, None)
         return None
 
     def cursor_type_at_point(self, x: float, y: float) -> str | None:
@@ -78,30 +78,31 @@ class Dragger(Tool):
     button = 1
 
     @override
-    def button_pressed(self, event: Gdk.EventButton) -> bool:
+    def button_pressed(self, button: int, x: float, y: float) -> bool:
         """React to button-press events from the view."""
         # Don't block context menu
-        if event.button == Gdk.BUTTON_SECONDARY:
+        if button == Gdk.BUTTON_SECONDARY:
             return False
 
-        self.drag_start = {"x": event.x, "y": event.y}
-        self.dnd_start = {"x": event.x, "y": event.y}
+        self.drag_start = {"x": x, "y": y}
+        self.dnd_start = {"x": x, "y": y}
         self.dnd_eligible = True
         self.dragging = True
-        self.button = event.button
+        self.button = button
         self.view().set_interacting(interacting=True)
-        self.view().update_cursor(event.x, event.y)
+        self.view().update_cursor(x, y)
         return True
 
     @override
-    def button_released(self, event: Gdk.EventButton) -> None:
+    def button_released(self, button: int, x: float, y: float) -> None:
         """React to button-release events from the view."""
+        del button
         self.dragging = False
         self.view().set_interacting(interacting=False)
-        self.view().update_cursor(event.x, event.y)
+        self.view().update_cursor(x, y)
 
     @override
-    def motion(self, event: Gdk.EventMotion) -> None:
+    def motion(self, x: float, y: float) -> None:
         """React to motion events from the view."""
         if not self.dragging:
             return
@@ -111,9 +112,11 @@ class Dragger(Tool):
             return
         zoom = self.view().get_zoom()
         ratio = self.view().get_resolution_ratio()
-        offset_x = offset.x + (event.x - self.drag_start["x"]) / zoom * ratio
-        offset_y = offset.y + (event.y - self.drag_start["y"]) / zoom
-        self.drag_start["x"], self.drag_start["y"] = event.x, event.y
+        start_x = cast("float", self.drag_start["x"])
+        start_y = cast("float", self.drag_start["y"])
+        offset_x = offset.x + (x - start_x) / zoom * ratio
+        offset_y = offset.y + (y - start_y) / zoom
+        self.drag_start["x"], self.drag_start["y"] = x, y
         self.view().set_offset(offset_x, offset_y)
         new_offset = self.view().get_offset()
         if not self.dnd_eligible:
@@ -129,8 +132,8 @@ class Dragger(Tool):
 
         # movement was clamped because of the edge, but did mouse move far enough?
         if self.view().drag_check_threshold(
-            self.dnd_start["x"], self.dnd_start["y"], event.x, event.y
-        ) and self.view().emit("dnd-start", event.x, event.y, self.button):
+            self.dnd_start["x"], self.dnd_start["y"], x, y
+        ) and self.view().emit("dnd-start", x, y, self.button):
             self.dragging = False
 
     @override
@@ -195,32 +198,33 @@ class Selector(Tool):
     v_edge = None
 
     @override
-    def button_pressed(self, event: Gdk.EventButton) -> bool:
+    def button_pressed(self, button: int, x: float, y: float) -> bool:
         """React to button-press events from the view."""
         # Don't block context menu
-        if event.button == Gdk.BUTTON_SECONDARY:
+        if button == Gdk.BUTTON_SECONDARY:
             return False
 
         self.drag_start = {"x": None, "y": None}
         self.dragging = True
-        self.view().update_cursor(event.x, event.y)
-        self._update_selection(event)
+        self.view().update_cursor(x, y)
+        self._update_selection(x, y)
         return True
 
     @override
-    def button_released(self, event: Gdk.EventButton) -> None:
+    def button_released(self, button: int, x: float, y: float) -> None:
         """React to button_release events from the view."""
+        del button
         self.dragging = False
-        self.view().update_cursor(event.x, event.y)
+        self.view().update_cursor(x, y)
 
     @override
-    def motion(self, event: Gdk.EventMotion) -> None:
+    def motion(self, x: float, y: float) -> None:
         """React to motion events from the view."""
         if not self.dragging:
             return
-        self._update_selection(event)
+        self._update_selection(x, y)
 
-    def _update_selection(self, event: Gdk.EventButton | Gdk.EventMotion) -> None:
+    def _update_selection(self, ex: float, ey: float) -> None:
         x, y, x2, y2, x_old, y_old, x2_old, y2_old = (
             None,
             None,
@@ -235,14 +239,14 @@ class Selector(Tool):
             self.h_edge = "mid"
         if self.v_edge is None:
             self.v_edge = "mid"
-        x, x2 = _drag_edge(self.h_edge, x, x2, event.x, self.drag_start["x"])
-        y, y2 = _drag_edge(self.v_edge, y, y2, event.y, self.drag_start["y"])
+        x, x2 = _drag_edge(self.h_edge, x, x2, ex, self.drag_start["x"])
+        y, y2 = _drag_edge(self.v_edge, y, y2, ey, self.drag_start["y"])
 
         if self.h_edge == "mid" and self.v_edge == "mid":
             x = self.drag_start["x"]
             y = self.drag_start["y"]
-            x2 = event.x
-            y2 = event.y
+            x2 = ex
+            y2 = ey
         else:
             selection = self.view().get_selection()
             if x is None or y is None:
@@ -379,27 +383,27 @@ class SelectorDragger(Tool):
         self._tool = self._selector
 
     @override
-    def button_pressed(self, event: Gdk.EventButton) -> bool:
+    def button_pressed(self, button: int, x: float, y: float) -> bool:
         """React to button-press events from the view."""
         # left mouse button
-        if event.button == 1:
+        if button == 1:
             self._tool = self._selector
-        elif event.button == Gdk.BUTTON_MIDDLE:
+        elif button == Gdk.BUTTON_MIDDLE:
             self._tool = self._dragger
         else:
             return False
-        return self._tool.button_pressed(event)
+        return self._tool.button_pressed(button, x, y)
 
     @override
-    def button_released(self, event: Gdk.EventButton) -> None:
+    def button_released(self, button: int, x: float, y: float) -> None:
         """React to button-release events from the view."""
-        self._tool.button_released(event)
+        self._tool.button_released(button, x, y)
         self._tool = self._selector
 
     @override
-    def motion(self, event: Gdk.EventMotion) -> None:
+    def motion(self, x: float, y: float) -> None:
         """React to motion events from the view."""
-        self._tool.motion(event)
+        self._tool.motion(x, y)
 
     @override
     def cursor_type_at_point(self, x: float, y: float) -> str | None:
@@ -545,15 +549,17 @@ class ImageView(Gtk.DrawingArea):
         "/documentation/pycairo/3/reference/constants.html#cairo-filter",
     )
 
-    def do_draw(self, context: object, **_kwargs: object) -> bool:
-        """Respond to the draw signal."""
+    def _draw_func(
+        self, _area: Gtk.DrawingArea, context: object, _width: int, _height: int
+    ) -> None:
+        """GTK4 draw function."""
         allocation = self.get_allocation()
         style = self.get_style_context()
         pixbuf = self.get_pixbuf()
         ratio = self.get_resolution_ratio()
         style.add_class("imageview")
         style.save()
-        style.add_class(Gtk.STYLE_CLASS_BACKGROUND)
+        style.add_class(STYLE_CLASS_BACKGROUND)
         Gtk.render_background(
             style,
             context,
@@ -564,7 +570,7 @@ class ImageView(Gtk.DrawingArea):
         )
         style.restore()
         if pixbuf is None:
-            return True
+            return
 
         # Clip to viewport to avoid rendering off-screen pixels
         context.save()
@@ -604,29 +610,32 @@ class ImageView(Gtk.DrawingArea):
             w = x2 - x
             h = y2 - y
             if w <= 0 or h <= 0:
-                return True
+                return
             style.save()
-            style.add_class(Gtk.STYLE_CLASS_RUBBERBAND)
+            style.add_class(STYLE_CLASS_RUBBERBAND)
             Gtk.render_background(style, context, x, y, w, h)
             Gtk.render_frame(style, context, x, y, w, h)
             style.restore()
 
-        return True
-
-    def do_button_press_event(self, event: Gdk.EventButton, **_kwargs: object) -> bool:
-        """Respond to the button_press event."""
-        return self.get_tool().button_pressed(event)
-
-    def do_button_release_event(
-        self, event: Gdk.EventButton, **_kwargs: object
+    def _button_pressed(
+        self, gesture: Gtk.GestureClick, _n_press: int, x: float, y: float
     ) -> None:
-        """Respond to the button_release event."""
-        self.get_tool().button_released(event)
+        """Respond to the button_press gesture."""
+        self.get_tool().button_pressed(gesture.get_current_button(), x, y)
 
-    def do_motion_notify_event(self, event: Gdk.EventMotion, **_kwargs: object) -> None:
-        """Respond to the motion_notify event."""
-        self.update_cursor(event.x, event.y)
-        self.get_tool().motion(event)
+    def _button_released(
+        self, gesture: Gtk.GestureClick, _n_press: int, x: float, y: float
+    ) -> None:
+        """Respond to the button_release gesture."""
+        self.get_tool().button_released(gesture.get_current_button(), x, y)
+
+    def _motion(
+        self, _controller: Gtk.EventControllerMotion, x: float, y: float
+    ) -> None:
+        """Respond to the motion controller."""
+        self._pointer = (x, y)
+        self.update_cursor(x, y)
+        self.get_tool().motion(x, y)
 
     def _arm_scroll_timeout(self) -> None:
         """Reset the idle timer that ends scroll-zoom fast rendering."""
@@ -640,16 +649,18 @@ class ImageView(Gtk.DrawingArea):
         self.set_interacting(interacting=False)
         return cast("bool", (GLib.SOURCE_REMOVE))
 
-    def do_scroll_event(self, event: Gdk.EventScroll, **_kwargs: object) -> None:
-        """Respond to the scroll event."""
-        image_x, image_y = self.to_image_coords(event.x, event.y)
+    def _scroll(
+        self, _controller: Gtk.EventControllerScroll, _dx: float, dy: float
+    ) -> bool:
+        """Respond to the scroll controller."""
+        x, y = self._pointer
+        image_x, image_y = self.to_image_coords(x, y)
         if image_x is None:
-            return
+            return False
         self.set_interacting(interacting=True)
         self._arm_scroll_timeout()
-        zoom = None
         self.setzoom_is_fit(zoom_to_fit=False)
-        if event.direction == Gdk.ScrollDirection.UP:
+        if dy < 0:
             zoom = self.get_zoom() * self.zoom_step
         else:
             zoom = self.get_zoom() / self.zoom_step
@@ -659,36 +670,53 @@ class ImageView(Gtk.DrawingArea):
         self._set_zoom(zoom)
         ratio = self.get_resolution_ratio()
         factor = self.get_scale_factor()
-        offset_x = event.x / zoom * factor * ratio - image_x
-        offset_y = event.y / zoom * factor - image_y
+        offset_x = x / zoom * factor * ratio - image_x
+        offset_y = y / zoom * factor - image_y
         self.set_offset(offset_x, offset_y)
+        return True
 
-    def do_configure_event(self, _event: Gdk.EventConfigure, **_kwargs: object) -> None:
-        """Respond to the configure event."""
+    def _on_size_changed(self, _widget: Gtk.Widget, _pspec: GObject.ParamSpec) -> None:
+        """Respond to a widget resize (replaces the GTK3 configure event)."""
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
 
-    def do_destroy(self) -> None:
-        """Respond to widget destruction."""
+    @override
+    def do_dispose(self) -> None:
+        """Respond to widget disposal."""
         if getattr(self, "_scroll_timeout", None) is not None:
             GLib.source_remove(self._scroll_timeout)
             self._scroll_timeout = None
+        GObject.Object.do_dispose(self)
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
 
-        self.set_app_paintable(True)
-        self.add_events(
-            Gdk.EventMask.EXPOSURE_MASK
-            | Gdk.EventMask.BUTTON_PRESS_MASK
-            | Gdk.EventMask.BUTTON_RELEASE_MASK
-            | Gdk.EventMask.POINTER_MOTION_MASK
-            | Gdk.EventMask.SCROLL_MASK
-        )
+        # GTK4: draw via a draw function and handle input with controllers
+        # (the GTK3 draw/button/motion/scroll/configure signals are gone).
+        self.set_draw_func(self._draw_func)
+
+        click = Gtk.GestureClick()
+        click.connect("pressed", self._button_pressed)
+        click.connect("released", self._button_released)
+        self.add_controller(click)
+
+        motion = Gtk.EventControllerMotion()
+        motion.connect("motion", self._motion)
+        self.add_controller(motion)
+
+        scroll = Gtk.EventControllerScroll.new(Gtk.EventControllerScrollFlags.VERTICAL)
+        scroll.connect("scroll", self._scroll)
+        self.add_controller(scroll)
+
+        self.connect("notify::width", self._on_size_changed)
+        self.connect("notify::height", self._on_size_changed)
+
+        # Last known pointer position in widget coordinates (the scroll
+        # controller provides deltas but no coordinates).
+        self._pointer: tuple[float, float] = (0.0, 0.0)
         if self.tool is None:
             self.tool = SelectorDragger(self)
-        self.set_redraw_on_allocate(False)
         self._cached_surface = None
         self._cached_pixbuf_id = None
         self._offset = None
@@ -823,6 +851,11 @@ class ImageView(Gtk.DrawingArea):
         if additional_factor is None:
             additional_factor = 1
         allocation = self.get_allocation()
+        if allocation.width <= 0 or allocation.height <= 0:
+            # GTK4 gives an unallocated widget a 0x0 allocation (GTK3 used
+            # 1x1). Zooming to fit now would divide by zero; the
+            # notify::width/height handler re-applies it on the first resize.
+            return
         ratio = self.get_resolution_ratio()
         limit = self.zoom_to_fit_limit
         sc_factor_w = min(limit, allocation.width / box.width) * ratio
@@ -947,10 +980,9 @@ class ImageView(Gtk.DrawingArea):
         pixbuf_size = self.get_pixbuf_size()
         if pixbuf_size is None:
             return
-        win = self.get_window()
         cursor = self.get_tool().cursor_at_point(x, y)
         if cursor is not None:
-            win.set_cursor(cursor)
+            self.set_cursor(cursor)
 
     def set_interacting(self, *, interacting: bool) -> None:
         """Set whether the user is actively manipulating the view."""

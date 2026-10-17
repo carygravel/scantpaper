@@ -13,7 +13,7 @@ BuildRequires:  python3-devel
 BuildRequires:  pyproject-rpm-macros
 
 # Native/system dependencies needed at runtime.
-BuildRequires:  gtk3
+BuildRequires:  gtk4
 BuildRequires:  python3-gobject
 BuildRequires:  python3-cairo
 # python3dist(python-sane) is satisfied by the locally built python3-sane

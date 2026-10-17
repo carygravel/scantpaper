@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from scantpaper.imageview import ImageView
     from scantpaper.page import Page
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     GObject,
@@ -130,21 +130,15 @@ class LayerControls(Gtk.Box):
         self.textbuffer = textview.get_buffer()
 
         if nav:
-            self.pack_start(
+            self.append(
                 self._make_icon_button(
                     "go-first", _("Go to least confident text"), "go-to-first"
                 ),
-                expand=False,
-                fill=False,
-                padding=0,
             )
-            self.pack_start(
+            self.append(
                 self._make_icon_button(
                     "go-previous", _("Go to previous text"), "go-to-previous"
                 ),
-                expand=False,
-                fill=False,
-                padding=0,
             )
         if sort:
             self.sort_cmbx = ComboBoxText(data=INDEX)
@@ -156,21 +150,15 @@ class LayerControls(Gtk.Box):
                 ),
             )
             self.sort_cmbx.set_active(0)
-            self.pack_start(self.sort_cmbx, expand=False, fill=False, padding=0)
+            self.append(self.sort_cmbx)
         if nav:
-            self.pack_start(
+            self.append(
                 self._make_icon_button("go-next", _("Go to next text"), "go-to-next"),
-                expand=False,
-                fill=False,
-                padding=0,
             )
-            self.pack_start(
+            self.append(
                 self._make_icon_button(
                     "go-last", _("Go to most confident text"), "go-to-last"
                 ),
-                expand=False,
-                fill=False,
-                padding=0,
             )
         self.add_button = self._make_icon_button(
             "list-add", _("Add text"), "add-clicked"
@@ -205,21 +193,22 @@ class LayerControls(Gtk.Box):
             _("_Delete"), _("Delete text"), "delete-clicked"
         )
 
-        self.pack_start(textview, expand=True, fill=True, padding=0)
-        self.pack_end(dbutton, expand=False, fill=False, padding=0)
-        self.pack_end(cbutton, expand=False, fill=False, padding=0)
-        self.pack_end(obutton, expand=False, fill=False, padding=0)
-        if copy:
-            self.pack_end(ubutton, expand=False, fill=False, padding=0)
+        self.append(textview)
+        textview.set_hexpand(True)
+        self.append(self.add_button)
         if self._rotate_enabled:
-            self.pack_end(self.rotate_cw_button, expand=False, fill=False, padding=0)
-            self.pack_end(self.rotate_ccw_button, expand=False, fill=False, padding=0)
-        self.pack_end(self.add_button, expand=False, fill=False, padding=0)
+            self.append(self.rotate_ccw_button)
+            self.append(self.rotate_cw_button)
+        if copy:
+            self.append(ubutton)
+        self.append(obutton)
+        self.append(cbutton)
+        self.append(dbutton)
 
     def _make_icon_button(self, icon: str, tooltip: str, signal: str) -> Gtk.Button:
         """Build an icon button that emits the given signal."""
         button = Gtk.Button()
-        button.set_image(Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.BUTTON))
+        button.set_child(Gtk.Image.new_from_icon_name(icon))
         button.set_tooltip_text(tooltip)
         button.connect("clicked", lambda _: self.emit(signal))
         return button
@@ -485,7 +474,7 @@ class LayerEditor:
             self._update_rotate_state()
             return
         self.controls.textbuffer.set_text(bbox.text)
-        self.controls.show_all()
+        self.controls.show()
         self._view.set_selection(bbox.bbox)
         self._view.setzoom_is_fit(zoom_to_fit=False)
         self._view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
@@ -636,7 +625,7 @@ class LayerEditor:
     def set_active(self, *, active: bool) -> None:
         """Show or hide the control bar."""
         if active:
-            self.controls.show_all()
+            self.controls.show()
         else:
             self.controls.hide()
 

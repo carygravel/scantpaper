@@ -14,18 +14,18 @@ from scantpaper.dependencies import jbig2_available
 from scantpaper.dialog import Dialog
 from scantpaper.entry_completion import EntryCompletion
 from scantpaper.gobject import property_
+from scantpaper.helpers import pack_box
 from scantpaper.i18n import _
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
-    Gdk,
     GLib,
     GObject,
     Gtk,
 )
 
 ENTRY_WIDTH_DATE = 10
+DOUBLE_CLICK_PRESSES = 2
 ENTRY_WIDTH_DATETIME = 19
 _DATETIME = datetime.datetime
 IMAGE_TYPES = [
@@ -373,21 +373,18 @@ class Save(Dialog):
 
         # it needs its own box to be able to hide it if necessary
         self._meta_box_widget = Gtk.Box()
-        box.pack_start(self._meta_box_widget, expand=False, fill=False, padding=0)
+        box.append(self._meta_box_widget)
 
         # Frame for metadata
         frame = Gtk.Frame(label=_("Document Metadata"))
-        self._meta_box_widget.pack_start(frame, expand=True, fill=True, padding=0)
+        pack_box(self._meta_box_widget, frame, expand=True)
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box.set_border_width(
-            self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
-        )  # ._get('content-area-border')
-        frame.add(box)
+        frame.set_child(box)
 
         # grid to align widgets
         grid = Gtk.Grid()
         row = 0
-        box.pack_start(grid, expand=True, fill=True, padding=0)
+        pack_box(box, grid, expand=True)
 
         # Date/time
         frame = Gtk.Frame(label=_("Date/Time"))
@@ -395,49 +392,46 @@ class Save(Dialog):
         row += 1
         frame.set_hexpand(True)
         vboxdt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        vboxdt.set_border_width(
-            self.get_style_context().get_border(Gtk.StateFlags.NORMAL).left
-        )  # ._get('content-area-border')
-        frame.add(vboxdt)
+        frame.set_child(vboxdt)
 
-        # the first radio button has to set the group,
-        # which is None for the first button
+        # GTK4 has no Gtk.RadioButton: grouped Gtk.CheckButtons behave like
+        # radio buttons. The first button sets the group leader.
         # Now button
-        self.meta_now_widget = Gtk.RadioButton.new_with_label(None, _("Now"))
+        self.meta_now_widget = Gtk.CheckButton.new_with_label(_("Now"))
         self.meta_now_widget.set_tooltip_text(_("Use current date and time"))
-        vboxdt.pack_start(self.meta_now_widget, expand=True, fill=True, padding=0)
+        pack_box(vboxdt, self.meta_now_widget, expand=True)
+        # GTK3 made the first radio button of a group active by default;
+        # grouped check buttons in GTK4 do not, so activate it explicitly.
+        self.meta_now_widget.set_active(True)
 
         # Specify button
-        self._meta_specify_widget = Gtk.RadioButton.new_with_label_from_widget(
-            self.meta_now_widget, _("Specify")
-        )
+        self._meta_specify_widget = Gtk.CheckButton.new_with_label(_("Specify"))
+        self._meta_specify_widget.set_group(self.meta_now_widget)
         self._meta_specify_widget.set_tooltip_text(_("Specify date and time"))
-        vboxdt.pack_start(self._meta_specify_widget, expand=True, fill=True, padding=0)
+        pack_box(vboxdt, self._meta_specify_widget, expand=True)
         hboxe = Gtk.Box()
         self._meta_specify_widget.connect(
-            "clicked", self._clicked_specify_date_button, hboxe
+            "activate", self._clicked_specify_date_button, hboxe
         )
         self._meta_datetime_widget = Gtk.Entry()
         self._meta_datetime_widget.set_activates_default(True)
         self._meta_datetime_widget.set_tooltip_text(_("Year-Month-Day"))
         self._meta_datetime_widget.set_alignment(1.0)  # Right justify
         self._meta_datetime_widget.connect("insert-text", self._insert_text_handler)
-        self._meta_datetime_widget.connect(
-            "focus-out-event", self._datetime_focus_out_callback
-        )
-        icon = Gtk.Image.new_from_icon_name("document-edit", Gtk.IconSize.BUTTON)
+        focus_controller = Gtk.EventControllerFocus()
+        focus_controller.connect("leave", self._datetime_focus_out_callback)
+        self._meta_datetime_widget.add_controller(focus_controller)
+        icon = Gtk.Image.new_from_icon_name("document-edit")
         button = Gtk.Button()
-        button.set_image(icon)
+        button.set_child(icon)
         button.connect("clicked", self._clicked_edit_date_button)
         button.set_tooltip_text(_("Select date with calendar"))
-        vboxdt.pack_start(hboxe, expand=True, fill=True, padding=0)
-        hboxe.pack_end(button, expand=False, fill=False, padding=0)
-        hboxe.pack_end(self._meta_datetime_widget, expand=False, fill=False, padding=0)
+        pack_box(vboxdt, hboxe, expand=True)
+        hboxe.prepend(button)
+        hboxe.prepend(self._meta_datetime_widget)
 
         # Don't show these widgets when the window is shown
-        hboxe.set_no_show_all(True)
-        self._meta_datetime_widget.show()
-        button.show()
+        hboxe.set_visible(False)
         self._meta_specify_widget.set_active(self.select_datetime)
         self._add_metadata_widgets(grid, row)
         self._on_toggle_include_time(newval=self.include_time)
@@ -455,22 +449,21 @@ class Save(Dialog):
             )
 
     def _clicked_specify_date_button(
-        self, widget: Gtk.RadioButton, hboxe: Gtk.Box
+        self, widget: Gtk.CheckButton, hboxe: Gtk.Box
     ) -> None:
         if widget.get_active():
-            hboxe.show()
+            hboxe.set_visible(True)
             self.select_datetime = True
         else:
-            hboxe.hide()
+            hboxe.set_visible(False)
             self.select_datetime = False
 
     def _datetime_focus_out_callback(
-        self, entry_widget: Gtk.Entry, _event: Gdk.EventFocus
-    ) -> bool:
-        text = entry_widget.get_text()
+        self, _controller: Gtk.EventControllerFocus
+    ) -> None:
+        text = self._meta_datetime_widget.get_text()
         if text not in [None, ""]:
             self.meta_datetime = datetime.datetime.fromisoformat(text)
-        return False
 
     def _clicked_edit_date_button(self, _widget: Gtk.Button) -> None:
         window_date = Dialog(
@@ -485,26 +478,38 @@ class Save(Dialog):
         # This uses the property getter which reads from the widget
         current_date = self.meta_datetime
         if current_date:
-            calendar.select_day(current_date.day)
-            calendar.select_month(current_date.month - 1, current_date.year)
+            calendar.select_day(
+                GLib.DateTime.new_local(
+                    current_date.year, current_date.month, current_date.day, 0, 0, 0
+                )
+            )
         calendar_s = None
 
         def calendar_day_selected_callback(_widget: Gtk.Calendar) -> None:
-            year, month, day = calendar.get_date()
+            gdate = calendar.get_date()
             self.meta_datetime = datetime.datetime(
-                year, month + 1, day, tzinfo=_LOCAL_TZ
+                gdate.get_year(),
+                gdate.get_month(),
+                gdate.get_day_of_month(),
+                tzinfo=_LOCAL_TZ,
             )
 
         calendar_s = calendar.connect("day-selected", calendar_day_selected_callback)
 
-        def calendar_day_selected_double_click_callback(widget: Gtk.Calendar) -> None:
-            calendar_day_selected_callback(widget)
-            window_date.destroy()
+        # GTK4 removed the "day-selected-double-click" signal; use a click
+        # gesture instead and close the dialog on a second click.
+        def calendar_double_click_callback(
+            _gesture: Gtk.GestureClick, n_press: int, _x: float, _y: float
+        ) -> None:
+            if n_press == DOUBLE_CLICK_PRESSES:
+                calendar_day_selected_callback(calendar)
+                window_date.destroy()
 
-        calendar.connect(
-            "day-selected-double-click", calendar_day_selected_double_click_callback
-        )
-        vbox_date.pack_start(calendar, expand=True, fill=True, padding=0)
+        double_click = Gtk.GestureClick()
+        double_click.connect("pressed", calendar_double_click_callback)
+        calendar.add_controller(double_click)
+        vbox_date.append(calendar)
+        calendar.set_vexpand(True)
         today_b = Gtk.Button(label=_("Today"))
 
         def today_clicked_callback(_widget: Gtk.Button) -> None:
@@ -513,14 +518,16 @@ class Save(Dialog):
             # block and unblock signal, and update entry manually
             # to remove possibility of race conditions
             calendar.handler_block(calendar_s)
-            calendar.select_day(today.day)
-            calendar.select_month(today.month - 1, today.year)
+            calendar.select_day(
+                GLib.DateTime.new_local(today.year, today.month, today.day, 0, 0, 0)
+            )
             calendar.handler_unblock(calendar_s)
             self._meta_datetime_widget.get_buffer().set_text(today.isoformat(), -1)
 
         today_b.connect("clicked", today_clicked_callback)
-        vbox_date.pack_start(today_b, expand=True, fill=True, padding=0)
-        window_date.show_all()
+        vbox_date.append(today_b)
+        today_b.set_vexpand(True)
+        window_date.present()
 
     def _insert_text_handler(
         self, widget: Gtk.Entry, string: str, _length: int, _position: int
@@ -569,7 +576,7 @@ class Save(Dialog):
             hbox = Gtk.Box()
             grid.attach(hbox, 0, row, 1, 1)
             label = Gtk.Label(label=label_text)
-            hbox.pack_start(label, expand=False, fill=True, padding=0)
+            hbox.append(label)
             hbox = Gtk.Box()
             grid.attach(hbox, 1, row, 1, 1)
             row += 1
@@ -581,21 +588,20 @@ class Save(Dialog):
                     getattr(self, f"meta_{name}_suggestions"),
                 ),
             )
-            hbox.pack_start(
-                getattr(self, f"_meta_{name}_widget"), expand=True, fill=True, padding=0
-            )
+            hbox.append(getattr(self, f"_meta_{name}_widget"))
+            getattr(self, f"_meta_{name}_widget").set_hexpand(True)
 
     def _on_toggle_include_time(self, *, newval: bool) -> None:
         if hasattr(self, "_meta_box_widget"):
             if newval:
-                self.meta_now_widget.get_child().set_text(_("Now"))
+                self.meta_now_widget.set_label(_("Now"))
                 self.meta_now_widget.set_tooltip_text(_("Use current date and time"))
                 self._meta_datetime_widget.set_max_length(ENTRY_WIDTH_DATETIME)
                 self._meta_datetime_widget.get_buffer().set_text(
                     self._meta_datetime_widget.get_text() + " 00:00:00", -1
                 )
             else:
-                self.meta_now_widget.get_child().set_text(_("Today"))
+                self.meta_now_widget.set_label(_("Today"))
                 self.meta_now_widget.set_tooltip_text(_("Use today's date"))
                 self._meta_datetime_widget.set_max_length(ENTRY_WIDTH_DATE)
 
@@ -605,17 +611,18 @@ class Save(Dialog):
 
         # Image type ComboBox
         hboxi = Gtk.Box()
-        vbox.pack_start(hboxi, expand=False, fill=False, padding=0)
+        vbox.append(hboxi)
         label = Gtk.Label(label=_("Document type"))
-        hboxi.pack_start(label, expand=False, fill=False, padding=0)
+        hboxi.append(label)
         combobi = ComboBoxText(data=filter_table(IMAGE_TYPES, self.image_types))
-        hboxi.pack_end(combobi, expand=False, fill=False, padding=0)
+        hboxi.append(combobi)
 
         # Postscript backend
         hboxps = Gtk.Box()
-        vbox.pack_start(hboxps, expand=True, fill=True, padding=0)
+        vbox.append(hboxps)
+        hboxps.set_vexpand(True)
         label = Gtk.Label(label=_("Postscript backend"))
-        hboxps.pack_start(label, expand=False, fill=False, padding=0)
+        hboxps.append(label)
         combops = ComboBoxText(data=filter_table(PS_BACKENDS, self.ps_backends))
 
         def ps_backend_changed_callback(_widget: Gtk.ComboBox) -> None:
@@ -625,13 +632,14 @@ class Save(Dialog):
         combops.set_active_index(
             "pdftops" if self.ps_backend is None else self.ps_backend
         )
-        hboxps.pack_end(combops, expand=True, fill=True, padding=0)
+        hboxps.append(combops)
+        combops.set_hexpand(True)
 
         # Compression ComboBox
         hboxc = Gtk.Box()
-        vbox.pack_start(hboxc, expand=False, fill=False, padding=0)
+        vbox.append(hboxc)
         label = Gtk.Label(label=_("Compression"))
-        hboxc.pack_start(label, expand=False, fill=False, padding=0)
+        hboxc.append(label)
 
         # Set up quality spinbutton here
         # so that it can be shown or hidden by callback
@@ -646,11 +654,10 @@ class Save(Dialog):
                 hboxtq.show()
             else:
                 hboxtq.hide()
-                self.resize(1, 1)
 
         combobtc.connect("changed", tiff_compression_changed_callback)
         combobtc.set_active_index(self.tiff_compression)
-        hboxc.pack_end(combobtc, expand=False, fill=False, padding=0)
+        hboxc.append(combobtc)
 
         # PDF options
         vboxp, hboxpq = self.add_pdf_options()
@@ -665,10 +672,10 @@ class Save(Dialog):
                 hboxps,
             ],
         )
-        self.show_all()
-        hboxc.set_no_show_all(True)
-        hboxtq.set_no_show_all(True)
-        hboxps.set_no_show_all(True)
+        self.present()
+        hboxc.set_visible(False)
+        hboxtq.set_visible(False)
+        hboxps.set_visible(False)
         combobi.set_active_index(self.image_type)
 
     def _image_type_changed_callback(
@@ -723,8 +730,6 @@ class Save(Dialog):
             hboxtq.hide()
             hboxps.hide()
 
-        self.resize(1, 1)
-
     def _pdf_selected_callback(self, data: list[Gtk.Widget]) -> None:
         (
             vboxp,
@@ -750,12 +755,13 @@ class Save(Dialog):
     def add_quality_spinbutton(self, vbox: Gtk.Box) -> tuple[Gtk.Box, Gtk.SpinButton]:
         """Set up quality spinbutton here so that it can be shown or hidden by callback."""
         hbox = Gtk.Box()
-        vbox.pack_start(hbox, expand=True, fill=True, padding=0)
+        vbox.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Quality"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         spinbutton = Gtk.SpinButton.new_with_range(1, 100, 1)
         spinbutton.set_value(self.jpeg_quality)
-        hbox.pack_end(spinbutton, expand=False, fill=False, padding=0)
+        hbox.append(spinbutton)
         return hbox, spinbutton
 
     def add_pdf_options(self) -> tuple[Gtk.Box, Gtk.Box]:
@@ -763,15 +769,16 @@ class Save(Dialog):
         # pack everything in one vbox to be able to show/hide them all at once
         vboxp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox = self.get_content_area()
-        vbox.pack_start(vboxp, expand=False, fill=False, padding=0)
+        vbox.append(vboxp)
 
         self._add_pdf_downsample_options(vboxp)
 
         # Compression ComboBox
         hbox = Gtk.Box()
-        vboxp.pack_start(hbox, expand=True, fill=True, padding=0)
+        vboxp.append(hbox)
+        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Compression"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
 
         # Set up quality spinbutton here so that it can be shown or hidden by callback
         hboxq, spinbuttonq = self.add_quality_spinbutton(vboxp)
@@ -782,32 +789,33 @@ class Save(Dialog):
             self.jpeg_quality = int(spinbuttonq.get_value())
 
         spinbuttonq.connect("value-changed", jpg_quality_changed_callback)
-        hbox.pack_end(combob, expand=False, fill=False, padding=0)
+        hbox.append(combob)
 
         if self.can_encrypt_pdf:
             passb = Gtk.Button(label=_("Encrypt PDF"))
-            vboxp.pack_start(passb, expand=True, fill=True, padding=0)
+            vboxp.append(passb)
+            passb.set_vexpand(True)
             passb.connect("clicked", self._encrypt_clicked_callback)
 
-        vboxp.show_all()
-        hboxq.set_no_show_all(True)
-        vboxp.set_no_show_all(True)
+        vboxp.show()
+        hboxq.set_visible(False)
+        vboxp.set_visible(False)
 
-        # do this after show all and set_no_show_all
-        # to make sure child widgets are shown.
+        # do this after the widgets are built to make sure child widgets are
+        # shown when the parent is re-shown.
         combob.set_active_index(self.pdf_compression)
         return vboxp, hboxq
 
     def _add_pdf_downsample_options(self, vboxp: Gtk.Box) -> None:
         hbox = Gtk.Box()
-        vboxp.pack_start(hbox, expand=False, fill=False, padding=0)
+        vboxp.append(hbox)
         button = Gtk.CheckButton(label=_("Downsample to"))
-        hbox.pack_start(button, expand=False, fill=False, padding=0)
+        hbox.append(button)
         spinbutton = Gtk.SpinButton.new_with_range(1, MAX_DPI, 1)
         spinbutton.set_value(self.downsample_dpi)
         label = Gtk.Label(label=_("ppi"))
-        hbox.pack_end(label, expand=False, fill=False, padding=0)
-        hbox.pack_end(spinbutton, expand=False, fill=False, padding=0)
+        hbox.append(spinbutton)
+        hbox.append(label)
 
         def downsample_toggled_callback(_widget: Gtk.CheckButton) -> None:
             self.downsample = button.get_active()
@@ -830,7 +838,6 @@ class Save(Dialog):
             hboxq.show()
         else:
             hboxq.hide()
-            self.resize(1, 1)
 
     def _encrypt_clicked_callback(self, _widget: Gtk.Button) -> None:
         passwin = Dialog(
@@ -841,10 +848,11 @@ class Save(Dialog):
         passvbox = passwin.get_content_area()
         grid = Gtk.Grid()
         row = 0
-        passvbox.pack_start(grid, expand=True, fill=True, padding=0)
+        passvbox.append(grid)
+        grid.set_vexpand(True)
         hbox = Gtk.Box()
         label = Gtk.Label(label=_("User password"))
-        hbox.pack_start(label, expand=False, fill=False, padding=0)
+        hbox.append(label)
         grid.attach(hbox, 0, row, 1, 1)
         userentry = Gtk.Entry()
         if self.pdf_user_password:
@@ -862,11 +870,11 @@ class Save(Dialog):
 
         passwin.add_actions(
             [
-                ("gtk-ok", clicked_ok_callback),
-                ("gtk-cancel", clicked_cancel_callback),
+                (_("_OK"), clicked_ok_callback),
+                (_("_Cancel"), clicked_cancel_callback),
             ]
         )
-        passwin.show_all()
+        passwin.present()
 
     def update_config_dict(self, config: dict[str, object]) -> None:
         """Update config based from instance metadata."""

@@ -10,13 +10,14 @@ import cairo
 import gi
 import pytest
 
+from scantpaper.const import STYLE_CLASS_RUBBERBAND
 from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger, Tool
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-gi.require_version("Gtk", "3.0")
-gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "4.0")
+gi.require_version("Gdk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     GdkPixbuf,
@@ -32,16 +33,36 @@ class MockEvent:
     button: int
     x: float
     y: float
-    direction: Gdk.ScrollDirection = Gdk.ScrollDirection.UP
+
+
+def _gesture(button: int) -> MagicMock:
+    """Fake Gtk.GestureClick carrying the button being pressed/released."""
+    gesture = MagicMock()
+    gesture.get_current_button.return_value = button
+    return gesture
+
+
+def _mock_allocation(view: ImageView, width: int, height: int) -> None:
+    """Give an unrealized view a fixed size for deterministic fit math.
+
+    An unrealized GTK4 widget reports a 0x0 allocation, which makes
+    zoom_to_fit() a no-op. The offset setter mutates the rectangle it reads,
+    so return a fresh copy on every call, as the real getter does.
+    """
+
+    def allocation() -> Gdk.Rectangle:
+        rect = Gdk.Rectangle()
+        rect.x, rect.y, rect.width, rect.height = 0, 0, width, height
+        return rect
+
+    view.get_allocation = MagicMock(side_effect=allocation)
 
 
 @pytest.fixture
 def mock_view() -> ImageView:
-    """Fixture for ImageView with mocked get_window."""
+    """Fixture for ImageView with a mocked cursor setter."""
     view = ImageView()
-    view.get_window = MagicMock()
-    # Mock window.set_cursor
-    view.get_window.return_value.set_cursor = MagicMock()
+    view.set_cursor = MagicMock()
     return view
 
 
@@ -52,6 +73,16 @@ def test_basics(rose_png: str) -> None:
     assert isinstance(view.get_tool(), SelectorDragger), (
         "get_tool() defaults to SelectorDragger"
     )
+
+    # An unrealized GTK4 widget reports a 0x0 allocation (GTK3 used 1x1), so
+    # zoom_to_fit() leaves the zoom alone until the widget is allocated.
+    unrealized = view.get_allocation()
+    assert isinstance(unrealized, Gdk.Rectangle)
+    assert (unrealized.x, unrealized.y) == (0, 0)
+    assert (unrealized.width, unrealized.height) == (0, 0)
+
+    # Fill in the old GTK3 default so the fit math below is exercised.
+    _mock_allocation(view, 1, 1)
 
     def on_offset_changed(
         _widget: Gtk.Widget, offset_x: float, offset_y: float
@@ -76,8 +107,8 @@ def test_basics(rose_png: str) -> None:
     assert size.width == 70, "get_pixbuf_size width"
     assert size.height == 46, "get_pixbuf_size height"
     allocation = view.get_allocation()
-    assert allocation.x == -1, "get_allocation x"
-    assert allocation.y == -1, "get_allocation y"
+    assert allocation.x == 0, "get_allocation x"
+    assert allocation.y == 0, "get_allocation y"
     assert allocation.width == 1, "get_allocation width"
     assert allocation.height == 1, "get_allocation height"
 
@@ -186,8 +217,8 @@ def test_viewport(rose_png: str) -> None:
     viewport = view.get_viewport()
     assert viewport.x == 0, "correctly cleared viewport x"
     assert viewport.y == 0, "correctly cleared viewport y"
-    assert viewport.width == 1, "correctly cleared viewport width"
-    assert viewport.height == 1, "correctly cleared viewport height"
+    assert viewport.width == 0, "correctly cleared viewport width"
+    assert viewport.height == 0, "correctly cleared viewport height"
 
     view.set_pixbuf(None, zoom_to_fit=False)
     assert view.get_pixbuf() is None, "correctly cleared pixbuf #2"
@@ -195,10 +226,10 @@ def test_viewport(rose_png: str) -> None:
 
 def test_transparency(datadir: str) -> None:
     """Test transparency."""
-    window = Gtk.Window()
-    window.set_default_size(300, 200)
     css_provider_alpha = Gtk.CssProvider()
-    Gtk.StyleContext.add_provider_for_screen(window.get_screen(), css_provider_alpha, 0)
+    Gtk.StyleContext.add_provider_for_display(
+        Gdk.Display.get_default(), css_provider_alpha, 0
+    )
     css_provider_alpha.load_from_data(
         f"""
     .imageview.transparent {{
@@ -206,44 +237,29 @@ def test_transparency(datadir: str) -> None:
         background-image: none;
     }}
     .imageview {{
-        background-image: url('{datadir}transp-blue.svg');
+        background-image: url('file://{datadir}transp-blue.svg');
     }}
 """.encode()
     )
     view = ImageView()
+    _mock_allocation(view, 300, 200)
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
         zoom_to_fit=True,
     )
-    window.add(view)
-    window.show_all()
-    gdkw = window.get_window()
 
-    # can't use a simple scalar, because it won't be in scope in the timeout
-    var = {"pb": None}
+    # GTK4 has no window grab; render the draw function into an offscreen
+    # surface instead and read the pixels back.
+    pxb = _render_view(view, 300, 200)
 
-    def grab_window() -> bool:
-        var["pb"] = Gdk.pixbuf_get_from_window(gdkw, *gdkw.get_geometry())
-        Gtk.main_quit()
-        return False
-
-    # Have to grab the window in a timeout, because it has to hit the main loop to be drawn
-    GLib.timeout_add(1000, grab_window)
-    Gtk.main()
-
-    def get_pixel(pxb: object, p_x: int, p_y: int) -> list[int]:
-        pixels = pxb.get_pixels()
-        offset = p_y * pxb.get_rowstride() + p_x * pxb.get_n_channels()
-        return list(pixels[offset : offset + 3])
-
-    p_x = int(var["pb"].get_width() / 2)
-    p_y = int(var["pb"].get_height() / 2)
-    middle = get_pixel(var["pb"], p_x, p_y)
+    p_x = int(pxb.get_width() / 2)
+    p_y = int(pxb.get_height() / 2)
+    middle = get_pixel(pxb, p_x, p_y)
     assert middle == [0, 255, 0], "middle pixel should be green"
 
     found = False
     while p_x > 0:
-        pixel = get_pixel(var["pb"], p_x, p_y)
+        pixel = get_pixel(pxb, p_x, p_y)
         if pixel == [255, 0, 0]:
             found = True
             break
@@ -252,7 +268,7 @@ def test_transparency(datadir: str) -> None:
 
     found = False
     while p_x > 0:
-        pixel = get_pixel(var["pb"], p_x, p_y)
+        pixel = get_pixel(pxb, p_x, p_y)
 
         # the blue chessboard can become blurred with hidpi :(
         # Check for bluish color (blue channel dominant and > 200)
@@ -265,11 +281,8 @@ def test_transparency(datadir: str) -> None:
 
 def test_zoom(datadir: str) -> None:
     """Test zoom."""
-    window = Gtk.Window()
-    window.set_default_size(300, 200)
     view = ImageView()
-    window.add(view)
-    window.show_all()
+    _mock_allocation(view, 300, 200)
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}bigpic.svg"), zoom_to_fit=True
     )
@@ -295,22 +308,23 @@ def test_selector_tool(datadir: str) -> None:
     window = Gtk.Window()
     window.set_default_size(300, 200)
     view = ImageView()
-    window.add(view)
+    window.set_child(view)
     view.set_tool(Selector(view))
+    _mock_allocation(view, 300, 200)
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
         zoom_to_fit=True,
     )
-    window.show_all()
+    window.present()
     window.hide()
 
     view.set_zoom(8)
     event = MockEvent(button=1, x=7, y=5)
-    view.get_tool().button_pressed(event)
+    view.get_tool().button_pressed(event.button, event.x, event.y)
     event.x = 93
     event.y = 67
-    view.get_tool().motion(event)
-    view.get_tool().button_released(event)
+    view.get_tool().motion(event.x, event.y)
+    view.get_tool().button_released(event.button, event.x, event.y)
 
     if view.get_scale_factor() <= 1:
         selection = view.get_selection()
@@ -348,6 +362,61 @@ def _find_pixel(
     return False, p_x, last
 
 
+class _SurfaceReader:
+    """Expose a cairo surface through the GdkPixbuf pixel accessors.
+
+    GTK4 has no window grab, so tests render the view's draw function into an
+    offscreen surface instead. get_pixel() and _find_pixel() only need the
+    pixbuf pixel accessors, which this adapter provides with the ARGB32 byte
+    order swapped to RGB.
+    """
+
+    def __init__(self, surface: cairo.ImageSurface) -> None:
+        surface.flush()
+        raw = bytes(surface.get_data())
+        stride = surface.get_stride()
+        self._width = surface.get_width()
+        self._height = surface.get_height()
+        rgb = bytearray(self._width * self._height * 3)
+        for y in range(self._height):
+            for x in range(self._width):
+                offset = y * stride + x * 4
+                blue, green, red = raw[offset : offset + 3]
+                target = (y * self._width + x) * 3
+                rgb[target : target + 3] = bytes((red, green, blue))
+        self._rgb = bytes(rgb)
+        self._stride = self._width * 3
+
+    def get_pixels(self) -> bytes:
+        """Return the RGB bytes of the whole image."""
+        return self._rgb
+
+    def get_rowstride(self) -> int:
+        """Return the number of bytes per row."""
+        return self._stride
+
+    def get_n_channels(self) -> int:
+        """Return the number of channels per pixel."""
+        return 3
+
+    def get_width(self) -> int:
+        """Return the image width."""
+        return self._width
+
+    def get_height(self) -> int:
+        """Return the image height."""
+        return self._height
+
+
+def _render_view(view: ImageView, width: int, height: int) -> _SurfaceReader:
+    """Render the view's GTK4 draw function into an offscreen surface."""
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+    context = cairo.Context(surface)
+    view._draw_func(view, context, width, height)
+    surface.flush()
+    return _SurfaceReader(surface)
+
+
 def test_find_pixel_reaches_boundary() -> None:
     """Test that _find_pixel returns not-found at the scan boundary."""
     pb = MagicMock()
@@ -364,57 +433,44 @@ def test_find_pixel_reaches_boundary() -> None:
 
 def test_filter(datadir: str) -> None:
     """Test interpolation (filters)."""
-    window = Gtk.Window()
-    window.set_size_request(300, 200)
     view = ImageView()
+    _mock_allocation(view, 300, 200)
     view.set_pixbuf(
         GdkPixbuf.Pixbuf.new_from_file(f"{datadir}2color.svg"), zoom_to_fit=True
     )
-    window.add(view)
-    window.show_all()
     view.set_zoom(15)
     view.set_interpolation(cairo.FILTER_BILINEAR)
-    gdkw = window.get_window()
 
-    # can't use a simple scalar, because it won't be in scope in the timeout
-    var = {"pb": None}
+    # GTK4 has no window grab; render the draw function into an offscreen
+    # surface instead and read the pixels back.
+    pxb = _render_view(view, 300, 200)
 
-    def grab_window() -> bool:
-        var["pb"] = Gdk.pixbuf_get_from_window(gdkw, *gdkw.get_geometry())
-        Gtk.main_quit()
-        return False
-
-    # Have to grab the window in a timeout, because it has to hit the main loop to be drawn
-    GLib.timeout_add(1000, grab_window)
-    Gtk.main()
-
-    p_x = int(var["pb"].get_width() / 2)
-    p_y = int(var["pb"].get_height() / 2)
-    assert get_pixel(var["pb"], p_x, p_y) == [255, 0, 0], "middle pixel should be red"
+    p_x = int(pxb.get_width() / 2)
+    p_y = int(pxb.get_height() / 2)
+    assert get_pixel(pxb, p_x, p_y) == [255, 0, 0], "middle pixel should be red"
 
     found, blurred_x, _ = _find_pixel(
-        var["pb"], p_x, p_y, -1, lambda x: x > 0, lambda p: p != [255, 0, 0]
+        pxb, p_x, p_y, -1, lambda x: x > 0, lambda p: p != [255, 0, 0]
     )
     assert found, "there is non-red outside"
 
     found, fullblue_x, _ = _find_pixel(
-        var["pb"], blurred_x, p_y, -1, lambda x: x > 0, lambda p: p == [0, 0, 255]
+        pxb, blurred_x, p_y, -1, lambda x: x > 0, lambda p: p == [0, 0, 255]
     )
     assert found, "there is blue outside"
     assert fullblue_x < blurred_x, "blue outside red"
 
     view.set_interpolation(cairo.FILTER_NEAREST)
-    GLib.timeout_add(1000, grab_window)
-    Gtk.main()
+    pxb = _render_view(view, 300, 200)
 
-    assert get_pixel(var["pb"], fullblue_x, p_y) == [
+    assert get_pixel(pxb, fullblue_x, p_y) == [
         0,
         0,
         255,
     ], "blue pixel should still be blue"
 
     found, p_x, pixel = _find_pixel(
-        var["pb"],
+        pxb,
         fullblue_x,
         p_y,
         1,
@@ -435,10 +491,10 @@ def test_drag_no_pixbuf() -> None:
     view.set_tool(Dragger(view))
     tool = view.get_tool()
     event = MockEvent(button=1, x=10, y=10)
-    tool.button_pressed(event)
+    tool.button_pressed(event.button, event.x, event.y)
     event.x = 20
     event.y = 20
-    tool.motion(event)
+    tool.motion(event.x, event.y)
     assert tool.drag_start == {"x": 10, "y": 10}
 
 
@@ -447,9 +503,9 @@ def test_tool_base_methods() -> None:
     view = ImageView()
     tool = Tool(view)
     assert tool.view() == view
-    assert tool.button_pressed(None) is False
-    assert tool.button_released(None) is None
-    assert tool.motion(None) is None
+    assert tool.button_pressed(1, 0.0, 0.0) is False
+    assert tool.button_released(1, 0.0, 0.0) is None
+    assert tool.motion(0.0, 0.0) is None
     assert tool.cursor_type_at_point(0, 0) is None
     assert tool.cursor_at_point(0, 0) is None
 
@@ -467,18 +523,18 @@ def test_dragger_edge_cases(rose_png: str, mock_view: ImageView) -> None:
 
     # button 3 should not block context menu
     event = MockEvent(button=3, x=10, y=10)
-    assert dragger.button_pressed(event) is False
+    assert dragger.button_pressed(event.button, event.x, event.y) is False
 
     # dragging and motion
     event = MockEvent(button=1, x=10, y=10)
-    dragger.button_pressed(event)
+    dragger.button_pressed(event.button, event.x, event.y)
     assert dragger.dragging is True
 
     event.x, event.y = 15, 15
-    dragger.motion(event)
+    dragger.motion(event.x, event.y)
     assert dragger.drag_start == {"x": 15, "y": 15}
 
-    dragger.button_released(event)
+    dragger.button_released(event.button, event.x, event.y)
     assert dragger.dragging is False
 
     # cursor types
@@ -498,13 +554,13 @@ def test_selector_edge_cases(rose_png: str, mock_view: ImageView) -> None:
 
     # button 3
     event = MockEvent(button=3, x=10, y=10)
-    assert selector.button_pressed(event) is False
+    assert selector.button_pressed(event.button, event.x, event.y) is False
 
     # selector without selection
     assert selector.cursor_type_at_point(10, 10) == "crosshair"
 
     # motion without dragging
-    selector.motion(MockEvent(button=1, x=10, y=10))
+    selector.motion(10, 10)
 
     # set/get selection convenience methods
     selection = Gdk.Rectangle()
@@ -522,21 +578,21 @@ def test_selector_dragger_tool(rose_png: str, mock_view: ImageView) -> None:
 
     # LMB -> Selector
     event = MockEvent(button=1, x=10, y=10)
-    tool.button_pressed(event)
+    tool.button_pressed(event.button, event.x, event.y)
     assert isinstance(tool._tool, Selector)
 
     # MMB -> Dragger
     event = MockEvent(button=2, x=10, y=10)
-    tool.button_pressed(event)
+    tool.button_pressed(event.button, event.x, event.y)
     assert isinstance(tool._tool, Dragger)
 
     # RMB -> False
     event = MockEvent(button=3, x=10, y=10)
-    assert tool.button_pressed(event) is False
+    assert tool.button_pressed(event.button, event.x, event.y) is False
 
     # motion and released
-    tool.motion(event)
-    tool.button_released(event)
+    tool.motion(event.x, event.y)
+    tool.button_released(event.button, event.x, event.y)
     assert isinstance(tool._tool, Selector)
 
     # cursor
@@ -581,25 +637,25 @@ def test_imageview_events(rose_png: str, mock_view: ImageView) -> None:
 
     # button events (mostly covered via tools, but call direct)
     event = MockEvent(button=1, x=10, y=10)
-    view.do_button_press_event(event)
-    view.do_motion_notify_event(event)
-    view.do_button_release_event(event)
+    view._button_pressed(_gesture(event.button), 1, event.x, event.y)
+    view._motion(None, event.x, event.y)
+    view._button_released(_gesture(event.button), 1, event.x, event.y)
 
-    # scroll event
-    event = MockEvent(button=0, x=10, y=10, direction=Gdk.ScrollDirection.UP)
-    view.do_scroll_event(event)
+    # scroll event: _scroll zooms around the last pointer position from _motion
+    event = MockEvent(button=0, x=10, y=10)
+    view._motion(None, event.x, event.y)
+    view._scroll(None, 0.0, -1.0)
     assert view.get_zoom() > 1.0
 
-    event.direction = Gdk.ScrollDirection.DOWN
-    view.do_scroll_event(event)
+    view._scroll(None, 0.0, 1.0)
 
     # configure event
     view.setzoom_is_fit(zoom_to_fit=True)
-    view.do_configure_event(None)
+    view._on_size_changed(view, None)
 
 
 def test_imageview_draw(rose_png: str) -> None:
-    """Test ImageView do_draw."""
+    """Test the ImageView draw function."""
     view = ImageView()
     # Use a pixbuf with alpha to hit line 518
     pixbuf = GdkPixbuf.Pixbuf.new_from_file(rose_png)
@@ -615,11 +671,11 @@ def test_imageview_draw(rose_png: str) -> None:
 
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 100, 100)
     context = cairo.Context(surface)
-    view.do_draw(context)
+    view._draw_func(view, context, 1, 1)
 
     # draw without pixbuf
     view.set_pixbuf(None)
-    view.do_draw(context)
+    view._draw_func(view, context, 1, 1)
 
 
 def test_imageview_coordinate_conversions(rose_png: str) -> None:
@@ -693,14 +749,14 @@ def test_selector_drag_edges(rose_png: str, mock_view: ImageView) -> None:
     # Dragging an edge
     x, y = view.to_widget_coords(20, 30)
     event = MockEvent(button=1, x=x, y=y)
-    selector.button_pressed(event)
+    selector.button_pressed(event.button, event.x, event.y)
     x, y = view.to_widget_coords(10, 30)
     event.x = x
-    selector.motion(event)
+    selector.motion(event.x, event.y)
     new_sel = view.get_selection()
     assert new_sel.x == 10
     assert new_sel.width == 30
-    selector.button_released(event)
+    selector.button_released(event.button, event.x, event.y)
 
 
 def test_dragger_dnd_start(rose_png: str, mock_view: ImageView) -> None:
@@ -716,11 +772,11 @@ def test_dragger_dnd_start(rose_png: str, mock_view: ImageView) -> None:
     view.emit = MagicMock(return_value=True)
 
     event = MockEvent(button=1, x=10, y=10)
-    dragger.button_pressed(event)
+    dragger.button_pressed(event.button, event.x, event.y)
 
     # Move enough to trigger DND (clamped offset shouldn't move if already at edge)
     event.x = 100
-    dragger.motion(event)
+    dragger.motion(event.x, event.y)
 
     assert dragger.dragging is False
     view.emit.assert_any_call("dnd-start", 100, 10, 1)
@@ -769,10 +825,10 @@ def test_selector_flip_edges(rose_png: str, mock_view: ImageView) -> None:
     # Start dragging a new selection from (50, 50) to (60, 60)
     x, y = view.to_widget_coords(50, 50)
     event = MockEvent(button=1, x=x, y=y)
-    selector.button_pressed(event)
+    selector.button_pressed(event.button, event.x, event.y)
 
     event.x, event.y = view.to_widget_coords(60, 60)
-    selector.motion(event)
+    selector.motion(event.x, event.y)
     sel = view.get_selection()
     assert sel.x == 50
     assert sel.width == 10
@@ -780,7 +836,7 @@ def test_selector_flip_edges(rose_png: str, mock_view: ImageView) -> None:
     # Drag past the start point to flip edge
     x, y = view.to_widget_coords(40, 50)
     event.x = x
-    selector.motion(event)
+    selector.motion(event.x, event.y)
     sel = view.get_selection()
     assert sel.x == 40
     assert sel.width == 10
@@ -799,8 +855,8 @@ def test_update_cursor_none(mock_view: ImageView, rose_png: str) -> None:
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     view.get_tool().cursor_at_point = MagicMock(return_value=None)
     view.update_cursor(10, 10)
-    # Should not crash and not call win.set_cursor
-    view.get_window.return_value.set_cursor.assert_not_called()
+    # Should not crash and not change the cursor
+    view.set_cursor.assert_not_called()
 
 
 def test_selector_update_selection_direct(rose_png: str) -> None:
@@ -819,7 +875,7 @@ def test_selector_update_selection_direct(rose_png: str) -> None:
     # h_edge and v_edge are None, will be set to "mid" in _update_selection
     x, y = view.to_widget_coords(20, 20)
     event = MockEvent(button=1, x=x, y=y)
-    selector._update_selection(event)
+    selector._update_selection(event.x, event.y)
 
     sel = view.get_selection()
     assert sel.x == 10
@@ -849,7 +905,7 @@ def test_selector_update_selection_edge_branches(rose_png: str) -> None:
 
     x, y = view.to_widget_coords(10, 30)
     event = MockEvent(button=1, x=x, y=y)
-    selector._update_selection(event)
+    selector._update_selection(event.x, event.y)
 
     sel = view.get_selection()
     assert sel.x == 10
@@ -866,7 +922,7 @@ def test_selector_update_selection_edge_branches(rose_png: str) -> None:
 
     x, y = view.to_widget_coords(30, 40)
     event = MockEvent(button=1, x=x, y=y)
-    selector._update_selection(event)
+    selector._update_selection(event.x, event.y)
 
     sel = view.get_selection()
     assert sel.x == 10  # from previous selection
@@ -932,7 +988,7 @@ def test_dragger_coverage(rose_png: str, mock_view: ImageView) -> None:
     # Cover line 91: motion when not dragging
     event = MockEvent(button=1, x=10, y=10)
     dragger.dragging = False
-    dragger.motion(event)  # Should return early (line 91)
+    dragger.motion(event.x, event.y)  # Should return early (line 91)
 
     # Cover line 104: motion when dragging but not dnd_eligible
     dragger.dragging = True
@@ -947,7 +1003,7 @@ def test_dragger_coverage(rose_png: str, mock_view: ImageView) -> None:
     view.drag_check_threshold = MagicMock()
 
     event.x, event.y = 20, 20
-    dragger.motion(event)
+    dragger.motion(event.x, event.y)
 
     # Should have called set_offset (lines 98-101) - implicitly verified by the fact that code runs
     # But should NOT have called drag_check_threshold (line 115) because of return at line 104
@@ -992,7 +1048,7 @@ def test_imageview_coverage_complex(rose_png: str, mock_view: ImageView) -> None
     """Cover various specific lines in imageview.py."""
     view = ImageView()
 
-    # 1. Line 518: do_draw return True if w <= 0 or h <= 0
+    # 1. A degenerate selection must not render the rubberband.
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
     # Selection with 0 width
     selection = Gdk.Rectangle()
@@ -1000,16 +1056,18 @@ def test_imageview_coverage_complex(rose_png: str, mock_view: ImageView) -> None
     view.set_selection(selection)
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 100, 100)
     context = cairo.Context(surface)
-    assert view.do_draw(context) is True  # Should hit line 518 and return True
+    with patch("gi.repository.Gtk.render_frame") as render_frame:
+        view._draw_func(view, context, 1, 1)
+    render_frame.assert_not_called()
 
-    # 2. Line 550: do_scroll_event return if image_x is None
+    # 2. _scroll returns early if image_x is None
     # image_x comes from to_image_coords, which returns None, None if offset is None
     view_no_offset = mock_view
     view_no_offset.set_pixbuf(None)  # No pixbuf -> no offset usually
     # Force offset property to be None if set_pixbuf(None) doesn't do it
     view_no_offset.set_property("offset", None)
-    event = MockEvent(button=0, x=10, y=10)
-    view_no_offset.do_scroll_event(event)  # Should return early at 550
+    view_no_offset._motion(None, 10, 10)
+    assert view_no_offset._scroll(None, 0.0, -1.0) is False
 
     # 3. Line 637: to_image_coords return None, None if offset is None
     view.set_property("offset", None)
@@ -1096,7 +1154,7 @@ def test_selection_drawing_coordinates() -> None:
         h: float,
     ) -> None:
         del cr
-        if style_ctx.has_class(Gtk.STYLE_CLASS_RUBBERBAND):
+        if style_ctx.has_class(STYLE_CLASS_RUBBERBAND):
             rubberband_calls.append((x, y, w, h))
 
     with (
@@ -1105,7 +1163,7 @@ def test_selection_drawing_coordinates() -> None:
         ),
         patch("gi.repository.Gtk.render_frame"),
     ):
-        view.do_draw(context)
+        view._draw_func(view, context, 1, 1)
 
     assert len(rubberband_calls) == 1, "Selection background was not rendered"
     x, y, w, h = rubberband_calls[0]
@@ -1149,9 +1207,9 @@ def test_dragger_toggles_interacting() -> None:
     view = ImageView()
     dragger = Dragger(view)
     event = MockEvent(button=1, x=5, y=5)
-    dragger.button_pressed(event)
+    dragger.button_pressed(event.button, event.x, event.y)
     assert view.get_interacting() is True
-    dragger.button_released(event)
+    dragger.button_released(event.button, event.x, event.y)
     assert view.get_interacting() is False
 
 
@@ -1160,8 +1218,7 @@ def test_selector_does_not_toggle_interacting(mocker: pytest.MockerFixture) -> N
     view = ImageView()
     selector = Selector(view)
     mocker.patch.object(selector, "_update_selection")
-    event = MockEvent(button=1, x=5, y=5)
-    selector.button_pressed(event)
+    selector.button_pressed(1, 5, 5)
     assert view.get_interacting() is False
 
 
@@ -1171,13 +1228,12 @@ def test_scroll_toggles_interacting_and_idle_returns(
     """Scroll-zoom marks interacting; the idle callback restores quality."""
     view = ImageView()
     mocker.patch.object(view, "to_image_coords", return_value=(1.0, 1.0))
-    event = Gdk.EventScroll()
-    event.direction = Gdk.ScrollDirection.UP
-    view.do_scroll_event(event)
+    view._motion(None, 10.0, 10.0)
+    view._scroll(None, 0.0, -1.0)
     assert view.get_interacting() is True
     assert view._scroll_timeout is not None
     queue = mocker.patch.object(view, "queue_draw")
-    view.do_destroy()  # destroy while a scroll timeout is armed removes it
+    view.do_dispose()  # dispose while a scroll timeout is armed removes it
     assert view._scroll_timeout is None
     assert view._scroll_idle() == GLib.SOURCE_REMOVE
     assert view.get_interacting() is False

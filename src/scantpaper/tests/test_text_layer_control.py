@@ -6,13 +6,13 @@ import gi
 
 from scantpaper.layer import LayerControls
 
-gi.require_version("Gtk", "3.0")
+gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
 
 
 def get_child_by_tooltip(widget: Gtk.Widget, tooltip: str) -> object:
     """Return the first child with the given tooltip, or None."""
-    for child in widget.get_children():
+    for child in list(widget.observe_children()):
         if child.get_tooltip_text() == tooltip:
             return child
     return None
@@ -53,7 +53,7 @@ def test_layer_controls_signals() -> None:
         btn = get_child_by_tooltip(controls, tooltip)
         assert btn is not None, f"Button '{tooltip}' not found"
         assert isinstance(btn, Gtk.Button)
-        btn.clicked()
+        btn.emit("clicked")
         assert signals_received[-1] == signal, f"Signal '{signal}' not received"
 
 
@@ -105,8 +105,8 @@ def test_layer_controls_rotate_buttons_emit_signals() -> None:
     assert ccw is not None
     assert isinstance(ccw, Gtk.Button)
 
-    cw.clicked()
-    ccw.clicked()
+    cw.emit("clicked")
+    ccw.emit("clicked")
     assert received == ["cw", "ccw"]
 
 

@@ -1,544 +1,522 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <menu id="menubar">
-    <submenu>
-      <attribute name="label" translatable="yes">_File</attribute>
-      <section>
-      <item>
-        <attribute name="action">win.new</attribute>
-        <attribute name="label" translatable="yes">_New</attribute>
-        <attribute name="accel">&lt;control&gt;n</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.open</attribute>
-        <attribute name="label" translatable="yes">_Open</attribute>
-        <attribute name="accel">&lt;control&gt;o</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.open-session</attribute>
-        <attribute name="label" translatable="yes">Open c_rashed session</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.scan</attribute>
-        <attribute name="label" translatable="yes">S_can</attribute>
-        <attribute name="accel">&lt;control&gt;g</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.save</attribute>
-        <attribute name="label" translatable="yes">Save</attribute>
-        <attribute name="accel">&lt;control&gt;s</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.email</attribute>
-        <attribute name="label" translatable="yes">_Email as PDF</attribute>
-        <attribute name="accel">&lt;control&gt;e</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.print</attribute>
-        <attribute name="label" translatable="yes">_Print</attribute>
-        <attribute name="accel">&lt;control&gt;p</attribute>
-      </item>
-      </section>
-      <section>
-      <item>
-        <attribute name="action">win.quit</attribute>
-        <attribute name="label" translatable="yes">_Quit</attribute>
-        <attribute name="accel">&lt;control&gt;q</attribute>
-      </item>
-      </section>
-    </submenu>
-    <submenu>
-      <attribute name="label" translatable="yes">_Edit</attribute>
-      <section>
-        <item>
-        <attribute name="action">win.undo</attribute>
-        <attribute name="label" translatable="yes">_Undo</attribute>
-        <attribute name="accel">&lt;control&gt;z</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.redo</attribute>
-        <attribute name="label" translatable="yes">_Redo</attribute>
-        <attribute name="accel">&lt;shift&gt;&lt;control&gt;z</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="action">win.cut</attribute>
-        <attribute name="label" translatable="yes">Cu_t</attribute>
-        <attribute name="accel">&lt;control&gt;x</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.copy</attribute>
-        <attribute name="label" translatable="yes">_Copy</attribute>
-        <attribute name="accel">&lt;control&gt;c</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.paste</attribute>
-        <attribute name="label" translatable="yes">_Paste</attribute>
-        <attribute name="accel">&lt;control&gt;v</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.delete</attribute>
-        <attribute name="label" translatable="yes">_Delete</attribute>
-      </item>
-    </section>
-    <submenu>
-      <attribute name="label" translatable="yes">_Select</attribute>
-      <item>
-        <attribute name="action">win.select-all</attribute>
-        <attribute name="label" translatable="yes">_All</attribute>
-        <attribute name="accel">&lt;control&gt;a</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.select-odd</attribute>
-        <attribute name="label" translatable="yes">_Odd</attribute>
-        <attribute name="accel">&lt;control&gt;1</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.select-even</attribute>
-        <attribute name="label" translatable="yes">_Even</attribute>
-        <attribute name="accel">&lt;control&gt;2</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.select-invert</attribute>
-        <attribute name="label" translatable="yes">_Invert</attribute>
-        <attribute name="accel">&lt;control&gt;i</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.select-blank</attribute>
-        <attribute name="label" translatable="yes">_Blank</attribute>
-        <attribute name="accel">&lt;control&gt;b</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.select-dark</attribute>
-        <attribute name="label" translatable="yes">_Dark</attribute>
-        <attribute name="accel">&lt;control&gt;d</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.select-modified</attribute>
-        <attribute name="label" translatable="yes">_Modified</attribute>
-        <attribute name="accel">&lt;control&gt;m</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.select-no-ocr</attribute>
-        <attribute name="label" translatable="yes">_No OCR</attribute>
-      </item>
-    </submenu>
-    <section>
-      <item>
-        <attribute name="action">win.clear-ocr</attribute>
-        <attribute name="label" translatable="yes">_Clear OCR</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="action">win.properties</attribute>
-        <attribute name="label" translatable="yes">Propert_ies</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="action">win.preferences</attribute>
-        <attribute name="label" translatable="yes">Prefere_nces</attribute>
-      </item>
-    </section>
-  </submenu>
-  <submenu>
-    <attribute name="label" translatable="yes">_View</attribute>
-    <section>
-      <item>
-        <attribute name="label" translatable="yes">_Pan</attribute>
-        <attribute name="action">win.tooltype</attribute>
-        <attribute name="target">dragger</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_Select</attribute>
-        <attribute name="action">win.tooltype</attribute>
-        <attribute name="target">selector</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_Select &amp; pan</attribute>
-        <attribute name="action">win.tooltype</attribute>
-        <attribute name="target">selectordragger</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label" translatable="yes">_Tabbed</attribute>
-        <attribute name="action">win.viewtype</attribute>
-        <attribute name="target">tabbed</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_Split horizontally</attribute>
-        <attribute name="action">win.viewtype</attribute>
-        <attribute name="target">horizontal</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">_Split vertically</attribute>
-        <attribute name="action">win.viewtype</attribute>
-        <attribute name="target">vertical</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label" translatable="yes">Edit text layer</attribute>
-        <attribute name="action">win.editmode</attribute>
-        <attribute name="target">text</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">Edit annotations</attribute>
-        <attribute name="action">win.editmode</attribute>
-        <attribute name="target">annotation</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="action">win.zoom-100</attribute>
-        <attribute name="label" translatable="yes">Zoom _100%</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.zoom-to-fit</attribute>
-        <attribute name="label" translatable="yes">Zoom to _fit</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.zoom-in</attribute>
-        <attribute name="label" translatable="yes">Zoom _in</attribute>
-        <attribute name="accel">plus</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.zoom-out</attribute>
-        <attribute name="label" translatable="yes">Zoom _out</attribute>
-        <attribute name="accel">minus</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="action">win.rotate-90</attribute>
-        <attribute name="label" translatable="yes">Rotate 90° clockwise</attribute>
-        <attribute name="accel">&lt;control&gt;&lt;shift&gt;R</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.rotate-180</attribute>
-        <attribute name="label" translatable="yes">Rotate 180°</attribute>
-        <attribute name="accel">&lt;control&gt;&lt;shift&gt;F</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.rotate-270</attribute>
-        <attribute name="label" translatable="yes">Rotate 90° anticlockwise</attribute>
-        <attribute name="accel">&lt;control&gt;&lt;shift&gt;C</attribute>
-      </item>
-    </section>
-    </submenu>
-    <submenu>
-      <attribute name="label" translatable="yes">_Tools</attribute>
-      <section>
-      <item>
-        <attribute name="action">win.threshold</attribute>
-        <attribute name="label" translatable="yes">_Threshold</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.brightness-contrast</attribute>
-        <attribute name="label" translatable="yes">_Brightness / Contrast</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.negate</attribute>
-        <attribute name="label" translatable="yes">_Negate</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.unsharp</attribute>
-        <attribute name="label" translatable="yes">_Unsharp Mask</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.crop-dialog</attribute>
-        <attribute name="label" translatable="yes">_Crop</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="action">win.unpaper</attribute>
-        <attribute name="label" translatable="yes">_Clean up</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.split</attribute>
-        <attribute name="label" translatable="yes">_Split</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.ocr</attribute>
-        <attribute name="label" translatable="yes">_OCR</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="action">win.user-defined</attribute>
-        <attribute name="label" translatable="yes">U_ser-defined</attribute>
-      </item>
-    </section>
-    </submenu>
-    <submenu>
-      <attribute name="label" translatable="yes">_Help</attribute>
-      <item>
-        <attribute name="action">win.help</attribute>
-        <attribute name="label" translatable="yes">_Help</attribute>
-        <attribute name="accel">&lt;control&gt;h</attribute>
-      </item>
-      <item>
-        <attribute name="action">win.about</attribute>
-        <attribute name="label" translatable="yes">_About</attribute>
-      </item>
-    </submenu>
-  </menu>
-  <object class="GtkMenu" id="detail_popup">
+  <!-- interface-requires gtk 4.0 -->
+  <object class="GtkPopover" id="detail_popup">
+    <property name="autohide">True</property>
     <child>
-      <object class="GtkRadioMenuItem" id="context_dragger">
-        <property name="label" translatable="yes">_Pan</property>
-        <property name="use-underline">1</property>
-        <property name="action-name">win.tooltype</property>
-        <property name="action-target">'dragger'</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkRadioMenuItem" id="context_selector">
-        <property name="label" translatable="yes">_Select</property>
-        <property name="group">context_dragger</property>
-        <property name="use-underline">1</property>
-        <property name="action-name">win.tooltype</property>
-        <property name="action-target">'selector'</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkRadioMenuItem" id="context_selectordragger">
-        <property name="label" translatable="yes">_Select &amp; pan</property>
-        <property name="group">context_dragger</property>
-        <property name="use-underline">1</property>
-        <property name="action-name">win.tooltype</property>
-        <property name="action-target">'selectordragger'</property>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Zoom _100%</property>
-        <property name="use-underline">1</property>
-        <signal name="activate" handler="_on_zoom_100"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Zoom to _fit</property>
-        <property name="use-underline">1</property>
-        <signal name="activate" handler="_on_zoom_to_fit"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Zoom _in</property>
-        <property name="use-underline">1</property>
-        <signal name="activate" handler="_on_zoom_in"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Zoom _out</property>
-        <property name="use-underline">1</property>
-        <signal name="activate" handler="_on_zoom_out"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Rotate 90° clockwise</property>
-        <signal name="activate" handler="_on_rotate_90"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Rotate 180°</property>
-        <signal name="activate" handler="_on_rotate_180"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Rotate 90° anticlockwise</property>
-        <signal name="activate" handler="_on_rotate_270"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Crop</property>
-        <signal name="activate" handler="_on_crop"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Cut</property>
-        <signal name="activate" handler="_on_cut"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Copy</property>
-        <signal name="activate" handler="_on_copy"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Paste</property>
-        <signal name="activate" handler="_on_paste"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Delete</property>
-        <signal name="activate" handler="_on_delete"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Properties</property>
-        <signal name="activate" handler="_on_properties"/>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkToggleButton" id="context_dragger">
+            <property name="label" translatable="yes">Pan</property>
+            <property name="action-name">win.tooltype</property>
+            <property name="action-target">'dragger'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="context_selector">
+            <property name="label" translatable="yes">Select</property>
+            <property name="action-name">win.tooltype</property>
+            <property name="action-target">'selector'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="context_selectordragger">
+            <property name="label" translatable="yes">Select &amp; pan</property>
+            <property name="action-name">win.tooltype</property>
+            <property name="action-target">'selectordragger'</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_zoom_100">
+            <property name="label" translatable="yes">Zoom 100%</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_zoom_to_fit">
+            <property name="label" translatable="yes">Zoom to fit</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_zoom_in">
+            <property name="label" translatable="yes">Zoom in</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_zoom_out">
+            <property name="label" translatable="yes">Zoom out</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_rotate_90">
+            <property name="label" translatable="yes">Rotate 90° clockwise</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_rotate_180">
+            <property name="label" translatable="yes">Rotate 180°</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_rotate_270">
+            <property name="label" translatable="yes">Rotate 90° anticlockwise</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_crop">
+            <property name="label" translatable="yes">Crop</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_cut">
+            <property name="label" translatable="yes">Cut</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_copy">
+            <property name="label" translatable="yes">Copy</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_paste">
+            <property name="label" translatable="yes">Paste</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_delete">
+            <property name="label" translatable="yes">Delete</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="detail_properties">
+            <property name="label" translatable="yes">Properties</property>
+          </object>
+        </child>
       </object>
     </child>
   </object>
-  <object class="GtkMenu" id="thumb_popup">
+  <object class="GtkPopover" id="thumb_popup">
+    <property name="autohide">True</property>
     <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Save</property>
-        <signal name="activate" handler="_on_save"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Email as PDF</property>
-        <signal name="activate" handler="_on_email"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Print</property>
-        <signal name="activate" handler="_on_print"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Select All</property>
-        <signal name="activate" handler="_on_select_all"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Select Odd</property>
-        <signal name="activate" handler="_on_select_odd"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Select Even</property>
-        <signal name="activate" handler="_on_select_even"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Invert selection</property>
-        <signal name="activate" handler="_on_invert_selection"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Rotate 90° clockwise</property>
-        <signal name="activate" handler="_on_rotate_90"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Rotate 180°</property>
-        <signal name="activate" handler="_on_rotate_180"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Rotate 90° anticlockwise</property>
-        <signal name="activate" handler="_on_rotate_270"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Crop</property>
-        <signal name="activate" handler="_on_crop"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Cut</property>
-        <signal name="activate" handler="_on_cut"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Copy</property>
-        <signal name="activate" handler="_on_copy"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Paste</property>
-        <signal name="activate" handler="_on_paste"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Delete</property>
-        <signal name="activate" handler="_on_delete"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Clear OCR</property>
-        <signal name="activate" handler="_on_clear_ocr"/>
-      </object>
-    </child>
-    <child><object class="GtkSeparatorMenuItem" /></child>
-    <child>
-      <object class="GtkMenuItem">
-        <property name="label" translatable="yes">Properties</property>
-        <signal name="activate" handler="_on_properties"/>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkButton" id="thumb_save">
+            <property name="label" translatable="yes">Save</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_email">
+            <property name="label" translatable="yes">Email as PDF</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_print">
+            <property name="label" translatable="yes">Print</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_select_all">
+            <property name="label" translatable="yes">Select All</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_select_odd">
+            <property name="label" translatable="yes">Select Odd</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_select_even">
+            <property name="label" translatable="yes">Select Even</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_invert_selection">
+            <property name="label" translatable="yes">Invert selection</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_rotate_90">
+            <property name="label" translatable="yes">Rotate 90° clockwise</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_rotate_180">
+            <property name="label" translatable="yes">Rotate 180°</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_rotate_270">
+            <property name="label" translatable="yes">Rotate 90° anticlockwise</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_crop">
+            <property name="label" translatable="yes">Crop</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_cut">
+            <property name="label" translatable="yes">Cut</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_copy">
+            <property name="label" translatable="yes">Copy</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_paste">
+            <property name="label" translatable="yes">Paste</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_delete">
+            <property name="label" translatable="yes">Delete</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_clear_ocr">
+            <property name="label" translatable="yes">Clear OCR</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="thumb_properties">
+            <property name="label" translatable="yes">Properties</property>
+          </object>
+        </child>
       </object>
     </child>
   </object>
   <object class="GtkBox" id="main_vbox">
     <property name="orientation">vertical</property>
     <child>
-      <object class="GtkToolbar" id="toolbar">
+      <object class="GtkPopoverMenuBar" id="menubar">
+        <property name="menu-model">
+          <menu>
+            <submenu>
+              <attribute name="label" translatable="yes">_File</attribute>
+              <section>
+              <item>
+                <attribute name="action">win.new</attribute>
+                <attribute name="label" translatable="yes">_New</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.open</attribute>
+                <attribute name="label" translatable="yes">_Open</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.open-session</attribute>
+                <attribute name="label" translatable="yes">Open c_rashed session</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.scan</attribute>
+                <attribute name="label" translatable="yes">S_can</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.save</attribute>
+                <attribute name="label" translatable="yes">Save</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.email</attribute>
+                <attribute name="label" translatable="yes">_Email as PDF</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.print</attribute>
+                <attribute name="label" translatable="yes">_Print</attribute>
+              </item>
+              </section>
+              <section>
+              <item>
+                <attribute name="action">win.quit</attribute>
+                <attribute name="label" translatable="yes">_Quit</attribute>
+              </item>
+              </section>
+            </submenu>
+            <submenu>
+              <attribute name="label" translatable="yes">_Edit</attribute>
+              <section>
+                <item>
+                <attribute name="action">win.undo</attribute>
+                <attribute name="label" translatable="yes">_Undo</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.redo</attribute>
+                <attribute name="label" translatable="yes">_Redo</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="action">win.cut</attribute>
+                <attribute name="label" translatable="yes">Cu_t</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.copy</attribute>
+                <attribute name="label" translatable="yes">_Copy</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.paste</attribute>
+                <attribute name="label" translatable="yes">_Paste</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.delete</attribute>
+                <attribute name="label" translatable="yes">_Delete</attribute>
+              </item>
+            </section>
+            <submenu>
+              <attribute name="label" translatable="yes">_Select</attribute>
+              <item>
+                <attribute name="action">win.select-all</attribute>
+                <attribute name="label" translatable="yes">_All</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.select-odd</attribute>
+                <attribute name="label" translatable="yes">_Odd</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.select-even</attribute>
+                <attribute name="label" translatable="yes">_Even</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.select-invert</attribute>
+                <attribute name="label" translatable="yes">_Invert</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.select-blank</attribute>
+                <attribute name="label" translatable="yes">_Blank</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.select-dark</attribute>
+                <attribute name="label" translatable="yes">_Dark</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.select-modified</attribute>
+                <attribute name="label" translatable="yes">_Modified</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.select-no-ocr</attribute>
+                <attribute name="label" translatable="yes">_No OCR</attribute>
+              </item>
+            </submenu>
+            <section>
+              <item>
+                <attribute name="action">win.clear-ocr</attribute>
+                <attribute name="label" translatable="yes">_Clear OCR</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="action">win.properties</attribute>
+                <attribute name="label" translatable="yes">Propert_ies</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="action">win.preferences</attribute>
+                <attribute name="label" translatable="yes">Prefere_nces</attribute>
+              </item>
+            </section>
+          </submenu>
+          <submenu>
+            <attribute name="label" translatable="yes">_View</attribute>
+            <section>
+              <item>
+                <attribute name="label" translatable="yes">_Pan</attribute>
+                <attribute name="action">win.tooltype</attribute>
+                <attribute name="target">dragger</attribute>
+              </item>
+              <item>
+                <attribute name="label" translatable="yes">_Select</attribute>
+                <attribute name="action">win.tooltype</attribute>
+                <attribute name="target">selector</attribute>
+              </item>
+              <item>
+                <attribute name="label" translatable="yes">_Select &amp; pan</attribute>
+                <attribute name="action">win.tooltype</attribute>
+                <attribute name="target">selectordragger</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="label" translatable="yes">_Tabbed</attribute>
+                <attribute name="action">win.viewtype</attribute>
+                <attribute name="target">tabbed</attribute>
+              </item>
+              <item>
+                <attribute name="label" translatable="yes">_Split horizontally</attribute>
+                <attribute name="action">win.viewtype</attribute>
+                <attribute name="target">horizontal</attribute>
+              </item>
+              <item>
+                <attribute name="label" translatable="yes">_Split vertically</attribute>
+                <attribute name="action">win.viewtype</attribute>
+                <attribute name="target">vertical</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="label" translatable="yes">Edit text layer</attribute>
+                <attribute name="action">win.editmode</attribute>
+                <attribute name="target">text</attribute>
+              </item>
+              <item>
+                <attribute name="label" translatable="yes">Edit annotations</attribute>
+                <attribute name="action">win.editmode</attribute>
+                <attribute name="target">annotation</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="action">win.zoom-100</attribute>
+                <attribute name="label" translatable="yes">Zoom _100%</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.zoom-to-fit</attribute>
+                <attribute name="label" translatable="yes">Zoom to _fit</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.zoom-in</attribute>
+                <attribute name="label" translatable="yes">Zoom _in</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.zoom-out</attribute>
+                <attribute name="label" translatable="yes">Zoom _out</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="action">win.rotate-90</attribute>
+                <attribute name="label" translatable="yes">Rotate 90° clockwise</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.rotate-180</attribute>
+                <attribute name="label" translatable="yes">Rotate 180°</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.rotate-270</attribute>
+                <attribute name="label" translatable="yes">Rotate 90° anticlockwise</attribute>
+              </item>
+            </section>
+            </submenu>
+            <submenu>
+              <attribute name="label" translatable="yes">_Tools</attribute>
+              <section>
+              <item>
+                <attribute name="action">win.threshold</attribute>
+                <attribute name="label" translatable="yes">_Threshold</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.brightness-contrast</attribute>
+                <attribute name="label" translatable="yes">_Brightness / Contrast</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.negate</attribute>
+                <attribute name="label" translatable="yes">_Negate</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.unsharp</attribute>
+                <attribute name="label" translatable="yes">_Unsharp Mask</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.crop-dialog</attribute>
+                <attribute name="label" translatable="yes">_Crop</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="action">win.unpaper</attribute>
+                <attribute name="label" translatable="yes">_Clean up</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.split</attribute>
+                <attribute name="label" translatable="yes">_Split</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.ocr</attribute>
+                <attribute name="label" translatable="yes">_OCR</attribute>
+              </item>
+            </section>
+            <section>
+              <item>
+                <attribute name="action">win.user-defined</attribute>
+                <attribute name="label" translatable="yes">U_ser-defined</attribute>
+              </item>
+            </section>
+            </submenu>
+            <submenu>
+              <attribute name="label" translatable="yes">_Help</attribute>
+              <item>
+                <attribute name="action">win.help</attribute>
+                <attribute name="label" translatable="yes">_Help</attribute>
+              </item>
+              <item>
+                <attribute name="action">win.about</attribute>
+                <attribute name="label" translatable="yes">_About</attribute>
+              </item>
+            </submenu>
+          </menu>
+        </property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="toolbar">
+        <property name="orientation">horizontal</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkToolButton" id="toolbutton_new">
+          <object class="GtkButton" id="toolbutton_new">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Clears all pages</property>
             <property name="action_name">win.new</property>
-            <property name="stock_id">gtk-new</property>
+            <property name="icon-name">document-new</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_open">
+          <object class="GtkButton" id="toolbutton_open">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Open images</property>
             <property name="action_name">win.open</property>
-            <property name="stock_id">gtk-open</property>
+            <property name="icon-name">document-open</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_scan">
+          <object class="GtkButton" id="toolbutton_scan">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Scan document</property>
             <property name="action_name">win.scan</property>
@@ -548,17 +526,17 @@
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_save">
+          <object class="GtkButton" id="toolbutton_save">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Save</property>
             <property name="action_name">win.save</property>
-            <property name="stock_id">gtk-save</property>
+            <property name="icon-name">document-save</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_email">
+          <object class="GtkButton" id="toolbutton_email">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Attach as PDF to a new email</property>
             <property name="action_name">win.email</property>
@@ -568,91 +546,99 @@
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_print">
+          <object class="GtkButton" id="toolbutton_print">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Print</property>
             <property name="action_name">win.print</property>
-            <property name="stock_id">gtk-print</property>
+            <property name="icon-name">document-print</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
-        <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_undo">
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="toolbutton_undo">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Undo</property>
             <property name="action_name">win.undo</property>
-            <property name="stock_id">gtk-undo</property>
+            <property name="icon-name">edit-undo</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_redo">
+          <object class="GtkButton" id="toolbutton_redo">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Redo</property>
             <property name="action_name">win.redo</property>
-            <property name="stock_id">gtk-redo</property>
+            <property name="icon-name">edit-redo</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
-        <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_cut">
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="toolbutton_cut">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Cut selection</property>
             <property name="action_name">win.cut</property>
-            <property name="stock_id">gtk-cut</property>
+            <property name="icon-name">edit-cut</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_copy">
+          <object class="GtkButton" id="toolbutton_copy">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Copy selection</property>
             <property name="action_name">win.copy</property>
-            <property name="stock_id">gtk-copy</property>
+            <property name="icon-name">edit-copy</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_paste">
+          <object class="GtkButton" id="toolbutton_paste">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Paste selection</property>
             <property name="action_name">win.paste</property>
-            <property name="stock_id">gtk-paste</property>
+            <property name="icon-name">edit-paste</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_delete">
+          <object class="GtkButton" id="toolbutton_delete">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Delete selected pages</property>
             <property name="action_name">win.delete</property>
-            <property name="stock_id">gtk-delete</property>
+            <property name="icon-name">edit-delete</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
-        <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_select_all">
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="toolbutton_select_all">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Select all pages</property>
             <property name="action_name">win.select-all</property>
-            <property name="stock_id">gtk-select-all</property>
+            <property name="icon-name">edit-select-all</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
-        <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkRadioToolButton" id="toolbutton_dragger">
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkToggleButton" id="toolbutton_dragger">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Use the pan tool</property>
             <property name="action_name">win.tooltype</property>
@@ -663,11 +649,10 @@
           </object>
         </child>
         <child>
-          <object class="GtkRadioToolButton" id="toolbutton_selector">
+          <object class="GtkToggleButton" id="toolbutton_selector">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Use the rectangular selection tool</property>
             <property name="action_name">win.tooltype</property>
-            <property name="group">toolbutton_dragger</property>
             <property name="action-target">'selector'</property>
             <property name="icon-name">stock-selection-all-16</property>
             <property name="hexpand">False</property>
@@ -675,61 +660,64 @@
           </object>
         </child>
         <child>
-          <object class="GtkRadioToolButton" id="toolbutton_selectordragger">
+          <object class="GtkToggleButton" id="toolbutton_selectordragger">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Use the combined select and pan tool</property>
             <property name="action_name">win.tooltype</property>
-            <property name="group">toolbutton_dragger</property>
             <property name="action-target">'selectordragger'</property>
-            <property name="stock_id">gtk-media-play</property>
+            <property name="icon-name">media-playback-start</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
-        <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_zoom_100">
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="toolbutton_zoom_100">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Zoom to 100%</property>
             <property name="action_name">win.zoom-100</property>
-            <property name="stock_id">gtk-zoom-100</property>
+            <property name="icon-name">zoom-original</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_zoom_to_fit">
+          <object class="GtkButton" id="toolbutton_zoom_to_fit">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Zoom to fit</property>
             <property name="action_name">win.zoom-to-fit</property>
-            <property name="stock_id">gtk-zoom-fit</property>
+            <property name="icon-name">zoom-fit-best</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_zoom_in">
+          <object class="GtkButton" id="toolbutton_zoom_in">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Zoom in</property>
             <property name="action_name">win.zoom-in</property>
-            <property name="stock_id">gtk-zoom-in</property>
+            <property name="icon-name">zoom-in</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_zoom_out">
+          <object class="GtkButton" id="toolbutton_zoom_out">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Zoom out</property>
             <property name="action_name">win.zoom-out</property>
-            <property name="stock_id">gtk-zoom-out</property>
+            <property name="icon-name">zoom-out</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
         </child>
-        <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_rotate_270">
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="toolbutton_rotate_270">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Rotate 90° anticlockwise</property>
             <property name="action_name">win.rotate-270</property>
@@ -739,7 +727,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_rotate_180">
+          <object class="GtkButton" id="toolbutton_rotate_180">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Rotate 180°</property>
             <property name="action_name">win.rotate-180</property>
@@ -749,7 +737,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_rotate_90">
+          <object class="GtkButton" id="toolbutton_rotate_90">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Rotate 90° clockwise</property>
             <property name="action_name">win.rotate-90</property>
@@ -758,9 +746,11 @@
             <property name="vexpand">False</property>
           </object>
         </child>
-        <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_crop_selection">
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="toolbutton_crop_selection">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Crop selection</property>
             <property name="action_name">win.crop-selection</property>
@@ -769,13 +759,15 @@
             <property name="vexpand">False</property>
           </object>
         </child>
-        <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_quit">
+          <object class="GtkSeparator" />
+        </child>
+        <child>
+          <object class="GtkButton" id="toolbutton_quit">
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Quit</property>
             <property name="action_name">win.quit</property>
-            <property name="stock_id">gtk-quit</property>
+            <property name="icon-name">application-exit</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -785,11 +777,12 @@
     <child>
       <object class="GtkPaned" id="hpaned">
         <property name="orientation">horizontal</property>
+        <property name="vexpand">True</property>
         <child>
           <object class="GtkScrolledWindow" id="scwin_thumbs">
             <property name="hscrollbar_policy">automatic</property>
             <property name="vscrollbar_policy">automatic</property>
-            <property name="shadow_type">etched-in</property>
+            <property name="has-frame">False</property>
           </object>
         </child>
         <child>
@@ -806,10 +799,6 @@
           </object>
         </child>
       </object>
-      <packing>
-        <property name="expand">True</property>
-        <property name="fill">True</property>
-      </packing>
     </child>
     <child>
       <object class="GtkBox" id="progress_hbox">
