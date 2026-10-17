@@ -530,6 +530,64 @@ def test_new_layer_json_none_selection(mocker: pytest.MockerFixture) -> None:
     assert editor._new_layer_json(None, "text") == ""
 
 
+def test_first_selection_drawn_in_layer_pane_without_layer(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A page with no text layer can draw its first selection and add a slice.
+
+    Regression: the canvas learned the page extent only from parsed layer
+    content, so before any OCR its first drag was refused and the Add
+    control stayed disabled. Page load now seeds the extent, even with no
+    layer to parse it from.
+    """
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    editor, page, thread, view = make_editor(mocker)
+    page.text_layer = None
+
+    shared: dict[str, Gdk.Rectangle] = {}
+
+    def set_selection(rect: Gdk.Rectangle) -> None:
+        # The rectangle is only valid while the signal is being emitted, so
+        # keep a Python-owned copy rather than a reference to the boxed object.
+        copy = Gdk.Rectangle()
+        copy.x, copy.y = rect.x, rect.y
+        copy.width, copy.height = rect.width, rect.height
+        shared["selection"] = copy
+        editor._update_add_state()
+
+    view.get_selection.side_effect = lambda: shared.get("selection")
+    view.set_selection.side_effect = set_selection
+    view.get_offset.return_value = None
+
+    editor.set_extent(100, 100, None)
+    editor.canvas._zoom = 1.0
+    editor.canvas._offset = Gdk.Rectangle()
+    editor.canvas._offset.x = 0
+    editor.canvas._offset.y = 0
+    editor._update_add_state()
+    assert not editor.controls.add_button.get_sensitive()
+
+    editor.canvas._button_pressed(None, mocker.Mock(button=1, x=10, y=10))
+    editor.canvas._motion(None, mocker.Mock(x=40, y=30))
+    editor.canvas._button_released(None, mocker.Mock(button=1))
+
+    selection = shared["selection"]
+    assert (selection.x, selection.y, selection.width, selection.height) == (
+        10,
+        10,
+        30,
+        20,
+    )
+    assert editor.controls.add_button.get_sensitive()
+
+    editor.add(None)
+
+    assert page.text_layer is not None
+    assert '"type":"page"' in page.text_layer
+    assert "my-new-word" in page.text_layer
+    thread.set_text.assert_called_once_with(page.id, page.text_layer)
+
+
 def test_add_new_layer_runs_create_callback(mocker: pytest.MockerFixture) -> None:
     """add()'s new-layer path runs the create finished callback."""
     editor, page, thread, view = make_editor(mocker)
@@ -704,6 +762,33 @@ def test_clear_resets_focus_and_empties(mocker: pytest.MockerFixture) -> None:
     assert editor._current_bbox is None
     editor.controls.textbuffer.set_text.assert_called_once_with(EMPTY)
     editor.canvas.clear_text.assert_called_once()
+
+
+def test_set_extent_sets_canvas_extent_and_offset(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """set_extent() gives the canvas the page size and the view offset."""
+    editor, _page, _thread, _view = make_editor(mocker)
+    editor.canvas = mocker.Mock()
+    offset = mocker.Mock(x=10, y=20)
+
+    editor.set_extent(100, 200, offset)
+
+    editor.canvas.set_page_extent.assert_called_once_with(100, 200)
+    editor.canvas.set_offset.assert_called_once_with(10, 20)
+
+
+def test_set_extent_without_offset_leaves_offset_alone(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """set_extent() with no offset only seeds the extent."""
+    editor, _page, _thread, _view = make_editor(mocker)
+    editor.canvas = mocker.Mock()
+
+    editor.set_extent(100, 200)
+
+    editor.canvas.set_page_extent.assert_called_once_with(100, 200)
+    editor.canvas.set_offset.assert_not_called()
 
 
 def test_set_active_toggles_controls(mocker: pytest.MockerFixture) -> None:

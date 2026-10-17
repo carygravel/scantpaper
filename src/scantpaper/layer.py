@@ -503,6 +503,19 @@ class LayerEditor:
         self.canvas.clear_text()
         self._update_rotate_state()
 
+    def set_extent(
+        self, width: int, height: int, offset: Gdk.Rectangle | None = None
+    ) -> None:
+        """Give the canvas the extent of the displayed page.
+
+        The extent is otherwise only learned from parsed layer content, so
+        a page with no layer would refuse selection drags until its first
+        OCR run.
+        """
+        self.canvas.set_page_extent(width, height)
+        if offset is not None:
+            self.canvas.set_offset(offset.x, offset.y)
+
     def create(
         self,
         page: Page,

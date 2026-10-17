@@ -274,7 +274,9 @@ you explicitly turn the toggle off.
   rectangle - on the image or
   directly in the text layer pane - then type the text and press the +
    control; the Add control stays disabled, with an explanatory tooltip, until
-   a rectangle has been drawn or selected. A focused slice can be rotated 90°
+   a rectangle has been drawn or selected. Drawing that first rectangle works
+   on a page that has not been OCRed yet, so the text layer can be started
+   from scratch. A focused slice can be rotated 90°
    clockwise or anticlockwise to author vertical text (e.g. rotated index
    columns) whose glyphs tesseract read wrongly; slices added while a slice is
    rotated inherit that rotation. A slice added without an inherited rotation

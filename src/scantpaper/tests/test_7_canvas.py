@@ -2816,6 +2816,50 @@ def test_canvas_click_without_pixbuf_does_not_draw(
     assert not canvas._drawing
 
 
+def test_set_page_extent_allows_drag_without_layer(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A known page extent lets an empty canvas draw its first selection.
+
+    The page extent is enough to draw and release a selection rectangle
+    even though no text layer has been loaded into the canvas.
+    """
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    qd = mocker.patch.object(canvas, "queue_draw")
+    canvas.set_page_extent(100, 100)
+    assert canvas.get_pixbuf_size() == {"width": 100, "height": 100}
+    qd.assert_called_once()
+
+    render_background = mocker.patch("gi.repository.Gtk.render_background")
+    render_frame = mocker.patch("gi.repository.Gtk.render_frame")
+    received = []
+    canvas.connect(
+        "selection-drawn",
+        lambda _c, rect: received.append((rect.x, rect.y, rect.width, rect.height)),
+    )
+
+    canvas._button_pressed(None, MagicMock(button=1, x=10, y=10))
+    assert canvas._drawing
+    canvas._motion(None, MagicMock(x=40, y=30))
+    canvas._draw_scene(MagicMock())
+    render_background.assert_called_once()
+    render_frame.assert_called_once()
+    canvas._button_released(None, MagicMock(button=1))
+
+    assert received == [(10, 10, 30, 20)]
+
+
+def test_hocr_with_extent_and_empty_root_returns_empty(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """hocr() returns '' when the extent is known but the root is empty."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas.set_page_extent(100, 100)
+    assert canvas.hocr() == ""
+
+
 def test_canvas_selection_property_redraws(mocker: pytest.MockerFixture) -> None:
     """Setting the canvas selection stores it and schedules a redraw."""
     mocker.patch("gi.repository.Gdk.Display.get_default")

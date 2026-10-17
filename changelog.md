@@ -37,6 +37,11 @@
   a word) is now included in the text layer of the saved PDF. Previously such
   manually added words were silently dropped, so the saved PDF's searchable
   text contained only the automatic OCR output.
+* You can now draw the first selection rectangle in a layer pane (text layer
+  or annotations) on a page that has not been OCRed, or whose layer is empty,
+  so a text layer can be started by hand before OCR is ever run. Previously
+  drawing was disabled until the pane already had a layer, which only OCR (or
+  a prior slice) could provide.
 * A focused OCR text slice can now be rotated 90 degrees clockwise or
   anticlockwise from the text layer controls, so vertical text (e.g. rotated
   index columns) that tesseract read wrongly can be authored by hand: the

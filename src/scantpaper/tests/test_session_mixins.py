@@ -1238,3 +1238,49 @@ def test_on_page_loaded_does_not_reapply_when_no_selection(
     mock_session_window._on_page_loaded(response)
 
     mock_session_window.view.set_selection.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("layer_state", "ann_state"),
+    [
+        pytest.param(None, None, id="no-layer"),
+        pytest.param("[]", "[]", id="empty-sentinel"),
+        pytest.param(
+            '[{"type":"page","bbox":[0,0,1500,2000],"depth":0}]',
+            '[{"type":"page","bbox":[0,0,1500,2000],"depth":0}]',
+            id="content",
+        ),
+    ],
+)
+def test_on_page_loaded_seeds_extent_on_both_editors(
+    mocker: pytest.MockerFixture,
+    mock_session_window: object,
+    layer_state: str | None,
+    ann_state: str | None,
+) -> None:
+    """Both editors learn the page extent whatever the layer state.
+
+    Without this, a page whose layer is empty never learns its extent and
+    the layer panes refuse selection drags until OCR has produced content.
+    """
+    mock_session_window._windowc = None
+    mock_session_window.settings["selection"] = None
+
+    page = mocker.Mock()
+    page.get_pixbuf.return_value = mocker.Mock()
+    page.get_resolution.return_value = (200, 200, "PixelsPerInch")
+    page.get_size.return_value = (1500, 2000)
+    page.text_layer = layer_state
+    page.annotations = ann_state
+    response = mocker.Mock()
+    response.info = page
+
+    mock_session_window._on_page_loaded(response)
+
+    offset = mock_session_window.view.get_offset.return_value
+    mock_session_window._text_editor.set_extent.assert_called_once_with(
+        1500, 2000, offset
+    )
+    mock_session_window._ann_editor.set_extent.assert_called_once_with(
+        1500, 2000, offset
+    )

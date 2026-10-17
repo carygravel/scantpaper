@@ -300,6 +300,13 @@ class SessionMixins:
         else:
             self._ann_editor.clear()
 
+        # Seeding the extent after the branch gives both editors the page
+        # size even when there is no layer to parse it from, so a selection
+        # can be drawn before the first OCR run (and for empty sentinels,
+        # whose parse yields no extent).
+        self._text_editor.set_extent(width, height, self.view.get_offset())
+        self._ann_editor.set_extent(width, height, self.view.get_offset())
+
     def _error_callback(self, response: Response) -> None:
         """Handle errors."""
         args = response.request.args

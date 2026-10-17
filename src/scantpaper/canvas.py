@@ -1199,6 +1199,15 @@ class Canvas(Gtk.DrawingArea):
         self._color_lookup_table = None
         self.queue_draw()
 
+    def set_page_extent(self, width: int, height: int) -> None:
+        """Record the extent of the displayed page.
+
+        Lets selection drawing work before any layer content exists, which
+        is the only source of the extent once a layer has been parsed.
+        """
+        self._pixbuf_size = {"width": width, "height": height}
+        self.queue_draw()
+
     def set_offset(self, offset_x: float, offset_y: float) -> None:
         """Set the offset."""
         offset = Gdk.Rectangle()
@@ -1399,9 +1408,9 @@ class Canvas(Gtk.DrawingArea):
 
     def hocr(self) -> str:
         """Convert the canvas into hocr."""
-        if self.get_pixbuf_size() is None:
-            return ""
         root = self.get_root_item()
+        if self.get_pixbuf_size() is None or root.get_n_children() == 0:
+            return ""
         string = root.get_child(0).to_hocr(2)
         return (
             HOCR_HEADER
