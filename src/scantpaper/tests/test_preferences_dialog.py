@@ -12,7 +12,7 @@ from scantpaper.config import DEFAULTS
 from scantpaper.dialog.preferences import PreferencesDialog
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk  # noqa: E402
+from gi.repository import Gio, Gtk  # noqa: E402
 
 
 @patch("scantpaper.dialog.preferences.shutil.which")
@@ -95,7 +95,7 @@ def test_choose_temp_dir(
 
     # Mock the FileChooserDialog behavior
     mock_file_chooser = MagicMock()
-    mock_file_chooser.get_filename.return_value = "/new/tmp"
+    mock_file_chooser.get_file.return_value = Gio.File.new_for_path("/new/tmp")
     mock_file_chooser_dialog.return_value = mock_file_chooser
 
     # Mock the get_tmp_dir function
@@ -111,11 +111,11 @@ def test_choose_temp_dir(
     # Assert that the FileChooserDialog was created and run
     mock_file_chooser_dialog.assert_called_once_with(
         title="Select temporary directory",
-        parent=dialog,
+        transient_for=dialog,
         action=Gtk.FileChooserAction.SELECT_FOLDER,
     )
     mock_run_dialog.assert_called_once()
-    mock_file_chooser.get_filename.assert_called_once()
+    mock_file_chooser.get_file.assert_called_once()
     mock_file_chooser.destroy.assert_called_once()
 
     # Assert that get_tmp_dir was called with the correct arguments

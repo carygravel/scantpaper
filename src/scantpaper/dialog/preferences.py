@@ -11,6 +11,7 @@ from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.dependencies import jbig2_available
 from scantpaper.dialog import Dialog
 from scantpaper.helpers import (
+    chooser_path,
     configure_fractional_spinbutton,
     get_tmp_dir,
     pack_box,
@@ -21,6 +22,7 @@ from scantpaper.i18n import _
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
+    Gio,
     GObject,
     Gtk,
 )
@@ -267,7 +269,7 @@ All document date codes use strftime codes with a leading D, e.g.:
     def _choose_temp_dir(self, _button: Gtk.Button) -> None:
         file_chooser = Gtk.FileChooserDialog(
             title=_("Select temporary directory"),
-            parent=self,
+            transient_for=self,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
         )
         file_chooser.add_buttons(
@@ -276,10 +278,12 @@ All document date codes use strftime codes with a leading D, e.g.:
             _("OK"),
             Gtk.ResponseType.OK,
         )
-        file_chooser.set_current_folder(self._tmpentry.get_text())
+        file_chooser.set_current_folder(
+            Gio.File.new_for_path(self._tmpentry.get_text())
+        )
         if run_dialog(file_chooser) == Gtk.ResponseType.OK:
             self._tmpentry.set_text(
-                get_tmp_dir(file_chooser.get_filename(), r"scantpaper-\w\w\w\w")
+                get_tmp_dir(chooser_path(file_chooser), r"scantpaper-\w\w\w\w")
             )
         file_chooser.destroy()
 
@@ -442,7 +446,7 @@ The other variable available is:
 
         if invalid_tools:
             dialog = Gtk.MessageDialog(
-                parent=self,
+                transient_for=self,
                 destroy_with_parent=True,
                 modal=True,
                 message_type=Gtk.MessageType.ERROR,

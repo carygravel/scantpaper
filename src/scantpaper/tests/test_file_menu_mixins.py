@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from unittest.mock import MagicMock
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import GLib, Gtk  # noqa: E402
+from gi.repository import Gio, GLib, Gtk  # noqa: E402
 
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
@@ -202,7 +202,8 @@ class TestStandaloneFunctions(unittest.TestCase):
         chooser = unittest.mock.Mock()
 
         assert file_exists(chooser, "test.txt")
-        chooser.set_filename.assert_called_with("test.txt")
+        chosen = chooser.set_file.call_args.args[0]
+        assert chosen.get_basename() == "test.txt"
         mock_glib.idle_add.assert_called()
 
     @unittest.mock.patch.object(pathlib.Path, "is_file")
@@ -212,7 +213,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         chooser = unittest.mock.Mock()
 
         assert not file_exists(chooser, "test.txt")
-        chooser.set_filename.assert_not_called()
+        chooser.set_file.assert_not_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gio")
     def test_launch_default_for_file_success(self, mock_gio: MagicMock) -> None:
@@ -515,9 +516,9 @@ class TestFileMenuMixins:
     ) -> None:
         """Test open_dialog imports files on OK response."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filenames.return_value = [
-            "/path/to/file1.jpg",
-            "/path/to/file2.png",
+        mock_dialog.get_files.return_value = [
+            Gio.File.new_for_path("/path/to/file1.jpg"),
+            Gio.File.new_for_path("/path/to/file2.png"),
         ]
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         app._import_files = unittest.mock.Mock()
@@ -529,7 +530,7 @@ class TestFileMenuMixins:
             app.open_dialog(None, None)
 
         mock_gtk.FileChooserDialog.assert_called_once()
-        mock_dialog.get_filenames.assert_called_once()
+        mock_dialog.get_files.assert_called_once()
         mock_dialog.destroy.assert_called_once()
         assert app.settings["cwd"] == "/path/to"
         app._import_files.assert_called_with(
@@ -739,7 +740,7 @@ class TestFileMenuMixins:
         """Test _open_session_action opens session on OK."""
         app._open_session = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filenames.return_value = ["/path/to/session"]
+        mock_dialog.get_files.return_value = [Gio.File.new_for_path("/path/to/session")]
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
         with unittest.mock.patch(
@@ -749,7 +750,7 @@ class TestFileMenuMixins:
             app._open_session_action(None, None)
 
         mock_gtk.FileChooserDialog.assert_called_once()
-        mock_dialog.get_filenames.assert_called_once()
+        mock_dialog.get_files.assert_called_once()
         app._open_session.assert_called_with("/path/to/session")
         mock_dialog.destroy.assert_called_once()
 
@@ -1022,14 +1023,14 @@ class TestFileMenuMixins:
         app.settings["close_dialog_on_save"] = True
         app._windowi = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/file.pdf"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file.pdf")
         mock_re.search.return_value = True
 
         app._file_chooser_response_callback(
             mock_dialog, mock_gtk.ResponseType.OK, ["pdf", ["uuid1"]]
         )
 
-        mock_dialog.get_filename.assert_called_once()
+        mock_dialog.get_file.assert_called_once()
         assert app.settings["cwd"] == "/path/to"
         app._save_pdf.assert_called_with("/path/to/file.pdf", ["uuid1"], "pdf")
         app._windowi.hide.assert_called_once()
@@ -1045,7 +1046,7 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=True)
         app.settings["ps_backend"] = "libtiff"
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/file.ps"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file.ps")
 
         mock_tif = unittest.mock.Mock()
         mock_tif.filename.return_value = "temp.tif"
@@ -1066,7 +1067,7 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=True)
         app.settings["ps_backend"] = "pdf"
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/file.ps"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file.ps")
 
         app._file_chooser_response_callback(
             mock_dialog, mock_gtk.ResponseType.OK, ["ps", ["uuid1"]]
@@ -1083,7 +1084,9 @@ class TestFileMenuMixins:
         mock_dialog = unittest.mock.Mock()
 
         for fmt in ["djvu", "tif", "txt", "hocr"]:
-            mock_dialog.get_filename.return_value = f"/path/to/file.{fmt}"
+            mock_dialog.get_file.return_value = Gio.File.new_for_path(
+                f"/path/to/file.{fmt}"
+            )
             save_method = unittest.mock.Mock()
             setattr(app, f"_save_{fmt}", save_method)
 
@@ -1248,7 +1251,7 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=True)
         app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/image"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/image")
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         mock_file_exists.return_value = False
 
@@ -1281,7 +1284,7 @@ class TestFileMenuMixins:
         app.settings["image type"] = "png"
         app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/image"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/image")
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         mock_file_exists.return_value = True
         with unittest.mock.patch(
@@ -1302,7 +1305,7 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=False)
         app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/image.png"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/image.png")
         mock_gtk.FileChooserDialog.return_value = mock_dialog
         mock_file_exists.return_value = False
         with unittest.mock.patch(
@@ -1366,7 +1369,7 @@ class TestFileMenuMixins:
         app.slist.save_image = unittest.mock.Mock()
         app.settings["image type"] = "png"
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/image.png"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/image.png")
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
         with unittest.mock.patch(
@@ -1457,7 +1460,7 @@ class TestFileMenuMixins:
         app._save_pdf = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/file"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file")
         mock_file_exists.return_value = False
 
         app._file_chooser_response_callback(
@@ -1472,7 +1475,7 @@ class TestFileMenuMixins:
     ) -> None:
         """Test abort if file exists and user cancels."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/file.pdf"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file.pdf")
         mock_file_exists.return_value = True
 
         app._file_chooser_response_callback(
@@ -1488,7 +1491,7 @@ class TestFileMenuMixins:
     ) -> None:
         """Test abort if file exists after adding suffix and user cancels."""
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/file"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file")
         mock_file_exists.return_value = True
 
         app._file_chooser_response_callback(
@@ -1503,7 +1506,9 @@ class TestFileMenuMixins:
         app.slist.save_session = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/session.sdb"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path(
+            "/path/to/session.sdb"
+        )
 
         app._file_chooser_response_callback(
             mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
@@ -1521,7 +1526,9 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=True)
         app._ask_question.return_value = Gtk.ResponseType.CANCEL
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/session.sdb"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path(
+            "/path/to/session.sdb"
+        )
 
         app._file_chooser_response_callback(
             mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
@@ -1541,7 +1548,9 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=True)
         app._ask_question.return_value = Gtk.ResponseType.OK
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/session.sdb"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path(
+            "/path/to/session.sdb"
+        )
 
         app._file_chooser_response_callback(
             mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
@@ -1569,7 +1578,9 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=True)
         app._ask_question.return_value = Gtk.ResponseType.CANCEL
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = f"/path/to/file.{filetype}"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path(
+            f"/path/to/file.{filetype}"
+        )
 
         app._file_chooser_response_callback(
             mock_dialog, Gtk.ResponseType.OK, [filetype, ["uuid1"]]
@@ -1588,7 +1599,7 @@ class TestFileMenuMixins:
         app._ask_question.return_value = Gtk.ResponseType.CANCEL
         mock_file_exists.return_value = True
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/file"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file")
 
         app._file_chooser_response_callback(
             mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
@@ -1600,7 +1611,7 @@ class TestFileMenuMixins:
 
         # Retry pass with the suffixed name, which exists
         mock_file_exists.return_value = False
-        mock_dialog.get_filename.return_value = "/path/to/file.pdf"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file.pdf")
         with unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True):
             app._file_chooser_response_callback(
                 mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
@@ -1632,7 +1643,6 @@ class TestFileMenuMixins:
             app.settings["image type"] = image_type
             app._save_file_chooser(["uuid1"])
 
-            mock_dialog.set_do_overwrite_confirmation.assert_not_called()
             mock_dialog.connect.assert_called_once()
             mock_dialog.set_current_folder.assert_called_once()
             mock_dialog.show.assert_called_once()
@@ -1648,7 +1658,9 @@ class TestFileMenuMixins:
         app._file_writable = unittest.mock.Mock(return_value=True)
         app._show_message_dialog = unittest.mock.Mock()
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/session.sdb"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path(
+            "/path/to/session.sdb"
+        )
 
         app._file_chooser_response_callback(
             mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
@@ -1739,7 +1751,7 @@ class TestFileMenuMixins:
 
         # Mock dialog to return success
         mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_filename.return_value = "/path/to/file.jpg"
+        mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file.jpg")
         mock_gtk.FileChooserDialog.return_value = mock_dialog
 
         mock_os.access.return_value = True

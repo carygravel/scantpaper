@@ -981,7 +981,7 @@ class ApplicationWindow(
     def _ask_device_open_error(self, error_name: str) -> str:
         """Ask how to proceed after an open-device error; return the response."""
         dialog = Gtk.MessageDialog(
-            parent=self,
+            transient_for=self,
             destroy_with_parent=True,
             modal=True,
             message_type="question",

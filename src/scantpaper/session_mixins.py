@@ -365,7 +365,7 @@ class SessionMixins:
 
         cb = None
         dialog = Gtk.MessageDialog(
-            parent=kwargs["parent"],
+            transient_for=kwargs["parent"],
             modal=True,
             destroy_with_parent=True,
             message_type=kwargs["type"],

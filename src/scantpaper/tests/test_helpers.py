@@ -8,7 +8,7 @@ import locale
 import pathlib
 import subprocess
 from io import BytesIO
-from typing import cast
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -20,6 +20,8 @@ from scantpaper.helpers import (
     Proc,
     _program_version,
     _weak_callback,
+    chooser_path,
+    chooser_paths,
     collate_metadata,
     configure_fractional_spinbutton,
     decimal_separator,
@@ -41,7 +43,12 @@ from scantpaper.helpers import (
 )
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import GLib, Gtk  # noqa: E402
+from gi.repository import Gio, GLib, Gtk  # noqa: E402
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from scantpaper.loop_helpers import _MainLoopWrapper
 
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
@@ -575,3 +582,38 @@ def test_show_message_dialog_real_dialog_size(mocker: pytest.MockerFixture) -> N
     finally:
         helpers._MESSAGE_DIALOG = original_dialog
         helpers.SETTING = original_setting
+
+
+def test_chooser_path_helpers_with_real_chooser(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """chooser_path/chooser_paths read a real Gtk4 chooser's Gio.File.
+
+    Regression test: GtkFileChooser.get_filename()/get_filenames() were
+    removed in GTK4 in favour of the Gio.File API.
+    """
+    chooser = Gtk.FileChooserDialog(action=Gtk.FileChooserAction.SAVE)
+    chooser.add_buttons("Cancel", Gtk.ResponseType.CANCEL, "Save", Gtk.ResponseType.OK)
+    chooser.present()
+    loop = mainloop_with_timeout()
+
+    def set_folder() -> bool:
+        if not chooser.get_mapped():
+            return True
+        chooser.set_current_folder(Gio.File.new_for_path("/tmp"))
+        return True
+
+    def accept() -> bool:
+        chooser.set_current_name("round-trip.txt")
+        chooser.get_widget_for_response(Gtk.ResponseType.OK).emit("clicked")
+        loop.quit()
+        return False
+
+    # let the dialog map, then change folder, then press Save
+    GLib.timeout_add(50, set_folder)
+    GLib.timeout_add(300, accept)
+    loop.run()
+
+    assert chooser_path(chooser) == "/tmp/round-trip.txt"
+    assert chooser_paths(chooser) == ["/tmp/round-trip.txt"]
+    chooser.destroy()

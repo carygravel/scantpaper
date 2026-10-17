@@ -64,7 +64,7 @@ def _confirm_libusb_caching(
     if not any("libusb" in d.name for d in device_list):
         return True
     dialog = Gtk.MessageDialog(
-        parent=parent,
+        transient_for=parent,
         destroy_with_parent=True,
         modal=True,
         message_type="question",

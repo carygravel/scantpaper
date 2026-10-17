@@ -21,6 +21,7 @@ from scantpaper.i18n import _
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
+    Gio,
     GLib,
     Gtk,
 )
@@ -459,6 +460,24 @@ def get_tmp_dir(dirname: str | None, pattern: str) -> str | None:
     while re.search(pattern, dirname):
         dirname = str(pathlib.Path(dirname).parent)
     return dirname
+
+
+def chooser_path(chooser: Gtk.FileChooser) -> str:
+    """Return the path of the file selected in a GTK4 file chooser.
+
+    GtkFileChooser.get_filename() was removed in GTK4; get_file() returns a
+    Gio.File, which is always set once a save or open dialog is confirmed.
+    """
+    gfile = cast("Gio.File", chooser.get_file())
+    return cast("str", gfile.get_path())
+
+
+def chooser_paths(chooser: Gtk.FileChooser) -> list[str]:
+    """Return the paths of the files selected in a GTK4 file chooser.
+
+    Replaces GtkFileChooser.get_filenames(), which was removed in GTK4.
+    """
+    return [cast("str", gfile.get_path()) for gfile in chooser.get_files()]
 
 
 def slurp(file: str | PathLike[str] | TextIO | BinaryIO) -> str:

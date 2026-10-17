@@ -20,6 +20,8 @@ from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import _LOCAL_TZ, ASTERISK, EMPTY, EMPTY_LIST
 from scantpaper.dialog.save import Save as SaveDialog
 from scantpaper.helpers import (
+    chooser_path,
+    chooser_paths,
     collate_metadata,
     expand_metadata_pattern,
     run_dialog,
@@ -72,7 +74,7 @@ def file_exists(chooser: Gtk.FileChooser, filename: str) -> bool:
     """Check if a file exists and prompt the user for confirmation if it does."""
     if pathlib.Path(filename).is_file():
         # File exists; get the file chooser to ask the user to confirm.
-        chooser.set_filename(filename)
+        chooser.set_file(Gio.File.new_for_path(filename))
 
         # Give the name change a chance to take effect
         GLib.idle_add(lambda: chooser.response(Gtk.ResponseType.OK))
@@ -132,7 +134,7 @@ class FileMenuMixins:
         self._chdir_cwd()
         file_chooser = Gtk.FileChooserDialog(
             title=_("Open image"),
-            parent=self,
+            transient_for=self,
             action=Gtk.FileChooserAction.OPEN,
         )
         file_chooser.add_buttons(
@@ -143,7 +145,7 @@ class FileMenuMixins:
         )
         file_chooser.set_select_multiple(True)
         file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(self.settings["cwd"])
+        file_chooser.set_current_folder(Gio.File.new_for_path(self.settings["cwd"]))
         add_filter(
             file_chooser,
             _("Image files"),
@@ -166,7 +168,7 @@ class FileMenuMixins:
             # cd back to tempdir to import
             os.chdir(self.session.name)
 
-            filenames = file_chooser.get_filenames()
+            filenames = chooser_paths(file_chooser)
             file_chooser.destroy()
 
             # Update cwd
@@ -219,7 +221,7 @@ class FileMenuMixins:
         """Ask for password for encrypted PDF."""
         text = _("Enter user password for PDF %s") % (filename)
         dialog = Gtk.MessageDialog(
-            parent=self,
+            transient_for=self,
             destroy_with_parent=True,
             modal=True,
             message_type=Gtk.MessageType.QUESTION,
@@ -284,7 +286,7 @@ class FileMenuMixins:
         """Open session."""
         file_chooser = Gtk.FileChooserDialog(
             title=_("Open crashed session"),
-            parent=self,
+            transient_for=self,
             action=Gtk.FileChooserAction.SELECT_FOLDER,
         )
         file_chooser.add_buttons(
@@ -294,9 +296,9 @@ class FileMenuMixins:
             Gtk.ResponseType.OK,
         )
         file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(self.settings["cwd"])
+        file_chooser.set_current_folder(Gio.File.new_for_path(self.settings["cwd"]))
         if run_dialog(file_chooser) == Gtk.ResponseType.OK:
-            filename = file_chooser.get_filenames()
+            filename = chooser_paths(file_chooser)
             self._open_session(filename[0])
 
         file_chooser.destroy()
@@ -496,7 +498,7 @@ class FileMenuMixins:
             filter_list = [self.settings["image type"]]
         file_chooser = Gtk.FileChooserDialog(
             title=title,
-            parent=self._windowi,
+            transient_for=self._windowi,
             action=Gtk.FileChooserAction.SAVE,
         )
         file_chooser.add_buttons(
@@ -519,7 +521,7 @@ class FileMenuMixins:
             )
             file_chooser.set_current_name(filename)
         add_filter(file_chooser, filter_desc, filter_list)
-        file_chooser.set_current_folder(self.settings["cwd"])
+        file_chooser.set_current_folder(Gio.File.new_for_path(self.settings["cwd"]))
         file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.connect(
             "response",
@@ -579,7 +581,7 @@ class FileMenuMixins:
         uuids = cast("list[str]", data[1])
         suffix = self._normalize_filetype_suffix(filetype)
         if response == Gtk.ResponseType.OK:
-            filename = dialog.get_filename()
+            filename = chooser_path(dialog)
             logger.debug("FileChooserDialog returned %s", filename)
             if not re.search(rf"[.]{suffix}$", filename, re.IGNORECASE):
                 filename = f"{filename}.{filetype}"
@@ -833,7 +835,7 @@ class FileMenuMixins:
         # Set up file selector
         file_chooser = Gtk.FileChooserDialog(
             title=_("Image filename"),
-            parent=self._windowi,
+            transient_for=self._windowi,
             action=Gtk.FileChooserAction.SAVE,
         )
         file_chooser.add_buttons(
@@ -843,15 +845,14 @@ class FileMenuMixins:
             Gtk.ResponseType.OK,
         )
         file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(self.settings["cwd"])
+        file_chooser.set_current_folder(Gio.File.new_for_path(self.settings["cwd"]))
         add_filter(
             file_chooser,
             _("Image files"),
             ["jpg", "png", "pnm", "gif", "tif", "tiff", "pdf", "djvu", "ps"],
         )
-        file_chooser.set_do_overwrite_confirmation(True)
         if run_dialog(file_chooser) == Gtk.ResponseType.OK:
-            filename = file_chooser.get_filename()
+            filename = chooser_path(file_chooser)
 
             # Update cwd
             self.settings["cwd"] = str(pathlib.Path(filename).parent)
