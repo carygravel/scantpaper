@@ -1,4 +1,4 @@
-## 3.0.24 (unreleased)
+## 3.0.24 (2026-10-17)
 
 * OCR text is now aligned to its baseline instead of being vertically
   centred in each bounding box, so words with and without descenders line
