@@ -520,12 +520,21 @@ class Page:
         codec = resolve_pdf_codec(image, compression)
 
         # An unmodified imported JPEG is already in the desired encoding, so
-        # embed the stored bytes verbatim rather than re-encoding them.
+        # embed the stored bytes verbatim rather than re-encoding them --
+        # but only when nothing actually asks for different bytes.
+        # Downsampling needs a resize, which this shortcut can't produce,
+        # and a quality away from the default is an explicit request to
+        # recompress; either one must fall through to a real re-encode
+        # instead of being silently ignored (see
+        # https://github.com/carygravel/scantpaper/issues/86, where the
+        # quality slider had no effect unless "downsample" happened to be
+        # enabled too).
         if (
             self.original
             and codec == PDF_CODEC_JPEG
             and compression in (None, "", "auto")
             and not opts.get("downsample")
+            and quality == config.DEFAULTS["quality"]
             and self._stored_bytes is not None
             and image.format == "JPEG"
         ):

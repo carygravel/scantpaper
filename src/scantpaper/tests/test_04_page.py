@@ -790,6 +790,30 @@ def test_write_image_for_pdf_stored_jpeg_passes_through() -> None:
             assert fhd.read() == stored, "bytes passed through"
 
 
+def test_write_image_for_pdf_quality_forces_reencode_of_stored_jpeg() -> None:
+    """A quality away from the default re-encodes rather than passing through.
+
+    Regression test for https://github.com/carygravel/scantpaper/issues/86:
+    with "Automatic" compression and "Scale Down" left unchecked, the JPEG
+    quality setting had no effect at all, because the unmodified-JPEG
+    passthrough only checked compression and downsampling, never quality.
+    Toggling "Scale Down" on (and back off) was the only way to make the
+    quality slider do anything, which is the bug the reporter hit.
+    """
+    buf = io.BytesIO()
+    Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
+    stored = buf.getvalue()
+    page = Page.from_bytes(stored, original=True)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+        page.write_image_for_pdf(filename.name, {"options": {"quality": 30}})
+        with pathlib.Path(filename.name).open("rb") as fhd:
+            output = fhd.read()
+    assert output != stored, "non-default quality re-encodes instead of passing through"
+    with Image.open(io.BytesIO(output)) as saved:
+        assert saved.format == "JPEG", "still written as JPEG, just re-encoded"
+
+
 def test_write_image_for_pdf_reenocodes_with_options() -> None:
     """Downsampling or compression forces a re-encode."""
     buf = io.BytesIO()
