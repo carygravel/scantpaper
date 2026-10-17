@@ -277,9 +277,12 @@ you explicitly turn the toggle off.
    a rectangle has been drawn or selected. A focused slice can be rotated 90°
    clockwise or anticlockwise to author vertical text (e.g. rotated index
    columns) whose glyphs tesseract read wrongly; slices added while a slice is
-   rotated inherit that rotation. Page pixels are fed to tesseract in
-   memory and the stored image is reused, so OCR is faster than in previous
-   versions.
+   rotated inherit that rotation. A slice added without an inherited rotation
+   is oriented automatically: a tall, narrow selection becomes vertical text
+   and a wide, short one stays upright, so a drawn box for a vertical column
+   renders legibly instead of as shrunken horizontal text. Page pixels are fed
+   to tesseract in memory and the stored image is reused, so OCR is faster than
+   in previous versions.
 - **User-defined:** Run user-defined commands.
 
 #### User-defined Tool Variables

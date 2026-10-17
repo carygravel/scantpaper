@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from typing import TYPE_CHECKING, cast
 
 import gi
@@ -55,6 +56,39 @@ _DEFAULT_TEXT_BY_ATTR = {
     "text_layer": _("my-new-word"),
     "annotations": _("my-new-annotation"),
 }
+
+
+def _axis_fit(dimension: int, extent: int) -> float:
+    """Return the scale at which dimension spans extent.
+
+    A non-positive extent is treated as fitting at any scale.
+    """
+    return math.inf if extent <= 0 else dimension / extent
+
+
+def guess_textangle(
+    width: int,
+    height: int,
+    text_width: int,
+    text_height: int,
+    *,
+    inherited: bool = False,
+) -> int:
+    """Guess whether text in a selection is upright (0) or rotated (90).
+
+    The text is measured at the renderer's fixed font. The chosen angle is the
+    orientation in which the text fits the selection at the largest uniform
+    scale, with ties favouring upright. When ``inherited`` is true a quarter
+    turn is already in effect, so no extra turn is guessed. Degenerate text
+    metrics fall back to the selection's shape: taller than wide means rotated.
+    """
+    if inherited:
+        return 0
+    if text_width <= 0 and text_height <= 0:
+        return 90 if height > width else 0
+    upright = min(_axis_fit(width, text_width), _axis_fit(height, text_height))
+    rotated = min(_axis_fit(height, text_width), _axis_fit(width, text_height))
+    return 90 if rotated > upright else 0
 
 
 class LayerControls(Gtk.Box):
@@ -383,6 +417,53 @@ class LayerEditor:
         """Return the current page, if any."""
         return self._get_page()
 
+    def _guess_textangle(
+        self,
+        selection: Gdk.Rectangle,
+        text: str,
+        *,
+        parent_angle: int = 0,
+        inherited: int = 0,
+    ) -> int:
+        """Return the text angle for a new slice, guessing its orientation.
+
+        A quarter turn inherited from the focused slice or the parent is
+        already legible and is kept as-is. Otherwise the selection's geometry
+        and the text decide whether to add a quarter turn, so a tall, narrow
+        selection becomes vertical text instead of tiny horizontal text.
+        """
+        skip = bool(inherited % 180 or parent_angle % 180)
+        text_width = text_height = 0
+        if not skip:
+            text_width, text_height = self.canvas.measure_text(text)
+        guess = guess_textangle(
+            selection.width,
+            selection.height,
+            text_width,
+            text_height,
+            inherited=skip,
+        )
+        return (inherited + guess) % 360
+
+    def _angle_and_parent(
+        self, selection: Gdk.Rectangle, text: str
+    ) -> tuple[int, Bbox]:
+        """Return the angle and parent for a new slice at the selection."""
+        parent = self.canvas.get_bbox_at(selection)
+        parent_angle = self.canvas.accumulated_textangle(parent)
+        focused = self._current_bbox
+        inherited = 0
+        if focused is not None:
+            inherited = (
+                self.canvas.accumulated_textangle(focused) - parent_angle
+            ) % 360
+        return (
+            self._guess_textangle(
+                selection, text, parent_angle=parent_angle, inherited=inherited
+            ),
+            parent,
+        )
+
     def _commit(self) -> None:
         """Import the canvas hocr into the page and persist it."""
         page = self._page()
@@ -487,9 +568,14 @@ class LayerEditor:
 
     def copy(self, _widget: object) -> None:
         """Duplicate the current text into a new box at the selection."""
+        selection = self._view.get_selection()
+        text = self._controls_text()
+        angle, parent = self._angle_and_parent(selection, text)
         self._current_bbox = self.canvas.add_box(
-            text=self._controls_text(),
-            bbox=self._view.get_selection(),
+            text=text,
+            bbox=selection,
+            textangle=angle,
+            parent=parent,
         )
         self._commit()
         self.edit(self._current_bbox)
@@ -503,16 +589,9 @@ class LayerEditor:
         if page is None:
             return
         selection = self._view.get_selection()
-        angle = 0
         if getattr(page, self.page_attr, None):
             logger.info("Added '%s'", text)
-            parent = self.canvas.get_bbox_at(selection)
-            focused = self._current_bbox
-            if focused is not None:
-                angle = (
-                    self.canvas.accumulated_textangle(focused)
-                    - self.canvas.accumulated_textangle(parent)
-                ) % 360
+            angle, parent = self._angle_and_parent(selection, text)
             self._current_bbox = self.canvas.add_box(
                 text=text,
                 bbox=selection,
@@ -523,6 +602,7 @@ class LayerEditor:
             self.edit(self._current_bbox)
         else:
             logger.info("Creating new %s with '%s'", self.page_attr, text)
+            angle = self._guess_textangle(selection, text)
             setattr(page, self.page_attr, self._new_layer_json(selection, text, angle))
 
             def on_new(*_args: object) -> None:

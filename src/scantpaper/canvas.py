@@ -8,6 +8,7 @@ import math
 import re
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 
+import cairo
 import gi
 
 from scantpaper.bboxtree import is_empty_branch
@@ -912,7 +913,7 @@ class Canvas(Gtk.DrawingArea):
                 text_h = ink_extents.height
 
                 if text_w > 0:
-                    scale = h / text_w if angle else w / text_w
+                    scale = (w if angle % 180 == 0 else h) / text_w
 
                     if bbox.type == "page":
                         scale *= FULLPAGE_OCR_SCALE
@@ -994,12 +995,30 @@ class Canvas(Gtk.DrawingArea):
 
     def _create_pango_layout(self, ctx: object, bbox: Bbox) -> Pango.Layout:
         """Create a PangoLayout for a bbox's text."""
+        return self._make_layout(ctx, bbox.text)
+
+    @staticmethod
+    def _make_layout(ctx: object, text: str) -> Pango.Layout:
+        """Create a PangoLayout for text at the fixed layout font."""
         layout = PangoCairo.create_layout(ctx)
         layout.set_font_description(
             Pango.FontDescription.from_string(LAYOUT_FONT_DESCRIPTION)
         )
-        layout.set_text(bbox.text, -1)
+        layout.set_text(text, -1)
         return layout
+
+    def measure_text(self, text: str) -> tuple[int, int]:
+        """Return the ink width and height of text at the layout font.
+
+        The editor uses this to guess a new slice's orientation from whether
+        its text fits its selection better upright or rotated, comparing the
+        same font metrics the renderer draws with.
+        """
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1)
+        ctx = cairo.Context(surface)
+        layout = self._make_layout(ctx, text)
+        extents = layout.get_pixel_extents()[0]
+        return cast("int", extents.width), cast("int", extents.height)
 
     def _layout_for(self, ctx: object, bbox: Bbox) -> Pango.Layout | None:
         """Return the layout for bbox, creating it if needed.

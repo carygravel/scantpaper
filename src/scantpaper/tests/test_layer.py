@@ -9,7 +9,7 @@ from scantpaper.basethread import Response, ResponseType
 from scantpaper.bboxtree import Bboxtree
 from scantpaper.canvas import Bbox, Canvas
 from scantpaper.const import EMPTY, POINTS_PER_INCH
-from scantpaper.layer import LayerControls, LayerEditor
+from scantpaper.layer import LayerControls, LayerEditor, guess_textangle
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
@@ -360,7 +360,7 @@ def test_add_inherits_focused_rotation(mocker: pytest.MockerFixture) -> None:
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
     editor.controls.textbuffer.get_text.return_value = "new"
-    view.get_selection.return_value = "sel"
+    view.get_selection.return_value = mocker.Mock(x=0, y=0, width=10, height=10)
     new_bbox = mocker.Mock()
     editor.canvas.add_box.return_value = new_bbox
     parent = mocker.Mock()
@@ -375,7 +375,10 @@ def test_add_inherits_focused_rotation(mocker: pytest.MockerFixture) -> None:
     editor.add(None)
 
     editor.canvas.add_box.assert_called_with(
-        text="new", bbox="sel", textangle=90, parent=parent
+        text="new",
+        bbox=view.get_selection.return_value,
+        textangle=90,
+        parent=parent,
     )
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
 
@@ -415,13 +418,19 @@ def test_copy_duplicates_box(mocker: pytest.MockerFixture) -> None:
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
     editor.controls.textbuffer.get_text.return_value = "dup"
-    view.get_selection.return_value = "sel"
+    selection = mocker.Mock(x=0, y=0, width=10, height=10)
+    view.get_selection.return_value = selection
     new_bbox = mocker.Mock()
     editor.canvas.add_box.return_value = new_bbox
+    parent = editor.canvas.get_bbox_at.return_value
+    editor.canvas.accumulated_textangle.return_value = 0
+    editor.canvas.measure_text.return_value = (100, 20)
 
     editor.copy(None)
 
-    editor.canvas.add_box.assert_called_with(text="dup", bbox="sel")
+    editor.canvas.add_box.assert_called_with(
+        text="dup", bbox=selection, textangle=0, parent=parent
+    )
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is new_bbox
@@ -456,16 +465,19 @@ def test_add_existing_layer(mocker: pytest.MockerFixture) -> None:
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
     editor.controls.textbuffer.get_text.return_value = "newword"
-    view.get_selection.return_value = "sel"
+    selection = mocker.Mock(x=0, y=0, width=10, height=10)
+    view.get_selection.return_value = selection
     new_bbox = mocker.Mock()
     editor.canvas.add_box.return_value = new_bbox
     parent = mocker.Mock()
     editor.canvas.get_bbox_at.return_value = parent
+    editor.canvas.accumulated_textangle.return_value = 0
+    editor.canvas.measure_text.return_value = (100, 20)
 
     editor.add(None)
 
     editor.canvas.add_box.assert_called_with(
-        text="newword", bbox="sel", textangle=0, parent=parent
+        text="newword", bbox=selection, textangle=0, parent=parent
     )
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
@@ -478,14 +490,17 @@ def test_add_default_text_when_empty(mocker: pytest.MockerFixture) -> None:
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
     editor.controls.textbuffer.get_text.return_value = EMPTY
-    view.get_selection.return_value = "sel"
+    selection = mocker.Mock(x=0, y=0, width=10, height=10)
+    view.get_selection.return_value = selection
     parent = mocker.Mock()
     editor.canvas.get_bbox_at.return_value = parent
+    editor.canvas.accumulated_textangle.return_value = 0
+    editor.canvas.measure_text.return_value = (100, 20)
 
     editor.add(None)
 
     editor.canvas.add_box.assert_called_with(
-        text="my-new-word", bbox="sel", textangle=0, parent=parent
+        text="my-new-word", bbox=selection, textangle=0, parent=parent
     )
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
 
@@ -498,6 +513,7 @@ def test_add_creates_new_layer(mocker: pytest.MockerFixture) -> None:
     editor.controls.textbuffer.get_text.return_value = "seed"
     view.get_selection.return_value = mocker.Mock(x=0, y=0, width=10, height=10)
     view.get_offset.return_value = mocker.Mock(x=1, y=2)
+    editor.canvas.measure_text.return_value = (100, 20)
 
     del page.text_layer
 
@@ -523,6 +539,7 @@ def test_add_new_layer_runs_create_callback(mocker: pytest.MockerFixture) -> Non
     editor.controls.textbuffer.get_text.return_value = "seed"
     view.get_selection.return_value = mocker.Mock(x=0, y=0, width=10, height=10)
     view.get_offset.return_value = mocker.Mock(x=1, y=2)
+    editor.canvas.measure_text.return_value = (100, 20)
     del page.text_layer
     edit = mocker.patch.object(editor, "edit")
 
@@ -562,6 +579,7 @@ def test_annotation_add_guards_on_annotations_attr(
 
     del page.annotations  # page HAS text_layer but NOT annotations
 
+    editor.canvas.measure_text.return_value = (100, 20)
     editor.add(None)
 
     # The new-layer branch was taken (it would not be if the old bug that
@@ -579,8 +597,10 @@ def test_annotation_add_existing_layer_uses_import_annotations(
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
     editor.controls.textbuffer.get_text.return_value = "note"
-    view.get_selection.return_value = "sel"
+    view.get_selection.return_value = mocker.Mock(x=0, y=0, width=10, height=10)
     editor.canvas.add_box.return_value = mocker.Mock()
+    editor.canvas.accumulated_textangle.return_value = 0
+    editor.canvas.measure_text.return_value = (100, 20)
 
     editor.add(None)
 
@@ -1303,6 +1323,184 @@ def test_editor_add_sibling_inherits_focused_angle(
         added = editor._current_bbox
         assert added is not None
         assert _drawn_angle(added) == _drawn_angle(alpha)
+
+
+def test_guess_textangle_prefers_larger_fit() -> None:
+    """The guessed angle is the one the text fits into at the larger scale."""
+    # A tall, narrow selection without inherited rotation guesses vertical.
+    assert guess_textangle(20, 50, 59, 9) == 90
+    # A wide, short selection guesses upright.
+    assert guess_textangle(50, 20, 59, 9) == 0
+    # An exact square favours upright.
+    assert guess_textangle(59, 9, 59, 9) == 0
+    # A slightly tall selection keeps short, near-square text upright.
+    assert guess_textangle(21, 24, 10, 10) == 0
+    # The same selection rotates a long word whose width cannot fit.
+    assert guess_textangle(21, 24, 40, 8) == 90
+
+
+def test_guess_textangle_skips_an_inherited_quarter_turn() -> None:
+    """An inherited quarter turn suppresses the guess."""
+    assert guess_textangle(20, 50, 59, 9, inherited=True) == 0
+
+
+def test_guess_textangle_falls_back_to_shape() -> None:
+    """Degenerate text metrics fall back to the selection's shape."""
+    assert guess_textangle(20, 50, 0, 0) == 90
+    assert guess_textangle(50, 20, 0, 0) == 0
+
+
+def test_editor_add_guesses_vertical_for_tall_selection(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A tall, narrow selection over horizontal text adds a vertical slice."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        editor.controls.textbuffer.set_text("VERTICAL")
+        selection = Gdk.Rectangle()
+        selection.x, selection.y = 440, 40
+        selection.width, selection.height = 20, 50
+        cast("Any", editor._view).get_selection.return_value = selection
+
+        editor.add(None)
+
+        added = editor._current_bbox
+        assert added is not None
+        assert added.textangle == 90
+        assert '"textangle": 90' in stored_layer(page, editor)
+
+
+def test_editor_copy_guesses_vertical_and_keeps_focus(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """Duplicating on a tall selection guesses vertical without moving focus."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page, features=("copy", "rotate"))
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        focused = cast("Bbox", editor.canvas.get_first_bbox())
+        editor.edit(focused)
+        assert focused.textangle == 0
+
+        editor.controls.textbuffer.set_text("VERTICAL")
+        selection = Gdk.Rectangle()
+        selection.x, selection.y = 440, 40
+        selection.width, selection.height = 20, 50
+        cast("Any", editor._view).get_selection.return_value = selection
+
+        editor.copy(None)
+
+        added = editor._current_bbox
+        assert added is not None
+        assert added.textangle == 90
+        assert focused.textangle == 0
+
+
+def test_editor_first_slice_guesses_vertical(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A page with no layer gains a first slice at the guessed angle."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        editor = make_real_editor(mocker, page)
+        editor.create(page, None)
+
+        selection = Gdk.Rectangle()
+        selection.x, selection.y = 440, 40
+        selection.width, selection.height = 20, 50
+        cast("Any", editor._view).get_selection.return_value = selection
+        editor.controls.textbuffer.set_text("VERTICAL")
+
+        editor.add(None)
+        settle()
+
+        assert '"textangle":90' in stored_layer(page, editor)
+
+
+def test_editor_guessed_rotation_is_correctable(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A guessed rotation changes with the rotate controls and persists."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page, features=("rotate",))
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        editor.controls.textbuffer.set_text("VERTICAL")
+        selection = Gdk.Rectangle()
+        selection.x, selection.y = 440, 40
+        selection.width, selection.height = 20, 50
+        cast("Any", editor._view).get_selection.return_value = selection
+
+        editor.add(None)
+
+        added = editor._current_bbox
+        assert added is not None
+        assert added.textangle == 90
+
+        editor.rotate_anticlockwise(None)
+
+        assert added.textangle == 180
+        assert '"textangle": 180' in stored_layer(page, editor)
+
+
+def test_editor_add_guesses_upright_for_wide_selection(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A wide, short selection over horizontal text stays upright."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_position()
+
+        editor.controls.textbuffer.set_text("VERTICAL")
+        selection = Gdk.Rectangle()
+        selection.x, selection.y = 440, 40
+        selection.width, selection.height = 50, 20
+        cast("Any", editor._view).get_selection.return_value = selection
+
+        editor.add(None)
+
+        added = editor._current_bbox
+        assert added is not None
+        assert added.textangle == 0
 
 
 def test_editor_rebuild_while_focused_drops_stale_focus(

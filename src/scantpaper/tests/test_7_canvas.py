@@ -3758,3 +3758,109 @@ def test_baseline_y_abs_own_and_missing() -> None:
     )
     own.baseline = [0, 5]
     assert c._baseline_y_abs(own) == 10 + 50 + 5
+
+
+def _ink_layout(mocker: pytest.MockerFixture, width: int, height: int) -> MagicMock:
+    """Build a fake Pango layout whose ink extents are the given size."""
+    layout = cast("MagicMock", mocker.Mock())
+    ink = mocker.Mock()
+    ink.width = width
+    ink.height = height
+    layout.get_pixel_extents.return_value = (ink, mocker.Mock())
+    return layout
+
+
+def _scale_for(canvas: Canvas, ctx: MagicMock, word: Bbox) -> float:
+    """Draw a word on a mock context and return the scale it applied."""
+    ctx.reset_mock()
+    canvas._draw_bbox(ctx, word)
+    return cast("float", ctx.scale.call_args.args[0])
+
+
+def _text_canvas(mocker: pytest.MockerFixture) -> tuple[Canvas, Bbox]:
+    """Build a Canvas with an empty page box and ink mocked for any text."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    mocker.patch("scantpaper.canvas.PangoCairo.show_layout")
+    canvas = Canvas()
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+    page = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=400, height=400),
+        type="page",
+        parent=root,
+    )
+    canvas._layout_for = mocker.Mock(return_value=_ink_layout(mocker, 100, 20))
+    return canvas, page
+
+
+def test_draw_bbox_180_scales_by_width(mocker: pytest.MockerFixture) -> None:
+    """A 180-degree slice is scaled by the box width, like an upright one."""
+    canvas, page = _text_canvas(mocker)
+    ctx = mocker.Mock()
+    upright = canvas.add_box(
+        text="hello",
+        bbox=Rectangle(x=0, y=0, width=200, height=40),
+        type="word",
+        parent=page,
+        textangle=0,
+    )
+    flipped = canvas.add_box(
+        text="hello",
+        bbox=Rectangle(x=0, y=0, width=200, height=40),
+        type="word",
+        parent=page,
+        textangle=180,
+    )
+
+    assert _scale_for(canvas, ctx, upright) == pytest.approx(200 / 100)
+    assert _scale_for(canvas, ctx, flipped) == pytest.approx(200 / 100)
+
+
+def test_draw_bbox_90_scales_by_height(mocker: pytest.MockerFixture) -> None:
+    """A 90-degree slice is scaled by the box height."""
+    canvas, page = _text_canvas(mocker)
+    ctx = mocker.Mock()
+    rotated = canvas.add_box(
+        text="hello",
+        bbox=Rectangle(x=0, y=0, width=200, height=40),
+        type="word",
+        parent=page,
+        textangle=90,
+    )
+
+    assert _scale_for(canvas, ctx, rotated) == pytest.approx(40 / 100)
+
+
+def test_draw_bbox_inherited_180_scales_by_width(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """An inherited 180-degree angle also scales by the box width."""
+    canvas, page = _text_canvas(mocker)
+    ctx = mocker.Mock()
+    line = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=200, height=40),
+        type="line",
+        parent=page,
+        textangle=180,
+    )
+    word = canvas.add_box(
+        text="hello",
+        bbox=Rectangle(x=0, y=0, width=200, height=40),
+        type="word",
+        parent=line,
+    )
+
+    assert _scale_for(canvas, ctx, word) == pytest.approx(200 / 100)
+
+
+def test_measure_text_reports_ink_extents(mocker: pytest.MockerFixture) -> None:
+    """measure_text returns the ink size of the text at the layout font."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    width, height = canvas.measure_text("hello")
+    assert width > 0
+    assert height > 0
+    # A longer string is wider than a shorter one.
+    assert canvas.measure_text("hello there")[0] > width
