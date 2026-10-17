@@ -1,18 +1,20 @@
+# user-defined-tools
+
 ## Purpose
 
 Lets users apply an external command (a "user-defined tool") to the pages of a
 document, either one page at a time or to all selected pages in a single
 invocation so long-lived GUI tools can open every image at once.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Apply a user-defined tool to pages
 The system SHALL run a user-defined command on selected pages. By default the
 command runs once per page, with `%i` substituted by the path of a temporary
-input file holding the page image and `%o` substituted by the path of a
-temporary output file the tool must write. When the command contains no `%o`,
-the tool may edit its input in place and the modified file SHALL become the
-new page contents.
+input file holding the page image, `%o` substituted by the path of a temporary
+output file the tool must write, and `%r` substituted by the resolution of the
+page being processed. When the command contains no `%o`, the tool may edit its
+input in place and the modified file SHALL become the new page contents.
 
 #### Scenario: Tool with %i and %o output
 - **WHEN** the user applies a tool command containing both `%i` and `%o` to a
@@ -20,6 +22,10 @@ new page contents.
 - **THEN** the page image is written to a temporary `%i` file, the tool is run
   to write the `%o` file
 - **AND** the page is replaced by the contents of the `%o` file on completion
+
+#### Scenario: Tool using the page resolution
+- **WHEN** the user applies a per-page tool command containing `%r`
+- **THEN** `%r` is replaced by the resolution of the page being processed
 
 #### Scenario: Tool without %o edits in place
 - **WHEN** the user applies a tool command containing `%i` but no `%o`
@@ -38,7 +44,11 @@ new page contents.
 The system SHALL offer a batch mode in which all selected pages are passed to a
 single invocation of the tool. In batch mode `%i` SHALL be substituted by the
 path of each page's temporary working file, space-separated, so that a tool
-such as `gimp %i` opens every selected image at the same time.
+such as `gimp %i` opens every selected image at the same time. A command
+containing a variable that cannot be resolved to a single value for the whole
+batch SHALL be rejected: `%o` because one output file cannot collect many
+input pages, and `%r` because the selected pages may have different
+resolutions.
 
 #### Scenario: All selected images open together
 - **WHEN** the user enables batch mode and applies a tool with `%i` to 5
@@ -56,6 +66,10 @@ such as `gimp %i` opens every selected image at the same time.
 - **WHEN** the user enables batch mode for a tool command that contains `%o`
 - **THEN** the application reports an error and does not start the tool
 
+#### Scenario: Batch mode with %r is rejected
+- **WHEN** the user enables batch mode for a tool command that contains `%r`
+- **THEN** the application reports an error and does not start the tool
+
 ### Requirement: Batch copy-back replaces only modified pages
 After a batch run completes, the system SHALL read back each page's working
 file. A working file that was modified SHALL replace its corresponding page;
@@ -68,6 +82,16 @@ preserved.
 - **THEN** pages 2 and 4 are replaced by the modified working files
 - **AND** pages 1, 3, and 5 are unchanged
 - **AND** the pages remain in their original order
+
+### Requirement: Batch replacement forms a single undo step
+A batch that replaces more than one page SHALL be recorded as a single
+undoable step, consistent with other multi-page operations. One undo SHALL
+revert every page replaced by the batch, and one redo SHALL re-apply them all.
+
+#### Scenario: Undo reverts the whole batch
+- **WHEN** a batch run replaces several pages and the user triggers undo once
+- **THEN** every page replaced by the batch is restored to its pre-batch state
+- **AND** the batch consumes exactly one undo step, not one per replaced page
 
 ### Requirement: Batch errors are reported once per batch
 If a batch tool invocation fails, the system SHALL report a single error naming

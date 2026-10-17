@@ -260,6 +260,12 @@ class BaseDocument(SimpleList):
             self.add_page(*info["row"], **info)
             if post_process:
                 post_process(info["row"][2], options)
+        elif (
+            isinstance(info, dict)
+            and info.get("type") == "user-message"
+            and "message_callback" in options
+        ):
+            cast("Callable[..., object]", options["message_callback"])(response)
         elif "logger_callback" in options:
             cast("Callable[..., object]", options["logger_callback"])(response)
 

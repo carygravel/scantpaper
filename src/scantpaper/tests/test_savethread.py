@@ -21,6 +21,7 @@ from scantpaper.basethread import Request
 from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import POINTS_PER_INCH
 from scantpaper.i18n import _
+from scantpaper.importthread import CancelledError
 from scantpaper.page import Page
 from scantpaper.savethread import (
     _2GIB,
@@ -692,6 +693,259 @@ def test_user_defined_exception(
         args, _ = mock_thread_instance.responses.put.call_args
         assert args[0].type.name == "ERROR"
         assert "Permission denied" in args[0].info
+
+
+def test_user_defined_batch_rejects_per_page(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """Batch mode refuses a tool using %o or %r."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "pages": [1],
+        "dir": "/tmp",
+        "command": "convert %i %o",
+        "uuid": "uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with patch("scantpaper.savethread.exec_command_run") as mock_run:
+        mock_thread_instance.do_user_defined(request)
+
+        assert not mock_run.called
+        assert mock_thread_instance.responses.put.called
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+        assert "Batch" in args[0].info
+
+
+def test_user_defined_batch_runs_once(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """Batch runs the command once and replaces every changed page."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    mock_thread_instance.mock_pages[2] = mock_page_instance
+    options = {
+        "pages": [1, 2],
+        "dir": "/tmp",
+        "command": "echo %i",
+        "uuid": "uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.mkstemp") as mock_mkstemp,
+        patch("scantpaper.savethread.exec_command_run") as mock_run,
+        patch("scantpaper.savethread.os.close"),
+        patch("scantpaper.savethread.Image.open"),
+        patch("scantpaper.savethread.Page"),
+        patch.object(
+            mock_thread_instance, "replace_page", return_value=[1, None, "uuid"]
+        ) as mock_replace,
+        patch(
+            "scantpaper.savethread._file_digest",
+            side_effect=[b"a", b"b", b"c", b"d"],
+        ),
+    ):
+        mock_mkstemp.side_effect = [(3, "/tmp/1.png"), (3, "/tmp/2.png")]
+        mock_run.return_value.stdout = "stdout"
+        mock_run.return_value.stderr = "some warning"
+
+        mock_thread_instance.do_user_defined(request)
+
+        mock_run.assert_called_once()
+        args, kwargs = mock_run.call_args
+        assert args[0] == "echo /tmp/1.png /tmp/2.png"
+        assert kwargs["check"] is True
+        assert mock_replace.call_count == 2, "both changed pages replaced"
+
+
+def test_user_defined_batch_no_changes(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """Batch leaves unchanged pages alone and reports a user message."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "pages": [1],
+        "dir": "/tmp",
+        "command": "echo %i",
+        "uuid": "uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.mkstemp") as mock_mkstemp,
+        patch("scantpaper.savethread.exec_command_run") as mock_run,
+        patch("scantpaper.savethread.os.close"),
+        patch("scantpaper.savethread.Image.open"),
+        patch("scantpaper.savethread.Page"),
+        patch.object(
+            mock_thread_instance, "replace_page", return_value=[1, None, "uuid"]
+        ) as mock_replace,
+        patch(
+            "scantpaper.savethread._file_digest",
+            side_effect=[b"a", b"a"],
+        ),
+    ):
+        mock_mkstemp.side_effect = [(3, "/tmp/1.png")]
+        mock_run.return_value.stdout = "stdout"
+        mock_run.return_value.stderr = ""
+
+        mock_thread_instance.do_user_defined(request)
+
+        mock_run.assert_called_once()
+        mock_replace.assert_not_called()
+        assert mock_thread_instance.responses.put.called
+        put_args = [
+            call.args[0] for call in mock_thread_instance.responses.put.call_args_list
+        ]
+        infos = [
+            info for info in put_args if isinstance(getattr(info, "info", None), dict)
+        ]
+        assert any(info.info.get("type") == "user-message" for info in infos), (
+            "no-changes user message emitted"
+        )
+
+
+def test_user_defined_batch_mixed(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """A mixed batch replaces only the working files whose digest changed."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    mock_thread_instance.mock_pages[2] = mock_page_instance
+    options = {
+        "pages": [1, 2],
+        "dir": "/tmp",
+        "command": "echo %i",
+        "uuid": "uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.mkstemp") as mock_mkstemp,
+        patch("scantpaper.savethread.exec_command_run") as mock_run,
+        patch("scantpaper.savethread.os.close"),
+        patch("scantpaper.savethread.Image.open"),
+        patch("scantpaper.savethread.Page"),
+        patch.object(
+            mock_thread_instance, "replace_page", return_value=[1, None, "uuid"]
+        ) as mock_replace,
+        patch(
+            "scantpaper.savethread._file_digest",
+            side_effect=[b"a", b"b", b"a", b"d"],
+        ),
+    ):
+        mock_mkstemp.side_effect = [(3, "/tmp/1.png"), (3, "/tmp/2.png")]
+        mock_run.return_value.stdout = "stdout"
+        mock_run.return_value.stderr = ""
+
+        mock_thread_instance.do_user_defined(request)
+
+        mock_run.assert_called_once()
+        assert mock_replace.call_count == 1, "only the changed page replaced"
+
+
+def test_user_defined_batch_failure(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """A failing batch emits one error and replaces no pages."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "pages": [1],
+        "dir": "/tmp",
+        "command": "echo %i",
+        "uuid": "uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.mkstemp") as mock_mkstemp,
+        patch(
+            "scantpaper.savethread.exec_command_run",
+            side_effect=subprocess.CalledProcessError(1, "echo"),
+        ),
+        patch("scantpaper.savethread.os.close"),
+        patch.object(
+            mock_thread_instance, "replace_page", return_value=[1, None, "uuid"]
+        ) as mock_replace,
+        patch("scantpaper.savethread._file_digest", return_value=b"a"),
+    ):
+        mock_mkstemp.side_effect = [(3, "/tmp/1.png")]
+
+        mock_thread_instance.do_user_defined(request)
+
+        mock_replace.assert_not_called()
+        assert mock_thread_instance.responses.put.called
+        put_args = [
+            call.args[0] for call in mock_thread_instance.responses.put.call_args_list
+        ]
+        errors = [r for r in put_args if r.type.name == "ERROR"]
+        assert len(errors) == 1, "exactly one error for the whole batch"
+
+
+def test_user_defined_batch_cancelled(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """A cancelled batch performs no copy-back."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    mock_thread_instance.cancel = True
+    options = {
+        "pages": [1],
+        "dir": "/tmp",
+        "command": "echo %i",
+        "uuid": "uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with (
+        patch("scantpaper.savethread.tempfile.mkstemp") as mock_mkstemp,
+        patch("scantpaper.savethread.exec_command_run") as mock_run,
+        patch("scantpaper.savethread.os.close"),
+        patch.object(
+            mock_thread_instance, "replace_page", return_value=[1, None, "uuid"]
+        ) as mock_replace,
+        patch("scantpaper.savethread._file_digest", return_value=b"a"),
+    ):
+        mock_mkstemp.side_effect = [(3, "/tmp/1.png")]
+        with pytest.raises(CancelledError):
+            mock_thread_instance.do_user_defined(request)
+
+        mock_run.assert_called_once()
+        mock_replace.assert_not_called()
+
+
+def test_user_defined_batch_oserror(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """An OSError during batch setup is reported as a single error."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+    options = {
+        "pages": [1],
+        "dir": "/tmp",
+        "command": "echo %i",
+        "uuid": "uuid",
+    }
+    request = Request("user_defined", (options,), mock_thread_instance.responses)
+
+    with (
+        patch(
+            "scantpaper.savethread.tempfile.mkstemp",
+            side_effect=OSError("boom"),
+        ),
+        patch("scantpaper.savethread.exec_command_run") as mock_run,
+        patch("scantpaper.savethread.os.close"),
+        patch.object(
+            mock_thread_instance, "replace_page", return_value=[1, None, "uuid"]
+        ) as mock_replace,
+        patch("scantpaper.savethread._file_digest", return_value=b"a"),
+    ):
+        mock_thread_instance.do_user_defined(request)
+
+        mock_run.assert_not_called()
+        mock_replace.assert_not_called()
+        assert mock_thread_instance.responses.put.called
+        args, _ = mock_thread_instance.responses.put.call_args
+        assert args[0].type.name == "ERROR"
+        assert "boom" in args[0].info
 
 
 def test_set_timestamp() -> None:

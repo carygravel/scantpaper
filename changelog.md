@@ -1,3 +1,15 @@
+## 3.0.25 (unreleased)
+
+* User-defined tools can now process all selected pages in a single
+  invocation: tick "Process selected pages at once" in the user-defined tools
+  dialog and `%i` expands to every page's working file, space-separated, so a
+  tool that edits in place (e.g. `mogrify -negate %i`) handles the whole
+  selection in one run. Only the pages whose file actually changed are
+  replaced, and the whole batch is a single undo step (one Undo restores every
+  page). `%o` and `%r` are not available in batch mode, so a tool that uses
+  them still runs one page at a time.
+
+
 ## 3.0.24 (2026-10-17)
 
 * OCR text is now aligned to its baseline instead of being vertically

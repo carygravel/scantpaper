@@ -293,6 +293,17 @@ you explicitly turn the toggle off.
 - `%o` - output filename
 - `%r` - resolution
 
+By default a user-defined tool is run once per selected page, with `%i`
+(and `%o`/`%r` where used) substituted for that page. Selecting "Process
+selected pages at once" in the user-defined tools dialog instead passes every
+selected page to a single invocation: `%i` expands to all the working files,
+space-separated, so a tool that edits files in place (such as
+`mogrify -negate %i`) can process the whole selection in one go. Only the
+pages whose file actually changed are replaced, and the whole batch is a
+single undo step, so one undo restores every page. `%o` and `%r` are not
+available in batch mode; a tool that uses them must be run one page at a time.
+
+
 ---
 
 ## Command-line Options

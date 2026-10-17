@@ -749,6 +749,10 @@ class ToolsMenuMixins:
         hbox.pack_start(label, expand=False, fill=True, padding=0)
         self._pref_udt_cmbx = self._add_udt_combobox(hbox)
 
+        batch_button = Gtk.CheckButton(label=_("Process selected pages at once"))
+        batch_button.set_active(False)
+        vbox.pack_start(batch_button, expand=False, fill=False, padding=0)
+
         def udt_apply_callback() -> None:
             self.settings["Page range"] = windowudt.page_range
             pagelist = self.slist.indices2pages(
@@ -758,27 +762,85 @@ class ToolsMenuMixins:
             )
             self.settings["current_udt"] = self._pref_udt_cmbx.get_active_text()
 
-            for page in pagelist:
+            if batch_button.get_active():
+                self._apply_udt_batch(pagelist, self.settings["current_udt"])
+            else:
+                for page in pagelist:
 
-                def user_defined_finished_callback(response: Response) -> None:
-                    self.post_process_progress.finish(response)
+                    def user_defined_finished_callback(response: Response) -> None:
+                        self.post_process_progress.finish(response)
 
-                self.slist.user_defined(
-                    page=page,
-                    command=self.settings["current_udt"],
-                    queued_callback=self.post_process_progress.queued,
-                    started_callback=self.post_process_progress.update,
-                    running_callback=self.post_process_progress.update,
-                    finished_callback=user_defined_finished_callback,
-                    error_callback=self._error_callback,
-                    display_callback=self._display_callback,
-                )
+                    self.slist.user_defined(
+                        page=page,
+                        command=self.settings["current_udt"],
+                        queued_callback=self.post_process_progress.queued,
+                        started_callback=self.post_process_progress.update,
+                        running_callback=self.post_process_progress.update,
+                        finished_callback=user_defined_finished_callback,
+                        error_callback=self._error_callback,
+                        display_callback=self._display_callback,
+                    )
             windowudt.hide()
 
         windowudt.add_actions(
             [("gtk-ok", udt_apply_callback), ("gtk-cancel", windowudt.hide)]
         )
         windowudt.show_all()
+
+    def _apply_udt_batch(self, pagelist: Iterator[object], command: str | None) -> None:
+        """Run a user-defined tool on all selected pages at once."""
+        if command is None:
+            return
+        if re.search("%o|%r", command):
+            variable = "%o" if re.search("%o", command) else "%r"
+            self._show_message_dialog(
+                parent=self,
+                message_type="error",
+                buttons=Gtk.ButtonsType.CLOSE,
+                process="user_defined",
+                text=_(
+                    "Batch mode cannot be used with '%(tool)s' because it "
+                    "uses %(variable)s. Run it one page at a time instead."
+                )
+                % {"tool": command, "variable": variable},
+                page=None,
+            )
+            return
+
+        pages = list(pagelist)
+
+        def user_defined_finished_callback(response: Response) -> None:
+            self.post_process_progress.finish(response)
+
+        self.slist.begin_undo_batch()
+        try:
+            self.slist.user_defined(
+                pages=pages,
+                command=command,
+                queued_callback=self.post_process_progress.queued,
+                started_callback=self.post_process_progress.update,
+                running_callback=self.post_process_progress.update,
+                finished_callback=user_defined_finished_callback,
+                error_callback=self._error_callback,
+                display_callback=self._display_callback,
+                message_callback=self._udt_message_callback,
+            )
+        finally:
+            self.slist.end_undo_batch()
+
+    def _udt_message_callback(self, response: Response) -> None:
+        """Show a user-facing message from a batch user-defined tool run."""
+        info = response.info
+        if not isinstance(info, dict) or "info" not in info:
+            return
+        self._show_message_dialog(
+            parent=self,
+            message_type="info",
+            buttons=Gtk.ButtonsType.CLOSE,
+            process="user_defined",
+            text=cast("str", info["info"]),
+            page=None,
+        )
 
     def email(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Display page selector and email."""

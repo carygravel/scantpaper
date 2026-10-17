@@ -10,9 +10,14 @@ Today a user-defined tool (UDT) run is strictly per-page:
 - A single worker thread (`basethread.BaseThread.run`) pulls one request at a
   time and calls `savethread.do_user_defined()`, which blocks on
   `exec_command_run()` (`helpers.py`) until the tool process exits.
+- The request options are unpacked by `savethread._options_from_request()`
+  (a `defaultdict` built from a `cast` of `request.args[0]`), not read straight
+  off `request.args[0]`.
+- The command substitutes `%i` (temporary input), `%o` (temporary output), and
+  `%r` (the page's resolution).
 - Copy-back happens inside the same request: `%o` (or the `%i` working copy)
-  is read and `replace_page()` swaps it in, preserving resolution, text layer,
-  and saved-state.
+  is read and `replace_page()` (`docthread.py`) swaps it in, preserving
+  resolution, text layer, and saved-state.
 
 Constraints that shape this design:
 
@@ -22,6 +27,10 @@ Constraints that shape this design:
   invocation hands the files to the running instance and exits immediately.
 - Copy-back is only trustworthy "after the process exits", so the contract is
   spawn → wait → diff files → replace.
+- Multi-page operations are expected to be ONE undo step
+  (`multi-page-batch-operations`). The thread exposes `begin_batch`/`end_batch`
+  (wrapped by `document.begin_undo_batch()`/`end_undo_batch()`), and
+  `_take_snapshot()` coalesces every `replace_page()` inside a batch.
 
 ## Goals / Non-Goals
 
@@ -33,7 +42,10 @@ Constraints that shape this design:
   changed; leave unchanged pages untouched; preserve order.
 - Single error / "nothing modified" message per batch; batch is one progress
   job and is cancellable.
-- Per-page mode (the default) behaves exactly as today, including `%o`.
+- The batch is one undo step: undo and redo apply to every page the batch
+  replaced, in one action.
+- Per-page mode (the default) behaves exactly as today, including `%o` and
+  `%r`.
 
 **Non-Goals:**
 
@@ -58,16 +70,19 @@ A batch becomes a single `user_defined` request whose args carry a list of
   case — 4 of 5 concurrent `gimp` spawns would hand off to the running
   instance and exit, so their `%o` files are never produced.
 
-### 2. `%i` expands to the full list; `%o` is rejected in batch mode
+### 2. `%i` expands to the full list; `%o` and `%r` are rejected in batch mode
 
 In batch mode `re.sub(r"%i", " ".join(paths), command)` substitutes all
 working-file paths. A command containing `%o` is invalid for batch (one single
-output cannot collect N pages) and is refused up front in the dialog and again
-in `do_user_defined`, with an error naming the tool.
+output cannot collect N pages), and `%r` is invalid because the selected pages
+may have different resolutions so there is no single value to substitute. Both
+are refused up front in the dialog and again in `do_user_defined`, with an
+error naming the tool.
 
 - **Why:** "open all at once" is precisely a multi-input, per-file-output
   workflow; `gimp file1.png ... fileN.png` opens each file in its own window in
-  a single instance.
+  a single instance. Refusing `%r` is symmetric with `%o` and keeps the batch
+  a single command string.
 
 ### 3. Per-page working files with a pre-run content snapshot
 
@@ -87,10 +102,11 @@ process exits, replace the page for every working file whose digest changed.
 ### 4. Copy-back reuses the existing per-page replacement path
 
 Each replaced page goes through the same code the single-page flow uses today
-(`savethread.py:648-670`): load image, build a new `Page` with the old page's
-resolution and text layer, `replace_page()`, and emit a `data` response of type
-`page` with `replace=<id>`. `data_callback`/`_display_callback` therefore keep
-working unchanged for batch, one response per replaced page.
+(`savethread.py:748-771`): load image, build a new `Page` with the old page's
+resolution and text layer, `replace_page()` (`docthread.py`), and emit a `data`
+response of type `page` with `replace=<id>`. `data_callback`/
+`_display_callback` therefore keep working unchanged for batch, one response
+per replaced page.
 
 - **Why:** preserves the tested properties (resolution, text layer, page
   position, saved-state) without inventing a parallel mechanism.
@@ -106,14 +122,32 @@ on cancel, no copy-back runs.
 ### 6. Dialog: a per-use checkbox, verified up front
 
 `user_defined_dialog()` gains `"Process selected pages at once"` (default
-unchecked). On apply: if checked and the selected command contains `%o`, show
-an error dialog and do not start. Otherwise a single batched
+unchecked). On apply: if checked and the selected command contains `%o` or
+`%r`, show an error dialog and do not start. Otherwise a single batched
 `slist.user_defined(pages=[...], command=...)` replaces the per-page loop.
 
 - **Why:** batch is a property of a single run, not a global preference, so no
   config/`settings` change is needed.
 - **Non-goal:** tools that only make sense per-page (e.g. deskew). Users select
   batch deliberately; the checkbox is per run.
+
+### 7. The batch is bracketed as one undo step
+
+The dialog wraps the single batch request in
+`self.slist.begin_undo_batch()` / `self.slist.end_undo_batch()`, exactly as
+`_rotate()` and `crop_selection()` already do. Because the worker thread is
+serial, the `begin_batch` request runs first (setting `_in_batch` and
+`_batch_pending_snapshot`), the batch `user_defined` request then performs all
+its `replace_page()` calls sharing one snapshot, and `end_batch` clears the
+flag.
+
+- **Why:** reuses the `multi-page-batch-operations` mechanism rather than
+  inventing a parallel undo path; the whole batch becomes one undoable step,
+  matching every other multi-page operation.
+- **Alternative rejected:** setting `_in_batch` inside `do_user_defined` and
+  clearing it afterwards. It is self-contained but diverges from the
+  dialog-side pattern used by all other multi-page callers and would hide the
+  undo semantics inside the worker.
 
 ## Risks / Trade-offs
 
@@ -127,8 +161,8 @@ an error dialog and do not start. Otherwise a single batched
   is unchanged for the user.
 - [Huge selections open many windows at once] → user-controlled via the
   checkbox; no artificial cap.
-- [`%o` in batch mode silently misbehaves] → both dialog and worker validate
-  and refuse, so the failure is loud, not silent.
+- [`%o` or `%r` in batch mode silently misbehaves] → both dialog and worker
+  validate and refuse, so the failure is loud, not silent.
 
 ## Migration Plan
 

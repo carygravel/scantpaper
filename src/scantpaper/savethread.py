@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import contextlib
 import datetime
+import hashlib
 import json
 import logging
 import os
 import pathlib
 import re
 import shutil
+import subprocess
 import tempfile
 from collections import defaultdict
 from types import SimpleNamespace
@@ -684,6 +687,9 @@ class SaveThread(Importhread):
     def do_user_defined(self, request: Request) -> None:
         """Run user defined command on page in thread."""
         options = cast("dict[str, Any]", request.args[0])
+        if options.get("pages") is not None:
+            self._do_user_defined_batch(request, options)
+            return
         try:
             with (
                 tempfile.NamedTemporaryFile(
@@ -775,6 +781,102 @@ class SaveThread(Importhread):
             request.error(
                 f"Error creating file in {options.get('dir')}: {err}.",
             )
+
+    def _do_user_defined_batch(self, request: Request, options: dict[str, Any]) -> None:
+        """Run one user defined command over several pages in thread."""
+        command = cast("str", options["command"])
+        if re.search("%o|%r", command):
+            variable = "%o" if re.search("%o", command) else "%r"
+            request.error(
+                _(
+                    "Batch mode cannot be used with '%(tool)s' because it "
+                    "uses %(variable)s. Run it one page at a time instead."
+                )
+                % {"tool": command, "variable": variable}
+            )
+            return
+        page_ids = cast("list[int]", options["pages"])
+        work_paths: dict[int, str] = {}
+        digests: dict[int, bytes] = {}
+        try:
+            for page_id in page_ids:
+                page = self.get_page(id=page_id)
+                fd, work_path = tempfile.mkstemp(dir=options.get("dir"), suffix=".png")
+                os.close(fd)
+                page.image_object.save(work_path)
+                work_paths[page_id] = work_path
+                digests[page_id] = _file_digest(work_path)
+            batched = re.sub(
+                r"%i",
+                " ".join(work_paths.values()),
+                command,
+                flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+            sbp = exec_command_run(  # noqa: S604 - shell=True is deliberate: the command template is user-authored
+                batched,
+                options.get("pidfile"),
+                capture_output=True,
+                check=True,
+                text=True,
+                shell=True,
+            )
+            self.check_cancelled()
+            logger.info("stdout: %s", sbp.stdout)
+            logger.info("stderr: %s", sbp.stderr)
+            if sbp.stderr != "":
+                request.data({"type": "message", "info": sbp.stderr})
+
+            replaced = 0
+            for page_id, path in work_paths.items():
+                if _file_digest(path) == digests[page_id]:
+                    continue
+                old = self.get_page(id=page_id)
+                image = Image.open(path)
+                # Force PIL to load the data before the file is deleted,
+                # mirroring the single-page path above.
+                image.load()
+                new = Page(
+                    image_object=image,
+                    dir=options.get("dir"),
+                    format=image.format,
+                    resolution=old.resolution,
+                    text_layer=old.text_layer,
+                )
+                row = self.replace_page(new, page_id)
+                request.data({"type": "page", "row": row, "replace": page_id})
+                replaced += 1
+            if replaced == 0:
+                request.data(
+                    {
+                        "type": "user-message",
+                        "info": _(
+                            "No pages were modified. If the tool was already "
+                            "running (for example GIMP), it may have opened "
+                            "the images in the existing instance."
+                        ),
+                    }
+                )
+        except subprocess.CalledProcessError as err:
+            logger.exception("Error running user-defined tool batch")
+            request.error(
+                _("'%(tool)s' failed with status %(status)s.")
+                % {"tool": command, "status": err.returncode}
+            )
+        except (OSError, PermissionError) as err:
+            logger.exception("Error running user-defined tool batch")
+            request.error(
+                _("Error running '%(tool)s': %(error)s.")
+                % {"tool": command, "error": err}
+            )
+        finally:
+            for path in work_paths.values():
+                with contextlib.suppress(OSError):
+                    pathlib.Path(path).unlink()
+
+
+def _file_digest(path: str) -> bytes:
+    """Return a digest of a file's bytes."""
+    return hashlib.sha256(pathlib.Path(path).read_bytes()).digest()
 
 
 def _options_from_request(request: Request) -> defaultdict[str, Any]:

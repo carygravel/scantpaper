@@ -836,6 +836,129 @@ def test_user_defined_no_pages(
     mock_tool_window.slist.user_defined.assert_not_called()
 
 
+def test_user_defined_dialog_batch(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """Test the user_defined_dialog in batch mode."""
+    mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    mock_dialog_instance.get_content_area.return_value = mocker.Mock()
+
+    mock_tool_window.settings = {"current_udt": "", "Page range": "selected"}
+    mock_tool_window.slist.get_page_index.return_value = [0, 1]
+    mock_tool_window.slist.indices2pages.return_value = ["page1", "page2"]
+
+    mock_combobox = mocker.Mock()
+    mock_combobox.get_active_text.return_value = "my-tool"
+    mock_tool_window._pref_udt_cmbx = mock_combobox
+    mock_tool_window._add_udt_combobox = lambda _hbox: mock_combobox
+
+    mock_checkbutton = mocker.Mock()
+    mock_checkbutton.get_active.return_value = True
+    mocker.patch(
+        "scantpaper.tools_menu_mixins.Gtk.CheckButton", return_value=mock_checkbutton
+    )
+
+    mock_tool_window.user_defined_dialog(None, None)
+    _trigger_apply(mock_dialog_instance)
+
+    call_kwargs = mock_tool_window.slist.user_defined.call_args[1]
+    assert call_kwargs["pages"] == ["page1", "page2"]
+    assert call_kwargs["command"] == "my-tool"
+    assert call_kwargs["message_callback"] == mock_tool_window._udt_message_callback
+    mock_tool_window.slist.begin_undo_batch.assert_called_once()
+    mock_tool_window.slist.end_undo_batch.assert_called_once()
+
+    finished_callback = call_kwargs["finished_callback"]
+    finished_callback("response")
+    mock_tool_window.post_process_progress.finish.assert_called_with("response")
+
+
+def test_user_defined_dialog_batch_no_tool(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """Batch mode with no tool selected does nothing."""
+    mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    mock_dialog_instance.get_content_area.return_value = mocker.Mock()
+
+    mock_tool_window.settings = {"current_udt": "", "Page range": "selected"}
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.indices2pages.return_value = ["page1"]
+
+    mock_combobox = mocker.Mock()
+    mock_combobox.get_active_text.return_value = None
+    mock_tool_window._pref_udt_cmbx = mock_combobox
+    mock_tool_window._add_udt_combobox = lambda _hbox: mock_combobox
+
+    mock_checkbutton = mocker.Mock()
+    mock_checkbutton.get_active.return_value = True
+    mocker.patch(
+        "scantpaper.tools_menu_mixins.Gtk.CheckButton", return_value=mock_checkbutton
+    )
+
+    mock_tool_window.user_defined_dialog(None, None)
+    _trigger_apply(mock_dialog_instance)
+
+    mock_tool_window.slist.user_defined.assert_not_called()
+    mock_tool_window.slist.begin_undo_batch.assert_not_called()
+    mock_tool_window.slist.end_undo_batch.assert_not_called()
+
+
+def test_udt_message_callback(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """The batch message callback shows an info dialog with the message."""
+    mock_tool_window._show_message_dialog = mocker.Mock()
+
+    valid = mocker.Mock()
+    valid.info = {"info": "No pages were modified"}
+    mock_tool_window._udt_message_callback(valid)
+    mock_tool_window._show_message_dialog.assert_called_once()
+    assert mock_tool_window._show_message_dialog.call_args[1]["text"] == (
+        "No pages were modified"
+    )
+
+    mock_tool_window._show_message_dialog.reset_mock()
+    invalid = mocker.Mock()
+    invalid.info = "not a dict"
+    mock_tool_window._udt_message_callback(invalid)
+    mock_tool_window._show_message_dialog.assert_not_called()
+
+
+def test_user_defined_dialog_batch_rejects_per_page_only(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """Batch mode refuses a tool using %o or %r."""
+    mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    mock_dialog_instance.get_content_area.return_value = mocker.Mock()
+
+    mock_tool_window.settings = {"current_udt": "", "Page range": "selected"}
+    mock_tool_window.slist.get_page_index.return_value = [0]
+    mock_tool_window.slist.indices2pages.return_value = ["page1"]
+    mock_tool_window._show_message_dialog = mocker.Mock()
+
+    mock_combobox = mocker.Mock()
+    mock_combobox.get_active_text.return_value = "convert %i %o"
+    mock_tool_window._pref_udt_cmbx = mock_combobox
+    mock_tool_window._add_udt_combobox = lambda _hbox: mock_combobox
+
+    mock_checkbutton = mocker.Mock()
+    mock_checkbutton.get_active.return_value = True
+    mocker.patch(
+        "scantpaper.tools_menu_mixins.Gtk.CheckButton", return_value=mock_checkbutton
+    )
+
+    mock_tool_window.user_defined_dialog(None, None)
+    _trigger_apply(mock_dialog_instance)
+
+    mock_tool_window.slist.user_defined.assert_not_called()
+    mock_tool_window.slist.begin_undo_batch.assert_not_called()
+    mock_tool_window.slist.end_undo_batch.assert_not_called()
+    mock_tool_window._show_message_dialog.assert_called_once()
+
+
 def test_email_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> None:
     """Test the email dialog."""
     mock_save_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.SaveDialog")

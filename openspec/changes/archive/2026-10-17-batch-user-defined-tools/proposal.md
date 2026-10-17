@@ -20,6 +20,10 @@ selected images at once so editing one document's pages is a single workflow.
   report a single error for the batch rather than per-page errors.
 - Progress reporting and cancellation continue to work for a batch treated as a
   single job.
+- The batch is recorded as a single undo step: one undo reverts every page the
+  batch replaced, consistent with other multi-page operations.
+- Batch mode refuses a command containing `%r` as well as `%o`, because neither
+  variable can be resolved to one value for a multi-page batch.
 
 Explicitly out of scope (V1):
 
@@ -43,19 +47,26 @@ Explicitly out of scope (V1):
 ## Impact
 
 - `src/scantpaper/tools_menu_mixins.py`: `user_defined_dialog()` — add the
-  batch checkbox and pass the batch flag through.
-- `src/scantpaper/docthread.py` / `src/scantpaper/savethread.py`:
-  `do_user_defined()` — support a list of pages/inputs in one request:
+  batch checkbox and pass the batch flag through; in batch mode bracket the
+  single request with `begin_undo_batch()`/`end_undo_batch()` (the
+  `multi-page-batch-operations` mechanism already used by `_rotate` and
+  `crop_selection`).
+- `src/scantpaper/savethread.py`: `do_user_defined()` — support a list of
+  pages/inputs in one request:
   - Substitute `%i` with all input paths.
-  - Copy back each modified input to its page.
-  - Keep the `%o` single-output path working for per-page tools.
-- `src/scantpaper/basedocument.py`: `user_defined()` plumbing to accept a
-  list of pages.
-- `src/scantpaper/document.py`: `user_defined()` wrapper passes a page list.
+  - Copy back each modified input to its page (via `replace_page()`, which
+    lives in `src/scantpaper/docthread.py`).
+  - Keep the `%o` and `%r` single-value paths working for per-page tools, and
+    reject `%o`/`%r` in batch.
+- `src/scantpaper/document.py`: `user_defined()` (the hand-written override)
+  and the new `begin_undo_batch()`/`end_undo_batch()` plumbing; note that
+  `basedocument.py` auto-generates `user_defined` via
+  `_modify_method_generator`, so the override is the real extension point.
 - `src/scantpaper/helpers.py`: reuse `exec_command_run` unchanged; batch still
   blocks on a single process.
 - Progress/status: `src/scantpaper/progress.py` usage in
   `tools_menu_mixins.py` (`post_process_progress`) — batch treated as one job.
 - Config: no new persisted settings; batch is a per-use dialog choice.
 - No new dependencies. Tests in `src/scantpaper/tests/` (e.g.
-  `test_371_user_defined.py`, `test_savethread.py`, `test_file_menu_mixins.py`).
+  `test_371_user_defined.py`, `test_savethread.py`,
+  `test_tool_menu_mixins.py`).
