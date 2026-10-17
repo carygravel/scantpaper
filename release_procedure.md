@@ -78,6 +78,7 @@
 1. Build packages for Ubuntu
 
    Name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
+   - stonking (until 2027-07)
    - resolute (until 2031-05) - dh13
    - noble (until 2029-06) - dh13
    - jammy (until 2027-06) - dh13, remove override_dh_installman, clear debian/scantpaper.manpages
