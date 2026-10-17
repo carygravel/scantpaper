@@ -48,6 +48,8 @@
   corrected glyphs are drawn and saved at the rotated angle, and the box
   itself stays axis-aligned. Slices added while a slice is rotated inherit
   that rotation, letting you type a run of vertical text in one go.
+* Reversed the order of the rotate controls, both for the page rotate icons in
+  the toolbar and for the text in the layer editor.
 * A word you add to the OCR text layer is now oriented automatically from the
   rectangle you draw: a tall, narrow selection becomes vertical text and a
   wide, short one stays upright, so a box drawn for a vertical column renders

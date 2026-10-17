@@ -212,8 +212,8 @@ class LayerControls(Gtk.Box):
         if copy:
             self.pack_end(ubutton, expand=False, fill=False, padding=0)
         if self._rotate_enabled:
-            self.pack_end(self.rotate_ccw_button, expand=False, fill=False, padding=0)
             self.pack_end(self.rotate_cw_button, expand=False, fill=False, padding=0)
+            self.pack_end(self.rotate_ccw_button, expand=False, fill=False, padding=0)
         self.pack_end(self.add_button, expand=False, fill=False, padding=0)
 
     def _make_icon_button(self, icon: str, tooltip: str, signal: str) -> Gtk.Button:

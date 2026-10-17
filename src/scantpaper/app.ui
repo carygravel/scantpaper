@@ -729,11 +729,11 @@
         </child>
         <child><object class="GtkSeparatorToolItem" /></child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_rotate_90">
+          <object class="GtkToolButton" id="toolbutton_rotate_270">
             <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Rotate 90° clockwise</property>
-            <property name="action_name">win.rotate-90</property>
-            <property name="icon-name">stock-rotate-90</property>
+            <property name="tooltip_text" translatable="yes">Rotate 90° anticlockwise</property>
+            <property name="action_name">win.rotate-270</property>
+            <property name="icon-name">stock-rotate-270</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
@@ -749,11 +749,11 @@
           </object>
         </child>
         <child>
-          <object class="GtkToolButton" id="toolbutton_rotate_270">
+          <object class="GtkToolButton" id="toolbutton_rotate_90">
             <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Rotate 90° anticlockwise</property>
-            <property name="action_name">win.rotate-270</property>
-            <property name="icon-name">stock-rotate-270</property>
+            <property name="tooltip_text" translatable="yes">Rotate 90° clockwise</property>
+            <property name="action_name">win.rotate-90</property>
+            <property name="icon-name">stock-rotate-90</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>
