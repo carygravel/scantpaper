@@ -47,6 +47,9 @@ scantpaper = ["app.ui", "icons/**/*"]
 [tool.pytest.ini_options]
 addopts = "--timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=99"
 pythonpath = ["src"]
+# pytest-xvfb's 16-bit default is a legacy visual configuration; 24-bit avoids
+# that variable (see openspec/changes/disable-gl-renderer-in-tests).
+xvfb_colordepth = "24"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]

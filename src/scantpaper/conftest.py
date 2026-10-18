@@ -13,6 +13,15 @@ import tempfile
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 
+# GTK4 auto-selects a GL-based renderer (ngl/gl), which under pytest-xvfb's
+# Xvfb (no DRI3) runs on Mesa's software rasteriser and segfaults the suite
+# (reproducibly in test_dialog_scan.py). Pin the cairo renderer and stop GDK
+# from initialising EGL at display open, which also silences the
+# "libEGL warning: DRI3 error" noise. setdefault so a developer can still
+# override with e.g. GSK_RENDERER=ngl when debugging renderer behaviour.
+os.environ.setdefault("GDK_DISABLE", "gl")
+os.environ.setdefault("GSK_RENDERER", "cairo")
+
 import gi
 import pytest
 from PIL import Image, ImageDraw, ImageFont
