@@ -19,12 +19,14 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Generator
     from typing import ClassVar
 
+    from scantpaper.canvas import Canvas
     from scantpaper.imageview import ImageView
     from scantpaper.loop_helpers import _MainLoopWrapper
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
     Gdk,
+    GdkPixbuf,
     Gio,
     GLib,
     GObject,
@@ -1295,18 +1297,72 @@ def test_pack_viewer_tools_split_attaches_on_startup(
     assert app_window._vnotebook.get_parent() is None
 
 
+def _measure_minimum(widget: MagicMock, minimum: int) -> None:
+    """Make widget.measure() report the given minimum size."""
+    result = MagicMock()
+    result.minimum = minimum
+    widget.measure.return_value = result
+
+
 def test_init_split_pane_saved_position(app_window: ApplicationWindow) -> None:
-    """A saved split position is applied directly."""
+    """A saved split position is applied once the pane has been allocated."""
     pane = MagicMock()
+    pane.get_width.return_value = 400
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 0)
+    _measure_minimum(pane.get_end_child.return_value, 0)
     app_window._init_split_pane(pane, Gtk.Orientation.HORIZONTAL, 321)
+    assert pane.add_tick_callback.call_count == 1
+
+    callback = pane.add_tick_callback.call_args.args[0]
+    assert callback(pane, MagicMock()) is False
+
     pane.set_position.assert_called_once_with(321)
-    pane.add_tick_callback.assert_not_called()
+
+
+def test_init_split_pane_saved_position_clamped(app_window: ApplicationWindow) -> None:
+    """A saved position is clamped so both children keep their minimums.
+
+    A position saved under an older, larger geometry would otherwise fill
+    the whole pane and hide the end child.
+    """
+    pane = MagicMock()
+    pane.get_width.return_value = 400
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 50)
+    _measure_minimum(pane.get_end_child.return_value, 150)
+    app_window._init_split_pane(pane, Gtk.Orientation.HORIZONTAL, 321)
+
+    callback = pane.add_tick_callback.call_args.args[0]
+    assert callback(pane, MagicMock()) is False
+
+    # high = 400 - 1 - 150 = 249; low = 1 + 50 = 51
+    pane.set_position.assert_called_once_with(249)
+
+
+def test_init_split_pane_missing_end_child(app_window: ApplicationWindow) -> None:
+    """A pane without an end child contributes no minimum to the clamp."""
+    pane = MagicMock()
+    pane.get_width.return_value = 400
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 50)
+    pane.get_end_child.return_value = None
+    app_window._init_split_pane(pane, Gtk.Orientation.HORIZONTAL, 500)
+
+    callback = pane.add_tick_callback.call_args.args[0]
+    assert callback(pane, MagicMock()) is False
+
+    # high = 400 - 1 - 0 = 399
+    pane.set_position.assert_called_once_with(399)
 
 
 def test_init_split_pane_default_half(app_window: ApplicationWindow) -> None:
     """Without a saved position, a half-split default is set on first allocation."""
     pane = MagicMock()
     pane.get_height.return_value = 600
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 0)
+    _measure_minimum(pane.get_end_child.return_value, 0)
     app_window._init_split_pane(pane, Gtk.Orientation.VERTICAL, None)
     assert pane.add_tick_callback.call_count == 1
 
@@ -1322,6 +1378,9 @@ def test_init_split_pane_default_half_horizontal(
     """A horizontal split uses the allocated width for its half-split default."""
     pane = MagicMock()
     pane.get_width.return_value = 900
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 0)
+    _measure_minimum(pane.get_end_child.return_value, 0)
     app_window._init_split_pane(pane, Gtk.Orientation.HORIZONTAL, None)
     assert pane.add_tick_callback.call_count == 1
 
@@ -1335,6 +1394,9 @@ def test_init_split_pane_waits_for_allocation(app_window: ApplicationWindow) -> 
     """The tick callback keeps ticking until the pane has been allocated."""
     pane = MagicMock()
     pane.get_height.return_value = 0
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 0)
+    _measure_minimum(pane.get_end_child.return_value, 0)
     app_window._init_split_pane(pane, Gtk.Orientation.VERTICAL, None)
 
     callback = pane.add_tick_callback.call_args.args[0]
@@ -1660,25 +1722,26 @@ def test_populate_panes_tool_selection(
     _create_test_app(assert_selector_dragger)
 
 
-@pytest.mark.parametrize("viewer_tools", ["tabbed", "horizontal", "vertical"])
-def test_image_view_allocated_at_startup(
+def _real_layout_window(
     mocker: pytest.MockerFixture,
     tmp_path: pathlib.Path,
     viewer_tools: str,
-    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
-) -> None:
-    """The image area is allocated a usable share at startup in every mode.
+    *,
+    mock_canvas: bool = True,
+    split_panel_v: int | None = None,
+) -> tuple[Gtk.Application, ApplicationWindow]:
+    """Build an ApplicationWindow with the real app.ui layout and widgets.
 
-    Regression test for the GTK4 migration: a bare DrawingArea requests a
-    0x0 minimum, and a GtkPaned without an explicit position defaults its
-    divider to child1's minimum request, collapsing the image view to a
-    zero-height sliver.
+    Mocks the environment (config, SANE init, crashed-session check) but
+    keeps the real Builder objects, ImageView and — unless mock_canvas —
+    the real text/annotation canvases, so real GTK layout can be asserted.
     """
     session_dir = tmp_path / "session"
     session_dir.mkdir()
 
     mocker.patch("scantpaper.app_window.Unpaper")
-    mocker.patch("scantpaper.layer.Canvas", MockCanvas)
+    if mock_canvas:
+        mocker.patch("scantpaper.layer.Canvas", MockCanvas)
     mocker.patch("scantpaper.app_window.sane.init")
     mocker.patch("scantpaper.app_window.recursive_slurp")
     mocker.patch("scantpaper.app_window.SessionMixins._find_crashed_sessions")
@@ -1707,6 +1770,7 @@ def test_image_view_allocated_at_startup(
         "unpaper options": {},
         "Paper": {},
         "thumb panel": 100,
+        "split panel v": split_panel_v,
         "viewer_tools": viewer_tools,
         "available-tmp-warning": 100,
         "message_window_width": 200,
@@ -1719,33 +1783,221 @@ def test_image_view_allocated_at_startup(
     app = Gtk.Application()
     app.iconpath = "/tmp"
     app.args = MagicMock(import_files=None, import_all=None)
-    win = None
+    with patch.object(Gtk.Application, "register", autospec=True):
+        app.register(None)
+        win = ApplicationWindow(application=app)
+    win.set_default_size(800, 600)
+    win.present()
+    return app, win
+
+
+def _wait_until(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper], predicate: Callable[[], bool]
+) -> None:
+    """Pump the main loop until predicate() is true (bounded)."""
+    loop = mainloop_with_timeout()
+
+    def poll() -> bool:
+        if predicate():
+            loop.quit()
+            return cast("bool", GLib.SOURCE_REMOVE)
+        return cast("bool", GLib.SOURCE_CONTINUE)
+
+    GLib.timeout_add(10, poll)
+    GLib.timeout_add(2000, loop.quit)
+    loop.run()
+
+
+@pytest.mark.parametrize("viewer_tools", ["tabbed", "horizontal", "vertical"])
+def test_image_view_allocated_at_startup(
+    mocker: pytest.MockerFixture,
+    tmp_path: pathlib.Path,
+    viewer_tools: str,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """The image area is allocated a usable share at startup in every mode.
+
+    Regression test for the GTK4 migration: a bare DrawingArea requests a
+    0x0 minimum, and a GtkPaned without an explicit position defaults its
+    divider to child1's minimum request, collapsing the image view to a
+    zero-height sliver.
+    """
+    app, win = _real_layout_window(mocker, tmp_path, viewer_tools)
     try:
-        with patch.object(Gtk.Application, "register", autospec=True):
-            app.register(None)
-            win = ApplicationWindow(application=app)
-        win.set_default_size(800, 600)
-        win.present()
-
-        loop = mainloop_with_timeout()
-
-        def poll() -> bool:
-            # Wait for the paned default positions to settle: a usable share,
-            # well above the 0-1px collapse (the paned handle itself gives a
-            # 1px sliver) that motivated this regression test.
-            if win.view.get_allocation().height > 100:
-                loop.quit()
-                return cast("bool", GLib.SOURCE_REMOVE)
-            return cast("bool", GLib.SOURCE_CONTINUE)
-
-        GLib.timeout_add(10, poll)
-        GLib.timeout_add(2000, loop.quit)
-        loop.run()
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: win.view.get_allocation().height > 100,
+        )
 
         allocation = win.view.get_allocation()
         assert allocation.width > 0, "image view width allocated"
         assert allocation.height > 100, "image view height not collapsed"
     finally:
-        if win:
-            win.destroy()
+        win.destroy()
+        app.quit()
+
+
+def _page_pixbuf(width: int = 181, height: int = 256) -> GdkPixbuf.Pixbuf:
+    """Return a plain white portrait page pixbuf (A4-ish aspect)."""
+    pixbuf = GdkPixbuf.Pixbuf.new(
+        GdkPixbuf.Colorspace.RGB,
+        has_alpha=True,
+        bits_per_sample=8,
+        width=width,
+        height=height,
+    )
+    pixbuf.fill(0xFFFFFFFF)
+    return pixbuf
+
+
+def _page_visible_on(canvas: Canvas) -> bool:
+    """Return whether the known page extent intersects the canvas viewport."""
+    # Without an extent the page is zero-sized and never visible.
+    size = canvas.get_pixbuf_size() or {"width": 0, "height": 0}
+    zoom = canvas.zoom / canvas.get_scale_factor()
+    x0 = canvas.offset.x * zoom
+    y0 = canvas.offset.y * zoom
+    allocation = canvas.get_allocation()
+    return bool(
+        x0 < allocation.width
+        and y0 < allocation.height
+        and x0 + size["width"] * zoom > 0
+        and y0 + size["height"] * zoom > 0
+    )
+
+
+def test_canvas_aligns_with_view_after_tab_switch(
+    mocker: pytest.MockerFixture,
+    tmp_path: pathlib.Path,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """A canvas shown after being hidden displays the region the view had.
+
+    Regression test for the GTK4 migration: hidden GtkStack pages have a
+    0x0 allocation, and the canvas clamped every incoming offset against
+    it, losing the view's fitted offset.
+    """
+    app, win = _real_layout_window(mocker, tmp_path, "tabbed", mock_canvas=False)
+    try:
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: win.view.get_allocation().height > 100,
+        )
+        # Display a page and mimic the layer editor giving the canvas the
+        # page extent plus the view's fitted offset.
+        win.view.set_pixbuf(_page_pixbuf(), zoom_to_fit=True)
+        win.t_canvas.set_page_extent(181, 256)
+        offset = win.view.get_offset()
+        win.t_canvas.set_offset(offset.x, offset.y)
+
+        win._vnotebook.set_current_page(1)
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: win.t_canvas.get_allocation().height > 100,
+        )
+
+        t_canvas = win.t_canvas
+        assert t_canvas is not None, "text canvas exists"
+        assert _page_visible_on(t_canvas), "page visible on canvas"
+        assert win.t_canvas.offset.x == pytest.approx(win.view.get_offset().x, abs=2), (
+            "canvas offset x matches the view"
+        )
+        assert win.t_canvas.offset.y == pytest.approx(win.view.get_offset().y, abs=2), (
+            "canvas offset y matches the view"
+        )
+    finally:
+        win.destroy()
+        app.quit()
+
+
+def test_canvas_page_visible_after_shrink_while_hidden(
+    mocker: pytest.MockerFixture,
+    tmp_path: pathlib.Path,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """Shrinking the window while a canvas is hidden cannot hide the page.
+
+    The view re-fits against the shrunk allocation and pushes its offset;
+    the hidden canvas must not clamp that push against its stale, larger
+    allocation, which would place the page off-screen once shown.
+    """
+    app, win = _real_layout_window(mocker, tmp_path, "tabbed", mock_canvas=False)
+    try:
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: win.view.get_allocation().height > 100,
+        )
+        win.view.set_pixbuf(_page_pixbuf(), zoom_to_fit=True)
+        win.t_canvas.set_page_extent(181, 256)
+
+        # Show the canvas once so it holds a stale (large) allocation, then
+        # hide it again.
+        win._vnotebook.set_current_page(1)
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: win.t_canvas.get_allocation().height > 100,
+        )
+        win._vnotebook.set_current_page(0)
+
+        # Shrink the image area while the canvas is hidden: the view re-fits
+        # against the shrunk allocation and pushes the new offset.
+        win._vpaned.set_position(100)
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: win.view.get_allocation().height < 70,
+        )
+
+        # Show the canvas: the page must be visible within the live,
+        # smaller allocation.
+        win._vnotebook.set_current_page(1)
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: (
+                win.t_canvas.get_allocation().height < 70
+                and win.t_canvas.get_allocation().height > 0
+            ),
+        )
+
+        t_canvas = win.t_canvas
+        assert t_canvas is not None, "text canvas exists"
+        assert _page_visible_on(t_canvas), "page visible after shrink"
+    finally:
+        win.destroy()
+        app.quit()
+
+
+def test_stale_saved_split_position_does_not_hide_canvas(
+    mocker: pytest.MockerFixture,
+    tmp_path: pathlib.Path,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """A saved split position from an older geometry cannot hide a pane.
+
+    Regression test: `split panel v` was saved as 278 when the inner pane
+    was ~491px tall; after the outer pane's default became a half-split
+    (~279px), restoring 278 filled the whole pane and left the canvas a
+    1px sliver.
+    """
+    app, win = _real_layout_window(
+        mocker, tmp_path, "vertical", mock_canvas=False, split_panel_v=278
+    )
+    try:
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: (
+                win.view.get_allocation().height > 0
+                and win.t_canvas is not None
+                and win.t_canvas.get_allocation().height > 0
+                and win.t_canvas.get_allocation().height < 270
+            ),
+        )
+
+        t_canvas = win.t_canvas
+        assert t_canvas is not None, "text canvas exists"
+        assert t_canvas.get_allocation().height >= 100, (
+            "canvas pane visible despite a stale saved position"
+        )
+        assert win.view.get_allocation().height >= 100, "view pane visible"
+    finally:
+        win.destroy()
         app.quit()

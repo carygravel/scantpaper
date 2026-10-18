@@ -542,22 +542,39 @@ class ApplicationWindow(
         initial size requests, which are empty before any image loads, so it
         can collapse to an edge and hide the image. Restore a saved position,
         or set a half-split default on the first allocation, so both panes are
-        visible.
+        visible. A saved position is clamped into
+        [handle + child1_min, size - handle - child2_min]: a position saved
+        under an older, larger geometry would otherwise fill the whole pane
+        and hide a child. (GtkPaned's own minimum request is just the handle
+        size, and it overflows rather than clamps a too-large position.)
         """
-        if saved_position is not None:
-            pane.set_position(int(saved_position))
-            return
 
-        def on_tick(_widget: Gtk.Widget, _clock: Gdk.FrameClock) -> bool:
-            size = (
+        def measure(widget: Gtk.Widget | None) -> int:
+            if widget is None:
+                return 0
+            return cast("int", widget.measure(orientation, -1).minimum)
+
+        def bounds() -> tuple[int, int, int]:
+            size = cast(
+                "int",
                 pane.get_width()
                 if orientation == Gtk.Orientation.HORIZONTAL
-                else pane.get_height()
+                else pane.get_height(),
             )
+            handle = measure(pane)
+            return (
+                handle + measure(pane.get_start_child()),
+                size - handle - measure(pane.get_end_child()),
+                size,
+            )
+
+        def on_tick(_widget: Gtk.Widget, _clock: Gdk.FrameClock) -> bool:
+            low, high, size = bounds()
             if size <= 1:
                 # Not allocated yet; keep ticking until the pane has a size.
                 return True
-            pane.set_position(size // 2)
+            position = size // 2 if saved_position is None else int(saved_position)
+            pane.set_position(max(min(position, high), low))
             # Returning False removes the tick callback.
             return False
 

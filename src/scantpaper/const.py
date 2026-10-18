@@ -85,5 +85,6 @@ HELP_WINDOW_HEIGHT = 600
 HELP_WINDOW_DIVIDER_POS = 200
 
 THUMBNAIL = 100  # pixels
+VIEWER_MIN_SIZE = 100  # minimum on-screen size of the image view and canvases
 APPLICATION_ID = 223562788
 USER_VERSION = 3

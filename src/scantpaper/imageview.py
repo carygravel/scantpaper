@@ -8,7 +8,11 @@ import cairo
 import gi
 from typing_extensions import override
 
-from scantpaper.const import STYLE_CLASS_BACKGROUND, STYLE_CLASS_RUBBERBAND
+from scantpaper.const import (
+    STYLE_CLASS_BACKGROUND,
+    STYLE_CLASS_RUBBERBAND,
+    VIEWER_MIN_SIZE,
+)
 from scantpaper.gobject import property_
 
 gi.require_version("Gtk", "4.0")
@@ -464,11 +468,21 @@ class ImageView(Gtk.DrawingArea):
         if newval is None:
             self._offset = None
             return
+        self._set_offset(newval, self.get_allocation())
+
+    def _set_offset(self, newval: Gdk.Rectangle, allocation: Gdk.Rectangle) -> None:
+        """Store the offset, clamped against the given allocation."""
         if self.get_pixbuf() is None:
             return
 
+        if allocation.width <= 0 or allocation.height <= 0:
+            # Unmapped (e.g. a hidden notebook page): a clamp here would run
+            # against a dead allocation and destroy the pushed offset. Store
+            # it unclamped; do_size_allocate() re-clamps it on allocation.
+            self._offset = newval
+            return
+
         # Convert the widget size to image scale to make the comparisons easier
-        allocation = self.get_allocation()
         allocation.width, allocation.height = self.to_image_distance(
             allocation.width, allocation.height
         )
@@ -683,12 +697,20 @@ class ImageView(Gtk.DrawingArea):
 
         GTK4 widgets have no width/height properties, so the
         notify::width/height approach cannot work; the vfunc is the
-        canonical replacement. Chain up first so get_allocation() already
-        reports the new size, then re-apply the fit.
+        canonical replacement. Chain up first, then re-apply the fit and
+        re-clamp any offset that was stored while the allocation was
+        unusable. The width/height arguments are authoritative: a direct
+        vfunc call does not update get_allocation().
         """
         Gtk.DrawingArea.do_size_allocate(self, width, height, baseline)
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
+        if self._offset is not None and self.get_pixbuf() is not None:
+            allocation = Gdk.Rectangle()
+            allocation.width, allocation.height = width, height
+            rect = Gdk.Rectangle()
+            rect.x, rect.y = self._offset.x, self._offset.y
+            self._set_offset(rect, allocation)
 
     @override
     def do_dispose(self) -> None:
@@ -729,6 +751,10 @@ class ImageView(Gtk.DrawingArea):
         self._offset = None
         self._interacting = False
         self._scroll_timeout = None
+        # A real minimum size: without one a GtkPaned divider position can
+        # allocate this widget to invisibility.
+        self.set_content_width(VIEWER_MIN_SIZE)
+        self.set_content_height(VIEWER_MIN_SIZE)
 
     def set_pixbuf(
         self, pixbuf: GdkPixbuf.Pixbuf | None, *, zoom_to_fit: bool = False

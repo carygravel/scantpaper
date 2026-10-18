@@ -783,6 +783,11 @@ def test_dragger_dnd_start(rose_png: str, mock_view: ImageView) -> None:
     """Test Dragger DND start logic."""
     view = mock_view
     view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
+    # A usable allocation: the pan clamps at the edge of a 100x100 widget.
+    alloc = Gdk.Rectangle()
+    alloc.x, alloc.y, alloc.width, alloc.height = 0, 0, 100, 100
+    view.get_allocation = MagicMock(return_value=alloc)
+    view.get_scale_factor = MagicMock(return_value=1)
     dragger = Dragger(view)
     view.set_tool(dragger)
 

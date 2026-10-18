@@ -35,7 +35,7 @@ from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Callable, Generator
 
 gi.require_version("Gdk", "4.0")
 gi.require_version("Pango", "1.0")
@@ -43,6 +43,7 @@ gi.require_version("PangoCairo", "1.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     GLib,
+    Gtk,
     Pango,
     PangoCairo,
 )
@@ -590,13 +591,19 @@ def test_drag_text_layer(mocker: pytest.MockerFixture) -> None:
     """Test dragging a text layer."""
     mock_display = mocker.patch("gi.repository.Gdk.Display.get_default")
     mock_display.return_value.get_default_seat.return_value.get_pointer.return_value.get_position.side_effect = [
-        (None, 10, 10),
         (None, 20, 20),
+        (None, 10, 10),
     ]
     mocker.patch("gi.repository.Gdk.Cursor.new_from_name")
     canvas = Canvas()
     canvas.set_cursor = MagicMock()
     canvas.set_size_request(600, 800)
+    # A zoomed-in view: the page (100x100) overflows the widget (50x50 in
+    # image coordinates), so panning is free to move the offset.
+    allocation = Rectangle(x=0, y=0, width=100, height=100)
+    canvas.get_allocation = MagicMock(return_value=allocation)
+    canvas._to_image_distance = MagicMock(return_value=(50, 50))
+    canvas.get_scale_factor = MagicMock(return_value=1)
     page = Bbox(
         canvas=canvas,
         bbox=Rectangle(x=0, y=0, width=100, height=100),
@@ -609,9 +616,9 @@ def test_drag_text_layer(mocker: pytest.MockerFixture) -> None:
         "height": 100,
     }
 
-    canvas._button_pressed(_gesture(2), 1, 10, 10)
-    canvas._motion(canvas, 20, 20)
-    assert canvas.get_offset().x == 0, "canvas has moved"
+    canvas._button_pressed(_gesture(2), 1, 20, 20)
+    canvas._motion(canvas, 10, 10)
+    assert canvas.get_offset().x == -10, "canvas has moved"
 
 
 def test_canvas_drag_cursor(mocker: pytest.MockerFixture) -> None:
@@ -3870,3 +3877,65 @@ def test_measure_text_reports_ink_extents(mocker: pytest.MockerFixture) -> None:
     assert height > 0
     # A longer string is wider than a shorter one.
     assert canvas.measure_text("hello there")[0] > width
+
+
+def test_canvas_offset_pushed_while_unmapped_clamps_at_allocation(
+    mainloop_with_timeout: Callable[[], object],
+) -> None:
+    """An offset pushed while unmapped survives and clamps at allocation.
+
+    Regression test for the GTK4 migration: a hidden notebook page has a
+    0x0 allocation, and the canvas clamped every incoming offset against
+    it, losing the view's fitted offset before the canvas was ever shown.
+    """
+    canvas = Canvas()
+    canvas.set_page_extent(181, 256)
+    win = Gtk.Window()
+    win.set_default_size(400, 300)
+    win.set_child(canvas)
+
+    canvas.set_offset(357, 0)
+    assert (canvas.offset.x, canvas.offset.y) == (357, 0), (
+        "push stored unclamped while unmapped"
+    )
+
+    loop = mainloop_with_timeout()
+
+    def poll() -> bool:
+        allocation = canvas.get_allocation()
+        if allocation.width > 0 and allocation.height > 0:
+            return cast("bool", GLib.SOURCE_REMOVE)
+        return cast("bool", GLib.SOURCE_CONTINUE)
+
+    GLib.timeout_add(10, poll)
+    GLib.timeout_add(2000, loop.quit)
+    win.present()
+    loop.run()
+    win.destroy()
+
+    # Centred by the clamp against the live allocation.
+    assert (canvas.offset.x, canvas.offset.y) == (109, 22), (
+        "offset clamped at allocation"
+    )
+
+
+def test_canvas_deferred_offset_clamp_emits_once_on_allocate() -> None:
+    """The allocation-time re-clamp emits once, then stays silent."""
+    canvas = Canvas()
+    canvas.set_page_extent(181, 256)
+    emitted: list[tuple[int, int]] = []
+    canvas.connect(
+        "offset-changed",
+        lambda _widget, x, y: emitted.append((x, y)),
+    )
+
+    canvas.set_offset(357, 0)
+    assert emitted == [], "nothing emitted while unmapped"
+
+    canvas.do_size_allocate(400, 300, -1)
+    assert (canvas.offset.x, canvas.offset.y) == (109, 22), "clamped on allocate"
+    assert emitted == [(109, 22)], "emitted exactly once"
+
+    # The same allocation again: the clamped value is unchanged, no emission.
+    canvas.do_size_allocate(400, 300, -1)
+    assert emitted == [(109, 22)], "no emission for an unchanged offset"

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 import cairo
 import gi
+from typing_extensions import override
 
 from scantpaper.bboxtree import is_empty_branch
 from scantpaper.const import (
@@ -20,6 +21,7 @@ from scantpaper.const import (
     NOT_FOUND,
     SPACE,
     STYLE_CLASS_RUBBERBAND,
+    VIEWER_MIN_SIZE,
 )
 from scantpaper.gobject import property_
 
@@ -569,6 +571,10 @@ class Canvas(Gtk.DrawingArea):
         self._max_confidence = MAX_CONFIDENCE_DEFAULT
 
         self.set_name("scantpaper-ocr-canvas")
+        # A real minimum size: without one a GtkPaned divider position can
+        # allocate this widget to invisibility.
+        self.set_content_width(VIEWER_MIN_SIZE)
+        self.set_content_height(VIEWER_MIN_SIZE)
 
     @property_(type=Gdk.Rectangle, nick="Canvas offset", blurb="Gdk.Rectangle of x, y")
     def offset(self) -> Gdk.Rectangle:
@@ -578,10 +584,20 @@ class Canvas(Gtk.DrawingArea):
     @offset.setter
     def offset(self, newval: Gdk.Rectangle) -> None:
         """Setter for offset attribute."""
+        self._set_offset(newval, self.get_allocation())
+
+    def _set_offset(self, newval: Gdk.Rectangle, allocation: Gdk.Rectangle) -> None:
+        """Store the offset, clamped against the given allocation."""
         if self.get_pixbuf_size() is None:
             return
 
-        allocation = self.get_allocation()
+        if allocation.width <= 0 or allocation.height <= 0:
+            # Unmapped (e.g. a hidden notebook page): a clamp here would run
+            # against a dead allocation and destroy the pushed offset. Store
+            # it unclamped; do_size_allocate() re-clamps it on allocation.
+            self._offset = newval
+            return
+
         allocation.width, allocation.height = self._to_image_distance(
             allocation.width, allocation.height
         )
@@ -593,6 +609,26 @@ class Canvas(Gtk.DrawingArea):
             self._offset = newval
             self.queue_draw()
             self.emit("offset-changed", newval.x, newval.y)
+
+    @override
+    def do_size_allocate(self, width: int, height: int, baseline: int) -> None:
+        """Respond to a new allocation.
+
+        An offset pushed while the widget was unmapped (e.g. a hidden
+        notebook page) was stored unclamped: re-clamp it now against the
+        live allocation so the canvas shows the right region when it
+        becomes visible. Chain up first so the base class sees the new
+        allocation. The width/height arguments are authoritative: a
+        direct vfunc call does not update get_allocation().
+        """
+        Gtk.DrawingArea.do_size_allocate(self, width, height, baseline)
+        if self.get_pixbuf_size() is None:
+            return
+        allocation = Gdk.Rectangle()
+        allocation.width, allocation.height = width, height
+        rect = Gdk.Rectangle()
+        rect.x, rect.y = self._offset.x, self._offset.y
+        self._set_offset(rect, allocation)
 
     @property_(
         type=float,
