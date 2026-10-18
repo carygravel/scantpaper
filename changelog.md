@@ -11,6 +11,12 @@
   replaced, and the whole batch is a single undo step (one Undo restores every
   page). `%o` and `%r` are not available in batch mode, so a tool that uses
   them still runs one page at a time.
+* Saving a PDF with the "JBIG2" compression option now encodes grayscale and
+  colour pages with JBIG2 as well, by thresholding them to black-and-white
+  first, exactly as the "G4" option does. Previously such pages were silently
+  embedded as JPEG, so a JBIG2 save of a non-black-and-white document could
+  be much larger than expected. Pages with transparency keep lossless Flate
+  encoding.
 
 
 ## 3.0.24 (2026-10-17)

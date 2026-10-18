@@ -1,7 +1,6 @@
 """scantpaper --- to aid the scan to PDF or DjVu process."""
 
 # Roadmap and wishlist:
-# JBIG2 (G4) should threshold if necessary
 # improve translations, including those in org.scantpaper.desktop.metainfo.xml
 # look again at translating docs
 # + scan profile viewer/editor

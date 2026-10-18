@@ -687,12 +687,12 @@ def test_get_pixbuf_at_scale_antialiases_palette_source(
         ("RGBA", "jp2", PDF_CODEC_FLATE),
         ("LA", "jp2", PDF_CODEC_FLATE),
         ("1", "jb2", PDF_CODEC_G4),
-        ("L", "jb2", PDF_CODEC_JPEG),
-        ("RGB", "jb2", PDF_CODEC_JPEG),
-        ("CMYK", "jb2", PDF_CODEC_JPEG),
+        ("L", "jb2", PDF_CODEC_G4),
+        ("RGB", "jb2", PDF_CODEC_G4),
+        ("CMYK", "jb2", PDF_CODEC_G4),
         ("RGBA", "jb2", PDF_CODEC_FLATE),
         ("LA", "jb2", PDF_CODEC_FLATE),
-        ("RGB", PDF_CODEC_JBIG2, PDF_CODEC_JPEG),
+        ("RGB", PDF_CODEC_JBIG2, PDF_CODEC_G4),
     ],
 )
 def test_resolve_pdf_codec(mode: str, compression: str | None, expected: str) -> None:
@@ -764,8 +764,8 @@ def test_write_image_for_pdf_float_quality_writes_jpeg() -> None:
         assert saved.format == "JPEG"
 
 
-def test_write_image_for_pdf_float_quality_jb2_writes_jpeg() -> None:
-    """A float-typed quality works through the JBIG2 JPEG codec path."""
+def test_write_image_for_pdf_float_quality_jb2_writes_pnm() -> None:
+    """A float-typed quality is tolerated by the JBIG2 bilevel codec path."""
     image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128).convert("RGB")
     page = Page(image_object=image)
     page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
@@ -774,7 +774,46 @@ def test_write_image_for_pdf_float_quality_jb2_writes_jpeg() -> None:
             filename.name, {"options": {"compression": "jb2", "quality": 75.0}}
         )
         output = pathlib.Path(filename.name).read_bytes()
-    assert output[:2] == b"\xff\xd8", "valid JPEG stream written for JBIG2 page"
+    assert output[:2] == b"P4", "bilevel PBM header written for JBIG2 page"
+
+
+@pytest.mark.parametrize("compression", ["g4", "jb2"])
+def test_write_image_for_pdf_quality_ignored_for_bilevel(compression: str) -> None:
+    """Quality does not change the embedded image for a bilevel save."""
+    image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128).convert("RGB")
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    outputs = []
+    for quality in (30, 95):
+        with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+            page.write_image_for_pdf(
+                filename.name,
+                {"options": {"compression": compression, "quality": quality}},
+            )
+            outputs.append(pathlib.Path(filename.name).read_bytes())
+    assert outputs[0] == outputs[1], "quality does not affect bilevel output"
+
+
+@pytest.mark.parametrize("mode", ["L", "RGB"])
+def test_write_image_for_pdf_jb2_matches_g4_threshold(mode: str) -> None:
+    """A continuous-tone page saved with JBIG2 binarizes as with Group 4."""
+    image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128)
+    if mode == "RGB":
+        image = image.convert("RGB")
+    page = Page(image_object=image)
+    page.resolution = (POINTS_PER_INCH, POINTS_PER_INCH, "PixelsPerInch")
+    saved = []
+    for compression in ("jb2", "g4"):
+        with tempfile.NamedTemporaryFile(suffix=".png") as filename:
+            page.write_image_for_pdf(
+                filename.name, {"options": {"compression": compression}}
+            )
+            with Image.open(filename.name) as loaded:
+                saved.append(loaded.convert("1"))
+    assert saved[0].mode == "1", "JBIG2 page extracts as 1-bit"
+    assert saved[0].tobytes() == saved[1].tobytes(), (
+        "JBIG2 page matches the Group 4 threshold"
+    )
 
 
 def test_write_image_for_pdf_stored_jpeg_passes_through() -> None:

@@ -85,9 +85,10 @@ def resolve_pdf_codec(image: Image.Image, compression: str | None) -> str:
     ``auto`` (and an unset option) selects CCITT Group 4 for bilevel images,
     lossless Flate for images with an alpha channel, and JPEG for
     continuous-tone images. ``jp2`` follows the same colour-model rules with
-    JPEG 2000 for continuous-tone images, and ``jb2`` with JPEG (the bilevel
-    stream is upgraded to JBIG2 later). Explicit options map directly to
-    their codec; anything else falls back to lossless Flate.
+    JPEG 2000 for continuous-tone images, and ``jb2`` with Group 4, so
+    every page is thresholded to bilevel and its stream is upgraded to
+    JBIG2 later. Explicit options map directly to their codec; anything
+    else falls back to lossless Flate.
     """
     if compression == "g4":
         return PDF_CODEC_G4
@@ -96,7 +97,7 @@ def resolve_pdf_codec(image: Image.Image, compression: str | None) -> str:
     if compression in ("jp2", "jpeg2000"):
         return _codec_for_colour_model(image, PDF_CODEC_JP2)
     if compression == PDF_CODEC_JBIG2:
-        return _codec_for_colour_model(image, PDF_CODEC_JPEG)
+        return _codec_for_colour_model(image, PDF_CODEC_G4)
     if compression not in (None, "", "auto"):
         return PDF_CODEC_FLATE
     return _codec_for_colour_model(image, PDF_CODEC_JPEG)

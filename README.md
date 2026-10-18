@@ -173,7 +173,8 @@ you explicitly turn the toggle off.
   usually produces smaller files than JPEG for scanned pages but is slower to
   encode and less widely supported by viewers; JBIG2 typically halves the size
   of a bilevel page compared with Group 4, but its output depends on the
-  installed encoder. The **Bilevel compression** preference in
+  installed encoder, and like G4 it thresholds grayscale and colour pages to
+  bilevel first. The **Bilevel compression** preference in
   **Edit → Preferences** (Group 4 by default, JBIG2 when available) tells
   **Automatic** how to encode bilevel pages, so a user who never changes the
   preference keeps Group 4 output. The **Quality** spin-button steers both
