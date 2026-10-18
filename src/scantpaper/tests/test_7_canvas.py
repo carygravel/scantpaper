@@ -3907,6 +3907,10 @@ def test_canvas_offset_pushed_while_unmapped_clamps_at_allocation(
             return cast("bool", GLib.SOURCE_REMOVE)
         return cast("bool", GLib.SOURCE_CONTINUE)
 
+    # Poll once before presenting: the canvas is unmapped, so its
+    # allocation is still 0x0 and the wait path is taken deterministically
+    # rather than racing the frame clock's first allocation.
+    assert poll() == GLib.SOURCE_CONTINUE
     GLib.timeout_add(10, poll)
     GLib.timeout_add(2000, loop.quit)
     win.present()

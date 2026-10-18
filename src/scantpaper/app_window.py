@@ -26,6 +26,7 @@ from scantpaper.const import (
     LOCAL_DOCS_URI,
     PROG_NAME,
     SELECTOR_TOOL,
+    THUMBNAIL,
     URL,
     VERSION,
 )
@@ -57,6 +58,28 @@ logger = logging.getLogger(__name__)
 
 GLib.set_application_name(PROG_NAME)
 GLib.set_prgname("com.github.scantpaper")
+
+
+def _attach_thumbnail_css() -> None:
+    """Pin the paint size of the thumbnail pixbufs to the generated size.
+
+    GTK4 paints Gtk.CellRendererPixbuf through an icon helper that clamps
+    the paint to the stylesheet's -gtk-icon-size, shrinking the page
+    thumbnails to 16px however large the pixbuf is. The renderer adds the
+    "image" class to the treeview's own CSS node at paint time, so scoping
+    the rule with the thumbnail list's class pins it without touching
+    anything else.
+    """
+    display = Gdk.Display.get_default()
+    if display is None:
+        return
+    provider = Gtk.CssProvider()
+    provider.load_from_string(
+        f".thumbnail-list.image {{ -gtk-icon-size: {THUMBNAIL}px; }}"
+    )
+    Gtk.StyleContext.add_provider_for_display(
+        display, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+    )
 
 
 def drag_motion_callback(
@@ -359,6 +382,8 @@ class ApplicationWindow(
 
         # Set up an SimpleList for the thumbnail view
         self.slist = Document(dir=self.session.name, db=self.session.name + ".sdb")
+
+        _attach_thumbnail_css()
 
         # Update list in Document so that it can be used by get_resolution()
         self.slist.set_paper_sizes(self.settings["Paper"])

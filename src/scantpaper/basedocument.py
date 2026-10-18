@@ -44,6 +44,7 @@ class BaseDocument(SimpleList):
         """Initialise BaseDocument."""
         columns = {"#": "int", _("Thumbnails"): "pixbuf", "Page ID": "hint"}
         super().__init__(**columns)
+        self.add_css_class("thumbnail-list")
         self.thread = DocThread(**kwargs)
         self.thread.register_callback("display", "after", "data")
         self.thread.register_callback("updated_page", "after", "data")
