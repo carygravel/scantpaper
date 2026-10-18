@@ -336,6 +336,31 @@ def test_update_config_dict_adds_typed_metadata_to_suggestions() -> None:
     assert "New typed author" in config["author-suggestions"]
 
 
+def _date_entry_box(dialog: Save) -> Gtk.Box:
+    """Return the box holding the date entry, whose visibility the handler toggles."""
+    return dialog._meta_datetime_widget.get_parent()
+
+
+def test_save_dialog_shows_date_entry_when_specify_selected() -> None:
+    """Test that date entry box is shown when Specify is toggled on."""
+    dialog = Save()
+    assert _date_entry_box(dialog).get_visible() is False
+
+    dialog._meta_specify_widget.set_active(True)
+    assert _date_entry_box(dialog).get_visible() is True
+    assert dialog.select_datetime is True
+
+    dialog._meta_specify_widget.set_active(False)
+    assert _date_entry_box(dialog).get_visible() is False
+    assert dialog.select_datetime is False
+
+
+def test_save_dialog_shows_date_entry_when_constructed_with_select_datetime() -> None:
+    """Test that date entry box is shown when constructed with select_datetime=True."""
+    dialog = Save(select_datetime=True)
+    assert _date_entry_box(dialog).get_visible() is True
+
+
 def test_author_suggestions_ranked() -> None:
     """Test author suggestions are ranked with prefix matches first."""
     dialog = Save()
@@ -387,13 +412,13 @@ def test_datetime_focus_out_callback() -> None:
     assert dialog.meta_datetime == dt.datetime(2023, 1, 1)  # noqa: DTZ001
 
 
-def test_specify_widget_does_not_fire_on_programmatic_change() -> None:
-    """Programmatically setting the specify button is not a user click."""
+def test_specify_widget_syncs_on_programmatic_change() -> None:
+    """Programmatic state changes update the select_datetime property."""
     dialog = Save()
     dialog.select_datetime = False
 
     dialog._meta_specify_widget.set_active(True)
-    assert dialog.select_datetime is False, "no user activation happened"
+    assert dialog.select_datetime is True
 
 
 def test_clicked_specify_date_button() -> None:

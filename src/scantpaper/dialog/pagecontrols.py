@@ -204,7 +204,6 @@ class PageControls(Dialog):
         bscanall = Gtk.CheckButton.new_with_label(_("All"))
         bscanall.set_tooltip_text(_("Scan all pages"))
         pack_box(vboxn, bscanall, expand=True)
-        bscanall.connect("activate", self._do_clicked_scan_all, bscanall)
         # GTK3 made the first radio button of a group active by default;
         # grouped check buttons in GTK4 do not, so activate it explicitly.
         bscanall.set_active(True)
@@ -221,7 +220,6 @@ class PageControls(Dialog):
         spin_buttonn = Gtk.SpinButton.new_with_range(1, MAX_PAGES, 1)
         spin_buttonn.set_tooltip_text(_("Set number of pages to scan"))
         hboxn.append(spin_buttonn)
-        self._bscannum.connect("activate", self._do_clicked_scan_number, spin_buttonn)
         self.connect(
             "changed-num-pages",
             self._do_changed_num_pages,
@@ -232,6 +230,12 @@ class PageControls(Dialog):
 
         # Actively set a radio button to synchronise GUI and properties
         self._bscannum.set_active(True)
+
+        # Connect the toggled handlers only now that the initial widget
+        # state is in place: in GTK4 a programmatic set_active() emits
+        # toggled, and the handlers must only react to user-driven changes.
+        bscanall.connect("toggled", self._do_clicked_scan_all, bscanall)
+        self._bscannum.connect("toggled", self._do_clicked_scan_number, spin_buttonn)
 
         # vbox for duplex/simplex page numbering in order to be able to show/hide
         # them together.
@@ -305,7 +309,6 @@ class PageControls(Dialog):
         self.buttons = Gtk.CheckButton.new_with_label(_("Single sided"))
         self.buttons.set_tooltip_text(_("Source document is single-sided"))
         pack_box(vboxs, self.buttons, expand=True)
-        self.buttons.connect("activate", self._do_buttons_clicked)
         # GTK3 made the first radio button of a group active by default;
         # grouped check buttons in GTK4 do not, so activate it explicitly.
         self.buttons.set_active(True)
@@ -335,6 +338,11 @@ class PageControls(Dialog):
         self.buttons.set_active(True)
         self.num_pages = 1
         hboxs.append(self.combobs)
+
+        # Connect the toggled handler only now that every widget the sided
+        # property setter touches exists: in GTK4 a programmatic set_active()
+        # emits toggled, and the handler must only react to user changes.
+        self.buttons.connect("toggled", self._do_buttons_clicked)
 
         # Have to put the extended pagenumber checkbox here
         # to reference simple controls

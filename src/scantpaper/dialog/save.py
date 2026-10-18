@@ -411,7 +411,7 @@ class Save(Dialog):
         pack_box(vboxdt, self._meta_specify_widget, expand=True)
         hboxe = Gtk.Box()
         self._meta_specify_widget.connect(
-            "activate", self._clicked_specify_date_button, hboxe
+            "toggled", self._clicked_specify_date_button, hboxe
         )
         self._meta_datetime_widget = Gtk.Entry()
         self._meta_datetime_widget.set_activates_default(True)

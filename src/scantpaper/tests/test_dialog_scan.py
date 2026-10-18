@@ -426,21 +426,24 @@ def test_cursor_setter_none() -> None:
     assert dialog.cursor == "wait", "Cursor should not change if None is passed"
 
 
-def test_sided_buttons_do_not_fire_on_programmatic_change() -> None:
-    """Programmatic button changes must not run the user-click handlers.
+def test_sided_buttons_sync_on_programmatic_change() -> None:
+    """The sided property tracks the buttons once construction is complete.
 
-    Regression test: the handlers were connected to "toggled", so the
-    set_active(True) calls during __init__ ran them before ``combobs``
-    existed, raising AttributeError and leaving the dialog half-initialised.
+    Regression guard: the handlers are connected to "toggled", and the
+    property setters they call must tolerate the set_active() calls made
+    during __init__ (previously they ran before ``combobs`` existed,
+    raising AttributeError and leaving the dialog half-initialised).
+    Handlers are connected after initialisation, so programmatic changes
+    afterwards keep the property in sync with the widget.
     """
     dialog = Scan(title="title", transient_for=Gtk.Window())
     assert dialog.sided == "single"
 
     dialog.buttons.set_active(False)
-    assert dialog.sided == "single", "no user activation happened"
+    assert dialog.sided == "double", "property tracks the widget"
 
     dialog.buttons.set_active(True)
-    assert dialog.sided == "single", "no user activation happened"
+    assert dialog.sided == "single", "property tracks the widget"
 
 
 def test_scan_dialog_close_button_label() -> None:
