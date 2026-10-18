@@ -776,6 +776,26 @@ def test_new_scan_callback_options(mock_scan_window: object) -> None:
     assert call_kwargs["rotate"] == 180
 
 
+def test_new_scan_callback_enforce_depth(mock_scan_window: object) -> None:
+    """The depth-mismatch flag maps to an import option with the tool value."""
+    mock_image = MagicMock()
+    mock_scan_window.slist.import_scan = MagicMock()
+    mock_scan_window.settings["threshold tool"] = 25
+
+    mock_scan_window._new_scan_callback(None, mock_image, None, "single", 300, 300)
+    call_kwargs = mock_scan_window.slist.import_scan.call_args[1]
+    assert "enforce_depth" not in call_kwargs, "no flag without a mismatch"
+
+    mock_scan_window.slist.import_scan.reset_mock()
+    mismatch = True
+    mock_scan_window._new_scan_callback(
+        None, mock_image, None, "single", 300, 300, mismatch
+    )
+    call_kwargs = mock_scan_window.slist.import_scan.call_args[1]
+    assert call_kwargs["enforce_depth"] is True
+    assert call_kwargs["depth_threshold"] == 25
+
+
 def test_new_scan_callback_alternate_rotation(
     mock_scan_window: object,
 ) -> None:

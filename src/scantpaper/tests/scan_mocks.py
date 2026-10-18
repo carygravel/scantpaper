@@ -79,6 +79,25 @@ def _src(
     )
 
 
+def _depth(
+    constraint: list[int],
+    title: str = "Bit depth",
+    desc: str = "Sets the colour depth of the scanned image.",
+) -> Option:
+    """Build a colour depth option."""
+    return Option(
+        index=0,
+        name="depth",
+        title=title,
+        desc=desc,
+        type=1,
+        unit=cast("str", cast("object", 4)),
+        size=1,
+        cap=5,
+        constraint=constraint,
+    )
+
+
 # Unique scan option definitions, keyed by descriptive names. Each test builds
 # its raw_options by listing the keys it needs; build_scan_options assigns the
 # sequential indices.
@@ -92,6 +111,31 @@ OPTIONS: dict[str, Option] = {
         desc="Scan resolution",
     ),
     "resolution-50-1200": _res((50, 1200, 0), title="Resolution", desc="Resolution"),
+    # ---- depth ----
+    "depth-1-8-16": _depth([1, 8, 16]),
+    # ---- mode ----
+    "mode-bilevel-and-continuous": Option(
+        index=0,
+        name="mode",
+        title="Scan mode",
+        desc="Selects the scan mode.",
+        type=3,
+        unit=cast("str", cast("object", 0)),
+        size=1,
+        cap=5,
+        constraint=[
+            "Lineart",
+            "lineart",
+            "Line Art",
+            "Black & White",
+            "Binary",
+            "Halftone",
+            "Error Diffusion",
+            "Gray",
+            "Monochrome",
+            "Color",
+        ],
+    ),
     # ---- source ----
     "source-flatbed-adf": _src(["Flatbed", "ADF"]),
     "source-flatbed-adf-duplex": _src(["Flatbed", "ADF", "Duplex"]),

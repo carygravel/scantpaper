@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING, Any, cast
 
 from gi.repository import GObject, Gtk
@@ -28,6 +29,21 @@ if TYPE_CHECKING:
 LAST_PAGE = -1
 FIRST_OPTIONS_PAGE = 2
 logger = logging.getLogger(__name__)
+
+# SANE scan-mode values that request 1-bit output, from backend
+# documentation: Lineart/Line art/LineArt, Binary, Black & White, and
+# the 1-bit dithered modes Halftone and Error Diffusion. Matched against
+# the whole value, so e.g. "ColorLineart" cannot pass. "monochrome" and
+# "linear" are deliberately absent: they never appear as mode values in
+# backend documentation and read as grayscale or film modes.
+_BILEVEL_MODE_RE = re.compile(
+    r"""line[ ]?-?art
+        | binary(?:[ ]mode)?
+        | black[ ]*(?:&|and)[ ]*white
+        | halftone
+        | error[ ]diffusion""",
+    re.IGNORECASE | re.VERBOSE,
+)
 
 
 class SaneScanDialog(Scan):
@@ -538,6 +554,7 @@ class SaneScanDialog(Scan):
 
         xresolution, yresolution = self._get_xy_resolution()
         i = 1
+        self._depth_notice_emitted = False
 
         def started_callback(_data: object) -> None:
             logger.info("Scanning %s pages", num_pages)
@@ -546,8 +563,21 @@ class SaneScanDialog(Scan):
         def new_page_callback(image_ob: object) -> None:
             nonlocal i
             insert_after, side = self._insert_target(i)
+            enforce_depth = self._depth_mismatch(image_ob)
+            if enforce_depth:
+                logger.warning(
+                    "Device delivered %s data although 1-bit output was "
+                    "requested; converting the page to black-and-white",
+                    getattr(image_ob, "mode", None),
+                )
             self.emit(
-                "new-scan", image_ob, insert_after, side, xresolution, yresolution
+                "new-scan",
+                image_ob,
+                insert_after,
+                side,
+                xresolution,
+                yresolution,
+                enforce_depth,
             )
             i += 1
             self.emit(
@@ -555,6 +585,16 @@ class SaneScanDialog(Scan):
                 None,
                 make_progress_string(i, num_pages),
             )
+            if enforce_depth and not self._depth_notice_emitted:
+                self._depth_notice_emitted = True
+                self.emit(
+                    "changed-progress",
+                    None,
+                    _(
+                        "Scanner did not deliver the requested 1-bit output;"
+                        " the page has been converted to black-and-white"
+                    ),
+                )
 
         self.thread.scan_pages(
             dir=self.dir,
@@ -585,6 +625,23 @@ class SaneScanDialog(Scan):
 
             signal = self.connect("reloaded-scan-options", reloaded_scan_options_cb)
             self.scan_options(self.device)
+
+    def _depth_mismatch(self, image_ob: object) -> bool:
+        """Return True when 1-bit output was requested but the frame is deeper.
+
+        Some backends deliver 8-bit frames despite a 1-bit request, for
+        example when a hardware compression option is active. The request
+        is a depth of 1 bit, or a bilevel scan mode such as Lineart.
+        """
+        delivered = getattr(image_ob, "mode", None)
+        if delivered == "1":
+            return False
+        if self.current_scan_options.get_option_by_name("depth") == 1:
+            return True
+        mode_value = self.current_scan_options.get_option_by_name("mode")
+        return bool(
+            isinstance(mode_value, str) and _BILEVEL_MODE_RE.fullmatch(mode_value)
+        )
 
     def _scan_error_callback(self, response: Response) -> None:
         self.emit("process-error", "scan_pages", response.status)

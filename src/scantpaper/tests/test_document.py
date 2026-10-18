@@ -219,6 +219,62 @@ def test_import_scan() -> None:
         mock_pps.assert_called()
 
 
+def test_post_process_enforce_depth() -> None:
+    """Test _post_process_enforce_depth converts via the threshold handler."""
+    doc = create_doc()
+    doc.threshold = unittest.mock.Mock()
+    options = {
+        "enforce_depth": True,
+        "depth_threshold": 20,
+        "finished_callback": unittest.mock.Mock(),
+    }
+    doc._post_process_scan(cast("int", cast("object", "uuid")), options)
+    doc.threshold.assert_called()
+    assert doc.threshold.call_args[1]["threshold"] == 20
+    assert doc.threshold.call_args[1]["page"] == "uuid"
+    assert "finished_callback" not in doc.threshold.call_args[1]
+
+    updated_page_callback = doc.threshold.call_args[1]["updated_page_callback"]
+    with unittest.mock.patch.object(doc, "_post_process_scan") as mock_pps:
+        updated_page_callback(MockResponse({"type": "page", "row": [0, 0, "new_uuid"]}))
+        assert mock_pps.call_args[0][0] == "new_uuid"
+        chained = mock_pps.call_args[0][1]
+        assert "enforce_depth" not in chained, "flag consumed after conversion"
+        assert chained["depth_threshold"] == 20
+        assert chained["finished_callback"] is options["finished_callback"]
+
+
+def test_post_process_enforce_depth_runs_before_rotate() -> None:
+    """The depth conversion is the first post-process step."""
+    doc = create_doc()
+    doc.threshold = unittest.mock.Mock()
+    doc.rotate = unittest.mock.Mock()
+    options = {
+        "enforce_depth": True,
+        "depth_threshold": 20,
+        "rotate": 90,
+        "finished_callback": unittest.mock.Mock(),
+    }
+    doc._post_process_scan(cast("int", cast("object", "uuid")), options)
+    doc.threshold.assert_called()
+    doc.rotate.assert_not_called()
+
+    updated_page_callback = doc.threshold.call_args[1]["updated_page_callback"]
+    with unittest.mock.patch.object(doc, "_post_process_scan") as mock_pps:
+        updated_page_callback(MockResponse({"type": "page", "row": [0, 0, "new_uuid"]}))
+        mock_pps.assert_called()
+
+
+def test_post_process_scan_without_enforce_depth() -> None:
+    """Imports without the flag do not convert."""
+    doc = create_doc()
+    doc.threshold = unittest.mock.Mock()
+    doc._post_process_scan(
+        cast("int", cast("object", "uuid")), {"finished_callback": None}
+    )
+    doc.threshold.assert_not_called()
+
+
 def test_split_page() -> None:
     """Test split_page."""
     doc = create_doc()

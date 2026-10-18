@@ -500,10 +500,16 @@ class ScanMenuItemMixins:
         side: str,
         xresolution: float,
         yresolution: float,
+        *args: object,
     ) -> None:
-        """Handle a new scan."""
+        """Handle a new scan.
+
+        The optional trailing argument is the depth-mismatch flag emitted
+        with the "new-scan" signal.
+        """
         if image_object is None:
             return
+        enforce_depth = bool(args[0]) if args else False
 
         rotate = (
             self.settings["rotate facing"]
@@ -535,6 +541,10 @@ class ScanMenuItemMixins:
 
         if self.settings["threshold-before-ocr"]:
             options["threshold"] = self.settings["threshold tool"]
+
+        if enforce_depth:
+            options["enforce_depth"] = True
+            options["depth_threshold"] = self.settings["threshold tool"]
 
         if self.settings["udt_on_scan"]:
             options["udt"] = self.settings["current_udt"]

@@ -224,6 +224,24 @@ class Document(BaseDocument):
         del rotate_options["finished_callback"]
         self.rotate(**rotate_options)
 
+    def _post_process_enforce_depth(
+        self, page_id: int, options: dict[str, Any]
+    ) -> None:
+        """Convert a page delivered deeper than the requested 1-bit depth."""
+
+        def updated_page_callback(response: Response) -> None:
+            info = response.info
+            if isinstance(info, dict) and "type" in info and info["type"] == "page":
+                del options["enforce_depth"]
+                self._post_process_scan(info["row"][2], options)
+
+        threshold_options = options.copy()
+        threshold_options["threshold"] = options["depth_threshold"]
+        threshold_options["page"] = page_id
+        threshold_options["updated_page_callback"] = updated_page_callback
+        del threshold_options["finished_callback"]
+        self.threshold(**threshold_options)
+
     def _post_process_unpaper(self, page_id: int, options: dict[str, Any]) -> None:
 
         def updated_page_callback(response: Response) -> None:
@@ -276,6 +294,10 @@ class Document(BaseDocument):
 
     def _post_process_scan(self, page_id: int | None, options: dict[str, Any]) -> None:
         options = defaultdict(None, options)
+
+        if options.get("enforce_depth"):
+            self._post_process_enforce_depth(cast("int", page_id), options)
+            return
 
         if options.get("rotate"):
             self._post_process_rotate(cast("int", page_id), options)

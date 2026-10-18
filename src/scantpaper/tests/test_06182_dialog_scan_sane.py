@@ -172,6 +172,7 @@ def test_cancel_scan(
         _side: str,
         _xres: object,
         _yres: object,
+        _enforce_depth: object,
     ) -> None:
         dialog.disconnect(dialog.new_signal)
         nonlocal callbacks

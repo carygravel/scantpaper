@@ -3,19 +3,23 @@
 from __future__ import annotations
 
 import locale
+import logging
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import ANY, MagicMock
 
 import pytest
 from gi.repository import Gtk
+from PIL import Image
 
 from scantpaper.dialog.sane import SaneScanDialog
 from scantpaper.frontend import enums
 from scantpaper.frontend.enums import TYPE_INT
 from scantpaper.helpers import configure_fractional_spinbutton
+from scantpaper.i18n import _
 from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
+from scantpaper.tests.scan_mocks import build_scan_options
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -479,6 +483,7 @@ def test_8(
         _side: str,
         _xres: object,
         _yres: object,
+        _enforce_depth: object,
     ) -> None:
         nonlocal n
         n += 1
@@ -853,6 +858,7 @@ def test_scan_pages(
         side: str,
         _xres: object,
         _yres: object,
+        _enforce_depth: object,
     ) -> None:
         scans.append((insert_after, side))
 
@@ -908,6 +914,7 @@ def test_scan_reverse_pages(
         side: str,
         _xres: object,
         _yres: object,
+        _enforce_depth: object,
     ) -> None:
         scans.append((insert_after, side))
 
@@ -1772,3 +1779,99 @@ def test_get_options_error(
     dialog.connect("process-error", process_error_cb)
     dialog.set_option(opt, 42)
     assert callbacks == 1
+
+
+@pytest.mark.parametrize(
+    ("depth", "scan_mode", "delivered", "expected"),
+    [
+        (None, None, "1", False),
+        (1, None, "L", True),
+        (1, None, "1", False),
+        (8, None, "L", False),
+        (None, "Lineart", "L", True),
+        (None, "Lineart", "1", False),
+        (None, "lineart", "L", True),
+        (None, "Line Art", "L", True),
+        (None, "Black & White", "L", True),
+        (None, "Binary", "L", True),
+        (None, "Halftone", "L", True),
+        (None, "Error Diffusion", "L", True),
+        (None, "Gray", "L", False),
+        (None, "Monochrome", "L", False),
+    ],
+)
+def test_new_scan_enforce_depth(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    sane_scan_mocks: SimpleNamespace,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    set_option_in_mainloop: Callable[[SaneScanDialog, str, object], bool],
+    caplog: pytest.LogCaptureFixture,
+    *,
+    depth: int | None,
+    scan_mode: str | None,
+    delivered: str,
+    expected: bool,
+) -> None:
+    """A 1-bit request mismatch flags new-scan, warns and notifies."""
+    sane_scan_mocks.patch_all(mocker)
+    mocker.patch(
+        "scantpaper.dialog.sane.SaneThread.do_scan_page",
+        return_value=Image.new(delivered, (100, 100)),
+    )
+    raw_options = sane_scan_mocks.raw_options
+    raw_options.append(
+        build_scan_options(["depth-1-8-16"])[1]._replace(index=len(raw_options))
+    )
+    raw_options.append(
+        build_scan_options(["mode-bilevel-and-continuous"])[1]._replace(
+            index=len(raw_options)
+        )
+    )
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
+    if depth is not None:
+        assert set_option_in_mainloop(dialog, "depth", depth), "set depth"
+    if scan_mode is not None:
+        assert set_option_in_mainloop(dialog, "mode", scan_mode), "set mode"
+
+    flags = []
+    messages = []
+
+    def new_scan_cb(
+        _widget: Gtk.Widget,
+        _image_ob: object,
+        _insert_after: object,
+        _side: str,
+        _xres: object,
+        _yres: object,
+        enforce_depth: object,
+    ) -> None:
+        flags.append(enforce_depth)
+
+    def finished_process_cb(_widget: Gtk.Widget, process: str) -> None:
+        if process == "scan_pages":
+            loop.quit()
+
+    def changed_progress_cb(
+        _widget: Gtk.Widget, _progress: object, message: str | None
+    ) -> None:
+        if message is not None:
+            messages.append(message)
+
+    loop = mainloop_with_timeout()
+    dialog.connect("new-scan", new_scan_cb)
+    dialog.connect("changed-progress", changed_progress_cb)
+    dialog.connect("finished-process", finished_process_cb)
+    dialog.num_pages = 1
+    with caplog.at_level(logging.WARNING):
+        dialog.scan()
+        loop.run()
+    assert flags == [expected], "enforce-depth flag on new-scan"
+    notice = _(
+        "Scanner did not deliver the requested 1-bit output;"
+        " the page has been converted to black-and-white"
+    )
+    assert (notice in messages) is expected, "non-blocking notice"
+    assert ("1-bit output was requested" in caplog.text) is expected, "warning logged"

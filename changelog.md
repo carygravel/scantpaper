@@ -17,6 +17,16 @@
   embedded as JPEG, so a JBIG2 save of a non-black-and-white document could
   be much larger than expected. Pages with transparency keep lossless Flate
   encoding.
+* When the scan options request 1-bit output - a 1-bit depth, or a
+  bilevel scan mode such as Lineart - delivered pages are now checked
+  against that request. Bilevel transfers always arrive as 8-bit
+  grayscale, because the SANE front-end expands them even when the
+  driver sends 1-bit data; such pages are now converted to
+  black-and-white at scan time with the colour-aware Threshold
+  semantics and value, a notice is shown in the progress bar, and a
+  warning is logged. Previously the pages stayed grayscale, so saving
+  with "Automatic" PDF compression embedded them as JPEG instead of
+  Group 4 or JBIG2.
 
 
 ## 3.0.24 (2026-10-17)

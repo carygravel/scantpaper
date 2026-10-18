@@ -41,6 +41,7 @@ def test_scan_resolution(
         _side: str,
         xres: float,
         yres: float,
+        _enforce_depth: object,
     ) -> None:
         dialog.disconnect(dialog.new_signal)
         assert xres == 300, "x-resolution defaults"
@@ -73,6 +74,7 @@ def test_scan_resolution(
         _side: str,
         xres: float,
         yres: float,
+        _enforce_depth: object,
     ) -> None:
         dialog.disconnect(dialog.new_signal)
         assert xres == 600, "x-resolution from resolution option"
@@ -97,6 +99,7 @@ def test_scan_resolution(
         _side: str,
         xres: float,
         yres: float,
+        _enforce_depth: object,
     ) -> None:
         dialog.disconnect(dialog.new_signal)
         assert xres == 150, "x-resolution from x-resolution option"

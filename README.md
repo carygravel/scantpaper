@@ -148,6 +148,15 @@ you explicitly turn the toggle off.
   e.g. page size and scan area); such an option is then set at most twice and
   dropped for the rest of that apply, so the scan still proceeds instead of
   ending in a reload-recursion error.
+  If the scan options request 1-bit output - a 1-bit depth, or a bilevel
+  scan mode such as Lineart - the delivered pages are checked
+  against that request. Bilevel transfers always arrive as 8-bit grayscale
+  (the SANE front-end expands them, even when the driver sends 1-bit data,
+  for example when a hardware compression option is active), so scantpaper
+  converts each such page to black-and-white at scan time,
+  using the colour-aware Threshold semantics and value, shows a notice in the
+  progress bar, and logs a warning - so "Automatic" PDF compression encodes
+  the pages as Group 4 or JBIG2 rather than JPEG.
   Scan-area and page-size fields accept fractional values typed with your
   locale's decimal separator (e.g. `115,2` mm in a German locale), show them
   without trailing zeros (`174` mm, not `174,00`), and step by whole units with

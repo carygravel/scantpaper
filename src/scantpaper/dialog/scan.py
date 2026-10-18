@@ -125,6 +125,7 @@ class Scan(PageControls):
                 str,  # side to scan - "facing" or "reverse"
                 float,  # x-resolution
                 float,  # y-resolution
+                bool,  # enforce requested 1-bit depth - device delivered deeper
             ),
         ),
         "changed-device": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
