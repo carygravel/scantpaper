@@ -569,7 +569,10 @@ class ImageView(Gtk.DrawingArea):
             allocation.height,
         )
         style.restore()
-        if pixbuf is None:
+        offset = self.get_offset()
+        if pixbuf is None or offset is None:
+            # Without an offset the image position is undefined; render the
+            # background only rather than crash (see to_widget_coords).
             return
 
         # Clip to viewport to avoid rendering off-screen pixels
@@ -593,7 +596,6 @@ class ImageView(Gtk.DrawingArea):
 
         zoom = self.get_zoom() / self.get_scale_factor()
         context.scale(zoom / ratio, zoom)
-        offset = self.get_offset()
         context.translate(offset.x, offset.y)
         surface = self._get_or_create_surface(pixbuf)
         context.set_source_surface(surface, 0, 0)
@@ -675,8 +677,16 @@ class ImageView(Gtk.DrawingArea):
         self.set_offset(offset_x, offset_y)
         return True
 
-    def _on_size_changed(self, _widget: Gtk.Widget, _pspec: GObject.ParamSpec) -> None:
-        """Respond to a widget resize (replaces the GTK3 configure event)."""
+    @override
+    def do_size_allocate(self, width: int, height: int, baseline: int) -> None:
+        """Respond to a new allocation (replaces the GTK3 configure event).
+
+        GTK4 widgets have no width/height properties, so the
+        notify::width/height approach cannot work; the vfunc is the
+        canonical replacement. Chain up first so get_allocation() already
+        reports the new size, then re-apply the fit.
+        """
+        Gtk.DrawingArea.do_size_allocate(self, width, height, baseline)
         if self.zoom_is_fit:
             self.zoom_to_box(self.get_pixbuf_size())
 
@@ -708,9 +718,6 @@ class ImageView(Gtk.DrawingArea):
         scroll = Gtk.EventControllerScroll.new(Gtk.EventControllerScrollFlags.VERTICAL)
         scroll.connect("scroll", self._scroll)
         self.add_controller(scroll)
-
-        self.connect("notify::width", self._on_size_changed)
-        self.connect("notify::height", self._on_size_changed)
 
         # Last known pointer position in widget coordinates (the scroll
         # controller provides deltas but no coordinates).
@@ -783,6 +790,10 @@ class ImageView(Gtk.DrawingArea):
         zoom = self.get_zoom()
         ratio = self.get_resolution_ratio()
         offset = self.get_offset()
+        if offset is None:
+            # No offset yet (e.g. a pixbuf set before the first allocation):
+            # treat the origin as unshifted so callers never crash.
+            offset = Gdk.Rectangle()
         factor = self.get_scale_factor()
         return cast(
             "tuple[float, float]",
@@ -854,7 +865,8 @@ class ImageView(Gtk.DrawingArea):
         if allocation.width <= 0 or allocation.height <= 0:
             # GTK4 gives an unallocated widget a 0x0 allocation (GTK3 used
             # 1x1). Zooming to fit now would divide by zero; the
-            # notify::width/height handler re-applies it on the first resize.
+            # do_size_allocate override re-applies it on the first
+            # allocation.
             return
         ratio = self.get_resolution_ratio()
         limit = self.zoom_to_fit_limit

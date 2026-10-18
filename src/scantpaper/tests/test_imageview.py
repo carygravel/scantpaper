@@ -16,6 +16,8 @@ from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger, 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from scantpaper.loop_helpers import _MainLoopWrapper
+
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 from gi.repository import (  # noqa: E402
@@ -649,9 +651,9 @@ def test_imageview_events(rose_png: str, mock_view: ImageView) -> None:
 
     view._scroll(None, 0.0, 1.0)
 
-    # configure event
+    # configure event: the size-allocate vfunc re-fits when zoom_is_fit
     view.setzoom_is_fit(zoom_to_fit=True)
-    view._on_size_changed(view, None)
+    view.do_size_allocate(400, 300, -1)
 
 
 def test_imageview_draw(rose_png: str) -> None:
@@ -694,6 +696,24 @@ def test_imageview_coordinate_conversions(rose_png: str) -> None:
     dw, dh = view.to_image_distance(10, 10)
     assert dw > 0
     assert dh > 0
+
+
+def test_to_widget_coords_without_offset() -> None:
+    """to_widget_coords treats a missing offset as an unshifted origin.
+
+    A pixbuf set before the first real allocation leaves the offset unset;
+    the conversion must not crash (it used to dereference None).
+    """
+    view = ImageView()
+    assert view.get_offset() is None, "precondition: no offset"
+
+    wx, wy = view.to_widget_coords(30, 40)
+    assert wx == pytest.approx(30 / view.get_scale_factor()), "x unshifted"
+    assert wy == pytest.approx(40 / view.get_scale_factor()), "y unshifted"
+
+    # Round-trips through to_image_coords, which yields (None, None) without
+    # an offset rather than inventing one.
+    assert view.to_image_coords(wx, wy) == (None, None)
 
 
 def test_imageview_zoom_to_selection(rose_png: str) -> None:
@@ -1238,3 +1258,82 @@ def test_scroll_toggles_interacting_and_idle_returns(
     assert view._scroll_idle() == GLib.SOURCE_REMOVE
     assert view.get_interacting() is False
     queue.assert_called_once()
+
+
+def test_pixbuf_set_before_allocation_fits_on_allocate(
+    rose_png: str,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """A pixbuf set while unallocated is fitted at the first real allocation."""
+    view = ImageView()
+    win = Gtk.Window()
+    win.set_default_size(400, 300)
+    win.set_child(view)
+
+    # The window is not presented yet, so the view has no usable allocation
+    # and the fit is deferred.
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=True)
+    assert view.get_offset() is None, "no offset while unallocated"
+    assert view.getzoom_is_fit(), "zoom-to-fit still pending"
+
+    loop = mainloop_with_timeout()
+
+    def poll() -> bool:
+        allocation = view.get_allocation()
+        if allocation.width > 0 and allocation.height > 0:
+            loop.quit()
+            return cast("bool", GLib.SOURCE_REMOVE)
+        return cast("bool", GLib.SOURCE_CONTINUE)
+
+    # Before the window is presented the poll must keep polling rather than
+    # end the loop.
+    assert poll() == GLib.SOURCE_CONTINUE
+
+    GLib.timeout_add(10, poll)
+    GLib.timeout_add(2000, loop.quit)
+    win.present()
+    loop.run()
+    allocation = Gdk.Rectangle()
+    allocation.x, allocation.y = view.get_allocation().x, view.get_allocation().y
+    allocation.width, allocation.height = (
+        view.get_allocation().width,
+        view.get_allocation().height,
+    )
+    win.destroy()
+
+    assert allocation.width > 0, "allocated width"
+    assert allocation.height > 0, "allocated height"
+    assert view.get_offset() is not None, "offset computed on first allocation"
+    expected = (
+        min(allocation.width / 70, allocation.height / 46) * view.get_scale_factor()
+    )
+    assert view.get_zoom() == pytest.approx(expected, rel=0.01), "fit zoom"
+
+
+def test_do_size_allocate_refits_when_fit(rose_png: str) -> None:
+    """The size-allocate vfunc re-fits the page when zoom-to-fit is active."""
+    view = ImageView()
+    view.set_cursor = MagicMock()
+    _mock_allocation(view, 400, 300)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=True)
+    assert view.get_zoom() == pytest.approx(400 / 70, rel=0.01), "initial fit"
+
+    # Simulate a resize: the allocation now reports a wider widget.
+    _mock_allocation(view, 800, 300)
+    view.do_size_allocate(800, 300, -1)
+    assert view.get_zoom() == pytest.approx(min(800 / 70, 300 / 46), rel=0.01), (
+        "re-fit on allocate"
+    )
+
+
+def test_do_size_allocate_keeps_manual_zoom(rose_png: str) -> None:
+    """The size-allocate vfunc leaves a manual zoom alone."""
+    view = ImageView()
+    view.set_cursor = MagicMock()
+    _mock_allocation(view, 400, 300)
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=True)
+    view.set_zoom(2.0)
+
+    _mock_allocation(view, 800, 300)
+    view.do_size_allocate(800, 300, -1)
+    assert view.get_zoom() == 2.0, "manual zoom preserved"

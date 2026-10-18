@@ -189,6 +189,7 @@ class ApplicationWindow(
         self._windowp = None
         self._hpaned = self.builder.get_object("hpaned")
         self._vpaned = self.builder.get_object("vpaned")
+        self._vpaned_initialised = False
         self._vnotebook = self.builder.get_object("vnotebook")
         self._hpanei = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
         self._vpanei = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
@@ -599,6 +600,15 @@ class ApplicationWindow(
                 Gtk.Orientation.VERTICAL,
                 self.settings.get("split panel v"),
             )
+
+        # The outer pane collapses to child1's minimum request (the tab
+        # header or the paned handle) unless given an explicit position:
+        # a bare DrawingArea requests a 0x0 minimum, so the image view
+        # would end up a 0-1px sliver. Apply the default once per process,
+        # so view-mode switches keep the user's adjustment.
+        if not self._vpaned_initialised:
+            self._vpaned_initialised = True
+            self._init_split_pane(self._vpaned, Gtk.Orientation.VERTICAL, None)
 
     def _connect_popover_signals(self) -> None:
         detail = {

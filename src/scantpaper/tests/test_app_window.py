@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from typing import ClassVar
 
     from scantpaper.imageview import ImageView
+    from scantpaper.loop_helpers import _MainLoopWrapper
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
@@ -1657,3 +1658,94 @@ def test_populate_panes_tool_selection(
         mock_selector_dragger.assert_called()
 
     _create_test_app(assert_selector_dragger)
+
+
+@pytest.mark.parametrize("viewer_tools", ["tabbed", "horizontal", "vertical"])
+def test_image_view_allocated_at_startup(
+    mocker: pytest.MockerFixture,
+    tmp_path: pathlib.Path,
+    viewer_tools: str,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """The image area is allocated a usable share at startup in every mode.
+
+    Regression test for the GTK4 migration: a bare DrawingArea requests a
+    0x0 minimum, and a GtkPaned without an explicit position defaults its
+    divider to child1's minimum request, collapsing the image view to a
+    zero-height sliver.
+    """
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+
+    mocker.patch("scantpaper.app_window.Unpaper")
+    mocker.patch("scantpaper.layer.Canvas", MockCanvas)
+    mocker.patch("scantpaper.app_window.sane.init")
+    mocker.patch("scantpaper.app_window.recursive_slurp")
+    mocker.patch("scantpaper.app_window.SessionMixins._find_crashed_sessions")
+    mocker.patch("scantpaper.app_window.MultipleMessage")
+    mocker.patch("scantpaper.app_window.shutil.disk_usage").return_value.free = (
+        1000 * 1024 * 1024
+    )
+    mocker.patch.object(ApplicationWindow, "_check_dependencies", autospec=True)
+    mocker.patch.object(
+        ApplicationWindow,
+        "_create_temp_directory",
+        side_effect=_make_create_temp_func(session_dir),
+        autospec=True,
+    )
+    mock_config = mocker.patch("scantpaper.app_window.config")
+    mock_config.read_config.return_value = {
+        "restore window": False,
+        "window_width": 800,
+        "window_height": 600,
+        "window_x": 0,
+        "window_y": 0,
+        "window_maximize": False,
+        "cwd": "/tmp",
+        "image_control_tool": "selector",
+        "auto-open-scan-dialog": False,
+        "unpaper options": {},
+        "Paper": {},
+        "thumb panel": 100,
+        "viewer_tools": viewer_tools,
+        "available-tmp-warning": 100,
+        "message_window_width": 200,
+        "message_window_height": 200,
+        "message": {},
+        "cache-device-list": False,
+        "selection": None,
+    }
+
+    app = Gtk.Application()
+    app.iconpath = "/tmp"
+    app.args = MagicMock(import_files=None, import_all=None)
+    win = None
+    try:
+        with patch.object(Gtk.Application, "register", autospec=True):
+            app.register(None)
+            win = ApplicationWindow(application=app)
+        win.set_default_size(800, 600)
+        win.present()
+
+        loop = mainloop_with_timeout()
+
+        def poll() -> bool:
+            # Wait for the paned default positions to settle: a usable share,
+            # well above the 0-1px collapse (the paned handle itself gives a
+            # 1px sliver) that motivated this regression test.
+            if win.view.get_allocation().height > 100:
+                loop.quit()
+                return cast("bool", GLib.SOURCE_REMOVE)
+            return cast("bool", GLib.SOURCE_CONTINUE)
+
+        GLib.timeout_add(10, poll)
+        GLib.timeout_add(2000, loop.quit)
+        loop.run()
+
+        allocation = win.view.get_allocation()
+        assert allocation.width > 0, "image view width allocated"
+        assert allocation.height > 100, "image view height not collapsed"
+    finally:
+        if win:
+            win.destroy()
+        app.quit()
