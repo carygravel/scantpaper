@@ -59,6 +59,19 @@ def _page_content(page: pikepdf.Page) -> bytes:
     return bytes(cast("pikepdf.Stream", contents).read_bytes())
 
 
+def _has_rotated_text_matrix(content: bytes) -> bool:
+    """Return whether a content stream sets a rotated text matrix."""
+    pattern = re.compile(
+        rb"([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)"
+        rb"\s+([-\d.]+)\s+([-\d.]+)\s+Tm"
+    )
+    for match in pattern.finditer(content):
+        _a, b, c, _d, _e, _f = (float(value) for value in match.groups())
+        if abs(b) > 1e-6 or abs(c) > 1e-6:
+            return True
+    return False
+
+
 def _write_large_bilevel(path: str) -> None:
     """Write a page-sized bilevel image with a substantial CCITT stream.
 
@@ -521,6 +534,70 @@ def test_save_pdf_with_hocr(
         page_width, page_height = int(regex.group(1)), int(regex.group(2))
     assert abs(cast("int", page_width) - width) < 2, "imported page width correct"
     assert abs(cast("int", page_height) - height) < 2, "imported page height correct"
+
+
+def test_save_pdf_with_rotated_text_layer(
+    temp_png: object,
+    temp_pdf: object,
+    temp_db: object,
+    tmp_path: pathlib.Path,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+) -> None:
+    """A rotated word is rendered rotated in the saved PDF text layer."""
+    Image.new("L", (200, 120), 255).save(temp_png.name)
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_png.name])
+    page_id = cast("str", slist.data[0][2])
+
+    horizontal = (
+        '[{"type": "page", "bbox": [0, 0, 200, 120], "depth": 0}, '
+        '{"type": "carea", "bbox": [10, 10, 190, 110], "depth": 1}, '
+        '{"type": "para", "bbox": [10, 10, 190, 110], "depth": 2}, '
+        '{"type": "line", "bbox": [20, 30, 100, 60], "depth": 3}, '
+        '{"type": "word", "bbox": [20, 30, 100, 60], "text": "FLAT", '
+        '"depth": 4}]'
+    )
+    set_text_in_mainloop(slist, page_id, horizontal)
+    horizontal_pdf = tmp_path / "horizontal.pdf"
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=str(horizontal_pdf),
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    with pikepdf.open(horizontal_pdf) as pdf:
+        content = _page_content(pdf.pages[0])
+    assert not _has_rotated_text_matrix(content), "horizontal control is unrotated"
+
+    rotated = (
+        '[{"type": "page", "bbox": [0, 0, 200, 120], "depth": 0}, '
+        '{"type": "carea", "bbox": [10, 10, 190, 110], "depth": 1}, '
+        '{"type": "para", "bbox": [10, 10, 190, 110], "depth": 2}, '
+        '{"type": "line", "bbox": [20, 30, 100, 60], "depth": 3}, '
+        '{"type": "word", "bbox": [20, 30, 100, 60], "text": "FLAT", '
+        '"depth": 4}, '
+        '{"type": "word", "bbox": [120, 10, 160, 100], "text": "UP", '
+        '"textangle": 90, "depth": 1}]'
+    )
+    set_text_in_mainloop(slist, page_id, rotated)
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        content = _page_content(pdf.pages[0])
+    assert _has_rotated_text_matrix(content), "rotated word has a rotated text matrix"
+
+    extracted = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
+    assert "FLAT" in extracted, "horizontal text remains extractable"
+    assert "UP" in extracted, "rotated text remains extractable"
 
 
 @pytest.mark.xfail(

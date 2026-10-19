@@ -3,7 +3,7 @@ name = "scantpaper"
 version = "3.0.24"
 dependencies = [
   "img2pdf",
-  "ocrmypdf>=15.4.3",
+  "ocrmypdf>=16.10.0",
   "pikepdf",
   "pycairo",
   "PyGObject",

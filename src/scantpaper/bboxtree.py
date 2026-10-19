@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 
 DOUBLE_QUOTES = '"'
 BBOX_REGEX = r"(\d+)\s+(\d+)\s+(\d+)\s+(\d+)"
+LINE_LIKE_TYPES = ("line", "header", "footer", "caption")
 HILITE_REGEX = r"[(]hilite\s+[#][A-Fa-f\d]{6}[)]\s+[(]xor[)]"
 CLASS_NAME_PARTS = 2
 HOCR_HEADER = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -692,10 +693,76 @@ def _hocr_with_containers(bboxes: list[BBox]) -> list[BBox]:
         stack.append(node)
 
     _ensure_hocr_containers(root)
+    _normalise_textangles(root)
     result: list[BBox] = []
     for child in root["contents"]:
         _flatten_nested(child, result)
     return result
+
+
+def _normalise_textangles(node: BBox, inherited_angle: int = 0) -> list[BBox]:
+    """Move effective text angles onto line-like containers.
+
+    OCRmyPDF reads ``textangle`` only from line-level elements.  Fold each
+    word's own angle and its inherited angles into the enclosing line, clear
+    the angle from the word and non-line ancestors, and split a line whose
+    words have different effective angles into one line per angle.
+    """
+    own_angle = node.get("textangle", 0)
+    effective_angle = (inherited_angle + own_angle) % 360
+
+    if node["type"] in LINE_LIKE_TYPES:
+        return _normalise_line(node, inherited_angle)
+
+    node.pop("textangle", None)
+    normalised: list[BBox] = []
+    for child in node.get("contents", []):
+        normalised.extend(_normalise_textangles(child, effective_angle))
+    node["contents"] = normalised
+    return [node]
+
+
+def _normalise_line(node: BBox, inherited_angle: int) -> list[BBox]:
+    """Normalise one line-like node, splitting it by effective word angle."""
+    line_angle = (inherited_angle + node.get("textangle", 0)) % 360
+    had_textangle = "textangle" in node
+    node.pop("textangle", None)
+    children = node.get("contents", [])
+    words = [child for child in children if child["type"] == "word"]
+
+    if not words:
+        _set_textangle(node, line_angle, keep_zero=had_textangle)
+        return [node]
+
+    groups: dict[int, list[BBox]] = {}
+    for word in words:
+        angle = (line_angle + word.get("textangle", 0)) % 360
+        word.pop("textangle", None)
+        groups.setdefault(angle, []).append(word)
+
+    if len(groups) == 1:
+        angle = next(iter(groups))
+        node["contents"] = words
+        _set_textangle(node, angle, keep_zero=had_textangle)
+        return [node]
+
+    metadata_angle = line_angle if line_angle in groups else next(iter(groups))
+    lines: list[BBox] = []
+    for angle, group in groups.items():
+        line = node if angle == metadata_angle else {"type": "line"}
+        line["contents"] = group
+        line["bbox"] = _union_bbox(group)
+        _set_textangle(line, angle, keep_zero=had_textangle and angle == metadata_angle)
+        lines.append(line)
+    return lines
+
+
+def _set_textangle(node: BBox, angle: int, *, keep_zero: bool = False) -> None:
+    """Write an angle to a node, preserving an explicit zero when requested."""
+    if angle or keep_zero:
+        node["textangle"] = angle
+    else:
+        node.pop("textangle", None)
 
 
 def _ensure_hocr_containers(node: BBox) -> None:

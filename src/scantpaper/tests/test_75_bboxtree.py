@@ -136,8 +136,10 @@ HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
   <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
    <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
     <p class='ocr_par' title='bbox 1 14 420 59'>
-     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59; baseline -0.003 -17'>
-      <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; textangle 90; x_wconf -3'>The</span>
+     <span class='ocr_line' title='bbox 1 14 77 48; textangle 90'>
+      <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
+     </span>
+     <span class='ocr_line' id='line_1_1' title='bbox 92 14 420 59; baseline -0.003 -17'>
       <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
       <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
       <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
@@ -1113,3 +1115,155 @@ def test_to_hocr_manual_word_under_carea_and_bare_line() -> None:
     assert hocr.count("class='ocr_par'") == 2, "OCR para plus synthetic para"
     assert ">baredline<" in hocr, "bare line's word present"
     assert hocr.count("class='ocrx_word'") == 2, "both words survive"
+
+
+def test_to_hocr_rotated_bare_word_moves_angle_to_synthetic_line() -> None:
+    """A bare rotated word exports with the angle on its generated line."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 200, 200]},
+        {
+            "type": "word",
+            "depth": 1,
+            "bbox": [20, 20, 60, 180],
+            "text": "rotated",
+            "textangle": 90,
+        },
+    ]
+
+    exported = Bboxtree()
+    exported.from_hocr(tree.to_hocr())
+    boxes = list(exported.each_bbox())
+    lines = [box for box in boxes if box["type"] == "line"]
+    words = [box for box in boxes if box["type"] == "word"]
+
+    assert len(lines) == 1, "the synthetic line is the only line"
+    assert lines[0]["textangle"] == 90, "the line carries the word's angle"
+    assert len(words) == 1, "the word survives"
+    assert "textangle" not in words[0], "the word no longer carries an angle"
+
+
+def test_to_hocr_mixed_angle_line_is_split_by_angle() -> None:
+    """Words with different angles are split into correctly angled lines."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 400, 200]},
+        {"type": "carea", "depth": 1, "bbox": [5, 5, 395, 195]},
+        {"type": "para", "depth": 2, "bbox": [10, 10, 390, 190]},
+        {
+            "type": "line",
+            "depth": 3,
+            "bbox": [10, 10, 390, 100],
+            "id": "line_1",
+            "baseline": [0, -10],
+        },
+        {"type": "word", "depth": 4, "bbox": [15, 20, 100, 60], "text": "flat"},
+        {
+            "type": "word",
+            "depth": 4,
+            "bbox": [120, 10, 160, 100],
+            "text": "tall",
+            "textangle": 90,
+        },
+        {"type": "word", "depth": 4, "bbox": [170, 20, 250, 60], "text": "flat2"},
+    ]
+
+    exported = Bboxtree()
+    exported.from_hocr(tree.to_hocr())
+    boxes = list(exported.each_bbox())
+    lines = [box for box in boxes if box["type"] == "line"]
+    words = [box for box in boxes if box["type"] == "word"]
+
+    assert len(lines) == 2, "the mixed-angle line is split in two"
+    horizontal = next(line for line in lines if line.get("textangle", 0) == 0)
+    vertical = next(line for line in lines if line.get("textangle") == 90)
+    assert horizontal["bbox"] == [15, 20, 250, 60], "horizontal union bbox"
+    assert horizontal["id"] == "line_1", "original metadata stays with its angle"
+    assert vertical["bbox"] == [120, 10, 160, 100], "vertical union bbox"
+    assert "id" not in vertical, "the extra line gets no duplicate id"
+    assert all("textangle" not in word for word in words), "word angles cleared"
+    assert [word["text"] for word in words if word["bbox"][1] == 20] == [
+        "flat",
+        "flat2",
+    ], "words keep their order within the horizontal group"
+    assert [word["text"] for word in words if word["bbox"][1] == 10] == ["tall"], (
+        "the vertical word is in its own line"
+    )
+
+
+def test_to_hocr_ancestor_angle_lands_on_line_once() -> None:
+    """An ancestor rotation is folded onto the line and cleared from ancestors."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 300, 300], "textangle": 90},
+        {"type": "carea", "depth": 1, "bbox": [10, 10, 290, 290]},
+        {"type": "para", "depth": 2, "bbox": [20, 20, 280, 280]},
+        {"type": "line", "depth": 3, "bbox": [30, 30, 270, 80]},
+        {"type": "word", "depth": 4, "bbox": [40, 40, 120, 70], "text": "one"},
+        {"type": "word", "depth": 4, "bbox": [130, 40, 260, 70], "text": "two"},
+    ]
+
+    hocr = tree.to_hocr()
+    exported = Bboxtree()
+    exported.from_hocr(hocr)
+    boxes = list(exported.each_bbox())
+    lines = [box for box in boxes if box["type"] == "line"]
+    words = [box for box in boxes if box["type"] == "word"]
+
+    assert hocr.count("textangle") == 1, "the angle is written exactly once"
+    assert len(lines) == 1, "one line"
+    assert lines[0]["textangle"] == 90, "the line carries the inherited angle"
+    assert all("textangle" not in word for word in words), "words inherit no angle"
+    assert "textangle" not in boxes[0], "the page angle is cleared"
+
+
+def test_to_hocr_line_angle_is_not_doubled() -> None:
+    """A word inheriting its line's angle stays in that line without duplication."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 300, 300]},
+        {"type": "carea", "depth": 1, "bbox": [10, 10, 290, 290]},
+        {"type": "para", "depth": 2, "bbox": [20, 20, 280, 280]},
+        {
+            "type": "line",
+            "depth": 3,
+            "bbox": [100, 30, 150, 270],
+            "id": "line_1",
+            "textangle": 90,
+        },
+        {"type": "word", "depth": 4, "bbox": [110, 40, 140, 120], "text": "one"},
+        {"type": "word", "depth": 4, "bbox": [110, 130, 140, 260], "text": "two"},
+    ]
+
+    exported = Bboxtree()
+    exported.from_hocr(tree.to_hocr())
+    boxes = list(exported.each_bbox())
+    lines = [box for box in boxes if box["type"] == "line"]
+    words = [box for box in boxes if box["type"] == "word"]
+
+    assert len(lines) == 1, "no extra line is created"
+    assert lines[0]["textangle"] == 90, "the line angle is applied once"
+    assert len(words) == 2, "both words stay in the line"
+    assert all("textangle" not in word for word in words), "word angles cleared"
+
+
+def test_to_hocr_line_without_words_keeps_effective_angle() -> None:
+    """A textual line without word children still receives inherited angles."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 300, 300], "textangle": 90},
+        {
+            "type": "line",
+            "depth": 1,
+            "bbox": [30, 30, 270, 80],
+            "text": "caption",
+        },
+    ]
+
+    exported = Bboxtree()
+    exported.from_hocr(tree.to_hocr())
+    lines = [box for box in exported.each_bbox() if box["type"] == "line"]
+
+    assert len(lines) == 1, "one line"
+    assert lines[0]["textangle"] == 90, "the inherited angle is retained"
+    assert lines[0]["text"] == "caption", "line text is unchanged"

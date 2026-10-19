@@ -1,8 +1,6 @@
 ## 4.0.0 (unreleased)
 
 * Migrated Gtk3->4
-* Fixed the page thumbnails rendering at a fraction of their intended size
-  (about 24x15 instead of up to 100px) since the GTK4 migration.
 * User-defined tools can now process all selected pages in a single
   invocation: tick "Process selected pages at once" in the user-defined tools
   dialog and `%i` expands to every page's working file, space-separated, so a
@@ -11,7 +9,7 @@
   replaced, and the whole batch is a single undo step (one Undo restores every
   page). `%o` and `%r` are not available in batch mode, so a tool that uses
   them still runs one page at a time.
-* Saving a PDF with the "JBIG2" compression option now encodes grayscale and
+* Saving a PDF with the "JBIG2" compression option now encodes greyscale and
   colour pages with JBIG2 as well, by thresholding them to black-and-white
   first, exactly as the "G4" option does. Previously such pages were silently
   embedded as JPEG, so a JBIG2 save of a non-black-and-white document could
@@ -27,6 +25,11 @@
   warning is logged. Previously the pages stayed grayscale, so saving
   with "Automatic" PDF compression embedded them as JPEG instead of
   Group 4 or JBIG2.
+* Rotated text slices are now rendered at their angle in saved PDFs. The
+  effective angle is written to the OCR line that OCRmyPDF reads, mixed-angle
+  lines are split, and manually added vertical words no longer spill down the
+  page as oversized horizontal text. The minimum OCRmyPDF version is now
+  16.10.0, the first release that honours the hOCR text angle.
 
 
 ## 3.0.24 (2026-10-17)

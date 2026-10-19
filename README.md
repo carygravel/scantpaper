@@ -299,9 +299,11 @@ you explicitly turn the toggle off.
    rotated inherit that rotation. A slice added without an inherited rotation
    is oriented automatically: a tall, narrow selection becomes vertical text
    and a wide, short one stays upright, so a drawn box for a vertical column
-   renders legibly instead of as shrunken horizontal text. Page pixels are fed
-   to tesseract in memory and the stored image is reused, so OCR is faster than
-   in previous versions.
+   renders legibly instead of as shrunken horizontal text. Rotated slices are
+   embedded at their angle in saved PDFs. Re-importing a PDF cannot recover
+   that rotation, because the imported text layer carries positions but not
+   text direction. Page pixels are fed to tesseract in memory and the stored
+   image is reused, so OCR is faster than in previous versions.
 - **User-defined:** Run user-defined commands.
 
 #### User-defined Tool Variables
