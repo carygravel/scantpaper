@@ -228,6 +228,13 @@ you explicitly turn the toggle off.
   full-page view is easy to assess; a faster rendering is used only while you
   are panning or zooming, for smooth interaction.
 - Rotate: 90° clockwise, 180°, and 90° anticlockwise.
+- Layer editing: choose **Edit text layer** or **Edit annotations** to work on
+  that layer. In the tabbed view the selected tab decides which layer is shown,
+  and its control bar appears below the image only while that tab is open (on
+  the Image tab neither layer is selected and no control bar is shown). In a
+  split view the chosen layer is displayed beside the image, so the annotation
+  layer can be corrected next to the scan as well as the text layer. The layer
+  you were last editing is remembered when you restart.
 
 ### Keyboard Shortcuts
 

@@ -708,3 +708,37 @@ def test_alternate_rotation_defaults_off_and_round_trips() -> None:
         assert persisted["alternate rotation"] is True, (
             "the enabled toggle is written back"
         )
+
+
+def test_editmode_defaults_to_text_and_round_trips() -> None:
+    """The active layer defaults to the text layer and persists on write."""
+    assert DEFAULTS["editmode"] == "text", "defaults to the text layer"
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text("{}", encoding="utf-8")
+
+        output = read_config(str(rc))
+        assert "editmode" not in output, "the raw config does not invent the key"
+        add_defaults(output)
+        assert output["editmode"] == "text", "add_defaults fills the default"
+
+        output["editmode"] = "annotation"
+        write_config(str(rc), cast("dict[str, object]", cast("object", output)))
+        persisted = json.loads(slurp(rc))
+        assert persisted["editmode"] == "annotation", "the active layer is written"
+
+        restored = read_config(str(rc))
+        assert restored["editmode"] == "annotation", "and read back on the next launch"
+
+
+def test_unrecognised_editmode_resets_to_default() -> None:
+    """An unknown active layer is reset to the text layer."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"editmode": "sideways"}', encoding="utf-8")
+
+        output = read_config(str(rc))
+
+        assert output["editmode"] == "text", "an unknown layer falls back to text"
+        assert not output.load_warnings, "the reset value raises no user warning"

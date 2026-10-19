@@ -460,14 +460,9 @@ class SessionMixins:
     def _edit_mode_callback(
         self, action: Gio.SimpleAction, parameter: GLib.Variant
     ) -> None:
-        """Show/hide the edit tools."""
+        """Show the requested layer's editor."""
         action.set_state(parameter)
-        if parameter.get_string() == "text":
-            self._text_editor.set_active(active=True)
-            self._ann_editor.set_active(active=False)
-            return
-        self._text_editor.set_active(active=False)
-        self._ann_editor.set_active(active=True)
+        self._set_active_layer(parameter.get_string())
 
     def zoom_100(self, _action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
         """Set the zoom level of the view to 100%."""

@@ -26,6 +26,7 @@ DEFAULTS = {
     "split panel h": None,
     "split panel v": None,
     "viewer_tools": "tabbed",
+    "editmode": "text",
     "image_control_tool": SELECTORDRAGGER_TOOL,
     "scan_window_width": None,
     "scan_window_height": None,
@@ -351,6 +352,7 @@ def _deserialise_and_migrate(config: ConfigDict) -> None:
         )
 
     _remove_legacy_int_tools(config)
+    _normalise_editmode(config)
     _migrate_threshold_tool(config)
     _migrate_pdf_compression(config)
 
@@ -405,6 +407,17 @@ def _remove_legacy_int_tools(config: ConfigDict) -> None:
     for k in "image_control_tool", "viewer_tools":
         if k in config and isinstance(config[k], int):
             del config[k]
+
+
+def _normalise_editmode(config: ConfigDict) -> None:
+    """Reset an unrecognised active-layer setting to the default."""
+    if "editmode" in config and config["editmode"] not in ("text", "annotation"):
+        logger.info(
+            "The setting editmode is %r and has been reset to %r.",
+            config["editmode"],
+            DEFAULTS["editmode"],
+        )
+        config["editmode"] = DEFAULTS["editmode"]
 
 
 def _migrate_null_image_type(config: ConfigDict) -> None:

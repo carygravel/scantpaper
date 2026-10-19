@@ -1297,6 +1297,183 @@ def test_pack_viewer_tools_split_attaches_on_startup(
     assert app_window._vnotebook.get_parent() is None
 
 
+def test_switch_split_orientation_moves_children(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """Switching split orientation re-docks the children without a stale parent."""
+    mocker.stopall()
+    app_window._vpaned = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
+    app_window._vnotebook = Gtk.Notebook()
+    app_window._hpanei = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
+    app_window._vpanei = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
+    app_window.view = Gtk.Box()
+    app_window.t_canvas = Gtk.Box()
+    app_window.a_canvas = Gtk.Box()
+    app_window._init_split_pane = MagicMock()
+    app_window._active_layer = "text"
+
+    app_window.settings["viewer_tools"] = "horizontal"
+    app_window._pack_viewer_tools()
+    assert app_window._hpanei.get_start_child() is app_window.view
+
+    app_window.settings["viewer_tools"] = "vertical"
+    app_window._pack_viewer_tools()
+    assert app_window._vpanei.get_start_child() is app_window.view
+    assert app_window._hpanei.get_start_child() is None
+
+
+def test_startup_tabbed_defaults_to_text(
+    app_window: ApplicationWindow,
+) -> None:
+    """A fresh startup selects the text layer for the View menu.
+
+    The tabbed view opens on the image page; the bar stays hidden there, which
+    the real-layout test below covers. Here the mocked notebook has no real
+    current page, so only the selection is asserted.
+    """
+    assert app_window._active_layer == "text"
+    assert app_window._actions["editmode"].get_state().get_string() == "text"
+    app_window._vnotebook.set_current_page.assert_not_called()
+
+
+def test_startup_split_shows_persisted_layer(
+    app_window: ApplicationWindow,
+) -> None:
+    """A split view shows the persisted layer's bar and canvas immediately."""
+    app_window.settings["viewer_tools"] = "vertical"
+    app_window.settings["editmode"] = "annotation"
+    app_window._active_layer = None
+
+    app_window._set_active_layer(app_window._active_layer_for_split())
+
+    assert app_window._active_layer == "annotation"
+    assert app_window._ann_editor.controls.get_visible()
+    assert not app_window._text_editor.controls.get_visible()
+    assert app_window._vpanei.get_end_child() is app_window.a_canvas
+
+
+def test_set_active_layer_selects_tab_and_shows_bar(
+    app_window: ApplicationWindow,
+) -> None:
+    """Selecting a layer in tabbed mode selects its page and shows its bar."""
+    app_window.settings["viewer_tools"] = "tabbed"
+    app_window._vnotebook = MagicMock()
+
+    app_window._set_active_layer("annotation")
+
+    app_window._vnotebook.set_current_page.assert_called_with(2)
+    assert app_window._ann_editor.controls.get_visible()
+    assert not app_window._text_editor.controls.get_visible()
+    assert app_window.settings["editmode"] == "annotation"
+    assert app_window._actions["editmode"].get_state().get_string() == "annotation"
+
+
+def test_switch_page_follows_the_active_layer(
+    app_window: ApplicationWindow,
+) -> None:
+    """A tab change selects its layer; the image tab hides the bar but keeps it."""
+    app_window.settings["viewer_tools"] = "tabbed"
+    app_window._in_edit_mode_change = False
+
+    app_window._on_switch_page(None, None, 1)
+    assert app_window._active_layer == "text"
+    assert app_window._text_editor.controls.get_visible()
+
+    app_window._on_switch_page(None, None, 2)
+    assert app_window._active_layer == "annotation"
+    assert app_window._ann_editor.controls.get_visible()
+
+    app_window._on_switch_page(None, None, 0)
+    assert app_window._active_layer == "annotation"
+    assert not app_window._text_editor.controls.get_visible()
+    assert not app_window._ann_editor.controls.get_visible()
+    assert app_window._actions["editmode"].get_state().get_string() == "annotation"
+
+
+def test_switch_page_ignored_while_syncing(
+    app_window: ApplicationWindow,
+) -> None:
+    """The re-entry guard stops a programmatic page change recursing."""
+    app_window.settings["viewer_tools"] = "tabbed"
+    app_window._active_layer = "annotation"
+    app_window._in_edit_mode_change = True
+
+    app_window._on_switch_page(None, None, 0)
+
+    assert app_window._active_layer == "annotation"
+
+
+def test_change_view_to_split_shows_active_layer_canvas(
+    app_window: ApplicationWindow,
+) -> None:
+    """Entering a split view packs the active layer's canvas beside the image."""
+    app_window.settings["viewer_tools"] = "tabbed"
+    app_window._active_layer = "annotation"
+    app_window._in_edit_mode_change = False
+
+    app_window._change_view_cb(
+        app_window._actions["viewtype"], GLib.Variant("s", "horizontal")
+    )
+
+    assert app_window.settings["viewer_tools"] == "horizontal"
+    assert app_window._hpanei.get_start_child() is app_window.view
+    assert app_window._hpanei.get_end_child() is app_window.a_canvas
+    assert app_window._ann_editor.controls.get_visible()
+
+
+def test_change_view_from_image_tab_falls_back_to_last_layer(
+    app_window: ApplicationWindow,
+) -> None:
+    """Entering a split from the image tab uses the last active layer."""
+    app_window.settings["viewer_tools"] = "tabbed"
+    app_window.settings["editmode"] = "annotation"
+    app_window._active_layer = None
+    app_window._in_edit_mode_change = False
+
+    app_window._change_view_cb(
+        app_window._actions["viewtype"], GLib.Variant("s", "vertical")
+    )
+
+    assert app_window._active_layer == "annotation"
+    assert app_window._vpanei.get_end_child() is app_window.a_canvas
+
+
+def test_change_view_to_tabbed_lands_on_active_layer_page(
+    app_window: ApplicationWindow,
+) -> None:
+    """Leaving a split view selects the tab matching the active layer."""
+    app_window.settings["viewer_tools"] = "vertical"
+    app_window._active_layer = "annotation"
+    app_window._vnotebook = MagicMock()
+    app_window._in_edit_mode_change = False
+
+    app_window._change_view_cb(
+        app_window._actions["viewtype"], GLib.Variant("s", "tabbed")
+    )
+
+    app_window._vnotebook.set_current_page.assert_called_with(2)
+    assert app_window._ann_editor.controls.get_visible()
+
+
+def test_pack_viewer_tools_uses_active_canvas(
+    app_window: ApplicationWindow,
+) -> None:
+    """A split pane packs the active layer's canvas, not always the text one."""
+    app_window._vnotebook = MagicMock()
+    app_window._hpanei = MagicMock()
+    app_window._vpanei = MagicMock()
+    app_window._vpaned = MagicMock()
+    app_window.view = MagicMock()
+    app_window.t_canvas = MagicMock()
+    app_window.a_canvas = MagicMock()
+    app_window._init_split_pane = MagicMock()
+
+    app_window._active_layer = "annotation"
+    app_window.settings["viewer_tools"] = "horizontal"
+    app_window._pack_viewer_tools()
+    app_window._hpanei.set_end_child.assert_called_with(app_window.a_canvas)
+
+
 def _measure_minimum(widget: MagicMock, minimum: int) -> None:
     """Make widget.measure() report the given minimum size."""
     result = MagicMock()
@@ -1388,6 +1565,25 @@ def test_init_split_pane_default_half_horizontal(
     assert callback(pane, MagicMock()) is False
 
     pane.set_position.assert_called_once_with(450)
+
+
+def test_init_split_pane_end_at_minimum(app_window: ApplicationWindow) -> None:
+    """The outer pane pins its end child (the edit bar) to its minimum height."""
+    pane = MagicMock()
+    pane.get_height.return_value = 600
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 0)
+    _measure_minimum(pane.get_end_child.return_value, 40)
+    app_window._init_split_pane(
+        pane, Gtk.Orientation.VERTICAL, None, end_at_minimum=True
+    )
+    assert pane.add_tick_callback.call_count == 1
+
+    callback = pane.add_tick_callback.call_args.args[0]
+    assert callback(pane, MagicMock()) is False
+
+    # high = 600 - 1 - 40 = 559, so the bar keeps its 40px minimum.
+    pane.set_position.assert_called_once_with(559)
 
 
 def test_init_split_pane_waits_for_allocation(app_window: ApplicationWindow) -> None:
@@ -1832,6 +2028,28 @@ def test_image_view_allocated_at_startup(
         allocation = win.view.get_allocation()
         assert allocation.width > 0, "image view width allocated"
         assert allocation.height > 100, "image view height not collapsed"
+    finally:
+        win.destroy()
+        app.quit()
+
+
+def test_startup_tabbed_hides_bar_on_image_page(
+    mocker: pytest.MockerFixture,
+    tmp_path: pathlib.Path,
+) -> None:
+    """The text layer is selected at startup, but its bar waits for its canvas.
+
+    The window opens on the Image page, which shows the bare scan, so the edit
+    bar is hidden there even though the View menu selects the text layer. This
+    mirrors what selecting the Image tab does at runtime.
+    """
+    app, win = _real_layout_window(mocker, tmp_path, "tabbed")
+    try:
+        assert win._vnotebook.get_current_page() == 0
+        assert win._active_layer == "text"
+        assert win._actions["editmode"].get_state().get_string() == "text"
+        assert not win._text_editor.controls.get_visible()
+        assert not win._ann_editor.controls.get_visible()
     finally:
         win.destroy()
         app.quit()

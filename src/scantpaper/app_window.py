@@ -59,6 +59,14 @@ logger = logging.getLogger(__name__)
 GLib.set_application_name(PROG_NAME)
 GLib.set_prgname("com.github.scantpaper")
 
+# Notebook page indices, in the order _pack_viewer_tools appends them.
+_IMAGE_PAGE = 0
+_TEXT_PAGE = 1
+_ANNOTATION_PAGE = 2
+
+# The layers that can be active; the image-only tab is represented by None.
+_EDIT_LAYERS = ("text", "annotation")
+
 
 def _attach_thumbnail_css() -> None:
     """Pin the paint size of the thumbnail pixbufs to the generated size.
@@ -151,6 +159,8 @@ class ApplicationWindow(
     _ann_editor = None  # LayerEditor for the annotation layer
     t_canvas = None  # Canvas for text layer (alias of _text_editor.canvas)
     a_canvas = None  # Canvas for annotation layer (alias of _ann_editor.canvas)
+    _active_layer: str | None = None  # "text" | "annotation" | None (image tab)
+    _in_edit_mode_change = False  # guards tab/action feedback loops
     _lockfd = None
     _pref_udt_cmbx = None
     _scan_udt_cmbx = None
@@ -297,7 +307,9 @@ class ApplicationWindow(
             GLib.Variant("s", self.settings["viewer_tools"]),
         )
         self._actions["editmode"] = Gio.SimpleAction.new_stateful(
-            "editmode", GLib.VariantType("s"), GLib.Variant("s", "text")
+            "editmode",
+            GLib.VariantType("s"),
+            GLib.Variant("s", self._active_layer_setting()),
         )
 
     def _close_request(self, _widget: Gtk.Widget) -> bool:
@@ -398,6 +410,9 @@ class ApplicationWindow(
 
         self._add_text_view_layers()
 
+        # Keep the active layer following the notebook page in tabbed mode.
+        self._vnotebook.connect("switch-page", self._on_switch_page)
+
         # Set up call back for list selection to update detail view
         self.slist.selection_changed_signal = self.slist.get_selection().connect(
             "changed", self._page_selection_changed_callback
@@ -426,9 +441,15 @@ class ApplicationWindow(
         # Child widgets are already shown in Progress.__init__, container starts hidden
         self.post_process_progress.cancel_callback = self._cancel_post_process
 
-        # OCR text editing interface
-        self._text_editor.set_active(active=False)
-        self._ann_editor.set_active(active=False)
+        # Apply the persisted active layer (default text) so the View menu is
+        # correct from the first paint. In tabbed mode the visible page is left
+        # alone (the window opens on the scan), and the control bar only appears
+        # while the layer's own canvas is shown, so it stays hidden here. In a
+        # split view the layer's canvas and bar are shown beside the image.
+        if self.settings["viewer_tools"] == "tabbed":
+            self._apply_active_layer_state(self._active_layer_setting())
+        else:
+            self._set_active_layer(self._active_layer_for_split())
 
         # Open scan dialog in background
         if self.settings["auto-open-scan-dialog"]:
@@ -559,19 +580,29 @@ class ApplicationWindow(
             )
 
     def _init_split_pane(
-        self, pane: Gtk.Paned, orientation: Gtk.Orientation, saved_position: int | None
+        self,
+        pane: Gtk.Paned,
+        orientation: Gtk.Orientation,
+        saved_position: int | None,
+        *,
+        end_at_minimum: bool = False,
     ) -> None:
         """Give a split pane a usable divider position on startup.
 
         A freshly created GtkPaned derives its divider from the children's
         initial size requests, which are empty before any image loads, so it
         can collapse to an edge and hide the image. Restore a saved position,
-        or set a half-split default on the first allocation, so both panes are
-        visible. A saved position is clamped into
+        or set a default on the first allocation, so both panes are visible. A
+        saved position is clamped into
         [handle + child1_min, size - handle - child2_min]: a position saved
         under an older, larger geometry would otherwise fill the whole pane
         and hide a child. (GtkPaned's own minimum request is just the handle
         size, and it overflows rather than clamps a too-large position.)
+
+        The default is a half split, which suits the image/layer panes. For the
+        outer pane that stacks the view above the edit bar, ``end_at_minimum``
+        instead pins the end child (the bar) to its minimum height so it only
+        takes the space it needs.
         """
 
         def measure(widget: Gtk.Widget | None) -> int:
@@ -598,7 +629,10 @@ class ApplicationWindow(
             if size <= 1:
                 # Not allocated yet; keep ticking until the pane has a size.
                 return True
-            position = size // 2 if saved_position is None else int(saved_position)
+            if saved_position is None:
+                position = high if end_at_minimum else size // 2
+            else:
+                position = int(saved_position)
             pane.set_position(max(min(position, high), low))
             # Returning False removes the tick callback.
             return False
@@ -614,6 +648,12 @@ class ApplicationWindow(
         if child1 is not None:
             self._vpaned.set_start_child(None)
         if self.settings["viewer_tools"] == "tabbed":
+            # Returning to the notebook: release the split panes first so the
+            # pages can be re-appended.
+            self._hpanei.set_start_child(None)
+            self._hpanei.set_end_child(None)
+            self._vpanei.set_start_child(None)
+            self._vpanei.set_end_child(None)
             self._vnotebook.append_page(self.view, Gtk.Label(label=_("Image")))
             self._vnotebook.append_page(self.t_canvas, Gtk.Label(label=_("Text layer")))
             self._vnotebook.append_page(
@@ -621,10 +661,7 @@ class ApplicationWindow(
             )
             self._vpaned.set_start_child(self._vnotebook)
         elif self.settings["viewer_tools"] == "horizontal":
-            self._hpanei.set_start_child(self.view)
-            self._hpanei.set_end_child(self.t_canvas)
-            if self.a_canvas.get_parent():
-                self._vnotebook.detach_tab(self.a_canvas)
+            self._dock_view_and_layer(self._hpanei)
             self._vpaned.set_start_child(self._hpanei)
             self._init_split_pane(
                 self._hpanei,
@@ -632,10 +669,7 @@ class ApplicationWindow(
                 self.settings.get("split panel h"),
             )
         else:  # vertical
-            self._vpanei.set_start_child(self.view)
-            self._vpanei.set_end_child(self.t_canvas)
-            if self.a_canvas.get_parent():
-                self._vnotebook.detach_tab(self.a_canvas)
+            self._dock_view_and_layer(self._vpanei)
             self._vpaned.set_start_child(self._vpanei)
             self._init_split_pane(
                 self._vpanei,
@@ -650,7 +684,25 @@ class ApplicationWindow(
         # so view-mode switches keep the user's adjustment.
         if not self._vpaned_initialised:
             self._vpaned_initialised = True
-            self._init_split_pane(self._vpaned, Gtk.Orientation.VERTICAL, None)
+            self._init_split_pane(
+                self._vpaned,
+                Gtk.Orientation.VERTICAL,
+                None,
+                end_at_minimum=True,
+            )
+
+    def _dock_view_and_layer(self, pane: Gtk.Paned) -> None:
+        """Show the image and the active layer's canvas side by side."""
+        # Release both split panes: switching orientation must empty the pane
+        # the children are currently docked in before they can be re-docked.
+        for split in (self._hpanei, self._vpanei):
+            split.set_start_child(None)
+            split.set_end_child(None)
+        for widget in (self.view, self.t_canvas, self.a_canvas):
+            if widget is not None and self._vnotebook.page_num(widget) != -1:
+                self._vnotebook.detach_tab(widget)
+        pane.set_start_child(self.view)
+        pane.set_end_child(self._active_canvas())
 
     def _connect_popover_signals(self) -> None:
         detail = {
@@ -780,28 +832,122 @@ class ApplicationWindow(
         self.settings["image_control_tool"] = value
         self._in_tool_change = False
 
+    def _active_layer_setting(self) -> str:
+        """Return the persisted active layer, defaulting to the text layer."""
+        stored = self.settings.get("editmode")
+        if stored in _EDIT_LAYERS:
+            return cast("str", stored)
+        return "text"
+
+    def _active_layer_for_split(self) -> str:
+        """Return the layer to show beside the image in a split view.
+
+        Falls back to the last layer that was active, so entering a split from
+        the image-only tab keeps the layer the user was working on.
+        """
+        if self._active_layer in _EDIT_LAYERS:
+            return cast("str", self._active_layer)
+        return self._active_layer_setting()
+
+    def _active_canvas(self) -> Gtk.Widget | None:
+        """Return the canvas belonging to the layer shown in a split view."""
+        if self._active_layer_for_split() == "annotation":
+            return self.a_canvas
+        return self.t_canvas
+
+    def _sync_editmode_action(self, mode: str) -> None:
+        """Mirror the active layer onto the editmode action."""
+        action = self._actions["editmode"]
+        if action.get_state().get_string() != mode:
+            action.set_state(GLib.Variant("s", mode))
+
+    def _layer_on_screen(self, page_num: int | None = None) -> bool:
+        """Return whether the active layer's canvas is the one being shown.
+
+        In tabbed mode the Image page shows the unannotated scan, so the layer's
+        control bar is hidden there even though the layer stays selected. The
+        bar reappears when the layer's own page or a split view is show.
+        """
+        if self.settings["viewer_tools"] != "tabbed":
+            return True
+        if page_num is None:
+            page_num = cast("int", self._vnotebook.get_current_page())
+        return page_num != _IMAGE_PAGE
+
+    def _update_layer_visibility(self, page_num: int | None = None) -> None:
+        """Show the active layer's control bar only while its canvas is shown."""
+        layer = self._active_layer if self._layer_on_screen(page_num) else None
+        self._text_editor.set_active(active=layer == "text")
+        self._ann_editor.set_active(active=layer == "annotation")
+
+    def _select_page_for_layer(self, mode: str) -> None:
+        """Select the notebook page representing the given layer."""
+        page = _TEXT_PAGE if mode == "text" else _ANNOTATION_PAGE
+        self._in_edit_mode_change = True
+        self._vnotebook.set_current_page(page)
+        self._in_edit_mode_change = False
+
+    def _apply_active_layer_state(self, mode: str, page_num: int | None = None) -> None:
+        """Record mode as the active layer and update its editor."""
+        self._active_layer = mode
+        self.settings["editmode"] = mode
+        self._sync_editmode_action(mode)
+        self._update_layer_visibility(page_num)
+
+    def _set_active_layer(self, mode: str) -> None:
+        """Make mode the active layer and show its editor everywhere.
+
+        In tabbed mode the matching page is selected; in a split view the pane
+        is repacked so the layer's canvas is the one shown beside the image.
+        """
+        self._active_layer = mode
+        self.settings["editmode"] = mode
+        self._sync_editmode_action(mode)
+        if self.settings["viewer_tools"] == "tabbed":
+            self._select_page_for_layer(mode)
+        else:
+            self._pack_viewer_tools()
+        self._update_layer_visibility()
+
+    def _on_switch_page(
+        self, _notebook: Gtk.Notebook, _page: object, page_num: int
+    ) -> None:
+        """Follow a tab change in tabbed mode."""
+        if self._in_edit_mode_change or self.settings["viewer_tools"] != "tabbed":
+            return
+        if page_num == _TEXT_PAGE:
+            mode = "text"
+        elif page_num == _ANNOTATION_PAGE:
+            mode = "annotation"
+        else:
+            # The image page is not a layer: keep the last active one selected
+            # but hide its bar, which reappears with its own canvas.
+            mode = self._active_layer or self._active_layer_setting()
+        self._apply_active_layer_state(mode, page_num)
+
     def _change_view_cb(
         self, action: Gio.SimpleAction, parameter: GLib.Variant
     ) -> None:
         """Switch between tabbed and split views."""
         action.set_state(parameter)
-
-        # self.settings["viewer_tools"] still has old value
-        if self.settings["viewer_tools"] == "tabbed":
-            self._vpaned.set_start_child(None)
-            self._vnotebook.detach_tab(self.view)
-            self._vnotebook.detach_tab(self.t_canvas)
-        elif self.settings["viewer_tools"] == "horizontal":
-            self._vpaned.set_start_child(None)
-            self._hpanei.set_start_child(None)
-            self._hpanei.set_end_child(None)
-        else:  # vertical
-            self._vpaned.set_start_child(None)
-            self._vpanei.set_start_child(None)
-            self._vpanei.set_end_child(None)
-
-        self.settings["viewer_tools"] = parameter.get_string()
-        self._pack_viewer_tools()
+        mode = parameter.get_string()
+        self.settings["viewer_tools"] = mode
+        layer = self._active_layer_for_split()
+        self._active_layer = layer
+        # Appending or detaching notebook pages emits switch-page; the guard
+        # stops the handler from clobbering the active layer mid-transition.
+        self._in_edit_mode_change = True
+        try:
+            self._pack_viewer_tools()
+            if mode == "tabbed":
+                self._vnotebook.set_current_page(
+                    _TEXT_PAGE if layer == "text" else _ANNOTATION_PAGE
+                )
+        finally:
+            self._in_edit_mode_change = False
+        self.settings["editmode"] = layer
+        self._sync_editmode_action(layer)
+        self._update_layer_visibility()
 
     def _page_selection_changed_callback(self, _selection: Gtk.TreeSelection) -> None:
         selection = self.slist.get_selected_indices()

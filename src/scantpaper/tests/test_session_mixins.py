@@ -1053,25 +1053,16 @@ def test_add_text_view_layers(
 def test_edit_mode_callback(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _edit_mode_callback toggles the editors via set_active."""
+    """Test _edit_mode_callback delegates the active layer to the window."""
     mock_action = mocker.Mock()
     mock_param = mocker.Mock()
-    mock_session_window._text_editor = mocker.Mock()
-    mock_session_window._ann_editor = mocker.Mock()
-
-    # Test text mode
-    mock_param.get_string.return_value = "text"
-    mock_session_window._edit_mode_callback(mock_action, mock_param)
-    mock_session_window._text_editor.set_active.assert_called_with(active=True)
-    mock_session_window._ann_editor.set_active.assert_called_with(active=False)
-
-    # Test other mode (e.g. annotation)
-    mock_session_window._text_editor.reset_mock()
-    mock_session_window._ann_editor.reset_mock()
     mock_param.get_string.return_value = "annotation"
+    mock_session_window._set_active_layer = mocker.Mock()
+
     mock_session_window._edit_mode_callback(mock_action, mock_param)
-    mock_session_window._text_editor.set_active.assert_called_with(active=False)
-    mock_session_window._ann_editor.set_active.assert_called_with(active=True)
+
+    mock_action.set_state.assert_called_once_with(mock_param)
+    mock_session_window._set_active_layer.assert_called_once_with("annotation")
 
 
 class MockApp(SessionMixins):
