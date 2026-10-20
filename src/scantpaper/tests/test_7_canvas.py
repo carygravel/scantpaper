@@ -28,6 +28,7 @@ from scantpaper.canvas import (
     button_press_callback,
     hsv2rgb,
     rgb2hsv,
+    rgba,
     string2rgb,
 )
 from scantpaper.const import POINTS_PER_INCH
@@ -50,10 +51,33 @@ from gi.repository import (  # noqa: E402
 
 
 def assert_rgba_equal(c1: Gdk.RGBA, c2: Gdk.RGBA) -> None:
-    """Assert two Gdk.RGBA colors are equal."""
+    """Assert two Gdk.RGBA colors are equal, including opacity."""
     assert c1.red == pytest.approx(c2.red)
     assert c1.green == pytest.approx(c2.green)
     assert c1.blue == pytest.approx(c2.blue)
+    assert c1.alpha == pytest.approx(c2.alpha)
+
+
+def test_rgba_helper_preserves_components() -> None:
+    """The RGBA helper keeps every requested component and the alpha value."""
+    color = rgba(1.0, 0.25, 0.5, 0.75)
+    assert color.red == pytest.approx(1.0)
+    assert color.green == pytest.approx(0.25)
+    assert color.blue == pytest.approx(0.5)
+    assert color.alpha == pytest.approx(0.75)
+
+
+def test_hsv2rgb_results_are_opaque() -> None:
+    """Colour conversion returns opaque colours for both HSV branches."""
+    saturated = hsv2rgb({"h": 0, "s": 1.0, "v": 1.0})
+    assert (saturated.red, saturated.green, saturated.blue) == pytest.approx(
+        (1.0, 0.0, 0.0)
+    )
+    assert saturated.alpha == pytest.approx(1.0)
+
+    grey = hsv2rgb({"h": 0, "s": 0.0, "v": 0.5})
+    assert (grey.red, grey.green, grey.blue) == pytest.approx((0.5, 0.5, 0.5))
+    assert grey.alpha == pytest.approx(1.0)
 
 
 def _gesture(button: int) -> MagicMock:
@@ -66,19 +90,19 @@ def _gesture(button: int) -> MagicMock:
 def test_color_functions_more() -> None:
     """Test more branches in color conversion."""
     # rgb2hsv gray case (delta < tolerance)
-    assert rgb2hsv(Gdk.RGBA(0.5, 0.5, 0.5)) == {"h": 0, "s": 0, "v": 0.5}
+    assert rgb2hsv(rgba(0.5, 0.5, 0.5)) == {"h": 0, "s": 0, "v": 0.5}
 
     # rgb2hsv green sector
-    res = rgb2hsv(Gdk.RGBA(0.1, 0.8, 0.1))
+    res = rgb2hsv(rgba(0.1, 0.8, 0.1))
     assert res["h"] == pytest.approx(120)
 
     # rgb2hsv blue sector
-    res = rgb2hsv(Gdk.RGBA(0.1, 0.1, 0.8))
+    res = rgb2hsv(rgba(0.1, 0.1, 0.8))
     assert res["h"] == pytest.approx(240)
 
     # rgb2hsv negative hue wrap
     # if red is max, green < blue
-    res = rgb2hsv(Gdk.RGBA(0.8, 0.1, 0.2))
+    res = rgb2hsv(rgba(0.8, 0.1, 0.2))
     # delta = 0.7. (0.1-0.2)/0.7 * 60 = -8.57. wrap to 351.43
     assert res["h"] == pytest.approx(360 - 60 * 0.1 / 0.7)
 
@@ -86,19 +110,19 @@ def test_color_functions_more() -> None:
     # already has some but let's be sure
     # Sector 2: red=p, green=v, blue=t
     c = hsv2rgb({"h": 120, "s": 1.0, "v": 1.0})
-    assert_rgba_equal(c, Gdk.RGBA(0, 1, 0))
+    assert_rgba_equal(c, rgba(0, 1, 0))
 
     # Sector 3: red=p, green=q, blue=v
     c = hsv2rgb({"h": 180, "s": 1.0, "v": 1.0})
-    assert_rgba_equal(c, Gdk.RGBA(0, 1, 1))
+    assert_rgba_equal(c, rgba(0, 1, 1))
 
     # Sector 4: red=t, green=p, blue=v
     c = hsv2rgb({"h": 240, "s": 1.0, "v": 1.0})
-    assert_rgba_equal(c, Gdk.RGBA(0, 0, 1))
+    assert_rgba_equal(c, rgba(0, 0, 1))
 
     # Else sector: red=v, green=p, blue=q
     c = hsv2rgb({"h": 300, "s": 1.0, "v": 1.0})
-    assert_rgba_equal(c, Gdk.RGBA(1, 0, 1))
+    assert_rgba_equal(c, rgba(1, 0, 1))
 
 
 def test_string2rgb() -> None:
@@ -1795,7 +1819,7 @@ def test_color_functions_coverage() -> None:
     # Since we can't easily trigger this with normal RGBA, we can check a value
     # that would be negative if not for % 6.
     # Actually, let's just test a color that uses the red case with green < blue.
-    res = rgb2hsv(Gdk.RGBA(0.8, 0.1, 0.2))
+    res = rgb2hsv(rgba(0.8, 0.1, 0.2))
     assert res["h"] >= 0.0
     assert res["h"] < 360.0
 

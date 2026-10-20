@@ -110,6 +110,12 @@
 
 ### When jammy is dropped: modernise GTK4
 
+Until jammy is dropped in 2027-06, the compatibility floor is GTK 4.6 and
+PyGObject 3.42 (the versions in Ubuntu 22.04). Code and tests must use only
+APIs available there; a newer toolkit API may be used only when it is
+detected at runtime and has a working fallback. The `oldest` CI job runs on
+Ubuntu 22.04 and enforces this floor.
+
 The GTK3→GTK4 port deliberately kept the already-deprecated GTK4 widgets so
 it runs on jammy's GTK 4.6.9. Once jammy (GTK 4.6) is dropped, the CI floor
 rises to noble (GTK 4.14), which unlocks GTK4 widgets introduced after 4.6

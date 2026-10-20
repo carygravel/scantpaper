@@ -29,7 +29,7 @@ from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
 
 def has_locale(name: str) -> bool:
@@ -59,11 +59,41 @@ def _page_content(page: pikepdf.Page) -> bytes:
     return bytes(cast("pikepdf.Stream", contents).read_bytes())
 
 
-def _has_rotated_text_matrix(content: bytes) -> bool:
-    """Return whether a content stream sets a rotated text matrix."""
+def _form_xobject_streams(
+    resources: object, seen: set[tuple[int, int]]
+) -> Iterator[bytes]:
+    """Yield decoded content streams from recursive Form XObjects."""
+    if not isinstance(resources, pikepdf.Dictionary):
+        return
+    xobjects = resources.get("/XObject")
+    if not isinstance(xobjects, pikepdf.Dictionary):
+        return
+    for obj in dict(xobjects).values():
+        if not isinstance(obj, pikepdf.Stream):
+            continue
+        if obj.get("/Subtype") != pikepdf.Name("/Form"):
+            continue
+        key = obj.objgen if obj.objgen != (0, 0) else (id(obj), 0)
+        if key in seen:
+            continue
+        seen.add(key)
+        yield bytes(obj.read_bytes())
+        yield from _form_xobject_streams(obj.get("/Resources"), seen)
+
+
+def _page_content_streams(page: pikepdf.Page) -> list[bytes]:
+    """Return the page content and every Form XObject content stream."""
+    forms = _form_xobject_streams(page.obj.get("/Resources"), set())
+    return [_page_content(page), *forms]
+
+
+def _has_rotated_text(content: bytes) -> bool:
+    """Return whether text is rotated by a Tm or a surrounding cm."""
+    if not re.search(rb"\bBT\b", content):
+        return False
     pattern = re.compile(
         rb"([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)"
-        rb"\s+([-\d.]+)\s+([-\d.]+)\s+Tm"
+        rb"\s+([-\d.]+)\s+([-\d.]+)\s+(?:Tm|cm)"
     )
     for match in pattern.finditer(content):
         _a, b, c, _d, _e, _f = (float(value) for value in match.groups())
@@ -191,6 +221,43 @@ def test_ccitt_group_from_decodeparms() -> None:
     assert _ccitt_group(pikepdf.Dictionary(K=-1)) == "Group4"
     assert _ccitt_group(pikepdf.Array([pikepdf.Dictionary(K=-1)])) == "Group4"
     assert _ccitt_group(pikepdf.Array([pikepdf.Dictionary(K=0)])) == "Group3"
+    assert _ccitt_group(pikepdf.Name("/NotADictionary")) == "Group3"
+
+
+def test_form_xobject_streams_skip_non_forms_and_cycles() -> None:
+    """Only Form XObjects are yielded, once, including nested resources."""
+    pdf = pikepdf.new()
+    form = pdf.make_stream(b"q 1 0 0 1 0 0 cm Q")
+    form["/Subtype"] = pikepdf.Name("/Form")
+    image = pdf.make_stream(b"\x00")
+    image["/Subtype"] = pikepdf.Name("/Image")
+    form["/Resources"] = pikepdf.Dictionary(
+        XObject=pikepdf.Dictionary(
+            Image=image,
+            NotAStream=pikepdf.Name("/Foo"),
+            Again=form,
+        )
+    )
+    resources = pikepdf.Dictionary(
+        XObject=pikepdf.Dictionary(Form=form, NotADictionary=pikepdf.Name("/Foo"))
+    )
+
+    assert list(_form_xobject_streams(resources, set())) == [b"q 1 0 0 1 0 0 cm Q"]
+    assert list(_form_xobject_streams(pikepdf.Name("/NoResources"), set())) == []
+    assert list(_form_xobject_streams(pikepdf.Dictionary(), set())) == []
+    assert (
+        list(
+            _form_xobject_streams(
+                pikepdf.Dictionary(XObject=pikepdf.Name("/No")), set()
+            )
+        )
+        == []
+    )
+
+
+def test_has_rotated_text_ignores_non_text_content() -> None:
+    """A content stream without BT is not treated as rotated text."""
+    assert not _has_rotated_text(b"0 0 m 10 10 l S")
 
 
 def test_get_pdf_image_codecs_ccitt_xobject(tmp_path: pathlib.Path) -> None:
@@ -529,11 +596,10 @@ def test_save_pdf_with_hocr(
     # that we have scaled the page size correctly.
     page = get_page_sync(slist.thread, id=slist.data[1][2])
     regex = re.search(r"bbox\s0\s0\s(\d+)\s(\d+)", page.export_hocr())
-    page_width, page_height = None, None
-    if regex:
-        page_width, page_height = int(regex.group(1)), int(regex.group(2))
-    assert abs(cast("int", page_width) - width) < 2, "imported page width correct"
-    assert abs(cast("int", page_height) - height) < 2, "imported page height correct"
+    assert regex is not None, "hOCR contains a page bbox"
+    page_width, page_height = int(regex.group(1)), int(regex.group(2))
+    assert abs(page_width - width) < 2, "imported page width correct"
+    assert abs(page_height - height) < 2, "imported page height correct"
 
 
 def test_save_pdf_with_rotated_text_layer(
@@ -569,8 +635,10 @@ def test_save_pdf_with_rotated_text_layer(
     mlp.run()
 
     with pikepdf.open(horizontal_pdf) as pdf:
-        content = _page_content(pdf.pages[0])
-    assert not _has_rotated_text_matrix(content), "horizontal control is unrotated"
+        streams = _page_content_streams(pdf.pages[0])
+    assert not any(_has_rotated_text(content) for content in streams), (
+        "horizontal control is unrotated"
+    )
 
     rotated = (
         '[{"type": "page", "bbox": [0, 0, 200, 120], "depth": 0}, '
@@ -592,8 +660,10 @@ def test_save_pdf_with_rotated_text_layer(
     mlp.run()
 
     with pikepdf.open(temp_pdf.name) as pdf:
-        content = _page_content(pdf.pages[0])
-    assert _has_rotated_text_matrix(content), "rotated word has a rotated text matrix"
+        streams = _page_content_streams(pdf.pages[0])
+    assert any(_has_rotated_text(content) for content in streams), (
+        "rotated word has a rotated text transform"
+    )
 
     extracted = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert "FLAT" in extracted, "horizontal text remains extractable"

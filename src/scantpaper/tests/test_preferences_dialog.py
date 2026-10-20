@@ -10,6 +10,7 @@ import pytest
 
 from scantpaper.config import DEFAULTS
 from scantpaper.dialog.preferences import PreferencesDialog
+from scantpaper.tests.widget_helpers import emit_spinbutton_enter
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gio, Gtk  # noqa: E402
@@ -70,13 +71,13 @@ def test_preferences_threshold_spins_reject_bad_input() -> None:
 
     blank = dialog._spinbuttonb
     blank.set_text("0,5")
-    blank.emit("activate")
+    emit_spinbutton_enter(blank)
     assert blank.get_value() == 0.005
     assert blank.get_text() == "0.005"
 
     dark = dialog._spinbuttond
     dark.set_text("abc")
-    dark.emit("activate")
+    emit_spinbutton_enter(dark)
     assert dark.get_value() == 0.12
     assert dark.get_text() == "0.12"
 

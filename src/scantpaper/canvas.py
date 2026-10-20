@@ -120,6 +120,16 @@ def string2hsv(spec: str) -> dict[str, float]:
     return rgb2hsv(string2rgb(spec))
 
 
+def rgba(red: float, green: float, blue: float, alpha: float = 1.0) -> Gdk.RGBA:
+    """Return an opaque Gdk.RGBA with the given components."""
+    color = Gdk.RGBA()
+    color.red = red
+    color.green = green
+    color.blue = blue
+    color.alpha = alpha
+    return color
+
+
 def string2rgb(spec: str) -> Gdk.RGBA:
     """Return Gdk.RGBA object from string."""
     color = Gdk.RGBA()
@@ -135,7 +145,7 @@ def linear_interpolation(x1: float, x2: float, m: float) -> float:
 def hsv2rgb(hsv: dict[str, float]) -> Gdk.RGBA:
     """Convert from hsv to rgb colour space."""
     if hsv["s"] <= 0.0:
-        return Gdk.RGBA(hsv["v"], hsv["v"], hsv["v"])
+        return rgba(hsv["v"], hsv["v"], hsv["v"])
 
     hh = hsv["h"]
     if hh >= _360_DEGREES:
@@ -177,7 +187,7 @@ def hsv2rgb(hsv: dict[str, float]) -> Gdk.RGBA:
         green = p
         blue = q
 
-    return Gdk.RGBA(red, green, blue)
+    return rgba(red, green, blue)
 
 
 def _collect_words(node: object, words: list[Bbox]) -> None:

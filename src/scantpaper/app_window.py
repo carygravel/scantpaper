@@ -68,7 +68,7 @@ _ANNOTATION_PAGE = 2
 _EDIT_LAYERS = ("text", "annotation")
 
 
-def _attach_thumbnail_css() -> None:
+def _attach_thumbnail_css() -> Gtk.CssProvider | None:
     """Pin the paint size of the thumbnail pixbufs to the generated size.
 
     GTK4 paints Gtk.CellRendererPixbuf through an icon helper that clamps
@@ -80,14 +80,15 @@ def _attach_thumbnail_css() -> None:
     """
     display = Gdk.Display.get_default()
     if display is None:
-        return
+        return None
     provider = Gtk.CssProvider()
-    provider.load_from_string(
-        f".thumbnail-list.image {{ -gtk-icon-size: {THUMBNAIL}px; }}"
+    provider.load_from_data(
+        f".thumbnail-list.image {{ -gtk-icon-size: {THUMBNAIL}px; }}".encode()
     )
     Gtk.StyleContext.add_provider_for_display(
         display, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
     )
+    return provider
 
 
 def drag_motion_callback(

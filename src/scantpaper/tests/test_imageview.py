@@ -1258,11 +1258,26 @@ def test_scroll_toggles_interacting_and_idle_returns(
     assert view.get_interacting() is True
     assert view._scroll_timeout is not None
     queue = mocker.patch.object(view, "queue_draw")
-    view.do_dispose()  # dispose while a scroll timeout is armed removes it
+    view.do_unrealize()  # unrealize while a scroll timeout is armed removes it
     assert view._scroll_timeout is None
+    mocker.patch.object(view, "get_root", return_value=object())
     assert view._scroll_idle() == GLib.SOURCE_REMOVE
     assert view.get_interacting() is False
     queue.assert_called_once()
+
+
+def test_scroll_idle_ignores_a_view_without_a_root(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A timeout that outlives the widget must not touch it."""
+    view = ImageView()
+    view._scroll_timeout = 1
+    mocker.patch.object(view, "get_root", return_value=None)
+    set_interacting = mocker.patch.object(view, "set_interacting")
+
+    assert view._scroll_idle() == GLib.SOURCE_REMOVE
+    assert view._scroll_timeout is None
+    set_interacting.assert_not_called()
 
 
 def test_pixbuf_set_before_allocation_fits_on_allocate(

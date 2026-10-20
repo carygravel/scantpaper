@@ -662,6 +662,8 @@ class ImageView(Gtk.DrawingArea):
     def _scroll_idle(self) -> bool:
         """Return to high-quality rendering when the scroll burst stops."""
         self._scroll_timeout = None
+        if self.get_root() is None:
+            return cast("bool", (GLib.SOURCE_REMOVE))
         self.set_interacting(interacting=False)
         return cast("bool", (GLib.SOURCE_REMOVE))
 
@@ -713,12 +715,12 @@ class ImageView(Gtk.DrawingArea):
             self._set_offset(rect, allocation)
 
     @override
-    def do_dispose(self) -> None:
-        """Respond to widget disposal."""
+    def do_unrealize(self) -> None:
+        """Cancel the scroll-idle timer when the widget is unrealized."""
         if getattr(self, "_scroll_timeout", None) is not None:
             GLib.source_remove(self._scroll_timeout)
             self._scroll_timeout = None
-        GObject.Object.do_dispose(self)
+        Gtk.Widget.do_unrealize(self)
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""

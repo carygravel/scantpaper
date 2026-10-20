@@ -14,6 +14,7 @@ from scantpaper import config
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM, POINTS_PER_INCH
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
+from scantpaper.tests.widget_helpers import emit_spinbutton_enter
 from scantpaper.unpaper import Unpaper, count_active_children
 
 if TYPE_CHECKING:
@@ -499,17 +500,17 @@ def test_unpaper_ui_fractional_thresholds() -> None:
     assert black.get_text() == "0.33"
 
     white.set_text("0.8")
-    white.emit("activate")
+    emit_spinbutton_enter(white)
     assert white.get_value() == 0.8
     assert white.get_text() == "0.8"
 
     white.set_text("0,8")
-    white.emit("activate")
+    emit_spinbutton_enter(white)
     assert white.get_value() == 0.8
     assert white.get_text() == "0.8"
 
     white.set_text("abc")
-    white.emit("activate")
+    emit_spinbutton_enter(white)
     assert white.get_value() == 0.8
     assert white.get_text() == "0.8"
 

@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-10-20
+goal: Restore the CI matrix by making the GTK4 port portable across jammy and
+  noble, without modernising beyond the jammy floor.

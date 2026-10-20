@@ -20,6 +20,7 @@ from scantpaper.i18n import _
 from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
 from scantpaper.tests.scan_mocks import build_scan_options
+from scantpaper.tests.widget_helpers import emit_spinbutton_enter
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -1511,7 +1512,7 @@ def test_spin_typing_keeps_locale_separator(
     assert widget.get_numeric() is False
     dialog.set_option = MagicMock()
     widget.set_text("174,2")
-    widget.emit("activate")
+    emit_spinbutton_enter(widget)
     assert widget.get_value() == 174.2
     dialog.set_option.assert_called_with(_spin_option()[1], value=174.2)
 
@@ -1527,7 +1528,7 @@ def test_spin_accepts_locale_fraction(
     widget = _spin_dialog(dialog, mocker, 174.0)
     dialog.set_option = MagicMock()
     widget.set_text("115,2")
-    widget.emit("activate")
+    emit_spinbutton_enter(widget)
     assert widget.get_value() == 115.2
     dialog.set_option.assert_called_with(_spin_option()[1], value=115.2)
 
@@ -1543,7 +1544,7 @@ def test_spin_rejects_non_locale_separator(
     widget = _spin_dialog(dialog, mocker, 174.0)
     dialog.set_option = MagicMock()
     widget.set_text("115.2")
-    widget.emit("activate")
+    emit_spinbutton_enter(widget)
     assert widget.get_value() == 174.0
     assert widget.get_text() == "174"
     dialog.set_option.assert_not_called()
@@ -1598,7 +1599,7 @@ def test_helper_fractional_spinbutton_commits_locale_fraction(
     widget.set_value(174.0)
     configure_fractional_spinbutton(widget)
     widget.set_text("115,9")
-    widget.emit("activate")
+    emit_spinbutton_enter(widget)
     assert widget.get_value() == 115.9
 
 
@@ -1611,11 +1612,11 @@ def test_helper_fractional_spinbutton_rejects_non_locale(
     widget.set_value(174.0)
     configure_fractional_spinbutton(widget)
     widget.set_text("115.9")
-    widget.emit("activate")
+    emit_spinbutton_enter(widget)
     assert widget.get_value() == 174.0
     assert widget.get_text() == "174"
     widget.set_text("abc")
-    widget.emit("activate")
+    emit_spinbutton_enter(widget)
     assert widget.get_value() == 174.0
     assert widget.get_text() == "174"
 

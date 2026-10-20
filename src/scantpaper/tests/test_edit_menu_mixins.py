@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime
 from typing import TYPE_CHECKING
-from unittest.mock import ANY, MagicMock, call
+from unittest.mock import MagicMock, call
 
 import gi
 import pytest
@@ -391,9 +391,7 @@ def test_properties_dialog(
     mock_x_spin.set_digits.assert_called()
     mock_y_spin.set_digits.assert_called()
     mock_x_spin.add_controller.assert_called()
-    mock_x_spin.connect.assert_any_call("activate", ANY)
     mock_y_spin.add_controller.assert_called()
-    mock_y_spin.connect.assert_any_call("activate", ANY)
 
     # Test apply callback
     args, _kwargs = mock_dialog_instance.add_actions.call_args

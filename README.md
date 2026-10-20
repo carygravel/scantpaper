@@ -504,9 +504,13 @@ instructions.
 ### Requirements
 
 - Python 3.10 or later.
+- GTK 4.6 or later and PyGObject 3.42 or later.
 - The [dependencies](#dependencies) listed below. They are installed
   automatically when installing from a wheel or with `uv`, but must be
   installed manually when running from a tarball or the repository.
+
+Ubuntu 22.04 (jammy), with GTK 4.6 and PyGObject 3.42, is supported until
+2027-06. Ubuntu 24.04 (noble) and newer toolchains are also supported.
 
 ### Packaged installs
 

@@ -221,274 +221,273 @@
       </object>
     </child>
   </object>
+  <menu id="main-menu">
+    <submenu>
+      <attribute name="label" translatable="yes">_File</attribute>
+      <section>
+      <item>
+        <attribute name="action">win.new</attribute>
+        <attribute name="label" translatable="yes">_New</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.open</attribute>
+        <attribute name="label" translatable="yes">_Open</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.open-session</attribute>
+        <attribute name="label" translatable="yes">Open c_rashed session</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.scan</attribute>
+        <attribute name="label" translatable="yes">S_can</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.save</attribute>
+        <attribute name="label" translatable="yes">Save</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.email</attribute>
+        <attribute name="label" translatable="yes">_Email as PDF</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.print</attribute>
+        <attribute name="label" translatable="yes">_Print</attribute>
+      </item>
+      </section>
+      <section>
+      <item>
+        <attribute name="action">win.quit</attribute>
+        <attribute name="label" translatable="yes">_Quit</attribute>
+      </item>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Edit</attribute>
+      <section>
+        <item>
+        <attribute name="action">win.undo</attribute>
+        <attribute name="label" translatable="yes">_Undo</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.redo</attribute>
+        <attribute name="label" translatable="yes">_Redo</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">win.cut</attribute>
+        <attribute name="label" translatable="yes">Cu_t</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.copy</attribute>
+        <attribute name="label" translatable="yes">_Copy</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.paste</attribute>
+        <attribute name="label" translatable="yes">_Paste</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.delete</attribute>
+        <attribute name="label" translatable="yes">_Delete</attribute>
+      </item>
+    </section>
+    <submenu>
+      <attribute name="label" translatable="yes">_Select</attribute>
+      <item>
+        <attribute name="action">win.select-all</attribute>
+        <attribute name="label" translatable="yes">_All</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.select-odd</attribute>
+        <attribute name="label" translatable="yes">_Odd</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.select-even</attribute>
+        <attribute name="label" translatable="yes">_Even</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.select-invert</attribute>
+        <attribute name="label" translatable="yes">_Invert</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.select-blank</attribute>
+        <attribute name="label" translatable="yes">_Blank</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.select-dark</attribute>
+        <attribute name="label" translatable="yes">_Dark</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.select-modified</attribute>
+        <attribute name="label" translatable="yes">_Modified</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.select-no-ocr</attribute>
+        <attribute name="label" translatable="yes">_No OCR</attribute>
+      </item>
+    </submenu>
+    <section>
+      <item>
+        <attribute name="action">win.clear-ocr</attribute>
+        <attribute name="label" translatable="yes">_Clear OCR</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">win.properties</attribute>
+        <attribute name="label" translatable="yes">Propert_ies</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">win.preferences</attribute>
+        <attribute name="label" translatable="yes">Prefere_nces</attribute>
+      </item>
+    </section>
+  </submenu>
+  <submenu>
+    <attribute name="label" translatable="yes">_View</attribute>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Pan</attribute>
+        <attribute name="action">win.tooltype</attribute>
+        <attribute name="target">dragger</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Select</attribute>
+        <attribute name="action">win.tooltype</attribute>
+        <attribute name="target">selector</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Select &amp; pan</attribute>
+        <attribute name="action">win.tooltype</attribute>
+        <attribute name="target">selectordragger</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Tabbed</attribute>
+        <attribute name="action">win.viewtype</attribute>
+        <attribute name="target">tabbed</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Split horizontally</attribute>
+        <attribute name="action">win.viewtype</attribute>
+        <attribute name="target">horizontal</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Split vertically</attribute>
+        <attribute name="action">win.viewtype</attribute>
+        <attribute name="target">vertical</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Edit text layer</attribute>
+        <attribute name="action">win.editmode</attribute>
+        <attribute name="target">text</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Edit annotations</attribute>
+        <attribute name="action">win.editmode</attribute>
+        <attribute name="target">annotation</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">win.zoom-100</attribute>
+        <attribute name="label" translatable="yes">Zoom _100%</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.zoom-to-fit</attribute>
+        <attribute name="label" translatable="yes">Zoom to _fit</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.zoom-in</attribute>
+        <attribute name="label" translatable="yes">Zoom _in</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.zoom-out</attribute>
+        <attribute name="label" translatable="yes">Zoom _out</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">win.rotate-90</attribute>
+        <attribute name="label" translatable="yes">Rotate 90° clockwise</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.rotate-180</attribute>
+        <attribute name="label" translatable="yes">Rotate 180°</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.rotate-270</attribute>
+        <attribute name="label" translatable="yes">Rotate 90° anticlockwise</attribute>
+      </item>
+    </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Tools</attribute>
+      <section>
+      <item>
+        <attribute name="action">win.threshold</attribute>
+        <attribute name="label" translatable="yes">_Threshold</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.brightness-contrast</attribute>
+        <attribute name="label" translatable="yes">_Brightness / Contrast</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.negate</attribute>
+        <attribute name="label" translatable="yes">_Negate</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.unsharp</attribute>
+        <attribute name="label" translatable="yes">_Unsharp Mask</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.crop-dialog</attribute>
+        <attribute name="label" translatable="yes">_Crop</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">win.unpaper</attribute>
+        <attribute name="label" translatable="yes">_Clean up</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.split</attribute>
+        <attribute name="label" translatable="yes">_Split</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.ocr</attribute>
+        <attribute name="label" translatable="yes">_OCR</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="action">win.user-defined</attribute>
+        <attribute name="label" translatable="yes">U_ser-defined</attribute>
+      </item>
+    </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Help</attribute>
+      <item>
+        <attribute name="action">win.help</attribute>
+        <attribute name="label" translatable="yes">_Help</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.about</attribute>
+        <attribute name="label" translatable="yes">_About</attribute>
+      </item>
+    </submenu>
+  </menu>
   <object class="GtkBox" id="main_vbox">
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkPopoverMenuBar" id="menubar">
-        <property name="menu-model">
-          <menu>
-            <submenu>
-              <attribute name="label" translatable="yes">_File</attribute>
-              <section>
-              <item>
-                <attribute name="action">win.new</attribute>
-                <attribute name="label" translatable="yes">_New</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.open</attribute>
-                <attribute name="label" translatable="yes">_Open</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.open-session</attribute>
-                <attribute name="label" translatable="yes">Open c_rashed session</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.scan</attribute>
-                <attribute name="label" translatable="yes">S_can</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.save</attribute>
-                <attribute name="label" translatable="yes">Save</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.email</attribute>
-                <attribute name="label" translatable="yes">_Email as PDF</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.print</attribute>
-                <attribute name="label" translatable="yes">_Print</attribute>
-              </item>
-              </section>
-              <section>
-              <item>
-                <attribute name="action">win.quit</attribute>
-                <attribute name="label" translatable="yes">_Quit</attribute>
-              </item>
-              </section>
-            </submenu>
-            <submenu>
-              <attribute name="label" translatable="yes">_Edit</attribute>
-              <section>
-                <item>
-                <attribute name="action">win.undo</attribute>
-                <attribute name="label" translatable="yes">_Undo</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.redo</attribute>
-                <attribute name="label" translatable="yes">_Redo</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="action">win.cut</attribute>
-                <attribute name="label" translatable="yes">Cu_t</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.copy</attribute>
-                <attribute name="label" translatable="yes">_Copy</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.paste</attribute>
-                <attribute name="label" translatable="yes">_Paste</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.delete</attribute>
-                <attribute name="label" translatable="yes">_Delete</attribute>
-              </item>
-            </section>
-            <submenu>
-              <attribute name="label" translatable="yes">_Select</attribute>
-              <item>
-                <attribute name="action">win.select-all</attribute>
-                <attribute name="label" translatable="yes">_All</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.select-odd</attribute>
-                <attribute name="label" translatable="yes">_Odd</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.select-even</attribute>
-                <attribute name="label" translatable="yes">_Even</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.select-invert</attribute>
-                <attribute name="label" translatable="yes">_Invert</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.select-blank</attribute>
-                <attribute name="label" translatable="yes">_Blank</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.select-dark</attribute>
-                <attribute name="label" translatable="yes">_Dark</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.select-modified</attribute>
-                <attribute name="label" translatable="yes">_Modified</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.select-no-ocr</attribute>
-                <attribute name="label" translatable="yes">_No OCR</attribute>
-              </item>
-            </submenu>
-            <section>
-              <item>
-                <attribute name="action">win.clear-ocr</attribute>
-                <attribute name="label" translatable="yes">_Clear OCR</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="action">win.properties</attribute>
-                <attribute name="label" translatable="yes">Propert_ies</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="action">win.preferences</attribute>
-                <attribute name="label" translatable="yes">Prefere_nces</attribute>
-              </item>
-            </section>
-          </submenu>
-          <submenu>
-            <attribute name="label" translatable="yes">_View</attribute>
-            <section>
-              <item>
-                <attribute name="label" translatable="yes">_Pan</attribute>
-                <attribute name="action">win.tooltype</attribute>
-                <attribute name="target">dragger</attribute>
-              </item>
-              <item>
-                <attribute name="label" translatable="yes">_Select</attribute>
-                <attribute name="action">win.tooltype</attribute>
-                <attribute name="target">selector</attribute>
-              </item>
-              <item>
-                <attribute name="label" translatable="yes">_Select &amp; pan</attribute>
-                <attribute name="action">win.tooltype</attribute>
-                <attribute name="target">selectordragger</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="label" translatable="yes">_Tabbed</attribute>
-                <attribute name="action">win.viewtype</attribute>
-                <attribute name="target">tabbed</attribute>
-              </item>
-              <item>
-                <attribute name="label" translatable="yes">_Split horizontally</attribute>
-                <attribute name="action">win.viewtype</attribute>
-                <attribute name="target">horizontal</attribute>
-              </item>
-              <item>
-                <attribute name="label" translatable="yes">_Split vertically</attribute>
-                <attribute name="action">win.viewtype</attribute>
-                <attribute name="target">vertical</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="label" translatable="yes">Edit text layer</attribute>
-                <attribute name="action">win.editmode</attribute>
-                <attribute name="target">text</attribute>
-              </item>
-              <item>
-                <attribute name="label" translatable="yes">Edit annotations</attribute>
-                <attribute name="action">win.editmode</attribute>
-                <attribute name="target">annotation</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="action">win.zoom-100</attribute>
-                <attribute name="label" translatable="yes">Zoom _100%</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.zoom-to-fit</attribute>
-                <attribute name="label" translatable="yes">Zoom to _fit</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.zoom-in</attribute>
-                <attribute name="label" translatable="yes">Zoom _in</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.zoom-out</attribute>
-                <attribute name="label" translatable="yes">Zoom _out</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="action">win.rotate-90</attribute>
-                <attribute name="label" translatable="yes">Rotate 90° clockwise</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.rotate-180</attribute>
-                <attribute name="label" translatable="yes">Rotate 180°</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.rotate-270</attribute>
-                <attribute name="label" translatable="yes">Rotate 90° anticlockwise</attribute>
-              </item>
-            </section>
-            </submenu>
-            <submenu>
-              <attribute name="label" translatable="yes">_Tools</attribute>
-              <section>
-              <item>
-                <attribute name="action">win.threshold</attribute>
-                <attribute name="label" translatable="yes">_Threshold</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.brightness-contrast</attribute>
-                <attribute name="label" translatable="yes">_Brightness / Contrast</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.negate</attribute>
-                <attribute name="label" translatable="yes">_Negate</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.unsharp</attribute>
-                <attribute name="label" translatable="yes">_Unsharp Mask</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.crop-dialog</attribute>
-                <attribute name="label" translatable="yes">_Crop</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="action">win.unpaper</attribute>
-                <attribute name="label" translatable="yes">_Clean up</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.split</attribute>
-                <attribute name="label" translatable="yes">_Split</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.ocr</attribute>
-                <attribute name="label" translatable="yes">_OCR</attribute>
-              </item>
-            </section>
-            <section>
-              <item>
-                <attribute name="action">win.user-defined</attribute>
-                <attribute name="label" translatable="yes">U_ser-defined</attribute>
-              </item>
-            </section>
-            </submenu>
-            <submenu>
-              <attribute name="label" translatable="yes">_Help</attribute>
-              <item>
-                <attribute name="action">win.help</attribute>
-                <attribute name="label" translatable="yes">_Help</attribute>
-              </item>
-              <item>
-                <attribute name="action">win.about</attribute>
-                <attribute name="label" translatable="yes">_About</attribute>
-              </item>
-            </submenu>
-          </menu>
-        </property>
+        <property name="menu-model">main-menu</property>
       </object>
     </child>
     <child>

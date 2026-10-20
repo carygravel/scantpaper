@@ -21,6 +21,7 @@ from scantpaper.i18n import _
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
+    Gdk,
     Gio,
     GLib,
     Gtk,
@@ -206,11 +207,24 @@ def configure_fractional_spinbutton(
     def focus_leave_cb(_controller: Gtk.EventControllerFocus) -> None:
         commit_validate_cb(widget)
 
+    def enter_key_cb(
+        _controller: Gtk.EventControllerKey,
+        keyval: int,
+        _keycode: int,
+        _state: Gdk.ModifierType,
+    ) -> bool:
+        if keyval in (Gdk.KEY_Return, Gdk.KEY_KP_Enter):
+            commit_validate_cb(widget)
+        return False
+
     widget.connect("value-changed", value_changed_trim_cb)
     focus_controller = Gtk.EventControllerFocus()
     focus_controller.connect("leave", focus_leave_cb)
     widget.add_controller(focus_controller)
-    widget.connect("activate", commit_validate_cb)
+    key_controller = Gtk.EventControllerKey()
+    key_controller.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+    key_controller.connect("key-pressed", enter_key_cb)
+    widget.add_controller(key_controller)
     widget.set_digits(fractional_digits(widget.get_value(), digits))
 
 
