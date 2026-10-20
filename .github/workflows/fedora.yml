@@ -50,6 +50,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The job container runs as a different user from the workspace owner,
+      # so git refuses to read the checkout unless it is marked safe.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Prepare RPM build tree
         run: |
           mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}

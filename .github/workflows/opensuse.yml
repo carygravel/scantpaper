@@ -21,10 +21,20 @@ jobs:
       image: opensuse/leap:16.0
 
     steps:
+      # Without git, actions/checkout falls back to a REST download with no
+      # .git directory, and the renderer needs full history to count commits.
+      - name: Install git
+        run: zypper -n --gpg-auto-import-keys install git
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      # The job container runs as a different user from the workspace owner,
+      # so git refuses to read the checkout unless it is marked safe.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       # Everything in the old "Enable non-oss", "Install RPM build tools",
       # "Define distribution release macro" and "Prepare RPM build tree"
