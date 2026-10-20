@@ -3,6 +3,12 @@ name: Build openSUSE packages
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Git revision to package (default: github.sha)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -15,8 +21,20 @@ jobs:
       image: opensuse/leap:16.0
 
     steps:
+      # Without git, actions/checkout falls back to a REST download with no
+      # .git directory, and the renderer needs full history to count commits.
+      - name: Install git
+        run: zypper -n --gpg-auto-import-keys install git
+
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # The job container runs as a different user from the workspace owner,
+      # so git refuses to read the checkout unless it is marked safe.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       # Everything in the old "Enable non-oss", "Install RPM build tools",
       # "Define distribution release macro" and "Prepare RPM build tree"
@@ -221,6 +239,8 @@ jobs:
           rpm -q ghostscript tesseract-ocr qpdf poppler-tools rsvg-convert
 
       - name: Build scantpaper
+        env:
+          SOURCE_REF: ${{ inputs.source_ref || github.sha }}
         run: bash packaging/opensuse/build.sh build scantpaper
 
       - name: Install scantpaper
@@ -390,6 +410,21 @@ jobs:
         run: |
           scantpaper --version
           python3 -c 'import sane, tesserocr, iso639, img2pdf, ocrmypdf; print("imports ok")'
+
+      # The step above would also pass for an artifact built from a stale
+      # spec: it reports whatever version was compiled into it. On a tag
+      # build, assert that version is the tag the artifacts are attached to.
+      - name: Verify the installed version matches the release tag
+        if: github.ref_type == 'tag'
+        run: |
+          installed=$(scantpaper --version)
+          echo "$installed"
+          expected="scantpaper ${GITHUB_REF_NAME#v}"
+          if [ "$installed" != "$expected" ]; then
+            echo "::error::installed version '$installed' does not match" \
+              "tag '$expected'"
+            exit 1
+          fi
 
       # An install that succeeds and is then reverted by the next update is
       # the failure mode the ".0" version suffix exists to prevent, so a

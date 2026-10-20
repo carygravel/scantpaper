@@ -1,11 +1,11 @@
 Name:           scantpaper
-Version:        3.0.19
-Release:        1%{?dist}
+Version:        @VERSION@
+Release:        @RELEASE@%{?dist}
 Summary:        GUI to produce PDFs or DjVus from scanned documents
 
 License:        GPL-3.0-only
 URL:            https://github.com/carygravel/scantpaper
-Source0:        https://github.com/carygravel/scantpaper/archive/refs/tags/v%{version}.tar.gz
+Source0:        scantpaper-%{version}.tar.gz
 
 BuildArch:      noarch
 
@@ -34,6 +34,8 @@ BuildRequires:  python313-sane
 BuildRequires:  python313-python-iso639
 BuildRequires:  python313-Pillow
 BuildRequires:  python313-pikepdf
+# Imported by the GTK4 code; help2man imports the application at build time.
+BuildRequires:  python313-typing_extensions
 
 # Tools used to generate the additional files installed by the package.
 BuildRequires:  gettext-tools
@@ -188,6 +190,7 @@ find %{buildroot} \( -type f -o -type l \) \
 %{_mandir}/man1/scantpaper.1*
 
 %changelog
+@CHANGELOG@
 * Sun Sep 20 2026 Jeffrey Ratcliffe <jffry@posteo.net> - 3.0.19-1
 - Initial openSUSE RPM package (pandoc HTML documentation dropped;
   pandoc is not packaged on Leap 16)

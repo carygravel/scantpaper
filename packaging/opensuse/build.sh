@@ -22,6 +22,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SPEC_DIR="$SCRIPT_DIR"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# Revision to package. CI sets this to github.sha or a dispatch input;
+# local builds default to the current checkout.
+SOURCE_REF="${SOURCE_REF:-HEAD}"
 
 ORDER=(cysignals setuptools-scm hatch-vcs tesserocr iso639 sane pdfminer \
        img2pdf ocrmypdf scantpaper)
@@ -92,6 +96,7 @@ do_setup() {
     python313-polib python313-deprecation python313-tqdm \
     python313-rich python313-pluggy python313-cryptography \
     python313-charset-normalizer python313-Pillow python313-pikepdf \
+    python313-typing_extensions \
     python313-numpy python313-pycairo python313-gobject \
     gtk4-devel typelib-1_0-Gtk-4_0 gobject-introspection-devel \
     tesseract-ocr-devel tesseract-ocr leptonica-devel \
@@ -127,11 +132,20 @@ do_build() {
   rpmname="$(rpmname_for "$pkg")"
   patch="$(patch_for "$pkg")"
 
-  cp "$SPEC_DIR/$spec" "$HOME/rpmbuild/SPECS/"
-  if [ -n "$patch" ]; then
-    cp "$SPEC_DIR/$patch" "$HOME/rpmbuild/SOURCES/"
+  if [ "$pkg" = scantpaper ]; then
+    python3 "$REPO_ROOT/dev/prepare_rpm.py" \
+      --repo-root "$REPO_ROOT" \
+      --template "$SPEC_DIR/$spec" \
+      --source-ref "$SOURCE_REF" \
+      --spec-out "$HOME/rpmbuild/SPECS/$spec" \
+      --sources-dir "$HOME/rpmbuild/SOURCES"
+  else
+    cp "$SPEC_DIR/$spec" "$HOME/rpmbuild/SPECS/"
+    if [ -n "$patch" ]; then
+      cp "$SPEC_DIR/$patch" "$HOME/rpmbuild/SOURCES/"
+    fi
+    fetch_source "$spec"
   fi
-  fetch_source "$spec"
   rpmbuild -ba "$HOME/rpmbuild/SPECS/$spec"
 }
 
