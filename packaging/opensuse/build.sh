@@ -96,6 +96,7 @@ do_setup() {
     python313-polib python313-deprecation python313-tqdm \
     python313-rich python313-pluggy python313-cryptography \
     python313-charset-normalizer python313-Pillow python313-pikepdf \
+    python313-typing_extensions \
     python313-numpy python313-pycairo python313-gobject \
     gtk4-devel typelib-1_0-Gtk-4_0 gobject-introspection-devel \
     tesseract-ocr-devel tesseract-ocr leptonica-devel \

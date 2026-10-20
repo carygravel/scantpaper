@@ -34,6 +34,8 @@ BuildRequires:  python313-sane
 BuildRequires:  python313-python-iso639
 BuildRequires:  python313-Pillow
 BuildRequires:  python313-pikepdf
+# Imported by the GTK4 code; help2man imports the application at build time.
+BuildRequires:  python313-typing_extensions
 
 # Tools used to generate the additional files installed by the package.
 BuildRequires:  gettext-tools
