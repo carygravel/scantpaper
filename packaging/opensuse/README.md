@@ -11,7 +11,8 @@ same script, so a local build and a CI build behave identically.
 
 - `build.sh` - the build driver (setup / build / install / all / collect).
 - `*.spec` - the RPM spec for each package (ScantPaper plus its unpackaged
-  Python dependencies).
+  Python dependencies). `scantpaper.spec` is a template; the dependency
+  specs are ordinary, directly buildable specs.
 - `python3-sane-snap-params-cache.patch` - a local patch applied to python-sane.
   It keeps its `python3-` name even though the package is `python313-sane`,
   because the same patch is shared with the Fedora tree.
@@ -30,9 +31,10 @@ checkout:
 bash packaging/opensuse/build.sh all
 ```
 
-This installs the toolchain, fetches each sdist, builds and installs every
-package in dependency order, and leaves the RPMs in `~/rpmbuild/RPMS/`. To
-collect them into one directory:
+This installs the toolchain, builds and installs every package in dependency
+order, and leaves the RPMs in `~/rpmbuild/RPMS/`. The dependency packages
+fetch their sdists; ScantPaper renders its spec and archives the selected
+git commit instead (see below). To collect them into one directory:
 
 ```sh
 bash packaging/opensuse/build.sh collect /tmp/rpms
@@ -58,6 +60,37 @@ bash packaging/opensuse/build.sh setup
 bash packaging/opensuse/build.sh build ocrmypdf
 bash packaging/opensuse/build.sh install ocrmypdf
 ```
+
+## The ScantPaper spec is a template
+
+`scantpaper.spec` contains `@VERSION@`, `@RELEASE@` and `@CHANGELOG@`
+placeholders. It is not a valid RPM spec until `dev/prepare_rpm.py` renders it,
+so a direct `rpmbuild -ba packaging/opensuse/scantpaper.spec` fails. Use
+`build.sh`, which renders the spec and creates
+`scantpaper-<version>.tar.gz` in `~/rpmbuild/SOURCES/` from a git revision:
+
+```sh
+bash packaging/opensuse/build.sh build scantpaper
+```
+
+The default revision is `HEAD`. Set `SOURCE_REF` to package another commit or
+tag, including a published release:
+
+```sh
+SOURCE_REF=v3.0.24 bash packaging/opensuse/build.sh build scantpaper
+```
+
+The renderer needs full git history (it counts commits for the RPM release),
+so do not use a shallow clone. It takes the version from the selected
+commit's `pyproject.toml` and uses the working tree's template. The archive
+contains tracked files from the selected commit only; modified and untracked
+files are excluded.
+
+RPM releases are `0.<commit-count>.g<short-sha>`, including tagged releases.
+That keeps an upstream build below a distribution build at `Release: 1`
+without adding an `Epoch`. The tag, not the RPM release field, identifies a
+published ScantPaper release; only workflow runs started from a tag publish
+assets.
 
 ## Install the built packages
 
@@ -160,8 +193,10 @@ These are the openSUSE-specific decisions, each hard-won during bring-up.
   `%dist .lp160.1` to `/usr/lib/rpm/macros.d/macros.dist`.
 - **openSUSE's default `_topdir` is `/usr/src/packages`.** `setup` points it at
   `~/rpmbuild` via `~/.rpmmacros`.
-- **No spectool/rpmdevtools.** `build.sh` expands each spec with
-  `rpmspec -P` and reads the resolved `Source0:` URL to fetch the sdist.
+- **No spectool/rpmdevtools.** For the dependency specs, `build.sh`
+  expands the spec with `rpmspec -P` and reads the resolved `Source0:`
+  URL to fetch the sdist. ScantPaper is the exception: its spec is a
+  template and its source comes from `git archive`.
 - **zypper flags come after the subcommand.** `zypper -n install
   --allow-unsigned-rpm artifacts/*.rpm` - options before `install` are
   rejected.

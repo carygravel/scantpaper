@@ -3,6 +3,12 @@ name: Build Fedora packages
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Git revision to package (default: github.sha)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -41,6 +47,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Prepare RPM build tree
         run: |
@@ -232,12 +240,32 @@ jobs:
             sane-backends
 
       - name: Build scantpaper
+        env:
+          SOURCE_REF: ${{ inputs.source_ref || github.sha }}
         run: |
-          cp packaging/fedora/scantpaper.spec ~/rpmbuild/SPECS/
-
-          mkdir -p ~/rpmbuild/SOURCES
-          spectool -g -R ~/rpmbuild/SPECS/scantpaper.spec
+          python3 dev/prepare_rpm.py \
+            --repo-root "$GITHUB_WORKSPACE" \
+            --template packaging/fedora/scantpaper.spec \
+            --source-ref "$SOURCE_REF" \
+            --spec-out ~/rpmbuild/SPECS/scantpaper.spec \
+            --sources-dir ~/rpmbuild/SOURCES
           rpmbuild -ba ~/rpmbuild/SPECS/scantpaper.spec
+
+      # This job never installed the package, so an artifact built from a
+      # stale spec would still build "successfully". On a tag build, install
+      # what was just built and assert the version it reports.
+      - name: Verify the built package matches the release tag
+        if: github.ref_type == 'tag'
+        run: |
+          dnf -y install ~/rpmbuild/RPMS/noarch/scantpaper-*.rpm
+          installed=$(scantpaper --version)
+          echo "$installed"
+          expected="scantpaper ${GITHUB_REF_NAME#v}"
+          if [ "$installed" != "$expected" ]; then
+            echo "::error::installed version '$installed' does not match" \
+              "tag '$expected'"
+            exit 1
+          fi
 
       - name: List RPMs
         run: |

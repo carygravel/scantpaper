@@ -25,11 +25,13 @@
    python3 dev/check_launchpad.py --update
    ```
 1. Update translators in credits (https://launchpad.net/scantpaper/+topcontributors)
-1. Prepare the version files. This bumps the version in pyproject.toml, stamps
-   the current `changelog.md` section with the release date, and adds the dated
-   `<release>` element to [org.scantpaper.desktop.metainfo.xml](org.scantpaper.desktop.metainfo.xml).
+1. Prepare the three version files. This bumps the version in pyproject.toml,
+   stamps the current `changelog.md` section with the release date, and adds
+   the dated `<release>` element to
+   [org.scantpaper.desktop.metainfo.xml](org.scantpaper.desktop.metainfo.xml).
    The version is taken from the `(unreleased)` heading in `changelog.md`; the
-   same date is written to both the changelog and the metainfo file.
+   same date is written to both the changelog and the metainfo file. The RPM
+   specs are build-time templates and are not changed by this step.
    ```sh
    python3 dev/release.py --dry-run  # preview the changes
    python3 dev/release.py            # write them
@@ -44,12 +46,25 @@
    ```sh
    python3 dev/check_launchpad.py --record-pot
    ```
-1. Tag the release
+1. Tag the release and push the tag. The tag is what identifies a release:
+   the RPM workflows render the spec and source archive from the pushed tag,
+   with no release-time spec edit.
    ```sh
    git status
    git tag vx.x.x
-   git push --tags
+   git push origin main --tags
    ```
+   RPM builds use `Release: 0.<commit-count>.g<short-sha>%{?dist}`, including
+   tagged releases. This keeps every upstream build below a distribution
+   package at `Release: 1`, without an `Epoch`. Only builds launched from a tag
+   are attached to a GitHub release; branch and pull-request builds are not
+   published.
+1. Rebuild an already-tagged release. Dispatch the Fedora and openSUSE
+   workflows from `main` with `source_ref=vx.x.x`. The dispatch input defaults
+   to `github.sha`; setting it makes the renderer read the version, source
+   archive and commit date from the selected tag instead of `main`. The run is
+   a branch run, so its artifacts are not attached automatically; download
+   them and replace the release assets manually.
 1. Build package for Debian. Update the salsa repo:
    ```sh
    gbp import-orig --pristine-tar --uscan
