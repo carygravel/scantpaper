@@ -4,12 +4,21 @@ from __future__ import annotations
 
 import datetime
 import unittest.mock
+import weakref
+from functools import partial
+from types import FunctionType
 from typing import TYPE_CHECKING, cast
+
+import pytest
 
 from scantpaper.document import Document, _extract_metadata
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+
+class _LifetimeMarker:
+    """Weak-referenceable marker stored in an options dict."""
 
 
 class MockResponse:
@@ -207,6 +216,107 @@ def test_post_process_ocr() -> None:
     with unittest.mock.patch.object(doc, "_post_process_scan") as mock_pps:
         ocr_finished_callback(None)
         mock_pps.assert_called_with(None, options)
+
+
+def _captured_options(callback: object) -> dict[str, object]:
+    """Return the options captured by a partial or closure callback."""
+    if isinstance(callback, partial):
+        return cast("dict[str, object]", callback.keywords["options"])
+    assert isinstance(callback, FunctionType)
+    closure = callback.__closure__ or ()
+    cells = dict(zip(callback.__code__.co_freevars, closure, strict=True))
+    return cast("dict[str, object]", cells["kwargs"].cell_contents)
+
+
+def _track_options(options: dict[str, object]) -> weakref.ReferenceType[object]:
+    """Track whether an options dict stays alive through a weak marker."""
+    marker = _LifetimeMarker()
+    options["_lifetime_marker"] = marker
+    return weakref.ref(marker)
+
+
+def test_generated_and_direct_callbacks_stay_out_of_options() -> None:
+    """Callbacks are passed separately so their options are refcounted."""
+    doc = create_doc()
+    doc.split_page(page=1)
+    direct_kwargs = doc.thread.split_page.call_args.kwargs
+    direct_callback = direct_kwargs["data_callback"]
+    direct_options = _captured_options(direct_callback)
+    assert "data_callback" not in direct_options
+
+    options_ref = _track_options(direct_options)
+    doc.thread.split_page.reset_mock()
+    del direct_kwargs, direct_callback, direct_options
+    assert options_ref() is None, "direct options released without cyclic GC"
+
+
+@pytest.mark.parametrize("method", ["unpaper", "user_defined"])
+def test_unpaper_and_user_defined_keep_callback_out_of_options(method: str) -> None:
+    """The remaining direct methods also avoid a self-referencing options dict."""
+    doc = create_doc()
+    getattr(doc, method)(page=1)
+    thread_method = getattr(doc.thread, method)
+    request_kwargs = thread_method.call_args.kwargs
+    callback = request_kwargs["data_callback"]
+    options = _captured_options(callback)
+    assert "data_callback" not in options
+
+    options_ref = _track_options(options)
+    thread_method.reset_mock()
+    del request_kwargs, callback, options
+    assert options_ref() is None, "options released without cyclic GC"
+
+
+def test_import_file_keeps_callback_out_of_options() -> None:
+    """Import callbacks capture the outer options without a cycle."""
+    doc = create_doc()
+    doc.import_file(info={}, first_page=1, last_page=1)
+
+    request_kwargs = doc.thread.import_file.call_args.kwargs
+    callback = request_kwargs["data_callback"]
+    options = _captured_options(callback)
+    assert "data_callback" not in options
+
+    assert doc.create_pidfile.call_args.args[1] == "import_file"
+    options_ref = _track_options(options)
+    doc.thread.import_file.reset_mock()
+    doc.create_pidfile.reset_mock()
+    del request_kwargs, callback, options
+    assert options_ref() is None, "options released without cyclic GC"
+
+
+def test_import_file_continues_without_pidfile() -> None:
+    """A failed pidfile leaves the import running without cancellation support."""
+    doc = create_doc()
+    doc.create_pidfile = unittest.mock.Mock(return_value=None)
+
+    doc.import_file(info={}, first_page=1, last_page=1)
+
+    doc.create_pidfile.assert_called_once()
+    assert doc.thread.import_file.call_args.kwargs["pidfile"] is None
+
+
+def test_file_info_pidfile_uses_process_name() -> None:
+    """File information requests name their process in create_pidfile()."""
+    doc = create_doc()
+    doc.import_files(paths=["file.pdf"])
+    assert doc.create_pidfile.call_args.args[1] == "get_file_info"
+
+
+def test_import_scan_remains_cycle_free() -> None:
+    """The copy-based scan callback construction stays cycle-free."""
+    doc = create_doc()
+    doc.import_scan(resolution=300, rotate=None)
+
+    request_kwargs = doc.thread.import_page.call_args.kwargs
+    callback = request_kwargs["data_callback"]
+    options = _captured_options(callback)
+    assert "data_callback" not in options
+
+    options_ref = _track_options(options)
+    doc.thread.import_page.reset_mock()
+    del request_kwargs, callback, options
+    assert options_ref() is None, "scan options released without cyclic GC"
 
 
 def test_import_scan() -> None:

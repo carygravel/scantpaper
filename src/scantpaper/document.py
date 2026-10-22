@@ -60,7 +60,7 @@ class Document(BaseDocument):
 
         # File in which to store the process ID
         # so that it can be killed if necessary
-        options["pidfile"] = self.create_pidfile(options)
+        options["pidfile"] = self.create_pidfile(options, "get_file_info")
 
         def _select_next_finished_callback(response: Response) -> None:
             if (
@@ -192,7 +192,8 @@ class Document(BaseDocument):
         """Import file."""
         # File in which to store the process ID
         # so that it can be killed if necessary
-        kwargs["pidfile"] = self.create_pidfile(kwargs)
+        kwargs.pop("data_callback", None)
+        kwargs["pidfile"] = self.create_pidfile(kwargs, "import_file")
         kwargs["dir"] = EMPTY
         if self.dir is not None:
             kwargs["dir"] = self.dir
@@ -206,8 +207,7 @@ class Document(BaseDocument):
                 if "logger_callback" in kwargs:
                     cast("Callable[..., object]", kwargs["logger_callback"])(response)
 
-        kwargs["data_callback"] = _import_file_data_callback
-        self.thread.import_file(**kwargs)
+        self.thread.import_file(data_callback=_import_file_data_callback, **kwargs)
 
     def _post_process_rotate(self, page_id: int, options: dict[str, Any]) -> None:
 
@@ -342,8 +342,9 @@ class Document(BaseDocument):
 
     def split_page(self, **kwargs: object) -> None:
         """Split a page vertically or horizontally, creating an additional page."""
-        kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
-        self.thread.split_page(**kwargs)
+        kwargs.pop("data_callback", None)
+        data_callback = partial(self.data_callback, options=dict(kwargs))
+        self.thread.split_page(data_callback=data_callback, **kwargs)
 
     def ocr_pages(self, **kwargs: object) -> None:
         """Wrap the various OCR engines."""
@@ -354,13 +355,15 @@ class Document(BaseDocument):
 
     def unpaper(self, **kwargs: object) -> None:
         """Run unpaper on the given page."""
-        kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
-        self.thread.unpaper(**kwargs)
+        kwargs.pop("data_callback", None)
+        data_callback = partial(self.data_callback, options=dict(kwargs))
+        self.thread.unpaper(data_callback=data_callback, **kwargs)
 
     def user_defined(self, **kwargs: object) -> None:
         """Run a user-defined command on a page."""
-        kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
-        self.thread.user_defined(**kwargs)
+        kwargs.pop("data_callback", None)
+        data_callback = partial(self.data_callback, options=dict(kwargs))
+        self.thread.user_defined(data_callback=data_callback, **kwargs)
 
     def undo(
         self,

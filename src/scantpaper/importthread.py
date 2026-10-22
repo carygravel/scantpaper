@@ -60,13 +60,27 @@ class Importhread(BaseThread):
                 return cast("TextIO | None", args["pidfile"])
         return None
 
+    def _release_pidfile(self, request: Request) -> None:
+        """Deregister and close a request's pidfile, suppressing errors."""
+        pidfile = self._request_pidfile(request)
+        if pidfile is None:
+            return
+        with self.lock:
+            self.running_pids.pop(pidfile, None)
+            try:
+                pidfile.close()
+            except (OSError, ValueError):
+                logger.warning("Error closing PID file %s", pidfile, exc_info=True)
+
     @override
     def _request_completed(self, _request: Request) -> None:
-        """Deregister the request's pidfile now that its handler has finished."""
-        pidfile = self._request_pidfile(_request)
-        if pidfile is not None:
-            with self.lock:
-                self.running_pids.pop(pidfile, None)
+        """Release the request's pidfile now that its handler has finished."""
+        self._release_pidfile(_request)
+
+    @override
+    def _request_drained(self, _request: Request) -> None:
+        """Release the pidfile of a queued request cancelled before it starts."""
+        self._release_pidfile(_request)
 
     def do_cancel(self, _request: Request) -> None:
         """Cancel running tasks."""

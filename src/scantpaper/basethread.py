@@ -307,10 +307,15 @@ class BaseThread(threading.Thread):
     ) -> bool:
         """Separate the handler wrapper logic so that it can be overriden by subclasses."""
         try:
-            request.finished(handler(request))
+            result = handler(request)
             if request.process == "quit":
+                request.finished(result)
                 return False
+            # Run completion cleanup before queueing the terminal response so
+            # that resources such as PID files are released by the time the
+            # terminal callback runs.
             self._request_completed(request)
+            request.finished(result)
         except Exception as err:
             # BLE001 — the handler is a do_<process> method that may raise
             # arbitrary exceptions from external code (SANE, file I/O, ...),
@@ -327,6 +332,9 @@ class BaseThread(threading.Thread):
     def _request_completed(self, _request: Request) -> None:
         """Provide a hook for when a request's handler finishes or fails."""
 
+    def _request_drained(self, _request: Request) -> None:
+        """Provide a hook for a queued request cancelled before it starts."""
+
     def drain_cancelled_requests(self) -> None:
         """Emit a CANCELLED response for every request still queued and unstarted."""
         drained = []
@@ -336,6 +344,7 @@ class BaseThread(threading.Thread):
             except queue.Empty:  # noqa: PERF203 — queue drain; breaking on queue.Empty is the idiomatic pattern
                 break
         for request in drained:
+            self._request_drained(request)
             request.cancelled()
 
     def monitor(self) -> bool:

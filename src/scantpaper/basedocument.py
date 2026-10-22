@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, cast
 
 import gi
 
+from scantpaper.basethread import Request, Response, ResponseType
 from scantpaper.docthread import INSERT_AT_START, DocThread
 from scantpaper.helpers import _weak_callback, slurp
 from scantpaper.i18n import _
@@ -21,8 +22,6 @@ from scantpaper.simplelist import SimpleList
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from scantpaper.basethread import Response
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
@@ -162,18 +161,27 @@ class BaseDocument(SimpleList):
             except queue.Empty:
                 pass
 
-            # Cancel queued requests so their requesters are notified
-            self.thread.drain_cancelled_requests()
+        # Cancel queued requests so their requesters are notified. Run this
+        # outside the lock: the worker's drain hook takes the same lock to
+        # release the request's PID file.
+        self.thread.drain_cancelled_requests()
 
+        with self.thread.lock:
             # Then send the thread a cancel signal
             # to stop it going beyond the next break point
             self.thread.cancel = True
 
             # Kill all running processes in the thread
             for pidfile in list(self.thread.running_pids):
-                pid = slurp(pidfile)
                 try:
-                    pid = int(pid)
+                    content = slurp(pidfile)
+                except (OSError, TypeError, ValueError):
+                    # The request may have completed and closed its pidfile
+                    # between the snapshot and this read.
+                    self.thread.running_pids.pop(pidfile, None)
+                    continue
+                try:
+                    pid = int(content)
                 except (TypeError, ValueError):
                     continue
                 if pid <= 1:
@@ -195,7 +203,9 @@ class BaseDocument(SimpleList):
         logger.info("Requesting cancel")
         self.thread.send("cancel", finished_callback=cancel_callback)
 
-    def create_pidfile(self, options: dict[str, object]) -> object | None:
+    def create_pidfile(
+        self, options: dict[str, object], process: str = "unknown"
+    ) -> object | None:
         """Create file in which to store the PID."""
         options = defaultdict(None, options)
         try:
@@ -204,14 +214,21 @@ class BaseDocument(SimpleList):
             pidfile = tempfile.TemporaryFile(  # noqa: SIM115
                 dir=self.dir, suffix=".pid", mode="w+t"
             )
-        except (OSError, PermissionError):
+        except (OSError, PermissionError) as err:
             logger.exception("Caught error writing to %s", self.dir)
-            if "error_callback" in options:
-                cast("Callable[..., object]", options["error_callback"])(
-                    options.get("page"),
-                    "create PID file",
-                    f"Error: unable to write to {self.dir}.",
+            error_callback = options.get("error_callback")
+            if error_callback is not None:
+                request = Request(process, (dict(options),), None)
+                response = Response(
+                    type=ResponseType.ERROR,
+                    request=request,
+                    info=None,
+                    status=f"Error: unable to write to {self.dir}: {err}",
+                    num_completed_jobs=None,
+                    total_jobs=None,
+                    pending=None,
                 )
+                cast("Callable[..., object]", error_callback)(response)
             return None
         if getattr(self.thread, "running_pids", None) is not None:
             with self.thread.lock:
@@ -778,10 +795,10 @@ class BaseDocument(SimpleList):
                 error_callback(None, "Get page", _("No pages selected"))
         return index
 
-    def _note_callbacks(self, kwargs: dict[str, object]) -> None:
+    def _note_callbacks(self, kwargs: dict[str, object], process: str) -> None:
         """Create the mark_saved callback if necessary."""
         # File in which to store the process ID so that it can be killed if necessary
-        kwargs["pidfile"] = self.create_pidfile(kwargs)
+        kwargs["pidfile"] = self.create_pidfile(kwargs, process)
         kwargs["dir"] = self.dir
 
 
@@ -790,7 +807,7 @@ def _save_method_generator(method_name: str) -> Callable[..., None]:
         self: BaseDocument, _method_name: str, **kwargs: object
     ) -> None:
         kwargs["mark_saved"] = True
-        self._note_callbacks(kwargs)
+        self._note_callbacks(kwargs, _method_name)
         method = getattr(self.thread, _method_name)
         method(**kwargs)
 
@@ -801,10 +818,11 @@ def _modify_method_generator(method_name: str) -> Callable[..., None]:
     def _generic_method(
         self: BaseDocument, _method_name: str, **kwargs: object
     ) -> None:
-        kwargs["data_callback"] = partial(self.data_callback, options=kwargs)
-        self._note_callbacks(kwargs)
+        kwargs.pop("data_callback", None)
+        self._note_callbacks(kwargs, _method_name)
+        data_callback = partial(self.data_callback, options=dict(kwargs))
         method = getattr(self.thread, _method_name)
-        method(**kwargs)
+        method(data_callback=data_callback, **kwargs)
 
     return lambda self, **kwargs: _generic_method(self, method_name, **kwargs)
 

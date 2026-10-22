@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import os
 import pathlib
 import subprocess
+import tempfile
 import unittest.mock
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
@@ -11,6 +13,7 @@ from typing import TYPE_CHECKING, cast
 import pytest
 from PIL import Image
 
+from scantpaper.basethread import Request, ResponseType
 from scantpaper.helpers import Proc
 from scantpaper.importthread import (
     Importhread,
@@ -22,8 +25,6 @@ from scantpaper.importthread import (
 if TYPE_CHECKING:
     from collections.abc import Callable
     from unittest.mock import MagicMock
-
-    from scantpaper.importthread import Request
 
 _PDFIMAGES_LIST_HEADER = (
     "page   num  type   width height color comp bpc  enc interp"
@@ -736,19 +737,112 @@ def test_request_pidfile_none() -> None:
 
 
 def test_request_completed_deregisters_pidfile() -> None:
-    """Test _request_completed removes the pidfile from running_pids."""
+    """Test _request_completed closes and removes the pidfile."""
     thread = Importhread()
-    pidfile = "pidfile"
+    pidfile = tempfile.TemporaryFile(mode="w+t")  # noqa: SIM115
+    fd = pidfile.fileno()
     thread.running_pids[pidfile] = pidfile
     request = SimpleNamespace(pidfile=pidfile, args=())
     thread._request_completed(cast("Request", request))
     assert pidfile not in thread.running_pids
+    assert pidfile.closed
+    with pytest.raises(OSError, match="Bad file descriptor"):
+        os.fstat(fd)
 
 
 def test_request_completed_ignores_missing() -> None:
-    """Test _request_completed tolerates a pidfile not in running_pids."""
+    """Test _request_completed still closes an unregistered pidfile."""
     thread = Importhread()
-    pidfile = "pidfile"
+    pidfile = tempfile.TemporaryFile(mode="w+t")  # noqa: SIM115
     request = SimpleNamespace(pidfile=pidfile, args=())
     thread._request_completed(cast("Request", request))
     assert pidfile not in thread.running_pids
+    assert pidfile.closed
+
+
+def test_request_completed_suppresses_close_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A failing close is logged instead of escaping the worker."""
+    thread = Importhread()
+    pidfile = unittest.mock.MagicMock()
+    pidfile.close.side_effect = OSError("close failed")
+    thread.running_pids[pidfile] = pidfile
+    request = SimpleNamespace(pidfile=pidfile, args=())
+
+    thread._request_completed(cast("Request", request))
+
+    assert pidfile not in thread.running_pids
+    assert "Error closing PID file" in caplog.text
+
+
+def test_request_drained_closes_pidfile() -> None:
+    """A queued request cancelled before starting releases its pidfile."""
+    thread = Importhread()
+    pidfile = tempfile.TemporaryFile(mode="w+t")  # noqa: SIM115
+    fd = pidfile.fileno()
+    thread.running_pids[pidfile] = pidfile
+    request = Request("import_file", ({"pidfile": pidfile},), thread.responses)
+    thread.requests.put(request)
+
+    thread.drain_cancelled_requests()
+
+    assert pidfile.closed
+    with pytest.raises(OSError, match="Bad file descriptor"):
+        os.fstat(fd)
+    assert pidfile not in thread.running_pids
+    response = thread.responses.get_nowait()
+    assert response.type is ResponseType.CANCELLED
+
+
+def test_active_pidfile_readable_until_completion() -> None:
+    """The pidfile stays readable for cancellation while the request runs."""
+    thread = Importhread()
+    pidfile = tempfile.TemporaryFile(mode="w+t")  # noqa: SIM115
+    pidfile.write("4321")
+    pidfile.flush()
+    thread.running_pids[pidfile] = pidfile
+    request = SimpleNamespace(pidfile=pidfile, args=())
+
+    pidfile.seek(0)
+    assert pidfile.read() == "4321"
+
+    thread._request_completed(cast("Request", request))
+    assert pidfile.closed
+
+
+def test_handler_wrapper_closes_pidfile_before_terminal_callback() -> None:
+    """The pidfile is already closed when the finished callback runs."""
+    thread = Importhread()
+    pidfile = tempfile.TemporaryFile(mode="w+t")  # noqa: SIM115
+    thread.running_pids[pidfile] = pidfile
+    request = Request("test", ({"pidfile": pidfile},), thread.responses)
+    closed_at_callback = []
+
+    def finished_callback(_response: object) -> None:
+        closed_at_callback.append(pidfile.closed)
+
+    thread.callbacks[request.uuid] = {
+        "started": True,
+        "finished_callback": finished_callback,
+    }
+
+    thread.handler_wrapper(request, lambda _request: None)
+    thread._monitor_response()
+
+    assert closed_at_callback == [True]
+
+
+def test_completed_requests_release_descriptors_without_gc() -> None:
+    """Many completions leave no open pidfile descriptors without gc.collect()."""
+    thread = Importhread()
+    for _ in range(100):
+        pidfile = tempfile.TemporaryFile(mode="w+t")  # noqa: SIM115
+        fd = pidfile.fileno()
+        thread.running_pids[pidfile] = pidfile
+        request = SimpleNamespace(pidfile=pidfile, args=())
+        thread._request_completed(cast("Request", request))
+        assert pidfile.closed
+        with pytest.raises(OSError, match="Bad file descriptor"):
+            os.fstat(fd)
+    assert not thread.running_pids

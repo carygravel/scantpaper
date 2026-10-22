@@ -17,6 +17,8 @@ from scantpaper.loop_helpers import safe_mainloop
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from scantpaper.basethread import Response
+
 
 def test_save_tiff(
     rose_pnm: str,
@@ -109,9 +111,9 @@ def test_save_tiff_with_error(
         # inject error before save_djvu
         pathlib.Path(dirname).chmod(0o500)  # no write access
 
-        def error_callback1(_page: object, _process: str, _message: object) -> None:
+        def error_callback1(response: Response) -> None:
             """No write access."""
-            assert True, "caught error injected before save_tiff"
+            assert "unable to write to" in (response.status or "")
             nonlocal asserts
             asserts += 1
             mlp.quit()
@@ -124,8 +126,8 @@ def test_save_tiff_with_error(
         )
         mlp.run()
 
-        def error_callback2(_page: object, _process: str, _message: object) -> None:
-            assert True, "save_djvu caught error injected in queue"
+        def error_callback2(_response: Response) -> None:
+            assert True, "save_tiff caught error injected in queue"
             pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
             asserts += 1

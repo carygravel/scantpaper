@@ -20,7 +20,7 @@ import pytest
 from PIL import Image, features
 
 from scantpaper import config
-from scantpaper.basethread import Request
+from scantpaper.basethread import Request, Response
 from scantpaper.const import POINTS_PER_INCH
 from scantpaper.dependencies import jbig2_available
 from scantpaper.docthread import DocThread
@@ -420,9 +420,9 @@ def test_save_pdf_with_error(
         # inject error before save_pdf
         pathlib.Path(dirname).chmod(0o500)  # no write access
 
-        def error_callback1(_page: object, _process: str, _message: object) -> None:
+        def error_callback1(response: Response) -> None:
             """No write access."""
-            assert True, "caught error injected before save_pdf"
+            assert "unable to write to" in (response.status or "")
             nonlocal asserts
             asserts += 1
             mlp.quit()
@@ -435,7 +435,7 @@ def test_save_pdf_with_error(
         )
         mlp.run()
 
-        def error_callback2(_page: object, _process: str, _message: object) -> None:
+        def error_callback2(_response: Response) -> None:
             assert True, "save_pdf caught error injected in queue"
             pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts

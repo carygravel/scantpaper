@@ -30,6 +30,12 @@
   lines are split, and manually added vertical words no longer spill down the
   page as oversized horizontal text. The minimum OCRmyPDF version is now
   16.10.0, the first release that honours the hOCR text angle.
+* Long OCR and processing batches no longer run out of file descriptors.
+  Each completed background request now closes its PID file immediately
+  instead of waiting for a full garbage-collection pass. A PID-file failure
+  is also reported through the normal error dialog with the original
+  operating-system error, rather than being masked by a callback-signature
+  `TypeError`.
 * The Fedora and openSUSE RPM specs are now templates rendered at build time
   from the selected git revision. The package version and source archive match
   the release, a build is reproducible from `source_ref`, and the

@@ -10,12 +10,14 @@ import signal
 import tempfile
 import threading
 import uuid
+import weakref
 from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock, Mock, patch
 
 import gi
 import pytest
 
+from scantpaper.basethread import ResponseType
 from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM
 from scantpaper.docthread import INSERT_AT_START
 from scantpaper.document import Document
@@ -30,6 +32,23 @@ from gi.repository import (  # noqa: E402
     GLib,
     Gtk,
 )
+
+
+class _LifetimeMarker:
+    """Weak-referenceable marker stored in an options dict."""
+
+
+class _RecordingThread:
+    """Minimal thread double that records the options it receives."""
+
+    def __init__(self) -> None:
+        self.running_pids: dict[object, object] = {}
+        self.lock = threading.Lock()
+        self.calls: list[dict[str, object]] = []
+
+    def rotate(self, **kwargs: object) -> None:
+        """Record one rotate request."""
+        self.calls.append(kwargs)
 
 
 @pytest.fixture(autouse=True)
@@ -69,21 +88,46 @@ def mock_thread(mocker: pytest.MockerFixture) -> MagicMock:
 
 
 def test_create_pidfile_error() -> None:
-    """Test create_pidfile error handling."""
+    """Test create_pidfile reports failures as a terminal Response."""
     slist = Document(dir="/non-existent-directory")
+    errors: list[object] = []
 
-    error_called = False
-
-    def error_callback(_page: object, _process: str, message: str) -> None:
-        nonlocal error_called
-        error_called = True
-        assert "unable to write to" in message
+    def error_callback(response: object) -> None:
+        errors.append(response)
 
     options: dict[str, object] = {"error_callback": error_callback, "page": 1}
 
-    pidfile = slist.create_pidfile(options)
+    pidfile = slist.create_pidfile(options, "tesseract")
     assert pidfile is None
-    assert error_called
+    assert len(errors) == 1, "error reported once"
+    response = errors[0]
+    assert cast("Any", response).type is ResponseType.ERROR
+    assert cast("Any", response).request.process == "tesseract"
+    assert cast("Any", response).request.args[0]["page"] == 1
+    assert "unable to write to" in cast("Any", response).status
+    assert "/non-existent-directory" in cast("Any", response).status
+
+
+def test_create_pidfile_error_preserves_os_error() -> None:
+    """The reported error keeps the original OSError and no TypeError occurs."""
+    slist = Document()
+    errors: list[object] = []
+    options: dict[str, object] = {
+        "error_callback": errors.append,
+        "page": 1,
+    }
+
+    with patch(
+        "scantpaper.basedocument.tempfile.TemporaryFile",
+        side_effect=OSError("disk full"),
+    ):
+        assert slist.create_pidfile(options, "tesseract") is None
+
+    assert len(errors) == 1
+    response = cast("Any", errors[0])
+    assert response.type is ResponseType.ERROR
+    assert "disk full" in response.status
+    assert "unable to write to" in response.status
 
 
 def test_create_pidfile_registers_in_running_pids(tmp_path: pathlib.Path) -> None:
@@ -94,6 +138,31 @@ def test_create_pidfile_registers_in_running_pids(tmp_path: pathlib.Path) -> Non
     assert pidfile is not None
     assert pidfile in slist.thread.running_pids
     assert slist.thread.running_pids[pidfile] is pidfile
+
+
+def test_generated_method_keeps_callback_out_of_options(
+    tmp_path: pathlib.Path,
+) -> None:
+    """Generated methods do not store the callback inside its own options."""
+    slist = Document(dir=tmp_path)
+    recorder = _RecordingThread()
+    slist.thread = cast("Any", recorder)
+    slist.rotate(page=1, angle=90)
+
+    request_kwargs = recorder.calls[0]
+    data_callback = request_kwargs["data_callback"]
+    options = data_callback.keywords["options"]
+    assert "data_callback" not in options
+    assert options["pidfile"] is request_kwargs["pidfile"]
+
+    marker = _LifetimeMarker()
+    options["_lifetime_marker"] = marker
+    options_ref = weakref.ref(marker)
+    pidfile = request_kwargs["pidfile"]
+    recorder.calls.clear()
+    del request_kwargs, data_callback, options, marker
+    assert options_ref() is None, "options released without cyclic GC"
+    pidfile.close()
 
 
 def test_cancel(mock_thread: MagicMock) -> None:
@@ -117,6 +186,19 @@ def test_cancel(mock_thread: MagicMock) -> None:
         process_callback.assert_called_with(12345)
         mock_killpg.assert_called_once_with(12345, signal.SIGKILL)
         assert "dummy.pid" not in slist.thread.running_pids
+
+
+def test_cancel_tolerates_closed_pidfile(mock_thread: MagicMock) -> None:
+    """A pidfile closed before cancellation is dropped without killing."""
+    pidfile = tempfile.TemporaryFile(mode="w+t")  # noqa: SIM115
+    pidfile.close()
+    mock_thread.running_pids = {pidfile: pidfile}
+    slist = Document()
+
+    slist.cancel(MagicMock())
+
+    assert pidfile not in slist.thread.running_pids
+    mock_thread.send.assert_called()
 
 
 def test_add_page_extra() -> None:
