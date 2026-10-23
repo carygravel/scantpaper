@@ -703,6 +703,8 @@ def test_ocr_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> N
     mock_ocr_controls_instance = mock_ocr_controls_cls.return_value
     mock_ocr_controls_instance.engine = "tesseract"
     mock_ocr_controls_instance.language = "eng"
+    mock_ocr_controls_instance.variables = "user_words_file=/tmp/words.txt"
+    mock_ocr_controls_instance.validation_error = None
     mock_ocr_controls_instance.threshold = True
     mock_ocr_controls_instance.threshold_value = 50
 
@@ -727,10 +729,14 @@ def test_ocr_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> N
 
     _trigger_apply(mock_dialog_instance)
 
+    assert mock_tool_window.settings["tesseract variables"] == (
+        "user_words_file=/tmp/words.txt"
+    )
     mock_tool_window.slist.ocr_pages.assert_called_once()
     call_kwargs = mock_tool_window.slist.ocr_pages.call_args[1]
     assert call_kwargs["engine"] == "tesseract"
     assert call_kwargs["language"] == "eng"
+    assert call_kwargs["variables"] == "user_words_file=/tmp/words.txt"
     assert call_kwargs["threshold"] == 50
     assert call_kwargs["pages"] == ["pageobject"]
 
@@ -748,6 +754,8 @@ def test_ocr_dialog_no_pages(
     mock_ocr_controls_instance = mock_ocr_controls_cls.return_value
     mock_ocr_controls_instance.engine = "tesseract"
     mock_ocr_controls_instance.language = "eng"
+    mock_ocr_controls_instance.variables = ""
+    mock_ocr_controls_instance.validation_error = None
     mock_ocr_controls_instance.threshold = True
     mock_ocr_controls_instance.threshold_value = 50
 
@@ -782,6 +790,37 @@ def test_ocr_dialog_existing(
     mock_tool_window._windowo = mocker.Mock()
     mock_tool_window.ocr_dialog(None, None)
     mock_tool_window._windowo.present.assert_called_once()
+
+
+def test_ocr_dialog_validation_error_blocks_dispatch(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """Test the OCR dialog shows an error and does not dispatch on invalid input."""
+    mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    mock_dialog_instance.get_content_area.return_value = mocker.Mock()
+
+    mock_ocr_controls_cls = mocker.patch("scantpaper.tools_menu_mixins.OCRControls")
+    mock_ocr_controls_instance = mock_ocr_controls_cls.return_value
+    mock_ocr_controls_instance.validation_error = "Some problem"
+
+    mock_tool_window.settings = {
+        "ocr engine": "tesseract",
+        "ocr language": "eng",
+        "OCR on scan": False,
+        "threshold-before-ocr": False,
+        "threshold tool": 0,
+    }
+    mock_tool_window._ocr_engine = ["tesseract"]
+    mock_tool_window._show_message_dialog = mocker.Mock()
+
+    mock_tool_window.ocr_dialog(None, None)
+    _trigger_apply(mock_dialog_instance)
+
+    mock_tool_window._show_message_dialog.assert_called_once()
+    call_kwargs = mock_tool_window._show_message_dialog.call_args[1]
+    assert call_kwargs["text"] == "Some problem"
+    mock_tool_window.slist.ocr_pages.assert_not_called()
 
 
 def test_user_defined_dialog(

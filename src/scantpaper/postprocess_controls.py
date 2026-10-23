@@ -10,7 +10,17 @@ from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import PERCENT
 from scantpaper.gobject import property_
 from scantpaper.i18n import _
-from scantpaper.tesseract import get_tesseract_codes, languages
+from scantpaper.tesseract import (
+    code2name,
+    get_tesseract_codes,
+    get_tesseract_variables,
+    join_language_spec,
+    languages,
+    parse_variables,
+    split_language_spec,
+    validate_language_spec,
+    validate_variable_names,
+)
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
@@ -287,6 +297,31 @@ class OCRControls(Gtk.Box):
     @language.setter
     def language(self, newval: str | None) -> None:
         self._language = newval
+        if hasattr(self, "_options_box"):
+            self._load_language()
+
+    _variables = ""
+
+    @property
+    def variables(self) -> str:
+        """Getter for additional tesseract variables."""
+        if hasattr(self, "_variables_view"):
+            buffer = self._variables_view.get_buffer()
+            return cast(
+                "str",
+                buffer.get_text(
+                    buffer.get_start_iter(),
+                    buffer.get_end_iter(),
+                    include_hidden_chars=True,
+                ),
+            )
+        return self._variables
+
+    @variables.setter
+    def variables(self, newval: str | None) -> None:
+        self._variables = "" if newval is None else newval
+        if hasattr(self, "_variables_view"):
+            self._variables_view.get_buffer().set_text(self._variables)
 
     _active = False
 
@@ -345,7 +380,15 @@ class OCRControls(Gtk.Box):
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
+        variables = kwargs.pop("variables", "")
         super().__init__(*args, **kwargs)
+        self._variables = "" if variables is None else str(variables)
+        self._syncing = False
+        self._primary_language: str | None = None
+        self._additional_languages: list[str] = []
+        self._tesscodes: list[str] = []
+        self._langs: dict[str, str] = {}
+        self._additional_checks: dict[str, Gtk.CheckButton] = {}
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         hboxo = Gtk.Box()
         self.append(hboxo)
@@ -368,7 +411,7 @@ class OCRControls(Gtk.Box):
         hboxtl = None
 
         if tesseract:
-            hboxtl = self._add_tess_languages()
+            hboxtl = self._add_tess_language_controls()
 
             if not self._active_button.get_active():
                 hboxtl.set_sensitive(False)
@@ -423,24 +466,202 @@ class OCRControls(Gtk.Box):
 
     def on_language_changed(self, widget: ComboBoxText) -> None:
         """React to OCR language combobox change."""
-        self.language = widget.get_active_index()
+        if self._syncing:
+            return
+        primary = widget.get_active_index()
+        if primary is None or primary == self._primary_language:
+            return
+        self._primary_language = cast("str", primary)
+        if self._primary_language in self._additional_languages:
+            self._additional_languages.remove(self._primary_language)
+        self._syncing = True
+        try:
+            self._rebuild_additional_languages()
+        finally:
+            self._syncing = False
+        self._update_language_from_controls()
 
-    def _add_tess_languages(self) -> Gtk.Box:
+    @property
+    def validation_error(self) -> str | None:
+        """Return a user-facing error for the current OCR options."""
+        if self.language is None or self.language == "":
+            return _("No OCR language selected.")
+        missing = validate_language_spec(self.language, self._tesscodes)
+        if missing:
+            return _("The following OCR languages are not installed: %(languages)s") % {
+                "languages": ", ".join(missing)
+            }
+        try:
+            variables = parse_variables(self.variables)
+        except ValueError as exc:
+            return str(exc)
+        unknown = validate_variable_names(variables, get_tesseract_variables())
+        if len(unknown) == 1:
+            return _("Unknown Tesseract option: %(variable)s") % {
+                "variable": unknown[0]
+            }
+        if unknown:
+            return _("Unknown Tesseract options: %(variables)s") % {
+                "variables": ", ".join(unknown)
+            }
+        return None
+
+    def _add_tess_language_controls(self) -> Gtk.Box:
+        self._options_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.append(self._options_box)
+        self._tesscodes = get_tesseract_codes()
+        self._langs = languages(self._tesscodes)
+
         hbox = Gtk.Box()
-        self.append(hbox)
-        label = Gtk.Label(label=_("Language to recognise"))
-        hbox.append(label)
+        self._options_box.append(hbox)
+        hbox.append(Gtk.Label(label=_("Language to recognise")))
 
-        # Tesseract language files
-        tesscodes = get_tesseract_codes()
-        langs = languages(tesscodes)
-        tesslang = [[lang, langs[lang]] for lang in sorted(tesscodes)]
+        self._primary_cmbx = ComboBoxText()
+        self._primary_cmbx.connect("changed", self.on_language_changed)
+        hbox.append(self._primary_cmbx)
 
-        combobox = ComboBoxText(data=tesslang)
-        combobox.set_active_index(self.language)
-        if not combobox.get_active_index():
-            combobox.set_active(0)
-            self.language = combobox.get_active_index()
-        combobox.connect("changed", self.on_language_changed)
-        hbox.append(combobox)
-        return hbox
+        hbox2 = Gtk.Box()
+        self._options_box.append(hbox2)
+        hbox2.append(Gtk.Label(label=_("Additional languages")))
+
+        self._additional_popover = Gtk.Popover()
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_min_content_width(250)
+        scrolled.set_min_content_height(200)
+        self._additional_listbox = Gtk.ListBox()
+        scrolled.set_child(self._additional_listbox)
+        self._additional_popover.set_child(scrolled)
+        self._additional_button = Gtk.MenuButton()
+        self._additional_button.set_popover(self._additional_popover)
+        self._additional_button.set_label(_("None"))
+        hbox2.append(self._additional_button)
+
+        self._load_language()
+        self._add_advanced_options()
+        return self._options_box
+
+    def _add_advanced_options(self) -> None:
+        expander = Gtk.Expander(label=_("Advanced Tesseract options"))
+        expander.set_tooltip_text(
+            _(
+                "Tesseract engine variables, not command-line arguments. "
+                "Use absolute paths."
+            )
+        )
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        hint = Gtk.Label(
+            label=_(
+                "One name=value setting per line, "
+                "e.g. user_words_file=/path/to/words.txt"
+            )
+        )
+        hint.set_wrap(True)
+        hint.set_xalign(0)
+        vbox.append(hint)
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolled.set_min_content_height(70)
+        self._variables_view = Gtk.TextView()
+        self._variables_view.set_monospace(True)
+        self._variables_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self._variables_view.get_buffer().set_text(self._variables)
+        scrolled.set_child(self._variables_view)
+        vbox.append(scrolled)
+        expander.set_child(vbox)
+        self._options_box.append(expander)
+
+    def _load_language(self) -> None:
+        codes = split_language_spec(self._language)
+        if codes:
+            self._primary_language = codes[0]
+            self._additional_languages = codes[1:]
+        else:
+            installed = sorted(self._tesscodes)
+            self._primary_language = installed[0] if installed else None
+            self._additional_languages = []
+            if self._primary_language is not None:
+                self._language = self._primary_language
+        self._syncing = True
+        try:
+            self._rebuild_primary_combo()
+            self._rebuild_additional_languages()
+        finally:
+            self._syncing = False
+        self._update_additional_button_label()
+
+    def _rebuild_primary_combo(self) -> None:
+        rows: list[list[object]] = [
+            [code, self._language_name(code)] for code in sorted(self._tesscodes)
+        ]
+        known = {row[0] for row in rows}
+        for code in split_language_spec(self._language):
+            if code not in known:
+                rows.append([code, self._language_label(code)])
+                known.add(code)
+        self._primary_cmbx.remove_all()
+        self._primary_cmbx.data = rows
+        for _code, label in rows:
+            self._primary_cmbx.append_text(label)
+        self._primary_cmbx.set_active_index(self._primary_language)
+
+    def _rebuild_additional_languages(self) -> None:
+        while child := self._additional_listbox.get_first_child():
+            self._additional_listbox.remove(child)
+        self._additional_checks = {}
+        codes = [
+            code for code in sorted(self._tesscodes) if code != self._primary_language
+        ]
+        known = set(codes)
+        if self._primary_language is not None:
+            known.add(self._primary_language)
+        for code in self._additional_languages:
+            if code not in known:
+                codes.append(code)
+                known.add(code)
+        for code in codes:
+            check = Gtk.CheckButton(label=self._language_label(code))
+            check.set_active(code in self._additional_languages)
+            check.connect("toggled", self._on_additional_language_toggled, code)
+            self._additional_listbox.append(check)
+            self._additional_checks[code] = check
+
+    def _on_additional_language_toggled(
+        self, checkbox: Gtk.CheckButton, code: str
+    ) -> None:
+        if self._syncing:
+            return
+        if checkbox.get_active():
+            if (
+                code != self._primary_language
+                and code not in self._additional_languages
+            ):
+                self._additional_languages.append(code)
+        elif code in self._additional_languages:
+            self._additional_languages.remove(code)
+        self._update_language_from_controls()
+
+    def _update_language_from_controls(self) -> None:
+        spec = join_language_spec(self._primary_language, self._additional_languages)
+        self._language = spec or None
+        self._update_additional_button_label()
+
+    def _update_additional_button_label(self) -> None:
+        if not self._additional_languages:
+            self._additional_button.set_label(_("None"))
+            self._additional_button.set_tooltip_text(_("No additional languages"))
+            return
+        label = ", ".join(
+            self._language_label(code) for code in self._additional_languages
+        )
+        self._additional_button.set_label(label)
+        self._additional_button.set_tooltip_text(label)
+
+    def _language_name(self, code: str) -> str:
+        return cast("str", self._langs.get(code, code2name(code)))
+
+    def _language_label(self, code: str) -> str:
+        name = self._language_name(code)
+        if code in self._tesscodes:
+            return name
+        return _("%(language)s (not installed)") % {"language": name}

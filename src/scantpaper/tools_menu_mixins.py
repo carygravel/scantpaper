@@ -673,6 +673,7 @@ class ToolsMenuMixins:
             available_engines=self._ocr_engine,
             engine=self.settings["ocr engine"],
             language=self.settings["ocr language"],
+            variables=self.settings.get("tesseract variables", ""),
             active=self.settings["OCR on scan"],
             threshold=self.settings["threshold-before-ocr"],
             threshold_value=self.settings["threshold tool"],
@@ -681,9 +682,21 @@ class ToolsMenuMixins:
         vbox.append(ocr_controls)
 
         def ocr_apply_callback() -> None:
+            validation_error = ocr_controls.validation_error
+            if validation_error is not None:
+                self._show_message_dialog(
+                    parent=self,
+                    message_type="error",
+                    buttons=Gtk.ButtonsType.CLOSE,
+                    process="ocr",
+                    text=validation_error,
+                    page=None,
+                )
+                return
             self._run_ocr(
                 engine=cast("str", ocr_controls.engine),
                 tesslang=ocr_controls.language,
+                variables=ocr_controls.variables,
                 threshold_flag=ocr_controls.threshold,
                 threshold=ocr_controls.threshold_value,
             )
@@ -698,12 +711,14 @@ class ToolsMenuMixins:
         *,
         engine: str,
         tesslang: str | None,
+        variables: str,
         threshold_flag: bool,
         threshold: float,
     ) -> None:
         """Run OCR on a set of pages."""
         if engine == "tesseract":
             self.settings["ocr language"] = tesslang
+            self.settings["tesseract variables"] = variables
 
         kwargs = {
             "queued_callback": self.post_process_progress.queued,
@@ -717,6 +732,7 @@ class ToolsMenuMixins:
             # ApplicationWindow handles by calling _display_image().
             "engine": engine,
             "language": self.settings["ocr language"],
+            "variables": self.settings.get("tesseract variables", ""),
         }
         self.settings["ocr engine"] = engine
         self.settings["threshold-before-ocr"] = threshold_flag

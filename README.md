@@ -320,7 +320,38 @@ space-separated, so a tool that edits files in place (such as
 `mogrify -negate %i`) can process the whole selection in one go. Only the
 pages whose file actually changed are replaced, and the whole batch is a
 single undo step, so one undo restores every page. `%o` and `%r` are not
-available in batch mode; a tool that uses them must be run one page at a time.
+ available in batch mode; a tool that uses them must be run one page at a time.
+
+### OCR Languages and Tesseract Options
+
+Tesseract can recognise several languages at once. In the scan window and the
+**Tools → OCR** dialog, pick one **Language to recognise** (the primary
+language) and tick any **Additional languages** in the popover. The resulting
+specification is stored in the `ocr language` setting as a `+`-joined list,
+for example `deu+eng`. The primary language is listed first, so put the main
+language of the page first; tesseract prioritises the first language, and
+adding more languages makes recognition slower and can reduce accuracy, so
+select only the languages you need.
+
+The **Advanced Tesseract options** expander accepts one `name=value` engine
+variable per line, for example:
+
+```
+user_words_file=/home/me/words.txt
+tessedit_char_whitelist=0123456789
+```
+
+These are passed straight to the tesseract engine and cover options that have
+no dedicated control, such as a **user word list** (`user_words_file`) or a
+**user pattern list** (`user_patterns_file`). Lines beginning with `#` are
+comments; blank lines are ignored; a value may itself contain `=`. Paths are
+not expanded, so use absolute paths. Invalid or unknown options are reported
+before any page is modified.
+
+The `tessdata_best` language models give more accurate OCR but are larger and
+notably slower, and they only support the LSTM engine. To use them, install
+them in place of the system models and set `TESSDATA_PREFIX` to point at their
+directory if tesseract cannot find them.
 
 
 ---

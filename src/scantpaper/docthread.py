@@ -27,6 +27,7 @@ from scantpaper.i18n import _
 from scantpaper.importthread import _note_callbacks
 from scantpaper.page import Page
 from scantpaper.savethread import SaveThread
+from scantpaper.tesseract import parse_variables
 
 if TYPE_CHECKING:
     import uuid
@@ -1580,7 +1581,21 @@ class DocThread(SaveThread):
                 request.error(_("tessdata directory not found"))
                 return
             path = paths[0]
-        with tesserocr.PyTessBaseAPI(lang=options["language"], path=path) as api:
+        variables = parse_variables(cast("str | None", options.get("variables", "")))
+        logger.info(
+            "OCR %s with tesseract lang=%s path=%s variables=%s",
+            page.id,
+            options["language"],
+            path,
+            variables,
+        )
+        with tesserocr.PyTessBaseAPI(init=False) as api:
+            api.InitFull(path=path, lang=options["language"], variables=variables)
+            for name in variables:
+                if api.GetVariableAsString(name) is None:
+                    raise ValueError(
+                        _("Unknown Tesseract option: %(variable)s") % {"variable": name}
+                    )
             api.SetVariable("tessedit_create_hocr", "T")
             api.SetVariable("hocr_font_info", "T")
             image = page.image_object.convert("L")
@@ -1608,6 +1623,11 @@ class DocThread(SaveThread):
 </html>
 """
 
+            logger.info(
+                "OCR %s produced %s bytes of hOCR",
+                page.id,
+                len(hocr.encode("utf-8")),
+            )
             page.import_hocr(hocr)
             page.ocr_flag = True
             page.ocr_time = datetime.datetime.now(_LOCAL_TZ)

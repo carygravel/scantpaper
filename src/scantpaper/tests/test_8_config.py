@@ -422,6 +422,31 @@ def test_threshold_tool_default() -> None:
         assert output["threshold tool"] == 20, "default threshold tool is 20"
 
 
+def test_tesseract_variables_default_and_round_trip() -> None:
+    """The tesseract variables setting defaults to empty and persists on write."""
+    assert DEFAULTS["tesseract variables"] == ""
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text("{}", encoding="utf-8")
+
+        output = read_config(str(rc))
+        assert "tesseract variables" not in output, (
+            "the raw config does not invent the key"
+        )
+        add_defaults(output)
+        assert output["tesseract variables"] == "", (
+            "add_defaults fills the empty default"
+        )
+
+        output["tesseract variables"] = "user_words_file=/tmp/words.txt"
+        write_config(str(rc), cast("dict[str, object]", cast("object", output)))
+        persisted = json.loads(slurp(rc))
+        assert persisted["tesseract variables"] == "user_words_file=/tmp/words.txt", (
+            "the saved value is written back"
+        )
+
+
 def test_pdf_compression_removed_options_migrated() -> None:
     """LZW/G3 PDF compression settings migrate to Flate/Group 4 options."""
     with tempfile.TemporaryDirectory() as tmpdirname:

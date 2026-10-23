@@ -21,12 +21,17 @@ from gi.repository import Gtk  # noqa: E402
 # Mock tesseract functions
 def mock_get_tesseract_codes() -> list[str]:
     """Mock get_tesseract_codes."""
-    return ["eng", "deu"]
+    return ["eng", "deu", "fra"]
 
 
 def mock_languages(_codes: list[str]) -> dict[str, str]:
     """Mock languages."""
-    return {"eng": "English", "deu": "German"}
+    return {"eng": "English", "deu": "German", "fra": "French"}
+
+
+def mock_get_tesseract_variables() -> set[str]:
+    """Mock get_tesseract_variables."""
+    return {"user_words_file", "tessedit_char_whitelist"}
 
 
 @pytest.fixture
@@ -38,6 +43,10 @@ def mock_ocr_setup(mocker: pytest.MockerFixture) -> None:
     )
     mocker.patch(
         "scantpaper.postprocess_controls.languages", side_effect=mock_languages
+    )
+    mocker.patch(
+        "scantpaper.postprocess_controls.get_tesseract_variables",
+        side_effect=mock_get_tesseract_variables,
     )
 
 
@@ -287,6 +296,18 @@ class TestOCRControls:
         assert not controls._active_button.get_active()
         assert not next(iter(controls.observe_children())).get_sensitive()
 
+    def test_init_without_tesseract(self) -> None:
+        """Test initialization with a non-tesseract engine only."""
+        controls = OCRControls(
+            available_engines=[["gocr", "GOCR", "desc"]], variables="a=b"
+        )
+        # The advanced options field is only built for tesseract, so the
+        # raw variables value is read and written without a widget.
+        assert controls.variables == "a=b"
+        controls.variables = "c=d"
+        assert controls.variables == "c=d"
+        assert not hasattr(controls, "_variables_view")
+
     def test_init_with_tesseract(self) -> None:
         """Test initialization with tesseract."""
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
@@ -343,6 +364,240 @@ class TestOCRControls:
         mock_combo.get_active_index.return_value = "deu"
         controls.on_language_changed(mock_combo)
         assert controls.language == "deu"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_multiple_languages(self) -> None:
+        """Test adding and removing additional languages."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="deu+eng",
+            active=True,
+        )
+        assert controls.language == "deu+eng"
+        assert controls._additional_checks["eng"].get_active()
+
+        controls._additional_checks["fra"].set_active(True)
+        assert controls.language == "deu+eng+fra"
+
+        controls._additional_checks["eng"].set_active(False)
+        assert controls.language == "deu+fra"
+
+        controls._additional_checks["fra"].set_active(False)
+        assert controls.language == "deu"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_additional_language_order(self) -> None:
+        """Test that additional languages keep the selection order."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="deu",
+            active=True,
+        )
+        controls._additional_checks["fra"].set_active(True)
+        controls._additional_checks["eng"].set_active(True)
+        assert controls.language == "deu+fra+eng"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_primary_change_removes_additional(self) -> None:
+        """Test changing the primary language."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="deu+eng+fra",
+            active=True,
+        )
+        controls._primary_cmbx.set_active_index("eng")
+        assert controls.language == "eng+fra"
+        assert not controls._additional_checks["deu"].get_active()
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_primary_not_offered_as_additional(self) -> None:
+        """Test that the primary language is not in the additional list."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="deu+eng",
+            active=True,
+        )
+        assert "deu" not in controls._additional_checks
+        assert "eng" in controls._additional_checks
+        controls._additional_checks["eng"].set_active(True)
+        assert controls.language == "deu+eng"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_language_setter_reloads_ui(self) -> None:
+        """Test that assigning language after construction reloads the combo."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        controls.language = "deu"
+        assert controls._primary_cmbx.get_active_index() == "deu"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_primary_change_to_non_additional(self) -> None:
+        """Test changing the primary to a language not in the additional list."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="deu+eng",
+            active=True,
+        )
+        controls._primary_cmbx.set_active_index("fra")
+        assert controls.language == "fra+eng"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_missing_additional_language(self) -> None:
+        """Test that a stored additional language no longer installed is kept."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng+zzz",
+            active=True,
+        )
+        assert "zzz" in controls._additional_checks
+        assert "not installed" in controls._additional_checks["zzz"].get_label()
+        assert controls.language == "eng+zzz"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_additional_toggled_edges(self) -> None:
+        """Test the additional-language toggle edge branches."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        # Toggling the primary on does not add it as additional.
+        controls._on_additional_language_toggled(
+            MagicMock(get_active=lambda: True), "eng"
+        )
+        assert controls.language == "eng"
+        # Untoggling a code that is not in the additional list is a no-op.
+        controls._on_additional_language_toggled(
+            MagicMock(get_active=lambda: False), "fra"
+        )
+        assert controls.language == "eng"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_additional_toggled_while_syncing(self) -> None:
+        """Test that toggles are ignored while the UI is being rebuilt."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        controls._syncing = True
+        controls._on_additional_language_toggled(
+            MagicMock(get_active=lambda: True), "fra"
+        )
+        assert controls.language == "eng"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_missing_language(self, mocker: pytest.MockerFixture) -> None:
+        """Test that a stored language that is no longer installed is kept."""
+        mocker.patch(
+            "scantpaper.postprocess_controls.get_tesseract_codes",
+            return_value=["eng"],
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.languages",
+            return_value={"eng": "English"},
+        )
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="deu+eng",
+            active=True,
+        )
+        assert controls.language == "deu+eng"
+        assert controls._primary_cmbx.get_active_index() == "deu"
+        assert "not installed" in controls._primary_cmbx.get_active_text()
+        assert controls._additional_checks["eng"].get_active()
+        error = controls.validation_error
+        assert error is not None
+        assert "deu" in error
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_variables(self) -> None:
+        """Test the advanced options field and its sensitivity."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            variables="user_words_file=/tmp/words.txt",
+            active=False,
+        )
+        assert controls.variables == "user_words_file=/tmp/words.txt"
+        assert not controls._options_box.get_sensitive()
+
+        controls.active = True
+        assert controls._options_box.get_sensitive()
+
+        controls.variables = "tessedit_char_whitelist=0123"
+        buffer = controls._variables_view.get_buffer()
+        text = buffer.get_text(
+            buffer.get_start_iter(), buffer.get_end_iter(), include_hidden_chars=True
+        )
+        assert text == "tessedit_char_whitelist=0123"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_validation_error(self, mocker: pytest.MockerFixture) -> None:
+        """Test OCR option validation."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        assert controls.validation_error is None
+
+        controls.variables = "user_words_file=/tmp/words.txt"
+        assert controls.validation_error is None
+
+        controls.variables = "bad"
+        error = controls.validation_error
+        assert error is not None
+        assert "line 1" in error
+
+        controls.variables = "unknown_variable=x"
+        error = controls.validation_error
+        assert error is not None
+        assert "unknown_variable" in error
+
+        controls.variables = "unknown_variable=x\nother_unknown=y"
+        error = controls.validation_error
+        assert error is not None
+        assert "unknown_variable" in error
+        assert "other_unknown" in error
+
+        mocker.patch(
+            "scantpaper.postprocess_controls.get_tesseract_codes",
+            return_value=["eng"],
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.languages",
+            return_value={"eng": "English"},
+        )
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="deu+eng",
+            active=True,
+        )
+        error = controls.validation_error
+        assert error is not None
+        assert "deu" in error
+
+        mocker.patch(
+            "scantpaper.postprocess_controls.get_tesseract_codes",
+            return_value=[],
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.languages",
+            return_value={},
+        )
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language=None,
+            active=True,
+        )
+        assert controls.language is None
+        error = controls.validation_error
+        assert error is not None
+        assert "No OCR language selected" in error
 
 
 @pytest.mark.usefixtures("mock_ocr_setup")

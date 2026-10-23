@@ -285,6 +285,7 @@ class Document(BaseDocument):
             threshold=options.get("threshold"),
             engine=options["engine"],
             language=options["language"],
+            variables=options.get("variables", ""),
             queued_callback=options.get("queued_callback"),
             started_callback=options.get("started_callback"),
             finished_callback=ocr_finished_callback,

@@ -67,9 +67,12 @@ def test_do_tesseract_path_fallback(mocker: pytest.MockerFixture) -> None:
     # Check if glob was called
     mock_glob.assert_called_with("*/tessdata")
 
-    # Check if PyTessBaseAPI was initialized with the found path
-    mock_api.assert_called_with(
-        lang="eng", path="/usr/share/tesseract-ocr/4.00/tessdata"
+    # Check if the engine was initialised with the found path
+    mock_api.assert_called_with(init=False)
+    mock_api_instance.InitFull.assert_called_once_with(
+        path="/usr/share/tesseract-ocr/4.00/tessdata",
+        lang="eng",
+        variables={},
     )
 
 
@@ -105,7 +108,12 @@ def test_do_tesseract_path_fallback_suse(mocker: pytest.MockerFixture) -> None:
 
     thread.do_tesseract(request)
 
-    mock_api.assert_called_with(lang="eng", path="/usr/share/tesseract-ocr/tessdata")
+    mock_api.assert_called_with(init=False)
+    mock_api_instance.InitFull.assert_called_once_with(
+        path="/usr/share/tesseract-ocr/tessdata",
+        lang="eng",
+        variables={},
+    )
 
 
 def test_do_tesseract_in_memory_pixels(mocker: pytest.MockerFixture) -> None:
@@ -134,6 +142,12 @@ def test_do_tesseract_in_memory_pixels(mocker: pytest.MockerFixture) -> None:
 
     thread.do_tesseract(request)
 
+    mock_api.assert_called_once_with(init=False)
+    mock_api_instance.InitFull.assert_called_once_with(
+        path="/usr/share/tesseract-ocr/4.00/tessdata",
+        lang="eng",
+        variables={},
+    )
     expected = image.convert("L")
     mock_api_instance.SetImageBytes.assert_called_once_with(
         expected.tobytes(), expected.width, expected.height, 1, expected.width
@@ -142,6 +156,118 @@ def test_do_tesseract_in_memory_pixels(mocker: pytest.MockerFixture) -> None:
     mock_api_instance.GetHOCRText.assert_called_once_with(0)
     assert "hocr content" in mock_page.import_hocr.call_args.args[0]
     assert mock_page.ocr_flag is True
+
+
+def test_do_tesseract_variables(mocker: pytest.MockerFixture) -> None:
+    """Test do_tesseract applies language and variable options."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch(
+        "tesserocr.get_languages",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.GetHOCRText.return_value = "hocr content"
+    mock_api_instance.GetVariableAsString.return_value = "/tmp/words.txt"
+
+    image = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = image
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "page": 1,
+            "language": "deu+eng",
+            "variables": "user_words_file=/tmp/words.txt",
+            "dir": "/tmp",
+        }
+    ]
+
+    thread.do_tesseract(request)
+
+    mock_api_instance.InitFull.assert_called_once_with(
+        path="/usr/share/tesseract-ocr/4.00/tessdata",
+        lang="deu+eng",
+        variables={"user_words_file": "/tmp/words.txt"},
+    )
+    mock_api_instance.GetVariableAsString.assert_called_once_with("user_words_file")
+
+
+def test_do_tesseract_unknown_variable(mocker: pytest.MockerFixture) -> None:
+    """Test that an unknown variable is rejected before the page is modified."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch(
+        "tesserocr.get_languages",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.GetVariableAsString.return_value = None
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    replace_page = mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "page": 1,
+            "language": "eng",
+            "variables": "unknown_variable=x",
+            "dir": "/tmp",
+        }
+    ]
+
+    with pytest.raises(ValueError, match="unknown_variable"):
+        thread.do_tesseract(request)
+
+    mock_page.import_hocr.assert_not_called()
+    replace_page.assert_not_called()
+
+
+def test_do_tesseract_init_failure(mocker: pytest.MockerFixture) -> None:
+    """Test that a failed initialisation leaves the page unmodified."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch(
+        "tesserocr.get_languages",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.InitFull.side_effect = RuntimeError("init failed")
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    replace_page = mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
+
+    with pytest.raises(RuntimeError, match="init failed"):
+        thread.do_tesseract(request)
+
+    mock_page.import_hocr.assert_not_called()
+    replace_page.assert_not_called()
 
 
 def test_do_tesseract_path_fallback_not_found(
@@ -241,7 +367,12 @@ def test_do_tesseract_path_fallback_symlink(
     thread.do_tesseract(request)
 
     # Check if PyTessBaseAPI was initialized with the path from symlink
-    mock_api.assert_called_with(lang="eng", path="/usr/local/share/tessdata")
+    mock_api.assert_called_with(init=False)
+    mock_api_instance.InitFull.assert_called_once_with(
+        path="/usr/local/share/tessdata",
+        lang="eng",
+        variables={},
+    )
 
 
 def test_calculate_crop_tuples(mocker: pytest.MockerFixture) -> None:

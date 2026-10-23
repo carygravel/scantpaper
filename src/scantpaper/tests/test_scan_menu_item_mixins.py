@@ -85,11 +85,14 @@ def mock_scan_window(mocker: pytest.MockerFixture) -> object:
         "OCR on scan": False,
         "ocr engine": "tesseract",
         "ocr language": "eng",
+        "tesseract variables": "",
         "threshold-before-ocr": False,
         "threshold tool": 0,
         "user_defined_tools": [],
         "current_udt": "",
     }
+
+    window._show_message_dialog = mocker.Mock()
 
     window.session = mocker.Mock()
     window.session.name = "session_name"
@@ -295,6 +298,8 @@ def test_add_postprocessing_options_clicked_cb(
     mock_ocr.active = True
     mock_ocr.engine = "tesseract"
     mock_ocr.language = "deu"
+    mock_ocr.variables = "user_words_file=/tmp/words.txt"
+    mock_ocr.validation_error = None
     mock_ocr.threshold = True
     mock_ocr.threshold_value = 50
 
@@ -335,6 +340,10 @@ def test_add_postprocessing_options_clicked_cb(
     assert mock_scan_window.settings["OCR on scan"] is True
     assert mock_scan_window.settings["ocr engine"] == "tesseract"
     assert mock_scan_window.settings["ocr language"] == "deu"
+    assert mock_scan_window.settings["tesseract variables"] == (
+        "user_words_file=/tmp/words.txt"
+    )
+    assert mock_scan_window._skip_ocr_batch is False
     assert mock_scan_window.settings["threshold-before-ocr"] is True
     assert mock_scan_window.settings["threshold tool"] == 50
 
@@ -359,6 +368,60 @@ def test_add_postprocessing_options_ocr_fallback(
     callbacks["clicked-scan-button"](None)
 
     assert mock_scan_window.settings["ocr engine"] == "fallback_eng"
+
+
+def test_add_postprocessing_options_validation_error_sets_skip_flag(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """An invalid OCR configuration skips OCR for the batch but scans anyway."""
+    mock_widget = mocker.Mock()
+    mock_widget.notebook = mocker.Mock()
+    callbacks = {}
+    mock_widget.connect.side_effect = lambda s, c: callbacks.update({s: c})
+
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+    mock_ocr_cls = mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    mock_ocr = mock_ocr_cls.return_value
+    mock_ocr.active = True
+    mock_ocr.engine = "tesseract"
+    mock_ocr.language = "eng"
+    mock_ocr.variables = ""
+    mock_ocr.validation_error = "Some problem"
+
+    mock_scan_window._show_message_dialog = mocker.Mock()
+
+    mock_scan_window.add_postprocessing_options(mock_widget)
+    callbacks["clicked-scan-button"](None)
+
+    mock_scan_window._show_message_dialog.assert_called_once()
+    assert mock_scan_window._skip_ocr_batch is True
+
+
+def test_new_scan_callback_forwards_variables(mock_scan_window: object) -> None:
+    """Test _new_scan_callback forwards tesseract variables."""
+    mock_image = MagicMock()
+    mock_scan_window.slist.import_scan = MagicMock()
+    mock_scan_window.settings["tesseract variables"] = "user_words_file=/tmp/w.txt"
+
+    mock_scan_window._new_scan_callback(None, mock_image, None, "single", 300, 300)
+
+    call_kwargs = mock_scan_window.slist.import_scan.call_args[1]
+    assert call_kwargs["variables"] == "user_words_file=/tmp/w.txt"
+
+
+def test_new_scan_callback_skips_ocr_when_validation_failed(
+    mock_scan_window: object,
+) -> None:
+    """Test that the per-batch skip flag omits OCR from the scan."""
+    mock_image = MagicMock()
+    mock_scan_window.slist.import_scan = MagicMock()
+    mock_scan_window.settings["OCR on scan"] = True
+    mock_scan_window._skip_ocr_batch = True
+
+    mock_scan_window._new_scan_callback(None, mock_image, None, "single", 300, 300)
+
+    call_kwargs = mock_scan_window.slist.import_scan.call_args[1]
+    assert call_kwargs["ocr"] is False
 
 
 def test_add_postprocessing_options_alternate_rotation_toggle(

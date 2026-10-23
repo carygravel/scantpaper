@@ -239,6 +239,7 @@ class ScanMenuItemMixins:
             available_engines=self._ocr_engine,
             engine=self.settings["ocr engine"],
             language=self.settings["ocr language"],
+            variables=self.settings.get("tesseract variables", ""),
             active=self.settings["OCR on scan"],
             threshold=self.settings["threshold-before-ocr"],
             threshold_value=self.settings["threshold tool"],
@@ -246,6 +247,8 @@ class ScanMenuItemMixins:
         vboxp.append(ocr_controls)
 
         def clicked_scan_button_cb(_w: Gtk.Widget) -> None:
+            # Reset the transient per-batch OCR skip flag before each Scan click.
+            self._skip_ocr_batch = False
             self.settings["rotate facing"] = self._rotate_controls.rotate_facing
             self.settings["rotate reverse"] = self._rotate_controls.rotate_reverse
             logger.info("rotate facing %s", self.settings["rotate facing"])
@@ -274,14 +277,7 @@ class ScanMenuItemMixins:
             self.settings["OCR on scan"] = ocr_controls.active
             logger.info("OCR %s", self.settings["OCR on scan"])
             if self.settings["OCR on scan"]:
-                self.settings["ocr engine"] = ocr_controls.engine
-                if self.settings["ocr engine"] is None:
-                    self.settings["ocr engine"] = self._ocr_engine[0][0]
-                logger.info("ocr engine %s", self.settings["ocr engine"])
-                if self.settings["ocr engine"] == "tesseract":
-                    self.settings["ocr language"] = ocr_controls.language
-                    logger.info("ocr language %s", self.settings["ocr language"])
-
+                self._store_scan_ocr_options(ocr_controls)
                 self.settings["threshold-before-ocr"] = ocr_controls.threshold
                 logger.info(
                     "threshold-before-ocr %s", self.settings["threshold-before-ocr"]
@@ -289,6 +285,30 @@ class ScanMenuItemMixins:
                 self.settings["threshold tool"] = ocr_controls.threshold_value
 
         widget.connect("clicked-scan-button", clicked_scan_button_cb)
+
+    def _store_scan_ocr_options(self, ocr_controls: OCRControls) -> None:
+        """Persist OCR settings and set the per-batch skip flag on error."""
+        self.settings["ocr engine"] = ocr_controls.engine
+        if self.settings["ocr engine"] is None:
+            self.settings["ocr engine"] = self._ocr_engine[0][0]
+        logger.info("ocr engine %s", self.settings["ocr engine"])
+        if self.settings["ocr engine"] != "tesseract":
+            return
+        self.settings["ocr language"] = ocr_controls.language
+        self.settings["tesseract variables"] = ocr_controls.variables
+        logger.info("ocr language %s", self.settings["ocr language"])
+        validation_error = ocr_controls.validation_error
+        if validation_error is not None:
+            self._show_message_dialog(
+                parent=self,
+                message_type="error",
+                buttons=Gtk.ButtonsType.CLOSE,
+                process="ocr",
+                text=validation_error,
+                page=None,
+            )
+            # Keep the batch going but skip OCR for this batch.
+            self._skip_ocr_batch = True
 
     def _add_alternate_rotation_toggle(self, vboxp: Gtk.Box) -> Gtk.CheckButton:
         """Add alternate rotation toggle button."""
@@ -524,9 +544,11 @@ class ScanMenuItemMixins:
         options = {
             "dir": self.session.name,
             "rotate": rotate,
-            "ocr": self.settings["OCR on scan"],
+            "ocr": bool(self.settings["OCR on scan"])
+            and not getattr(self, "_skip_ocr_batch", False),
             "engine": self.settings["ocr engine"],
             "language": self.settings["ocr language"],
+            "variables": self.settings.get("tesseract variables", ""),
             "queued_callback": self.post_process_progress.queued,
             "started_callback": self.post_process_progress.update,
             "finished_callback": self._import_scan_finished_callback,

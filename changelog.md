@@ -36,6 +36,15 @@
   is also reported through the normal error dialog with the original
   operating-system error, rather than being masked by a callback-signature
   `TypeError`.
+* OCR can now recognise several languages at once. In the scan window and the
+  **Tools → OCR** dialog, pick a primary language and tick additional
+  languages in the popover; they are stored as a `+`-joined list (for example
+  `deu+eng`) with the primary first. An **Advanced Tesseract options** field
+  accepts one `name=value` engine variable per line, such as a user word list
+  (`user_words_file=/home/me/words.txt`); these are applied when the engine is
+  initialised and invalid options are reported before any page is modified.
+  A stored language that is no longer installed is shown as "(not installed)"
+  and blocks OCR instead of being silently replaced.
 * The Fedora and openSUSE RPM specs are now templates rendered at build time
   from the selected git revision. The package version and source archive match
   the release, a build is reproducible from `source_ref`, and the

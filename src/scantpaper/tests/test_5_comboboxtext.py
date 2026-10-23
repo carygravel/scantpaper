@@ -41,3 +41,5 @@ def test_1() -> None:
 
     cbt.remove_item_by_text("text 2")
     assert cbt.get_num_rows() == 0, "get_num_rows, to empty model"
+
+    assert cbt.get_active_index() is None, "get_active_index, no active item"

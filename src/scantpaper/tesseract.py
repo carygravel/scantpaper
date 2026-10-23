@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import cast
+from functools import lru_cache
+from typing import TYPE_CHECKING, cast
 
 import iso639
 
 from scantpaper.helpers import exec_command
 from scantpaper.i18n import _
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 logger = logging.getLogger(__name__)
 
@@ -183,6 +187,95 @@ def get_tesseract_codes() -> list[str]:
     if _codes[-1] == "":
         _codes.pop()
     return cast("list[str]", (_codes))
+
+
+def split_language_spec(spec: str | None) -> list[str]:
+    """Split a tesseract language specification into unique codes."""
+    if spec is None or spec == "":
+        return []
+    codes: list[str] = []
+    for part in spec.split("+"):
+        stripped = part.strip()
+        if stripped and stripped not in codes:
+            codes.append(stripped)
+    return codes
+
+
+def join_language_spec(
+    primary: str | None, additional: Iterable[str] | None = None
+) -> str:
+    """Join a primary language and additional languages into a specification."""
+    codes = split_language_spec(primary)
+    if additional is not None:
+        for item in additional:
+            for code in split_language_spec(item):
+                if code not in codes:
+                    codes.append(code)
+    return "+".join(codes)
+
+
+def parse_variables(text: str | None) -> dict[str, str]:
+    """Parse one name=value tesseract variable per line."""
+    variables: dict[str, str] = {}
+    if text is None or text == "":
+        return variables
+    for line_number, raw_line in enumerate(text.splitlines(), start=1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            raise ValueError(
+                _("Invalid Tesseract option on line %(line)s: %(text)s")
+                % {"line": line_number, "text": line}
+            )
+        name, value = line.split("=", 1)
+        name = name.strip()
+        if not name:
+            raise ValueError(
+                _("Invalid Tesseract option on line %(line)s: %(text)s")
+                % {"line": line_number, "text": line}
+            )
+        variables[name] = value.strip()
+    return variables
+
+
+@lru_cache(maxsize=1)
+def get_tesseract_variables() -> set[str] | None:
+    """Return the variable names supported by tesseract."""
+    proc = exec_command(["tesseract", "--print-parameters"])
+    if proc.stdout is None or proc.returncode != 0:
+        logger.info(proc.stderr)
+        return None
+    lines = proc.stdout.splitlines()
+    first_line = next((line.strip() for line in lines if line.strip()), "")
+    if not first_line.endswith(":"):
+        return None
+    variables: set[str] = set()
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.endswith(":"):
+            continue
+        name = stripped.split(maxsplit=1)[0]
+        if re.fullmatch(r"[A-Za-z0-9_]+", name):
+            variables.add(name)
+    return variables or None
+
+
+def validate_language_spec(
+    spec: str | None, installed_codes: Iterable[str]
+) -> list[str]:
+    """Return the languages in the specification that are not installed."""
+    installed = set(installed_codes)
+    return [code for code in split_language_spec(spec) if code not in installed]
+
+
+def validate_variable_names(
+    variables: Mapping[str, str], known: set[str] | None
+) -> list[str]:
+    """Return the variable names that tesseract does not recognise."""
+    if known is None:
+        return []
+    return sorted(name for name in variables if name not in known)
 
 
 def code2name(code: str) -> str:

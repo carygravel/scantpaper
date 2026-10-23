@@ -207,10 +207,12 @@ def test_post_process_ocr() -> None:
         "ocr": True,
         "engine": "t",
         "language": "l",
+        "variables": "user_words_file=/tmp/words.txt",
         "finished_callback": unittest.mock.Mock(),
     }
     doc._post_process_ocr(cast("int", cast("object", "uuid")), options)
     doc.ocr_pages.assert_called()
+    assert doc.ocr_pages.call_args[1]["variables"] == "user_words_file=/tmp/words.txt"
 
     ocr_finished_callback = doc.ocr_pages.call_args[1]["finished_callback"]
     with unittest.mock.patch.object(doc, "_post_process_scan") as mock_pps:

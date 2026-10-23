@@ -92,6 +92,7 @@ DEFAULTS = {
     "OCR on scan": True,
     "ocr engine": "tesseract",
     "ocr language": None,
+    "tesseract variables": "",
     "OCR output": "replace",  # When a page is re-OCRed, replace old text with new text
     "ps_backend": "pdftops",
     "user_defined_tools": ["gimp %i"],
