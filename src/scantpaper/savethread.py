@@ -239,23 +239,7 @@ class SaveThread(Importhread):
             if "metadata" in options and "ps" not in options:
                 metadata = prepare_output_metadata("PDF", options["metadata"])
 
-            list_of_pages = self._assemble_pdf(outdir, options, request, metadata)
-
-            for pagenr, page in enumerate(list_of_pages):
-                if page.text_layer is not None and page.text_layer != "[]":
-                    with (
-                        pathlib.Path(outdir / f"{pagenr + 1:-06}_ocr_hocr.hocr").open(
-                            "w", encoding="utf-8"
-                        ) as hocr_fh,
-                        pathlib.Path(outdir / f"{pagenr + 1:-06}_hocr.json").open(
-                            "w", encoding="utf-8"
-                        ) as json_fh,
-                    ):
-                        hocr_fh.write(page.export_hocr())
-                        json_fh.write(
-                            json.dumps({"pageno": pagenr, "orientation_correction": 0})
-                        )
-                self.check_cancelled()
+            self._assemble_pdf(outdir, options, request, metadata)
 
             # Embed text layer using ocrmypdf (also applies PDF/A metadata such
             # as the title), so it runs even when no page has a text layer.
@@ -296,21 +280,26 @@ class SaveThread(Importhread):
         options: dict[str, Any],
         request: Request,
         metadata: dict[str, Any],
-    ) -> list[Page]:
-        """Convert each page to an image, write origin.pdf, and return the pages."""
-        list_of_pages = []
+    ) -> list[tuple[float, float]]:
+        """Convert each page to an image, write origin.pdf, and return the resolutions.
+
+        Pages are handled one at a time: each page's temporary image and, when
+        it has a text layer, its hOCR sidecar files are written, and the page
+        is then released so its image data does not accumulate in memory over
+        a large document. Only the per-page resolutions are returned, which
+        ``img2pdf``'s ``layout_fun`` needs to size the pages.
+        """
         with pathlib.Path(outdir / "origin.pdf").open(
             "wb", buffering=0
         ) as fhd:  # turn off buffering
             filenames = []
-            resolutions = []
+            resolutions: list[tuple[float, float]] = []
             opts = {}
             if options.get("options"):
                 opts = options["options"]
             estimated_size = 0
             for i, page_id in enumerate(options["list_of_pages"], start=1):
                 page = self.get_page(id=page_id)
-                list_of_pages.append(page)
                 request.data(i / (len(options["list_of_pages"]) + 1))
                 request.data(
                     _("Writing page %(current)i of %(total)i")
@@ -332,8 +321,28 @@ class SaveThread(Importhread):
                     estimated_size += _estimate_page_pdf_size(
                         page.image_object, tmp.name, opts
                     )
+
+                # Write this page's hOCR sidecar while the page is in hand so
+                # the save does not keep every page loaded for a later pass.
+                if page.text_layer is not None and page.text_layer != "[]":
+                    with (
+                        pathlib.Path(outdir / f"{i:-06}_ocr_hocr.hocr").open(
+                            "w", encoding="utf-8"
+                        ) as hocr_fh,
+                        pathlib.Path(outdir / f"{i:-06}_hocr.json").open(
+                            "w", encoding="utf-8"
+                        ) as json_fh,
+                    ):
+                        hocr_fh.write(page.export_hocr())
+                        json_fh.write(
+                            json.dumps({"pageno": i - 1, "orientation_correction": 0})
+                        )
                 xres, yres, _units = page.get_resolution(self.paper_sizes)
                 resolutions.append((xres, yres))
+                # Release the page and its image data before the next page so
+                # page images do not accumulate for the whole save.
+                del page
+                self.check_cancelled()
 
             if estimated_size >= _2GIB:
                 for fname in filenames:
@@ -367,7 +376,7 @@ class SaveThread(Importhread):
             fhd.write(img2pdf.convert(filenames, **metadata))
             for fname in filenames:
                 pathlib.Path(fname).unlink()
-        return cast("list[Page]", (list_of_pages))
+        return resolutions
 
     def _finalize_pdf(
         self,

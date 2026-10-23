@@ -50,6 +50,12 @@
   the release, a build is reproducible from `source_ref`, and the
   `0.<commit-count>.g<sha>` RPM release keeps upstream builds below
   distribution packages without an `Epoch`.
+* Saving a PDF now processes one page at a time and page images are decoded
+  on demand, so a document with many high-resolution pages no longer keeps
+  every decoded page in memory at once. Previously a save decoded and held
+  every page (roughly 66 MB per page), so a 330-page scan could exhaust the
+  process's memory and be killed; such documents now save within a single
+  page's working set.
 
 
 ## 3.0.24 (2026-10-17)

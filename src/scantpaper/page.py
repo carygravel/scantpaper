@@ -190,9 +190,20 @@ class Page:
         if self.resolution and not isinstance(self.resolution, tuple):
             self.resolution = (self.resolution, self.resolution, "PixelsPerInch")
 
+        # Log the in-memory pixel size without decoding the image: width,
+        # height, and mode come from the file header, so the byte count can
+        # be derived from them. tobytes() would force a full decode on every
+        # page construction, retaining the decoded buffer even though most
+        # pages are never touched as pixels.
+        size = (
+            self.image_object.width
+            * self.image_object.height
+            * MODE2DEPTH.get(self.image_object.mode, 8)
+            // 8
+        )
         logger.info(
             "New page size %s, format %s, (%s)",
-            len(self.image_object.tobytes()),
+            size,
             self.image_object.mode,
             self.uuid,
         )

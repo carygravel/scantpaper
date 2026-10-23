@@ -7,6 +7,7 @@ import json
 import pathlib
 import subprocess
 import tempfile
+import weakref
 from typing import cast
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -1561,6 +1562,48 @@ def test_hocr_flat_tree_embeds_searchable_text(
         ).stdout
         assert "hello world" in text, "flat text layer is searchable after save"
         assert "second" in text, "second row preserved"
+
+
+def test_save_pdf_releases_pages_during_assembly(tmp_path: pathlib.Path) -> None:
+    """A multi-page save holds at most the page being processed, not all of them.
+
+    Each page's image must be released once its contribution is written, so a
+    large document does not keep every decoded page resident while the text
+    layer is embedded.
+    """
+    pages: list[weakref.ReferenceType[Page]] = []
+
+    class TrackingPagesSaveThread(MockSaveThread):
+        """MockSaveThread handing out fresh, weakly-referenced pages."""
+
+        @override
+        def get_page(self, page_id: int | None = None, **kwargs: object) -> Page:
+            del page_id, kwargs
+            page = Page(image_object=Image.new("RGB", (8, 8)))
+            page.resolution = (300, 300, "PixelsPerInch")
+            pages.append(weakref.ref(page))
+            return page
+
+    thread = TrackingPagesSaveThread()
+    options = {
+        "dir": str(tmp_path),
+        "path": str(tmp_path / "output.pdf"),
+        "list_of_pages": [1, 2, 3],
+        "options": {"compression": "auto"},
+    }
+    request = Request("save_pdf", (options,), thread.responses)
+
+    with patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"):
+        resolutions = thread._assemble_pdf(tmp_path, options, request, metadata={})
+
+    assert resolutions == [(300, 300), (300, 300), (300, 300)], (
+        "the save returns one resolution pair per page and no Page objects"
+    )
+    assert pages, "the save must have processed pages"
+    assert all(ref() is None for ref in pages), (
+        "each page is released after its contribution is written, so the save "
+        "holds at most the page being processed"
+    )
 
 
 class TestJbig2Requested:

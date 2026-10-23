@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import pytest
 from gi.repository import GdkPixbuf
-from PIL import Image
+from PIL import Image, ImageFile
 
 from scantpaper import config
 from scantpaper.const import (
@@ -962,6 +962,35 @@ def test_from_bytes_png_blob_readable() -> None:
     assert page.image_object.format == "PNG", "stored format detected"
     assert page.get_size() == (A4_WIDTH_MM, A4_HEIGHT_MM), "page size read from blob"
     assert isinstance(page.get_pixbuf(), GdkPixbuf.Pixbuf), "PNG blob displays"
+
+
+def test_page_image_is_not_decoded_at_construction(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Constructing a page from stored bytes must not decode its image."""
+    decodes = 0
+    original_load = ImageFile.ImageFile.load
+
+    def counting_load(_self: ImageFile.ImageFile) -> None:
+        nonlocal decodes
+        decodes += 1
+        original_load(_self)
+
+    monkeypatch.setattr(ImageFile.ImageFile, "load", counting_load)
+
+    buf = io.BytesIO()
+    Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
+    page = Page.from_bytes(buf.getvalue())
+    assert page.image_object._im is None, "page construction must not decode the image"
+    assert decodes == 0, "no decode is attempted while constructing the page"
+
+    image = page.image_object
+    first = image.tobytes()
+    assert decodes == 1, "first pixel access decodes the image"
+    decoded = image._im
+    second = image.tobytes()
+    assert first == second, "decoded bytes stay stable across accesses"
+    assert image._im is decoded, "second pixel access reuses the decoded image"
 
 
 def test_get_pixbuf_alpha_modes() -> None:

@@ -194,7 +194,10 @@ you explicitly turn the toggle off.
   already exists
   asks for confirmation first: declining leaves the existing file untouched
   and keeps the save dialog open, and a save that fails reports the error
-  instead of silently doing nothing.
+  instead of silently doing nothing. When saving as PDF, pages are processed
+  one at a time and page images are decoded on demand, so saving a document
+  with many high-resolution pages no longer keeps every decoded page in
+  memory and no longer exhausts the memory of the process.
 - **Thumbnails:** Page thumbnails are generated with a decimate-then-LANCZOS
   downscale for a sharp preview in the thumbnail panel without slowing down
   bulk imports, and bilevel or palette pages (common in scanned/OCR PDFs) are
