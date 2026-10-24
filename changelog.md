@@ -1,4 +1,4 @@
-## 4.0.0 (unreleased)
+## 4.0.0 (2026-10-24)
 
 * Migrated Gtk3->4
 * User-defined tools can now process all selected pages in a single
