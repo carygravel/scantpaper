@@ -981,16 +981,23 @@ def test_page_image_is_not_decoded_at_construction(
     buf = io.BytesIO()
     Image.new("RGB", (A4_WIDTH_MM, A4_HEIGHT_MM)).save(buf, format="JPEG", quality=92)
     page = Page.from_bytes(buf.getvalue())
-    assert page.image_object._im is None, "page construction must not decode the image"
+    image = page.image_object
+    # Pillow 11 renamed the decoded core image from ``im`` to ``_im``; older
+    # distributions (e.g. Pillow 10 on Ubuntu) still expose it as ``im``.
+    core_attr = "_im" if hasattr(image, "_im") else "im"
+    assert getattr(image, core_attr) is None, (
+        "page construction must not decode the image"
+    )
     assert decodes == 0, "no decode is attempted while constructing the page"
 
-    image = page.image_object
     first = image.tobytes()
     assert decodes == 1, "first pixel access decodes the image"
-    decoded = image._im
+    decoded = getattr(image, core_attr)
     second = image.tobytes()
     assert first == second, "decoded bytes stay stable across accesses"
-    assert image._im is decoded, "second pixel access reuses the decoded image"
+    assert getattr(image, core_attr) is decoded, (
+        "second pixel access reuses the decoded image"
+    )
 
 
 def test_get_pixbuf_alpha_modes() -> None:
