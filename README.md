@@ -907,15 +907,14 @@ Use `pdftotext` or `djvutxt` to extract text. Many viewers support searching the
 
 ### How can I change the colour of the selection box or OCR output?
 
-Create or edit `~/.config/gtk-4.0/gtk.css`:
+The selection rectangle is styled with the `.rubberband` CSS class.
+scantpaper ships a default rule for it that follows the active GTK theme,
+so the selection is visible out of the box. To use a colour of your own,
+create or edit `~/.config/gtk-4.0/gtk.css` (a user stylesheet overrides the
+application default):
 
 ```css
-.rubberband,
-rubberband,
-flowbox rubberband,
-treeview.view rubberband,
-.content-view rubberband,
-.content-view .rubberband {
+.rubberband {
     border: 1px solid #2a76c6;
     background-color: rgba(42, 118, 198, 0.2);
 }

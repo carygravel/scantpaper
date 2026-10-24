@@ -27,6 +27,7 @@ import pytest
 from PIL import Image, ImageDraw, ImageFont
 
 from scantpaper import config
+from scantpaper.app_window import _attach_selection_css
 from scantpaper.basethread import BaseThread
 from scantpaper.dialog.sane import SaneScanDialog
 from scantpaper.frontend import enums
@@ -45,6 +46,7 @@ if TYPE_CHECKING:
 gi.require_version("Gtk", "4.0")
 
 from gi.repository import (  # noqa: E402
+    Gdk,
     GLib,
     Gtk,
 )
@@ -77,6 +79,22 @@ def quit_lingering_threads() -> Generator[None, None, None]:
         while not thread.responses.empty():
             with contextlib.suppress(queue.Empty):
                 thread.responses.get_nowait()
+
+
+@pytest.fixture
+def _selection_css() -> Generator[None, None, None]:
+    """Attach the application's .rubberband rule and remove it afterwards.
+
+    GTK CSS providers are global to the display, so a test that wants the
+    shipped selection style must hold it for just its own duration and
+    remove it again, or the rule leaks into every later pixel comparison.
+    """
+    display = Gdk.Display.get_default()
+    provider = _attach_selection_css()
+    try:
+        yield
+    finally:
+        Gtk.StyleContext.remove_provider_for_display(display, provider)
 
 
 def has_numeric_locale(name: str) -> bool:

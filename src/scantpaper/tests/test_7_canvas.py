@@ -2921,6 +2921,95 @@ def _canvas_with_page(mocker: pytest.MockerFixture) -> Canvas:
     return canvas
 
 
+def _rubberband_canvas(*, selection: bool) -> Canvas:
+    """Return a rendering-ready Canvas showing a 100x100 scene at 1:1."""
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 100, "height": 100}
+    canvas._zoom = 1.0
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    if selection:
+        canvas.selection = Rectangle(x=10, y=10, width=40, height=30)
+    return canvas
+
+
+def _render_canvas_scene(
+    canvas: Canvas, width: int = 60, height: int = 60
+) -> cairo.ImageSurface:
+    """Render _draw_scene into a white-filled surface."""
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+    ctx = cairo.Context(surface)
+    ctx.set_source_rgb(1, 1, 1)
+    ctx.paint()
+    canvas._draw_scene(ctx)
+    surface.flush()
+    return surface
+
+
+def _canvas_pixel(surface: cairo.ImageSurface, x: int, y: int) -> bytes:
+    """Return the raw ARGB32 bytes of one pixel."""
+    offset = y * surface.get_stride() + x * 4
+    return bytes(surface.get_data()[offset : offset + 4])
+
+
+def _canvas_selection_bounds(canvas: Canvas) -> tuple[int, int, int, int]:
+    """Widget coordinates of the fixed selection rectangle."""
+    sx, sy = canvas._scale_factors()
+    return int(10 * sx), int(10 * sy), int(50 * sx), int(40 * sy)
+
+
+@pytest.mark.usefixtures("_selection_css")
+def test_canvas_selection_paints_with_rule() -> None:
+    """The shipped .rubberband rule paints the canvas selection visibly."""
+    plain = _render_canvas_scene(_rubberband_canvas(selection=False))
+    painted = _render_canvas_scene(_rubberband_canvas(selection=True))
+    x1, y1, x2, y2 = _canvas_selection_bounds(_rubberband_canvas(selection=False))
+    changed = [
+        (x, y)
+        for y in range(y1, y2)
+        for x in range(x1, x2)
+        if _canvas_pixel(painted, x, y) != _canvas_pixel(plain, x, y)
+    ]
+    assert changed, "canvas selection must paint pixels once the rule is attached"
+    assert _canvas_pixel(painted, max(x1 - 2, 0), max(y1 - 2, 0)) == _canvas_pixel(
+        plain, max(x1 - 2, 0), max(y1 - 2, 0)
+    ), "pixels outside the canvas selection must be untouched"
+
+
+def _canvas_selection_center_pixel() -> bytes:
+    """Return the raw ARGB32 bytes of a pixel well inside the selection."""
+    painted = _render_canvas_scene(_rubberband_canvas(selection=True))
+    x1, y1, x2, y2 = _canvas_selection_bounds(_rubberband_canvas(selection=False))
+    return _canvas_pixel(painted, (x1 + x2) // 2, (y1 + y2) // 2)
+
+
+@pytest.mark.usefixtures("_selection_css")
+def test_canvas_selection_is_themeable() -> None:
+    """A user .rubberband rule at higher priority overrides the default."""
+    default_pixel = _canvas_selection_center_pixel()
+    display = Gdk.Display.get_default()
+    override = Gtk.CssProvider()
+    override.load_from_data(
+        b".rubberband { background-color: rgb(255, 0, 0);"
+        b" background-image: none;"
+        b" border: 1px solid rgb(255, 0, 0); }"
+    )
+    Gtk.StyleContext.add_provider_for_display(
+        display, override, Gtk.STYLE_PROVIDER_PRIORITY_USER
+    )
+    try:
+        overridden_pixel = _canvas_selection_center_pixel()
+    finally:
+        Gtk.StyleContext.remove_provider_for_display(display, override)
+    assert overridden_pixel != default_pixel, (
+        "a user .rubberband rule must change the selection colour"
+    )
+    assert overridden_pixel == bytes((0, 0, 255, 255)), (
+        "the user rule's solid red must win over the shipped default"
+    )
+
+
 def test_canvas_draw_scene_renders_selection(
     mocker: pytest.MockerFixture,
 ) -> None:

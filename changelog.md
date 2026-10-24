@@ -1,3 +1,14 @@
+## 4.0.1 (unreleased)
+
+* The selection rectangle is visible again when dragging a selection on the
+  Image tab or in a text layer/annotations pane. After the move to GTK4 the
+  selection is painted with the `.rubberband` style class, which GTK4's
+  default stylesheet leaves unstyled, so the box was invisible; scantpaper
+  now ships its own default `.rubberband` rule that follows the active GTK
+  theme, so the selection shows up out of the box. A user `.rubberband` rule
+  in `~/.config/gtk-4.0/gtk.css` still overrides the default (see the FAQ).
+
+
 ## 4.0.0 (2026-10-24)
 
 * Migrated Gtk3->4

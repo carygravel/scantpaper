@@ -91,6 +91,33 @@ def _attach_thumbnail_css() -> Gtk.CssProvider | None:
     return provider
 
 
+def _attach_selection_css() -> Gtk.CssProvider | None:
+    """Style the selection rectangles so they are visible on GTK4.
+
+    The GTK4 default theme ships no `.rubberband` class rule; it only
+    styles `rubberband` as a node that is a child of selection widgets,
+    so the image view and canvas selection paint nothing. Load the class
+    rule at APPLICATION priority so the shipped default still follows the
+    active theme, and a user's `~/.config/gtk-4.0/gtk.css` `.rubberband`
+    rule (user priority) overrides it.
+    """
+    display = Gdk.Display.get_default()
+    if display is None:
+        return None
+    provider = Gtk.CssProvider()
+    provider.load_from_data(
+        b".rubberband {\n"
+        b"  background-color: alpha(@theme_selected_bg_color, 0.2);\n"
+        b"  background-image: none;\n"
+        b"  border: 1px solid @theme_selected_bg_color;\n"
+        b"}\n"
+    )
+    Gtk.StyleContext.add_provider_for_display(
+        display, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+    )
+    return provider
+
+
 def drag_motion_callback(
     target: Gtk.DropTarget, x: float, y: float, tree: Gtk.TreeView
 ) -> Gdk.DragAction:
@@ -397,6 +424,7 @@ class ApplicationWindow(
         self.slist = Document(dir=self.session.name, db=self.session.name + ".sdb")
 
         _attach_thumbnail_css()
+        _attach_selection_css()
 
         # Update list in Document so that it can be used by get_resolution()
         self.slist.set_paper_sizes(self.settings["Paper"])

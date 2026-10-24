@@ -229,9 +229,7 @@ def test_viewport(rose_png: str) -> None:
 def test_transparency(datadir: str) -> None:
     """Test transparency."""
     css_provider_alpha = Gtk.CssProvider()
-    Gtk.StyleContext.add_provider_for_display(
-        Gdk.Display.get_default(), css_provider_alpha, 0
-    )
+    display = Gdk.Display.get_default()
     css_provider_alpha.load_from_data(
         f"""
     .imageview.transparent {{
@@ -243,42 +241,46 @@ def test_transparency(datadir: str) -> None:
     }}
 """.encode()
     )
-    view = ImageView()
-    _mock_allocation(view, 300, 200)
-    view.set_pixbuf(
-        GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
-        zoom_to_fit=True,
-    )
+    Gtk.StyleContext.add_provider_for_display(display, css_provider_alpha, 0)
+    try:
+        view = ImageView()
+        _mock_allocation(view, 300, 200)
+        view.set_pixbuf(
+            GdkPixbuf.Pixbuf.new_from_file(f"{datadir}transp-green.svg"),
+            zoom_to_fit=True,
+        )
 
-    # GTK4 has no window grab; render the draw function into an offscreen
-    # surface instead and read the pixels back.
-    pxb = _render_view(view, 300, 200)
+        # GTK4 has no window grab; render the draw function into an offscreen
+        # surface instead and read the pixels back.
+        pxb = _render_view(view, 300, 200)
 
-    p_x = int(pxb.get_width() / 2)
-    p_y = int(pxb.get_height() / 2)
-    middle = get_pixel(pxb, p_x, p_y)
-    assert middle == [0, 255, 0], "middle pixel should be green"
+        p_x = int(pxb.get_width() / 2)
+        p_y = int(pxb.get_height() / 2)
+        middle = get_pixel(pxb, p_x, p_y)
+        assert middle == [0, 255, 0], "middle pixel should be green"
 
-    found = False
-    while p_x > 0:
-        pixel = get_pixel(pxb, p_x, p_y)
-        if pixel == [255, 0, 0]:
-            found = True
-            break
-        p_x -= 1
-    assert found, "there is red background"
+        found = False
+        while p_x > 0:
+            pixel = get_pixel(pxb, p_x, p_y)
+            if pixel == [255, 0, 0]:
+                found = True
+                break
+            p_x -= 1
+        assert found, "there is red background"
 
-    found = False
-    while p_x > 0:
-        pixel = get_pixel(pxb, p_x, p_y)
+        found = False
+        while p_x > 0:
+            pixel = get_pixel(pxb, p_x, p_y)
 
-        # the blue chessboard can become blurred with hidpi :(
-        # Check for bluish color (blue channel dominant and > 200)
-        if pixel[2] > 200 and pixel[2] > pixel[0] and pixel[2] > pixel[1]:
-            found = True
-            break
-        p_x -= 1
-    assert found, "there is blue outside"
+            # the blue chessboard can become blurred with hidpi :(
+            # Check for bluish color (blue channel dominant and > 200)
+            if pixel[2] > 200 and pixel[2] > pixel[0] and pixel[2] > pixel[1]:
+                found = True
+                break
+            p_x -= 1
+        assert found, "there is blue outside"
+    finally:
+        Gtk.StyleContext.remove_provider_for_display(display, css_provider_alpha)
 
 
 def test_zoom(datadir: str) -> None:
@@ -417,6 +419,91 @@ def _render_view(view: ImageView, width: int, height: int) -> _SurfaceReader:
     view._draw_func(view, context, width, height)
     surface.flush()
     return _SurfaceReader(surface)
+
+
+def _imageview_for_rubberband() -> ImageView:
+    """Return a rendering-ready ImageView showing a white 100x100 image at 1:1."""
+    view = ImageView()
+    _mock_allocation(view, 400, 400)
+    pixbuf = GdkPixbuf.Pixbuf.new(
+        colorspace=GdkPixbuf.Colorspace.RGB,
+        has_alpha=True,
+        bits_per_sample=8,
+        width=100,
+        height=100,
+    )
+    pixbuf.fill(0xFFFFFFFF)
+    view.set_pixbuf(pixbuf, zoom_to_fit=False)
+    view.set_zoom(1.0)
+    return view
+
+
+def _rubberband_view(*, selection: bool) -> ImageView:
+    """Return a 1:1 white ImageView, optionally carrying the fixed selection."""
+    view = _imageview_for_rubberband()
+    if selection:
+        sel = Gdk.Rectangle()
+        sel.x, sel.y, sel.width, sel.height = 10, 10, 40, 30
+        view.set_selection(sel)
+    return view
+
+
+def _imageview_selection_bounds() -> tuple[int, int, int, int]:
+    """Widget coordinates of the fixed selection rectangle."""
+    x1, y1 = _imageview_for_rubberband().to_widget_coords(10, 10)
+    x2, y2 = _imageview_for_rubberband().to_widget_coords(50, 40)
+    return int(x1), int(y1), int(x2), int(y2)
+
+
+@pytest.mark.usefixtures("_selection_css")
+def test_imageview_selection_paints_with_rule() -> None:
+    """The shipped .rubberband rule paints the selection visibly."""
+    plain = _render_view(_rubberband_view(selection=False), 400, 400)
+    painted = _render_view(_rubberband_view(selection=True), 400, 400)
+    x1, y1, x2, y2 = _imageview_selection_bounds()
+    changed = [
+        (x, y)
+        for y in range(y1, y2)
+        for x in range(x1, x2)
+        if get_pixel(painted, x, y) != get_pixel(plain, x, y)
+    ]
+    assert changed, "selection must paint pixels once the rule is attached"
+    assert get_pixel(painted, max(x1 - 2, 0), max(y1 - 2, 0)) == get_pixel(
+        plain, max(x1 - 2, 0), max(y1 - 2, 0)
+    ), "pixels outside the selection must be untouched"
+
+
+def _imageview_selection_center_pixel() -> list[int]:
+    """Return the rendered RGB of a pixel well inside the selection."""
+    painted = _render_view(_rubberband_view(selection=True), 400, 400)
+    x1, y1, x2, y2 = _imageview_selection_bounds()
+    return get_pixel(painted, (x1 + x2) // 2, (y1 + y2) // 2)
+
+
+@pytest.mark.usefixtures("_selection_css")
+def test_imageview_selection_is_themeable() -> None:
+    """A user .rubberband rule at higher priority overrides the default."""
+    default_pixel = _imageview_selection_center_pixel()
+    display = Gdk.Display.get_default()
+    override = Gtk.CssProvider()
+    override.load_from_data(
+        b".rubberband { background-color: rgb(255, 0, 0);"
+        b" background-image: none;"
+        b" border: 1px solid rgb(255, 0, 0); }"
+    )
+    Gtk.StyleContext.add_provider_for_display(
+        display, override, Gtk.STYLE_PROVIDER_PRIORITY_USER
+    )
+    try:
+        overridden_pixel = _imageview_selection_center_pixel()
+    finally:
+        Gtk.StyleContext.remove_provider_for_display(display, override)
+    assert overridden_pixel != default_pixel, (
+        "a user .rubberband rule must change the selection colour"
+    )
+    assert overridden_pixel == [255, 0, 0], (
+        "the user rule's solid red must win over the shipped default"
+    )
 
 
 def test_find_pixel_reaches_boundary() -> None:
