@@ -85,6 +85,14 @@ def test_constructor_paper_sizes() -> None:
     assert dialog.paper_sizes == formats, "paper_sizes kwarg preserved"
 
 
+def test_device_selector_is_first_content_area_child() -> None:
+    """The device selector is the first control in the scan dialog."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    children = list(dialog.get_content_area().observe_children())
+    assert children
+    assert children[0] is dialog.hboxd
+
+
 def test_ignore_duplex_capabilities_property() -> None:
     """Test ignore_duplex_capabilities property getter and setter."""
     dialog = Scan(

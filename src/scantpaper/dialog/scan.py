@@ -550,7 +550,10 @@ class Scan(PageControls):
         self.connect("changed-device", do_changed_device)
         self.combobd.set_tooltip_text(_("Sets the device to be used for the scan"))
         self.hboxd.append(self.combobd)
-        self.get_content_area().append(self.hboxd)
+        # The PageControls initialiser appended the options notebook to the
+        # content area first, so prepend the device row to keep the device
+        # selector as the first (top) control of the dialog.
+        self.get_content_area().prepend(self.hboxd)
 
     def _do_scan(self) -> None:
         self.emit("clicked-scan-button")
