@@ -368,3 +368,14 @@ def test_mm_display_whole_with_comma_locale(comma_locale: str) -> None:
     itr = model.iter_nth_child(None, 0)
     float_g_cell_renderer(Gtk.TreeViewColumn(), cell, model, itr, 0)
     assert cell.get_property("text") == "210"
+
+
+def test_typeahead_search_disabled() -> None:
+    """A list must not open GTK's interactive-search (typeahead) overlay.
+
+    GTK 4.24's deprecated GtkTreeView trips an upstream CSS-node assertion
+    when it creates the typeahead popover on the first printable keypress;
+    every SimpleList disables typeahead because no list has a search column.
+    """
+    slist = SimpleList(col1="text")
+    assert slist.get_enable_search() is False, "typeahead search is disabled"

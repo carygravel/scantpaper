@@ -83,6 +83,15 @@ class SimpleList(Gtk.TreeView):
     def __init__(self, **columns: object) -> None:
         """Create a SimpleList from keyword arguments mapping column names to types."""
         super().__init__()
+        # Disable GtkTreeView interactive (typeahead) search. GTK 4.24's
+        # deprecated treeview opens a typeahead popover on the first printable
+        # keypress while the widget has focus, and
+        # gtk_tree_view_ensure_interactive_directory trips an upstream
+        # gtk_css_node_insert_after CSS-node assertion in that path (still
+        # present through gtk-4-24). No SimpleList configures a search column,
+        # so typeahead shows nothing anyway. Re-enabling search requires the
+        # upstream GTK fix.
+        self.set_enable_search(False)
         if len(columns.keys()) < 1:
             msg = (
                 f"Usage: {__class__.__name__}(title=type, ...)\n"

@@ -202,6 +202,11 @@ you explicitly turn the toggle off.
   downscale for a sharp preview in the thumbnail panel without slowing down
   bulk imports, and bilevel or palette pages (common in scanned/OCR PDFs) are
   anti-aliased so their previews stay legible.
+- **Lists:** Typing with a list widget focused (the thumbnail panel, or a
+  picker such as the **File → Open crashed session** dialog) no longer opens
+  GTK's interactive-search overlay, which showed nothing because no list
+  configures a search column. It also removes the `gtk_css_node_insert_after`
+  Gtk-CRITICAL that GTK 4.24 printed in its place on the first such keystroke.
 - **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
 - **Print:** Print selected/all pages.
 

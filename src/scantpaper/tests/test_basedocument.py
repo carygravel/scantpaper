@@ -1363,3 +1363,9 @@ def test_open_session_error_callback() -> None:
     assert errors == ["open failed"]
     pathlib.Path(str(slist.dir) + ".sdb").unlink(missing_ok=True)
     shutil.rmtree(temp_dir)
+
+
+def test_typeahead_search_disabled() -> None:
+    """The document list inherits the typeahead-search disable from SimpleList."""
+    slist = Document()
+    assert slist.get_enable_search() is False, "document list disables typeahead search"
