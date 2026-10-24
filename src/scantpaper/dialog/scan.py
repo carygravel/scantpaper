@@ -186,6 +186,7 @@ class Scan(PageControls):
         type=object, nick="Directory", blurb="Directory in which to store scans"
     )
     _profile = None
+    _last_window_size: tuple[int, int] | None = None
 
     @property_(type=object, nick="Profile", blurb="Name of current profile")
     def profile(self) -> str | None:
@@ -507,6 +508,16 @@ class Scan(PageControls):
         self.connect(
             "changed-scan-option", self._changed_scan_option_callback, self._bscannum
         )
+
+    def hide(self) -> None:
+        """Hide the dialog, recording its size before GTK4 zeroes it.
+
+        GTK4 reports the width/height of a toplevel window as 0 once it is
+        hidden, so capture the allocation here while it is still valid; the
+        recorded size is persisted on quit by ``file_menu_mixins._can_quit``.
+        """
+        self._last_window_size = (self.get_width(), self.get_height())
+        super().hide()
 
     def _add_device_combobox(self) -> None:
         self.hboxd = Gtk.Box()

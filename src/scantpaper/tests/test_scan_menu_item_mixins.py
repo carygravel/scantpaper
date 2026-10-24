@@ -148,6 +148,49 @@ def test_scan_dialog_create_new(
     mock_sane_dialog_instance.present.assert_not_called()
 
 
+def test_scan_dialog_restores_saved_size(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """Restore path passes the saved size as default_width/default_height."""
+    mock_sane_dialog_cls = mocker.patch(
+        "scantpaper.scan_menu_item_mixins.SaneScanDialog"
+    )
+    mock_sane_dialog_instance = mock_sane_dialog_cls.return_value
+    mock_sane_dialog_instance.notebook = mocker.Mock()
+
+    mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+
+    mock_scan_window.scan_dialog(None, None, hidden=True)
+
+    kwargs = mock_sane_dialog_cls.call_args.kwargs
+    assert kwargs["default_width"] == 100
+    assert kwargs["default_height"] == 100
+
+
+def test_scan_dialog_omits_size_kwargs_when_unset(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """Restore path omits default_width/default_height when no size is saved."""
+    mock_scan_window.settings["scan_window_width"] = None
+    mock_scan_window.settings["scan_window_height"] = None
+
+    mock_sane_dialog_cls = mocker.patch(
+        "scantpaper.scan_menu_item_mixins.SaneScanDialog"
+    )
+    mock_sane_dialog_instance = mock_sane_dialog_cls.return_value
+    mock_sane_dialog_instance.notebook = mocker.Mock()
+
+    mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+
+    mock_scan_window.scan_dialog(None, None, hidden=True)
+
+    kwargs = mock_sane_dialog_cls.call_args.kwargs
+    assert "default_width" not in kwargs
+    assert "default_height" not in kwargs
+
+
 def test_scan_dialog_callbacks(
     mocker: pytest.MockerFixture, mock_scan_window: object
 ) -> None:

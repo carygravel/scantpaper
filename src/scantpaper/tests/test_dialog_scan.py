@@ -466,6 +466,24 @@ def test_scan_dialog_close_button_label() -> None:
     assert button.get_use_underline(), "the mnemonic is rendered"
 
 
+def test_scan_dialog_hide_records_size(
+    mocker: pytest.MockerFixture, sane_scan_dialog: SaneScanDialog
+) -> None:
+    """hide() records the dialog size before GTK4 zeroes it on hide.
+
+    GTK4 reports a toplevel window's width/height as 0 once it is hidden, so
+    the size must be captured while the window is still allocated. Guard: the
+    recorded size is what `_can_quit()` persists on quit.
+    """
+    mocker.patch.object(sane_scan_dialog, "get_width", return_value=640)
+    mocker.patch.object(sane_scan_dialog, "get_height", return_value=480)
+
+    sane_scan_dialog.hide()
+
+    assert sane_scan_dialog._last_window_size == (640, 480)
+    assert not sane_scan_dialog.get_visible(), "dialog is hidden after hide()"
+
+
 def test_scan_button(mocker: pytest.MockerFixture) -> None:
     """Test scan button action."""
     dialog = Scan(title="title", transient_for=Gtk.Window())

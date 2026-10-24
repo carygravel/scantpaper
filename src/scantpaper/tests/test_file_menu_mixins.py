@@ -387,6 +387,46 @@ class TestFileMenuMixins:
         mock_config.write_config.assert_called_with(app._configfile, app.settings)
         mock_fcntl.lockf.assert_called_with(app._lockfd, mock_fcntl.LOCK_UN)
 
+    def test_can_quit_uses_recorded_scan_dialog_size(
+        self, mocker: pytest.MockerFixture, app: MockApp
+    ) -> None:
+        """_can_quit persists the size the scan dialog recorded on hide."""
+        mocker.patch("scantpaper.file_menu_mixins.os")
+        mocker.patch("scantpaper.file_menu_mixins.fcntl")
+        mocker.patch("scantpaper.file_menu_mixins.config")
+        app._pages_saved = unittest.mock.Mock(return_value=True)
+        mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = []
+        mocker.patch.object(pathlib.Path, "unlink", autospec=True)
+        mocker.patch.object(pathlib.Path, "rmdir", autospec=True)
+        app._windows._last_window_size = (200, 150)
+
+        assert app._can_quit()
+
+        assert app.settings["scan_window_width"] == 200
+        assert app.settings["scan_window_height"] == 150
+
+    def test_can_quit_keeps_size_when_scan_dialog_read_is_zero(
+        self, mocker: pytest.MockerFixture, app: MockApp
+    ) -> None:
+        """A zero size (snapshot or live, e.g. never-shown dialog) is not saved."""
+        mocker.patch("scantpaper.file_menu_mixins.os")
+        mocker.patch("scantpaper.file_menu_mixins.fcntl")
+        mocker.patch("scantpaper.file_menu_mixins.config")
+        app._pages_saved = unittest.mock.Mock(return_value=True)
+        mocker.patch.object(pathlib.Path, "glob", autospec=True).return_value = []
+        mocker.patch.object(pathlib.Path, "unlink", autospec=True)
+        mocker.patch.object(pathlib.Path, "rmdir", autospec=True)
+        mocker.patch.object(app._windows, "get_width", return_value=0)
+        mocker.patch.object(app._windows, "get_height", return_value=0)
+        app._windows._last_window_size = (0, 0)
+        app.settings["scan_window_width"] = 500
+        app.settings["scan_window_height"] = 400
+
+        assert app._can_quit()
+
+        assert app.settings["scan_window_width"] == 500
+        assert app.settings["scan_window_height"] == 400
+
     @unittest.mock.patch("scantpaper.file_menu_mixins.os")
     @unittest.mock.patch("scantpaper.file_menu_mixins.fcntl")
     @unittest.mock.patch("scantpaper.file_menu_mixins.config")

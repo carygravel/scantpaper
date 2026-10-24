@@ -991,9 +991,12 @@ class FileMenuMixins:
         ):
             file.unlink()
         pathlib.Path(self.session.name).rmdir()
-        # Write window state to settings. GTK4 has no Widget.get_size() (it
-        # now takes an orientation) or Window.get_position(); windows cannot
-        # be positioned in GTK4, so no position is stored.
+        # Write window state to settings. GTK4's get_size() takes an
+        # orientation, so use get_width()/get_height() instead; windows cannot
+        # be positioned in GTK4, so no position is stored. A hidden window
+        # reports width/height as 0 once it is hidden, so the scan dialog
+        # persists the size it captured in hide(), falls back to a live read
+        # when it is still open, and never overwrites a saved size with zeros.
         self.settings["window_width"] = self.get_width()
         self.settings["window_height"] = self.get_height()
         self.settings["thumb panel"] = self._hpaned.get_position()
@@ -1002,8 +1005,12 @@ class FileMenuMixins:
         elif self.settings.get("viewer_tools") == "vertical":
             self.settings["split panel v"] = self._vpanei.get_position()
         if self._windows:
-            self.settings["scan_window_width"] = self._windows.get_width()
-            self.settings["scan_window_height"] = self._windows.get_height()
+            size = getattr(self._windows, "_last_window_size", None)
+            if size is None:  # dialog still open: read its live size
+                size = (self._windows.get_width(), self._windows.get_height())
+            if size[0] and size[1]:  # never clobber a saved size with a zero
+                self.settings["scan_window_width"] = size[0]
+                self.settings["scan_window_height"] = size[1]
             logger.info("Killing Sane thread(s)")
             self._windows.thread.quit()
 
