@@ -1148,6 +1148,28 @@ def test_canvas_event_handlers(mocker: pytest.MockerFixture) -> None:
     assert not canvas_obj.dragging
 
 
+def test_canvas_click_gesture_listens_to_any_button() -> None:
+    """The canvas click gesture must receive non-primary buttons.
+
+    GTK4's ``Gtk.GestureClick`` defaults to the primary button, which
+    silently dropped middle-button presses and broke middle-click panning
+    after the GTK3->4 migration. The gesture must be configured for any
+    button (0) so the middle-button branch in ``_button_pressed`` is
+    reachable.
+    """
+    canvas_obj = Canvas()
+    controllers = canvas_obj.observe_controllers()
+    click_gestures = [
+        controllers.get_item(i)
+        for i in range(controllers.get_n_items())
+        if isinstance(controllers.get_item(i), Gtk.GestureClick)
+    ]
+    assert len(click_gestures) == 1, "the canvas has exactly one click gesture"
+    assert click_gestures[0].get_property("button") == 0, (
+        "the click gesture must listen to any button so middle-click pans"
+    )
+
+
 def test_bbox_update_box_empty_text_does_not_delete() -> None:
     """Bbox.update_box is a data setter: it never deletes, whatever the text.
 

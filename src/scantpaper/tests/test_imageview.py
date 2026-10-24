@@ -743,6 +743,28 @@ def test_imageview_events(rose_png: str, mock_view: ImageView) -> None:
     view.do_size_allocate(400, 300, -1)
 
 
+def test_imageview_click_gesture_listens_to_any_button() -> None:
+    """The image view click gesture must receive non-primary buttons.
+
+    GTK4's ``Gtk.GestureClick`` defaults to the primary button, which
+    silently dropped middle-button presses and broke middle-click panning
+    after the GTK3->4 migration. The gesture must be configured for any
+    button (0) so the combined move/select tool can switch to its dragger
+    on a middle press.
+    """
+    view = ImageView()
+    controllers = view.observe_controllers()
+    click_gestures = [
+        controllers.get_item(i)
+        for i in range(controllers.get_n_items())
+        if isinstance(controllers.get_item(i), Gtk.GestureClick)
+    ]
+    assert len(click_gestures) == 1, "the image view has exactly one click gesture"
+    assert click_gestures[0].get_property("button") == 0, (
+        "the click gesture must listen to any button so middle-click pans"
+    )
+
+
 def test_imageview_draw(rose_png: str) -> None:
     """Test the ImageView draw function."""
     view = ImageView()

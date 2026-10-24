@@ -540,7 +540,10 @@ class Canvas(Gtk.DrawingArea):
         # (the GTK3 "draw" signal, add_events() and event signals are gone).
         self.set_draw_func(self._draw_func)
 
-        click = Gtk.GestureClick()
+        # button=0 listens to any button; the default (primary only) silently
+        # dropped middle-click presses and broke middle-click panning after
+        # the GTK3->4 migration.
+        click = Gtk.GestureClick(button=0)
         click.connect("pressed", self._button_pressed)
         click.connect("released", self._button_released)
         self.add_controller(click)

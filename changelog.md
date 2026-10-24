@@ -7,6 +7,7 @@
   now ships its own default `.rubberband` rule that follows the active GTK
   theme, so the selection shows up out of the box. A user `.rubberband` rule
   in `~/.config/gtk-4.0/gtk.css` still overrides the default (see the FAQ).
+* Restore middle-click panning after the GTK4 migration
 
 
 ## 4.0.0 (2026-10-24)

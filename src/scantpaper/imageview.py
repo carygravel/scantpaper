@@ -730,7 +730,10 @@ class ImageView(Gtk.DrawingArea):
         # (the GTK3 draw/button/motion/scroll/configure signals are gone).
         self.set_draw_func(self._draw_func)
 
-        click = Gtk.GestureClick()
+        # button=0 listens to any button; the default (primary only) silently
+        # dropped middle-click presses and stopped the combined tool from
+        # panning after the GTK3->4 migration.
+        click = Gtk.GestureClick(button=0)
         click.connect("pressed", self._button_pressed)
         click.connect("released", self._button_released)
         self.add_controller(click)
