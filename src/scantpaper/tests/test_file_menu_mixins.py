@@ -1557,14 +1557,17 @@ class TestFileMenuMixins:
         app.slist.save_session.assert_called()
 
     @unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True)
-    def test_file_chooser_response_callback_session_overwrite_declined(
+    def test_file_chooser_response_callback_session_existing_saves(
         self, mock_is_file: MagicMock, app: MockApp
     ) -> None:
-        """Declining the overwrite prompt on an existing session saves nothing."""
+        """An existing session destination saves without an app-level prompt.
+
+        The GTK4 chooser's native alert confirms the overwrite before the
+        response reaches this callback.
+        """
         del mock_is_file
         app.slist.save_session = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
-        app._ask_question.return_value = Gtk.ResponseType.CANCEL
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_file.return_value = Gio.File.new_for_path(
             "/path/to/session.sdb"
@@ -1574,29 +1577,7 @@ class TestFileMenuMixins:
             mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
         )
 
-        app._ask_question.assert_called_once()
-        app.slist.save_session.assert_not_called()
-        mock_dialog.destroy.assert_not_called()
-
-    @unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True)
-    def test_file_chooser_response_callback_session_overwrite_accepted(
-        self, mock_is_file: MagicMock, app: MockApp
-    ) -> None:
-        """Accepting the overwrite prompt on an existing session saves it."""
-        del mock_is_file
-        app.slist.save_session = unittest.mock.Mock()
-        app._file_writable = unittest.mock.Mock(return_value=True)
-        app._ask_question.return_value = Gtk.ResponseType.OK
-        mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_file.return_value = Gio.File.new_for_path(
-            "/path/to/session.sdb"
-        )
-
-        app._file_chooser_response_callback(
-            mock_dialog, Gtk.ResponseType.OK, ["sdb", []]
-        )
-
-        app._ask_question.assert_called_once()
+        app._ask_question.assert_not_called()
         app.slist.save_session.assert_called_once_with("/path/to/session.sdb")
         mock_dialog.destroy.assert_called_once()
 
@@ -1605,18 +1586,20 @@ class TestFileMenuMixins:
         [("pdf", "_save_pdf"), ("djvu", "_save_djvu")],
     )
     @unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True)
-    def test_file_chooser_response_callback_pdf_djvu_overwrite_prompts(
+    def test_file_chooser_response_callback_pdf_djvu_existing_saves(
         self,
         mock_is_file: MagicMock,
         filetype: str,
         save_method: str,
         app: MockApp,
     ) -> None:
-        """PDF and DjVu destinations that exist are confirmed before saving."""
+        """Existing PDF and DjVu destinations save without an app-level prompt.
+
+        The GTK4 chooser's native alert confirms the overwrite first.
+        """
         del mock_is_file
         setattr(app, save_method, unittest.mock.Mock())
         app._file_writable = unittest.mock.Mock(return_value=True)
-        app._ask_question.return_value = Gtk.ResponseType.CANCEL
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_file.return_value = Gio.File.new_for_path(
             f"/path/to/file.{filetype}"
@@ -1626,17 +1609,21 @@ class TestFileMenuMixins:
             mock_dialog, Gtk.ResponseType.OK, [filetype, ["uuid1"]]
         )
 
-        app._ask_question.assert_called_once()
-        getattr(app, save_method).assert_not_called()
+        app._ask_question.assert_not_called()
+        getattr(app, save_method).assert_called_once()
+        mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.file_exists")
     def test_file_chooser_response_callback_overwrite_after_suffix_retry(
         self, mock_file_exists: MagicMock, app: MockApp
     ) -> None:
-        """The suffixed retry pass still asks before overwriting."""
+        """The suffixed retry pass saves without re-prompting.
+
+        Confirmation of the overwrite is the GTK4 chooser's responsibility; by
+        the time the retried OK response arrives, it has been given.
+        """
         app._save_pdf = unittest.mock.Mock()
         app._file_writable = unittest.mock.Mock(return_value=True)
-        app._ask_question.return_value = Gtk.ResponseType.CANCEL
         mock_file_exists.return_value = True
         mock_dialog = unittest.mock.Mock()
         mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file")
@@ -1652,14 +1639,13 @@ class TestFileMenuMixins:
         # Retry pass with the suffixed name, which exists
         mock_file_exists.return_value = False
         mock_dialog.get_file.return_value = Gio.File.new_for_path("/path/to/file.pdf")
-        with unittest.mock.patch.object(pathlib.Path, "is_file", return_value=True):
-            app._file_chooser_response_callback(
-                mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
-            )
+        app._file_chooser_response_callback(
+            mock_dialog, Gtk.ResponseType.OK, ["pdf", ["uuid1"]]
+        )
 
-        app._ask_question.assert_called_once()
-        app._save_pdf.assert_not_called()
-        mock_dialog.destroy.assert_not_called()
+        app._ask_question.assert_not_called()
+        app._save_pdf.assert_called_once_with("/path/to/file.pdf", ["uuid1"], "pdf")
+        mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
     @unittest.mock.patch("scantpaper.file_menu_mixins.os")

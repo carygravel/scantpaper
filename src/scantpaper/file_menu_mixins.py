@@ -591,9 +591,6 @@ class FileMenuMixins:
             if not self._file_writable(dialog, filename):
                 return
 
-            if not self._confirm_overwrite(dialog, filename):
-                return
-
             # Update cwd
             self.settings["cwd"] = str(pathlib.Path(filename).parent)
             try:
@@ -615,19 +612,6 @@ class FileMenuMixins:
                     self._windowi.hide()
 
         dialog.destroy()
-
-    def _confirm_overwrite(self, chooser: Gtk.FileChooser, filename: str) -> bool:
-        """Ask before replacing an existing file; True if saving may proceed."""
-        if not pathlib.Path(filename).is_file():
-            return True
-        response = self._ask_question(
-            parent=chooser,
-            type="question",
-            buttons=Gtk.ButtonsType.OK_CANCEL,
-            text=_("A file named %s already exists. Do you want to overwrite it?")
-            % (filename),
-        )
-        return bool(response == Gtk.ResponseType.OK)
 
     def _file_writable(self, chooser: Gtk.FileChooserDialog, filename: str) -> bool:
         """Check if a file or its directory is writable and show an error dialog if not."""

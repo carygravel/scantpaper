@@ -10,10 +10,10 @@ prematurely, and a failed save must be reported instead of vanishing.
 ### Requirement: Saving to an existing file asks for confirmation
 
 When the user confirms a save destination whose file already exists, the
-system SHALL ask the user to confirm overwriting before writing anything, for
-every output type offered by the Save flow (session, PDF, DjVu, TIFF, text,
-hOCR, Postscript). This SHALL also apply when the extension was appended
-automatically to the name the user typed.
+file chooser SHALL ask the user to confirm overwriting before any writing
+happens, for every output type offered by the Save flow (session, PDF, DjVu,
+TIFF, text, hOCR, Postscript). This SHALL also apply when the extension was
+appended automatically to the name the user typed.
 
 #### Scenario: Session save over an existing session file prompts
 
