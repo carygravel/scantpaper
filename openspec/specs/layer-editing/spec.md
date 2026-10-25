@@ -351,16 +351,12 @@ where in the slice hierarchy it is inserted.
 
 ### Requirement: A new slice's orientation is guessed from its selection
 
-When a slice is added, duplicated, or first created on a page that has no text
-layer, and it inherits no quarter-turn rotation, the editor SHALL choose the
-slice's text angle as the orientation in which the slice's text is drawn at the
-largest size that fits the selected rectangle. The angle SHALL be 0 degrees
-when the text fits upright at least as well as rotated, and 90 degrees when the
-rotated fit is larger. A guessed angle SHALL be an ordinary text angle: it SHALL
-be drawn, persisted in the page's layer, serialised in saved output, and remain
-correctable with the rotate controls. When a quarter-turn rotation is already
-inherited from the focused slice or an ancestor, the editor SHALL use that
-rotation and SHALL NOT guess.
+When a slice is added, duplicated, or first created without an inherited
+quarter-turn rotation, the editor SHALL choose the slice's text angle as the
+orientation that draws its text largest in the selected rectangle. The angle
+SHALL be 0 degrees when upright fits at least as well as rotated, and 90
+degrees when the rotated fit is larger. An inherited quarter-turn rotation
+from the focused slice or an ancestor SHALL be used instead of guessing.
 
 #### Scenario: A tall selection for vertical text is created rotated
 
@@ -405,6 +401,12 @@ rotation and SHALL NOT guess.
   new slice at a selection
 - **THEN** the new slice SHALL be drawn at the inherited 90-degree rotation
 - **AND** the geometry guess SHALL NOT add a further quarter turn
+
+### Requirement: A guessed text angle is an ordinary angle
+
+A guessed angle SHALL be an ordinary text angle: it SHALL be drawn, persisted
+in the page's layer, serialised in saved output, and remain correctable with
+the rotate controls.
 
 #### Scenario: A guessed rotation is correctable
 
