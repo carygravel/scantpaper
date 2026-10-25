@@ -1,3 +1,11 @@
+## 4.0.2 (unreleased)
+
+* Fix a start-up warning for legacy boolean settings such as
+  `post_save_hook` that gscan2pdf 2.x stored as an empty string for false.
+  The value is now corrected and logged instead of being reported on every
+  start, and the corrected `false` is written back on exit.
+
+
 ## 4.0.1 (2026-10-25)
 
 * The selection rectangle is visible again when dragging a selection on the

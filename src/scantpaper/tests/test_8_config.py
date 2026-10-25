@@ -542,6 +542,9 @@ def test_coerce_helpers() -> None:
     assert _coerce_bool(0) is False
     assert _coerce_bool("TRUE") is True
     assert _coerce_bool("0") is False
+    assert _coerce_bool("") is False, "legacy Perl false is an empty string"
+    assert _coerce_bool(" ") is None, "whitespace is not a legacy bool spelling"
+    assert _coerce_bool("yes") is None
     assert _coerce_bool(2) is None
 
     assert _coerce_int(value=True) == 1
@@ -627,6 +630,68 @@ def test_normalise_wrong_typed_scalar_settings(
             for record in caplog.records
             if record.levelno == logging.WARNING
         ), "unusable value is logged at WARNING"
+
+
+def test_legacy_empty_string_bool_normalised(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A gscan2pdf 2.x empty-string boolean is corrected to false."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"post_save_hook": ""}', encoding="utf-8")
+
+        with caplog.at_level(logging.INFO):
+            output = read_config(str(rc))
+
+        assert output["post_save_hook"] is False, "legacy empty string is false"
+        assert not output.load_warnings, "no start-up warning is raised"
+        assert any(
+            "post_save_hook" in record.message and "converted" in record.message
+            for record in caplog.records
+            if record.levelno == logging.INFO
+        ), "the correction is logged at INFO"
+
+        write_config(str(rc), output)
+        persisted = json.loads(slurp(rc))
+        assert persisted["post_save_hook"] is False, "the boolean is written back"
+
+
+def test_stringified_booleans_normalised_for_every_key() -> None:
+    """Every boolean setting accepts the legacy string spellings."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text(
+            '{"close_dialog_on_save": "", "cache options": "1"}',
+            encoding="utf-8",
+        )
+
+        output = read_config(str(rc))
+
+        assert output["close_dialog_on_save"] is False, "empty string is false"
+        assert output["cache options"] is True, "legacy true is still accepted"
+        assert not output.load_warnings, "no start-up warning is raised"
+
+
+def test_unrecognised_bool_string_still_warns(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A non-empty string that is not a bool spelling is still reported."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"post_save_hook": "evince %i"}', encoding="utf-8")
+
+        with caplog.at_level(logging.WARNING):
+            output = read_config(str(rc))
+
+        assert output["post_save_hook"] == "evince %i", "the raw value is kept"
+        assert any("post_save_hook" in message for message in output.load_warnings), (
+            "the unusable value is reported to the user"
+        )
+        assert any(
+            "post_save_hook" in record.message
+            for record in caplog.records
+            if record.levelno == logging.WARNING
+        ), "the unusable value is logged at WARNING"
 
 
 def test_write_config_is_copied_and_never_writes_old() -> None:
