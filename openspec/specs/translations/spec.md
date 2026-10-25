@@ -84,29 +84,12 @@ SHALL run in CI and fail the build on any violation.
   `Plural-Forms` header for its language
 - **THEN** the mechanical validation succeeds
 
-### Requirement: Malformed format placeholders fail catalog validation
-The mechanical catalog validation SHALL reject entries whose translated
-text contains a malformed format placeholder, for both placeholder styles
-the application uses, and SHALL fail the build in CI on any violation.
-
-For printf style (any entry carrying a `*-format` flag): a `msgstr` SHALL
-NOT contain a `%` separated from its conversion letter by whitespace (e.g.
-`"% s"`, `"% d"`), which `msgfmt --check` accepts under its printf modes but
-which renders incorrectly at runtime. The check SHALL ignore legitimate
-positional reordering such as `%2$s ... %1$d` and the literal `%%` escape.
-
-For `str.format` style (any entry whose `msgid` contains a `{...}`
-replacement field; gettext has no flag for these, so `msgfmt` validates
-nothing): each non-empty `msgstr` SHALL parse without error under
-`string.Formatter().parse()` and SHALL carry the same multiset of
-replacement-field names as the `msgid`. A renamed, whitespace-corrupted
-(`"{ count }"` vs `"{count}"`), dropped, or extra field SHALL fail
-validation. The literal `{{`/`}}` escapes SHALL NOT be counted as fields.
-
-Obsolete (`#~`) entries never compile into a released catalog, so the
-validation SHALL ignore them: only shipped (non-obsolete) entries are
-checked, and an obsolete entry that a parser surfaces among active ones
-SHALL be excluded from these checks.
+### Requirement: `printf` format placeholders are validated
+For entries carrying a `*-format` flag, a `msgstr` SHALL NOT contain a `%`
+separated from its conversion letter by whitespace (e.g. `"% s"`, `"% d"`),
+which `msgfmt --check` accepts but which renders incorrectly at runtime.
+Legitimate positional reordering such as `%2$s ... %1$d` and the literal `%%`
+escape SHALL be ignored. A violation SHALL fail the build in CI.
 
 #### Scenario: python-format entry with a spaced token is rejected
 - **WHEN** a catalog contains a `#, python-format` entry whose `msgstr` is
@@ -117,6 +100,15 @@ SHALL be excluded from these checks.
 - **WHEN** a `python-format` entry's `msgstr` uses only well-formed printf
   tokens, including a legitimate positional reordering such as `%2$s ... %1$d`
 - **THEN** the format-placeholder check succeeds for that entry
+
+### Requirement: `str.format` placeholders are validated
+For entries whose `msgid` contains a `{...}` replacement field (gettext has no
+flag for these, so `msgfmt` validates nothing), each non-empty `msgstr` SHALL
+parse without error under `string.Formatter().parse()` and SHALL carry the same
+multiset of replacement-field names as the `msgid`. A renamed,
+whitespace-corrupted (`"{ count }"` vs `"{count}"`), dropped or extra field
+SHALL fail validation. The literal `{{`/`}}` escapes SHALL NOT be counted as
+fields. A violation SHALL fail the build in CI.
 
 #### Scenario: format entry whose msgstr renames a field is rejected
 - **WHEN** a `msgid` is `"{count} in {dir}"` and its `msgstr` is
@@ -134,6 +126,13 @@ SHALL be excluded from these checks.
   `"{1} et {0}"` (indexed fields)
 - **THEN** the field-name multisets match and validation succeeds
 
+### Requirement: Validation ignores obsolete and placeholder-free entries
+Obsolete (`#~`) entries never compile into a released catalog, so the
+validation SHALL ignore them: only shipped (non-obsolete) entries are checked,
+and an obsolete entry that a parser surfaces among active ones SHALL be
+excluded. An entry whose `msgid` contains no placeholder SHALL NOT be reported,
+even when its `msgstr` introduces a stray `%` or `{`.
+
 #### Scenario: entry with no placeholders is unaffected
 - **WHEN** an entry's `msgid` contains neither a printf token nor a `{}`
   field and the `msgstr` introduces a stray `%` or `{`
@@ -141,23 +140,29 @@ SHALL be excluded from these checks.
   unchanged
 
 ### Requirement: Untranslatable plural-hack msgids fail validation
-The mechanical validation SHALL reject any source msgid that embeds a
-parenthesised plural suffix immediately following a word character, such as
-`Open image file(s)` or `Save page(s)`. Such a string is not a counted
-message, so it cannot be expressed with `ngettext()`, yet it also has no
-portable equivalent in languages whose plural morphology the bare `(s)`
-cannot represent. The validation SHALL fail the build in CI on any such
-msgid.
-
-Parenthesised text that is not a bare plural suffix SHALL NOT be flagged.
-In particular a parenthesised unit, abbreviation or gloss such as `(Mb)`,
-`(DCT)` or `(regular expression)` is a legitimate construction.
+The validation SHALL reject any source msgid that embeds a parenthesised plural
+suffix immediately following a word character, such as `Open image file(s)` or
+`Save page(s)`. Such a string is not a counted message, so it cannot be
+expressed with `ngettext()`, yet no portable equivalent exists for languages
+whose plural morphology the bare `(s)` cannot represent. The validation SHALL
+fail the build in CI on any such msgid.
 
 #### Scenario: msgid with a parenthesised plural suffix is rejected
 - **WHEN** the source msgid set contains a msgid such as
   `"Open image file(s)"`
 - **THEN** the mechanical validation fails and CI fails the build, naming the
   offending msgid
+
+#### Scenario: counted text expressed with ngettext passes
+- **WHEN** a message requires plural forms and is expressed as a counted
+  msgid with a plural msgid and per-form msgstr entries rather than with a
+  parenthesised suffix
+- **THEN** the plural-hack check succeeds for that message
+
+### Requirement: Parenthesised units and glosses are not plural hacks
+Parenthesised text that is not a bare plural suffix SHALL NOT be flagged. In
+particular a parenthesised unit, abbreviation or gloss such as `(Mb)`, `(DCT)`
+or `(regular expression)` is a legitimate construction.
 
 #### Scenario: parenthesised unit or gloss is not flagged
 - **WHEN** a msgid contains a parenthesised unit, abbreviation or gloss such
@@ -166,75 +171,17 @@ In particular a parenthesised unit, abbreviation or gloss such as `(Mb)`,
 - **THEN** the plural-hack check does not report it and the validation
   outcome for that string is unchanged
 
-#### Scenario: counted text expressed with ngettext passes
-- **WHEN** a message requires plural forms and is expressed as a counted
-  msgid with a plural msgid and per-form msgstr entries rather than with a
-  parenthesised suffix
-- **THEN** the plural-hack check succeeds for that message
-
-### Requirement: Catalog hygiene defects are reported
-The mechanical catalog validation SHALL report the following hygiene
-conditions that `msgfmt --check` does not, and SHALL report them without
-failing the build.
-
-*Per catalog:*
-
-(a) the count of obsolete `#~` entries; (b) entries carrying a `#, fuzzy`
-flag whose `msgstr` is empty; (c) any `msgstr` text that is not normalised to
-Unicode NFC form; (d) any `msgid` that uses a bare `{}` replacement field
-while the string contains more than one field; (e) any `msgstr` equal to a
-*different* msgid in the same catalog, which is the signature of a bad
-`msgmerge` fuzzy binding; (f) any pair of sibling msgids that must differ
-(for example `Select Odd` and `Select Even`) whose translations are
-identical.
-
-A `msgstr` in (e) SHALL NOT be reported when it differs from its own msgid
-only by case or by the position of the accelerator marker, since such a
-difference is a plausible rendering of the same label rather than a
-mismatched string.
-
-*Reported once over the source msgid set, not per catalog:*
-
-(i) any two msgids that differ only by letter case, for example
-`Scan Options` and `Scan options`; (j) any msgid that is a concatenation
-fragment, meaning it ends with a colon and trailing whitespace or newline and
-carries no placeholder, for example `"Error opening device: "` or
-`"The following paper sizes are too big to be scanned by the selected
-device:"`. Such a fragment is intended to be concatenated with a runtime value
-or list, which pins the word order of the sentence to English and prevents a
-locale from placing the list elsewhere; (k) any msgid containing a doubled space
-that is not a deliberate sentence break; (l) any msgid using U+03BC GREEK SMALL
-LETTER MU where U+00B5 MICRO SIGN may be intended; (m) any msgid longer than
-200 characters, reported as a translation effort warning.
-
-The obsolete-entry count in (a) SHALL be subject to a configurable ceiling
-initialised at or above the current total, so that the build fails only when
-the count *grows* beyond the ceiling, not because of the pre-existing
-backlog. Condition (d) is advisory rather than a hard gate because a bare
-`{}` with a single field is legitimate; it flags only the multi-field case,
-which translators cannot reorder safely and should express as `{0}`/`{1}` or
-named fields. Conditions (e) and (f) are advisory because neither can
-author the correct translation: they identify a string for human review, and
-the reviewer supplies the wording.
-
-Conditions on keyboard accelerators are NOT part of this requirement. A
-translation is entitled to relocate its mnemonic onto a character that exists
-in its own script, so neither the accelerator letter nor its presence in the
-translation is a reliable defect signal: measured against the 44 catalogs,
-requiring the letter to match flagged 558 entries that were all correct
-translations, and treating an absent marker as a defect produced 315 entries
-whose language and review status could not be established. Neither condition
-can be acted on without a native reviewer, and this project has no reliable
-one, so no accelerator condition is specified.
-
-The source msgid set used by (i) through (m) SHALL be generated on demand
-rather than read from a committed file, so that the checks reflect the current
-source even when the message template has not been regenerated.
+### Requirement: Per-catalog hygiene counts are reported
+Per catalog, the mechanical validation SHALL report, without failing the
+build: (a) the count of obsolete `#~` entries; (b) `#, fuzzy` entries whose
+`msgstr` is empty; (c) any `msgstr` not normalised to Unicode NFC. The count
+in (a) SHALL be subject to a configurable ceiling initialised at or above the
+current total, so the build fails only when the backlog *grows*, not because
+it pre-exists.
 
 #### Scenario: hygiene issues are reported without failing
-- **WHEN** a catalog contains obsolete entries, empty-fuzzy entries,
-  out-of-NFC text, or a multi-field bare `{}` `msgid`, and is within the
-  configured obsolete ceiling
+- **WHEN** a catalog contains obsolete entries, empty-fuzzy entries or
+  out-of-NFC text, and is within the configured obsolete ceiling
 - **THEN** validation prints the per-catalog counts and exits successfully
 
 #### Scenario: obsolete backlog growth is rejected
@@ -242,6 +189,15 @@ source even when the message template has not been regenerated.
   exceeds its configured ceiling
 - **THEN** validation fails the build, signalling a regression rather than
   the existing backlog
+
+### Requirement: Per-catalog translation defects are reported
+Per catalog, the validation SHALL report, without failing: (d) a bare `{}`
+field in a `msgid` with other fields, unsafe to reorder; (e) a `msgstr` equal
+to a *different* msgid, the signature of a bad `msgmerge` fuzzy binding;
+(f) sibling msgids that must differ (e.g. `Select Odd`, `Select Even`) with
+identical translations. Conditions (e) and (f) are advisory: they flag a
+string for review. A `msgstr` in (e) differing from its own msgid only by case
+or accelerator position SHALL NOT be reported.
 
 #### Scenario: mistranslation copied from another msgid is reported
 - **WHEN** a catalog translates `Select Odd` as the same text it uses for
@@ -255,16 +211,24 @@ source even when the message template has not been regenerated.
 - **THEN** the mistranslation condition is not reported for that entry,
   because the difference from its own msgid is case only
 
+### Requirement: Source-wide msgid defects are reported once
+Reported once over the source msgid set: case-only duplicates (e.g.
+`Scan Options`/`Scan options`); colon-terminated concatenation fragments with
+no placeholder (e.g. `"Error opening device: "`), which pin English word
+order; doubled spaces not marking a sentence break; U+03BC where U+00B5 MICRO
+SIGN is meant; and msgids over 200 characters (effort warning). The set SHALL
+be generated on demand, not read from a committed file, so checks reflect
+current source even when the template is stale.
+
 #### Scenario: source msgid defects are reported once
 - **WHEN** the source msgid set contains both `"Scan Options"` and
   `"Scan options"`, a log prefix `"Error opening device: "`, and a msgid such
-  as `"The following paper sizes are too big to be scanned by the selected
-  device:"` that a caller concatenates with a list
+  as `"The following paper sizes are too big to scan:"` that a caller
+  concatenates with a list
 - **THEN** each condition is reported once for the source msgid set, without
   being repeated per catalog, and validation exits successfully
 
-#### Scenario: a concatenation fragment is detected whether or not it ends
-in a space
+#### Scenario: concatenation fragment detected with or without trailing space
 - **WHEN** the source msgid set contains a msgid ending in `": "` and one
   ending in `":"` with no trailing space
 - **THEN** the concatenation-fragment condition is reported for both, because
@@ -276,26 +240,25 @@ in a space
   near-duplicate defect
 - **THEN** no near-duplicate condition is reported for that pair
 
+### Requirement: Keyboard accelerator mismatches are not checked
+Keyboard accelerator conditions SHALL NOT be checked: a translation may
+relocate its mnemonic onto a character in its own script. Measured against 44
+catalogs, requiring the letter to match flagged 558 correct translations, and
+treating an absent marker as a defect produced 315 entries whose review status
+could not be established. No accelerator check is specified.
+
+#### Scenario: a relocated mnemonic is not reported
+- **WHEN** a translation moves a keyboard mnemonic to a different character
+- **THEN** no accelerator condition is reported for that entry
+
 ### Requirement: The message template is generated with a vendored ITS rule set
 The message template generator SHALL extract translatable strings from the
-project's Glade/GtkBuilder `.ui` files using gettext's ITS extraction rules
-for GtkBuilder XML, taken from a copy of those rules vendored in the
-repository rather than from the copy installed on the system. Generation
-SHALL NOT require `intltool`, and `gettext` SHALL be the only external tool
-the catalog checks need.
-
-The generated msgid set SHALL be unaffected by the mechanism: no msgid may be
-added or removed relative to what the `intltool`-based pipeline produced.
-
-The vendored rules exist so that extraction depends on neither the gettext
-version nor its install layout. Because a copy can therefore drift from
-upstream, the validation SHALL compare the vendored rules against the
-installed copy and report any difference. That comparison SHALL be advisory
-and SHALL NOT fail the build: a difference means this project's copy may be
-behind, not that the generated template is wrong, and the project does not
-block a release on a condition that identifies no defect in shipped output.
-The report SHALL name both files and state whether the installed copy is
-absent, so an absent copy is distinguishable from an identical one.
+project's Glade/GtkBuilder `.ui` files using gettext's ITS extraction rules for
+GtkBuilder XML, taken from a copy vendored in the repository rather than from
+the system copy. Generation SHALL NOT require `intltool`, and `gettext` SHALL
+be the only external tool the catalog checks need. The generated msgid set
+SHALL be unchanged: no msgid may be added or removed relative to the
+`intltool` pipeline it replaces.
 
 #### Scenario: generation succeeds without intltool installed
 - **WHEN** the message template is generated on a system with `xgettext`,
@@ -308,6 +271,20 @@ absent, so an absent copy is distinguishable from an identical one.
   with the set produced by the `intltool`-based pipeline it replaces
 - **THEN** the two sets contain exactly the same msgids, with none present in
   only one of them
+
+#### Scenario: `.ui` strings are missing from the generated set
+- **WHEN** the generated msgid set contains none of the translatable strings
+  from the `.ui` files, for instance because the ITS rules cannot be resolved
+- **THEN** validation fails, rather than reporting a clean result over a set
+  that silently omits every string from the user interface definition
+
+### Requirement: Vendored ITS rules are compared with the installed copy
+Because the vendored copy can drift from upstream, the validation SHALL compare
+it against the installed copy and report any difference. The comparison SHALL
+be advisory and SHALL NOT fail the build: a difference means this project's
+copy may be behind, not that the generated template is wrong. The report SHALL
+name both files and state whether the installed copy is absent, so an absent
+copy is distinguishable from an identical one.
 
 #### Scenario: vendored rules differ from the installed copy
 - **WHEN** the ITS rules installed on the system differ in content from the
@@ -322,36 +299,29 @@ absent, so an absent copy is distinguishable from an identical one.
   distinguishable from a matching copy, and generation still uses the
   vendored rules
 
-#### Scenario: `.ui` strings are missing from the generated set
-- **WHEN** the generated msgid set contains none of the translatable strings
-  from the `.ui` files, for instance because the ITS rules cannot be resolved
-- **THEN** validation fails, rather than reporting a clean result over a set
-  that silently omits every string from the user interface definition
-
 ### Requirement: Upstream changes are detected against a baseline
-The project SHALL provide a check that compares the current public Launchpad
-state of the `scantpaper` translation template, and of each of its languages,
-against a committed baseline, and reports every unit that has changed since the
-baseline was last advanced. The check SHALL NOT authenticate to Launchpad, and
-SHALL NOT attempt to download any translation catalog, because Launchpad
-requires a logged-in session to export a catalog.
+The check SHALL compare the public Launchpad state of the `scantpaper`
+translation template and each language against a committed baseline, reporting
+every unit changed since it was advanced. It SHALL NOT authenticate or download
+a catalog, because export requires a logged-in session.
 
-The check SHALL detect two independent triggers, each read from the only public
-surface that carries it:
+#### Scenario: Nothing changed
+- **WHEN** the template matches the baseline and every language's last-changed
+  time equals its value in the baseline
+- **THEN** the check reports that there is nothing new and exits successfully
 
-- the **template** (the message set), from the Launchpad JSON API resource for
-  the translation template, using the template's `date_last_updated` and its
-  HTTP entity tag, with a conditional request so that an unchanged template is
-  detected without transferring a response body;
-- **per-language translation activity**, from the public series translation
-  page, whose per-language last-changed timestamps exist on no other public
-  surface. This page SHALL be read on every run, because a translation can
-  change without the template changing.
+#### Scenario: No catalog is downloaded
+- **WHEN** the check runs, whether or not a change is detected
+- **THEN** it sends no request to any Launchpad catalog export endpoint and
+  provides no credentials
 
-The baseline SHALL record the values Launchpad reported at the last sync, and
-SHALL be advanced only by a distinct, explicit action, so that it continues to
-represent the upstream state the catalogs were last synced from rather than the
-latest state observed.
+### Requirement: Each upstream trigger is read from its own public surface
+The template SHALL be read from the Launchpad JSON API resource for the
+translation template, using its `date_last_updated` and HTTP entity tag with a
+conditional request, so an unchanged template transfers no response body. Each
+language's last-changed timestamp SHALL be read from the public series
+translation page on every run, because a translation can change without the
+template changing.
 
 #### Scenario: The message set changed
 - **WHEN** the template's entity tag or `date_last_updated` differs from the
@@ -365,20 +335,16 @@ latest state observed.
 - **THEN** the check reports that language as changed, with its new
   untranslated and unreviewed counts, and exits successfully
 
-#### Scenario: Nothing changed
-- **WHEN** the template matches the baseline and every language's last-changed
-  time equals its value in the baseline
-- **THEN** the check reports that there is nothing new and exits successfully
-
 #### Scenario: A new language appears
 - **WHEN** the series translation page lists a language that is absent from the
   baseline
 - **THEN** the check reports that language as new
 
-#### Scenario: No catalog is downloaded
-- **WHEN** the check runs, whether or not a change is detected
-- **THEN** it sends no request to any Launchpad catalog export endpoint and
-  provides no credentials
+### Requirement: The baseline is advanced only on request
+The baseline SHALL record the values Launchpad reported at the last sync and
+SHALL be advanced only by a distinct, explicit action, so it continues to
+represent the state the catalogs were last synced from rather than the latest
+state observed.
 
 #### Scenario: Baseline is advanced only when asked
 - **WHEN** the check runs without the explicit baseline-advancing option and a
@@ -393,33 +359,26 @@ latest state observed.
   and a subsequent run reports that there is nothing new
 
 ### Requirement: Local message template staleness is detected against a baseline
-The check SHALL also report when the locally generated message template (the
-`.pot` regenerated from source) has moved relative to the message set of the
-last pot uploaded to Launchpad, so the maintainer knows a new pot is ready to
-push up. This is the reverse of the existing upstream-change check, and SHALL
-be answered entirely from local state: the baseline records the fingerprint of
-the last uploaded pot, and the check compares the freshly generated message set
-against that fingerprint. It SHALL NOT attempt to read the pot's message set
-from Launchpad, which would require authentication.
-
-The fingerprint SHALL be derived from the message set only: the sorted, unique
-`msgid` strings extracted from the generated template, ignoring the template's
-volatile header (creation date, package version) and the `#: file:line`
-reference comments. A difference that leaves the message set unchanged — for
-example a string moved between source files, or a different gettext version
-reordering output — SHALL NOT count as a change.
-
-The baseline SHALL record the fingerprint of the last uploaded pot, and SHALL
-be advanced only by a distinct, explicit stamping action taken after a pot has
-actually been uploaded, mirroring the upstream `--update` action. When no pot
-has been recorded yet, the check SHALL report the local state as not
-determined rather than as unchanged.
+The check SHALL report when the locally generated `.pot` has moved relative to
+the message set of the last pot uploaded to Launchpad, so the maintainer knows
+a new pot is ready to push. It SHALL be answered from local state: the baseline
+records the uploaded pot's fingerprint, compared against the freshly generated
+message set. It SHALL NOT read that message set from Launchpad, which would
+require authentication.
 
 #### Scenario: New source strings are ready to upload
 - **WHEN** the locally generated message set contains an `msgid` that is
   absent from the recorded uploaded-pot fingerprint
 - **THEN** the check reports that the local template is stale, names the
   change, and exits successfully
+
+### Requirement: The uploaded-pot fingerprint covers only the message set
+The fingerprint SHALL be derived from the message set only: the sorted, unique
+`msgid` strings of the generated template, ignoring the volatile header
+(creation date, package version) and the `#: file:line` reference comments. A
+difference that leaves the message set unchanged — a string moved between
+source files, or a different gettext version reordering output — SHALL NOT
+count as a change.
 
 #### Scenario: Only line references moved
 - **WHEN** a string is moved between source files so its `#: file:line`
@@ -437,6 +396,13 @@ determined rather than as unchanged.
 - **THEN** the check reports no local template change, because the sorted
   fingerprint is unchanged
 
+### Requirement: The uploaded-pot fingerprint is stamped explicitly
+The baseline SHALL record the fingerprint of the last uploaded pot and SHALL
+be advanced only by a distinct, explicit stamping action taken after a pot has
+been uploaded, mirroring the upstream `--update` action. When no pot has been
+recorded yet, the check SHALL report the local state as not determined rather
+than unchanged.
+
 #### Scenario: Local fingerprint is stamped after an upload
 - **WHEN** the check runs with the explicit stamp-after-upload option after a
   new pot has been uploaded
@@ -451,19 +417,11 @@ determined rather than as unchanged.
 
 ### Requirement: Undetermined state is distinct from unchanged
 The check SHALL NOT report a unit as unchanged unless it actually read that
-unit's current state. When it cannot determine a unit's state — because a
-request failed, the API returned an unexpected shape, or the series translation
-page could not be parsed into language records — it SHALL report that unit as
-not determined and SHALL exit non-zero, which is distinguishable from both
-"changed" and "unchanged". A unit that could be read SHALL still be reported.
-
-The check SHALL NOT be wired into the release gate: the default exit SHALL be
-successful when the state was read, whether or not a change was found. CI MAY
-request a non-zero exit on change through an explicit option.
-
-Requests issued by the check SHALL identify the tool with a descriptive
-`User-Agent` and SHALL be limited to those needed to answer the question: one
-request to the API for the template and one to the series translation page.
+unit's current state. When it cannot determine a unit's state — a failed
+request, an unexpected API shape, or a series page that cannot be parsed into
+language records — it SHALL report that unit as not determined and exit
+non-zero, distinguishable from both "changed" and "unchanged". A unit that
+could be read SHALL still be reported.
 
 #### Scenario: The series translation page cannot be parsed
 - **WHEN** the template read succeeds but the series translation page's
@@ -482,6 +440,11 @@ request to the API for the template and one to the series translation page.
   could not be determined
 - **THEN** it refuses and leaves the baseline unchanged
 
+### Requirement: The check is not a release gate
+The check SHALL NOT be wired into the release gate: the default exit SHALL be
+successful when the state was read, whether or not a change was found. CI MAY
+request a non-zero exit on change through an explicit option.
+
 #### Scenario: A change does not fail the default run
 - **WHEN** the check detects that a change occurred and is run without the
   explicit fail-on-change option
@@ -491,6 +454,11 @@ request to the API for the template and one to the series translation page.
 - **WHEN** the check is run with the fail-on-change option and a change is
   detected
 - **THEN** it exits non-zero, and when no change is detected it exits zero
+
+### Requirement: Requests are identified and bounded
+Requests issued by the check SHALL identify the tool with a descriptive
+`User-Agent` and SHALL be limited to those needed to answer the question: one
+request to the API for the template and one to the series translation page.
 
 #### Scenario: Requests are identified and bounded
 - **WHEN** the check runs
