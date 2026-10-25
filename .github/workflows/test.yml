@@ -93,6 +93,17 @@ jobs:
           # add locale, needed for a couple of tests
           sudo locale-gen de_DE.UTF-8
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install OpenSpec
+        run: |
+          # Pinned so a new upstream rule cannot turn CI red without a
+          # deliberate upgrade; bump together with the local CLI.
+          npm install -g @fission-ai/openspec@1.14.3
+      - name: Validate OpenSpec specs
+        run: openspec validate --specs --strict --no-interactive
+
       - name: Display Python version
         run: python3 -c "import sys; print(sys.version)"
       - name: Ruff check
