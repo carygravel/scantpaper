@@ -9,14 +9,13 @@ as crop.
 ## Requirements
 
 ### Requirement: Selection persists across page changes
-When the user navigates from one page to another while a selection rectangle
-is active, the selection SHALL remain visible on the newly displayed page,
-positioned within that page's image area, so it can be previewed before
-applying an operation. The selection SHALL NOT be clamped away or hidden by
-the thumbnail that is shown while the page image loads. Clamping the selection
-to the image bounds SHALL NOT produce a negative or zero width or height: the
-resulting rectangle SHALL always have positive dimensions so that it remains
-valid to draw and to apply an operation such as crop.
+When the user navigates from one page to another with a selection rectangle
+active, the selection SHALL remain visible on the newly displayed page,
+positioned within its image area so it can be previewed before an operation
+such as crop. The selection SHALL NOT be hidden by the thumbnail shown while
+the page image loads. Clamping SHALL NOT produce a negative or zero width or
+height: the rectangle SHALL always have positive dimensions so it remains
+valid to draw and to apply.
 
 #### Scenario: Selection survives navigating to another page
 - **WHEN** the user draws a selection on a page and then selects a different
