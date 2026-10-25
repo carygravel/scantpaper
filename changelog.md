@@ -1,4 +1,4 @@
-## 4.0.1 (unreleased)
+## 4.0.1 (2026-10-25)
 
 * The selection rectangle is visible again when dragging a selection on the
   Image tab or in a text layer/annotations pane. After the move to GTK4 the
