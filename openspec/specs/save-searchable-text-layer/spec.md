@@ -9,17 +9,14 @@ selected, copied, and searched just as it could in the source.
 ## Requirements
 
 ### Requirement: Saved PDF retains a searchable text layer
-When scantpaper saves a PDF and a page has a text layer, the output PDF SHALL
-contain a searchable text layer for that page that reproduces the words of the
-text layer being saved, positioned according to that text layer's geometry.
+When a page being saved has a text layer, the output PDF SHALL contain a
+searchable text layer that reproduces its words and their positions.
 
-The hOCR structure that scantpaper emits for a page SHALL include the container
-levels (`ocr_par`/`ocr_line`) that a PDF text-layer renderer walks, so that
-every word in the text layer is nested under a paragraph and therefore rendered
-and extractable. This SHALL hold for pages whose text layer has no explicit
-paragraph or line structure, and SHALL also hold for pages that mix automatic
-OCR paragraphs with individually added words that are not themselves inside a
-paragraph.
+The emitted hOCR SHALL include the container levels (`ocr_par`/`ocr_line`) a
+PDF text-layer renderer walks, so every word is nested under a paragraph and
+stays extractable. This SHALL hold for text layers with no explicit paragraph
+or line structure, and for pages mixing OCR paragraphs with individually
+added words outside them.
 
 #### Scenario: Saving an imported page preserves its searchable text
 - **WHEN** the user imports a PDF page, edits its text layer, and saves the
@@ -43,16 +40,14 @@ paragraph.
   the OCR-recognised words
 
 ### Requirement: Rotated text is rendered at its text angle
-When scantpaper saves a PDF, every word whose effective text angle is not
-horizontal SHALL be rendered in the output PDF at that angle. The effective
-angle is the word's own text angle combined with the angles of all of its
-ancestors, taken once each.
+Words with a non-horizontal effective text angle SHALL be saved at that
+angle. The effective angle combines the word's own text angle with all
+ancestor angles, each taken once.
 
-A word SHALL be rendered at its own angle whether it sits directly under a
-page, inside a synthetic line created during export, or inside an existing
-line whose angle differs. When one line contains words with different
-effective angles, export SHALL separate them so each angle is represented
-correctly in the saved text layer.
+A word SHALL be rendered at its own angle whether under a page, a synthetic
+export line, or an existing line at a different angle. Within one line, words
+with different effective angles SHALL be separated so each angle is saved
+correctly.
 
 The set and order of extracted words SHALL be unaffected by rotation.
 
