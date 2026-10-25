@@ -1,0 +1,79 @@
+Source: scantpaper
+Section: utils
+Testsuite: autopkgtest-pkg-python
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3-all,
+               python3-pip,
+               python3-setuptools,
+               python3-wheel
+Build-Depends-Indep: appstream,
+                     fonts-noto-extra,
+                     gettext,
+                     ghostscript,
+                     gir1.2-gtk-4.0,
+                     gsfonts,
+                     help2man,
+                     imagemagick,
+                     librsvg2-common,
+                     libtiff-tools,
+                     ocrmypdf (>= 16.10.0),
+                     pandoc,
+                     pybuild-plugin-pyproject,
+                     python3-gi,
+                     python3-gi-cairo,
+                     python3-iso639,
+                     python3-sane,
+                     python3-tesserocr,
+                     python3-polib,
+                     python3-pytest-cov,
+                     python3-pytest-timeout,
+                     python3-pytest-mock,
+                     python3-pytest-xvfb,
+                     sane-utils (>= 1.0.17),
+                     xauth,
+                     xfonts-base
+Maintainer: Jeffrey Ratcliffe <jffry@posteo.net>
+Standards-Version: 4.7.3
+Vcs-Git: https://github.com/carygravel/scantpaper.git
+Vcs-Browser: https://github.com/carygravel/scantpaper
+Homepage: https://github.com/carygravel/scantpaper
+
+Package: scantpaper
+Architecture: all
+Depends: gir1.2-gtk-4.0,
+         imagemagick,
+         librsvg2-common,
+         libtiff-tools,
+         ocrmypdf (>= 16.10.0),
+         poppler-utils,
+         python3-gi,
+         python3-gi-cairo,
+         python3-iso639,
+         python3-sane,
+         python3-tesserocr,
+         sane-utils (>= 1.0.17),
+         ${misc:Depends},
+         ${python3:Depends}
+Recommends: djvulibre-bin,
+            jbig2,
+            qpdf,
+            tesseract-ocr,
+            unpaper,
+            xdg-utils
+Description: GUI to produce PDFs or DjVus from scanned documents
+ Only five clicks are required to scan several pages and then save all or
+ a selection as a PDF or DjVu file, including metadata if required.
+ .
+ scantpaper can control flatbed or sheet-fed (ADF) scanners with SANE,
+ and can scan multiple pages at once. It presents a thumbnail view of
+ scanned pages, and permits simple operations such as cropping, rotating
+ and deleting pages.
+ .
+ OCR can be used to recognise text in the scans, and the output
+ embedded in the PDF or DjVu.
+ .
+ The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or
+ single page image file.
+ .
+ PDF conversion is done by ocrmypdf.

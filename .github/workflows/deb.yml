@@ -1,5 +1,13 @@
 name: Build packages
-on: [push]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Git revision to package (default: github.sha)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -28,247 +36,46 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: "REPO"
+          # The renderer derives the version from the commit count, so it
+          # needs the full history and the tags.
+          fetch-depth: 0
 
-      - name: Define variables
+      # Every packaging file comes from REPO/packaging/debian and is rendered
+      # into a throwaway tree under REPO/build/deb. Nothing is authored in
+      # this workflow, and no debian/ directory is created in the checkout.
+      - name: Render the Debian source tree
+        env:
+          SOURCE_REF: ${{ inputs.source_ref || github.sha }}
         run: |
-          (
-            VERSION=$(echo "${GITHUB_REF_NAME}" | sed -e 's/^v//')
-            if ! [[ $VERSION =~ ^[0-9] ]]; then
-              VERSION="$(sed -n 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' REPO/pyproject.toml || true)+${{github.sha}}"
-            fi
-            echo "GITHUB_REPO_NAME=$(echo "${GITHUB_REPOSITORY}" | cut -d/ -f2)"
-            echo "VERSION=${VERSION}"
-            echo "DEB_ARCHITECTURE=${ARCHITECTURE:-all}"
-            echo "RPM_ARCHITECTURE=${ARCHITECTURE:-noarch}"
-            echo "RELEASE=1"
-            echo "AUTHOR=Jeffrey Ratcliffe <jffry@posteo.net>"
-            cd REPO
-            echo "FIRST_YEAR=$(git log $(git rev-list --max-parents=0 HEAD) --date="format:%Y" --format="format:%ad")"
-            echo "THIS_COMMIT_YEAR=$(git log HEAD -n1 --date="format:%Y" --format="format:%ad")"
-            echo "THIS_COMMIT_DATE=$(git log HEAD -n1 --format="format:%as")"
-            if [ "$FIRST_YEAR" == "$THIS_COMMIT_YEAR" ]
-            then
-              echo "YEAR_RANGE=$FIRST_YEAR"
-            else
-              echo "YEAR_RANGE=${FIRST_YEAR}-${THIS_COMMIT_YEAR}"
-            fi
-            cd ..
-          ) >> $GITHUB_ENV
-
-      - name: Create control files
-        # Fields from https://www.debian.org/doc/debian-policy/ch-controlfields.html#binary-package-control-files-debian-control
-        run: |
-          mkdir -p REPO/debian/upstream
-          mkdir -p REPO/debian/source
-
-          cat > REPO/debian/source/format <<'EOF'
-          3.0 (quilt)
-          EOF
-
-          cat > REPO/debian/control <<EOF
-          Source: ${GITHUB_REPO_NAME}
-          Section: utils
-          Testsuite: autopkgtest-pkg-python
-          Build-Depends: debhelper-compat (= 13),
-                         dh-python,
-                         python3-all,
-                         python3-pip,
-                         python3-setuptools,
-                         python3-wheel
-          Build-Depends-Indep: appstream,
-                               fonts-noto-extra,
-                               gettext,
-                               ghostscript,
-                                gir1.2-gtk-4.0,
-                                gsfonts,
-                               help2man,
-                               imagemagick,
-                               librsvg2-common,
-                               libtiff-tools,
-                               ocrmypdf (>= 16.10.0),
-                               pandoc,
-                               pybuild-plugin-pyproject,
-                               python3-gi,
-                               python3-gi-cairo,
-                               python3-iso639,
-                               python3-sane,
-                               python3-tesserocr,
-                               python3-polib,
-                               python3-pytest-cov,
-                               python3-pytest-timeout,
-                               python3-pytest-mock,
-                               python3-pytest-xvfb,
-                               sane-utils (>= 1.0.17),
-                               xauth,
-                               xfonts-base
-          Maintainer: ${AUTHOR}
-          Standards-Version: 4.7.3
-          Vcs-Git: https://github.com/carygravel/scantpaper.git
-          Vcs-Browser: https://github.com/carygravel/scantpaper
-          Homepage: ${HOMEPAGE:-https://github.com/carygravel/scantpaper}
-
-          Package: ${GITHUB_REPO_NAME}
-          Architecture: ${DEB_ARCHITECTURE}
-          Depends: gir1.2-gtk-4.0,
-                   imagemagick,
-                   librsvg2-common,
-                   libtiff-tools,
-                   ocrmypdf (>= 16.10.0),
-                   poppler-utils,
-                   python3-gi,
-                   python3-gi-cairo,
-                   python3-iso639,
-                   python3-sane,
-                   python3-tesserocr,
-                   sane-utils (>= 1.0.17),
-                   \${misc:Depends},
-                   \${python3:Depends}
-          Recommends: djvulibre-bin,
-                      jbig2,
-                      qpdf,
-                      tesseract-ocr,
-                      unpaper,
-                      xdg-utils
-          Description: GUI to produce PDFs or DjVus from scanned documents
-           Only five clicks are required to scan several pages and then save all or
-           a selection as a PDF or DjVu file, including metadata if required.
-           .
-           scantpaper can control flatbed or sheet-fed (ADF) scanners with SANE,
-           and can scan multiple pages at once. It presents a thumbnail view of
-           scanned pages, and permits simple operations such as cropping, rotating
-           and deleting pages.
-           .
-           OCR can be used to recognise text in the scans, and the output
-           embedded in the PDF or DjVu.
-           .
-           The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or
-           single page image file.
-           .
-           PDF conversion is done by ocrmypdf.
-          EOF
-
-          cat > REPO/debian/copyright <<'EOF'
-          Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-          Upstream-Name: scantpaper
-          Upstream-Contact: Jeffrey Ratcliffe <jffry@posteo.net>
-          Source: https://github.com/carygravel/scantpaper
-
-          Files: *
-          Copyright: 2006--2026 Jeffrey Ratcliffe
-          License: GPL-3
-           The full text of the GPL is available on Debian systems in
-           /usr/share/common-licenses/GPL-3
-
-          Files: org.scantpaper.desktop.metainfo.xml
-          Copyright: 2006--2026 Jeffrey Ratcliffe
-          License: CC0-1.0
-           The full text of the CC0-1.0 licence is available on Debian systems in
-           /usr/share/common-licenses/CC0-1.0
-
-          Files: src/scantpaper/icons/hicolor/scalable/apps/scan.svg
-          Copyright: 2007 Frédéric Bellaiche
-          License: GPL
-           The full text of the GPL is available on Debian systems in
-           /usr/share/common-licenses/GPL
-
-          Files: src/scantpaper/icons/hicolor/scalable/apps/pdf.svg
-          Copyright: 2004 David Vignoni
-          License: LGPL-2.1
-           The full text of the GPL is available on Debian systems in
-           /usr/share/common-licenses/LGPL-2.1
-          EOF
-
-          cat > REPO/debian/changelog <<EOF
-          ${GITHUB_REPO_NAME} (${VERSION}-0) unstable; urgency=medium
-
-            * New upstream release candidate
-
-           -- ${AUTHOR}  $(date --rfc-email)
-          EOF
-
-          cat > REPO/debian/rules <<'MAKEFILE'
-          #!/usr/bin/make -f
-
-          export DH_VERBOSE=1
-          export PIP_NO_CACHE_DIR=1
-          export XDG_CACHE_HOME=$(CURDIR)/.cache
-
-          include /usr/share/dpkg/pkg-info.mk
-          export DEB_VERSION_UPSTREAM
-
-          %:
-          	dh $@ --with python3 --buildsystem=pybuild
-
-          override_dh_auto_build:
-          	dh_auto_build
-          	python3 dev/compile_mo.py --src po --out debian/locale --domain scantpaper
-          	pandoc README.md -o debian/documentation.html
-
-          override_dh_installdocs:
-          	dh_installdocs README.md debian/documentation.html
-
-          override_dh_install:
-          	dh_install
-
-          	# install locale manually into package staging area
-          	mkdir -p debian/scantpaper/usr/share/locale
-          	cp -a debian/locale/. debian/scantpaper/usr/share/locale/
-
-          override_dh_installman:
-          	help2man --no-info --name='a GUI to produce PDFs or DjVus from scanned documents' --version-string=$(DEB_VERSION_UPSTREAM) --output=$(CURDIR)/debian/scantpaper.1 'PYTHONPATH=src python3 -m scantpaper.app'
-          	sed -i -e 's/APP.PY/SCANTPAPER/' -e 's/app.py/scantpaper/' $(CURDIR)/debian/scantpaper.1
-          	dh_installman
-
-          override_dh_auto_test: ;
-          MAKEFILE
-
-          cat > REPO/debian/scantpaper.manpages <<'EOF'
-          debian/scantpaper.1
-          EOF
-
-          cat > REPO/debian/scantpaper.install <<'EOF'
-          debian/documentation.html usr/share/doc/scantpaper/
-          src/scantpaper/icons/* usr/share/icons/
-          org.scantpaper.desktop usr/share/applications
-          org.scantpaper.desktop.metainfo.xml usr/share/metainfo
-          EOF
-
-          cat > REPO/debian/upstream/metadata <<'EOF'
-          Bug-Database: https://github.com/carygravel/scantpaper/issues
-          Bug-Submit: https://github.com/carygravel/scantpaper/issues/new
-          Changelog: https://github.com/carygravel/scantpaper/blob/main/changelog.md
-          Repository-Browse: https://github.com/carygravel/scantpaper
-          Repository: https://github.com/carygravel/scantpaper
-          EOF
-
-          cat > REPO/debian/watch <<'EOF'
-          Version: 5
-
-          Template: Github
-          Owner: carygravel
-          Project: @PACKAGE@
-          EOF
+          cd REPO
+          version=$(python3 dev/prepare_deb.py --source-ref "$SOURCE_REF")
+          echo "VERSION=${version}" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: |
           sudo add-apt-repository ppa:jeffreyratcliffe/ppa
           sudo apt-get update
           sudo apt-get install -y build-essential debhelper devscripts fakeroot lintian equivs
-          sudo mk-build-deps --install --remove REPO/debian/control # Install build dependencies from debian/control
+          # Install build dependencies from the rendered control file.
+          sudo mk-build-deps --install --remove \
+            "REPO/build/deb/scantpaper-${VERSION}/debian/control"
 
       - name: Build DEB Package
-        run: cd REPO && debuild -i -us -uc -b && dpkg-deb --contents ../${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
+        run: |
+          cd "REPO/build/deb/scantpaper-${VERSION}"
+          debuild -us -uc -b
+          dpkg-deb --contents "../scantpaper_${VERSION}_all.deb"
 
       - name: Upload packages
-        run: ls -l
+        run: ls -l REPO/build/deb
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
-          path: ${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_*
+          name: scantpaper_${{ env.VERSION }}_all.deb
+          path: REPO/build/deb/scantpaper_${{ env.VERSION }}_all.deb
 
       - name: Release packages
         uses: softprops/action-gh-release@v3
         if: github.ref_type == 'tag'
         with:
           files: |
-            ${{ env.GITHUB_REPO_NAME }}_${{ env.VERSION }}-0_all.deb
+            REPO/build/deb/scantpaper_${{ env.VERSION }}_all.deb

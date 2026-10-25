@@ -4,6 +4,12 @@
   `post_save_hook` that gscan2pdf 2.x stored as an empty string for false.
   The value is now corrected and logged instead of being reported on every
   start, and the corrected `false` is written back on exit.
+* The Debian package attached to the GitHub release is now built from
+  `packaging/debian/`, which is kept in the repository and rendered from the
+  selected git revision, instead of the workflow writing the packaging files
+  itself. Its version is `<version>-0.<commit-count>.g<short-sha>`, so it
+  sorts above earlier snapshots and below the Debian package for the same
+  release.
 
 
 ## 4.0.1 (2026-10-25)

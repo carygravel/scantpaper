@@ -59,12 +59,23 @@
    package at `Release: 1`, without an `Epoch`. Only builds launched from a tag
    are attached to a GitHub release; branch and pull-request builds are not
    published.
-1. Rebuild an already-tagged release. Dispatch the Fedora and openSUSE
-   workflows from `main` with `source_ref=vx.x.x`. The dispatch input defaults
-   to `github.sha`; setting it makes the renderer read the version, source
-   archive and commit date from the selected tag instead of `main`. The run is
+1. Rebuild an already-tagged release. Dispatch the Fedora, openSUSE and
+   Debian workflows from `main` with `source_ref=vx.x.x`. The dispatch input
+   defaults to `github.sha`; setting it makes the renderer read the version,
+   source and commit date from the selected tag instead of `main`. The run is
    a branch run, so its artifacts are not attached automatically; download
    them and replace the release assets manually.
+1. The Debian `.deb` attached to the release is built by
+   [deb.yml](.github/workflows/deb.yml) from the pushed tag, in the same way.
+   Its packaging is maintained in
+   [packaging/debian/](packaging/debian/README.md) and rendered into
+   `build/deb/`, so the workflow authors no packaging file and the repository
+   root stays free of a `debian/` directory. Do not add `/debian/` to
+   `.gitignore`: that file ships in the source tarball, where the rule would
+   hide newly added files in salsa's own `debian/` directory. The rendered
+   version is `<version>-0.<commit-count>.g<short-sha>`, which sorts below the
+   distro package at revision `1`. To reproduce the artifact locally, follow
+   `packaging/debian/README.md`.
 1. Build package for Debian. Update the salsa repo:
    ```sh
    gbp import-orig --pristine-tar --uscan

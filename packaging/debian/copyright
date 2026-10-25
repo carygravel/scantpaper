@@ -1,0 +1,28 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: scantpaper
+Upstream-Contact: Jeffrey Ratcliffe <jffry@posteo.net>
+Source: https://github.com/carygravel/scantpaper
+
+Files: *
+Copyright: 2006--2026 Jeffrey Ratcliffe
+License: GPL-3
+ The full text of the GPL is available on Debian systems in
+ /usr/share/common-licenses/GPL-3
+
+Files: org.scantpaper.desktop.metainfo.xml
+Copyright: 2006--2026 Jeffrey Ratcliffe
+License: CC0-1.0
+ The full text of the CC0-1.0 licence is available on Debian systems in
+ /usr/share/common-licenses/CC0-1.0
+
+Files: src/scantpaper/icons/hicolor/scalable/apps/scan.svg
+Copyright: 2007 Frédéric Bellaiche
+License: GPL
+ The full text of the GPL is available on Debian systems in
+ /usr/share/common-licenses/GPL
+
+Files: src/scantpaper/icons/hicolor/scalable/apps/pdf.svg
+Copyright: 2004 David Vignoni
+License: LGPL-2.1
+ The full text of the GPL is available on Debian systems in
+ /usr/share/common-licenses/LGPL-2.1
