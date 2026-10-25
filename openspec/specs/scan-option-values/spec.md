@@ -37,14 +37,12 @@ values SHALL keep rendering without a decimal part.
 
 ### Requirement: Typed scan-option numbers accept the locale decimal separator
 
-A user editing a numeric scan option SHALL be able to type the value with
-the locale's decimal separator and the locale's grouping (thousands)
-separator. Typing any other separator character — such as an ASCII period
-when the locale's decimal separator is a comma — SHALL be rejected and have
-no effect on the field's text or value. The value SHALL be sent to the
-backend as a canonical number (e.g. 115.2). This applies to free-text
-numeric options and to ranged (spin-button) numeric options such as the
-scan-area size fields.
+A numeric scan option SHALL accept a typed value using the locale's decimal
+separator and grouping (thousands) separator. Typing any other separator
+character — such as an ASCII period in a comma locale — SHALL be rejected and
+have no effect on the field's text or value. The value SHALL be sent to the
+backend as a canonical number (e.g. 115.2). This applies to both free-text and
+ranged (spin-button) numeric options, such as the scan-area size fields.
 
 #### Scenario: Comma is accepted for a FIXED option
 
