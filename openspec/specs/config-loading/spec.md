@@ -50,22 +50,13 @@ backup file.
 
 ### Requirement: Keep recognised settings with wrong value types
 
-When the config file parses but contains a value of an unexpected type for a
-recognised key (e.g. a string where an integer is expected), the system SHALL
-normalise the value to a usable form when one exists, otherwise preserve the
-raw setting for inspection rather than silently replacing it with the default.
-
-A lossless conversion SHALL be written to the log and SHALL NOT be shown to the
-user in the message dialog. Only a value that cannot be made usable SHALL
-produce a user-visible warning; that warning SHALL also be written to the log.
-
-When a recognised setting holds a legacy `null` whose default offers a usable
-str value (e.g. a gscan2pdf 2.x config with `"image type": null`), the system
-SHALL migrate it to the recognised default for that setting at load time instead
-of warning that it cannot be used. The migration SHALL be written to the log at
-INFO level, SHALL NOT be shown to the user in the message dialog, and SHALL be
-persisted on the next config write so the value is stored as the migrated
-default rather than the raw `null`.
+When a recognised key holds a value of the wrong type (e.g. a string where an
+integer is expected), the system SHALL normalise it to a usable form when one
+exists, otherwise preserve the raw setting for inspection rather than silently
+replacing it with the default. A lossless conversion SHALL be logged and SHALL
+NOT be shown to the user in the message dialog. Only a value that cannot be
+made usable SHALL produce a user-visible warning; that warning SHALL also be
+written to the log.
 
 #### Scenario: String value where an integer is expected
 
@@ -83,6 +74,16 @@ default rather than the raw `null`.
 - **AND** the user is shown a message that the value could not be used and was
   left unchanged
 - **AND** the warning is also written to the log
+
+### Requirement: Migrate legacy null settings to the default
+
+When a recognised setting holds a legacy `null` whose default offers a usable
+str value (e.g. a gscan2pdf 2.x config with `"image type": null`), the system
+SHALL migrate it to the recognised default for that setting at load time
+instead of warning that it cannot be used. The migration SHALL be written to
+the log at INFO level, SHALL NOT be shown in the message dialog, and SHALL be
+persisted on the next config write so the value is stored as the migrated
+default rather than the raw `null`.
 
 #### Scenario: A legacy null image type is migrated to the default
 
