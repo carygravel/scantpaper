@@ -74,7 +74,10 @@
    `.gitignore`: that file ships in the source tarball, where the rule would
    hide newly added files in salsa's own `debian/` directory. The rendered
    version is `<version>-0.<commit-count>.g<short-sha>`, which sorts below the
-   distro package at revision `1`. To reproduce the artifact locally, follow
+   distro package at revision `1`. The workflow builds it in a Debian unstable
+   container and then runs lintian and autopkgtest on it there; unstable
+   provides the `debhelper` the packaging requires and resolves the
+   dependencies without the PPA. To reproduce the artifact locally, follow
    `packaging/debian/README.md`.
 1. Build package for Debian. Update the salsa repo:
    ```sh

@@ -1,33 +1,31 @@
 #!/usr/bin/make -f
 
 export DH_VERBOSE=1
-export PIP_NO_CACHE_DIR=1
-export XDG_CACHE_HOME=$(CURDIR)/.cache
 
 include /usr/share/dpkg/pkg-info.mk
-export DEB_VERSION_UPSTREAM
 
 %:
 	dh $@ --with python3 --buildsystem=pybuild
 
-override_dh_auto_build:
-	dh_auto_build
-	python3 dev/compile_mo.py --src po --out debian/locale --domain scantpaper
+execute_after_dh_auto_build:
+	python3 dev/compile_mo.py \
+		--src po \
+		--out debian/locale \
+		--domain scantpaper
+
 	pandoc README.md -o debian/documentation.html
+	python3 dev/strip_remote_images.py debian/documentation.html
 
-override_dh_installdocs:
-	dh_installdocs README.md debian/documentation.html
-
-override_dh_install:
-	dh_install
-
+execute_after_dh_install:
 	# install locale manually into package staging area
-	mkdir -p debian/scantpaper/usr/share/locale
-	cp -a debian/locale/. debian/scantpaper/usr/share/locale/
+	mkdir -p debian/scantpaper/usr/share/
+	mv debian/locale debian/scantpaper/usr/share/
 
-override_dh_installman:
-	help2man --no-info --name='a GUI to produce PDFs or DjVus from scanned documents' --version-string=$(DEB_VERSION_UPSTREAM) --output=$(CURDIR)/debian/scantpaper.1 'PYTHONPATH=src python3 -m scantpaper.app'
-	sed -i -e 's/APP.PY/SCANTPAPER/' -e 's/app.py/scantpaper/' $(CURDIR)/debian/scantpaper.1
-	dh_installman
+execute_before_dh_installman:
+	help2man \
+		--no-info \
+		--name="a GUI to produce PDFs or DjVus from scanned documents" \
+		--output=$(CURDIR)/debian/scantpaper.1 \
+		"PYTHONPATH=src python3 -m scantpaper.app"
 
 override_dh_auto_test: ;

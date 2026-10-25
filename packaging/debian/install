@@ -1,4 +1,4 @@
-debian/documentation.html usr/share/doc/scantpaper/
-src/scantpaper/icons/* usr/share/icons/
+screenshot.png usr/share/doc/scantpaper/
+src/scantpaper/icons/hicolor/* usr/share/icons/hicolor/
 org.scantpaper.desktop usr/share/applications
 org.scantpaper.desktop.metainfo.xml usr/share/metainfo

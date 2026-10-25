@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# ensure that a test suite failure is registered
+set -e
+
+# ensure we test installed version
+#mv scantpaper disabled
+
+pytest
+
+# comply with rw-build-tree
+#mv disabled scantpaper

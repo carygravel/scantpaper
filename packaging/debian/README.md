@@ -25,7 +25,13 @@ building.
 - `watch`, `upstream/metadata` and `source/format` are only used when building
   a source package. A binary build (`debuild -b`) ignores them.
 - `debian/locale`, `debian/documentation.html` and `debian/scantpaper.1` are
-  produced by `debian/rules` during the build, inside the rendered tree.
+  produced by `debian/rules` during the build, inside the rendered tree. The
+  generated `documentation.html` is passed through
+  `dev/strip_remote_images.py`, which removes images loaded from other hosts
+  so that lintian's `privacy-breach-*` checks stay clean.
+- `install` names the project screenshot by its source path
+  (`screenshot.png`) and installs it from the source root. It is not copied
+  into this directory, and `source/include-binaries` has no entry for it.
 
 ## Building locally
 
@@ -45,7 +51,7 @@ version=$(python3 dev/prepare_deb.py --source-ref HEAD)
 sudo mk-build-deps --install --remove \
     "build/deb/scantpaper-${version}/debian/control"
 cd "build/deb/scantpaper-${version}"
-debuild -us -uc -b
+debuild --no-lintian -us -uc -b
 ```
 
 The package is written to `build/deb/`, one level above the build tree. Never
@@ -61,9 +67,45 @@ python3 dev/prepare_deb.py --source-ref v4.0.1
 The source tree is produced with `git archive`, so modified and untracked files
 are not packaged. Commit to a scratch branch if you need to test a local edit.
 
-The GitHub workflow (`.github/workflows/deb.yml`) runs the same steps: render,
-install the build dependencies from the rendered `control`, then `debuild` in
-the rendered tree.
+The GitHub workflow (`.github/workflows/deb.yml`) builds in a
+`debian:sid-slim` container and then runs the checks below against the built
+package in a second, fresh container. Debian unstable is required: the
+packaging asks for `debhelper-compat (= 14)`, which Ubuntu 24.04 does not
+provide. Build in a `debian:sid` container if your host is older.
+
+## Checks
+
+Lintian runs on Debian unstable's version, with warnings treated as failures:
+
+```sh
+lintian --fail-on warning "build/deb/scantpaper_${version}_amd64.changes"
+```
+
+Autopkgtest runs the package's own `debian/tests` against the built `.deb`:
+
+```sh
+python3 dev/prepare_deb.py --source-ref HEAD --build-root build/deb-check
+version=...  # the version printed by the command above
+useradd -m tester
+chown -R tester "build/deb-check/scantpaper-${version}"
+autopkgtest --user tester -B "build/deb/scantpaper_${version}_all.deb" \
+    "build/deb-check/scantpaper-${version}" -- null
+```
+
+The tree is needed as well as the `.deb`, because `debian/tests` is not
+installed into the package; `-B` stops autopkgtest from rebuilding the tree and
+using those binaries in place of the `.deb` under test. Use a freshly rendered
+tree, as above: in a tree that has already been built, pytest also collects the
+`debian/scantpaper/` staging area and fails. The tests run as a normal user
+because several of them simulate write failures with `chmod`, which root would
+sail through. The null testbed installs packages into the machine it runs on,
+so run it in a disposable `debian:sid` container rather than on a working
+system.
+
+`debuild` runs with `--no-lintian` so that only the Debian unstable version
+decides. Debian's lintian is newer than the one on most Ubuntu releases, and a
+tag it reports has to be fixed or overridden in
+`debian/<package>.lintian-overrides`, not suppressed with a workflow flag.
 
 ## Version scheme
 

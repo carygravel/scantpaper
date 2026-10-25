@@ -1,8 +1,10 @@
 Source: scantpaper
 Section: utils
 Testsuite: autopkgtest-pkg-python
-Build-Depends: debhelper-compat (= 13),
+Build-Depends: debhelper-compat (= 14),
                dh-python,
+               dh-sequence-single-binary,
+               pybuild-plugin-pyproject,
                python3-all,
                python3-pip,
                python3-setuptools,
@@ -19,7 +21,7 @@ Build-Depends-Indep: appstream,
                      libtiff-tools,
                      ocrmypdf (>= 16.10.0),
                      pandoc,
-                     pybuild-plugin-pyproject,
+                     python3-cysignals-bare,
                      python3-gi,
                      python3-gi-cairo,
                      python3-iso639,
@@ -27,34 +29,34 @@ Build-Depends-Indep: appstream,
                      python3-tesserocr,
                      python3-polib,
                      python3-pytest-cov,
-                     python3-pytest-timeout,
                      python3-pytest-mock,
+                     python3-pytest-timeout,
                      python3-pytest-xvfb,
                      sane-utils (>= 1.0.17),
                      xauth,
                      xfonts-base
 Maintainer: Jeffrey Ratcliffe <jffry@posteo.net>
-Standards-Version: 4.7.3
+Standards-Version: 4.7.4
 Vcs-Git: https://github.com/carygravel/scantpaper.git
 Vcs-Browser: https://github.com/carygravel/scantpaper
 Homepage: https://github.com/carygravel/scantpaper
 
 Package: scantpaper
 Architecture: all
-Depends: gir1.2-gtk-4.0,
+Depends: file,
+         gir1.2-gtk-4.0,
          imagemagick,
          librsvg2-common,
          libtiff-tools,
          ocrmypdf (>= 16.10.0),
          poppler-utils,
+         python3-cysignals-bare,
          python3-gi,
          python3-gi-cairo,
          python3-iso639,
          python3-sane,
          python3-tesserocr,
          sane-utils (>= 1.0.17),
-         ${misc:Depends},
-         ${python3:Depends}
 Recommends: djvulibre-bin,
             jbig2,
             qpdf,

@@ -1,0 +1,21 @@
+Tests: test-suite
+Restrictions: rw-build-tree, allow-stderr
+# ^ pytest-runner writes stuff to the source tree
+Depends: @,
+ appstream,
+ djvulibre-bin,
+ fonts-dejavu-core,
+ gettext,
+ jbig2,
+ locales-all,
+ python3-polib,
+ python3-tomli,
+ python3-pytest-cov,
+ python3-pytest-mock,
+ python3-pytest-timeout,
+ python3-pytest-xvfb,
+ qpdf,
+ tesseract-ocr,
+ tesseract-ocr-deu,
+ unpaper,
+ xdg-utils,

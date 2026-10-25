@@ -9,7 +9,8 @@
   selected git revision, instead of the workflow writing the packaging files
   itself. Its version is `<version>-0.<commit-count>.g<short-sha>`, so it
   sorts above earlier snapshots and below the Debian package for the same
-  release.
+  release. It is built, linted and tested on Debian unstable before it is
+  published.
 
 
 ## 4.0.1 (2026-10-25)
