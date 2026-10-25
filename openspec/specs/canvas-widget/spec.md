@@ -2,51 +2,74 @@
 
 ## Purpose
 
-Provide a Cairo-based rendering widget for displaying and interacting with OCR bounding boxes and text overlaid on scanned document images.
+Provide a Cairo-based rendering widget for displaying and interacting with OCR
+bounding boxes and text overlaid on scanned document images.
 
 ## Requirements
 
 ### Requirement: Canvas renders OCR bounding boxes and text
 
-The Canvas widget SHALL render a scene graph of OCR elements (page, carea, paragraph, line, word) as colored bounding rectangles with rotated text. When the text of an element in the scene graph changes, the Canvas SHALL redraw that element with its new text on the next frame.
-When drawing text over the scanned image, the Canvas SHALL align the rendered text by its baseline to the baseline position derived from the hOCR `baseline` attribute (respecting rotation and slope) rather than vertically centering the rendered text's ink box in the bounding box.
+The Canvas SHALL render a scene graph of OCR elements (page, carea,
+paragraph, line, word) as colored bounding rectangles with rotated text. When
+an element's text changes, the Canvas SHALL redraw that element with its new
+text on the next frame.
+
+When drawing text over the scanned image, the Canvas SHALL align the rendered
+text's baseline to the position derived from the hOCR `baseline` attribute
+(respecting rotation and slope) rather than vertically centering its ink box
+in the bounding box.
 
 #### Scenario: Single word displayed
-- **WHEN** `set_text()` is called with a single word bbox at (10, 20, 100, 40) with text "hello" and hOCR baseline information
-- **THEN** the canvas SHALL display a rectangle from (10, 20) to (100, 40) and the text "hello" positioned so its baseline aligns with the baseline derived from the hOCR data
+- **WHEN** `set_text()` is called with a single word bbox at (10, 20, 100, 40)
+  with text "hello" and hOCR baseline information
+- **THEN** the canvas SHALL display a rectangle from (10, 20) to (100, 40) and
+  the text "hello" positioned so its baseline aligns with the baseline derived
+  from the hOCR data
 
 #### Scenario: Confidence-colored bounding box
 - **WHEN** a word has confidence 95
 - **AND** max_color is "black" and min_color is "red"
 - **AND** max_confidence is 95 and min_confidence is 50
-- **THEN** the rectangle and text SHALL be drawn in black (the confidence equals max_color threshold)
+- **THEN** the rectangle and text SHALL be drawn in black (the confidence equals
+  max_color threshold)
 
 #### Scenario: Low confidence coloring
 - **WHEN** a word has confidence 25
 - **AND** max_color is "black" and min_color is "red"
 - **AND** max_confidence is 95 and min_confidence is 50
-- **THEN** the rectangle and text SHALL be drawn in red (the confidence is below min_confidence threshold)
+- **THEN** the rectangle and text SHALL be drawn in red (the confidence is below
+  min_confidence threshold)
 
 #### Scenario: Text inside bounding box is rotated
 - **WHEN** a word has textangle 90
-- **THEN** the rendered text SHALL be rotated 90 degrees within its bounding box and positioned according to its baseline
+- **THEN** the rendered text SHALL be rotated 90 degrees within its bounding box
+  and positioned according to its baseline
 
 #### Scenario: Multiple words on same line
-- **WHEN** `set_text()` is called with two words on the same line (depth 3) with different x positions
-- **THEN** both words SHALL be displayed at their respective positions with correct bounding boxes
+- **WHEN** `set_text()` is called with two words on the same line (depth 3) with
+  different x positions
+- **THEN** both words SHALL be displayed at their respective positions with
+  correct bounding boxes
 
 #### Scenario: Changed text is redrawn
-- **WHEN** a word's text is changed after it has already been drawn at least once
+- **WHEN** a word's text is changed after it has already been drawn at least
+  once
 - **THEN** the next drawn frame SHALL show the new text for that word
 - **AND** SHALL NOT show the text the word had before the change
 
 #### Scenario: Baseline alignment for words with descenders
-- **WHEN** rendering a word that contains descender characters (e.g., "jumps", "quick", "happy") using its hOCR baseline
-- **THEN** the rendered text SHALL be vertically positioned using baseline alignment so that descenders extend below the baseline in a manner consistent with the hOCR's baseline coordinate system
+- **WHEN** rendering a word that contains descender characters (e.g., "jumps",
+  "quick", "happy") using its hOCR baseline
+- **THEN** the rendered text SHALL be vertically positioned using baseline
+  alignment so that descenders extend below the baseline in a manner consistent
+  with the hOCR's baseline coordinate system
 
 #### Scenario: Baseline alignment for words without descenders
-- **WHEN** rendering a word with no descender characters (e.g., "man", "run", "sun") using its hOCR baseline
-- **THEN** the rendered text SHALL be vertically positioned using baseline alignment to match the baseline position from hOCR, avoiding the vertical shift that occurs with pure vertical centering of the ink box
+- **WHEN** rendering a word with no descender characters (e.g., "man", "run",
+  "sun") using its hOCR baseline
+- **THEN** the rendered text SHALL be vertically positioned using baseline
+  alignment to match the baseline position from hOCR, avoiding the vertical
+  shift that occurs with pure vertical centering of the ink box
 
 ### Requirement: Canvas fits slice text along the correct axis
 
@@ -78,7 +101,8 @@ from the slice's own text angle or from an ancestor's accumulated angle.
 
 ### Requirement: Canvas supports zoom
 
-The Canvas SHALL support zoom levels between 0.001 and 15.0, with all rendered content scaling proportionally.
+The Canvas SHALL support zoom levels between 0.001 and 15.0, with all rendered
+content scaling proportionally.
 
 #### Scenario: Zoom set to 2.0
 - **WHEN** `zoom` is set to 2.0
@@ -96,17 +120,18 @@ The Canvas SHALL support zoom levels between 0.001 and 15.0, with all rendered c
 
 #### Scenario: zoom-changed signal emitted
 - **WHEN** `zoom` property changes to a new value
-- **THEN** the "zoom-changed" signal SHALL be emitted with the new value as a float
+- **THEN** the "zoom-changed" signal SHALL be emitted with the new value as a
+  float
 
 ### Requirement: Canvas supports offset (pan)
 
 The Canvas SHALL support an offset property that controls which portion of
 the scene is visible, clamped to prevent viewing outside the image bounds.
 The offset SHALL use the same sign convention as ImageView: a positive
-offset shifts the image rightward in widget space. Clamping SHALL happen
-against the canvas's live allocation: an offset pushed while the canvas has
-no usable allocation (unmapped or zero-sized) SHALL be stored unclamped and
-SHALL be clamped at the canvas's next allocation, never discarded.
+offset shifts the image rightward in widget space. Clamping SHALL use the
+canvas's live allocation: an offset pushed while the canvas has no usable
+allocation (unmapped or zero-sized) SHALL be stored unclamped and SHALL be
+clamped at its next allocation, never discarded.
 
 #### Scenario: Offset set within bounds
 - **WHEN** the pixbuf size is (800, 1000)
@@ -141,7 +166,9 @@ SHALL be clamped at the canvas's next allocation, never discarded.
 
 ### Requirement: Canvas zoom uses uniform scaling
 
-The Canvas SHALL apply zoom as a uniform scale factor, without centering about the widget center. Centering of small images SHALL be handled by the offset clamping mechanism, matching ImageView behavior.
+The Canvas SHALL apply zoom as a uniform scale factor, without centering about
+the widget center. Centering of small images SHALL be handled by the offset
+clamping mechanism, matching ImageView behavior.
 
 #### Scenario: Zoom does not re-center widget
 - **WHEN** `zoom` is set to 2.0 at offset (0, 0)
@@ -175,26 +202,33 @@ The Canvas SHALL identify which Bbox contains a given coordinate point.
 
 ### Requirement: Canvas supports add_box for editing
 
-The Canvas SHALL support adding new words (bounding boxes with text) to the scene graph at runtime, supporting the text editing workflow.
+The Canvas SHALL support adding new words (bounding boxes with text) to the
+scene graph at runtime, supporting the text editing workflow.
 
 #### Scenario: Add word to existing parent
 - **WHEN** a page bbox exists as root
-- **AND** a new word bbox is added with `add_box(parent=page, bbox=..., text="new")`
+- **AND** a new word bbox is added with
+  `add_box(parent=page, bbox=..., text="new")`
 - **THEN** the new word SHALL appear in the display
 - **AND** the word SHALL be added to the confidence index
 
 #### Scenario: Add word without parent (auto-lookup)
 - **WHEN** `add_box()` is called without a parent argument
 - **AND** a bbox at the given coordinates exists
-- **THEN** the new word SHALL be added as a child of the bbox at those coordinates
+- **THEN** the new word SHALL be added as a child of the bbox at those
+  coordinates
 
 ### Requirement: Canvas supports update_box for text editing
 
-The Canvas SHALL support updating an existing word's text, bounding box, and confidence after user edits. The word's position within its parent's children SHALL reflect the new bounding box, so that serialising the scene graph yields the words in reading order.
+The Canvas SHALL support updating an existing word's text, bounding box, and
+confidence after user edits. The word's position within its parent's children
+SHALL reflect the new bounding box, so that serialising the scene graph yields
+the words in reading order.
 
 #### Scenario: Update word text and bounding box
 - **WHEN** a word bbox exists with text "old" at (10, 20, 100, 40)
-- **AND** `update_box()` is called with text "new" and a new selection rectangle (15, 25, 95, 35)
+- **AND** `update_box()` is called with text "new" and a new selection rectangle
+  (15, 25, 95, 35)
 - **THEN** the displayed text SHALL be "new"
 - **AND** the bounding box SHALL be (15, 25, 95, 35)
 - **AND** the confidence SHALL be set to 100
@@ -299,7 +333,8 @@ The Canvas SHALL export the current scene graph as hOCR (HTML + XHTML) format.
 
 #### Scenario: Export single word
 - **WHEN** a word "hello" exists at bbox (10, 20, 100, 40) with confidence 95
-- **THEN** `hocr()` SHALL return a valid hOCR string containing `<span class='ocr_word' title='bbox 10 20 100 40; x_wconf 95'>hello</span>`
+- **THEN** `hocr()` SHALL return a valid hOCR string containing
+  `<span class='ocr_word' title='bbox 10 20 100 40; x_wconf 95'>hello</span>`
 
 #### Scenario: Export empty canvas
 - **WHEN** `clear_text()` has been called
@@ -308,7 +343,8 @@ The Canvas SHALL export the current scene graph as hOCR (HTML + XHTML) format.
 
 ### Requirement: Canvas supports text sorting modes
 
-The Canvas SHALL support iterating through words by confidence or by reading position.
+The Canvas SHALL support iterating through words by confidence or by reading
+position.
 
 #### Scenario: Sort by confidence
 - **WHEN** words with different confidence levels exist
@@ -331,7 +367,8 @@ The Canvas SHALL allow the user to pan the view by middle-clicking and dragging.
 
 ### Requirement: Canvas supports scroll zoom
 
-The Canvas SHALL allow zooming via the scroll wheel, centered on the cursor position.
+The Canvas SHALL allow zooming via the scroll wheel, centered on the cursor
+position.
 
 #### Scenario: Scroll up zooms in
 - **WHEN** a scroll-up event occurs
@@ -409,7 +446,7 @@ scanned image exactly at any zoom, offset, resolution, and display scale.
 - **AND** a user drags in the widget from (10, 5) to (70, 15)
 - **THEN** the resulting image-coordinate selection SHALL be (10, 10, 60, 20)
 
-### Requirement: Selection drawing depends on the page extent, not on layer content
+### Requirement: Selection drawing depends on the page extent, not layer content
 
 The canvas SHALL begin a selection drag whenever the extent of the displayed
 page is known, regardless of whether any layer content has been loaded, and
