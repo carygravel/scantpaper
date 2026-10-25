@@ -41,14 +41,13 @@ input in place and the modified file SHALL become the new page contents.
 - **AND** the document is marked as no longer saved
 
 ### Requirement: Batch mode passes all selected pages to one invocation
-The system SHALL offer a batch mode in which all selected pages are passed to a
-single invocation of the tool. In batch mode `%i` SHALL be substituted by the
-path of each page's temporary working file, space-separated, so that a tool
-such as `gimp %i` opens every selected image at the same time. A command
-containing a variable that cannot be resolved to a single value for the whole
-batch SHALL be rejected: `%o` because one output file cannot collect many
-input pages, and `%r` because the selected pages may have different
-resolutions.
+The system SHALL support a batch mode that passes all selected pages to a
+single tool invocation. In batch mode `%i` SHALL be substituted by the
+path of each page's temporary working file, space-separated, so a tool such as
+`gimp %i` opens every selected image at once. A command with a variable that
+cannot resolve to one value for the whole batch SHALL be rejected: `%o` because
+one output file cannot collect many input pages, and `%r` because the selected
+pages may have different resolutions.
 
 #### Scenario: All selected images open together
 - **WHEN** the user enables batch mode and applies a tool with `%i` to 5
