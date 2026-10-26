@@ -1019,6 +1019,52 @@ def test_save_pdf_jp2_alpha_is_flate(
     assert "/JPXDecode" not in codecs, "alpha page not JPEG 2000"
 
 
+def test_save_pdf_flate_stays_flate_through_pdfa(
+    rose_png: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """An explicit Flate save survives the PDF/A conversion as Flate."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_png])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"compression": "png"},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/FlateDecode" in codecs, "lossless page stays Flate through PDF/A"
+    assert "/DCTDecode" not in codecs, "lossless page not transcoded to JPEG"
+
+
+def test_save_pdf_jpeg_stays_jpeg_through_pdfa(
+    rose_jpg: str,
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """An explicit JPEG save survives the PDF/A conversion as JPEG."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_jpg])
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        options={"compression": "jpg"},
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/DCTDecode" in codecs, "JPEG page stays JPEG through PDF/A"
+    assert "/FlateDecode" not in codecs, "JPEG page not re-encoded losslessly"
+
+
 @pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
 def test_save_pdf_jb2(
     temp_pbm: object,

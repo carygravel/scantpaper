@@ -15,6 +15,12 @@
   logged as an error with a traceback. An empty feeder is the normal end of a
   batch, so it is now recorded at INFO level; genuine scan errors still log at
   ERROR with their traceback.
+* A saved PDF no longer silently re-encodes a lossless page image as JPEG
+  during the PDF/A conversion. When the "Flate" option is used, or "G4" (or
+  Automatic resolves a page to Group 4 or Flate), the image now stays Flate or
+  Group 4 in the final file, on every supported OCRmyPDF version. A save whose
+  pages are all JPEG keeps them as JPEG, so an already-lossy document is not
+  inflated.
 
 
 ## 4.0.1 (2026-10-25)

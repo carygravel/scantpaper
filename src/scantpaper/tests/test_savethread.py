@@ -37,6 +37,9 @@ from scantpaper.savethread import (
     _estimate_page_pdf_size,
     _fix_pdf_metadata,
     _jbig2_requested,
+    _lossless_pdfa_always,
+    _parse_ocrmypdf_version,
+    _pdfa_image_compression,
     _post_save_hook,
     _set_timestamp,
     get_progressbar_class,
@@ -1770,3 +1773,144 @@ def test_estimate_page_pdf_size_downsample_uses_pixels() -> None:
         )
         == 300
     )
+
+
+class TestOcrmypdfVersionGate:
+    """Parsing the OCRmyPDF version and selecting the PDF/A request."""
+
+    def test_parse_release(self) -> None:
+        """A plain release string yields its major and minor components."""
+        assert _parse_ocrmypdf_version("17.10.0") == (17, 10)
+
+    def test_parse_prerelease(self) -> None:
+        """A pre-release suffix does not disturb the leading components."""
+        assert _parse_ocrmypdf_version("17.6.0rc1") == (17, 6)
+
+    def test_parse_distro_suffix(self) -> None:
+        """A distribution suffix does not disturb the leading components."""
+        assert _parse_ocrmypdf_version("16.13.0+dfsg1") == (16, 13)
+
+    def test_parse_malformed(self) -> None:
+        """An unparseable version takes the conservative older branch."""
+        assert _parse_ocrmypdf_version("garbage") == (0, 0)
+        assert _parse_ocrmypdf_version("17") == (0, 0)
+
+    def test_lossless_pdfa_always_at_17_6_and_later(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """17.6 and later keep lossless images by default."""
+        monkeypatch.setattr("scantpaper.savethread.ocrmypdf.__version__", "17.6.0")
+        assert _lossless_pdfa_always() is True
+        monkeypatch.setattr("scantpaper.savethread.ocrmypdf.__version__", "17.10.0")
+        assert _lossless_pdfa_always() is True
+
+    def test_lossless_pdfa_always_before_17_6(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Before 17.6 lossless images need an explicit request."""
+        monkeypatch.setattr("scantpaper.savethread.ocrmypdf.__version__", "16.13.0")
+        assert _lossless_pdfa_always() is False
+
+    def test_pdfa_compression_always_lossless_on_modern(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """On 17.6+ lossless is requested even for an all-JPEG save."""
+        monkeypatch.setattr("scantpaper.savethread._lossless_pdfa_always", lambda: True)
+        assert _pdfa_image_compression(has_lossless=False) == "lossless"
+
+    def test_pdfa_compression_lossless_image_on_older(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Before 17.6 a lossless image triggers the explicit request."""
+        monkeypatch.setattr(
+            "scantpaper.savethread._lossless_pdfa_always", lambda: False
+        )
+        assert _pdfa_image_compression(has_lossless=True) == "lossless"
+
+    def test_pdfa_compression_omitted_for_jpeg_only_on_older(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Before 17.6 an all-JPEG save leaves OCRmyPDF's default untouched."""
+        monkeypatch.setattr(
+            "scantpaper.savethread._lossless_pdfa_always", lambda: False
+        )
+        assert _pdfa_image_compression(has_lossless=False) is None
+
+
+@pytest.mark.parametrize(
+    ("mode", "compression", "expected"),
+    [
+        ("L", "png", True),
+        ("1", "g4", True),
+        ("RGB", "jpg", False),
+        ("RGB", "auto", False),
+    ],
+)
+def test_assemble_pdf_records_lossless_flag(
+    tmp_path: pathlib.Path,
+    mode: str,
+    compression: str,
+    *,
+    expected: bool,
+) -> None:
+    """Assembly records whether any page image was written losslessly."""
+
+    class OnePageThread(MockSaveThread):
+        """MockSaveThread returning one freshly built page."""
+
+        @override
+        def get_page(self, page_id: int | None = None, **kwargs: object) -> Page:
+            del page_id, kwargs
+            page = Page(image_object=Image.new(mode, (8, 8)))
+            page.resolution = (300, 300, "PixelsPerInch")
+            return page
+
+    thread = OnePageThread()
+    options = {
+        "dir": str(tmp_path),
+        "path": str(tmp_path / "output.pdf"),
+        "list_of_pages": [1],
+        "options": {"compression": compression},
+    }
+    request = Request("save_pdf", (options,), thread.responses)
+
+    with patch("scantpaper.savethread.img2pdf.convert", return_value=b"pdf_data"):
+        thread._assemble_pdf(tmp_path, options, request, metadata={})
+
+    assert thread._saw_lossless_image is expected
+
+
+def test_embed_text_layer_requests_lossless_pdfa_on_modern(
+    mock_thread_instance: MockSaveThread, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A save on OCRmyPDF 17.6+ requests lossless PDF/A image handling."""
+    monkeypatch.setattr("scantpaper.savethread._lossless_pdfa_always", lambda: True)
+    with patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf") as mock_pdf:
+        mock_thread_instance._embed_text_layer(
+            pathlib.Path("/tmp"), "/tmp/out.pdf", MagicMock(), has_lossless=False
+        )
+    assert mock_pdf.call_args.kwargs["pdfa_image_compression"] == "lossless"
+
+
+def test_embed_text_layer_requests_lossless_for_lossless_save_on_older(
+    mock_thread_instance: MockSaveThread, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Before 17.6 a lossless save still requests lossless PDF/A."""
+    monkeypatch.setattr("scantpaper.savethread._lossless_pdfa_always", lambda: False)
+    with patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf") as mock_pdf:
+        mock_thread_instance._embed_text_layer(
+            pathlib.Path("/tmp"), "/tmp/out.pdf", MagicMock(), has_lossless=True
+        )
+    assert mock_pdf.call_args.kwargs["pdfa_image_compression"] == "lossless"
+
+
+def test_embed_text_layer_omits_pdfa_request_for_jpeg_only_on_older(
+    mock_thread_instance: MockSaveThread, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An all-JPEG save before 17.6 leaves the PDF/A default untouched."""
+    monkeypatch.setattr("scantpaper.savethread._lossless_pdfa_always", lambda: False)
+    with patch("scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf") as mock_pdf:
+        mock_thread_instance._embed_text_layer(
+            pathlib.Path("/tmp"), "/tmp/out.pdf", MagicMock(), has_lossless=False
+        )
+    assert "pdfa_image_compression" not in mock_pdf.call_args.kwargs

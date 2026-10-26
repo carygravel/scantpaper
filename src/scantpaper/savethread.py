@@ -34,6 +34,8 @@ from scantpaper.helpers import exec_command, exec_command_run
 from scantpaper.i18n import _
 from scantpaper.importthread import Importhread, _note_callbacks
 from scantpaper.page import (
+    PDF_CODEC_FLATE,
+    PDF_CODEC_G4,
     PDF_CODEC_JBIG2,
     PDF_CODEC_JP2,
     PDF_CODEC_JPEG,
@@ -54,6 +56,49 @@ img2pdf.default_dpi = 72.0
 # linearizing engine, Ghostscript's PDF/A conversion, and pikepdf's
 # xref-stream linearization, producing truncated or corrupt output.
 _2GIB = 2 * 1024 * 1024 * 1024
+
+# OCRmyPDF 17.6 changed the ``pdfa_image_compression=auto`` default at -O0 to
+# keep lossless images, so Ghostscript no longer transcodes them to JPEG during
+# PDF/A generation. Before that release the same call let Ghostscript transcode
+# a lossless grayscale or colour image to JPEG, silently defeating a lossless
+# save. Requesting ``lossless`` explicitly fixes that, but on those older
+# releases it also re-encodes an existing JPEG losslessly.
+_PDFA_LOSSLESS_VERSION = (17, 6)
+
+# Concrete PDF codecs whose image stream is lossless.
+_LOSSLESS_PDF_CODECS = frozenset({PDF_CODEC_FLATE, PDF_CODEC_G4, PDF_CODEC_JBIG2})
+
+
+def _parse_ocrmypdf_version(version: str) -> tuple[int, int]:
+    """Return the leading (major, minor) of an OCRmyPDF version string.
+
+    An unparseable string yields ``(0, 0)``, which sorts below every real
+    release and so selects the conservative pre-17.6 behaviour.
+    """
+    match = re.match(r"(\d+)\.(\d+)", version)
+    if match is None:
+        return (0, 0)
+    return (int(match.group(1)), int(match.group(2)))
+
+
+def _lossless_pdfa_always() -> bool:
+    """Return True when this OCRmyPDF keeps lossless images by default."""
+    return _parse_ocrmypdf_version(ocrmypdf.__version__) >= _PDFA_LOSSLESS_VERSION
+
+
+def _pdfa_image_compression(*, has_lossless: bool) -> str | None:
+    """Return the OCRmyPDF PDF/A image compression to request, or None.
+
+    On OCRmyPDF >= 17.6 ``lossless`` keeps lossless images and passes JPEG and
+    JPEG 2000 through, so it is always requested. Before that release it would
+    re-encode an existing JPEG losslessly, so it is requested only when the
+    save actually wrote a lossless image; an all-JPEG save is left to
+    OCRmyPDF's default, which keeps the JPEGs.
+    """
+    if _lossless_pdfa_always() or has_lossless:
+        return "lossless"
+    return None
+
 
 # Options for OCRmyPDF's JBIG2 helpers: lossless single-image encoding with
 # no progress bar. The threshold only affects grayscale input, which never
@@ -166,19 +211,36 @@ def get_progressbar_class() -> Callable[..., SaveThreadProgressBar]:
 class SaveThread(Importhread):
     """subclass basethread for document."""
 
+    # Set by ``_assemble_pdf`` for the page images in the current save.
+    _saw_lossless_image = False
+
     def save_pdf(self, **kwargs: object) -> uuid.UUID:
         """Save pdf."""
         callbacks = _note_callbacks(kwargs)
         return self.send("save_pdf", kwargs, **callbacks)
 
     def _embed_text_layer(
-        self, outdir: pathlib.Path, filename: str, request: Request
+        self,
+        outdir: pathlib.Path,
+        filename: str,
+        request: Request,
+        *,
+        has_lossless: bool,
     ) -> bool:
         """Embed the text layer into the PDF using ocrmypdf."""
         request.data(_("Embedding text layer"))
 
         # Set up progress tracking via plugin
         _current_request_for_progress[0] = request
+
+        # Request lossless PDF/A image handling so the conversion does not
+        # transcode a losslessly written page image to JPEG. Newer OCRmyPDF
+        # keeps lossless images by default, but passing the value explicitly
+        # keeps the behaviour independent of the installed version.
+        call_kwargs: dict[str, Any] = {}
+        pdfa_compression = _pdfa_image_compression(has_lossless=has_lossless)
+        if pdfa_compression is not None:
+            call_kwargs["pdfa_image_compression"] = pdfa_compression
 
         # Call ocrmypdf with our custom progress plugin
         # The savethread module provides get_progressbar_class hook
@@ -188,6 +250,7 @@ class SaveThread(Importhread):
                 pathlib.Path(filename),
                 optimize=0,
                 plugins=["scantpaper.savethread"],
+                **call_kwargs,
             )
         except Exception as err:  # noqa: BLE001
             # BLE001 — ocrmypdf may fail for many reasons beyond "pikepdf
@@ -243,7 +306,9 @@ class SaveThread(Importhread):
 
             # Embed text layer using ocrmypdf (also applies PDF/A metadata such
             # as the title), so it runs even when no page has a text layer.
-            embed_ok = self._embed_text_layer(outdir, filename, request)
+            embed_ok = self._embed_text_layer(
+                outdir, filename, request, has_lossless=self._saw_lossless_image
+            )
 
             self._maybe_convert_to_jbig2(options, outdir, filename, request)
 
@@ -298,6 +363,7 @@ class SaveThread(Importhread):
             if options.get("options"):
                 opts = options["options"]
             estimated_size = 0
+            saw_lossless = False
             for i, page_id in enumerate(options["list_of_pages"], start=1):
                 page = self.get_page(id=page_id)
                 request.data(i / (len(options["list_of_pages"]) + 1))
@@ -308,6 +374,10 @@ class SaveThread(Importhread):
                         "total": len(options["list_of_pages"]),
                     }
                 )
+
+                codec = resolve_pdf_codec(page.image_object, opts.get("compression"))
+                if codec in _LOSSLESS_PDF_CODECS:
+                    saw_lossless = True
 
                 # store the filename and not the tempfile object to avoid potentially
                 # holding many open filehandles
@@ -376,6 +446,7 @@ class SaveThread(Importhread):
             fhd.write(img2pdf.convert(filenames, **metadata))
             for fname in filenames:
                 pathlib.Path(fname).unlink()
+        self._saw_lossless_image = saw_lossless
         return resolutions
 
     def _finalize_pdf(
