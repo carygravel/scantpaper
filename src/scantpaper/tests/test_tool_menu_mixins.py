@@ -1197,18 +1197,16 @@ def test_email_default_filename(
 def test_about_dialog_runs(
     mocker: pytest.MockerFixture, mock_tool_window: object
 ) -> None:
-    """Test that ToolsMenuMixins.about runs without error."""
+    """Test that ToolsMenuMixins.about presents the about dialog."""
     mock_about_dialog = mocker.patch("gi.repository.Gtk.AboutDialog")
-    mock_run = mocker.patch("scantpaper.tools_menu_mixins.run_dialog")
 
     mock_tool_window.get_application().iconpath = "."
 
     mock_tool_window.about(None, None)
 
     mock_about_dialog.assert_called_once()
-    mock_run.assert_called_once()
     instance = mock_about_dialog.return_value
-    instance.destroy.assert_called_once()
+    instance.present.assert_called_once()
 
     instance.set_program_name.assert_called()
     instance.set_version.assert_called()

@@ -34,6 +34,7 @@
   stream as the "Flate" option, so it promised something it did not deliver. A
   configuration that had selected it now loads as "Flate", keeping the same
   output with an honest label.
+* Fixed about dialog
 
 
 ## 4.0.1 (2026-10-25)

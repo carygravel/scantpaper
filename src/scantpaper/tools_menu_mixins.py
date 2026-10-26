@@ -29,7 +29,6 @@ from scantpaper.helpers import (
     collate_metadata,
     exec_command,
     expand_metadata_pattern,
-    run_dialog,
 )
 from scantpaper.i18n import _
 from scantpaper.postprocess_controls import OCRControls
