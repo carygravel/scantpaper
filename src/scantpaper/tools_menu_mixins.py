@@ -1080,5 +1080,4 @@ class ToolsMenuMixins:
         about.set_artists(["lodp, Andreas E."])
         about.set_logo_icon_name("scantpaper")
         about.set_transient_for(self)
-        run_dialog(about)
-        about.destroy()
+        about.present()
