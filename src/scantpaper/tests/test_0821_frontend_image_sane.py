@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
@@ -752,14 +753,27 @@ def test_page_limit_discards_buffered_frames() -> None:
     assert not fake.buffered, "prefetched page 3 discarded by the terminal cancel"
 
 
-def test_mid_batch_error_reports_and_terminates() -> None:
+def test_mid_batch_error_reports_and_terminates(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """An error mid-batch is reported and the session is terminated."""
+    caplog.set_level(logging.INFO, logger="scantpaper.frontend.image_sane")
     fake = FakeBrscan5Device(frames=[1, 2, 3])
     fake.error_on_frame = 2
     _thread, pages, errors = _run_with_fake(fake, {"num_pages": 5})
     assert pages == [1], "only the first page imported"
     assert errors == ["SANE device exploded"], "mid-batch error reported"
     assert fake.cancel_calls >= 1, "session terminated after the error"
+    log_errors = [
+        record
+        for record in caplog.records
+        if record.name == "scantpaper.frontend.image_sane"
+        and record.levelno >= logging.ERROR
+    ]
+    assert log_errors, "a genuine device error is logged at ERROR"
+    assert any(record.exc_info for record in log_errors), (
+        "the error log carries a traceback"
+    )
 
 
 def test_user_cancel_terminates_session(mocker: pytest.MockerFixture) -> None:
@@ -809,8 +823,11 @@ def test_user_cancel_terminates_session(mocker: pytest.MockerFixture) -> None:
     mlp.run()
 
 
-def test_feeder_empty_ends_batch_cleanly(mocker: pytest.MockerFixture) -> None:
+def test_feeder_empty_ends_batch_cleanly(
+    mocker: pytest.MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
     """The batch ends cleanly with the acquired pages when the feeder runs dry."""
+    caplog.set_level(logging.INFO, logger="scantpaper.frontend.image_sane")
     thread = SaneThread()
     thread.start()
     fake = FakeBrscan5Device(frames=[1])
@@ -841,6 +858,18 @@ def test_feeder_empty_ends_batch_cleanly(mocker: pytest.MockerFixture) -> None:
 
     assert pages == [1], "the available page was imported"
     error.assert_not_called()
+
+    feeder_records = [
+        record
+        for record in caplog.records
+        if record.name == "scantpaper.frontend.image_sane"
+    ]
+    log_errors = [r for r in feeder_records if r.levelno >= logging.ERROR]
+    log_tracebacks = [r for r in feeder_records if r.exc_info]
+    log_infos = [r for r in feeder_records if r.levelno == logging.INFO]
+    assert not log_errors, "a feeder-empty batch end must not be logged as an error"
+    assert not log_tracebacks, "a feeder-empty batch end must not log a traceback"
+    assert log_infos, "the end of batch is logged at INFO"
 
     mlp = safe_mainloop(2000)
     thread.send("quit", finished_callback=quit_mlp)

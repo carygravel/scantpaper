@@ -11,6 +11,10 @@
   sorts above earlier snapshots and below the Debian package for the same
   release. It is built, linted and tested on Debian unstable before it is
   published.
+* A scan batch that ends because the document feeder is empty is no longer
+  logged as an error with a traceback. An empty feeder is the normal end of a
+  batch, so it is now recorded at INFO level; genuine scan errors still log at
+  ERROR with their traceback.
 
 
 ## 4.0.1 (2026-10-25)

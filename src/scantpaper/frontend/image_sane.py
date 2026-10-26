@@ -65,21 +65,29 @@ class SaneThread(BaseThread):
             # raise arbitrary Python/SANE C-level errors, so no narrower
             # set is catchable; the error is wrapped and routed to the
             # caller via request.error()/request.finished() below.
-            logger.exception(
-                "Error running process '%s'",
-                request.process,
-            )
             if (
                 request.process == "scan_page"
                 and str(err) == "Document feeder out of documents"
             ):
+                # An empty feeder is the normal end of a batch, not a
+                # failure, so record it as a lifecycle event rather than an
+                # error with a traceback.
+                logger.info("Document feeder is empty; ending scan batch: %s", err)
                 request.finished(None, str(err))
-            elif request.process == "scan_page" and self._cancel_requested:
-                request.cancelled()
             else:
-                request.error(None, str(err))
-                if request.process == "scan_page" and self.device_handle is not None:
-                    self.cancel()
+                logger.exception(
+                    "Error running process '%s'",
+                    request.process,
+                )
+                if request.process == "scan_page" and self._cancel_requested:
+                    request.cancelled()
+                else:
+                    request.error(None, str(err))
+                    if (
+                        request.process == "scan_page"
+                        and self.device_handle is not None
+                    ):
+                        self.cancel()
         return True
 
     @override
