@@ -880,6 +880,31 @@ def test_save_pdf_auto_colour_is_jpeg(
     assert "/DCTDecode" in get_pdf_image_codecs(temp_pdf.name), "colour page as JPEG"
 
 
+def test_save_pdf_low_colour_depth_grayscale_is_flate(
+    temp_db: object,
+    temp_pdf: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """Automatic compression embeds a posterised grayscale page as Flate."""
+    with tempfile.NamedTemporaryFile(suffix=".tif") as src:
+        image = Image.new("L", (64, 64))
+        image.putdata([(i % 8) * 36 for i in range(64 * 64)])
+        image.save(src.name)
+        slist = Document(db=temp_db.name)
+        import_in_mainloop(slist, [src.name])
+        mlp = safe_mainloop(5000)
+        slist.save_pdf(
+            path=temp_pdf.name,
+            list_of_pages=[slist.data[0][2]],
+            finished_callback=lambda _response: mlp.quit(),
+        )
+        mlp.run()
+
+    codecs = get_pdf_image_codecs(temp_pdf.name)
+    assert "/FlateDecode" in codecs, "posterised page written losslessly"
+    assert "/DCTDecode" not in codecs, "posterised page not JPEG"
+
+
 def test_save_pdf_quality_shrinks_jpeg_stream(
     rose_png: str,
     temp_db: object,

@@ -61,6 +61,12 @@ POINTS_PER_INCH = 72
 MAX_DPI = 2400
 MIN_BASELINE_COEFFICIENTS = 2
 
+# A grayscale image carrying at most this many distinct intensity levels is
+# treated as posterised rather than photographic: page._is_low_colour_depth
+# stores and writes it losslessly, because JPEG both loses the levels and
+# tends to produce a larger stream for it.
+LOW_COLOUR_DEPTH_LEVELS = 16
+
 A4_WIDTH_MM = 210
 A4_HEIGHT_MM = 297
 

@@ -18,7 +18,12 @@ from PIL import Image, ImageFile
 
 from scantpaper import config
 from scantpaper.bboxtree import Bboxtree
-from scantpaper.const import CM_PER_INCH, MM_PER_INCH, POINTS_PER_INCH
+from scantpaper.const import (
+    CM_PER_INCH,
+    LOW_COLOUR_DEPTH_LEVELS,
+    MM_PER_INCH,
+    POINTS_PER_INCH,
+)
 from scantpaper.helpers import exec_command
 
 cast("Any", ImageFile).LOAD_TRUNCATED_IMAGES = True
@@ -70,6 +75,20 @@ def _has_alpha(image: Image.Image) -> bool:
     return image.mode == "P" and "transparency" in image.info
 
 
+def _is_low_colour_depth(image: Image.Image) -> bool:
+    """Return True for a grayscale image with few distinct intensity levels.
+
+    A posterised scan carries a handful of intensity levels. JPEG assumes
+    smooth tone, so for such an image it both loses the level structure and
+    usually produces a larger stream than a lossless codec. Only 8-bit
+    grayscale (mode ``L``) is considered: colour, alpha, and bilevel pages
+    keep their existing handling.
+    """
+    if image.mode != "L":
+        return False
+    return sum(1 for count in image.histogram() if count) <= LOW_COLOUR_DEPTH_LEVELS
+
+
 def _codec_for_colour_model(image: Image.Image, continuous: str) -> str:
     """Resolve a colour model to a codec, using ``continuous`` for the rest."""
     if image.mode == "1":
@@ -83,7 +102,8 @@ def resolve_pdf_codec(image: Image.Image, compression: str | None) -> str:
     """Resolve a compression option and colour model to a concrete PDF codec.
 
     ``auto`` (and an unset option) selects CCITT Group 4 for bilevel images,
-    lossless Flate for images with an alpha channel, and JPEG for
+    lossless Flate for images with an alpha channel or a posterised
+    grayscale image (few distinct intensity levels), and JPEG for other
     continuous-tone images. ``jp2`` follows the same colour-model rules with
     JPEG 2000 for continuous-tone images, and ``jb2`` with Group 4, so
     every page is thresholded to bilevel and its stream is upgraded to
@@ -100,7 +120,8 @@ def resolve_pdf_codec(image: Image.Image, compression: str | None) -> str:
         return _codec_for_colour_model(image, PDF_CODEC_G4)
     if compression not in (None, "", "auto"):
         return PDF_CODEC_FLATE
-    return _codec_for_colour_model(image, PDF_CODEC_JPEG)
+    continuous = PDF_CODEC_FLATE if _is_low_colour_depth(image) else PDF_CODEC_JPEG
+    return _codec_for_colour_model(image, continuous)
 
 
 def _encode_jpeg(image: Image.Image, quality: float) -> bytes:
@@ -218,6 +239,8 @@ class Page:
         if self.image_object.mode == "1":
             return self._to_png_bytes()
         if self.image_object.mode in ("RGBA", "LA", "PA"):
+            return self._to_png_bytes()
+        if _is_low_colour_depth(cast("Image.Image", self.image_object)):
             return self._to_png_bytes()
         return self._to_jpeg_bytes()
 

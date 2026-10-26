@@ -21,6 +21,14 @@
   Group 4 in the final file, on every supported OCRmyPDF version. A save whose
   pages are all JPEG keeps them as JPEG, so an already-lossy document is not
   inflated.
+* A posterised grayscale page - a scan whose pixels use only a few distinct
+  intensity levels, such as a document with a half-tone or line-art picture -
+  is now stored and saved losslessly. On import it is kept as PNG instead of
+  being re-encoded to JPEG, and "Automatic" PDF compression writes it with
+  lossless Flate rather than JPEG. JPEG's transform assumes smooth tone, so for
+  these pages it both smeared the levels and produced a larger file; the same
+  8-level page now saves smaller and without loss. Genuinely continuous-tone
+  grayscale and colour pages still use JPEG.
 
 
 ## 4.0.1 (2026-10-25)

@@ -17,6 +17,7 @@ from scantpaper import config
 from scantpaper.const import (
     A4_HEIGHT_MM,
     A4_WIDTH_MM,
+    LOW_COLOUR_DEPTH_LEVELS,
     MM_PER_INCH,
     POINTS_PER_INCH,
     VERSION,
@@ -29,6 +30,7 @@ from scantpaper.page import (
     PDF_CODEC_JP2,
     PDF_CODEC_JPEG,
     Page,
+    _is_low_colour_depth,
     _prepare_scale,
     resolve_pdf_codec,
 )
@@ -487,12 +489,54 @@ def test_import_hocr_empty() -> None:
         assert page.text_layer is None, "empty hOCR should set text_layer to None"
 
 
+def _grayscale_with_levels(levels: int) -> Image.Image:
+    """Return an L-mode image carrying exactly ``levels`` distinct values."""
+    image = Image.new("L", (levels, 1))
+    if levels == 1:
+        image.putdata([0])
+        return image
+    image.putdata([round(i * 255 / (levels - 1)) for i in range(levels)])
+    return image
+
+
+@pytest.mark.parametrize("levels", [1, 8, LOW_COLOUR_DEPTH_LEVELS])
+def test_is_low_colour_depth_grayscale_true(levels: int) -> None:
+    """A grayscale image with up to the threshold of levels is low colour depth."""
+    assert _is_low_colour_depth(_grayscale_with_levels(levels)) is True
+
+
+@pytest.mark.parametrize("levels", [LOW_COLOUR_DEPTH_LEVELS + 1, 256])
+def test_is_low_colour_depth_grayscale_false(levels: int) -> None:
+    """More than the threshold of distinct levels is continuous tone."""
+    assert _is_low_colour_depth(_grayscale_with_levels(levels)) is False
+
+
+def test_is_low_colour_depth_ignores_colour() -> None:
+    """Even a posterised colour image is not treated as low colour depth."""
+    image = Image.new("RGB", (8, 1))
+    image.putdata([((i % 4) * 85, 0, 0) for i in range(8)])
+    assert _is_low_colour_depth(image) is False
+
+
 def test_to_stored_bytes_grayscale_tiff_is_jpeg(temp_tif: object) -> None:
     """continuous-tone TIFF pages are stored as JPEG."""
-    Image.new("L", (A4_WIDTH_MM, A4_HEIGHT_MM), 128).save(temp_tif.name)
+    Image.linear_gradient("L").save(temp_tif.name)
     page = Page(filename=temp_tif.name)
     stored = page.to_stored_bytes()
     assert Image.open(io.BytesIO(stored)).format == "JPEG"
+
+
+def test_to_stored_bytes_low_colour_depth_grayscale_is_png(
+    temp_tif: object,
+) -> None:
+    """A posterised grayscale TIFF is stored losslessly, preserving its levels."""
+    image = _grayscale_with_levels(8)
+    image.save(temp_tif.name)
+    page = Page(filename=temp_tif.name)
+    stored = page.to_stored_bytes()
+    reopened = Image.open(io.BytesIO(stored))
+    assert reopened.format == "PNG"
+    assert len([count for count in reopened.histogram() if count]) == 8
 
 
 def test_to_stored_bytes_bilevel_is_png(temp_tif: object) -> None:
@@ -669,7 +713,8 @@ def test_get_pixbuf_at_scale_antialiases_palette_source(
     [
         ("1", "auto", PDF_CODEC_G4),
         ("1", None, PDF_CODEC_G4),
-        ("L", "auto", PDF_CODEC_JPEG),
+        # A uniform L image carries a single level, so it is low colour depth.
+        ("L", "auto", PDF_CODEC_FLATE),
         ("RGB", "auto", PDF_CODEC_JPEG),
         ("CMYK", "auto", PDF_CODEC_JPEG),
         ("RGBA", "auto", PDF_CODEC_FLATE),
@@ -709,6 +754,23 @@ def test_resolve_pdf_codec_palette_transparency() -> None:
     assert resolve_pdf_codec(image, "auto") == PDF_CODEC_JPEG
     image.info["transparency"] = 0
     assert resolve_pdf_codec(image, "auto") == PDF_CODEC_FLATE
+
+
+def test_resolve_pdf_codec_continuous_tone_grayscale_is_jpeg() -> None:
+    """A genuinely continuous-tone grayscale image still resolves to JPEG."""
+    image = Image.linear_gradient("L")
+    assert _is_low_colour_depth(image) is False
+    assert resolve_pdf_codec(image, "auto") == PDF_CODEC_JPEG
+    assert resolve_pdf_codec(image, None) == PDF_CODEC_JPEG
+
+
+def test_resolve_pdf_codec_low_colour_depth_grayscale_is_flate() -> None:
+    """A posterised grayscale image resolves to lossless Flate under auto."""
+    image = _grayscale_with_levels(8)
+    assert resolve_pdf_codec(image, "auto") == PDF_CODEC_FLATE
+    assert resolve_pdf_codec(image, None) == PDF_CODEC_FLATE
+    # An explicit lossy option still forces its codec.
+    assert resolve_pdf_codec(image, "jpg") == PDF_CODEC_JPEG
 
 
 def test_write_image_for_pdf_bilevel_auto_writes_pnm() -> None:

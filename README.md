@@ -172,10 +172,11 @@ you explicitly turn the toggle off.
   as PDF, the progress bar tracks each page as it is written and reports the PDF
   conversion step. Imported images are stored in a compact format (JPEG for
   scanned pages, the original bytes for imported JPEG/PNG files, lossless PNG
-  for bilevel or transparent pages). When saving as PDF, the default
-  **Automatic** compression picks an encoding per page: lossless CCITT Group 4
-  for bilevel pages, lossless Flate for images with transparency, and JPEG for
-  continuous-tone colour or grayscale pages at the configured **Quality**.
+  for bilevel, transparent, or posterised grayscale pages). When saving as PDF,
+  the default **Automatic** compression picks an encoding per page: lossless
+  CCITT Group 4 for bilevel pages, lossless Flate for images with transparency
+  or posterised (few-level) grayscale, and JPEG for other continuous-tone
+  colour or grayscale pages at the configured **Quality**.
   The **Compression** menu also offers an explicit codec for every page:
   **G4**, **Flate**, **JPEG**, **JPEG 2000**, and **None**,
   plus **JBIG2** when the optional `jbig2` encoder is installed. JPEG 2000
