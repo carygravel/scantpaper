@@ -53,7 +53,6 @@ PDF_COMPRESSION_ALGS = [
     ("png", _("Flate"), _("Compress output with flate encoding.")),
     ("jpg", _("JPEG"), _("Compress output with JPEG (DCT) encoding.")),
     ("jp2", _("JPEG 2000"), _("Compress output with JPEG 2000 encoding.")),
-    ("none", _("None"), _("Use no compression algorithm on output.")),
 ]
 # Row before which the availability-gated JBIG2 entry is inserted.
 _JBIG2_ALG_INDEX = 2

@@ -187,13 +187,16 @@ def test_pdf_compression_algs_include_jp2() -> None:
     assert "jp2" in [alg[0] for alg in pdf_compression_algs()]
 
 
-def test_pdf_compression_algs_exclude_g3_and_lzw() -> None:
-    """G3 and LZW are not offered for PDF, being aliases of G4 and Flate."""
+def test_pdf_compression_algs_exclude_removed_options(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """G3, LZW and None are not offered; the remaining choices keep their order."""
+    monkeypatch.setattr("scantpaper.dialog.save.jbig2_available", lambda: False)
     keys = [alg[0] for alg in pdf_compression_algs()]
+    assert keys == ["auto", "g4", "png", "jpg", "jp2"]
     assert "g3" not in keys
     assert "lzw" not in keys
-    assert "g4" in keys
-    assert "png" in keys
+    assert "none" not in keys
 
 
 def test_pdf_compression_algs_jb2_inserts_after_g4(

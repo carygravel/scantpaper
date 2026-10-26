@@ -452,16 +452,18 @@ def _migrate_threshold_tool(config: ConfigDict) -> None:
 
 # Legacy PDF compression options that were aliases: ``lzw`` produced Flate
 # and ``g3`` produced Group 4, exactly like the ``png``/``g4`` options that
-# remain. Migrate a stored value to the option key that keeps the same output.
-PDF_COMPRESSION_MIGRATIONS = {"lzw": "png", "g3": "g4"}
+# remain, and the removed ``none`` choice also resolved to Flate. Migrate a
+# stored value to the option key that keeps the same output.
+PDF_COMPRESSION_MIGRATIONS = {"lzw": "png", "g3": "g4", "none": "png"}
 
 
 def _migrate_pdf_compression(config: ConfigDict) -> None:
     """Migrate removed PDF compression options to their equivalent codecs.
 
     The LZW and G3 PDF menu choices were aliases of the Flate (``png``) and
-    Group 4 (``g4``) options, so a configuration that selected them is
-    rewritten to the option key that produces the identical stream.
+    Group 4 (``g4``) options, and the removed None choice also produced Flate,
+    so a configuration that selected any of them is rewritten to the option
+    key that produces the identical stream.
     """
     value = config.get("pdf compression")
     if value in PDF_COMPRESSION_MIGRATIONS:

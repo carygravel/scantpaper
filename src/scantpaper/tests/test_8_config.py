@@ -448,7 +448,7 @@ def test_tesseract_variables_default_and_round_trip() -> None:
 
 
 def test_pdf_compression_removed_options_migrated() -> None:
-    """LZW/G3 PDF compression settings migrate to Flate/Group 4 options."""
+    """LZW/G3/None PDF compression settings migrate to equivalent options."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         rc = pathlib.Path(tmpdirname) / "config"
 
@@ -461,6 +461,11 @@ def test_pdf_compression_removed_options_migrated() -> None:
             fh.write('{"pdf compression": "g3"}')
         output = read_config(str(rc))
         assert output["pdf compression"] == "g4", "g3 maps to Group 4 option"
+
+        with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
+            fh.write('{"pdf compression": "none"}')
+        output = read_config(str(rc))
+        assert output["pdf compression"] == "png", "none maps to Flate option"
 
 
 def test_pdf_compression_valid_value_unchanged() -> None:

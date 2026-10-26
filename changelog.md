@@ -29,6 +29,11 @@
   these pages it both smeared the levels and produced a larger file; the same
   8-level page now saves smaller and without loss. Genuinely continuous-tone
   grayscale and colour pages still use JPEG.
+* The misleading "None" option is gone from the PDF compression menu. It never
+  produced uncompressed output: it resolved to exactly the same lossless Flate
+  stream as the "Flate" option, so it promised something it did not deliver. A
+  configuration that had selected it now loads as "Flate", keeping the same
+  output with an honest label.
 
 
 ## 4.0.1 (2026-10-25)

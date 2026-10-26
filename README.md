@@ -178,7 +178,7 @@ you explicitly turn the toggle off.
   or posterised (few-level) grayscale, and JPEG for other continuous-tone
   colour or grayscale pages at the configured **Quality**.
   The **Compression** menu also offers an explicit codec for every page:
-  **G4**, **Flate**, **JPEG**, **JPEG 2000**, and **None**,
+  **G4**, **Flate**, **JPEG** and **JPEG 2000**,
   plus **JBIG2** when the optional `jbig2` encoder is installed. JPEG 2000
   usually produces smaller files than JPEG for scanned pages but is slower to
   encode and less widely supported by viewers; JBIG2 typically halves the size
