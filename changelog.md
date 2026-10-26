@@ -34,6 +34,15 @@
   stream as the "Flate" option, so it promised something it did not deliver. A
   configuration that had selected it now loads as "Flate", keeping the same
   output with an honest label.
+* The OCR "Advanced Tesseract engine parameters" field now says what it wants:
+  engine parameters in `name=value` form - the values of tesseract's `-c`
+  option - not command-line options. A pasted option such as `--user-words` or
+  `--dpi` is refused with the equivalent parameter named (`user_words_file`,
+  `user_defined_dpi`), and a leading `-c` is accepted so a line copied from
+  tesseract's documentation works. A `user_words_file` or `user_patterns_file`
+  that does not exist or cannot be read is reported before OCR starts instead
+  of failing silently, and the resolved paths that will be applied are written
+  to the log.
 * Fixed about dialog
 
 

@@ -345,20 +345,34 @@ language of the page first; tesseract prioritises the first language, and
 adding more languages makes recognition slower and can reduce accuracy, so
 select only the languages you need.
 
-The **Advanced Tesseract options** expander accepts one `name=value` engine
-variable per line, for example:
+The **Advanced Tesseract engine parameters** expander accepts one
+`name=value` engine parameter per line, for example:
 
 ```
 user_words_file=/home/me/words.txt
 tessedit_char_whitelist=0123456789
 ```
 
-These are passed straight to the tesseract engine and cover options that have
-no dedicated control, such as a **user word list** (`user_words_file`) or a
-**user pattern list** (`user_patterns_file`). Lines beginning with `#` are
-comments; blank lines are ignored; a value may itself contain `=`. Paths are
-not expanded, so use absolute paths. Invalid or unknown options are reported
-before any page is modified.
+These are the values of tesseract's `-c` option, passed straight to the engine,
+and cover options that have no dedicated control, such as a **user word list**
+(`user_words_file`) or a **user pattern list** (`user_patterns_file`). A
+leading `-c` is optional, so `-c user_words_file=/path` works too.
+
+Do not paste tesseract command-line options such as `--user-words`: the field
+expects engine parameters, and the error names the parameter to use instead:
+
+| Command-line option | Engine parameter     |
+|---------------------|----------------------|
+| `--user-words`      | `user_words_file`    |
+| `--user-patterns`   | `user_patterns_file` |
+| `--dpi`             | `user_defined_dpi`   |
+
+Lines beginning with `#` are comments; blank lines are ignored; a value may
+itself contain `=`. Paths are not expanded, so use absolute paths. A
+`user_words_file` or `user_patterns_file` that does not exist or cannot be read
+is reported before OCR starts, and the file paths that will be applied are
+written to the log. Invalid or unknown options are reported before any page is
+modified.
 
 The `tessdata_best` language models give more accurate OCR but are larger and
 notably slower, and they only support the LSTM engine. To use them, install

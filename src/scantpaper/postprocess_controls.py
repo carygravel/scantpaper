@@ -18,6 +18,7 @@ from scantpaper.tesseract import (
     languages,
     parse_variables,
     split_language_spec,
+    validate_file_variables,
     validate_language_spec,
     validate_variable_names,
 )
@@ -493,18 +494,20 @@ class OCRControls(Gtk.Box):
             }
         try:
             variables = parse_variables(self.variables)
+            error = validate_file_variables(variables)
         except ValueError as exc:
             return str(exc)
-        unknown = validate_variable_names(variables, get_tesseract_variables())
-        if len(unknown) == 1:
-            return _("Unknown Tesseract option: %(variable)s") % {
-                "variable": unknown[0]
-            }
-        if unknown:
-            return _("Unknown Tesseract options: %(variables)s") % {
-                "variables": ", ".join(unknown)
-            }
-        return None
+        if error is None:
+            unknown = validate_variable_names(variables, get_tesseract_variables())
+            if len(unknown) == 1:
+                error = _("Unknown Tesseract option: %(variable)s") % {
+                    "variable": unknown[0]
+                }
+            elif unknown:
+                error = _("Unknown Tesseract options: %(variables)s") % {
+                    "variables": ", ".join(unknown)
+                }
+        return error
 
     def _add_tess_language_controls(self) -> Gtk.Box:
         self._options_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -542,22 +545,25 @@ class OCRControls(Gtk.Box):
         return self._options_box
 
     def _add_advanced_options(self) -> None:
-        expander = Gtk.Expander(label=_("Advanced Tesseract options"))
+        expander = Gtk.Expander(label=_("Advanced Tesseract engine parameters"))
         expander.set_tooltip_text(
             _(
-                "Tesseract engine variables, not command-line arguments. "
-                "Use absolute paths."
+                "Tesseract engine parameters - the values of tesseract's -c "
+                "option - not command-line flags. Use absolute paths."
             )
         )
+        self._advanced_expander = expander
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         hint = Gtk.Label(
             label=_(
-                "One name=value setting per line, "
-                "e.g. user_words_file=/path/to/words.txt"
+                "One name=value engine parameter per line, e.g. "
+                "user_words_file=/path/to/words.txt. Write engine parameters, "
+                "not command-line options such as --user-words."
             )
         )
         hint.set_wrap(True)
         hint.set_xalign(0)
+        self._advanced_hint = hint
         vbox.append(hint)
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)

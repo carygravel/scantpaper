@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 from functools import lru_cache
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import iso639
@@ -174,6 +176,16 @@ non_iso639_3 = {
 }
 non_iso639_1 = {"zh": "chi-sim"}
 
+# Tesseract command-line options and the engine parameter each one sets.
+command_line_flags = {
+    "--user-words": "user_words_file",
+    "--user-patterns": "user_patterns_file",
+    "--dpi": "user_defined_dpi",
+}
+
+# Engine parameters whose value is a path to a file the engine reads.
+file_valued_variables = ("user_words_file", "user_patterns_file")
+
 
 def get_tesseract_codes() -> list[str]:
     """Query tesseract for installed languages."""
@@ -214,6 +226,22 @@ def join_language_spec(
     return "+".join(codes)
 
 
+def _flag_error(line: str) -> str:
+    """Return an error for a command-line option in the variables field."""
+    flag = line.split(maxsplit=1)[0]
+    variable = command_line_flags.get(flag)
+    if variable is None:
+        return _(
+            "'%(flag)s' is a Tesseract command-line option; this field accepts "
+            "engine parameters in name=value form only."
+        ) % {"flag": flag}
+    value = line[len(flag) :].strip()
+    return _(
+        "'%(flag)s' is a Tesseract command-line option; use "
+        "'%(variable)s=%(value)s' instead."
+    ) % {"flag": flag, "variable": variable, "value": value}
+
+
 def parse_variables(text: str | None) -> dict[str, str]:
     """Parse one name=value tesseract variable per line."""
     variables: dict[str, str] = {}
@@ -223,6 +251,10 @@ def parse_variables(text: str | None) -> dict[str, str]:
         line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
+        if line == "-c" or line.startswith(("-c ", "-c\t")):
+            line = line[2:].strip()
+        elif line.startswith("-"):
+            raise ValueError(_flag_error(line))
         if "=" not in line:
             raise ValueError(
                 _("Invalid Tesseract option on line %(line)s: %(text)s")
@@ -237,6 +269,34 @@ def parse_variables(text: str | None) -> dict[str, str]:
             )
         variables[name] = value.strip()
     return variables
+
+
+def validate_file_variables(variables: Mapping[str, str]) -> str | None:
+    """Return an error for a file-valued variable that cannot be read."""
+    for name in file_valued_variables:
+        value = variables.get(name)
+        if value is None:
+            continue
+        path = Path(value).resolve()
+        if not path.exists():
+            return _("%(variable)s names a file that does not exist: %(path)s") % {
+                "variable": name,
+                "path": str(path),
+            }
+        if not path.is_file() or not os.access(path, os.R_OK):
+            return _("%(variable)s names a file that cannot be read: %(path)s") % {
+                "variable": name,
+                "path": str(path),
+            }
+    return None
+
+
+def resolve_file_variables(variables: Mapping[str, str]) -> dict[str, str]:
+    """Return the variables with file-valued paths resolved."""
+    return {
+        name: str(Path(value).resolve()) if name in file_valued_variables else value
+        for name, value in variables.items()
+    }
 
 
 @lru_cache(maxsize=1)

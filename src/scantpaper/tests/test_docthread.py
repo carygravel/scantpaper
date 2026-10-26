@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import logging
 import pathlib
 import sqlite3
 import subprocess
@@ -199,6 +200,46 @@ def test_do_tesseract_variables(mocker: pytest.MockerFixture) -> None:
         variables={"user_words_file": "/tmp/words.txt"},
     )
     mock_api_instance.GetVariableAsString.assert_called_once_with("user_words_file")
+
+
+def test_do_tesseract_logs_resolved_variables(
+    mocker: pytest.MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the resolved file-valued parameters are logged."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch(
+        "tesserocr.get_languages",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.GetHOCRText.return_value = "hocr content"
+    mock_api_instance.GetVariableAsString.return_value = "words.txt"
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "page": 1,
+            "language": "eng",
+            "variables": "user_words_file=words.txt",
+            "dir": "/tmp",
+        }
+    ]
+
+    with caplog.at_level(logging.INFO, logger="scantpaper.docthread"):
+        thread.do_tesseract(request)
+
+    assert str(pathlib.Path("words.txt").resolve()) in caplog.text
 
 
 def test_do_tesseract_unknown_variable(mocker: pytest.MockerFixture) -> None:

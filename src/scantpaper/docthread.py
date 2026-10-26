@@ -27,7 +27,7 @@ from scantpaper.i18n import _
 from scantpaper.importthread import _note_callbacks
 from scantpaper.page import Page
 from scantpaper.savethread import SaveThread
-from scantpaper.tesseract import parse_variables
+from scantpaper.tesseract import parse_variables, resolve_file_variables
 
 if TYPE_CHECKING:
     import uuid
@@ -1581,7 +1581,9 @@ class DocThread(SaveThread):
                 request.error(_("tessdata directory not found"))
                 return
             path = paths[0]
-        variables = parse_variables(cast("str | None", options.get("variables", "")))
+        variables = resolve_file_variables(
+            parse_variables(cast("str | None", options.get("variables", "")))
+        )
         logger.info(
             "OCR %s with tesseract lang=%s path=%s variables=%s",
             page.id,

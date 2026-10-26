@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pathlib
 import re
 import shutil
 import subprocess
@@ -21,7 +22,9 @@ from scantpaper.tesseract import (
     languages,
     locale_installed,
     parse_variables,
+    resolve_file_variables,
     split_language_spec,
+    validate_file_variables,
     validate_language_spec,
     validate_variable_names,
 )
@@ -155,10 +158,78 @@ def test_parse_variables() -> None:
     }
     assert parse_variables("some_variable=a=b") == {"some_variable": "a=b"}
     assert parse_variables("x=1\nx=2") == {"x": "2"}
+    assert parse_variables("-c tessedit_char_whitelist=0123") == {
+        "tessedit_char_whitelist": "0123"
+    }
     with pytest.raises(ValueError, match="line 2"):
         parse_variables("good=1\nbad")
     with pytest.raises(ValueError, match="line 1"):
         parse_variables("=value")
+    with pytest.raises(ValueError, match="line 1"):
+        parse_variables("-c bad")
+
+
+def test_parse_variables_command_line_flags() -> None:
+    """Test that command-line options are rejected with the parameter to use."""
+    with pytest.raises(ValueError, match="--user-words") as excinfo:
+        parse_variables("--user-words /tmp/words.txt")
+    assert "user_words_file" in str(excinfo.value)
+    assert "/tmp/words.txt" in str(excinfo.value)
+
+    with pytest.raises(ValueError, match="--user-patterns") as excinfo:
+        parse_variables("--user-patterns /tmp/patterns")
+    assert "user_patterns_file" in str(excinfo.value)
+
+    with pytest.raises(ValueError, match="--dpi") as excinfo:
+        parse_variables("--dpi 300")
+    assert "user_defined_dpi" in str(excinfo.value)
+
+    with pytest.raises(ValueError, match="--psm") as excinfo:
+        parse_variables("--psm 6")
+    assert "user_defined_dpi" not in str(excinfo.value)
+
+
+def test_validate_file_variables(tmp_path: pathlib.Path) -> None:
+    """Test checking file-valued engine parameters."""
+    assert validate_file_variables({}) is None
+
+    missing = tmp_path / "missing.txt"
+    error = validate_file_variables({"user_words_file": str(missing)})
+    assert error is not None
+    assert "user_words_file" in error
+    assert str(missing) in error
+
+    words = tmp_path / "words.txt"
+    words.write_text("fox\n")
+    assert validate_file_variables({"user_words_file": str(words)}) is None
+
+    # A tilde is not expanded, so a path under the home directory is used
+    # literally and reported as resolved.
+    error = validate_file_variables({"user_words_file": "~/words.txt"})
+    assert error is not None
+    assert "~" in error
+
+
+def test_validate_file_variables_unreadable(
+    tmp_path: pathlib.Path, mocker: pytest.MockerFixture
+) -> None:
+    """Test that an unreadable word list is reported."""
+    words = tmp_path / "words.txt"
+    words.write_text("fox\n")
+    mocker.patch("scantpaper.tesseract.os.access", return_value=False)
+    error = validate_file_variables({"user_patterns_file": str(words)})
+    assert error is not None
+    assert "user_patterns_file" in error
+    assert str(words) in error
+
+
+def test_resolve_file_variables() -> None:
+    """Test that file-valued parameters are resolved and others are left alone."""
+    resolved = resolve_file_variables(
+        {"user_words_file": "words.txt", "tessedit_char_whitelist": "0123"}
+    )
+    assert resolved["user_words_file"] == str(pathlib.Path("words.txt").resolve())
+    assert resolved["tessedit_char_whitelist"] == "0123"
 
 
 def test_validate_language_spec() -> None:

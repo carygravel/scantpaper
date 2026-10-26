@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import gi
@@ -16,6 +17,9 @@ from scantpaper.session_mixins import SessionMixins
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
+
+if TYPE_CHECKING:
+    import pathlib
 
 
 # Mock tesseract functions
@@ -536,7 +540,22 @@ class TestOCRControls:
         assert text == "tessedit_char_whitelist=0123"
 
     @pytest.mark.usefixtures("mock_ocr_setup")
-    def test_validation_error(self, mocker: pytest.MockerFixture) -> None:
+    def test_advanced_options_wording(self) -> None:
+        """Test the field describes engine parameters, not command-line options."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        assert "engine parameters" in controls._advanced_expander.get_label()
+        hint = controls._advanced_hint.get_label()
+        assert "name=value" in hint
+        assert "--user-words" in hint
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_validation_error(
+        self, mocker: pytest.MockerFixture, tmp_path: pathlib.Path
+    ) -> None:
         """Test OCR option validation."""
         controls = OCRControls(
             available_engines=[["tesseract", "Tesseract", "Desc"]],
@@ -545,8 +564,27 @@ class TestOCRControls:
         )
         assert controls.validation_error is None
 
-        controls.variables = "user_words_file=/tmp/words.txt"
+        words = tmp_path / "words.txt"
+        words.write_text("fox\n")
+        controls.variables = f"user_words_file={words}"
         assert controls.validation_error is None
+
+        controls.variables = "user_words_file=/nonexistent/words.txt"
+        error = controls.validation_error
+        assert error is not None
+        assert "user_words_file" in error
+        assert "/nonexistent/words.txt" in error
+
+        controls.variables = "--user-words /tmp/words.txt"
+        error = controls.validation_error
+        assert error is not None
+        assert "--user-words" in error
+        assert "user_words_file" in error
+
+        controls.variables = "--psm 6"
+        error = controls.validation_error
+        assert error is not None
+        assert "command-line" in error
 
         controls.variables = "bad"
         error = controls.validation_error
