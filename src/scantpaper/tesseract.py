@@ -186,6 +186,41 @@ command_line_flags = {
 # Engine parameters whose value is a path to a file the engine reads.
 file_valued_variables = ("user_words_file", "user_patterns_file")
 
+# Page segmentation modes offered in the OCR controls, as [value, label,
+# tooltip]. The value is tesseract's numeric mode held as a string (the setting
+# default is a string, so config normalisation is a no-op); an empty value means
+# the engine's automatic mode.
+page_segmentation_modes: list[list[object]] = [
+    ["", _("Automatic"), _("Fully automatic page segmentation.")],
+    ["4", _("Single column"), _("A single column of text of variable sizes.")],
+    ["6", _("Single block"), _("A single uniform block of text.")],
+    ["7", _("Single line"), _("The image is a single text line.")],
+    ["8", _("Single word"), _("The image is a single word.")],
+    ["10", _("Single character"), _("The image is a single character.")],
+    ["11", _("Sparse text"), _("Find as much text as possible, in no order.")],
+    ["13", _("Raw line"), _("A single line, without tesseract-specific hacks.")],
+]
+
+# OCR engine modes offered in the OCR controls, keyed by the stored value.
+ENGINE_MODE_DEFAULT = "default"
+ENGINE_MODE_LSTM = "lstm"
+ENGINE_MODE_LEGACY = "legacy"
+ENGINE_MODE_COMBINED = "combined"
+engine_modes: list[list[object]] = [
+    [ENGINE_MODE_DEFAULT, _("Default")],
+    [ENGINE_MODE_LSTM, _("LSTM only")],
+    [ENGINE_MODE_LEGACY, _("Legacy")],
+    [ENGINE_MODE_COMBINED, _("Combined")],
+]
+
+
+def engine_mode_name(value: object) -> str:
+    """Return the label for a stored engine mode value."""
+    for key, label in engine_modes:
+        if key == value:
+            return cast("str", label)
+    return cast("str", engine_modes[0][1])
+
 
 def get_tesseract_codes() -> list[str]:
     """Query tesseract for installed languages."""

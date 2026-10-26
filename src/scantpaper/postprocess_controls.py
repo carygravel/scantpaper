@@ -11,11 +11,14 @@ from scantpaper.const import PERCENT
 from scantpaper.gobject import property_
 from scantpaper.i18n import _
 from scantpaper.tesseract import (
+    ENGINE_MODE_DEFAULT,
     code2name,
+    engine_modes,
     get_tesseract_codes,
     get_tesseract_variables,
     join_language_spec,
     languages,
+    page_segmentation_modes,
     parse_variables,
     split_language_spec,
     validate_file_variables,
@@ -39,6 +42,12 @@ ROTATE = [
     [180, _("180°"), _("Rotate image 180 degrees clockwise.")],
     [270, _("270°"), _("Rotate image 90 degrees anticlockwise.")],
 ]
+
+# Engine variables set through a dedicated control, with that control's label.
+MANAGED_VARIABLES = {
+    "tessedit_pageseg_mode": _("Page segmentation mode"),
+    "tessedit_ocr_engine_mode": _("OCR engine mode"),
+}
 
 
 class RotateControlRow(Gtk.Box):
@@ -324,6 +333,45 @@ class OCRControls(Gtk.Box):
         if hasattr(self, "_variables_view"):
             self._variables_view.get_buffer().set_text(self._variables)
 
+    _psm: object = ""
+
+    @property
+    def psm(self) -> object:
+        """Getter for the page segmentation mode."""
+        if hasattr(self, "_psm_cmbx"):
+            return self._psm_cmbx.get_active_index()
+        return self._psm
+
+    @psm.setter
+    def psm(self, newval: object) -> None:
+        self._psm = newval
+        if hasattr(self, "_psm_cmbx"):
+            self._set_combo_index(self._psm_cmbx, newval)
+
+    _engine_mode = ENGINE_MODE_DEFAULT
+
+    @property
+    def engine_mode(self) -> str:
+        """Getter for the OCR engine mode."""
+        if hasattr(self, "_engine_mode_cmbx"):
+            return cast("str", self._engine_mode_cmbx.get_active_index())
+        return self._engine_mode
+
+    @engine_mode.setter
+    def engine_mode(self, newval: object) -> None:
+        self._engine_mode = ENGINE_MODE_DEFAULT if newval is None else str(newval)
+        if hasattr(self, "_engine_mode_cmbx"):
+            self._set_combo_index(self._engine_mode_cmbx, self._engine_mode)
+
+    @staticmethod
+    def _set_combo_index(cmbx: ComboBoxText, value: object) -> None:
+        """Select the row whose index value matches, else the first row."""
+        for i, row in enumerate(cmbx.data):
+            if row[0] == value:
+                cmbx.set_active(i)
+                return
+        cmbx.set_active(0)
+
     _active = False
 
     @property_(
@@ -382,8 +430,12 @@ class OCRControls(Gtk.Box):
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         variables = kwargs.pop("variables", "")
+        psm = kwargs.pop("psm", "")
+        engine_mode = kwargs.pop("engine_mode", ENGINE_MODE_DEFAULT)
         super().__init__(*args, **kwargs)
         self._variables = "" if variables is None else str(variables)
+        self.psm = psm
+        self.engine_mode = engine_mode
         self._syncing = False
         self._primary_language: str | None = None
         self._additional_languages: list[str] = []
@@ -494,9 +546,15 @@ class OCRControls(Gtk.Box):
             }
         try:
             variables = parse_variables(self.variables)
-            error = validate_file_variables(variables)
         except ValueError as exc:
             return str(exc)
+        for name, control in MANAGED_VARIABLES.items():
+            if name in variables:
+                return _(
+                    "'%(variable)s' is set by the %(control)s control; "
+                    "remove it from this field."
+                ) % {"variable": name, "control": control}
+        error = validate_file_variables(variables)
         if error is None:
             unknown = validate_variable_names(variables, get_tesseract_variables())
             if len(unknown) == 1:
@@ -541,8 +599,31 @@ class OCRControls(Gtk.Box):
         hbox2.append(self._additional_button)
 
         self._load_language()
+        self._add_mode_controls()
         self._add_advanced_options()
         return self._options_box
+
+    def _add_mode_controls(self) -> None:
+        psm_box = Gtk.Box()
+        self._options_box.append(psm_box)
+        psm_box.append(Gtk.Label(label=_("Page segmentation mode")))
+        self._psm_cmbx = ComboBoxText(data=page_segmentation_modes)
+        self._psm_cmbx.set_tooltip_text(
+            _("How tesseract should segment the page. Automatic suits most pages.")
+        )
+        psm_box.append(self._psm_cmbx)
+
+        mode_box = Gtk.Box()
+        self._options_box.append(mode_box)
+        mode_box.append(Gtk.Label(label=_("OCR engine mode")))
+        self._engine_mode_cmbx = ComboBoxText(data=engine_modes)
+        self._engine_mode_cmbx.set_tooltip_text(
+            _("Which tesseract engine to use. Default uses the engine's own choice.")
+        )
+        mode_box.append(self._engine_mode_cmbx)
+
+        self.psm = self._psm
+        self.engine_mode = self._engine_mode
 
     def _add_advanced_options(self) -> None:
         expander = Gtk.Expander(label=_("Advanced Tesseract engine parameters"))

@@ -27,7 +27,16 @@ from scantpaper.i18n import _
 from scantpaper.importthread import _note_callbacks
 from scantpaper.page import Page
 from scantpaper.savethread import SaveThread
-from scantpaper.tesseract import parse_variables, resolve_file_variables
+from scantpaper.tesseract import (
+    ENGINE_MODE_COMBINED,
+    ENGINE_MODE_DEFAULT,
+    ENGINE_MODE_LEGACY,
+    ENGINE_MODE_LSTM,
+    engine_mode_name,
+    page_segmentation_modes,
+    parse_variables,
+    resolve_file_variables,
+)
 
 if TYPE_CHECKING:
     import uuid
@@ -44,6 +53,42 @@ from gi.repository import (  # noqa: E402
 )
 
 logger = logging.getLogger(__name__)
+
+
+# tesserocr engine mode for each stored OCR engine mode.
+_engine_mode_oem: dict[str, tesserocr.OEM] = {
+    ENGINE_MODE_DEFAULT: tesserocr.OEM.DEFAULT,
+    ENGINE_MODE_LSTM: tesserocr.OEM.LSTM_ONLY,
+    ENGINE_MODE_LEGACY: tesserocr.OEM.TESSERACT_ONLY,
+    ENGINE_MODE_COMBINED: tesserocr.OEM.TESSERACT_LSTM_COMBINED,
+}
+
+_PSM_AUTO: tesserocr.PSM = cast("tesserocr.PSM", tesserocr.PSM.AUTO)
+
+# Numeric page segmentation modes that the UI offers.
+_offered_page_segmentation_modes = {
+    int(cast("str", stored))
+    for stored, *_rest in page_segmentation_modes
+    if cast("str", stored) != ""
+}
+
+
+def _page_segmentation_mode(value: object) -> tesserocr.PSM:
+    """Return the page segmentation mode for a stored value."""
+    try:
+        numeric = int(cast("str", value))
+    except (TypeError, ValueError):
+        return _PSM_AUTO
+    if numeric not in _offered_page_segmentation_modes:
+        return _PSM_AUTO
+    return cast("tesserocr.PSM", numeric)
+
+
+def _engine_mode(value: object) -> tesserocr.OEM:
+    """Return the tesserocr engine mode for a stored value."""
+    return _engine_mode_oem.get(
+        cast("str", value), cast("tesserocr.OEM", tesserocr.OEM.DEFAULT)
+    )
 
 
 # Sentinel used as the insert-after target to place a page at the very start of
@@ -1584,15 +1629,36 @@ class DocThread(SaveThread):
         variables = resolve_file_variables(
             parse_variables(cast("str | None", options.get("variables", "")))
         )
+        engine_mode = _engine_mode(options.get("engine_mode"))
         logger.info(
-            "OCR %s with tesseract lang=%s path=%s variables=%s",
+            "OCR %s with tesseract lang=%s path=%s variables=%s psm=%s oem=%s",
             page.id,
             options["language"],
             path,
             variables,
+            options.get("psm"),
+            engine_mode_name(options.get("engine_mode")),
         )
         with tesserocr.PyTessBaseAPI(init=False) as api:
-            api.InitFull(path=path, lang=options["language"], variables=variables)
+            try:
+                api.InitFull(
+                    path=path,
+                    lang=options["language"],
+                    variables=variables,
+                    oem=engine_mode,
+                )
+            except RuntimeError as exc:
+                raise RuntimeError(
+                    _(
+                        "Failed to initialise OCR with the %(mode)s engine mode: "
+                        "%(error)s"
+                    )
+                    % {
+                        "mode": engine_mode_name(options.get("engine_mode")),
+                        "error": exc,
+                    }
+                ) from exc
+            api.SetPageSegMode(_page_segmentation_mode(options.get("psm")))
             for name in variables:
                 if api.GetVariableAsString(name) is None:
                     raise ValueError(

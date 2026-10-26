@@ -673,6 +673,8 @@ class ToolsMenuMixins:
             engine=self.settings["ocr engine"],
             language=self.settings["ocr language"],
             variables=self.settings.get("tesseract variables", ""),
+            psm=self.settings.get("ocr psm", ""),
+            engine_mode=self.settings.get("ocr engine mode"),
             active=self.settings["OCR on scan"],
             threshold=self.settings["threshold-before-ocr"],
             threshold_value=self.settings["threshold tool"],
@@ -692,32 +694,21 @@ class ToolsMenuMixins:
                     page=None,
                 )
                 return
-            self._run_ocr(
-                engine=cast("str", ocr_controls.engine),
-                tesslang=ocr_controls.language,
-                variables=ocr_controls.variables,
-                threshold_flag=ocr_controls.threshold,
-                threshold=ocr_controls.threshold_value,
-            )
+            self._run_ocr(ocr_controls=ocr_controls)
 
         self._windowo.add_actions(
             [(_("_OK"), ocr_apply_callback), (_("_Cancel"), self._windowo.hide)]
         )
         self._windowo.present()
 
-    def _run_ocr(
-        self,
-        *,
-        engine: str,
-        tesslang: str | None,
-        variables: str,
-        threshold_flag: bool,
-        threshold: float,
-    ) -> None:
+    def _run_ocr(self, *, ocr_controls: OCRControls) -> None:
         """Run OCR on a set of pages."""
+        engine = cast("str", ocr_controls.engine)
         if engine == "tesseract":
-            self.settings["ocr language"] = tesslang
-            self.settings["tesseract variables"] = variables
+            self.settings["ocr language"] = ocr_controls.language
+            self.settings["tesseract variables"] = ocr_controls.variables
+            self.settings["ocr psm"] = ocr_controls.psm
+            self.settings["ocr engine mode"] = ocr_controls.engine_mode
 
         kwargs = {
             "queued_callback": self.post_process_progress.queued,
@@ -732,12 +723,14 @@ class ToolsMenuMixins:
             "engine": engine,
             "language": self.settings["ocr language"],
             "variables": self.settings.get("tesseract variables", ""),
+            "psm": self.settings.get("ocr psm", ""),
+            "engine_mode": self.settings.get("ocr engine mode"),
         }
         self.settings["ocr engine"] = engine
-        self.settings["threshold-before-ocr"] = threshold_flag
-        if threshold_flag:
-            self.settings["threshold tool"] = threshold
-            kwargs["threshold"] = threshold
+        self.settings["threshold-before-ocr"] = ocr_controls.threshold
+        if ocr_controls.threshold:
+            self.settings["threshold tool"] = ocr_controls.threshold_value
+            kwargs["threshold"] = ocr_controls.threshold_value
 
         # fill pagelist with filenames
         # depending on which radiobutton is active

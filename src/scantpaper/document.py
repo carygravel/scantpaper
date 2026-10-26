@@ -285,6 +285,8 @@ class Document(BaseDocument):
             threshold=options.get("threshold"),
             engine=options["engine"],
             language=options["language"],
+            psm=options.get("psm"),
+            engine_mode=options.get("engine_mode"),
             variables=options.get("variables", ""),
             queued_callback=options.get("queued_callback"),
             started_callback=options.get("started_callback"),

@@ -447,6 +447,52 @@ def test_tesseract_variables_default_and_round_trip() -> None:
         )
 
 
+def test_ocr_modes_default_and_round_trip() -> None:
+    """The OCR mode settings default to current behaviour and persist on write."""
+    assert DEFAULTS["ocr psm"] == ""
+    assert DEFAULTS["ocr engine mode"] == "default"
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text("{}", encoding="utf-8")
+
+        output = read_config(str(rc))
+        assert "ocr psm" not in output, "the raw config does not invent the key"
+        assert "ocr engine mode" not in output, (
+            "the raw config does not invent the engine mode key"
+        )
+        add_defaults(output)
+        assert output["ocr psm"] == "", "add_defaults fills the empty default"
+        assert output["ocr engine mode"] == "default", (
+            "add_defaults fills the engine mode default"
+        )
+
+        output["ocr psm"] = "6"
+        output["ocr engine mode"] = "lstm"
+        write_config(str(rc), cast("dict[str, object]", cast("object", output)))
+        persisted = json.loads(slurp(rc))
+        assert persisted["ocr psm"] == "6", "the segmentation mode is written back"
+        assert persisted["ocr engine mode"] == "lstm", "the engine mode is written back"
+
+
+def test_ocr_modes_round_trip_without_coercion(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A stored mode string is re-read unchanged, with no conversion logged."""
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text('{"ocr psm": "6", "ocr engine mode": "legacy"}', encoding="utf-8")
+
+        with caplog.at_level(logging.INFO):
+            output = read_config(str(rc))
+
+        assert output["ocr psm"] == "6", "the string mode is preserved"
+        assert output["ocr engine mode"] == "legacy", "the engine mode is preserved"
+        assert not any("ocr psm" in r.message for r in caplog.records), (
+            "no type conversion is logged for the segmentation mode"
+        )
+
+
 def test_pdf_compression_removed_options_migrated() -> None:
     """LZW/G3/None PDF compression settings migrate to equivalent options."""
     with tempfile.TemporaryDirectory() as tmpdirname:

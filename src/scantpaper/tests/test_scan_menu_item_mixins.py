@@ -85,6 +85,8 @@ def mock_scan_window(mocker: pytest.MockerFixture) -> object:
         "OCR on scan": False,
         "ocr engine": "tesseract",
         "ocr language": "eng",
+        "ocr psm": "",
+        "ocr engine mode": "default",
         "tesseract variables": "",
         "threshold-before-ocr": False,
         "threshold tool": 0,
@@ -342,6 +344,8 @@ def test_add_postprocessing_options_clicked_cb(
     mock_ocr.engine = "tesseract"
     mock_ocr.language = "deu"
     mock_ocr.variables = "user_words_file=/tmp/words.txt"
+    mock_ocr.psm = "7"
+    mock_ocr.engine_mode = "lstm"
     mock_ocr.validation_error = None
     mock_ocr.threshold = True
     mock_ocr.threshold_value = 50
@@ -386,6 +390,8 @@ def test_add_postprocessing_options_clicked_cb(
     assert mock_scan_window.settings["tesseract variables"] == (
         "user_words_file=/tmp/words.txt"
     )
+    assert mock_scan_window.settings["ocr psm"] == "7"
+    assert mock_scan_window.settings["ocr engine mode"] == "lstm"
     assert mock_scan_window._skip_ocr_batch is False
     assert mock_scan_window.settings["threshold-before-ocr"] is True
     assert mock_scan_window.settings["threshold tool"] == 50
@@ -445,11 +451,15 @@ def test_new_scan_callback_forwards_variables(mock_scan_window: object) -> None:
     mock_image = MagicMock()
     mock_scan_window.slist.import_scan = MagicMock()
     mock_scan_window.settings["tesseract variables"] = "user_words_file=/tmp/w.txt"
+    mock_scan_window.settings["ocr psm"] = "6"
+    mock_scan_window.settings["ocr engine mode"] = "legacy"
 
     mock_scan_window._new_scan_callback(None, mock_image, None, "single", 300, 300)
 
     call_kwargs = mock_scan_window.slist.import_scan.call_args[1]
     assert call_kwargs["variables"] == "user_words_file=/tmp/w.txt"
+    assert call_kwargs["psm"] == "6"
+    assert call_kwargs["engine_mode"] == "legacy"
 
 
 def test_new_scan_callback_skips_ocr_when_validation_failed(

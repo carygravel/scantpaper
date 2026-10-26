@@ -12,6 +12,7 @@ import time
 from typing import TYPE_CHECKING, Any, cast
 
 import pytest
+import tesserocr
 from gi.repository import GLib
 from PIL import Image
 
@@ -74,6 +75,7 @@ def test_do_tesseract_path_fallback(mocker: pytest.MockerFixture) -> None:
         path="/usr/share/tesseract-ocr/4.00/tessdata",
         lang="eng",
         variables={},
+        oem=tesserocr.OEM.DEFAULT,
     )
 
 
@@ -114,6 +116,7 @@ def test_do_tesseract_path_fallback_suse(mocker: pytest.MockerFixture) -> None:
         path="/usr/share/tesseract-ocr/tessdata",
         lang="eng",
         variables={},
+        oem=tesserocr.OEM.DEFAULT,
     )
 
 
@@ -148,6 +151,7 @@ def test_do_tesseract_in_memory_pixels(mocker: pytest.MockerFixture) -> None:
         path="/usr/share/tesseract-ocr/4.00/tessdata",
         lang="eng",
         variables={},
+        oem=tesserocr.OEM.DEFAULT,
     )
     expected = image.convert("L")
     mock_api_instance.SetImageBytes.assert_called_once_with(
@@ -198,8 +202,97 @@ def test_do_tesseract_variables(mocker: pytest.MockerFixture) -> None:
         path="/usr/share/tesseract-ocr/4.00/tessdata",
         lang="deu+eng",
         variables={"user_words_file": "/tmp/words.txt"},
+        oem=tesserocr.OEM.DEFAULT,
     )
     mock_api_instance.GetVariableAsString.assert_called_once_with("user_words_file")
+
+
+def test_do_tesseract_segmentation_and_engine_mode(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Test do_tesseract applies the chosen segmentation and engine modes."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch(
+        "tesserocr.get_languages",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.GetHOCRText.return_value = "hocr content"
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "page": 1,
+            "language": "eng",
+            "psm": "7",
+            "engine_mode": "lstm",
+            "dir": "/tmp",
+        }
+    ]
+
+    thread.do_tesseract(request)
+
+    mock_api_instance.InitFull.assert_called_once_with(
+        path="/usr/share/tesseract-ocr/4.00/tessdata",
+        lang="eng",
+        variables={},
+        oem=tesserocr.OEM.LSTM_ONLY,
+    )
+    mock_api_instance.SetPageSegMode.assert_called_once_with(tesserocr.PSM.SINGLE_LINE)
+
+
+def test_do_tesseract_default_modes(mocker: pytest.MockerFixture) -> None:
+    """Test do_tesseract keeps the automatic and default modes when unset."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch(
+        "tesserocr.get_languages",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.GetHOCRText.return_value = "hocr content"
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "page": 1,
+            "language": "eng",
+            "psm": 999,
+            "engine_mode": "bogus",
+            "dir": "/tmp",
+        }
+    ]
+
+    thread.do_tesseract(request)
+
+    mock_api_instance.InitFull.assert_called_once_with(
+        path="/usr/share/tesseract-ocr/4.00/tessdata",
+        lang="eng",
+        variables={},
+        oem=tesserocr.OEM.DEFAULT,
+    )
+    mock_api_instance.SetPageSegMode.assert_called_once_with(tesserocr.PSM.AUTO)
 
 
 def test_do_tesseract_logs_resolved_variables(
@@ -302,11 +395,14 @@ def test_do_tesseract_init_failure(mocker: pytest.MockerFixture) -> None:
     thread.cancel = False
 
     request = mocker.Mock()
-    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
+    request.args = [
+        {"page": 1, "language": "eng", "engine_mode": "legacy", "dir": "/tmp"}
+    ]
 
-    with pytest.raises(RuntimeError, match="init failed"):
+    with pytest.raises(RuntimeError, match="Legacy") as excinfo:
         thread.do_tesseract(request)
 
+    assert "init failed" in str(excinfo.value)
     mock_page.import_hocr.assert_not_called()
     replace_page.assert_not_called()
 
@@ -413,6 +509,7 @@ def test_do_tesseract_path_fallback_symlink(
         path="/usr/local/share/tessdata",
         lang="eng",
         variables={},
+        oem=tesserocr.OEM.DEFAULT,
     )
 
 

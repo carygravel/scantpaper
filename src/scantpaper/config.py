@@ -92,6 +92,8 @@ DEFAULTS = {
     "OCR on scan": True,
     "ocr engine": "tesseract",
     "ocr language": None,
+    "ocr psm": "",
+    "ocr engine mode": "default",
     "tesseract variables": "",
     "OCR output": "replace",  # When a page is re-OCRed, replace old text with new text
     "ps_backend": "pdftops",

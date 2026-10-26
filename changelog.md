@@ -43,6 +43,17 @@
   that does not exist or cannot be read is reported before OCR starts instead
   of failing silently, and the resolved paths that will be applied are written
   to the log.
+* The OCR settings now include a **Page segmentation mode** and an **OCR engine
+  mode** selector, alongside the language. The segmentation mode tells
+  tesseract how to lay out the page (Automatic, Single column, Single block,
+  Single line, Single word, Single character, Sparse text, or Raw line), and
+  the engine mode chooses the engine (Default, LSTM only, Legacy, or
+  Combined). Both default to the previous behaviour and are stored with the
+  other OCR options. Choosing an engine mode the installed language data
+  cannot provide no longer fails with a misleading "invalid tessdata path";
+  the error names the engine mode instead. Because these two modes are set by
+  the new controls, `tessedit_pageseg_mode` and `tessedit_ocr_engine_mode` are
+  now rejected in the advanced field with a message pointing to the controls.
 * Fixed about dialog
 
 

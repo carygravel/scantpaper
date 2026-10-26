@@ -311,6 +311,14 @@ class TestOCRControls:
         controls.variables = "c=d"
         assert controls.variables == "c=d"
         assert not hasattr(controls, "_variables_view")
+        # Likewise the mode selectors are not built, so their raw values are
+        # read and written without a widget.
+        assert controls.psm == ""
+        assert controls.engine_mode == "default"
+        controls.psm = "7"
+        controls.engine_mode = "lstm"
+        assert controls.psm == "7"
+        assert controls.engine_mode == "lstm"
 
     def test_init_with_tesseract(self) -> None:
         """Test initialization with tesseract."""
@@ -553,6 +561,62 @@ class TestOCRControls:
         assert "--user-words" in hint
 
     @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_page_segmentation_mode(self) -> None:
+        """Test the page segmentation mode combo and its fallback."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        assert controls.psm == ""
+
+        controls._psm_cmbx.set_active_index("7")
+        assert controls.psm == "7"
+
+        controls.psm = 999
+        assert controls.psm == ""
+
+        stored = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            psm="6",
+            active=True,
+        )
+        assert stored.psm == "6"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_engine_mode(self) -> None:
+        """Test the OCR engine mode combo, selection and reload."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        assert controls.engine_mode == "default"
+
+        controls._engine_mode_cmbx.set_active_index("lstm")
+        assert controls.engine_mode == "lstm"
+
+        reloaded = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            engine_mode=controls.engine_mode,
+            active=True,
+        )
+        assert reloaded.engine_mode == "lstm"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_unknown_engine_mode_falls_back(self) -> None:
+        """Test an unrecognised stored engine mode falls back to the default."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            engine_mode="bogus",
+            active=True,
+        )
+        assert controls.engine_mode == "default"
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
     def test_validation_error(
         self, mocker: pytest.MockerFixture, tmp_path: pathlib.Path
     ) -> None:
@@ -636,6 +700,27 @@ class TestOCRControls:
         error = controls.validation_error
         assert error is not None
         assert "No OCR language selected" in error
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_validation_error_managed_variables(self) -> None:
+        """The variables owned by a dedicated control are rejected."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+
+        controls.variables = "tessedit_pageseg_mode=6"
+        error = controls.validation_error
+        assert error is not None
+        assert "tessedit_pageseg_mode" in error
+        assert "Page segmentation mode" in error
+
+        controls.variables = "tessedit_ocr_engine_mode=1"
+        error = controls.validation_error
+        assert error is not None
+        assert "tessedit_ocr_engine_mode" in error
+        assert "OCR engine mode" in error
 
 
 @pytest.mark.usefixtures("mock_ocr_setup")

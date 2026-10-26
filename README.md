@@ -345,6 +345,21 @@ language of the page first; tesseract prioritises the first language, and
 adding more languages makes recognition slower and can reduce accuracy, so
 select only the languages you need.
 
+Next to the language, two selectors control how tesseract runs:
+
+- **Page segmentation mode** tells tesseract how to lay out the page, from
+  **Automatic** (the default, suitable for most pages) through **Single
+  column**, **Single block**, **Single line**, **Single word**, **Single
+  character**, **Sparse text**, and **Raw line**.
+- **OCR engine mode** chooses the engine: **Default** (the engine's own
+  choice), **LSTM only**, **Legacy**, or **Combined**. **Legacy** needs
+  language data that includes the legacy engine; if it is missing, OCR does
+  not start and the error names the engine mode.
+
+Both are stored and restored with the other OCR options. Do not use
+`tessedit_pageseg_mode` or `tessedit_ocr_engine_mode` in the advanced field
+instead: those variables are set by these controls, so the field rejects them.
+
 The **Advanced Tesseract engine parameters** expander accepts one
 `name=value` engine parameter per line, for example:
 
