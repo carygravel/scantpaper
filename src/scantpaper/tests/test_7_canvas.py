@@ -2334,6 +2334,61 @@ def test_hit_test_nonzero_offset(mocker: pytest.MockerFixture) -> None:
     assert result.type == "line"
 
 
+@pytest.mark.parametrize(
+    ("ratio", "factor", "word_bbox", "widget_click"),
+    [
+        # HiDPI: the widget point is divided by the display scale factor
+        (1.0, 2.0, (100, 100, 100, 50), (75, 62)),
+        # Non-square resolution: the x axis is additionally divided by ratio
+        (0.5, 1.0, (10, 20, 30, 40), (60, 40)),
+    ],
+)
+def test_hit_test_maps_widget_click_through_display_transform(
+    mocker: pytest.MockerFixture,
+    ratio: float,
+    factor: float,
+    word_bbox: tuple[int, int, int, int],
+    widget_click: tuple[int, int],
+) -> None:
+    """A click focuses the word drawn under the pointer on scaled pages."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    canvas._pixbuf_size = {"width": 1000, "height": 1000}
+    canvas._zoom = 1.0
+    canvas._resolution_ratio = ratio
+    canvas.get_scale_factor = MagicMock(return_value=factor)
+    canvas._offset = Gdk.Rectangle()
+    canvas._offset.x = 0
+    canvas._offset.y = 0
+    canvas.confidence_index = ListIter()
+    page_cb = MagicMock()
+    page = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=1000, height=1000),
+        type="page",
+        parent=canvas.get_root_item(),
+        edit_callback=page_cb,
+    )
+    word_cb = MagicMock()
+    word = canvas.add_box(
+        text="word",
+        bbox=Rectangle(
+            x=word_bbox[0],
+            y=word_bbox[1],
+            width=word_bbox[2],
+            height=word_bbox[3],
+        ),
+        type="word",
+        parent=page,
+        edit_callback=word_cb,
+    )
+
+    canvas._button_pressed(_gesture(1), 1, widget_click[0], widget_click[1])
+
+    word_cb.assert_called_once_with(word, canvas)
+    page_cb.assert_not_called()
+
+
 def test_button_press_callback_edge_cases() -> None:
     """Test button_press_callback with button != 1 and no canvas."""
     bbox = MagicMock()

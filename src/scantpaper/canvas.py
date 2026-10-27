@@ -1278,13 +1278,19 @@ class Canvas(Gtk.DrawingArea):
         return self._offset
 
     def _hit_test(self, widget_x: float, widget_y: float) -> Bbox | None:
-        """Find the bbox at widget coordinates, return deepest leaf."""
+        """Find the bbox at widget coordinates, return deepest leaf.
+
+        The widget point is inverted through the same image-to-widget
+        transform the renderer uses (``_scale_factors``), so the slice under
+        the pointer is the one drawn there at any zoom, offset, resolution
+        ratio and display scale factor.
+        """
         if self._pixbuf_size is None or self._root_item is None:
             raise ReferenceError
 
-        scale = self._zoom
-        image_x = widget_x / scale - self._offset.x
-        image_y = widget_y / scale - self._offset.y
+        sx, sy = self._scale_factors()
+        image_x = widget_x / sx - self._offset.x
+        image_y = widget_y / sy - self._offset.y
 
         return self._find_bbox_at(self._root_item, image_x, image_y)
 

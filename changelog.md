@@ -78,6 +78,11 @@
   from the theme, and a box's spacing now defaults to zero, so every dialog sets
   a consistent inset and spacing - including the ones opened from the Tools menu
   and the ones built directly on `Gtk.Dialog`.
+* Clicking a word in the text or annotation layer now selects the word under the
+  pointer on HiDPI displays and on pages whose horizontal and vertical
+  resolutions differ. The click was mapped with an older transform than the one
+  the layer is drawn with, so it could land on a neighbouring word or on the
+  page, and a correction only began after clicking several times.
 
 
 ## 4.0.1 (2026-10-25)
