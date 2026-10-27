@@ -765,6 +765,9 @@ class OCRControls(Gtk.Box):
         scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scrolled.set_min_content_height(70)
         self._variables_view = Gtk.TextView()
+        # Let Tab move focus out of the field instead of inserting a tab, so
+        # the dialog's OK button stays reachable without a pointer.
+        self._variables_view.set_accepts_tab(False)
         self._variables_view.set_monospace(True)
         self._variables_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
         self._variables_view.get_buffer().set_text(self._variables)

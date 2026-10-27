@@ -565,6 +565,16 @@ class TestOCRControls:
         assert "--user-words" in hint
 
     @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_advanced_options_releases_tab(self) -> None:
+        """The advanced parameters field lets Tab move focus out."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        assert not controls._variables_view.get_accepts_tab()
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
     def test_page_segmentation_mode(self) -> None:
         """Test the page segmentation mode combo and its fallback."""
         controls = OCRControls(

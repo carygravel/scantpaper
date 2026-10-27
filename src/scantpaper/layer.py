@@ -127,6 +127,10 @@ class LayerControls(Gtk.Box):
         self._rotate_enabled = rotate
         textview = Gtk.TextView()
         textview.set_tooltip_text(_("Text layer"))
+        # Let Tab move focus out of the field instead of inserting a tab, so
+        # the control bar's buttons stay reachable without a pointer.
+        textview.set_accepts_tab(False)
+        self.textview = textview
         self.textbuffer = textview.get_buffer()
 
         if nav:

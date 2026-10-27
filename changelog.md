@@ -68,6 +68,11 @@
   current language, marked "(not installed)" when the new directory lacks it.
   The selection is stored with the other OCR options. Tesseract 3's removed
   `m_data_sub_dir` parameter remains rejected.
+* The OCR **Advanced Tesseract engine parameters** field and the text-layer
+  editor now let **Tab** move focus to the next control, so OK (or Scan) stays
+  reachable without the mouse; **Ctrl+Tab** and **Ctrl+Shift+Tab** move focus
+  forward and backward. A literal tab character is no longer entered in these
+  fields.
 
 
 ## 4.0.1 (2026-10-25)

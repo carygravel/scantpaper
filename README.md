@@ -373,6 +373,10 @@ and cover options that have no dedicated control, such as a **user word list**
 (`user_words_file`) or a **user pattern list** (`user_patterns_file`). A
 leading `-c` is optional, so `-c user_words_file=/path` works too.
 
+Press **Tab** to leave the field for the next control, so OK (or Scan) stays
+reachable without the mouse. **Ctrl+Tab** and **Ctrl+Shift+Tab** move focus
+forward and backward too. A literal tab character is not needed.
+
 Do not paste tesseract command-line options such as `--user-words`: the field
 expects engine parameters, and the error names the parameter to use instead:
 

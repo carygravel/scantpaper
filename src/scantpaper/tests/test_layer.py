@@ -74,6 +74,12 @@ def test_layer_controls_text_features_present() -> None:
     assert "Delete text" in tooltips
 
 
+def test_layer_controls_text_view_releases_tab() -> None:
+    """The text-layer editor lets Tab move focus out of the text view."""
+    controls = LayerControls()
+    assert not controls.textview.get_accepts_tab()
+
+
 def test_layer_controls_annotation_bar_has_no_sort_nav_copy() -> None:
     """The annotation bar must not expose sort, navigation, or copy controls."""
     controls = LayerControls()
