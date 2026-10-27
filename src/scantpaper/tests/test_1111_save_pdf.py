@@ -670,6 +670,82 @@ def test_save_pdf_with_rotated_text_layer(
     assert "UP" in extracted, "rotated text remains extractable"
 
 
+def _pdftotext_word_boxes(path: str) -> list[tuple[str, float, float, float, float]]:
+    """Return (text, xMin, yMin, xMax, yMax) for every word pdftotext reports."""
+    xml = subprocess.check_output(["pdftotext", "-bbox", path, "-"], text=True)
+    boxes: list[tuple[str, float, float, float, float]] = []
+    pattern = re.compile(
+        r'<word xMin="([\d.]+)" yMin="([\d.]+)" '
+        r'xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)</word>'
+    )
+    for match in pattern.finditer(xml):
+        x_1, y_1, x_2, y_2, text = match.groups()
+        boxes.append((text, float(x_1), float(y_1), float(x_2), float(y_2)))
+    return boxes
+
+
+def test_save_pdf_mixed_angle_flat_layer_keeps_upright_size(
+    temp_png: object,
+    temp_pdf: object,
+    temp_db: object,
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+) -> None:
+    """Upright words keep their size when a tall rotated word is present.
+
+    A flat layer with no line structure is wrapped into synthetic lines on
+    save. A tall rotated word must not widen the grouping tolerance and pull
+    the upright rows into one giant line, which would render them at the
+    rotated word's scale and blow up search highlights.
+    """
+    image_width, image_height = 200, 120
+    Image.new("L", (image_width, image_height), 255).save(temp_png.name)
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [temp_png.name])
+    page_id = cast("str", slist.data[0][2])
+
+    # Three upright rows (15 px tall) plus one tall rotated word (110 px).
+    layer = (
+        '[{"type": "page", "bbox": [0, 0, 200, 120], "depth": 0}, '
+        '{"type": "word", "bbox": [10, 10, 60, 25], "text": "aa", "depth": 1}, '
+        '{"type": "word", "bbox": [70, 10, 120, 25], "text": "bb", "depth": 1}, '
+        '{"type": "word", "bbox": [10, 40, 60, 55], "text": "cc", "depth": 1}, '
+        '{"type": "word", "bbox": [70, 40, 120, 55], "text": "dd", "depth": 1}, '
+        '{"type": "word", "bbox": [10, 70, 60, 85], "text": "ee", "depth": 1}, '
+        '{"type": "word", "bbox": [70, 70, 120, 85], "text": "ff", "depth": 1}, '
+        '{"type": "word", "bbox": [175, 5, 195, 115], "text": "RR", '
+        '"textangle": 90, "depth": 1}]'
+    )
+    set_text_in_mainloop(slist, page_id, layer)
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=temp_pdf.name,
+        list_of_pages=[slist.data[0][2]],
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    page_height_pt = get_page_size(temp_pdf.name)[1]
+    points_per_px = page_height_pt / image_height
+    upright_source_pt = 15 * points_per_px
+
+    words = _pdftotext_word_boxes(temp_pdf.name)
+    upright = [box for box in words if box[0] in {"aa", "bb", "cc", "dd", "ee", "ff"}]
+    assert len(upright) == 6, "all upright words extract"
+    for _text, _x_1, y_1, _x_2, y_2 in upright:
+        height = y_2 - y_1
+        assert height <= 2.5 * upright_source_pt, (
+            f"upright word ({height:.1f}pt) should stay near its source size "
+            f"({upright_source_pt:.1f}pt), not the rotated word's scale"
+        )
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        streams = _page_content_streams(pdf.pages[0])
+    assert any(_has_rotated_text(content) for content in streams), (
+        "the rotated word is still rendered rotated"
+    )
+
+
 @pytest.mark.xfail(
     reason="ocrmypdf GlyphlessFont + PDF/A conversion mangles non-ASCII text extraction"
 )

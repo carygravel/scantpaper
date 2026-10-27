@@ -316,7 +316,10 @@ you explicitly turn the toggle off.
    is oriented automatically: a tall, narrow selection becomes vertical text
    and a wide, short one stays upright, so a drawn box for a vertical column
    renders legibly instead of as shrunken horizontal text. Rotated slices are
-   embedded at their angle in saved PDFs. Re-importing a PDF cannot recover
+   embedded at their angle in saved PDFs. Upright and rotated slices can be
+   mixed on one page: each word is saved at its own size and angle, so a search
+   highlight covers the word it found rather than a larger block around it.
+   Re-importing a PDF cannot recover
    that rotation, because the imported text layer carries positions but not
    text direction. Page pixels are fed to tesseract in memory and the stored
    image is reused, so OCR is faster than in previous versions.

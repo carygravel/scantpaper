@@ -6,7 +6,7 @@ from typing import Any, cast
 
 import pytest
 
-from scantpaper.bboxtree import HOCR_HEADER, VERSION, Bboxtree
+from scantpaper.bboxtree import HOCR_HEADER, VERSION, BBox, Bboxtree
 from scantpaper.const import POINTS_PER_INCH
 
 
@@ -1267,3 +1267,95 @@ def test_to_hocr_line_without_words_keeps_effective_angle() -> None:
     assert len(lines) == 1, "one line"
     assert lines[0]["textangle"] == 90, "the inherited angle is retained"
     assert lines[0]["text"] == "caption", "line text is unchanged"
+
+
+def _exported_lines(bbox_tree: list[Any]) -> list[BBox]:
+    """Return the synthetic lines a flat layer exports as, after a round trip."""
+    tree = Bboxtree()
+    tree.bbox_tree = bbox_tree
+    exported = Bboxtree()
+    exported.from_hocr(tree.to_hocr())
+    return [box for box in exported.each_bbox() if box["type"] == "line"]
+
+
+def test_group_bare_words_per_row_with_tall_rotated_word() -> None:
+    """A tall rotated word does not merge upright rows into one line."""
+    bbox_tree: list[Any] = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 1000, 1400]},
+        {"type": "word", "depth": 1, "bbox": [100, 100, 200, 120], "text": "a"},
+        {"type": "word", "depth": 1, "bbox": [220, 100, 320, 120], "text": "b"},
+        {"type": "word", "depth": 1, "bbox": [100, 180, 200, 200], "text": "c"},
+        {"type": "word", "depth": 1, "bbox": [220, 180, 320, 200], "text": "d"},
+        {"type": "word", "depth": 1, "bbox": [100, 260, 200, 280], "text": "e"},
+        {"type": "word", "depth": 1, "bbox": [220, 260, 320, 280], "text": "f"},
+        {
+            "type": "word",
+            "depth": 1,
+            "bbox": [900, 100, 940, 600],
+            "text": "rotated",
+            "textangle": 90,
+        },
+    ]
+    lines = _exported_lines(bbox_tree)
+    upright = [line for line in lines if line.get("textangle", 0) == 0]
+    rotated = [line for line in lines if line.get("textangle") == 90]
+
+    assert [line["bbox"] for line in upright] == [
+        [100, 100, 320, 120],
+        [100, 180, 320, 200],
+        [100, 260, 320, 280],
+    ], "each upright row is its own line"
+    assert len(rotated) == 1, "the rotated word keeps its own line"
+    assert rotated[0]["bbox"] == [900, 100, 940, 600], "rotated box unchanged"
+
+
+def test_group_equal_height_row_and_spaced_rotated_words() -> None:
+    """Aligned words share a line while spaced rotated words stay separate."""
+    bbox_tree: list[Any] = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 1000, 1400]},
+        {"type": "word", "depth": 1, "bbox": [100, 100, 200, 120], "text": "a"},
+        {"type": "word", "depth": 1, "bbox": [220, 100, 320, 120], "text": "b"},
+        {
+            "type": "word",
+            "depth": 1,
+            "bbox": [900, 100, 940, 300],
+            "text": "r0",
+            "textangle": 90,
+        },
+        {
+            "type": "word",
+            "depth": 1,
+            "bbox": [900, 400, 940, 600],
+            "text": "r1",
+            "textangle": 90,
+        },
+    ]
+    lines = _exported_lines(bbox_tree)
+    upright = [line for line in lines if line.get("textangle", 0) == 0]
+    rotated = [line for line in lines if line.get("textangle") == 90]
+
+    assert [line["bbox"] for line in upright] == [
+        [100, 100, 320, 120],
+    ], "aligned words share one line"
+    assert {tuple(line["bbox"]) for line in rotated} == {
+        (900, 100, 940, 300),
+        (900, 400, 940, 600),
+    }, "each rotated word is its own line"
+    assert all(line["textangle"] == 90 for line in rotated), "angles retained"
+
+
+def test_group_different_height_upright_words_do_not_merge() -> None:
+    """A taller upright word is not merged into a neighbouring row's line."""
+    bbox_tree: list[Any] = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 1000, 1400]},
+        {"type": "word", "depth": 1, "bbox": [100, 100, 200, 120], "text": "a"},
+        {"type": "word", "depth": 1, "bbox": [220, 100, 320, 120], "text": "b"},
+        {"type": "word", "depth": 1, "bbox": [340, 90, 540, 230], "text": "big"},
+    ]
+    lines = _exported_lines(bbox_tree)
+    boxes = [line["bbox"] for line in lines]
+
+    assert boxes == [
+        [100, 100, 320, 120],
+        [340, 90, 540, 230],
+    ], "the short row keeps a line that does not span the taller word"

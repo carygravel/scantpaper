@@ -83,6 +83,12 @@
   resolutions differ. The click was mapped with an older transform than the one
   the layer is drawn with, so it could land on a neighbouring word or on the
   page, and a correction only began after clicking several times.
+* A PDF whose text layer mixes upright and rotated slices now saves every word
+  at its own size, so searching a word highlights the word found rather than a
+  large surrounding block. A single tall rotated slice used to widen the
+  grouping tolerance for the whole flat layer, which merged upright words from
+  different rows into one oversized line and made the renderer draw them at that
+  line's scale.
 
 
 ## 4.0.1 (2026-10-25)

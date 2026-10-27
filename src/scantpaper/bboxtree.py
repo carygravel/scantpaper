@@ -803,20 +803,35 @@ def _ensure_hocr_containers(node: BBox) -> None:
 
 
 def _group_words_into_lines(words: list[BBox]) -> list[list[BBox]]:
-    """Group consecutive words into lines by vertical position."""
+    """Group consecutive words into lines by vertical position.
+
+    A candidate joins the current line only when the distance between their
+    vertical centres is within a tolerance derived from the *smaller* of the
+    two words. Using the global maximum height instead would let one tall
+    word (such as a rotated slice) widen the tolerance enough to pull short
+    words from other rows into the same line; the synthetic line's bounding
+    box then feeds the renderer's font size, so those words would be drawn
+    at the tall word's scale.
+    """
     if not words:
         return []
-    tolerance = max(b["bbox"][3] - b["bbox"][1] for b in words) * 0.6 or 1.0
     lines: list[list[BBox]] = []
     current = [words[0]]
     for word in words[1:]:
-        if abs(_y_center(word) - _y_center(current[-1])) <= tolerance:
+        previous = current[-1]
+        tolerance = min(_height(previous), _height(word)) * 0.6 or 1.0
+        if abs(_y_center(word) - _y_center(previous)) <= tolerance:
             current.append(word)
         else:
             lines.append(current)
             current = [word]
     lines.append(current)
     return lines
+
+
+def _height(bbox: BBox) -> int:
+    """Return the height of a bbox."""
+    return bbox["bbox"][3] - bbox["bbox"][1]
 
 
 def _y_center(bbox: BBox) -> float:
