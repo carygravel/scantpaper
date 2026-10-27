@@ -9,7 +9,7 @@ from typing import cast
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
-from scantpaper.const import _LOCAL_TZ, MAX_DPI
+from scantpaper.const import _LOCAL_TZ, DIALOG_ROW_SPACING, MAX_DPI
 from scantpaper.dependencies import jbig2_available
 from scantpaper.dialog import Dialog
 from scantpaper.entry_completion import EntryCompletion
@@ -371,13 +371,13 @@ class Save(Dialog):
         box = self.get_content_area()
 
         # it needs its own box to be able to hide it if necessary
-        self._meta_box_widget = Gtk.Box()
+        self._meta_box_widget = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         box.append(self._meta_box_widget)
 
         # Frame for metadata
         frame = Gtk.Frame(label=_("Document Metadata"))
         pack_box(self._meta_box_widget, frame, expand=True)
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING)
         frame.set_child(box)
 
         # grid to align widgets
@@ -390,7 +390,9 @@ class Save(Dialog):
         grid.attach(frame, 0, row, 2, 1)
         row += 1
         frame.set_hexpand(True)
-        vboxdt = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxdt = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         frame.set_child(vboxdt)
 
         # GTK4 has no Gtk.RadioButton: grouped Gtk.CheckButtons behave like
@@ -408,7 +410,7 @@ class Save(Dialog):
         self._meta_specify_widget.set_group(self.meta_now_widget)
         self._meta_specify_widget.set_tooltip_text(_("Specify date and time"))
         pack_box(vboxdt, self._meta_specify_widget, expand=True)
-        hboxe = Gtk.Box()
+        hboxe = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self._meta_specify_widget.connect(
             "toggled", self._clicked_specify_date_button, hboxe
         )
@@ -572,11 +574,11 @@ class Save(Dialog):
             ("subject", _("Subject")),
             ("keywords", _("Keywords")),
         ]:
-            hbox = Gtk.Box()
+            hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
             grid.attach(hbox, 0, row, 1, 1)
             label = Gtk.Label(label=label_text)
             hbox.append(label)
-            hbox = Gtk.Box()
+            hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
             grid.attach(hbox, 1, row, 1, 1)
             row += 1
             setattr(
@@ -609,7 +611,7 @@ class Save(Dialog):
         vbox = self.get_content_area()
 
         # Image type ComboBox
-        hboxi = Gtk.Box()
+        hboxi = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hboxi)
         label = Gtk.Label(label=_("Document type"))
         hboxi.append(label)
@@ -617,7 +619,7 @@ class Save(Dialog):
         hboxi.append(combobi)
 
         # Postscript backend
-        hboxps = Gtk.Box()
+        hboxps = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hboxps)
         hboxps.set_vexpand(True)
         label = Gtk.Label(label=_("Postscript backend"))
@@ -635,7 +637,7 @@ class Save(Dialog):
         combops.set_hexpand(True)
 
         # Compression ComboBox
-        hboxc = Gtk.Box()
+        hboxc = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hboxc)
         label = Gtk.Label(label=_("Compression"))
         hboxc.append(label)
@@ -753,7 +755,7 @@ class Save(Dialog):
 
     def add_quality_spinbutton(self, vbox: Gtk.Box) -> tuple[Gtk.Box, Gtk.SpinButton]:
         """Set up quality spinbutton here so that it can be shown or hidden by callback."""
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Quality"))
@@ -766,14 +768,16 @@ class Save(Dialog):
     def add_pdf_options(self) -> tuple[Gtk.Box, Gtk.Box]:
         """Add pdf options."""
         # pack everything in one vbox to be able to show/hide them all at once
-        vboxp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxp = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         vbox = self.get_content_area()
         vbox.append(vboxp)
 
         self._add_pdf_downsample_options(vboxp)
 
         # Compression ComboBox
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vboxp.append(hbox)
         hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Compression"))
@@ -806,7 +810,7 @@ class Save(Dialog):
         return vboxp, hboxq
 
     def _add_pdf_downsample_options(self, vboxp: Gtk.Box) -> None:
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vboxp.append(hbox)
         button = Gtk.CheckButton(label=_("Downsample to"))
         hbox.append(button)
@@ -849,7 +853,7 @@ class Save(Dialog):
         row = 0
         passvbox.append(grid)
         grid.set_vexpand(True)
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         label = Gtk.Label(label=_("User password"))
         hbox.append(label)
         grid.attach(hbox, 0, row, 1, 1)

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, cast
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
+from scantpaper.const import DIALOG_ROW_SPACING
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.sane import SaneScanDialog
 from scantpaper.helpers import run_dialog, set_margins
@@ -215,7 +216,9 @@ class ScanMenuItemMixins:
         scwin = Gtk.ScrolledWindow()
         widget.notebook.append_page(scwin, Gtk.Label(label=_("Postprocessing")))
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        vboxp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxp = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         set_margins(vboxp, 0)
         scwin.set_child(vboxp)
 
@@ -341,7 +344,7 @@ class ScanMenuItemMixins:
         return abutton
 
     def _add_postprocessing_unpaper(self, vboxp: Gtk.Box) -> Gtk.CheckButton:
-        hboxu = Gtk.Box()
+        hboxu = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vboxp.append(hboxu)
         ubutton = Gtk.CheckButton(label=_("Clean up images"))
         ubutton.set_tooltip_text(_("Clean up scanned images with unpaper"))
@@ -383,7 +386,7 @@ class ScanMenuItemMixins:
         self, vboxp: Gtk.Box
     ) -> tuple[Gtk.CheckButton, ComboBoxText]:
         """Add a user-defined tool (UDT) post-processing option to the given VBox."""
-        hboxudt = Gtk.Box()
+        hboxudt = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vboxp.append(hboxudt)
         self._scan_udt_hbox = hboxudt
         udtbutton = Gtk.CheckButton(label=_("Process with user-defined tool"))

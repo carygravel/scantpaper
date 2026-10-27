@@ -73,6 +73,11 @@
   reachable without the mouse; **Ctrl+Tab** and **Ctrl+Shift+Tab** move focus
   forward and backward. A literal tab character is no longer entered in these
   fields.
+* Dialog content no longer runs flush against the window edge, and rows are no
+  longer packed together. GTK4 dropped the content-area inset that GTK3 derived
+  from the theme, and a box's spacing now defaults to zero, so every dialog sets
+  a consistent inset and spacing - including the ones opened from the Tools menu
+  and the ones built directly on `Gtk.Dialog`.
 
 
 ## 4.0.1 (2026-10-25)

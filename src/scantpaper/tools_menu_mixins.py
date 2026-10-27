@@ -16,6 +16,7 @@ from scantpaper.const import (
     _100_PERCENT,
     _180_DEGREES,
     _LOCAL_TZ,
+    DIALOG_ROW_SPACING,
     PERCENT,
     SELECTOR_TOOL,
     SELECTORDRAGGER_TOOL,
@@ -108,7 +109,7 @@ class ToolsMenuMixins:
         windowt.add_page_range()
 
         # SpinButton for threshold
-        hboxt = Gtk.Box()
+        hboxt = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox = windowt.get_content_area()
         vbox.append(hboxt)
         label = Gtk.Label(label=_("Ink strength"))
@@ -172,7 +173,7 @@ class ToolsMenuMixins:
         windowt.add_page_range()
 
         # SpinButton for brightness
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox = windowt.get_content_area()
         vbox.append(hbox)
         label = Gtk.Label(label=_("Brightness"))
@@ -184,7 +185,7 @@ class ToolsMenuMixins:
         hbox.append(label)
 
         # SpinButton for contrast
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         label = Gtk.Label(label=_("Contrast"))
         hbox.append(label)
@@ -311,18 +312,18 @@ class ToolsMenuMixins:
         grid.set_vexpand(True)
         for i, row in enumerate(layout):
             col = 0
-            hbox = Gtk.Box()
+            hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
             label = Gtk.Label(label=row[col])
             grid.attach(hbox, col, i, 1, 1)
             col += 1
             hbox.append(label)
-            hbox = Gtk.Box()
+            hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
             hbox.append(row[col])
             hbox.set_hexpand(True)
             grid.attach(hbox, col, i, 1, 1)
             col += 1
             if len(row) > col and row[col] is not None:
-                hbox = Gtk.Box()
+                hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
                 grid.attach(hbox, col, i, 1, 1)
                 label = Gtk.Label(label=row[col])
                 hbox.append(label)
@@ -461,7 +462,7 @@ class ToolsMenuMixins:
 
         # Frame for page range
         windowsp.add_page_range()
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox = windowsp.get_content_area()
         vbox.append(hbox)
         label = Gtk.Label(label=_("Direction"))
@@ -496,7 +497,7 @@ class ToolsMenuMixins:
         hbox.append(combob)
 
         # SpinButton for position
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         label = Gtk.Label(label=_("Position"))
         hbox.append(label)
@@ -760,7 +761,7 @@ class ToolsMenuMixins:
 
         # Frame for page range
         windowudt.add_page_range()
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox = windowudt.get_content_area()
         vbox.append(hbox)
         label = Gtk.Label(label=_("Selected tool"))

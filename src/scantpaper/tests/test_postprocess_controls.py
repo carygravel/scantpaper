@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import gi
 import pytest
 
+from scantpaper.const import DIALOG_ROW_SPACING
 from scantpaper.postprocess_controls import (
     OCRControls,
     RotateControlRow,
@@ -110,6 +111,7 @@ def test_rotate_control_row_init() -> None:
     assert isinstance(row.cbutton, Gtk.CheckButton)
     assert isinstance(row.side_cmbx, Gtk.ComboBox)
     assert isinstance(row.angle_cmbx, Gtk.ComboBox)
+    assert row.get_spacing() == DIALOG_ROW_SPACING, "row widgets are spaced"
 
 
 class TestRotateControls:
@@ -124,6 +126,7 @@ class TestRotateControls:
         """Test initialization."""
         assert isinstance(rotate_controls, Gtk.Box)
         assert rotate_controls.get_orientation() == Gtk.Orientation.VERTICAL
+        assert rotate_controls.get_spacing() == DIALOG_ROW_SPACING, "rows are spaced"
         assert rotate_controls.rotate_facing == 0
         assert rotate_controls.rotate_reverse == 0
         assert rotate_controls.can_duplex is True

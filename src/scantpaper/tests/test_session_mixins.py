@@ -367,6 +367,7 @@ def test_find_crashed_sessions_recoverable(
 
     # Mock Dialog
     mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
+    mock_pad = mocker.patch("scantpaper.session_mixins.pad_content_area")
     mocker.patch(
         "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.OK
     )
@@ -379,6 +380,7 @@ def test_find_crashed_sessions_recoverable(
     mock_session_window._open_session = mocker.Mock()
     mock_session_window._find_crashed_sessions()
 
+    mock_pad.assert_called_once()
     mock_session_window._open_session.assert_called_with("/tmp/scantpaper-crashed.sdb")
 
 

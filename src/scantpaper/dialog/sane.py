@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, cast
 from gi.repository import GObject, Gtk
 from typing_extensions import override
 
-from scantpaper.const import EMPTY
+from scantpaper.const import DIALOG_ROW_SPACING, EMPTY
 from scantpaper.dialog.scan import Scan, _geometry_option, make_progress_string
 from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import SaneThread
@@ -211,7 +211,7 @@ class SaneScanDialog(Scan):
         self.set_response_sensitive(Gtk.ResponseType.OK, setting=True)
 
     def _new_group_page(self, opt: Option) -> Gtk.Box:
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING)
         text = (
             d_sane(opt.title)
             if (
@@ -254,11 +254,11 @@ class SaneScanDialog(Scan):
         # Define HBox for paper size here
         # so that it can be put before first geometry option
         if hboxp is None and _geometry_option(opt):
-            hboxp = Gtk.Box()
+            hboxp = Gtk.Box(spacing=DIALOG_ROW_SPACING)
             vbox.append(hboxp)
 
         # HBox for option
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         if opt.cap & enums.CAP_INACTIVE or not opt.cap & enums.CAP_SOFT_SELECT:
             hbox.set_sensitive(False)

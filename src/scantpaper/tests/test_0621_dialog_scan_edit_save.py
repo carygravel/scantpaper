@@ -85,11 +85,13 @@ def test_edit_profile_dialog(
     patch_dialog = mocker.patch(
         "scantpaper.dialog.scan.Gtk.Dialog", return_value=dialog_mock
     )
+    mock_pad = mocker.patch("scantpaper.dialog.scan.pad_content_area")
     mocker.patch("scantpaper.dialog.scan.run_dialog", return_value=Gtk.ResponseType.OK)
 
     _edit_profile_callback(None, parent)
 
     patch_dialog.assert_called_once()
+    mock_pad.assert_called_once_with(dialog_mock.get_content_area())
     dialog_mock.add_buttons.assert_called_once_with(
         "OK", Gtk.ResponseType.OK, "Cancel", Gtk.ResponseType.CANCEL
     )
@@ -111,6 +113,7 @@ def test_save_profile_overwrite_dialog(mocker: pytest.MockerFixture) -> None:
     mocker.patch(
         "scantpaper.dialog.scan.Gtk.Label", return_value=MagicMock(spec=Gtk.Label)
     )
+    mock_pad = mocker.patch("scantpaper.dialog.scan.pad_content_area")
     # i18n is not initialised, so we have to mock this
     mocker.patch("scantpaper.dialog.scan._", side_effect=lambda s: s)
 
@@ -137,6 +140,7 @@ def test_save_profile_overwrite_dialog(mocker: pytest.MockerFixture) -> None:
         "Profile 'MyProfile' exists. Overwrite?"
         in dialog_mock.call_args_list[1][1]["title"]
     )
+    assert mock_pad.call_count == 2
 
     overwrite_dialog_mock.add_buttons.assert_called_once_with(
         "OK",

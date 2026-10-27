@@ -4,6 +4,7 @@ from typing import ClassVar, cast
 
 from gi.repository import Gdk, GObject, Gtk
 
+from scantpaper.const import DIALOG_ROW_SPACING
 from scantpaper.dialog import Dialog
 from scantpaper.gobject import property_
 from scantpaper.i18n import _
@@ -130,11 +131,11 @@ class Crop(Dialog):
         vbox.append(grid)
         grid.set_vexpand(True)
         for i, row in enumerate(LAYOUT):
-            hbox = Gtk.Box()
+            hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
             label = Gtk.Label(label=row[1])
             grid.attach(hbox, 1, i, 1, 1)
             hbox.append(label)
-            hbox = Gtk.Box()
+            hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
 
             dim = row[0]
             attr_name = f"_sb_{dim}"
@@ -151,7 +152,7 @@ class Crop(Dialog):
             widget.set_hexpand(True)
 
             grid.attach(hbox, 2, i, 1, 1)
-            hbox = Gtk.Box()
+            hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
             grid.attach(hbox, 3, i, 1, 1)
             label = Gtk.Label(label=_("pixels"))
             hbox.append(label)

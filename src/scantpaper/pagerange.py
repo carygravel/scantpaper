@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, cast
 
 import gi
 
+from scantpaper.const import DIALOG_ROW_SPACING
 from scantpaper.i18n import _
 
 if TYPE_CHECKING:
@@ -47,7 +48,7 @@ class PageRange(Gtk.Box):
             "all": _("All"),
         }
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING)
         self.append(vbox)
 
         # GTK4 has no Gtk.RadioButton: grouped Gtk.CheckButtons behave like

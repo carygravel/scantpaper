@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 import gi
 
-from scantpaper.dialog import Dialog, MultipleMessage
+from scantpaper.const import DIALOG_CONTENT_MARGIN, DIALOG_ROW_SPACING
+from scantpaper.dialog import Dialog, MultipleMessage, pad_content_area
 
 gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
@@ -135,6 +136,30 @@ def test_dialog_page_range() -> None:
     # Trigger change
     prng.set_active("all")
     assert dialog.page_range == "all", "page-range updated"
+
+
+def test_dialog_content_padding() -> None:
+    """Test that dialog content is inset and its blocks are spaced."""
+    dialog = Dialog()
+
+    content = dialog.get_content_area()
+    assert content.get_margin_top() == DIALOG_CONTENT_MARGIN, "content margin top"
+    assert content.get_margin_bottom() == DIALOG_CONTENT_MARGIN, "content margin bottom"
+    assert content.get_margin_start() == DIALOG_CONTENT_MARGIN, "content margin start"
+    assert content.get_margin_end() == DIALOG_CONTENT_MARGIN, "content margin end"
+    assert content.get_spacing() == DIALOG_ROW_SPACING, "content spacing"
+
+
+def test_pad_content_area() -> None:
+    """pad_content_area insets and spaces a bare Gtk.Dialog's content area."""
+    content = Gtk.Box()
+    pad_content_area(content)
+
+    assert content.get_margin_top() == DIALOG_CONTENT_MARGIN, "content margin top"
+    assert content.get_margin_bottom() == DIALOG_CONTENT_MARGIN, "content margin bottom"
+    assert content.get_margin_start() == DIALOG_CONTENT_MARGIN, "content margin start"
+    assert content.get_margin_end() == DIALOG_CONTENT_MARGIN, "content margin end"
+    assert content.get_spacing() == DIALOG_ROW_SPACING, "content spacing"
 
 
 def test_add_actions_limit() -> None:

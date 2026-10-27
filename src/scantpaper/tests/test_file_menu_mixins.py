@@ -613,14 +613,20 @@ class TestFileMenuMixins:
         vbox = unittest.mock.Mock()
         mock_dialog.get_content_area.return_value = vbox
 
-        with unittest.mock.patch(
-            "scantpaper.file_menu_mixins.run_dialog",
-            return_value=mock_gtk.ResponseType.OK,
+        with (
+            unittest.mock.patch(
+                "scantpaper.file_menu_mixins.run_dialog",
+                return_value=mock_gtk.ResponseType.OK,
+            ),
+            unittest.mock.patch(
+                "scantpaper.file_menu_mixins.pad_content_area"
+            ) as mock_pad,
         ):
             first, last = app._select_pagerange_callback({"pages": 10})
 
         assert first == 1
         assert last == 10
+        mock_pad.assert_called_once_with(vbox)
         mock_dialog.destroy.assert_called_once()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")

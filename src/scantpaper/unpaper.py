@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import gi
 
+from scantpaper.const import DIALOG_ROW_SPACING
 from scantpaper.dependencies import probe_unpaper
 from scantpaper.helpers import configure_fractional_spinbutton
 from scantpaper.i18n import _
@@ -256,7 +257,9 @@ class Unpaper:
         }
 
     def _add_notebook_page_1(self, vbox: Gtk.Box, options: dict[str, Any]) -> Gtk.Box:
-        vbox1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox1 = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         margin = vbox.get_margin_top()
         vbox1.set_margin_top(margin)
         vbox1.set_margin_bottom(margin)
@@ -286,7 +289,9 @@ class Unpaper:
         return vbox1
 
     def _add_notebook_page_2(self, vbox: Gtk.Box, options: dict[str, Any]) -> Gtk.Box:
-        vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox2 = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         margin = vbox.get_margin_top()
         vbox2.set_margin_top(margin)
         vbox2.set_margin_bottom(margin)
@@ -369,7 +374,9 @@ class Unpaper:
         notebook.append_page(vbox2, Gtk.Label(label=_("Border")))
 
         # Notebook page 3
-        vbox3 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox3 = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         margin = vbox.get_margin_top()
         vbox3.set_margin_top(margin)
         vbox3.set_margin_bottom(margin)
@@ -400,7 +407,7 @@ class Unpaper:
     def _add_combobox(
         self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.ComboBoxText:
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         hbox.set_vexpand(True)
         label = Gtk.Label(label=hashref[option]["string"])
@@ -437,7 +444,9 @@ class Unpaper:
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.append(widget)
         widget.set_vexpand(True)
-        vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxf = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         margin = vbox.get_margin_top()
         vboxf.set_margin_top(margin)
         vboxf.set_margin_bottom(margin)
@@ -453,7 +462,7 @@ class Unpaper:
         self, vbox: Gtk.Box, hashref: dict[str, Any], option: str
     ) -> Gtk.SpinButton:
         default = self.default
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         hbox.set_vexpand(True)
         label = Gtk.Label(label=hashref[option]["string"])
@@ -475,7 +484,9 @@ class Unpaper:
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.append(widget)
         widget.set_vexpand(True)
-        vboxf = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxf = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         margin = vbox.get_margin_top()
         vboxf.set_margin_top(margin)
         vboxf.set_margin_bottom(margin)

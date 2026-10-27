@@ -12,8 +12,8 @@ from gi.repository import Gdk, GObject, Gtk
 from typing_extensions import override
 
 from scantpaper.comboboxtext import ComboBoxText
-from scantpaper.const import PERCENT, POINTS_PER_INCH
-from scantpaper.dialog import Dialog
+from scantpaper.const import DIALOG_ROW_SPACING, PERCENT, POINTS_PER_INCH
+from scantpaper.dialog import Dialog, pad_content_area
 from scantpaper.dialog.pagecontrols import MAX_PAGES, PageControls
 from scantpaper.dialog.paperlist import PaperList
 from scantpaper.docthread import INSERT_AT_START
@@ -449,7 +449,9 @@ class Scan(PageControls):
         self.profiles = {}
         framesp = Gtk.Frame(label=_("Scan profiles"))
         self._notebook_pages[0].append(framesp)
-        vboxsp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxsp = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         framesp.set_child(vboxsp)
         self.combobsp = ComboBoxText()
         for profile in profiles:
@@ -464,7 +466,7 @@ class Scan(PageControls):
             "changed", _weak_callback(self, "_do_profile_changed")
         )
         vboxsp.append(self.combobsp)
-        hboxsp = Gtk.Box()
+        hboxsp = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vboxsp.append(hboxsp)
 
         # Save button
@@ -520,7 +522,7 @@ class Scan(PageControls):
         super().hide()
 
     def _add_device_combobox(self) -> None:
-        self.hboxd = Gtk.Box()
+        self.hboxd = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         labeld = Gtk.Label(label=_("Device"))
         self.hboxd.append(labeld)
         self.combobd = ComboBoxText()
@@ -1039,9 +1041,11 @@ class Scan(PageControls):
         )
         vbox = window.get_content_area()
 
-        hboxl = Gtk.Box()
+        hboxl = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hboxl)
-        vboxb = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxb = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         hboxl.append(vboxb)
         icon = Gtk.Image.new_from_icon_name("list-add")
         dbutton = Gtk.Button()
@@ -1062,7 +1066,7 @@ class Scan(PageControls):
         hboxl.append(slist)
 
         # Buttons
-        hboxb = Gtk.Box()
+        hboxb = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hboxb)
         abutton = Gtk.Button.new_with_label(_("Apply"))
 
@@ -1591,7 +1595,8 @@ def _save_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
     dialog.add_buttons(
         _("OK"), Gtk.ResponseType.OK, _("Cancel"), Gtk.ResponseType.CANCEL
     )
-    hbox = Gtk.Box()
+    pad_content_area(dialog.get_content_area())
+    hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
     label = Gtk.Label(label=_("Name of scan profile"))
     hbox.append(label)
     entry = Gtk.Entry()
@@ -1617,6 +1622,7 @@ def _save_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
                         _("Cancel"),
                         Gtk.ResponseType.CANCEL,
                     )
+                    pad_content_area(dialog2.get_content_area())
                     label = Gtk.Label(label=warning)
                     dialog2.get_content_area().append(label)
                     if run_dialog(dialog2) == Gtk.ResponseType.OK:
@@ -1655,6 +1661,7 @@ def _edit_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
     dialog.add_buttons(
         _("OK"), Gtk.ResponseType.OK, _("Cancel"), Gtk.ResponseType.CANCEL
     )
+    pad_content_area(dialog.get_content_area())
     label = Gtk.Label(label=msg)
     pack_box(dialog.get_content_area(), label, expand=True)
 
@@ -1717,7 +1724,7 @@ def _build_profile_table(profile: Profile, options: Options, vbox: Gtk.Box) -> N
         name, _val = profile.get_backend_option_by_index(i)
         opt = options.by_name(name)
         row = Gtk.ListBoxRow()
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         label = Gtk.Label(label=d_sane(opt.title))
         hbox.append(label)
         icon = Gtk.Image.new_from_icon_name("edit-delete")
@@ -1739,7 +1746,7 @@ def _build_profile_table(profile: Profile, options: Options, vbox: Gtk.Box) -> N
 
     for name in profile.each_frontend_option():
         row = Gtk.ListBoxRow()
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         label = Gtk.Label(label=name)
         hbox.append(label)
         icon = Gtk.Image.new_from_icon_name("edit-delete")

@@ -17,7 +17,8 @@ import gi
 
 from scantpaper import config
 from scantpaper.comboboxtext import ComboBoxText
-from scantpaper.const import _LOCAL_TZ, ASTERISK, EMPTY, EMPTY_LIST
+from scantpaper.const import _LOCAL_TZ, ASTERISK, DIALOG_ROW_SPACING, EMPTY, EMPTY_LIST
+from scantpaper.dialog import pad_content_area
 from scantpaper.dialog.save import Save as SaveDialog
 from scantpaper.helpers import (
     chooser_path,
@@ -196,14 +197,15 @@ class FileMenuMixins:
             Gtk.ResponseType.CANCEL,
         )
         vbox = dialog.get_content_area()
-        hbox = Gtk.Box()
+        pad_content_area(vbox)
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         hbox.set_vexpand(True)
         label = Gtk.Label(label=_("First page to extract"))
         hbox.append(label)
         spinbuttonf = Gtk.SpinButton.new_with_range(1, info["pages"], 1)
         hbox.append(spinbuttonf)
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Last page to extract"))

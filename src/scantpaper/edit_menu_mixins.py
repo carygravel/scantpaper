@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, cast
 
 import gi
 
-from scantpaper.const import _LOCAL_TZ, MAX_DPI
+from scantpaper.const import _LOCAL_TZ, DIALOG_ROW_SPACING, MAX_DPI
 from scantpaper.dialog import Dialog
 from scantpaper.dialog.preferences import PreferencesDialog
 from scantpaper.helpers import configure_fractional_spinbutton
@@ -61,7 +61,7 @@ class EditMenuMixins:
             hide_on_delete=True,
         )
         vbox = self._windowp.get_content_area()
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         hbox.set_vexpand(True)
         label = Gtk.Label(label=d_sane("X Resolution"))
@@ -71,7 +71,7 @@ class EditMenuMixins:
         xspinbutton.set_hexpand(True)
         label = Gtk.Label(label=_("dpi"))
         hbox.append(label)
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
         hbox.set_vexpand(True)
         label = Gtk.Label(label=d_sane("Y Resolution"))

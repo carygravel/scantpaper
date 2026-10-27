@@ -5,6 +5,7 @@ from typing import ClassVar
 from gi.repository import GObject, Gtk
 
 from scantpaper.comboboxtext import ComboBoxText
+from scantpaper.const import DIALOG_ROW_SPACING
 from scantpaper.dialog import Dialog
 from scantpaper.gobject import property_
 from scantpaper.helpers import pack_box, set_margins
@@ -187,14 +188,18 @@ class PageControls(Dialog):
             child=scwin, tab_label=Gtk.Label(label=_("Page Options"))
         )
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        self._notebook_pages = [Gtk.Box(orientation=Gtk.Orientation.VERTICAL)]
+        self._notebook_pages = [
+            Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING)
+        ]
         set_margins(self._notebook_pages[0], 0)
         scwin.set_child(self._notebook_pages[0])
 
         # Frame for # pages
         self.framen = Gtk.Frame(label=_("# Pages"))
         self._notebook_pages[0].append(self.framen)
-        vboxn = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxn = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         set_margins(vboxn, 0)
         self.framen.set_child(vboxn)
 
@@ -209,7 +214,7 @@ class PageControls(Dialog):
         bscanall.set_active(True)
 
         # Entry button
-        hboxn = Gtk.Box()
+        hboxn = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         pack_box(vboxn, hboxn, expand=True)
         self._bscannum = Gtk.CheckButton.new_with_label("#:")
         self._bscannum.set_group(bscanall)
@@ -239,11 +244,13 @@ class PageControls(Dialog):
 
         # vbox for duplex/simplex page numbering in order to be able to show/hide
         # them together.
-        self._vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self._vboxx = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         self._notebook_pages[0].append(self._vboxx)
 
         # Switch between basic and extended modes
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         label = Gtk.Label(label=_("Extended page numbering"))
         hbox.append(label)
         self.checkx = Gtk.Switch()
@@ -259,7 +266,9 @@ class PageControls(Dialog):
         # Frame for extended mode
         self.framex = Gtk.Frame(label=_("Page number"))
         self._vboxx.append(self.framex)
-        vboxx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxx = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         set_margins(vboxx, 0)
         self.framex.set_child(vboxx)
 
@@ -301,7 +310,9 @@ class PageControls(Dialog):
         # Frame for standard mode
         self.frames = Gtk.Frame(label=_("Source document"))
         self._vboxx.append(self.frames)
-        vboxs = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxs = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         set_margins(vboxs, 0)
         self.frames.set_child(vboxs)
 
@@ -320,7 +331,7 @@ class PageControls(Dialog):
         vboxs.append(self.buttond)
 
         # Facing/reverse page button
-        hboxs = Gtk.Box()
+        hboxs = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         pack_box(vboxs, hboxs, expand=True)
         labels = Gtk.Label(label=_("Side to scan"))
         hboxs.append(labels)
@@ -446,7 +457,7 @@ def spinbutton_in_hbox(
     vbox: Gtk.Box, label: str, vmin: int, vmax: int, step: int
 ) -> Gtk.SpinButton:
     """Pack a label and a spinbutton in an hbox."""
-    hbox = Gtk.Box()
+    hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
     vbox.append(hbox)
     hbox.append(Gtk.Label(label=label))
     spin_button = Gtk.SpinButton.new_with_range(vmin, vmax, step)

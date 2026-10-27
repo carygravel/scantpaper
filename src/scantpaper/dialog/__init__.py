@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, cast
 
 import gi
 
+from scantpaper.const import DIALOG_CONTENT_MARGIN, DIALOG_ROW_SPACING
 from scantpaper.i18n import _
 from scantpaper.pagerange import PageRange
 
@@ -20,6 +21,20 @@ from gi.repository import (  # noqa: E402
     GObject,
     Gtk,
 )
+
+
+def pad_content_area(content: Gtk.Box) -> None:
+    """Inset a dialog's content from the window edge and space its blocks.
+
+    Used by ``Dialog`` and by the few dialogs built on a bare ``Gtk.Dialog``.
+    GTK3 took the inset from the theme; GTK4 does not, and a Gtk.Box spaces
+    its children by 0, so both are set here.
+    """
+    content.set_spacing(DIALOG_ROW_SPACING)
+    content.set_margin_top(DIALOG_CONTENT_MARGIN)
+    content.set_margin_bottom(DIALOG_CONTENT_MARGIN)
+    content.set_margin_start(DIALOG_CONTENT_MARGIN)
+    content.set_margin_end(DIALOG_CONTENT_MARGIN)
 
 
 class Dialog(Gtk.Dialog):
@@ -63,6 +78,12 @@ class Dialog(Gtk.Dialog):
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise ."""
         super().__init__(*args, **kwargs)
+
+        # Inset the content from the window edge and space the blocks appended
+        # to it. GTK3 took the inset from the theme; GTK4 does not, and a
+        # Gtk.Box spaces its children by 0, so both are set here.
+        pad_content_area(self.get_content_area())
+
         self.connect("close-request", self._on_close_request)
         self._key_controller = Gtk.EventControllerKey()
         self._key_controller.connect("key-pressed", self._on_key_pressed)

@@ -11,7 +11,12 @@ import pytest
 from PIL import Image, ImageDraw
 
 from scantpaper import config
-from scantpaper.const import A4_HEIGHT_MM, A4_WIDTH_MM, POINTS_PER_INCH
+from scantpaper.const import (
+    A4_HEIGHT_MM,
+    A4_WIDTH_MM,
+    DIALOG_ROW_SPACING,
+    POINTS_PER_INCH,
+)
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.tests.widget_helpers import emit_spinbutton_enter
@@ -52,6 +57,14 @@ def test_1() -> None:
 
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     unpaper.add_options(vbox)
+
+    spaced_rows = [
+        child
+        for child in vbox.observe_children()
+        if isinstance(child, Gtk.Box) and child.get_spacing() == DIALOG_ROW_SPACING
+    ]
+    assert spaced_rows, "unpaper option rows are spaced"
+
     assert unpaper.get_cmdline() == [
         "unpaper",
         "--black-threshold",

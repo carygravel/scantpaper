@@ -8,7 +8,7 @@ from typing import cast
 import gi
 
 from scantpaper.comboboxtext import ComboBoxText
-from scantpaper.const import PERCENT
+from scantpaper.const import DIALOG_ROW_SPACING, PERCENT
 from scantpaper.gobject import property_
 from scantpaper.helpers import chooser_path, run_dialog
 from scantpaper.i18n import _
@@ -60,6 +60,7 @@ class RotateControlRow(Gtk.Box):
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise RotateControlRow."""
         super().__init__(*args, **kwargs)
+        self.set_spacing(DIALOG_ROW_SPACING)
         self.cbutton = Gtk.CheckButton(label=_("Rotate"))
         self.cbutton.set_tooltip_text(_("Rotate image after scanning"))
         self.append(self.cbutton)
@@ -148,6 +149,7 @@ class RotateControls(Gtk.Box):
 
         super().__init__(*args, **kwargs)
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
+        self.set_spacing(DIALOG_ROW_SPACING)
         self._side1 = RotateControlRow()
         self.append(self._side1)
         self._side1.set_vexpand(True)
@@ -462,7 +464,8 @@ class OCRControls(Gtk.Box):
         self.engine_mode = engine_mode
         self._init_ocr_state()
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
-        hboxo = Gtk.Box()
+        self.set_spacing(DIALOG_ROW_SPACING)
+        hboxo = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self.append(hboxo)
         self._active_button = Gtk.CheckButton(label=_("OCR scanned pages"))
         self._active_button.set_tooltip_text(_("OCR scanned pages"))
@@ -491,7 +494,7 @@ class OCRControls(Gtk.Box):
             self._active_button.connect("toggled", self.on_toggled_active, hboxtl)
 
         # Checkbox & SpinButton for threshold
-        hboxt = Gtk.Box()
+        hboxt = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self.append(hboxt)
         self._threshold_button = Gtk.CheckButton(label=_("Threshold before OCR"))
         self._threshold_button.set_tooltip_text(
@@ -601,12 +604,14 @@ class OCRControls(Gtk.Box):
         return error
 
     def _add_tess_language_controls(self) -> Gtk.Box:
-        self._options_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self._options_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+        )
         self.append(self._options_box)
         self._apply_tessdata_dir()
         self._add_tessdata_controls()
 
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self._options_box.append(hbox)
         hbox.append(Gtk.Label(label=_("Language to recognise")))
 
@@ -614,7 +619,7 @@ class OCRControls(Gtk.Box):
         self._primary_cmbx.connect("changed", self.on_language_changed)
         hbox.append(self._primary_cmbx)
 
-        hbox2 = Gtk.Box()
+        hbox2 = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self._options_box.append(hbox2)
         hbox2.append(Gtk.Label(label=_("Additional languages")))
 
@@ -656,7 +661,7 @@ class OCRControls(Gtk.Box):
             self._syncing = False
 
     def _add_tessdata_controls(self) -> None:
-        hbox = Gtk.Box()
+        hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self._options_box.append(hbox)
         hbox.append(Gtk.Label(label=_("Tessdata directory")))
 
@@ -719,7 +724,7 @@ class OCRControls(Gtk.Box):
         self.on_tessdata_dir_changed()
 
     def _add_mode_controls(self) -> None:
-        psm_box = Gtk.Box()
+        psm_box = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self._options_box.append(psm_box)
         psm_box.append(Gtk.Label(label=_("Page segmentation mode")))
         self._psm_cmbx = ComboBoxText(data=page_segmentation_modes)
@@ -728,7 +733,7 @@ class OCRControls(Gtk.Box):
         )
         psm_box.append(self._psm_cmbx)
 
-        mode_box = Gtk.Box()
+        mode_box = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self._options_box.append(mode_box)
         mode_box.append(Gtk.Label(label=_("OCR engine mode")))
         self._engine_mode_cmbx = ComboBoxText(data=engine_modes)
@@ -749,7 +754,7 @@ class OCRControls(Gtk.Box):
             )
         )
         self._advanced_expander = expander
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING)
         hint = Gtk.Label(
             label=_(
                 "One name=value engine parameter per line, e.g. "

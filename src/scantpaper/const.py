@@ -92,5 +92,14 @@ HELP_WINDOW_DIVIDER_POS = 200
 
 THUMBNAIL = 100  # pixels
 VIEWER_MIN_SIZE = 100  # minimum on-screen size of the image view and canvases
+
+# Dialog content padding, in pixels. GTK3 derived the content-area inset from
+# the active theme; GTK4 has no equivalent, and Gtk.Box spacing defaults to 0,
+# so both are fixed here. DIALOG_CONTENT_MARGIN insets the content area from
+# the window edge; DIALOG_ROW_SPACING separates the blocks appended to the
+# content area and the widgets within each row.
+DIALOG_CONTENT_MARGIN = 12
+DIALOG_ROW_SPACING = 6
+
 APPLICATION_ID = 223562788
 USER_VERSION = 3

@@ -2,6 +2,7 @@
 
 import gi
 
+from scantpaper.const import DIALOG_ROW_SPACING
 from scantpaper.dialog.crop import Crop
 from scantpaper.loop_helpers import safe_mainloop
 
@@ -35,6 +36,15 @@ def test_1() -> None:
     mlp.run()
     assert flag, "updating selection emits signal"
     assert dialog._sb_x.get_value() == 10, "updating selection changes spinbutton"
+
+    content = dialog.get_content_area()
+    grid = next(
+        child
+        for child in list(content.observe_children())
+        if isinstance(child, Gtk.Grid)
+    )
+    row = grid.get_child_at(1, 0)
+    assert row.get_spacing() == DIALOG_ROW_SPACING, "crop row widgets are spaced"
 
 
 def test_coverage() -> None:

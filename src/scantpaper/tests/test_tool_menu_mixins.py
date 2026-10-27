@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import gi
 import pytest
 
-from scantpaper.const import _90_DEGREES, _180_DEGREES
+from scantpaper.const import _90_DEGREES, _180_DEGREES, DIALOG_ROW_SPACING
 from scantpaper.helpers import Proc
 from scantpaper.tools_menu_mixins import ToolsMenuMixins
 
@@ -196,6 +196,7 @@ def test_threshold_dialog_ink_strength_label(
         if isinstance(child, Gtk.Label)
     ]
     assert "Ink strength" in labels
+    assert hboxt.get_spacing() == DIALOG_ROW_SPACING, "row widgets are spaced"
 
 
 def test_brightness_contrast_dialog(
