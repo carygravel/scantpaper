@@ -55,6 +55,19 @@
   the new controls, `tessedit_pageseg_mode` and `tessedit_ocr_engine_mode` are
   now rejected in the advanced field with a message pointing to the controls.
 * Fixed about dialog
+* The OCR options now include a **Tessdata directory** control, so a
+  `tessdata_best`, `tessdata_fast`, or per-user language data set can be
+  chosen without replacing the system models or exporting `TESSDATA_PREFIX`
+  before launch. Leave it empty for the automatic directory; **Browse** picks
+  a folder and **Default** clears the choice. The directory is resolved as the
+  chosen path first, then `TESSDATA_PREFIX`, then the system default, and it
+  must directly contain `.traineddata` files. A `TESSDATA_PREFIX` that names a
+  broad parent such as `/usr/share` is now rejected with an explanatory error
+  instead of making tesseract search the whole tree and hang while listing
+  languages. Changing the directory rebuilds the language list and keeps the
+  current language, marked "(not installed)" when the new directory lacks it.
+  The selection is stored with the other OCR options. Tesseract 3's removed
+  `m_data_sub_dir` parameter remains rejected.
 
 
 ## 4.0.1 (2026-10-25)

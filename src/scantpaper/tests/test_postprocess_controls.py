@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 
 # Mock tesseract functions
-def mock_get_tesseract_codes() -> list[str]:
+def mock_get_tesseract_codes(_path: object = None) -> list[str]:
     """Mock get_tesseract_codes."""
     return ["eng", "deu", "fra"]
 
@@ -41,6 +41,10 @@ def mock_get_tesseract_variables() -> set[str]:
 @pytest.fixture
 def mock_ocr_setup(mocker: pytest.MockerFixture) -> None:
     """Fixture for ocr setup."""
+    mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/5/tessdata/", None),
+    )
     mocker.patch(
         "scantpaper.postprocess_controls.get_tesseract_codes",
         side_effect=mock_get_tesseract_codes,
@@ -730,3 +734,217 @@ def test_engine_property() -> None:
         available_engines=[["tesseract", "Tesseract", "Desc"]], engine="tesseract"
     )
     assert controls.get_property("engine") == "tesseract"
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_tessdata_dir_row() -> None:
+    """The tessdata directory row shows the stored value and a placeholder."""
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]],
+        language="eng",
+        tessdata_dir="/models/tessdata_best",
+        active=True,
+    )
+    assert controls.tessdata_dir == "/models/tessdata_best"
+    assert controls._tessdata_entry.get_text() == "/models/tessdata_best"
+    assert "Default" in (controls._tessdata_entry.get_placeholder_text() or "")
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_tessdata_dir_used_for_language_list(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """The resolved directory is used to list languages."""
+    mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=("/models/tessdata_best/", None),
+    )
+    codes = mocker.patch(
+        "scantpaper.postprocess_controls.get_tesseract_codes",
+        return_value=["eng"],
+    )
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]],
+        language="eng",
+        tessdata_dir="/models/tessdata_best",
+        active=True,
+    )
+    assert controls.validation_error is None
+    codes.assert_called_once_with("/models/tessdata_best/")
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_tessdata_dir_error_blocks(mocker: pytest.MockerFixture) -> None:
+    """A directory error is reported and no language discovery runs."""
+    mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=(None, "not a tessdata directory"),
+    )
+    codes = mocker.patch(
+        "scantpaper.postprocess_controls.get_tesseract_codes",
+        return_value=["eng"],
+    )
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]],
+        language="eng",
+        tessdata_dir="/models/empty",
+        active=True,
+    )
+    codes.assert_not_called()
+    assert controls.validation_error == "not a tessdata directory"
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_tessdata_dir_change_rebuilds_languages(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Changing the directory rebuilds the list and preserves the selection."""
+    mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=("/models/system/", None),
+    )
+    mocker.patch(
+        "scantpaper.postprocess_controls.get_tesseract_codes",
+        return_value=["eng", "deu"],
+    )
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]],
+        language="deu",
+        active=True,
+    )
+    assert controls.language == "deu"
+
+    mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=("/models/best/", None),
+    )
+    codes = mocker.patch(
+        "scantpaper.postprocess_controls.get_tesseract_codes",
+        return_value=["fra"],
+    )
+    controls._tessdata_entry.set_text("/models/best")
+    controls.on_tessdata_dir_changed()
+
+    codes.assert_called_once_with("/models/best/")
+    assert controls.tessdata_dir == "/models/best"
+    assert controls.language == "deu"
+    assert "not installed" in controls._primary_cmbx.get_active_text()
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_tessdata_dir_reset_to_default(mocker: pytest.MockerFixture) -> None:
+    """The Default button clears the entry and uses the system directory."""
+    resolve = mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=("/models/best/", None),
+    )
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]],
+        language="eng",
+        tessdata_dir="/models/best",
+        active=True,
+    )
+    resolve.return_value = ("/usr/share/tesseract-ocr/5/tessdata/", None)
+    codes = mocker.patch(
+        "scantpaper.postprocess_controls.get_tesseract_codes",
+        return_value=["eng"],
+    )
+    controls._reset_tessdata_dir(MagicMock())
+
+    assert controls.tessdata_dir == ""
+    codes.assert_called_once_with("/usr/share/tesseract-ocr/5/tessdata/")
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_tessdata_dir_setter_updates_entry() -> None:
+    """Setting tessdata_dir updates the entry and clears it with None."""
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]],
+        language="eng",
+        active=True,
+    )
+    controls.tessdata_dir = "/models/best"
+    assert controls.tessdata_dir == "/models/best"
+    assert controls._tessdata_entry.get_text() == "/models/best"
+
+    controls.tessdata_dir = None
+    assert controls.tessdata_dir == ""
+    assert controls._tessdata_entry.get_text() == ""
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_choose_tessdata_dir_ok(mocker: pytest.MockerFixture) -> None:
+    """Browsing for a directory updates the entry and reloads languages."""
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]],
+        language="eng",
+        tessdata_dir="/models/best",
+        active=True,
+    )
+    mock_dialog = mocker.Mock()
+    mocker.patch(
+        "scantpaper.postprocess_controls.Gtk.FileChooserDialog",
+        return_value=mock_dialog,
+    )
+    mocker.patch(
+        "scantpaper.postprocess_controls.run_dialog",
+        return_value=Gtk.ResponseType.OK,
+    )
+    mocker.patch(
+        "scantpaper.postprocess_controls.chooser_path",
+        return_value="/models/best2",
+    )
+    resolve = mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=("/models/best2/", None),
+    )
+    controls._choose_tessdata_dir(MagicMock())
+
+    mock_dialog.set_current_folder.assert_called_once()
+    mock_dialog.destroy.assert_called_once()
+    resolve.assert_called_once_with("/models/best2")
+    assert controls.tessdata_dir == "/models/best2"
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_choose_tessdata_dir_cancel(mocker: pytest.MockerFixture) -> None:
+    """Cancelling the chooser leaves the directory unchanged."""
+    mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=(None, None),
+    )
+    controls = OCRControls(
+        available_engines=[["tesseract", "Tesseract", "Desc"]],
+        language="eng",
+        active=True,
+    )
+    mock_dialog = mocker.Mock()
+    mocker.patch(
+        "scantpaper.postprocess_controls.Gtk.FileChooserDialog",
+        return_value=mock_dialog,
+    )
+    mocker.patch(
+        "scantpaper.postprocess_controls.run_dialog",
+        return_value=Gtk.ResponseType.CANCEL,
+    )
+    chooser_path = mocker.patch("scantpaper.postprocess_controls.chooser_path")
+    controls._choose_tessdata_dir(MagicMock())
+
+    mock_dialog.set_current_folder.assert_not_called()
+    mock_dialog.destroy.assert_called_once()
+    chooser_path.assert_not_called()
+    assert controls.tessdata_dir == ""
+
+
+@pytest.mark.usefixtures("mock_ocr_setup")
+def test_tessdata_dir_without_tesseract() -> None:
+    """The tessdata directory works without a language control."""
+    controls = OCRControls(
+        available_engines=[],
+        language=None,
+        active=False,
+        tessdata_dir="/models/best",
+    )
+    assert controls.tessdata_dir == "/models/best"
+    controls.tessdata_dir = "/models/best2"
+    assert controls.tessdata_dir == "/models/best2"

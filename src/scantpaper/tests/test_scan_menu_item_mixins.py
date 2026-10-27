@@ -88,6 +88,7 @@ def mock_scan_window(mocker: pytest.MockerFixture) -> object:
         "ocr psm": "",
         "ocr engine mode": "default",
         "tesseract variables": "",
+        "tessdata directory": "",
         "threshold-before-ocr": False,
         "threshold tool": 0,
         "user_defined_tools": [],
@@ -446,6 +447,33 @@ def test_add_postprocessing_options_validation_error_sets_skip_flag(
     assert mock_scan_window._skip_ocr_batch is True
 
 
+def test_add_postprocessing_options_tessdata_dir(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """The scan dialog stores the tessdata directory and passes it to OCR."""
+    mock_widget = mocker.Mock()
+    mock_widget.notebook = mocker.Mock()
+    callbacks = {}
+    mock_widget.connect.side_effect = lambda s, c: callbacks.update({s: c})
+
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+    mock_ocr_cls = mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    mock_ocr = mock_ocr_cls.return_value
+    mock_ocr.active = True
+    mock_ocr.engine = "tesseract"
+    mock_ocr.language = "eng"
+    mock_ocr.variables = ""
+    mock_ocr.tessdata_dir = "/models/tessdata_best"
+    mock_ocr.validation_error = None
+    mock_scan_window.settings["tessdata directory"] = "/models/system"
+
+    mock_scan_window.add_postprocessing_options(mock_widget)
+    callbacks["clicked-scan-button"](None)
+
+    assert mock_ocr_cls.call_args.kwargs["tessdata_dir"] == "/models/system"
+    assert mock_scan_window.settings["tessdata directory"] == "/models/tessdata_best"
+
+
 def test_new_scan_callback_forwards_variables(mock_scan_window: object) -> None:
     """Test _new_scan_callback forwards tesseract variables."""
     mock_image = MagicMock()
@@ -453,6 +481,7 @@ def test_new_scan_callback_forwards_variables(mock_scan_window: object) -> None:
     mock_scan_window.settings["tesseract variables"] = "user_words_file=/tmp/w.txt"
     mock_scan_window.settings["ocr psm"] = "6"
     mock_scan_window.settings["ocr engine mode"] = "legacy"
+    mock_scan_window.settings["tessdata directory"] = "/models/tessdata_best"
 
     mock_scan_window._new_scan_callback(None, mock_image, None, "single", 300, 300)
 
@@ -460,6 +489,7 @@ def test_new_scan_callback_forwards_variables(mock_scan_window: object) -> None:
     assert call_kwargs["variables"] == "user_words_file=/tmp/w.txt"
     assert call_kwargs["psm"] == "6"
     assert call_kwargs["engine_mode"] == "legacy"
+    assert call_kwargs["tessdata_dir"] == "/models/tessdata_best"
 
 
 def test_new_scan_callback_skips_ocr_when_validation_failed(

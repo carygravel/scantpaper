@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import cast
 
 import gi
@@ -9,6 +10,7 @@ import gi
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import PERCENT
 from scantpaper.gobject import property_
+from scantpaper.helpers import chooser_path, run_dialog
 from scantpaper.i18n import _
 from scantpaper.tesseract import (
     ENGINE_MODE_DEFAULT,
@@ -20,6 +22,7 @@ from scantpaper.tesseract import (
     languages,
     page_segmentation_modes,
     parse_variables,
+    resolve_tessdata_dir,
     split_language_spec,
     validate_file_variables,
     validate_language_spec,
@@ -28,6 +31,7 @@ from scantpaper.tesseract import (
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
+    Gio,
     GObject,
     Gtk,
 )
@@ -277,6 +281,9 @@ class OCRControls(Gtk.Box):
         blurb="List of available OCR engines",
     )
     _engine = None
+    _tessdata_path: str | None = None
+    _tessdata_dir_error: str | None = None
+    _tessdata_entry: Gtk.Entry
 
     @property_(
         type=str,
@@ -363,6 +370,21 @@ class OCRControls(Gtk.Box):
         if hasattr(self, "_engine_mode_cmbx"):
             self._set_combo_index(self._engine_mode_cmbx, self._engine_mode)
 
+    _tessdata_dir = ""
+
+    @property
+    def tessdata_dir(self) -> str:
+        """Getter for the tessdata directory."""
+        if hasattr(self, "_tessdata_entry"):
+            return cast("str", self._tessdata_entry.get_text()).strip()
+        return self._tessdata_dir
+
+    @tessdata_dir.setter
+    def tessdata_dir(self, newval: object) -> None:
+        self._tessdata_dir = "" if newval is None else str(newval)
+        if hasattr(self, "_tessdata_entry"):
+            self._tessdata_entry.set_text(self._tessdata_dir)
+
     @staticmethod
     def _set_combo_index(cmbx: ComboBoxText, value: object) -> None:
         """Select the row whose index value matches, else the first row."""
@@ -432,16 +454,13 @@ class OCRControls(Gtk.Box):
         variables = kwargs.pop("variables", "")
         psm = kwargs.pop("psm", "")
         engine_mode = kwargs.pop("engine_mode", ENGINE_MODE_DEFAULT)
+        tessdata_dir = kwargs.pop("tessdata_dir", "")
         super().__init__(*args, **kwargs)
         self._variables = "" if variables is None else str(variables)
+        self._tessdata_dir = "" if tessdata_dir is None else str(tessdata_dir)
         self.psm = psm
         self.engine_mode = engine_mode
-        self._syncing = False
-        self._primary_language: str | None = None
-        self._additional_languages: list[str] = []
-        self._tesscodes: list[str] = []
-        self._langs: dict[str, str] = {}
-        self._additional_checks: dict[str, Gtk.CheckButton] = {}
+        self._init_ocr_state()
         self.set_orientation(orientation=Gtk.Orientation.VERTICAL)
         hboxo = Gtk.Box()
         self.append(hboxo)
@@ -501,6 +520,17 @@ class OCRControls(Gtk.Box):
         )
         self._threshold_spin.connect("value-changed", self.on_threshold_changed)
 
+    def _init_ocr_state(self) -> None:
+        """Initialise the transient OCR option state."""
+        self._syncing = False
+        self._primary_language: str | None = None
+        self._additional_languages: list[str] = []
+        self._tesscodes: list[str] = []
+        self._langs: dict[str, str] = {}
+        self._tessdata_path = None
+        self._tessdata_dir_error = None
+        self._additional_checks: dict[str, Gtk.CheckButton] = {}
+
     def on_toggled_active(self, checkbox: Gtk.CheckButton, hboxtl: Gtk.Box) -> None:
         """React to OCR active checkbox toggle."""
         self.active = checkbox.get_active()
@@ -537,6 +567,9 @@ class OCRControls(Gtk.Box):
     @property
     def validation_error(self) -> str | None:
         """Return a user-facing error for the current OCR options."""
+        tessdata_error = self._tessdata_dir_error
+        if tessdata_error is not None:
+            return tessdata_error
         if self.language is None or self.language == "":
             return _("No OCR language selected.")
         missing = validate_language_spec(self.language, self._tesscodes)
@@ -570,8 +603,8 @@ class OCRControls(Gtk.Box):
     def _add_tess_language_controls(self) -> Gtk.Box:
         self._options_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.append(self._options_box)
-        self._tesscodes = get_tesseract_codes()
-        self._langs = languages(self._tesscodes)
+        self._apply_tessdata_dir()
+        self._add_tessdata_controls()
 
         hbox = Gtk.Box()
         self._options_box.append(hbox)
@@ -602,6 +635,88 @@ class OCRControls(Gtk.Box):
         self._add_mode_controls()
         self._add_advanced_options()
         return self._options_box
+
+    def _apply_tessdata_dir(self) -> None:
+        """Resolve the tessdata directory and rebuild the language list."""
+        path, error = resolve_tessdata_dir(self.tessdata_dir)
+        self._tessdata_path = path
+        self._tessdata_dir_error = error
+        self._set_tesscodes([] if error is not None else get_tesseract_codes(path))
+
+    def _set_tesscodes(self, codes: list[str]) -> None:
+        """Use a new language list, keeping the current selection."""
+        self._tesscodes = codes
+        self._langs = languages(codes)
+        if not hasattr(self, "_primary_cmbx"):
+            return
+        self._syncing = True
+        try:
+            self._load_language()
+        finally:
+            self._syncing = False
+
+    def _add_tessdata_controls(self) -> None:
+        hbox = Gtk.Box()
+        self._options_box.append(hbox)
+        hbox.append(Gtk.Label(label=_("Tessdata directory")))
+
+        self._tessdata_entry = Gtk.Entry()
+        self._tessdata_entry.set_placeholder_text(_("Default (system tessdata)"))
+        self._tessdata_entry.set_tooltip_text(
+            _(
+                "Directory that directly contains the Tesseract .traineddata "
+                "language files. Leave empty for the system default."
+            )
+        )
+        self._tessdata_entry.set_text(self._tessdata_dir)
+        self._tessdata_entry.set_hexpand(True)
+        self._tessdata_entry.connect("activate", self.on_tessdata_dir_changed)
+        focus_controller = Gtk.EventControllerFocus()
+        focus_controller.connect("leave", self.on_tessdata_dir_changed)
+        self._tessdata_entry.add_controller(focus_controller)
+        hbox.append(self._tessdata_entry)
+
+        browse = Gtk.Button(label=_("Browse"))
+        browse.set_tooltip_text(_("Choose the tessdata directory"))
+        browse.connect("clicked", self._choose_tessdata_dir)
+        hbox.append(browse)
+
+        default = Gtk.Button(label=_("Default"))
+        default.set_tooltip_text(_("Use the system tessdata directory"))
+        default.connect("clicked", self._reset_tessdata_dir)
+        hbox.append(default)
+
+    def on_tessdata_dir_changed(self, *_args: object) -> None:
+        """React to a change of the tessdata directory."""
+        self._tessdata_dir = self._tessdata_entry.get_text().strip()
+        self._tessdata_entry.set_text(self._tessdata_dir)
+        self._apply_tessdata_dir()
+
+    def _choose_tessdata_dir(self, _button: Gtk.Button) -> None:
+        file_chooser = Gtk.FileChooserDialog(
+            title=_("Select tessdata directory"),
+            transient_for=cast("Gtk.Window | None", self.get_root()),
+            action=Gtk.FileChooserAction.SELECT_FOLDER,
+        )
+        file_chooser.add_buttons(
+            _("Cancel"),
+            Gtk.ResponseType.CANCEL,
+            _("OK"),
+            Gtk.ResponseType.OK,
+        )
+        current = self._tessdata_path or self.tessdata_dir
+        if current:
+            file_chooser.set_current_folder(
+                Gio.File.new_for_path(str(Path(current).expanduser()))
+            )
+        if run_dialog(file_chooser) == Gtk.ResponseType.OK:
+            self._tessdata_entry.set_text(chooser_path(file_chooser))
+            self.on_tessdata_dir_changed()
+        file_chooser.destroy()
+
+    def _reset_tessdata_dir(self, _button: Gtk.Button) -> None:
+        self._tessdata_entry.set_text("")
+        self.on_tessdata_dir_changed()
 
     def _add_mode_controls(self) -> None:
         psm_box = Gtk.Box()

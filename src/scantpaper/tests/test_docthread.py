@@ -26,107 +26,13 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def test_do_tesseract_path_fallback(mocker: pytest.MockerFixture) -> None:
-    """Test do_tesseract when path is ./."""
-    # Mock DocThread to avoid real DB connection if possible, but here we just
-    # spoof _write_tid.
-    # Using a memory database for simplicity in this test
-    thread = DocThread(db=":memory:")
-    thread._write_tid = threading.get_native_id()
-
-    # Mock get_languages to return path="./"
-    mocker.patch("tesserocr.get_languages", return_value=("./", []))
-
-    # Mock glob to simulate finding tessdata
-    mock_glob = mocker.patch.object(
-        pathlib.Path, "glob", return_value=["/usr/share/tesseract-ocr/4.00/tessdata"]
-    )
-
-    # Mock PyTessBaseAPI
-    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
-    mock_api_instance = mock_api.return_value
-    mock_api_instance.__enter__.return_value = mock_api_instance
-
-    # Mock Page
-    mock_page = mocker.Mock(spec=Page)
-    mock_page.image_object = mocker.Mock()
-    mock_page.id = 1
-
-    # Mock get_page
-    mocker.patch.object(thread, "get_page", return_value=mock_page)
-
-    # Mock replace_page and other methods that hit DB
-    mocker.patch.object(thread, "replace_page")
-
-    # Mock cancel
-    thread.cancel = False
-
-    request = mocker.Mock()
-    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
-
-    thread.do_tesseract(request)
-
-    # Check if glob was called
-    mock_glob.assert_called_with("*/tessdata")
-
-    # Check if the engine was initialised with the found path
-    mock_api.assert_called_with(init=False)
-    mock_api_instance.InitFull.assert_called_once_with(
-        path="/usr/share/tesseract-ocr/4.00/tessdata",
-        lang="eng",
-        variables={},
-        oem=tesserocr.OEM.DEFAULT,
-    )
-
-
-def test_do_tesseract_path_fallback_suse(mocker: pytest.MockerFixture) -> None:
-    """Test do_tesseract when path is ./ and tessdata found via SUSE flat layout."""
-    thread = DocThread(db=":memory:")
-    thread._write_tid = threading.get_native_id()
-
-    mocker.patch("tesserocr.get_languages", return_value=("./", []))
-    mocker.patch.object(pathlib.Path, "glob", return_value=[])
-    mocker.patch.object(
-        pathlib.Path,
-        "is_dir",
-        autospec=True,
-        side_effect=lambda self: (
-            self == pathlib.Path("/usr/share/tesseract-ocr/tessdata")
-        ),
-    )
-
-    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
-    mock_api_instance = mock_api.return_value
-    mock_api_instance.__enter__.return_value = mock_api_instance
-
-    mock_page = mocker.Mock(spec=Page)
-    mock_page.image_object = mocker.Mock()
-    mock_page.id = 1
-    mocker.patch.object(thread, "get_page", return_value=mock_page)
-    mocker.patch.object(thread, "replace_page")
-    thread.cancel = False
-
-    request = mocker.Mock()
-    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
-
-    thread.do_tesseract(request)
-
-    mock_api.assert_called_with(init=False)
-    mock_api_instance.InitFull.assert_called_once_with(
-        path="/usr/share/tesseract-ocr/tessdata",
-        lang="eng",
-        variables={},
-        oem=tesserocr.OEM.DEFAULT,
-    )
-
-
 def test_do_tesseract_in_memory_pixels(mocker: pytest.MockerFixture) -> None:
     """Test do_tesseract feeds page pixels to tesseract in memory."""
     thread = DocThread(db=":memory:")
 
     mocker.patch(
-        "tesserocr.get_languages",
-        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", None),
     )
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
@@ -169,8 +75,8 @@ def test_do_tesseract_variables(mocker: pytest.MockerFixture) -> None:
     thread._write_tid = threading.get_native_id()
 
     mocker.patch(
-        "tesserocr.get_languages",
-        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", None),
     )
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
@@ -215,8 +121,8 @@ def test_do_tesseract_segmentation_and_engine_mode(
     thread._write_tid = threading.get_native_id()
 
     mocker.patch(
-        "tesserocr.get_languages",
-        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", None),
     )
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
@@ -258,8 +164,8 @@ def test_do_tesseract_default_modes(mocker: pytest.MockerFixture) -> None:
     thread._write_tid = threading.get_native_id()
 
     mocker.patch(
-        "tesserocr.get_languages",
-        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", None),
     )
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
@@ -303,8 +209,8 @@ def test_do_tesseract_logs_resolved_variables(
     thread._write_tid = threading.get_native_id()
 
     mocker.patch(
-        "tesserocr.get_languages",
-        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", None),
     )
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
@@ -341,8 +247,8 @@ def test_do_tesseract_unknown_variable(mocker: pytest.MockerFixture) -> None:
     thread._write_tid = threading.get_native_id()
 
     mocker.patch(
-        "tesserocr.get_languages",
-        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", None),
     )
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
@@ -379,8 +285,8 @@ def test_do_tesseract_init_failure(mocker: pytest.MockerFixture) -> None:
     thread._write_tid = threading.get_native_id()
 
     mocker.patch(
-        "tesserocr.get_languages",
-        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", None),
     )
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
@@ -405,112 +311,6 @@ def test_do_tesseract_init_failure(mocker: pytest.MockerFixture) -> None:
     assert "init failed" in str(excinfo.value)
     mock_page.import_hocr.assert_not_called()
     replace_page.assert_not_called()
-
-
-def test_do_tesseract_path_fallback_not_found(
-    temp_db: object, mocker: pytest.MockerFixture
-) -> None:
-    """Test do_tesseract when path is ./ and no system tessdata found."""
-    thread = DocThread(db=temp_db.name)
-    thread._write_tid = threading.get_native_id()
-
-    # Mock get_languages to return path="./"
-    mocker.patch("tesserocr.get_languages", return_value=("./", []))
-
-    # Mock glob to return empty list
-    mocker.patch.object(pathlib.Path, "glob", return_value=[])
-    mocker.patch("shutil.which", return_value=None)
-
-    # Mock PyTessBaseAPI to prevent RuntimeError
-    mocker.patch("tesserocr.PyTessBaseAPI")
-
-    # Mock get_page
-    mock_page = mocker.Mock(spec=Page)
-    mock_page.image_object = mocker.Mock()
-    mock_page.id = 1
-    mock_page.image_id = 1
-    mocker.patch.object(thread, "get_page", return_value=mock_page)
-
-    # Mock finding page number
-    # Mock DB operations
-    mocker.patch.object(thread, "_execute")
-    mocker.patch.object(thread, "_fetchone", return_value=[1])
-    mocker.patch.object(thread, "_fetchall", return_value=[])
-    mocker.patch.object(thread, "_take_snapshot")
-    mocker.patch.object(thread, "_insert_image", return_value=(1, "thumb"))
-    mocker.patch.object(thread, "_insert_page", return_value=1)
-    mocker.patch.object(thread, "_bytes_to_pixbuf", return_value="thumb")
-
-    # Mock _con for commit
-    thread._con[threading.get_native_id()] = mocker.Mock()
-
-    request = mocker.Mock()
-    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
-
-    thread.do_tesseract(request)
-
-    # Check if error was reported
-    request.error.assert_called()
-    assert "tessdata directory not found" in str(request.error.call_args)
-
-
-def test_do_tesseract_path_fallback_symlink(
-    temp_db: object, mocker: pytest.MockerFixture
-) -> None:
-    """Test do_tesseract when path is ./ and tessdata found via symlink."""
-    thread = DocThread(db=temp_db.name)
-    thread._write_tid = threading.get_native_id()
-
-    # Mock get_languages to return path="./"
-    mocker.patch("tesserocr.get_languages", return_value=("./", []))
-
-    # Mock glob to return empty list
-    mocker.patch.object(pathlib.Path, "glob", return_value=[])
-
-    # Mock shutil.which to return a path
-    mocker.patch("shutil.which", return_value="/usr/local/bin/tesseract")
-
-    # Mock Path
-    mock_path = mocker.patch("scantpaper.docthread.Path", autospec=True)
-    mock_tess_path = mock_path.return_value
-    mock_tess_path.is_dir.return_value = False
-    mock_tess_path.is_symlink.return_value = True
-
-    mock_resolved = mock_tess_path.resolve.return_value
-    mock_tessdata = mock_resolved.__truediv__.return_value.resolve.return_value
-    mock_tessdata.exists.return_value = True
-    # In Python, str(mock) returns a string representation of the mock,
-    # we need to mock the __str__ method to return our desired path.
-    mock_tessdata.__str__.return_value = "/usr/local/share/tessdata"
-
-    # Mock PyTessBaseAPI
-    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
-    mock_api_instance = mock_api.return_value
-    mock_api_instance.__enter__.return_value = mock_api_instance
-
-    # Mock Page
-    mock_page = mocker.Mock(spec=Page)
-    mock_page.image_object = mocker.Mock()
-    mock_page.id = 1
-    mock_page.image_id = 1
-    mocker.patch.object(thread, "get_page", return_value=mock_page)
-
-    # Mock DB operations
-    mocker.patch.object(thread, "replace_page")
-
-    request = mocker.Mock()
-    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
-
-    thread.do_tesseract(request)
-
-    # Check if PyTessBaseAPI was initialized with the path from symlink
-    mock_api.assert_called_with(init=False)
-    mock_api_instance.InitFull.assert_called_once_with(
-        path="/usr/local/share/tessdata",
-        lang="eng",
-        variables={},
-        oem=tesserocr.OEM.DEFAULT,
-    )
 
 
 def test_calculate_crop_tuples(mocker: pytest.MockerFixture) -> None:
@@ -1550,8 +1350,8 @@ def test_ocr_undo_redo(temp_db: object, mocker: pytest.MockerFixture) -> None:
     image_id_before = thread.get_page(id=page_id).image_id
 
     mocker.patch(
-        "tesserocr.get_languages",
-        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", []),
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/4.00/tessdata", None),
     )
     mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
     mock_api_instance = mock_api.return_value
@@ -2072,3 +1872,83 @@ def test_single_op_outside_batch_records_one_step(
     thread.do_rotate(mocker.Mock(args=[{"page": p1, "angle": 90, "dir": "/tmp"}]))
 
     assert thread._action_id == base + 1, "single op records one undo step"
+
+
+def test_do_tesseract_explicit_tessdata_dir(mocker: pytest.MockerFixture) -> None:
+    """Test do_tesseract passes the selected tessdata directory to the engine."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    resolve = mocker.patch(
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=("/models/tessdata_best/", None),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+    mock_api_instance = mock_api.return_value
+    mock_api_instance.__enter__.return_value = mock_api_instance
+    mock_api_instance.GetHOCRText.return_value = "hocr content"
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "page": 1,
+            "language": "eng",
+            "tessdata_dir": "/models/tessdata_best",
+            "dir": "/tmp",
+        }
+    ]
+
+    thread.do_tesseract(request)
+
+    resolve.assert_called_once_with("/models/tessdata_best")
+    mock_api_instance.InitFull.assert_called_once_with(
+        path="/models/tessdata_best/",
+        lang="eng",
+        variables={},
+        oem=tesserocr.OEM.DEFAULT,
+    )
+
+
+def test_do_tesseract_rejects_invalid_tessdata_dir(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Test an invalid tessdata directory leaves the page untouched."""
+    thread = DocThread(db=":memory:")
+    thread._write_tid = threading.get_native_id()
+
+    mocker.patch(
+        "scantpaper.docthread.resolve_tessdata_dir",
+        return_value=(
+            None,
+            (
+                "No Tesseract language data was found in the tessdata directory: "
+                "/models/empty"
+            ),
+        ),
+    )
+    mock_api = mocker.patch("tesserocr.PyTessBaseAPI")
+
+    mock_page = mocker.Mock(spec=Page)
+    mock_page.image_object = Image.new("RGB", (2, 3), color=(255, 0, 0))
+    mock_page.id = 1
+    mocker.patch.object(thread, "get_page", return_value=mock_page)
+    replace_page = mocker.patch.object(thread, "replace_page")
+    thread.cancel = False
+
+    request = mocker.Mock()
+    request.args = [{"page": 1, "language": "eng", "dir": "/tmp"}]
+
+    thread.do_tesseract(request)
+
+    request.error.assert_called_once()
+    assert "No Tesseract language data" in request.error.call_args.args[0]
+    mock_api.assert_not_called()
+    mock_page.import_hocr.assert_not_called()
+    replace_page.assert_not_called()

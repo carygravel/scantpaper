@@ -16,6 +16,7 @@ from scantpaper.helpers import Proc
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.tesseract import (
     _iso639_1to3,
+    find_system_tessdata_dir,
     get_tesseract_codes,
     get_tesseract_variables,
     join_language_spec,
@@ -23,9 +24,11 @@ from scantpaper.tesseract import (
     locale_installed,
     parse_variables,
     resolve_file_variables,
+    resolve_tessdata_dir,
     split_language_spec,
     validate_file_variables,
     validate_language_spec,
+    validate_tessdata_dir,
     validate_variable_names,
 )
 
@@ -377,3 +380,296 @@ def test_tesseract_with_multiple_languages(
     page = get_page_sync(slist.thread, id=1)
     hocr = page.export_hocr()
     assert re.search(r"quick", hocr), 'Tesseract returned "quick"'
+
+
+def _make_tessdata(path: pathlib.Path) -> pathlib.Path:
+    """Create a directory that looks like a tessdata directory."""
+    path.mkdir(parents=True, exist_ok=True)
+    (path / "eng.traineddata").write_bytes(b"")
+    return path
+
+
+def test_validate_tessdata_dir_accepts_direct_traineddata(
+    tmp_path: pathlib.Path,
+) -> None:
+    """A directory directly containing traineddata is valid."""
+    _make_tessdata(tmp_path)
+    assert validate_tessdata_dir(str(tmp_path)) is None
+
+
+def test_validate_tessdata_dir_rejects_missing(tmp_path: pathlib.Path) -> None:
+    """A missing directory is reported."""
+    error = validate_tessdata_dir(str(tmp_path / "missing"))
+    assert error is not None
+    assert "does not exist" in error
+    assert "missing" in error
+
+
+def test_validate_tessdata_dir_rejects_file(tmp_path: pathlib.Path) -> None:
+    """A file is not a tessdata directory."""
+    path = tmp_path / "eng.traineddata"
+    path.write_bytes(b"")
+    error = validate_tessdata_dir(str(path))
+    assert error is not None
+    assert "not a directory" in error
+
+
+def test_validate_tessdata_dir_rejects_unreadable(tmp_path: pathlib.Path) -> None:
+    """An unreadable directory is reported."""
+    path = tmp_path / "unreadable"
+    path.mkdir()
+    path.chmod(0)
+    try:
+        error = validate_tessdata_dir(str(path))
+    finally:
+        path.chmod(0o755)
+    assert error is not None
+    assert "cannot be read" in error
+
+
+def test_validate_tessdata_dir_rejects_nested_data(tmp_path: pathlib.Path) -> None:
+    """Only traineddata directly in the directory counts."""
+    _make_tessdata(tmp_path / "tessdata")
+    error = validate_tessdata_dir(str(tmp_path))
+    assert error is not None
+    assert "No Tesseract language data" in error
+    assert str((tmp_path / "tessdata").resolve()) + "/" in error
+
+
+def test_find_system_tessdata_dir_from_glob(mocker: pytest.MockerFixture) -> None:
+    """The distribution layout is found with a glob."""
+    mock_glob = mocker.patch.object(
+        pathlib.Path,
+        "glob",
+        return_value=["/usr/share/tesseract-ocr/4.00/tessdata"],
+    )
+    assert find_system_tessdata_dir() == "/usr/share/tesseract-ocr/4.00/tessdata"
+    mock_glob.assert_called_with("*/tessdata")
+
+
+def test_find_system_tessdata_dir_flat_layout(mocker: pytest.MockerFixture) -> None:
+    """The SUSE flat layout is found when no versioned directory exists."""
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
+    mocker.patch.object(
+        pathlib.Path,
+        "is_dir",
+        autospec=True,
+        side_effect=lambda self: (
+            self == pathlib.Path("/usr/share/tesseract-ocr/tessdata")
+        ),
+    )
+    assert find_system_tessdata_dir() == "/usr/share/tesseract-ocr/tessdata"
+
+
+def test_find_system_tessdata_dir_none(mocker: pytest.MockerFixture) -> None:
+    """No guess is returned when no layout matches."""
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=False)
+    mocker.patch("scantpaper.tesseract.shutil.which", return_value=None)
+    assert find_system_tessdata_dir() is None
+
+
+def test_resolve_tessdata_dir_explicit_wins(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An explicit selection wins over TESSDATA_PREFIX."""
+    explicit = _make_tessdata(tmp_path / "best")
+    environment = _make_tessdata(tmp_path / "system")
+    monkeypatch.setenv("TESSDATA_PREFIX", str(environment))
+    path, error = resolve_tessdata_dir(str(explicit))
+    assert error is None
+    assert path == str(explicit.resolve()) + "/"
+
+
+def test_resolve_tessdata_dir_uses_environment(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """TESSDATA_PREFIX is used when nothing is selected."""
+    environment = _make_tessdata(tmp_path / "system")
+    monkeypatch.setenv("TESSDATA_PREFIX", str(environment))
+    path, error = resolve_tessdata_dir("")
+    assert error is None
+    assert path == str(environment.resolve()) + "/"
+
+
+def test_resolve_tessdata_dir_uses_system_default(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mocker: pytest.MockerFixture,
+) -> None:
+    """The system default is used without a selection or environment."""
+    monkeypatch.delenv("TESSDATA_PREFIX", raising=False)
+    system = _make_tessdata(tmp_path / "system")
+    mocker.patch(
+        "scantpaper.tesseract.tesserocr.get_languages",
+        return_value=(str(system), ["eng"]),
+    )
+    path, error = resolve_tessdata_dir("")
+    assert error is None
+    assert path == str(system.resolve()) + "/"
+
+
+def test_resolve_tessdata_dir_does_not_fall_back(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An invalid explicit selection is not replaced by the environment."""
+    environment = _make_tessdata(tmp_path / "system")
+    monkeypatch.setenv("TESSDATA_PREFIX", str(environment))
+    path, error = resolve_tessdata_dir(str(tmp_path / "missing"))
+    assert path is None
+    assert error is not None
+    assert "does not exist" in error
+
+
+def test_resolve_tessdata_dir_rejects_broad_environment(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A broad TESSDATA_PREFIX is rejected without asking tesseract."""
+    _make_tessdata(tmp_path / "tessdata")
+    monkeypatch.setenv("TESSDATA_PREFIX", str(tmp_path))
+    mock_languages = mocker.patch("scantpaper.tesseract.tesserocr.get_languages")
+    path, error = resolve_tessdata_dir("")
+    assert path is None
+    assert error is not None
+    assert "No Tesseract language data" in error
+    mock_languages.assert_not_called()
+
+
+def test_resolve_tessdata_dir_falls_back_from_dot_slash(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mocker: pytest.MockerFixture,
+) -> None:
+    """The distribution fallback is used when tesseract reports ./."""
+    monkeypatch.delenv("TESSDATA_PREFIX", raising=False)
+    system = _make_tessdata(tmp_path / "system")
+    mocker.patch(
+        "scantpaper.tesseract.tesserocr.get_languages",
+        return_value=("./", []),
+    )
+    mocker.patch(
+        "scantpaper.tesseract.find_system_tessdata_dir",
+        return_value=str(system),
+    )
+    path, error = resolve_tessdata_dir("")
+    assert error is None
+    assert path == str(system.resolve()) + "/"
+
+
+def test_get_tesseract_codes_uses_tessdata_dir(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A known directory is passed to tesseract."""
+    mock_exec = mocker.patch("scantpaper.tesseract.exec_command")
+    mock_exec.return_value = Proc(0, "eng\ndeu\n", "")
+    assert get_tesseract_codes("/models/tessdata/") == ["eng", "deu"]
+    mock_exec.assert_called_once_with(
+        ["tesseract", "--list-langs", "--tessdata-dir", "/models/tessdata/"]
+    )
+
+
+def test_get_tesseract_codes_guards_broad_environment(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A broad TESSDATA_PREFIX is rejected before tesseract runs."""
+    _make_tessdata(tmp_path / "tessdata")
+    monkeypatch.setenv("TESSDATA_PREFIX", str(tmp_path))
+    mock_exec = mocker.patch("scantpaper.tesseract.exec_command")
+    assert get_tesseract_codes() == []
+    mock_exec.assert_not_called()
+
+
+def test_get_tesseract_codes_uses_valid_environment(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A valid TESSDATA_PREFIX is passed to tesseract."""
+    environment = _make_tessdata(tmp_path / "system")
+    monkeypatch.setenv("TESSDATA_PREFIX", str(environment))
+    mock_exec = mocker.patch("scantpaper.tesseract.exec_command")
+    mock_exec.return_value = Proc(0, "eng\n", "")
+    assert get_tesseract_codes() == ["eng"]
+    mock_exec.assert_called_once_with(
+        [
+            "tesseract",
+            "--list-langs",
+            "--tessdata-dir",
+            str(environment.resolve()) + "/",
+        ]
+    )
+
+
+def test_validate_tessdata_dir_without_suggestion(tmp_path: pathlib.Path) -> None:
+    """An empty directory with no tessdata child reports no suggestion."""
+    error = validate_tessdata_dir(str(tmp_path))
+    assert error is not None
+    assert "No Tesseract language data" in error
+    assert "Did you mean" not in error
+
+
+def test_validate_tessdata_dir_handles_unreadable_listing(
+    tmp_path: pathlib.Path, mocker: pytest.MockerFixture
+) -> None:
+    """A directory whose listing fails is reported as unreadable."""
+    mocker.patch("scantpaper.tesseract.os.access", return_value=True)
+    mocker.patch.object(pathlib.Path, "iterdir", side_effect=OSError("denied"))
+    error = validate_tessdata_dir(str(tmp_path))
+    assert error is not None
+    assert "No Tesseract language data" in error
+
+
+def test_resolve_tessdata_dir_default_not_found(
+    monkeypatch: pytest.MonkeyPatch, mocker: pytest.MockerFixture
+) -> None:
+    """Tesseract reporting ./ with no guess is an error."""
+    monkeypatch.delenv("TESSDATA_PREFIX", raising=False)
+    mocker.patch(
+        "scantpaper.tesseract.tesserocr.get_languages",
+        return_value=("./", []),
+    )
+    mocker.patch("scantpaper.tesseract.find_system_tessdata_dir", return_value=None)
+    path, error = resolve_tessdata_dir("")
+    assert path is None
+    assert error is not None
+    assert "not found" in error
+
+
+def test_resolve_tessdata_dir_validates_system_default(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mocker: pytest.MockerFixture,
+) -> None:
+    """An invalid system default is reported rather than used."""
+    monkeypatch.delenv("TESSDATA_PREFIX", raising=False)
+    mocker.patch(
+        "scantpaper.tesseract.tesserocr.get_languages",
+        return_value=(str(tmp_path), []),
+    )
+    path, error = resolve_tessdata_dir("")
+    assert path is None
+    assert error is not None
+    assert "No Tesseract language data" in error
+
+
+def test_find_system_tessdata_dir_symlink(
+    tmp_path: pathlib.Path, mocker: pytest.MockerFixture
+) -> None:
+    """The homebrew-style symlink layout is found."""
+    real = tmp_path / "real"
+    (real / "bin").mkdir(parents=True)
+    (real / "share" / "tessdata").mkdir(parents=True)
+    exe = real / "bin" / "tesseract"
+    exe.write_text("")
+    link = tmp_path / "tesseract-link"
+    link.symlink_to(exe)
+
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
+    mocker.patch.object(pathlib.Path, "is_dir", return_value=False)
+    mocker.patch("scantpaper.tesseract.shutil.which", return_value=str(link))
+
+    assert find_system_tessdata_dir() == str(real / "share" / "tessdata")

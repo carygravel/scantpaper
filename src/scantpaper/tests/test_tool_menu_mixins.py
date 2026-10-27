@@ -706,6 +706,7 @@ def test_ocr_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> N
     mock_ocr_controls_instance.variables = "user_words_file=/tmp/words.txt"
     mock_ocr_controls_instance.psm = "7"
     mock_ocr_controls_instance.engine_mode = "lstm"
+    mock_ocr_controls_instance.tessdata_dir = "/models/tessdata_best"
     mock_ocr_controls_instance.validation_error = None
     mock_ocr_controls_instance.threshold = True
     mock_ocr_controls_instance.threshold_value = 50
@@ -713,6 +714,7 @@ def test_ocr_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> N
     mock_tool_window.settings = {
         "ocr engine": "tesseract",
         "ocr language": "eng",
+        "tessdata directory": "/models/system",
         "OCR on scan": False,
         "threshold-before-ocr": False,
         "threshold tool": 0,
@@ -736,6 +738,8 @@ def test_ocr_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> N
     )
     assert mock_tool_window.settings["ocr psm"] == "7"
     assert mock_tool_window.settings["ocr engine mode"] == "lstm"
+    assert mock_tool_window.settings["tessdata directory"] == "/models/tessdata_best"
+    assert mock_ocr_controls_cls.call_args.kwargs["tessdata_dir"] == "/models/system"
     mock_tool_window.slist.ocr_pages.assert_called_once()
     call_kwargs = mock_tool_window.slist.ocr_pages.call_args[1]
     assert call_kwargs["engine"] == "tesseract"
@@ -743,6 +747,7 @@ def test_ocr_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> N
     assert call_kwargs["variables"] == "user_words_file=/tmp/words.txt"
     assert call_kwargs["psm"] == "7"
     assert call_kwargs["engine_mode"] == "lstm"
+    assert call_kwargs["tessdata_dir"] == "/models/tessdata_best"
     assert call_kwargs["threshold"] == 50
     assert call_kwargs["pages"] == ["pageobject"]
 

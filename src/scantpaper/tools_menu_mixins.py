@@ -675,6 +675,7 @@ class ToolsMenuMixins:
             variables=self.settings.get("tesseract variables", ""),
             psm=self.settings.get("ocr psm", ""),
             engine_mode=self.settings.get("ocr engine mode"),
+            tessdata_dir=self.settings.get("tessdata directory", ""),
             active=self.settings["OCR on scan"],
             threshold=self.settings["threshold-before-ocr"],
             threshold_value=self.settings["threshold tool"],
@@ -709,6 +710,7 @@ class ToolsMenuMixins:
             self.settings["tesseract variables"] = ocr_controls.variables
             self.settings["ocr psm"] = ocr_controls.psm
             self.settings["ocr engine mode"] = ocr_controls.engine_mode
+            self.settings["tessdata directory"] = ocr_controls.tessdata_dir
 
         kwargs = {
             "queued_callback": self.post_process_progress.queued,
@@ -725,6 +727,7 @@ class ToolsMenuMixins:
             "variables": self.settings.get("tesseract variables", ""),
             "psm": self.settings.get("ocr psm", ""),
             "engine_mode": self.settings.get("ocr engine mode"),
+            "tessdata_dir": self.settings.get("tessdata directory", ""),
         }
         self.settings["ocr engine"] = engine
         self.settings["threshold-before-ocr"] = ocr_controls.threshold

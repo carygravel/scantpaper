@@ -7,7 +7,6 @@ import json
 import logging
 import pathlib
 import re
-import shutil
 import sqlite3
 import subprocess
 import tempfile
@@ -36,6 +35,7 @@ from scantpaper.tesseract import (
     page_segmentation_modes,
     parse_variables,
     resolve_file_variables,
+    resolve_tessdata_dir,
 )
 
 if TYPE_CHECKING:
@@ -1582,33 +1582,6 @@ class DocThread(SaveThread):
         callbacks = _note_callbacks(kwargs)
         return self.send("tesseract", kwargs, **callbacks)
 
-    def _find_tessdata_path(self) -> list[str]:
-        """Guess the tessdata path if the default is not in use."""
-        paths = sorted(
-            str(p) for p in pathlib.Path("/usr/share/tesseract-ocr").glob("*/tessdata")
-        )
-
-        # SUSE flat layout, Fedora/RHEL
-        if len(paths) == 0:
-            for candidate in [
-                "/usr/share/tesseract-ocr/tessdata",
-                "/usr/share/tessdata",
-            ]:
-                if Path(candidate).is_dir():
-                    paths = [candidate]
-                    break
-
-        # maybe we can guess the path if we have a symlink, e.g. homebrew
-        if len(paths) == 0:
-            tesseract_exe = shutil.which("tesseract")
-            if tesseract_exe is not None:
-                tess_path = Path(tesseract_exe)
-                if tess_path.is_symlink():
-                    tessdata = (tess_path.resolve() / "../../share/tessdata").resolve()
-                    if tessdata.exists():
-                        paths = [str(tessdata)]
-        return paths
-
     def do_tesseract(self, request: Request) -> None:
         """Run tesseract in thread."""
         options = cast("dict[str, Any]", request.args[0])
@@ -1617,15 +1590,11 @@ class DocThread(SaveThread):
             raise ValueError(_("No tesseract language specified"))
         self.check_cancelled()
 
-        # path argument required for systems where tessdata non-standard or not hardcoded;
-        # otherwise current directory is searched for tesseract files
-        path, _languages = tesserocr.get_languages()
-        if path == "./":
-            paths = self._find_tessdata_path()
-            if len(paths) == 0:
-                request.error(_("tessdata directory not found"))
-                return
-            path = paths[0]
+        path, tessdata_error = resolve_tessdata_dir(options.get("tessdata_dir", ""))
+        if tessdata_error is not None:
+            request.error(tessdata_error)
+            return
+        path = cast("str", path)
         variables = resolve_file_variables(
             parse_variables(cast("str | None", options.get("variables", "")))
         )

@@ -390,9 +390,41 @@ written to the log. Invalid or unknown options are reported before any page is
 modified.
 
 The `tessdata_best` language models give more accurate OCR but are larger and
-notably slower, and they only support the LSTM engine. To use them, install
-them in place of the system models and set `TESSDATA_PREFIX` to point at their
-directory if tesseract cannot find them.
+notably slower, and they only support the LSTM engine. Point the **Tessdata
+directory** control (see below) at their directory to use them; the
+`TESSDATA_PREFIX` environment variable and replacing the system models also
+work.
+
+#### Tessdata directory
+
+The **Tessdata directory** control at the top of the OCR options chooses the
+directory that holds the tesseract language data (the `.traineddata` files).
+Leave it empty for the automatic directory, shown in the entry as
+**Default (system tessdata)**; **Browse** picks a folder and **Default**
+clears the choice.
+
+The directory is resolved in this order:
+
+1. the chosen **Tessdata directory**;
+2. the `TESSDATA_PREFIX` environment variable, if it is set;
+3. the system tessdata directory.
+
+A chosen directory must directly contain at least one `.traineddata` file.
+This also applies to `TESSDATA_PREFIX`: point it at the directory that
+contains the files, not at a parent such as `/usr/share`. A broad value makes
+tesseract search the whole tree and hang, so it is rejected with an error
+instead of being used. Nothing falls back to another directory: a wrong path
+is reported before OCR starts.
+
+Changing the directory rebuilds the language list from it. If the current
+language is not present in the new directory it stays selected and is marked
+*(not installed)*, and OCR refuses to start until a language from that
+directory is chosen.
+
+The selected directory is stored with the other OCR options and restored on
+the next start. Tesseract 3's `m_data_sub_dir` parameter no longer exists in
+Tesseract 4 and later, so it is rejected like any other unknown engine
+parameter.
 
 
 ---

@@ -242,6 +242,7 @@ class ScanMenuItemMixins:
             variables=self.settings.get("tesseract variables", ""),
             psm=self.settings.get("ocr psm", ""),
             engine_mode=self.settings.get("ocr engine mode"),
+            tessdata_dir=self.settings.get("tessdata directory", ""),
             active=self.settings["OCR on scan"],
             threshold=self.settings["threshold-before-ocr"],
             threshold_value=self.settings["threshold tool"],
@@ -300,6 +301,7 @@ class ScanMenuItemMixins:
         self.settings["tesseract variables"] = ocr_controls.variables
         self.settings["ocr psm"] = ocr_controls.psm
         self.settings["ocr engine mode"] = ocr_controls.engine_mode
+        self.settings["tessdata directory"] = ocr_controls.tessdata_dir
         logger.info("ocr language %s", self.settings["ocr language"])
         validation_error = ocr_controls.validation_error
         if validation_error is not None:
@@ -555,6 +557,7 @@ class ScanMenuItemMixins:
             "variables": self.settings.get("tesseract variables", ""),
             "psm": self.settings.get("ocr psm", ""),
             "engine_mode": self.settings.get("ocr engine mode"),
+            "tessdata_dir": self.settings.get("tessdata directory", ""),
             "queued_callback": self.post_process_progress.queued,
             "started_callback": self.post_process_progress.update,
             "finished_callback": self._import_scan_finished_callback,

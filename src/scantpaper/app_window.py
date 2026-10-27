@@ -41,7 +41,11 @@ from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger
 from scantpaper.progress import Progress
 from scantpaper.scan_menu_item_mixins import ScanMenuItemMixins
 from scantpaper.session_mixins import SessionMixins
-from scantpaper.tesseract import get_tesseract_codes, locale_installed
+from scantpaper.tesseract import (
+    get_tesseract_codes,
+    locale_installed,
+    resolve_tessdata_dir,
+)
 from scantpaper.tools_menu_mixins import ToolsMenuMixins
 from scantpaper.unpaper import Unpaper
 
@@ -556,15 +560,24 @@ class ApplicationWindow(
                     msg += dep.message + "\n"
                 else:
                     lc_messages = locale.setlocale(locale.LC_MESSAGES)
-                    lang_msg = locale_installed(lc_messages, get_tesseract_codes())
-                    if lang_msg == "":
-                        logger.info(
-                            "Using GUI language %s, for which a tesseract language package is present",
-                            lc_messages,
-                        )
+                    tessdata_path, tessdata_error = resolve_tessdata_dir("")
+                    if tessdata_error is not None:
+                        # A broad TESSDATA_PREFIX is reported in the log, not as
+                        # a missing-language package: the language list cannot
+                        # be discovered safely through it.
+                        logger.warning(tessdata_error)
                     else:
-                        logger.warning(lang_msg)
-                        msg += lang_msg
+                        lang_msg = locale_installed(
+                            lc_messages, get_tesseract_codes(tessdata_path)
+                        )
+                        if lang_msg == "":
+                            logger.info(
+                                "Using GUI language %s, for which a tesseract language package is present",
+                                lc_messages,
+                            )
+                        else:
+                            logger.warning(lang_msg)
+                            msg += lang_msg
                 continue
             if not self._dependencies[dep.name]:
                 msg += dep.message + "\n"

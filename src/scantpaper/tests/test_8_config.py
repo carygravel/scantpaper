@@ -883,3 +883,31 @@ def test_unrecognised_editmode_resets_to_default() -> None:
 
         assert output["editmode"] == "text", "an unknown layer falls back to text"
         assert not output.load_warnings, "the reset value raises no user warning"
+
+
+def test_tessdata_directory_defaults_to_empty() -> None:
+    """The tessdata directory defaults to the automatic setting."""
+    assert DEFAULTS["tessdata directory"] == ""
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text("{}", encoding="utf-8")
+
+        output = read_config(str(rc))
+        assert "tessdata directory" not in output, (
+            "the raw config does not invent the key"
+        )
+        add_defaults(output)
+        assert output["tessdata directory"] == "", "add_defaults fills the default"
+
+        output["tessdata directory"] = "/models/tessdata_best"
+        write_config(str(rc), cast("dict[str, object]", cast("object", output)))
+        persisted = json.loads(slurp(rc))
+        assert persisted["tessdata directory"] == "/models/tessdata_best", (
+            "the selection is written"
+        )
+
+        restored = read_config(str(rc))
+        assert restored["tessdata directory"] == "/models/tessdata_best", (
+            "and read back on the next launch"
+        )

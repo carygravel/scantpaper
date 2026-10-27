@@ -5,11 +5,13 @@ from __future__ import annotations
 import logging
 import os
 import re
+import shutil
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import iso639
+import tesserocr
 
 from scantpaper.helpers import exec_command
 from scantpaper.i18n import _
@@ -222,9 +224,124 @@ def engine_mode_name(value: object) -> str:
     return cast("str", engine_modes[0][1])
 
 
-def get_tesseract_codes() -> list[str]:
-    """Query tesseract for installed languages."""
-    proc = exec_command(["tesseract", "--list-langs"])
+def _normalise_tessdata_dir(path: str) -> str:
+    """Return an absolute tessdata path with a trailing separator."""
+    normalised = str(Path(path).expanduser().resolve())
+    return normalised if normalised.endswith(os.sep) else normalised + os.sep
+
+
+def _contains_traineddata(path: Path) -> bool:
+    """Return whether path directly contains a traineddata file."""
+    try:
+        return any(child.suffix == ".traineddata" for child in path.iterdir())
+    except OSError:
+        return False
+
+
+def _nested_tessdata_dirs(path: Path) -> list[str]:
+    """Return immediate subdirectories of path that contain traineddata."""
+    try:
+        children = sorted(child for child in path.iterdir() if child.is_dir())
+    except OSError:
+        return []
+    return [
+        _normalise_tessdata_dir(str(child))
+        for child in children
+        if _contains_traineddata(child)
+    ]
+
+
+def validate_tessdata_dir(path: str) -> str | None:
+    """Return a user-facing error when path is not a tessdata directory."""
+    candidate = Path(path).expanduser()
+    display = str(candidate)
+    if not candidate.exists():
+        return _("The tessdata directory does not exist: %(path)s") % {"path": display}
+    if not candidate.is_dir():
+        return _("The tessdata path is not a directory: %(path)s") % {"path": display}
+    if not os.access(candidate, os.R_OK):
+        return _("The tessdata directory cannot be read: %(path)s") % {"path": display}
+    if _contains_traineddata(candidate):
+        return None
+    error = _(
+        "No Tesseract language data was found in the tessdata directory: %(path)s"
+    ) % {"path": display}
+    suggestions = _nested_tessdata_dirs(candidate)
+    if suggestions:
+        error += " " + _("Did you mean %(path)s?") % {"path": suggestions[0]}
+    return error
+
+
+def find_system_tessdata_dir() -> str | None:
+    """Guess the system tessdata path if the default is not in use."""
+    paths = sorted(str(p) for p in Path("/usr/share/tesseract-ocr").glob("*/tessdata"))
+
+    # SUSE flat layout, Fedora/RHEL
+    if len(paths) == 0:
+        for candidate in [
+            "/usr/share/tesseract-ocr/tessdata",
+            "/usr/share/tessdata",
+        ]:
+            if Path(candidate).is_dir():
+                paths = [candidate]
+                break
+
+    # maybe we can guess the path if we have a symlink, e.g. homebrew
+    if len(paths) == 0:
+        tesseract_exe = shutil.which("tesseract")
+        if tesseract_exe is not None:
+            tess_path = Path(tesseract_exe)
+            if tess_path.is_symlink():
+                tessdata = (tess_path.resolve() / "../../share/tessdata").resolve()
+                if tessdata.exists():
+                    paths = [str(tessdata)]
+    return paths[0] if paths else None
+
+
+def resolve_tessdata_dir(explicit: object = "") -> tuple[str | None, str | None]:
+    """Resolve and validate the tessdata directory in display order.
+
+    The explicit selection wins over TESSDATA_PREFIX, which wins over the
+    system default. An invalid source is an error, never a fallback.
+    """
+    selected = "" if explicit is None else str(explicit).strip()
+    for source in (selected, os.environ.get("TESSDATA_PREFIX")):
+        if source is None or source == "":
+            continue
+        path = _normalise_tessdata_dir(source)
+        error = validate_tessdata_dir(path)
+        if error is not None:
+            return None, error
+        return path, None
+
+    path, _languages = tesserocr.get_languages()
+    if path in ("", "./"):
+        path = find_system_tessdata_dir() or ""
+    if not path:
+        return None, _("tessdata directory not found")
+    resolved = _normalise_tessdata_dir(path)
+    error = validate_tessdata_dir(resolved)
+    if error is not None:
+        return None, error
+    return resolved, None
+
+
+def get_tesseract_codes(path: str | None = None) -> list[str]:
+    """Query tesseract for installed languages.
+
+    Without a path, a TESSDATA_PREFIX that is not a tessdata directory is
+    rejected before tesseract is called, because a broad value makes language
+    discovery recurse through the tree and hang.
+    """
+    if path is None and os.environ.get("TESSDATA_PREFIX") not in (None, ""):
+        path, error = resolve_tessdata_dir("")
+        if error is not None:
+            logger.warning(error)
+            return []
+    command = ["tesseract", "--list-langs"]
+    if path is not None:
+        command.extend(["--tessdata-dir", path])
+    proc = exec_command(command)
     if proc.stdout is None:
         logger.info(proc.stderr)
         return []

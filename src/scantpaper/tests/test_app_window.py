@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import pathlib
 import uuid
 from itertools import cycle
@@ -685,6 +686,10 @@ def test_create_toolbar_tesseract_lang_missing(
         "scantpaper.app_window.locale_installed",
         return_value="Missing language package",
     )
+    mocker.patch(
+        "scantpaper.app_window.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/5/tessdata/", None),
+    )
     mocker.patch("scantpaper.app_window.get_tesseract_codes")
     app_window._show_message_dialog = MagicMock()
 
@@ -694,6 +699,30 @@ def test_create_toolbar_tesseract_lang_missing(
     app_window._show_message_dialog.assert_called()
     _args, kwargs = app_window._show_message_dialog.call_args
     assert "Missing language package" in kwargs["text"]
+
+
+def test_create_toolbar_invalid_tessdata_prefix(
+    app_window: ApplicationWindow,
+    mocker: pytest.MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A broad TESSDATA_PREFIX is logged, not shown as a missing language."""
+    app_window._dependencies["tesseract"] = True
+    mocker.patch(
+        "scantpaper.app_window.resolve_tessdata_dir",
+        return_value=(None, "not a tessdata directory"),
+    )
+    mock_locale_installed = mocker.patch("scantpaper.app_window.locale_installed")
+    mock_codes = mocker.patch("scantpaper.app_window.get_tesseract_codes")
+    app_window._show_message_dialog = MagicMock()
+
+    with caplog.at_level(logging.WARNING, logger="scantpaper.app_window"):
+        app_window._create_toolbar()
+
+    mock_locale_installed.assert_not_called()
+    mock_codes.assert_not_called()
+    assert "not a tessdata directory" in caplog.text
+    assert "not a tessdata directory" not in app_window._missing_packages_message()
 
 
 def test_update_uimanager(app_window: ApplicationWindow) -> None:
