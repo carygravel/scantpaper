@@ -73,6 +73,10 @@
   reachable without the mouse; **Ctrl+Tab** and **Ctrl+Shift+Tab** move focus
   forward and backward. A literal tab character is no longer entered in these
   fields.
+* The OCR dialog now returns to the height it had before the **Advanced
+  Tesseract engine parameters** expander was opened when that expander is
+  collapsed. The **Page Range** frame also keeps its natural height instead of
+  stretching to fill surplus window height in any dialog that shows it.
 * Dialog content no longer runs flush against the window edge, and rows are no
   longer packed together. GTK4 dropped the content-area inset that GTK3 derived
   from the theme, and a box's spacing now defaults to zero, so every dialog sets

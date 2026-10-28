@@ -334,6 +334,17 @@ class TestOCRControls:
         # Check if active button is present
         assert controls._active_button.get_label() == "OCR scanned pages"
 
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_advanced_expander_with_tesseract(self) -> None:
+        """The Tesseract controls expose their advanced expander."""
+        controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
+        assert isinstance(controls.advanced_expander, Gtk.Expander)
+
+    def test_advanced_expander_without_tesseract(self) -> None:
+        """Controls for another engine have no advanced expander."""
+        controls = OCRControls(available_engines=[["gocr", "GOCR", "desc"]])
+        assert controls.advanced_expander is None
+
     def test_properties(self) -> None:
         """Test properties."""
         controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])

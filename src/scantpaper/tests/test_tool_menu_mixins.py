@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import gi
 import pytest
@@ -14,11 +14,15 @@ from scantpaper.helpers import Proc
 from scantpaper.tools_menu_mixins import ToolsMenuMixins
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Callable, Generator
     from typing import ClassVar
+    from unittest.mock import MagicMock
+
+    from scantpaper.loop_helpers import _MainLoopWrapper
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import (  # noqa: E402
+    GLib,
     GObject,
     Gtk,
 )
@@ -83,6 +87,53 @@ def _trigger_apply(mock_dialog_instance: object) -> None:
     # add_actions maps the buttons positionally: confirm first
     apply_cb = args[0][0][1]
     apply_cb()
+
+
+def _wait_until(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    predicate: Callable[[], bool],
+) -> None:
+    """Pump the main loop until predicate() is true (bounded)."""
+    loop = mainloop_with_timeout()
+
+    def poll() -> bool:
+        if predicate():
+            loop.quit()
+            return False
+        return True
+
+    GLib.timeout_add(10, poll)
+    GLib.timeout_add(2000, loop.quit)
+    loop.run()
+
+
+def _open_ocr_dialog_for_height_test(
+    mocker: pytest.MockerFixture,
+    mock_tool_window: object,
+    *,
+    surface: object | None,
+    expander: Gtk.Expander | None,
+) -> MagicMock:
+    """Open a mocked OCR dialog for the height-restoration tests."""
+    mock_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.Dialog")
+    mock_dialog_instance = mock_dialog_cls.return_value
+    mock_dialog_instance.get_content_area.return_value = mocker.Mock()
+    mock_dialog_instance.get_surface.return_value = surface
+
+    mock_ocr_controls_cls = mocker.patch("scantpaper.tools_menu_mixins.OCRControls")
+    mock_ocr_controls_instance = mock_ocr_controls_cls.return_value
+    mock_ocr_controls_instance.advanced_expander = expander
+
+    mock_tool_window.settings = {
+        "ocr engine": "tesseract",
+        "ocr language": "eng",
+        "OCR on scan": False,
+        "threshold-before-ocr": False,
+        "threshold tool": 0,
+    }
+    mock_tool_window._ocr_engine = ["tesseract"]
+    mock_tool_window.ocr_dialog(None, None)
+    return cast("MagicMock", mock_dialog_instance)
 
 
 def test_rotate_90(mock_tool_window: object) -> None:
@@ -751,6 +802,135 @@ def test_ocr_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) -> N
     assert call_kwargs["tessdata_dir"] == "/models/tessdata_best"
     assert call_kwargs["threshold"] == 50
     assert call_kwargs["pages"] == ["pageobject"]
+
+
+def test_ocr_dialog_restores_height_when_advanced_options_collapse(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """Collapsing the advanced options restores the pre-expand height."""
+    surface = mocker.Mock()
+    surface.get_width.return_value = 600
+    surface.get_height.return_value = 620
+    expander = Gtk.Expander()
+    dialog = _open_ocr_dialog_for_height_test(
+        mocker, mock_tool_window, surface=surface, expander=expander
+    )
+
+    expander.set_expanded(True)
+    dialog.set_default_size.assert_not_called()
+
+    expander.set_expanded(False)
+    dialog.set_default_size.assert_called_once_with(600, 620)
+
+
+def test_ocr_dialog_without_surface_skips_height_restore(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """A missing surface does not raise or resize the dialog."""
+    expander = Gtk.Expander()
+    dialog = _open_ocr_dialog_for_height_test(
+        mocker, mock_tool_window, surface=None, expander=expander
+    )
+
+    expander.set_expanded(True)
+    expander.set_expanded(False)
+
+    dialog.set_default_size.assert_not_called()
+
+
+def test_ocr_dialog_without_advanced_expander_does_not_restore_height(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """Controls without an advanced expander do not try to resize."""
+    surface = mocker.Mock()
+    dialog = _open_ocr_dialog_for_height_test(
+        mocker, mock_tool_window, surface=surface, expander=None
+    )
+
+    dialog.set_default_size.assert_not_called()
+
+
+def test_ocr_dialog_collapse_without_prior_expand_does_not_resize(
+    mocker: pytest.MockerFixture, mock_tool_window: object
+) -> None:
+    """A collapse with no recorded height leaves the dialog alone."""
+    surface = mocker.Mock()
+    surface.get_width.return_value = 600
+    surface.get_height.return_value = 620
+    expander = Gtk.Expander()
+    expander.set_expanded(True)
+    dialog = _open_ocr_dialog_for_height_test(
+        mocker, mock_tool_window, surface=surface, expander=expander
+    )
+
+    expander.set_expanded(False)
+
+    dialog.set_default_size.assert_not_called()
+
+
+def test_ocr_dialog_window_restores_height_after_collapse(
+    mocker: pytest.MockerFixture,
+    mock_tool_window: object,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """Collapsing the real expander restores the window height."""
+    mocker.patch(
+        "scantpaper.postprocess_controls.resolve_tessdata_dir",
+        return_value=("/usr/share/tesseract-ocr/5/tessdata/", None),
+    )
+    mocker.patch(
+        "scantpaper.postprocess_controls.get_tesseract_codes",
+        return_value=["eng"],
+    )
+    mocker.patch(
+        "scantpaper.postprocess_controls.languages",
+        return_value={"eng": "English"},
+    )
+    mock_tool_window.settings = {
+        "ocr engine": "tesseract",
+        "ocr language": "eng",
+        "OCR on scan": False,
+        "threshold-before-ocr": False,
+        "threshold tool": 0,
+    }
+    mock_tool_window._ocr_engine = [["tesseract", "Tesseract", "desc"]]
+    mock_tool_window.present()
+    mock_tool_window.ocr_dialog(None, None)
+
+    dialog = mock_tool_window._windowo
+    content = dialog.get_content_area()
+    frame = content.get_first_child()
+    controls = content.get_last_child()
+    expander = controls.advanced_expander
+    assert expander is not None
+
+    natural_frame_height = frame.measure(Gtk.Orientation.VERTICAL, -1)[1]
+    _wait_until(
+        mainloop_with_timeout,
+        lambda: (
+            dialog.get_surface() is not None
+            and dialog.get_surface().get_height() > 0
+            and frame.get_allocation().height == natural_frame_height
+        ),
+    )
+    surface = dialog.get_surface()
+    assert surface is not None
+    initial_height = surface.get_height()
+    initial_frame_height = natural_frame_height
+
+    expander.set_expanded(True)
+    _wait_until(
+        mainloop_with_timeout,
+        lambda: dialog.get_surface().get_height() > initial_height,
+    )
+    expander.set_expanded(False)
+    _wait_until(
+        mainloop_with_timeout,
+        lambda: dialog.get_surface().get_height() == initial_height,
+    )
+
+    assert frame.get_allocation().height == initial_frame_height
+    dialog.destroy()
 
 
 def test_ocr_dialog_no_pages(

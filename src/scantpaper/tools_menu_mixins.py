@@ -684,6 +684,25 @@ class ToolsMenuMixins:
         vbox = self._windowo.get_content_area()
         vbox.append(ocr_controls)
 
+        dialog = self._windowo
+        advanced_height: int | None = None
+
+        def on_advanced_toggled(
+            expander: Gtk.Expander, _pspec: GObject.ParamSpec
+        ) -> None:
+            nonlocal advanced_height
+            surface = dialog.get_surface()
+            if surface is None:
+                return
+            if expander.get_expanded():
+                advanced_height = surface.get_height()
+            elif advanced_height is not None:
+                dialog.set_default_size(surface.get_width(), advanced_height)
+                advanced_height = None
+
+        if (advanced_expander := ocr_controls.advanced_expander) is not None:
+            advanced_expander.connect("notify::expanded", on_advanced_toggled)
+
         def ocr_apply_callback() -> None:
             validation_error = ocr_controls.validation_error
             if validation_error is not None:

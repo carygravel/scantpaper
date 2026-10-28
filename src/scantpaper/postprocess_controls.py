@@ -286,6 +286,7 @@ class OCRControls(Gtk.Box):
     _tessdata_path: str | None = None
     _tessdata_dir_error: str | None = None
     _tessdata_entry: Gtk.Entry
+    _advanced_expander: Gtk.Expander | None = None
 
     @property_(
         type=str,
@@ -386,6 +387,11 @@ class OCRControls(Gtk.Box):
         self._tessdata_dir = "" if newval is None else str(newval)
         if hasattr(self, "_tessdata_entry"):
             self._tessdata_entry.set_text(self._tessdata_dir)
+
+    @property
+    def advanced_expander(self) -> Gtk.Expander | None:
+        """Return the advanced Tesseract expander, if it was created."""
+        return self._advanced_expander
 
     @staticmethod
     def _set_combo_index(cmbx: ComboBoxText, value: object) -> None:

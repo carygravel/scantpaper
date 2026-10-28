@@ -67,7 +67,6 @@ class PageRange(Gtk.Box):
             self.button[nick] = widget
             widget.connect("toggled", on_toggled_event, nick)
             vbox.append(widget)
-            widget.set_vexpand(True)
             if group is None:
                 group = widget
 

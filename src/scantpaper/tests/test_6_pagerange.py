@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import gi
+
 from scantpaper.pagerange import PageRange
+
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk  # noqa: E402
 
 
 class SignalCatch:
@@ -47,3 +52,11 @@ def test_signal() -> None:
     # set to same value, signal should not be emitted
     prg.set_active("all")
     assert not catcher.signal_emitted, "Signal not emitted"
+
+
+def test_page_range_does_not_expand_vertically() -> None:
+    """The page-range frame should keep its natural height."""
+    prg = PageRange()
+    assert not prg.compute_expand(Gtk.Orientation.VERTICAL)
+    for button in prg.button.values():
+        assert not button.get_vexpand(), "radio button requests vertical expansion"
