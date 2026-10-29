@@ -13,7 +13,7 @@ from typing_extensions import override
 
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import DIALOG_ROW_SPACING, PERCENT, POINTS_PER_INCH
-from scantpaper.dialog import Dialog, pad_content_area
+from scantpaper.dialog import Dialog, pad_action_area, pad_content_area
 from scantpaper.dialog.pagecontrols import MAX_PAGES, PageControls
 from scantpaper.dialog.paperlist import PaperList
 from scantpaper.docthread import INSERT_AT_START
@@ -1595,6 +1595,7 @@ def _save_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
     dialog.add_buttons(
         _("OK"), Gtk.ResponseType.OK, _("Cancel"), Gtk.ResponseType.CANCEL
     )
+    pad_action_area(dialog)
     pad_content_area(dialog.get_content_area())
     hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
     label = Gtk.Label(label=_("Name of scan profile"))
@@ -1622,6 +1623,7 @@ def _save_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
                         _("Cancel"),
                         Gtk.ResponseType.CANCEL,
                     )
+                    pad_action_area(dialog2)
                     pad_content_area(dialog2.get_content_area())
                     label = Gtk.Label(label=warning)
                     dialog2.get_content_area().append(label)
@@ -1661,6 +1663,7 @@ def _edit_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
     dialog.add_buttons(
         _("OK"), Gtk.ResponseType.OK, _("Cancel"), Gtk.ResponseType.CANCEL
     )
+    pad_action_area(dialog)
     pad_content_area(dialog.get_content_area())
     label = Gtk.Label(label=msg)
     pack_box(dialog.get_content_area(), label, expand=True)

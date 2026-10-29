@@ -82,6 +82,11 @@
   from the theme, and a box's spacing now defaults to zero, so every dialog sets
   a consistent inset and spacing - including the ones opened from the Tools menu
   and the ones built directly on `Gtk.Dialog`.
+* Dialog action buttons no longer touch each other or the window edge. GTK3's
+  theme supplied the action area's button spacing and border; GTK4's action
+  area is a plain box with zero spacing, so the app now applies a consistent
+  inset and gap to every dialog with separate action buttons, including file
+  choosers. A message dialog keeps its joined button bar.
 * Clicking a word in the text or annotation layer now selects the word under the
   pointer on HiDPI displays and on pages whose horizontal and vertical
   resolutions differ. The click was mapped with an older transform than the one

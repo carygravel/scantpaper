@@ -10,7 +10,7 @@ import gi
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import DIALOG_ROW_SPACING
 from scantpaper.dependencies import jbig2_available
-from scantpaper.dialog import Dialog
+from scantpaper.dialog import Dialog, pad_action_area
 from scantpaper.helpers import (
     chooser_path,
     configure_fractional_spinbutton,
@@ -285,6 +285,7 @@ All document date codes use strftime codes with a leading D, e.g.:
             _("OK"),
             Gtk.ResponseType.OK,
         )
+        pad_action_area(file_chooser)
         file_chooser.set_current_folder(
             Gio.File.new_for_path(self._tmpentry.get_text())
         )

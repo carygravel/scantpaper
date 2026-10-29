@@ -7,7 +7,11 @@ from typing import TYPE_CHECKING, cast
 
 import gi
 
-from scantpaper.const import DIALOG_CONTENT_MARGIN, DIALOG_ROW_SPACING
+from scantpaper.const import (
+    DIALOG_BUTTON_SPACING,
+    DIALOG_CONTENT_MARGIN,
+    DIALOG_ROW_SPACING,
+)
 from scantpaper.i18n import _
 from scantpaper.pagerange import PageRange
 
@@ -35,6 +39,41 @@ def pad_content_area(content: Gtk.Box) -> None:
     content.set_margin_bottom(DIALOG_CONTENT_MARGIN)
     content.set_margin_start(DIALOG_CONTENT_MARGIN)
     content.set_margin_end(DIALOG_CONTENT_MARGIN)
+
+
+def pad_action_area(dialog: Gtk.Dialog) -> None:
+    """Inset and space a dialog's action buttons.
+
+    GTK3 took the action area's inset and the gap between its buttons from
+    the theme. GTK4's action area is a plain GtkBox with spacing 0, so restore
+    both here. The action area is the first child of the box that follows the
+    content area.
+
+    A joined, homogeneous action area - the bar a message dialog presents -
+    keeps its presentation. An empty action area is left alone so a dialog
+    without action buttons does not gain blank space.
+    """
+    content = dialog.get_content_area()
+    action_box = content.get_next_sibling()
+    if action_box is None:
+        return
+
+    action_area = action_box.get_first_child()
+    if action_area is None:
+        return
+
+    action_area = cast("Gtk.Box", action_area)
+    if action_area.get_homogeneous():
+        return
+
+    if action_area.get_first_child() is None:
+        return
+
+    action_area.set_spacing(DIALOG_BUTTON_SPACING)
+    action_area.set_margin_top(DIALOG_CONTENT_MARGIN)
+    action_area.set_margin_bottom(DIALOG_CONTENT_MARGIN)
+    action_area.set_margin_start(DIALOG_CONTENT_MARGIN)
+    action_area.set_margin_end(DIALOG_CONTENT_MARGIN)
 
 
 class Dialog(Gtk.Dialog):
@@ -117,6 +156,7 @@ class Dialog(Gtk.Dialog):
             buttons.append(self.add_button(text, response))
 
         self.set_default_response(Gtk.ResponseType.OK)
+        pad_action_area(self)
 
         def on_response(_widget: Gtk.Widget, response: int) -> None:
             if response in callbacks:

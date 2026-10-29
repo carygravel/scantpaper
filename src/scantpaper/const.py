@@ -101,5 +101,10 @@ VIEWER_MIN_SIZE = 100  # minimum on-screen size of the image view and canvases
 DIALOG_CONTENT_MARGIN = 12
 DIALOG_ROW_SPACING = 6
 
+# GTK3's GtkDialog took the gap between action buttons from the theme; GTK4's
+# action area is a plain GtkBox with spacing 0, so restore a consistent gap
+# between adjacent action buttons.
+DIALOG_BUTTON_SPACING = 6
+
 APPLICATION_ID = 223562788
 USER_VERSION = 3

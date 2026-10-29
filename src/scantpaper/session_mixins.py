@@ -17,7 +17,12 @@ from scantpaper.const import (
     SPACE,
 )
 from scantpaper.dependencies import DEPS
-from scantpaper.dialog import filter_message, pad_content_area, response_stored
+from scantpaper.dialog import (
+    filter_message,
+    pad_action_area,
+    pad_content_area,
+    response_stored,
+)
 from scantpaper.helpers import get_tmp_dir, run_dialog
 from scantpaper.i18n import _
 from scantpaper.layer import LayerEditor
@@ -122,6 +127,7 @@ class SessionMixins:
                 modal=True,
             )
             dialog.add_button(_("OK"), Gtk.ResponseType.OK)
+            pad_action_area(dialog)
             label = Gtk.Label(label=_("Pick crashed session to restore"))
             box = dialog.get_content_area()
             pad_content_area(box)

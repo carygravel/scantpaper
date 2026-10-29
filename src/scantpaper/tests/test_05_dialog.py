@@ -2,12 +2,22 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from typing import cast
+from unittest.mock import MagicMock, patch
 
 import gi
 
-from scantpaper.const import DIALOG_CONTENT_MARGIN, DIALOG_ROW_SPACING
-from scantpaper.dialog import Dialog, MultipleMessage, pad_content_area
+from scantpaper.const import (
+    DIALOG_BUTTON_SPACING,
+    DIALOG_CONTENT_MARGIN,
+    DIALOG_ROW_SPACING,
+)
+from scantpaper.dialog import (
+    Dialog,
+    MultipleMessage,
+    pad_action_area,
+    pad_content_area,
+)
 
 gi.require_version("Gdk", "4.0")
 gi.require_version("Gtk", "4.0")
@@ -160,6 +170,137 @@ def test_pad_content_area() -> None:
     assert content.get_margin_start() == DIALOG_CONTENT_MARGIN, "content margin start"
     assert content.get_margin_end() == DIALOG_CONTENT_MARGIN, "content margin end"
     assert content.get_spacing() == DIALOG_ROW_SPACING, "content spacing"
+
+
+def _action_area(dialog: Gtk.Dialog) -> Gtk.Box:
+    """Return a dialog's action area box."""
+    action_box = dialog.get_content_area().get_next_sibling()
+    assert isinstance(action_box, Gtk.Box)
+    action_area = action_box.get_first_child()
+    assert isinstance(action_area, Gtk.Box)
+    return action_area
+
+
+def test_pad_action_area() -> None:
+    """pad_action_area insets and spaces a dialog's action buttons."""
+    for dialog in (Dialog(), Gtk.Dialog()):
+        dialog.add_button("_OK", Gtk.ResponseType.OK)
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+
+        pad_action_area(dialog)
+        action_area = _action_area(dialog)
+
+        assert action_area.get_spacing() == DIALOG_BUTTON_SPACING, "button spacing"
+        assert action_area.get_margin_top() == DIALOG_CONTENT_MARGIN, (
+            "action margin top"
+        )
+        assert action_area.get_margin_bottom() == DIALOG_CONTENT_MARGIN, (
+            "action margin bottom"
+        )
+        assert action_area.get_margin_start() == DIALOG_CONTENT_MARGIN, (
+            "action margin start"
+        )
+        assert action_area.get_margin_end() == DIALOG_CONTENT_MARGIN, (
+            "action margin end"
+        )
+        dialog.destroy()
+
+
+def test_dialog_add_actions_pads_action_area() -> None:
+    """add_actions gives the action area the shared inset and spacing."""
+    dialog = Dialog()
+    dialog.add_actions([("_OK", lambda: None), ("_Cancel", lambda: None)])
+    action_area = _action_area(dialog)
+
+    assert action_area.get_spacing() == DIALOG_BUTTON_SPACING, "button spacing"
+    assert action_area.get_margin_top() == DIALOG_CONTENT_MARGIN, "action margin top"
+    assert action_area.get_margin_bottom() == DIALOG_CONTENT_MARGIN, (
+        "action margin bottom"
+    )
+    assert action_area.get_margin_start() == DIALOG_CONTENT_MARGIN, (
+        "action margin start"
+    )
+    assert action_area.get_margin_end() == DIALOG_CONTENT_MARGIN, "action margin end"
+    dialog.destroy()
+
+
+def test_pad_action_area_empty() -> None:
+    """An empty action area is left unspaced."""
+    dialog = Gtk.Dialog()
+    pad_action_area(dialog)
+    action_area = _action_area(dialog)
+
+    assert action_area.get_spacing() == 0, "empty action area spacing"
+    assert action_area.get_margin_top() == 0, "empty action area margin top"
+    assert action_area.get_margin_bottom() == 0, "empty action area margin bottom"
+    assert action_area.get_margin_start() == 0, "empty action area margin start"
+    assert action_area.get_margin_end() == 0, "empty action area margin end"
+    dialog.destroy()
+
+
+def test_pad_action_area_without_action_box() -> None:
+    """A dialog without an action box is left alone."""
+    dialog = MagicMock()
+    dialog.get_content_area.return_value = Gtk.Box()
+
+    pad_action_area(cast("Gtk.Dialog", dialog))
+
+
+def test_pad_action_area_without_action_area() -> None:
+    """An action box without an action area is left alone."""
+    parent = Gtk.Box()
+    content = Gtk.Box()
+    action_box = Gtk.Box()
+    parent.append(content)
+    parent.append(action_box)
+
+    dialog = MagicMock()
+    dialog.get_content_area.return_value = content
+
+    pad_action_area(cast("Gtk.Dialog", dialog))
+
+    assert action_box.get_first_child() is None, "action box remains empty"
+
+
+def test_pad_action_area_keeps_joined_message_bar() -> None:
+    """A message dialog keeps its joined, homogeneous action bar."""
+    dialog = Gtk.MessageDialog(buttons=Gtk.ButtonsType.OK_CANCEL)
+    action_area = _action_area(dialog)
+
+    pad_action_area(dialog)
+
+    assert action_area.get_homogeneous(), "joined bar"
+    assert action_area.get_spacing() == 0, "no button spacing"
+    assert action_area.get_margin_top() == 0, "no action margin top"
+    assert action_area.get_margin_bottom() == 0, "no action margin bottom"
+    assert action_area.get_margin_start() == 0, "no action margin start"
+    assert action_area.get_margin_end() == 0, "no action margin end"
+    dialog.destroy()
+
+
+def test_pad_action_area_file_chooser() -> None:
+    """File chooser action buttons get the shared spacing and inset."""
+    dialog = Gtk.FileChooserDialog()
+    dialog.add_buttons(
+        "_Cancel",
+        Gtk.ResponseType.CANCEL,
+        "_Open",
+        Gtk.ResponseType.OK,
+    )
+
+    pad_action_area(dialog)
+    action_area = _action_area(dialog)
+
+    assert action_area.get_spacing() == DIALOG_BUTTON_SPACING, "button spacing"
+    assert action_area.get_margin_top() == DIALOG_CONTENT_MARGIN, "action margin top"
+    assert action_area.get_margin_bottom() == DIALOG_CONTENT_MARGIN, (
+        "action margin bottom"
+    )
+    assert action_area.get_margin_start() == DIALOG_CONTENT_MARGIN, (
+        "action margin start"
+    )
+    assert action_area.get_margin_end() == DIALOG_CONTENT_MARGIN, "action margin end"
+    dialog.destroy()
 
 
 def test_add_actions_limit() -> None:

@@ -213,10 +213,11 @@ you explicitly turn the toggle off.
   Gtk-CRITICAL that GTK 4.24 printed in its place on the first such keystroke.
 - **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
 - **Print:** Print selected/all pages.
-- **Dialogs:** Every dialog insets its content from the window edge and spaces
-  its rows apart, and spaces the controls within a row apart, so no control
-  touches the window border and a label no longer sits flush against the field
-  beside it.
+- **Dialogs:** Every dialog insets its content and its action buttons from the
+  window edge, spaces its rows apart and spaces the controls within a row
+  apart, so no control touches the window border and a label no longer sits
+  flush against the field beside it. Action buttons are also separated from
+  each other; a message dialog keeps its joined button bar.
 
 ### Edit Menu
 

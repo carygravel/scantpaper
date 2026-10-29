@@ -9,6 +9,7 @@ import gi
 
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import DIALOG_ROW_SPACING, PERCENT
+from scantpaper.dialog import pad_action_area
 from scantpaper.gobject import property_
 from scantpaper.helpers import chooser_path, run_dialog
 from scantpaper.i18n import _
@@ -715,6 +716,7 @@ class OCRControls(Gtk.Box):
             _("OK"),
             Gtk.ResponseType.OK,
         )
+        pad_action_area(file_chooser)
         current = self._tessdata_path or self.tessdata_dir
         if current:
             file_chooser.set_current_folder(

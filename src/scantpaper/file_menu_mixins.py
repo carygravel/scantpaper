@@ -18,7 +18,7 @@ import gi
 from scantpaper import config
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import _LOCAL_TZ, ASTERISK, DIALOG_ROW_SPACING, EMPTY, EMPTY_LIST
-from scantpaper.dialog import pad_content_area
+from scantpaper.dialog import pad_action_area, pad_content_area
 from scantpaper.dialog.save import Save as SaveDialog
 from scantpaper.helpers import (
     chooser_path,
@@ -144,6 +144,7 @@ class FileMenuMixins:
             _("Open"),
             Gtk.ResponseType.OK,
         )
+        pad_action_area(file_chooser)
         file_chooser.set_select_multiple(True)
         file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder(Gio.File.new_for_path(self.settings["cwd"]))
@@ -196,6 +197,7 @@ class FileMenuMixins:
             _("Cancel"),
             Gtk.ResponseType.CANCEL,
         )
+        pad_action_area(dialog)
         vbox = dialog.get_content_area()
         pad_content_area(vbox)
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
@@ -297,6 +299,7 @@ class FileMenuMixins:
             _("OK"),
             Gtk.ResponseType.OK,
         )
+        pad_action_area(file_chooser)
         file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder(Gio.File.new_for_path(self.settings["cwd"]))
         if run_dialog(file_chooser) == Gtk.ResponseType.OK:
@@ -509,6 +512,7 @@ class FileMenuMixins:
             _("OK"),
             Gtk.ResponseType.OK,
         )
+        pad_action_area(file_chooser)
         if self.settings["image type"] in ["pdf", "djvu"]:
             filename = expand_metadata_pattern(
                 template=self.settings["default filename"],
@@ -830,6 +834,7 @@ class FileMenuMixins:
             _("Save"),
             Gtk.ResponseType.OK,
         )
+        pad_action_area(file_chooser)
         file_chooser.set_default_response(Gtk.ResponseType.OK)
         file_chooser.set_current_folder(Gio.File.new_for_path(self.settings["cwd"]))
         add_filter(
