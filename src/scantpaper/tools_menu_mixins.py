@@ -695,7 +695,7 @@ class ToolsMenuMixins:
             if surface is None:
                 return
             if expander.get_expanded():
-                advanced_height = surface.get_height()
+                advanced_height = cast("int", surface.get_height())
             elif advanced_height is not None:
                 dialog.set_default_size(surface.get_width(), advanced_height)
                 advanced_height = None
