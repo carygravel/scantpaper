@@ -384,6 +384,11 @@ class Bbox:
         """Convert confidence percentage into colour using pre-calculated lookup table."""
         return cast("str", (self.canvas.get_color_for_confidence(self.confidence)))
 
+    @property
+    def is_slice(self) -> bool:
+        """Return whether this box is an editable text slice."""
+        return self.type == "word"
+
     def set_word(self, text: str, selection: Gdk.Rectangle) -> None:
         """Set this word's text, geometry and confidence. No side effects."""
         self.text = text
@@ -1516,6 +1521,7 @@ class Canvas(Gtk.DrawingArea):
                 bbox = self._hit_test(x, y)
                 if (
                     bbox is not None
+                    and bbox.is_slice
                     and hasattr(bbox, "edit_callback")
                     and bbox.edit_callback
                 ):

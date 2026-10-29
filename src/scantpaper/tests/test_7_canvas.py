@@ -2593,6 +2593,13 @@ def test_bbox_delete_box_self_not_in_children(mocker: pytest.MockerFixture) -> N
     word.delete_box()
 
 
+def test_bbox_is_slice_only_true_for_word() -> None:
+    """Only a word box is an editable slice."""
+    assert Bbox(type="word").is_slice
+    for box_type in ("page", "column", "para", "line"):
+        assert not Bbox(type=box_type).is_slice
+
+
 def test_bbox_to_hocr_falsy_bbox_or_type() -> None:
     """Test to_hocr returns empty string when bbox or type is falsy."""
     bbox_no_bbox = Bbox(text="test", type="word")
@@ -2830,6 +2837,7 @@ def test_canvas_draw_selection_rectangle(mocker: pytest.MockerFixture) -> None:
         bbox=Rectangle(x=0, y=0, width=100, height=100),
         type="page",
         parent=root,
+        edit_callback=MagicMock(),
     )
     received = []
     canvas.connect(
@@ -2844,10 +2852,31 @@ def test_canvas_draw_selection_rectangle(mocker: pytest.MockerFixture) -> None:
     assert received == [(10, 10, 30, 20)]
 
 
+def test_drag_in_container_whitespace_emits_selection(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A drag in container whitespace emits its rectangle in image coords."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = canvas_from_hocr(
+        THREE_WORD_LINE_HOCR, edit_callback=cast("Any", MagicMock())
+    )
+    received = []
+    canvas.connect(
+        "selection-drawn",
+        lambda _c, rect: received.append((rect.x, rect.y, rect.width, rect.height)),
+    )
+
+    canvas._button_pressed(_gesture(1), 1, 400, 50)
+    canvas._motion(None, 450, 80)
+    canvas._button_released(_gesture(1), 1, 450, 80)
+
+    assert received == [(400, 50, 50, 30)]
+
+
 def test_canvas_click_on_bbox_does_not_draw_selection(
     mocker: pytest.MockerFixture,
 ) -> None:
-    """A plain click on an editable box focuses it and never draws a selection."""
+    """A plain click on an editable word focuses it and never draws a selection."""
     mocker.patch("gi.repository.Gdk.Display.get_default")
     canvas = Canvas()
     canvas._pixbuf_size = {"width": 100, "height": 100}
@@ -2857,11 +2886,17 @@ def test_canvas_click_on_bbox_does_not_draw_selection(
     canvas._offset.y = 0
     canvas.confidence_index = ListIter()
     root = canvas.get_root_item()
-    canvas.add_box(
+    page = canvas.add_box(
         text="",
         bbox=Rectangle(x=0, y=0, width=100, height=100),
         type="page",
         parent=root,
+    )
+    canvas.add_box(
+        text="word",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="word",
+        parent=page,
         edit_callback=MagicMock(),
     )
     received = []
@@ -2871,6 +2906,44 @@ def test_canvas_click_on_bbox_does_not_draw_selection(
     canvas._motion(None, 60, 60)
     canvas._button_released(_gesture(1), 1, 60, 60)
 
+    assert received == []
+    assert not canvas._drawing
+
+
+def test_container_press_does_not_focus_or_crash_in_confidence_order(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A press in container whitespace draws a selection, not a container edit."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    edit_callback = MagicMock()
+    canvas = canvas_from_hocr(
+        THREE_WORD_LINE_HOCR, edit_callback=cast("Any", edit_callback)
+    )
+    canvas.sort_by_confidence()
+
+    canvas._button_pressed(_gesture(1), 1, 400, 50)
+
+    edit_callback.assert_not_called()
+    assert canvas._drawing
+
+
+def test_plain_click_in_container_whitespace_is_inert(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A press and release without motion neither focuses nor selects."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    edit_callback = MagicMock()
+    canvas = canvas_from_hocr(
+        THREE_WORD_LINE_HOCR, edit_callback=cast("Any", edit_callback)
+    )
+    canvas.sort_by_confidence()
+    received = []
+    canvas.connect("selection-drawn", lambda _c, rect: received.append(rect))
+
+    canvas._button_pressed(_gesture(1), 1, 400, 50)
+    canvas._button_released(_gesture(1), 1, 400, 50)
+
+    edit_callback.assert_not_called()
     assert received == []
     assert not canvas._drawing
 
@@ -3326,7 +3399,11 @@ ANNOTATION_LAYER_JSON = json.dumps(
 )
 
 
-def canvas_from_hocr(hocr: str, json_string: str | None = None) -> Canvas:
+def canvas_from_hocr(
+    hocr: str,
+    json_string: str | None = None,
+    edit_callback: Callable[..., object] | None = None,
+) -> Canvas:
     """Build a Canvas from hOCR (or a bboxtree JSON string) and wait for it."""
     if json_string is None:
         tree = Bboxtree()
@@ -3336,7 +3413,10 @@ def canvas_from_hocr(hocr: str, json_string: str | None = None) -> Canvas:
     canvas = Canvas()
     loop = safe_mainloop()
     canvas.set_text(
-        bboxes=bboxes, sorted_word_indices=indices, finished_callback=loop.quit
+        bboxes=bboxes,
+        sorted_word_indices=indices,
+        edit_callback=edit_callback,
+        finished_callback=loop.quit,
     )
     loop.run()
     return canvas

@@ -203,13 +203,11 @@ def test_selection_drawn_commits_to_view(mocker: pytest.MockerFixture) -> None:
 
 
 def test_edit_sets_focus(mocker: pytest.MockerFixture) -> None:
-    """edit() focuses the canvas and control bar on the given bbox."""
+    """edit() focuses the canvas and control bar on the given word bbox."""
     editor, _page, _thread, view = make_editor(mocker)
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
-    bbox = mocker.Mock()
-    bbox.text = "word"
-    bbox.bbox = "rect"
+    bbox = Bbox(text="word", bbox="rect", type="word")
 
     editor.edit(bbox)
 
@@ -248,6 +246,22 @@ def test_edit_none_clears_control(mocker: pytest.MockerFixture) -> None:
     editor.edit(None)
     assert editor._current_bbox is None
     editor.controls.textbuffer.set_text.assert_called_once_with(EMPTY)
+    editor.canvas.set_index_by_bbox.assert_not_called()
+
+
+def test_edit_ignores_non_slice(mocker: pytest.MockerFixture) -> None:
+    """A container bbox neither takes focus nor touches the indexes."""
+    editor, _page, _thread, _view = make_editor(mocker)
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    previous = Bbox(text="word", bbox="rect", type="word")
+    editor._current_bbox = previous
+
+    editor.edit(Bbox(text="", bbox="line-rect", type="line"))
+
+    assert editor._current_bbox is previous
+    editor.controls.textbuffer.set_text.assert_not_called()
+    editor.controls.show.assert_not_called()
     editor.canvas.set_index_by_bbox.assert_not_called()
 
 
@@ -1032,6 +1046,47 @@ def test_editor_delete_persists_hocr_without_word(
         assert "ALPHA" not in stored_layer(page, editor)
         assert "BRAVO" in stored_layer(page, editor)
         assert "CHARLIE" in stored_layer(page, editor)
+
+
+def test_container_press_leaves_editor_and_layer_intact(
+    rose_pnm: str, mocker: pytest.MockerFixture
+) -> None:
+    """A press in container whitespace neither focuses nor deletes a container."""
+    with tempfile.TemporaryDirectory() as dirname:
+        page = Page(
+            filename=rose_pnm,
+            format="Portable anymap",
+            resolution=POINTS_PER_INCH,
+            dir=dirname,
+        )
+        page.import_hocr(THREE_WORD_HOCR)
+        editor = make_real_editor(mocker, page)
+        create_editor(editor, page)
+        editor.canvas.sort_by_confidence()
+        editor.edit(cast("Bbox", editor.canvas.get_first_bbox()))
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "ALPHA"
+
+        gesture = mocker.Mock()
+        gesture.get_current_button.return_value = 1
+
+        # Inside the line and page boxes, outside every word box.
+        editor.canvas._button_pressed(gesture, 1, 400, 50)
+
+        assert editor._current_bbox is not None
+        assert editor._current_bbox.text == "ALPHA"
+        assert editor._controls_text() == "ALPHA"
+
+        # With nothing focused, accepting the empty control must stay inert.
+        editor.edit(None)
+        editor.canvas._button_pressed(gesture, 1, 400, 50)
+        assert editor._current_bbox is None
+
+        editor.ok(None)
+
+        layer = stored_layer(page, editor)
+        for word in ("ALPHA", "BRAVO", "CHARLIE"):
+            assert word in layer
 
 
 def test_editor_empty_text_deletes_word(

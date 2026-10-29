@@ -251,7 +251,9 @@ you explicitly turn the toggle off.
   the Image tab neither layer is selected and no control bar is shown). In a
   split view the chosen layer is displayed beside the image, so the annotation
   layer can be corrected next to the scan as well as the text layer. The layer
-  you were last editing is remembered when you restart.
+  you were last editing is remembered when you restart. Click a slice to focus
+  it for correction; press or drag anywhere else in the pane to start a new
+  selection rectangle.
 
 ### Keyboard Shortcuts
 

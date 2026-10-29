@@ -107,6 +107,21 @@ def _wait_until(
     loop.run()
 
 
+def test_wait_until_polls_until_predicate_is_true(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """_wait_until keeps the timeout alive while the predicate is false."""
+    calls = []
+
+    def predicate() -> bool:
+        calls.append(True)
+        return len(calls) > 1
+
+    _wait_until(mainloop_with_timeout, predicate)
+
+    assert len(calls) >= 2
+
+
 def _open_ocr_dialog_for_height_test(
     mocker: pytest.MockerFixture,
     mock_tool_window: object,

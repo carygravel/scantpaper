@@ -471,6 +471,9 @@ class LayerEditor:
         With nothing left to edit the control is emptied rather than left
         showing the text of a slice that no longer exists.
         """
+        if bbox is not None and not bbox.is_slice:
+            logger.debug("edit ignored non-slice %s box", bbox.type)
+            return
         self._current_bbox = bbox
         if bbox is None:
             logger.debug("edit did not return a bbox")
