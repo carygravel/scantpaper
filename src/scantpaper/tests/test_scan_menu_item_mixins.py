@@ -7,10 +7,14 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
+import gi
 import pytest
 
 from scantpaper import scan_menu_item_mixins
 from scantpaper.scan_menu_item_mixins import ScanMenuItemMixins
+
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk  # noqa: E402
 
 if TYPE_CHECKING:
     from typing import ClassVar
@@ -1300,3 +1304,34 @@ def test_alternate_rotation_persists_until_toggled_off(
     mock_scan_window._alternate_flatbed_count = 0
     mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)
     assert mock_scan_window.slist.import_scan.call_args_list[-1][1]["rotate"] == 270
+
+
+def test_add_postprocessing_options_page_is_top_aligned(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """The Postprocessing page keeps its rows at the top of the viewport."""
+    # The fixture replaces the module's Gtk with a mock; restore the real
+    # widgets so the notebook and scrolled window lay the page out.
+    mocker.patch("scantpaper.scan_menu_item_mixins.Gtk", Gtk)
+    # The row helpers are covered by their own tests; stub them here so this
+    # test only exercises the page container.
+    mocker.patch.object(
+        mock_scan_window,
+        "_add_postprocessing_unpaper",
+        return_value=Gtk.CheckButton(),
+    )
+    mocker.patch.object(
+        mock_scan_window,
+        "_add_postprocessing_udt",
+        return_value=(Gtk.CheckButton(), Gtk.ComboBoxText()),
+    )
+    notebook = Gtk.Notebook()
+    mock_widget = SimpleNamespace(notebook=notebook, connect=mocker.Mock())
+
+    mock_scan_window.add_postprocessing_options(mock_widget)
+
+    scwin = notebook.get_nth_page(0)
+    page = scwin.get_child()
+    if isinstance(page, Gtk.Viewport):
+        page = page.get_child()
+    assert page.get_valign() == Gtk.Align.START, "page content is top-aligned"

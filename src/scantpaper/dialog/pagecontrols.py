@@ -189,7 +189,11 @@ class PageControls(Dialog):
         )
         scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self._notebook_pages = [
-            Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING)
+            Gtk.Box(
+                orientation=Gtk.Orientation.VERTICAL,
+                spacing=DIALOG_ROW_SPACING,
+                valign=Gtk.Align.START,
+            )
         ]
         set_margins(self._notebook_pages[0], 0)
         scwin.set_child(self._notebook_pages[0])
@@ -208,14 +212,14 @@ class PageControls(Dialog):
         # All button
         bscanall = Gtk.CheckButton.new_with_label(_("All"))
         bscanall.set_tooltip_text(_("Scan all pages"))
-        pack_box(vboxn, bscanall, expand=True)
+        vboxn.append(bscanall)
         # GTK3 made the first radio button of a group active by default;
         # grouped check buttons in GTK4 do not, so activate it explicitly.
         bscanall.set_active(True)
 
         # Entry button
         hboxn = Gtk.Box(spacing=DIALOG_ROW_SPACING)
-        pack_box(vboxn, hboxn, expand=True)
+        vboxn.append(hboxn)
         self._bscannum = Gtk.CheckButton.new_with_label("#:")
         self._bscannum.set_group(bscanall)
         self._bscannum.set_tooltip_text(_("Set number of pages to scan"))
@@ -319,7 +323,7 @@ class PageControls(Dialog):
         # Single sided button
         self.buttons = Gtk.CheckButton.new_with_label(_("Single sided"))
         self.buttons.set_tooltip_text(_("Source document is single-sided"))
-        pack_box(vboxs, self.buttons, expand=True)
+        vboxs.append(self.buttons)
         # GTK3 made the first radio button of a group active by default;
         # grouped check buttons in GTK4 do not, so activate it explicitly.
         self.buttons.set_active(True)
@@ -332,7 +336,7 @@ class PageControls(Dialog):
 
         # Facing/reverse page button
         hboxs = Gtk.Box(spacing=DIALOG_ROW_SPACING)
-        pack_box(vboxs, hboxs, expand=True)
+        vboxs.append(hboxs)
         labels = Gtk.Label(label=_("Side to scan"))
         hboxs.append(labels)
         self.combobs = ComboBoxText()

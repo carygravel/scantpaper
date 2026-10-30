@@ -518,6 +518,28 @@ def mainloop_with_timeout(
 
 
 @pytest.fixture
+def wait_until(
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> Callable[[Callable[[], bool]], None]:
+    """Pump the main loop until a predicate is true, or a timeout expires."""
+
+    def anonymous(predicate: Callable[[], bool]) -> None:
+        loop = mainloop_with_timeout()
+
+        def poll() -> bool:
+            if predicate():
+                loop.quit()
+                return False
+            return True
+
+        GLib.timeout_add(10, poll)
+        GLib.timeout_add(2000, loop.quit)
+        loop.run()
+
+    return anonymous
+
+
+@pytest.fixture
 def set_device_wait_reload(
     mainloop_with_timeout: Callable[[], _MainLoopWrapper],
 ) -> Callable[[SaneScanDialog, str], None]:

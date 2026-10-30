@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, patch
 
 import gi
@@ -14,6 +14,9 @@ from scantpaper.tests.widget_helpers import emit_spinbutton_enter
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gio, Gtk  # noqa: E402
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @patch("scantpaper.dialog.preferences.shutil.which")
@@ -387,3 +390,55 @@ def test_apply_callback_shows_error_for_empty_tool(
         "   ",
         "",
     ], "Settings should remain unchanged when validation fails"
+
+
+def _preferences_notebook(dialog: PreferencesDialog) -> Gtk.Notebook:
+    """Return the Preferences options notebook."""
+    return next(
+        child
+        for child in dialog.get_content_area().observe_children()
+        if isinstance(child, Gtk.Notebook)
+    )
+
+
+def _preferences_general_page(dialog: PreferencesDialog) -> Gtk.Box:
+    """Return the General options notebook page."""
+    return cast("Gtk.Box", _preferences_notebook(dialog).get_nth_page(1))
+
+
+def test_general_options_rows_keep_their_natural_height() -> None:
+    """Rows on the General options page do not request vertical expansion."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    dialog = PreferencesDialog(settings=settings)
+    page = _preferences_general_page(dialog)
+
+    assert page.get_valign() == Gtk.Align.START, "page content is top-aligned"
+    for row in list(page.observe_children()):
+        assert not row.compute_expand(Gtk.Orientation.VERTICAL), (
+            f"{type(row).__name__} claims surplus height"
+        )
+    dialog.destroy()
+
+
+def test_general_options_rows_keep_natural_height_in_tall_dialog(
+    wait_until: Callable[[Callable[[], bool]], None],
+) -> None:
+    """A tall Preferences dialog does not stretch the General options rows."""
+    settings = DEFAULTS.copy()
+    settings["TMPDIR"] = "/tmp"
+    dialog = PreferencesDialog(settings=settings)
+    notebook = _preferences_notebook(dialog)
+    notebook.set_current_page(1)
+    page = _preferences_general_page(dialog)
+    rows = list(page.observe_children())
+    natural_heights = [row.measure(Gtk.Orientation.VERTICAL, -1)[1] for row in rows]
+    dialog.set_default_size(500, 1000)
+
+    wait_until(lambda: dialog.get_height() > 900 and rows[0].get_height() > 0)
+
+    for row, natural_height in zip(rows, natural_heights, strict=True):
+        assert row.get_height() <= natural_height + 2, (
+            f"{type(row).__name__} absorbed the surplus dialog height"
+        )
+    dialog.destroy()

@@ -77,6 +77,12 @@
   Tesseract engine parameters** expander was opened when that expander is
   collapsed. The **Page Range** frame also keeps its natural height instead of
   stretching to fill surplus window height in any dialog that shows it.
+* Rows in the scan, Clean up and Preferences dialogs now keep the height their
+  content needs when the window is taller than the page. The surplus appears
+  as empty space below the last row instead of stretching a frame, a checkbox,
+  or a label-and-control row. This keeps the scan **# Pages** and **Source
+  document** frames, the rotation controls, the Clean up options and the
+  Preferences **General options** page at their natural heights.
 * Dialog content no longer runs flush against the window edge, and rows are no
   longer packed together. GTK4 dropped the content-area inset that GTK3 derived
   from the theme, and a box's spacing now defaults to zero, so every dialog sets

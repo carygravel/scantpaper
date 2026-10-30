@@ -211,7 +211,11 @@ class SaneScanDialog(Scan):
         self.set_response_sensitive(Gtk.ResponseType.OK, setting=True)
 
     def _new_group_page(self, opt: Option) -> Gtk.Box:
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING)
+        vbox = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=DIALOG_ROW_SPACING,
+            valign=Gtk.Align.START,
+        )
         text = (
             d_sane(opt.title)
             if (

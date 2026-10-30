@@ -21,6 +21,7 @@ from gi.repository import Gtk  # noqa: E402
 
 if TYPE_CHECKING:
     import pathlib
+    from collections.abc import Callable
 
 
 # Mock tesseract functions
@@ -114,6 +115,30 @@ def test_rotate_control_row_init() -> None:
     assert row.get_spacing() == DIALOG_ROW_SPACING, "row widgets are spaced"
 
 
+def test_rotate_controls_keep_natural_height_in_tall_page(
+    wait_until: Callable[[Callable[[], bool]], None],
+) -> None:
+    """A tall scrolled page does not stretch the rotate rows."""
+    window = Gtk.Window()
+    scwin = Gtk.ScrolledWindow()
+    scwin.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING)
+    scwin.set_child(vbox)
+    window.set_child(scwin)
+    window.set_default_size(450, 1000)
+    rotate_controls = RotateControls()
+    vbox.append(rotate_controls)
+    window.present()
+    natural_height = rotate_controls.measure(Gtk.Orientation.VERTICAL, -1)[1]
+
+    wait_until(lambda: window.get_mapped() and rotate_controls.get_height() > 0)
+
+    assert rotate_controls.get_height() <= natural_height + 2, (
+        "the rotate controls absorbed the surplus page height"
+    )
+    window.destroy()
+
+
 class TestRotateControls:
     """Tests for RotateControls class."""
 
@@ -130,6 +155,15 @@ class TestRotateControls:
         assert rotate_controls.rotate_facing == 0
         assert rotate_controls.rotate_reverse == 0
         assert rotate_controls.can_duplex is True
+
+    def test_does_not_expand_vertically(self, rotate_controls: RotateControls) -> None:
+        """The rotate rows keep their natural height."""
+        assert not rotate_controls.compute_expand(Gtk.Orientation.VERTICAL), (
+            "rotate controls claim surplus height"
+        )
+        assert not rotate_controls._side1.get_vexpand(), (
+            "first rotate row requests vertical expansion"
+        )
 
     def test_init_with_properties(self) -> None:
         """Test initialization with properties (prevents AttributeError regression)."""

@@ -17,6 +17,7 @@ from scantpaper.const import (
     DIALOG_ROW_SPACING,
     POINTS_PER_INCH,
 )
+from scantpaper.dialog import Dialog
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.tests.widget_helpers import emit_spinbutton_enter
@@ -708,3 +709,51 @@ def test_get_cmdline_branches() -> None:
 def test_count_active_children_empty_frame() -> None:
     """A frame without a child has no active children."""
     assert count_active_children(Gtk.Frame()) == 0
+
+
+def _clean_up_notebook(vbox: Gtk.Box) -> Gtk.Notebook:
+    """Return the options notebook appended to a Clean up content box."""
+    return next(
+        child for child in vbox.observe_children() if isinstance(child, Gtk.Notebook)
+    )
+
+
+def test_unpaper_rows_keep_their_natural_height() -> None:
+    """Rows on the first Clean up page do not request vertical expansion."""
+    unpaper = Unpaper()
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    unpaper.add_options(vbox)
+    notebook = _clean_up_notebook(vbox)
+    page = notebook.get_nth_page(0)
+
+    assert not page.compute_expand(Gtk.Orientation.VERTICAL), (
+        "the Deskew page claims surplus height"
+    )
+    for row in list(page.observe_children()):
+        assert not row.compute_expand(Gtk.Orientation.VERTICAL), (
+            f"{type(row).__name__} claims surplus height"
+        )
+
+
+def test_clean_up_rows_keep_natural_height_in_tall_dialog(
+    wait_until: Callable[[Callable[[], bool]], None],
+) -> None:
+    """A tall Clean up dialog does not stretch the Deskew page rows."""
+    unpaper = Unpaper()
+    dialog = Dialog(title="unpaper options")
+    vbox = dialog.get_content_area()
+    unpaper.add_options(vbox)
+    notebook = _clean_up_notebook(vbox)
+    page = notebook.get_nth_page(0)
+    rows = list(page.observe_children())
+    natural_heights = [row.measure(Gtk.Orientation.VERTICAL, -1)[1] for row in rows]
+    dialog.set_default_size(500, 1000)
+    dialog.present()
+
+    wait_until(lambda: dialog.get_mapped() and rows[0].get_height() > 0)
+
+    for row, natural_height in zip(rows, natural_heights, strict=True):
+        assert row.get_height() <= natural_height + 2, (
+            f"{type(row).__name__} absorbed the surplus dialog height"
+        )
+    dialog.destroy()

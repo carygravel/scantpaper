@@ -409,7 +409,6 @@ class Unpaper:
     ) -> Gtk.ComboBoxText:
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
-        hbox.set_vexpand(True)
         label = Gtk.Label(label=hashref[option]["string"])
         hbox.append(label)
         widget = Gtk.ComboBoxText()
@@ -435,7 +434,6 @@ class Unpaper:
         widget = Gtk.CheckButton(label=hashref[option]["string"])
         widget.set_tooltip_text(hashref[option]["tooltip"])
         vbox.append(widget)
-        widget.set_vexpand(True)
         return widget
 
     def _add_checkbuttongroup(
@@ -443,7 +441,6 @@ class Unpaper:
     ) -> Gtk.Frame:
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.append(widget)
-        widget.set_vexpand(True)
         vboxf = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
         )
@@ -464,7 +461,6 @@ class Unpaper:
         default = self.default
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
-        hbox.set_vexpand(True)
         label = Gtk.Label(label=hashref[option]["string"])
         hbox.append(label)
         widget = Gtk.SpinButton.new_with_range(
@@ -483,7 +479,6 @@ class Unpaper:
     ) -> Gtk.Frame:
         widget = Gtk.Frame(label=hashref[option]["string"])
         vbox.append(widget)
-        widget.set_vexpand(True)
         vboxf = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
         )

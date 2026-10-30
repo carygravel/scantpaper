@@ -217,7 +217,11 @@ you explicitly turn the toggle off.
   window edge, spaces its rows apart and spaces the controls within a row
   apart, so no control touches the window border and a label no longer sits
   flush against the field beside it. Action buttons are also separated from
-  each other; a message dialog keeps its joined button bar.
+  each other; a message dialog keeps its joined button bar. In the scan, Clean
+  up and Preferences dialogs, rows keep the height their content needs when
+  the window is taller than the page: the surplus appears as empty space below
+  the last row instead of stretching a frame, checkbox or label-and-control
+  row.
 
 ### Edit Menu
 

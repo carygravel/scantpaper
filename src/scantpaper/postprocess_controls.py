@@ -153,7 +153,6 @@ class RotateControls(Gtk.Box):
         self.set_spacing(DIALOG_ROW_SPACING)
         self._side1 = RotateControlRow()
         self.append(self._side1)
-        self._side1.set_vexpand(True)
         self._side2 = RotateControlRow()
         self.append(self._side2)
         self._side1.cbutton.connect("toggled", self._toggled_rotate_callback)

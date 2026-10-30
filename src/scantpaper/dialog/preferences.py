@@ -71,7 +71,9 @@ class PreferencesDialog(Dialog):
         notebook.append_page(vbox1, Gtk.Label(label=_("Scan options")))
 
         vbox2 = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=DIALOG_ROW_SPACING,
+            valign=Gtk.Align.START,
         )
         set_margins(vbox2, 0)
         notebook.append_page(vbox2, Gtk.Label(label=_("General options")))
@@ -196,18 +198,15 @@ class PreferencesDialog(Dialog):
         self._cbw = Gtk.CheckButton(label=_("Restore window settings on startup"))
         self._cbw.set_active(self.settings["restore window"])
         vbox.append(self._cbw)
-        self._cbw.set_vexpand(True)
 
         # View saved files
         self._cbv = Gtk.CheckButton(label=_("View files on saving"))
         self._cbv.set_active(self.settings["view files toggle"])
         vbox.append(self._cbv)
-        self._cbv.set_vexpand(True)
 
         # Default filename
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
-        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Default PDF & DjVu filename"))
         hbox.append(label)
         self._fileentry = Gtk.Entry()
@@ -237,19 +236,16 @@ All document date codes use strftime codes with a leading D, e.g.:
         )
         self._cbb.set_active(self.settings["convert whitespace to underscores"])
         vbox.append(self._cbb)
-        self._cbb.set_vexpand(True)
 
         # Timezone
         self._cbtz = Gtk.CheckButton.new_with_label(_("Use timezone from locale"))
         self._cbtz.set_active(self.settings["use_timezone"])
         vbox.append(self._cbtz)
-        self._cbtz.set_vexpand(True)
 
         # Time
         self._cbtm = Gtk.CheckButton.new_with_label(_("Specify time as well as date"))
         self._cbtm.set_active(self.settings["use_time"])
         vbox.append(self._cbtm)
-        self._cbtm.set_vexpand(True)
 
         # Set file timestamp with metadata
         self._cbts = Gtk.CheckButton.new_with_label(
@@ -257,12 +253,10 @@ All document date codes use strftime codes with a leading D, e.g.:
         )
         self._cbts.set_active(self.settings["set_timestamp"])
         vbox.append(self._cbts)
-        self._cbts.set_vexpand(True)
 
         # Temporary directory settings
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
-        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Temporary directory"))
         hbox.append(label)
         self._tmpentry = Gtk.Entry()
@@ -299,7 +293,7 @@ All document date codes use strftime codes with a leading D, e.g.:
 
         # Available space in temporary directory
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
-        pack_box(vbox, hbox, expand=True)
+        pack_box(vbox, hbox)
         label = Gtk.Label(label=_("Warn if available space less than (Mb)"))
         hbox.append(label)
         self._spinbuttonw = Gtk.SpinButton.new_with_range(0, 100_000, 1)
@@ -313,7 +307,7 @@ All document date codes use strftime codes with a leading D, e.g.:
 
         # Blank page standard deviation threshold
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
-        pack_box(vbox, hbox, expand=True)
+        pack_box(vbox, hbox)
         label = Gtk.Label(label=_("Blank threshold"))
         hbox.append(label)
         self._spinbuttonb = Gtk.SpinButton.new_with_range(0, 1, UNIT_SLIDER_STEP)
@@ -326,7 +320,7 @@ All document date codes use strftime codes with a leading D, e.g.:
 
         # Dark page mean threshold
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
-        pack_box(vbox, hbox, expand=True)
+        pack_box(vbox, hbox)
         label = Gtk.Label(label=_("Dark threshold"))
         hbox.append(label)
         self._spinbuttond = Gtk.SpinButton.new_with_range(0, 1, UNIT_SLIDER_STEP)
@@ -337,7 +331,7 @@ All document date codes use strftime codes with a leading D, e.g.:
 
         # OCR output
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
-        pack_box(vbox, hbox, expand=True)
+        pack_box(vbox, hbox)
         label = Gtk.Label(label=_("OCR output"))
         hbox.append(label)
         ocr_function = [
@@ -359,7 +353,7 @@ All document date codes use strftime codes with a leading D, e.g.:
 
         # Manage user-defined tools
         frame = Gtk.Frame(label=_("Manage user-defined tools"))
-        pack_box(vbox, frame, expand=True)
+        pack_box(vbox, frame)
         self._vboxt = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
         )
@@ -368,14 +362,13 @@ All document date codes use strftime codes with a leading D, e.g.:
             self._add_user_defined_tool_entry(cast("str", tool))
         abutton = Gtk.Button()
         abutton.set_child(Gtk.Image.new_from_icon_name("list-add"))
-        pack_box(self._vboxt, abutton, expand=True)
+        pack_box(self._vboxt, abutton)
         abutton.connect("clicked", self._clicked_add_udt)
 
     def _add_bilevel_compression(self, vbox: Gtk.Box) -> None:
         """Add the codec preference for bilevel pages under automatic compression."""
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         vbox.append(hbox)
-        hbox.set_vexpand(True)
         label = Gtk.Label(label=_("Bilevel compression"))
         hbox.append(label)
         bilevel_function = [
@@ -408,7 +401,6 @@ All document date codes use strftime codes with a leading D, e.g.:
         """Add user-defined tool entry."""
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         self._vboxt.append(hbox)
-        hbox.set_vexpand(True)
         entry = Gtk.Entry()
         entry.set_text(tool)
         entry.set_tooltip_text(

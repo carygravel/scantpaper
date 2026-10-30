@@ -203,3 +203,58 @@ def test_page_controls(
         assert insert_after == slist.data[0][2], (
             "reverse page inserted after front page"
         )
+
+
+def test_page_options_rows_keep_their_natural_height() -> None:
+    """Rows in the page options page do not request vertical expansion."""
+    page_controls = Scan(title="title", transient_for=Gtk.Window())
+    page = page_controls._notebook_pages[0]
+
+    assert page.get_valign() == Gtk.Align.START, "page content is top-aligned"
+    assert not page.compute_expand(Gtk.Orientation.VERTICAL), (
+        "page content claims surplus height"
+    )
+    assert not page_controls.framen.compute_expand(Gtk.Orientation.VERTICAL), (
+        "# Pages frame claims surplus height"
+    )
+    assert not page_controls.frames.compute_expand(Gtk.Orientation.VERTICAL), (
+        "Source document frame claims surplus height"
+    )
+
+
+def test_page_options_frame_keeps_natural_height_in_tall_window(
+    wait_until: Callable[[Callable[[], bool]], None],
+) -> None:
+    """A window taller than the page does not stretch the # Pages frame."""
+    dialog = Scan(title="title")
+    dialog.set_default_size(450, 1000)
+    dialog.present()
+    frame = dialog.framen
+    natural_height = frame.measure(Gtk.Orientation.VERTICAL, -1)[1]
+
+    wait_until(lambda: dialog.get_mapped() and frame.get_height() > 0)
+
+    assert frame.get_height() <= natural_height + 2, (
+        "the # Pages frame absorbed the surplus window height"
+    )
+    dialog.destroy()
+
+
+def test_page_options_scroll_in_short_window(
+    wait_until: Callable[[Callable[[], bool]], None],
+) -> None:
+    """A window shorter than the page keeps the page scrollable."""
+    dialog = Scan(title="title")
+    dialog.set_default_size(450, 300)
+    dialog.present()
+    page = dialog.notebook.get_nth_page(0)
+    adjustment = page.get_vadjustment()
+
+    wait_until(
+        lambda: dialog.get_mapped() and adjustment.get_upper() > 0,
+    )
+
+    assert adjustment.get_upper() > adjustment.get_page_size(), (
+        "the page does not scroll in a short window"
+    )
+    dialog.destroy()
