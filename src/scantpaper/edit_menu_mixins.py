@@ -442,4 +442,4 @@ class EditMenuMixins:
                 self._scan_udt_hbox.set_sensitive(sensitive=True)
             else:
                 self._scan_udt_hbox.set_sensitive(sensitive=False)
-                self._scan_udt_button.set_active(is_active=False)
+                self._scan_udt_button.set_active(False)

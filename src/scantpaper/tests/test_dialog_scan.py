@@ -1147,7 +1147,7 @@ def test_update_widget_value_types(mocker: pytest.MockerFixture) -> None:
     dialog.option_widgets["bool_opt"] = widget_bool
 
     dialog._update_widget_value(opt_bool, val=True)
-    widget_bool.set_active.assert_called_with(is_active=True)
+    assert widget_bool.set_active.call_args.args == (True,)
 
     # 2. SpinButton (INT/FIXED)
     opt_spin = mocker.Mock()
@@ -1336,3 +1336,21 @@ def test_coerce_option_value_string_passthrough() -> None:
         0, "test", "Test", "desc", enums.TYPE_STRING, enums.UNIT_NONE, 0, 0, None
     )
     assert _coerce_option_value(opt, "hello") == "hello"
+
+
+def test_set_checkbutton_active_with_real_widgets() -> None:
+    """The shared setter handles real CheckButton and Switch widgets."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    check = Gtk.CheckButton()
+    switch = Gtk.Switch()
+
+    dialog._set_checkbutton_active(check, val=True)
+    dialog._set_checkbutton_active(switch, val=True)
+    assert check.get_active()
+    assert switch.get_active()
+
+    dialog._set_checkbutton_active(check, val=False)
+    dialog._set_checkbutton_active(switch, val=False)
+    assert not check.get_active()
+    assert not switch.get_active()
+    dialog.destroy()

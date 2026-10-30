@@ -487,7 +487,7 @@ class TestScanDialog:
         widget.signal = "signal"
         scan.option_widgets = {"bool": widget}
         scan._update_widget_value(cast("Option", opt), val=True)
-        widget.set_active.assert_called_with(is_active=True)
+        assert widget.set_active.call_args.args == (True,)
 
         # SpinButton
         opt = MockOption("int", enums.TYPE_INT)

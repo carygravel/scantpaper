@@ -536,7 +536,7 @@ def test_add_postprocessing_options_alternate_rotation_toggle(
     mock_scan_window.settings["alternate rotation"] = True
     mock_scan_window.add_postprocessing_options(mock_widget)
     assert mock_scan_window._alternate_rotation_button is abutton
-    abutton.set_active.assert_called_with(is_active=True)
+    assert abutton.set_active.call_args.args == (True,)
     assert abutton.set_visible.call_args.args == (False,)
     abutton.get_active.return_value = True
 
@@ -636,7 +636,7 @@ def test_add_postprocessing_unpaper_disabled(
     mock_scan_window._add_postprocessing_unpaper(mock_vbox)
 
     mock_btn.set_sensitive.assert_called_with(sensitive=False)
-    mock_btn.set_active.assert_called_with(is_active=False)
+    assert mock_btn.set_active.call_args.args == (False,)
 
 
 def test_add_postprocessing_unpaper_enabled_active(
@@ -651,7 +651,7 @@ def test_add_postprocessing_unpaper_enabled_active(
 
     mock_scan_window._add_postprocessing_unpaper(mock_vbox)
 
-    mock_btn.set_active.assert_called_with(is_active=True)
+    assert mock_btn.set_active.call_args.args == (True,)
 
 
 def test_add_postprocessing_udt_enabled(
@@ -666,7 +666,7 @@ def test_add_postprocessing_udt_enabled(
 
     mock_scan_window._add_postprocessing_udt(mock_vbox)
 
-    mock_btn.set_active.assert_called_with(is_active=True)
+    assert mock_btn.set_active.call_args.args == (True,)
 
 
 def test_add_postprocessing_udt_disabled(
@@ -683,7 +683,7 @@ def test_add_postprocessing_udt_disabled(
     mock_scan_window._add_postprocessing_udt(mock_vbox)
 
     mock_hbox.set_sensitive.assert_called_with(sensitive=False)
-    mock_btn.set_active.assert_called_with(is_active=False)
+    assert mock_btn.set_active.call_args.args == (False,)
 
 
 def test_changed_device_callback(mock_scan_window: object) -> None:
@@ -1335,3 +1335,76 @@ def test_add_postprocessing_options_page_is_top_aligned(
     if isinstance(page, Gtk.Viewport):
         page = page.get_child()
     assert page.get_valign() == Gtk.Align.START, "page content is top-aligned"
+
+
+def test_alternate_rotation_control_with_real_checkbutton(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """A saved alternate-rotation setting builds a real active check button."""
+    mocker.patch("scantpaper.scan_menu_item_mixins.Gtk", Gtk)
+    mock_scan_window.settings["alternate rotation"] = True
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+    button = mock_scan_window._add_alternate_rotation_toggle(vbox)
+
+    assert isinstance(button, Gtk.CheckButton)
+    assert button.get_active()
+
+
+def test_unpaper_control_with_real_checkbutton(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """A saved clean-up setting builds a real active check button."""
+    mocker.patch("scantpaper.scan_menu_item_mixins.Gtk", Gtk)
+    mock_scan_window.settings["unpaper on scan"] = True
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+    button = mock_scan_window._add_postprocessing_unpaper(vbox)
+
+    assert isinstance(button, Gtk.CheckButton)
+    assert button.get_active()
+
+
+def test_unpaper_control_without_dependency_with_real_checkbutton(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """A missing clean-up tool builds a real insensitive, inactive button."""
+    mocker.patch("scantpaper.scan_menu_item_mixins.Gtk", Gtk)
+    mock_scan_window._dependencies["unpaper"] = False
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+    button = mock_scan_window._add_postprocessing_unpaper(vbox)
+
+    assert isinstance(button, Gtk.CheckButton)
+    assert not button.get_active()
+    assert not button.get_sensitive()
+
+
+def test_udt_control_with_real_checkbutton(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """A saved user-defined-tool setting builds a real active check button."""
+    mocker.patch("scantpaper.scan_menu_item_mixins.Gtk", Gtk)
+    mock_scan_window.settings["user_defined_tools"] = ["my-tool %i %o"]
+    mock_scan_window.settings["udt_on_scan"] = True
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+    button, _combobox = mock_scan_window._add_postprocessing_udt(vbox)
+
+    assert isinstance(button, Gtk.CheckButton)
+    assert button.get_active()
+
+
+def test_udt_control_with_empty_tool_list_with_real_checkbutton(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """An empty tool list builds a real insensitive, inactive button."""
+    mocker.patch("scantpaper.scan_menu_item_mixins.Gtk", Gtk)
+    mock_scan_window.settings["user_defined_tools"] = []
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+    button, _combobox = mock_scan_window._add_postprocessing_udt(vbox)
+
+    assert isinstance(button, Gtk.CheckButton)
+    assert not button.get_active()
+    assert not mock_scan_window._scan_udt_hbox.get_sensitive()

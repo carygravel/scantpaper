@@ -333,7 +333,7 @@ class ScanMenuItemMixins:
             )
         )
         if self.settings.get("alternate rotation", False):
-            abutton.set_active(is_active=True)
+            abutton.set_active(True)
         abutton.set_visible(False)
 
         def _on_alternate_rotation_toggled(button: Gtk.CheckButton) -> None:
@@ -354,9 +354,9 @@ class ScanMenuItemMixins:
         ubutton.set_hexpand(True)
         if not self._dependencies["unpaper"]:
             ubutton.set_sensitive(sensitive=False)
-            ubutton.set_active(is_active=False)
+            ubutton.set_active(False)
         elif self.settings["unpaper on scan"]:
-            ubutton.set_active(is_active=True)
+            ubutton.set_active(True)
 
         button = Gtk.Button(label=_("Options"))
         button.set_tooltip_text(_("Set unpaper options"))
@@ -398,10 +398,10 @@ class ScanMenuItemMixins:
         udtbutton.set_hexpand(True)
         if not self.settings["user_defined_tools"]:
             hboxudt.set_sensitive(sensitive=False)
-            udtbutton.set_active(is_active=False)
+            udtbutton.set_active(False)
 
         elif self.settings["udt_on_scan"]:
-            udtbutton.set_active(is_active=True)
+            udtbutton.set_active(True)
 
         return udtbutton, self._add_udt_combobox(hboxudt)
 

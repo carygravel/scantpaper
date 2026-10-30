@@ -104,6 +104,11 @@
   grouping tolerance for the whole flat layer, which merged upright words from
   different rows into one oversized line and made the renderer draw them at that
   line's scale.
+* The scan dialog now opens with every saved postprocessing setting. A saved
+  alternate-rotation, image clean-up or user-defined-tool setting, a missing
+  clean-up tool, or an empty user-defined-tool list no longer raises a
+  `TypeError` while the dialog is being built. Applying Preferences after
+  removing the last tool also leaves an open scan dialog usable.
 
 
 ## 4.0.1 (2026-10-25)

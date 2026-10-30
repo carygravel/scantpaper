@@ -748,4 +748,25 @@ def test_update_list_user_defined_tools_disables_scan_udt_without_tools(
     mock_edit_window._update_list_user_defined_tools([mock_combobox])
 
     mock_hbox.set_sensitive.assert_called_once_with(sensitive=False)
-    mock_button.set_active.assert_called_once_with(is_active=False)
+    assert mock_button.set_active.call_args.args == (False,)
+
+
+def test_update_list_user_defined_tools_with_real_checkbutton(
+    mock_edit_window: object,
+) -> None:
+    """Removing the last tool leaves a real check button inactive."""
+    hbox = Gtk.Box()
+    button = Gtk.CheckButton(label="tool")
+    hbox.append(button)
+    button.set_active(True)
+    mock_edit_window._scan_udt_hbox = hbox
+    mock_edit_window._scan_udt_button = button
+    mock_combobox = MagicMock()
+    mock_combobox.get_num_rows.return_value = 0
+    mock_edit_window.settings["user_defined_tools"] = []
+    mock_edit_window.settings["current_udt"] = ""
+
+    mock_edit_window._update_list_user_defined_tools([mock_combobox])
+
+    assert not button.get_active()
+    assert not hbox.get_sensitive()
