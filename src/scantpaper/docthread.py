@@ -353,10 +353,7 @@ class DocThread(SaveThread):
                     self._execute(f"PRAGMA user_version = {USER_VERSION}")
                     self._con[threading.get_native_id()].commit()
         self._migrate_page_order_schema()
-        self._execute("SELECT MAX(action_id) FROM page_order")
-        row = self._fetchone()
-        if row is not None:
-            self._action_id = cast("int", row[0])
+        self._action_id = self._latest_action_id()
 
     def _migrate_page_order_schema(self) -> None:
         """Detect and rebuild a legacy page_order schema with a page_number column."""
@@ -1022,6 +1019,20 @@ class DocThread(SaveThread):
             temp.flush()
             return GdkPixbuf.Pixbuf.new_from_file(temp.name)
 
+    def _latest_action_id(self) -> int:
+        """Return the newest action recorded in the session history, or 0."""
+        self._execute(
+            """SELECT MAX(action_id) FROM (
+                   SELECT action_id FROM page_order
+                   UNION ALL
+                   SELECT action_id FROM selection
+               )"""
+        )
+        row = self._fetchone()
+        if row is None or not isinstance(row[0], int):
+            return 0
+        return row[0]
+
     def can_undo(self) -> bool:
         """Check whether undo is possible."""
         self._execute("SELECT min(action_id) FROM page_order")
@@ -1034,13 +1045,7 @@ class DocThread(SaveThread):
 
     def can_redo(self) -> bool:
         """Check whether redo is possible."""
-        self._execute("SELECT max(action_id) FROM page_order")
-        max_page = cast("tuple[object, ...]", self._fetchone())[0]
-        self._execute("SELECT max(action_id) FROM selection")
-        max_sel = cast("tuple[object, ...]", self._fetchone())[0]
-        ids = [x for x in [max_page, max_sel] if isinstance(x, int)]
-        max_action_id = max(ids) if ids else None
-        return max_action_id is not None and max_action_id > self._action_id
+        return self._latest_action_id() > self._action_id
 
     def do_undo(self, _request: Request) -> dict[str, object]:
         """Undo handler — decrements action_id, returns snapshot and selection."""

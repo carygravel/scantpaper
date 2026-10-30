@@ -399,7 +399,13 @@ def test_open_session_file(mocker: pytest.MockerFixture) -> None:
     mock_execute.assert_any_call("PRAGMA application_id")
     mock_execute.assert_any_call("PRAGMA user_version")
     mock_execute.assert_any_call("PRAGMA table_info(page_order)")
-    mock_execute.assert_any_call("SELECT MAX(action_id) FROM page_order")
+    mock_execute.assert_any_call(
+        """SELECT MAX(action_id) FROM (
+                   SELECT action_id FROM page_order
+                   UNION ALL
+                   SELECT action_id FROM selection
+               )"""
+    )
 
 
 def test_open_session_file_invalid_app_id(mocker: pytest.MockerFixture) -> None:
@@ -434,6 +440,156 @@ def test_open_session_file_invalid_app_id0(mocker: pytest.MockerFixture) -> None
 
     with pytest.raises(TypeError, match="is not a scantpaper session file"):
         thread.open("test.db")
+
+
+def test_latest_action_id_empty_history(temp_db: object) -> None:
+    """An empty session has no recorded action."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    try:
+        assert thread._latest_action_id() == 0
+    finally:
+        thread.quit()
+
+
+def test_latest_action_id_with_page_history(temp_db: object) -> None:
+    """The latest action is the page snapshot's action."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    try:
+        thread.add_page(Page(image_object=Image.new("RGB", (10, 10), "white")))
+        assert thread._latest_action_id() == 1
+    finally:
+        thread.quit()
+
+
+def test_latest_action_id_after_clearing_every_page(temp_db: object) -> None:
+    """The clear action is newer than the last action with pages."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    try:
+        _, _, page_id = thread.add_page(
+            Page(image_object=Image.new("RGB", (10, 10), "white"))
+        )
+        thread.do_delete_pages(
+            Request("delete_pages", ({"page_ids": [page_id]},), thread.responses)
+        )
+        assert thread._latest_action_id() == 2
+        assert (
+            thread.do_page_number_table(
+                Request("page_number_table", (), thread.responses)
+            )
+            == []
+        )
+    finally:
+        thread.quit()
+
+
+def _make_empty_session(path: pathlib.Path) -> None:
+    """Create an empty session database at the given path."""
+    thread = DocThread(db=str(path))
+    thread.quit()
+
+
+def test_reopen_empty_session_adds_first_page(tmp_path: pathlib.Path) -> None:
+    """A restored empty session accepts a page as its first undo step."""
+    session = tmp_path / "empty.sdb"
+    _make_empty_session(session)
+
+    thread = DocThread(db=str(session))
+    thread._write_tid = threading.get_native_id()
+    try:
+        assert thread._action_id == 0
+        thread.add_page(Page(image_object=Image.new("RGB", (10, 10), "white")))
+        assert thread._action_id == 1
+        assert thread.can_undo() is True
+        assert thread.can_redo() is False
+        result = thread.do_undo(Request("undo", (), thread.responses))
+        assert cast("list[list[object]]", result["snapshot"]) == []
+        assert (
+            thread.do_page_number_table(
+                Request("page_number_table", (), thread.responses)
+            )
+            == []
+        )
+    finally:
+        thread.quit()
+
+
+def test_reopen_after_deleting_all_pages_stays_empty(
+    temp_db: object, tmp_path: pathlib.Path
+) -> None:
+    """A reopen keeps the empty page set of the latest action."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    _, _, page_id = thread.add_page(
+        Page(image_object=Image.new("RGB", (10, 10), "white"))
+    )
+    thread.do_delete_pages(
+        Request("delete_pages", ({"page_ids": [page_id]},), thread.responses)
+    )
+    session = tmp_path / "cleared.sdb"
+    thread.save_as(str(session))
+    thread.quit()
+
+    reopened = DocThread(db=str(session))
+    try:
+        assert reopened._action_id == 2
+        assert (
+            reopened.do_page_number_table(
+                Request("page_number_table", (), reopened.responses)
+            )
+            == []
+        )
+        result = reopened.do_undo(Request("undo", (), reopened.responses))
+        rows = cast("list[list[object]]", result["snapshot"])
+        assert [row[2] for row in rows] == [page_id]
+    finally:
+        reopened.quit()
+
+
+def test_opening_empty_session_does_not_inherit_history(
+    temp_db: object, tmp_path: pathlib.Path
+) -> None:
+    """Opening a second session starts its own undo history."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    thread.add_page(Page(image_object=Image.new("RGB", (10, 10), "white")))
+
+    session = tmp_path / "empty.sdb"
+    _make_empty_session(session)
+
+    thread.close()
+    thread.open(str(session))
+    try:
+        assert thread._action_id == 0
+        assert (
+            thread.do_page_number_table(
+                Request("page_number_table", (), thread.responses)
+            )
+            == []
+        )
+        thread.add_page(Page(image_object=Image.new("RGB", (10, 10), "red")))
+        assert thread._action_id == 1
+        result = thread.do_undo(Request("undo", (), thread.responses))
+        assert cast("list[list[object]]", result["snapshot"]) == []
+    finally:
+        thread.quit()
+
+
+def test_reopened_empty_session_offers_no_undo_or_redo(
+    tmp_path: pathlib.Path,
+) -> None:
+    """An empty session has no history in either direction."""
+    session = tmp_path / "empty.sdb"
+    _make_empty_session(session)
+
+    thread = DocThread(db=str(session))
+    try:
+        assert thread.can_undo() is False
+        assert thread.can_redo() is False
+    finally:
+        thread.quit()
 
 
 def test_do_set_saved(mocker: pytest.MockerFixture) -> None:

@@ -580,6 +580,10 @@ replacement is atomic, so a failed save leaves the previous file intact.
 Because the opened file is the source of truth, an in-place session is not
 offered for restoration as a crashed session after a crash.
 
+A session with no recorded actions opens as an empty document, and a session
+whose latest action removed every page reopens empty. The first page scanned
+into a restored session is recorded as its first undo step.
+
 ---
 
 ## Dependencies

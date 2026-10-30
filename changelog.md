@@ -109,6 +109,11 @@
   clean-up tool, or an empty user-defined-tool list no longer raises a
   `TypeError` while the dialog is being built. Applying Preferences after
   removing the last tool also leaves an open scan dialog usable.
+* Restoring an empty crashed session no longer fails on the first scan with
+  an internal error. It opens as a usable empty document, and the imported
+  page becomes its first undo step. Reopening a session whose latest action
+  removed every page now stays empty instead of showing the deleted pages
+  again; undo still brings them back.
 
 
 ## 4.0.1 (2026-10-25)
