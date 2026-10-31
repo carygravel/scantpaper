@@ -189,9 +189,13 @@ you explicitly turn the toggle off.
   plus **JBIG2** when the optional `jbig2` encoder is installed. JPEG 2000
   usually produces smaller files than JPEG for scanned pages but is slower to
   encode and less widely supported by viewers; JBIG2 typically halves the size
-  of a bilevel page compared with Group 4, but its output depends on the
-  installed encoder, and like G4 it thresholds grayscale and colour pages to
-  bilevel first. The **Bilevel compression** preference in
+  of a bilevel page compared with Group 4. scantpaper always uses JBIG2's
+  lossless mode (see
+  [JBIG2 and the Xerox character-substitution
+  bug](#jbig2-and-the-xerox-character-substitution-bug)), so the saved bitmap
+  is unchanged; the exact output size depends on the installed encoder
+  version, and like G4 it thresholds grayscale and colour pages to bilevel
+  first. The **Bilevel compression** preference in
   **Edit → Preferences** (Group 4 by default, JBIG2 when available) tells
   **Automatic** how to encode bilevel pages, so a user who never changes the
   preference keeps Group 4 output. The **Quality** spin-button steers both
@@ -229,6 +233,61 @@ you explicitly turn the toggle off.
   the window is taller than the page: the surplus appears as empty space below
   the last row instead of stretching a frame, checkbox or label-and-control
   row.
+
+### JBIG2 and the Xerox character-substitution bug
+
+JBIG2 is a format for bilevel images (ITU-T T.88 / ISO/IEC 14492), not a
+single compression mode. It defines lossless and lossy coding. In the lossy
+mode an encoder can replace similar-looking shapes with one shared symbol
+and discard the difference; if that matching is done badly, a 6 can decode
+as an 8. That is what happened in 2013 on some Xerox WorkCentre and
+ColorQube devices, whose firmware used lossy pattern matching and
+substitution. The fault was in the encoder, not in JBIG2 as a format; David
+Kriesel, who reported the bug, concluded that "the error cause is not JBIG2
+itself".
+
+scantpaper always uses the lossless path. It converts only bilevel pages,
+one image at a time, with no shared symbol dictionary and no lossy
+substitution, and it never enables OCRmyPDF's lossy JBIG2 option. The JBIG2
+step therefore reproduces the bilevel bitmap exactly. OCRmyPDF 17 removed
+its lossy JBIG2 support for the same reason and now encodes each image
+independently and losslessly.
+
+"Lossless" describes the compression step, not the whole scan. If you
+choose JBIG2 for a grayscale or colour page, scantpaper thresholds it to
+bilevel first, exactly as it does for Group 4, and that thresholding is
+where detail is lost. No compression setting can repair a scan that was
+already wrong.
+
+PDF/A does not require lossless compression. ISO 19005 permits lossy
+compression, and PDF/A allows JBIG2 in both its lossless and lossy forms, so
+a PDF/A stamp is not evidence that a scan used the lossless mode.
+scantpaper's PDF/A output is lossless because scantpaper asks for the
+lossless encoder path, not because PDF/A forces it. Some archival
+guidelines are stricter still: Germany's BSI TR-03138 for replacement
+scanning forbids pattern matching and substitution, and also soft pattern
+matching; together those rule out JBIG2's symbol-coding modes, including the
+lossy pattern-matching-and-substitution method behind the Xerox bug. That
+is a scanning policy, not a PDF/A rule, so check the recipient's
+requirements if you scan for one.
+
+Further reading:
+
+- [JBIG2](https://en.wikipedia.org/wiki/JBIG2) — Wikipedia, especially
+  "Character substitution errors in scanned documents".
+- [Xerox § Character substitution bug](https://en.wikipedia.org/wiki/Xerox#Character_substitution_bug)
+  — Wikipedia.
+- [Xerox scanners/photocopiers randomly alter numbers in scanned documents](https://www.dkriesel.com/en/blog/2013/0802_xerox-workcentres_are_switching_written_numbers_when_scanning)
+  — David Kriesel's original report.
+- [ITU-T Recommendation T.88](https://www.itu.int/rec/T-REC-T.88-200002-I/en)
+  — the JBIG2 standard.
+- [ISO 19005-2:2011 (PDF/A-2)](https://www.iso.org/standard/50655.html)
+  — its introduction notes that a conforming file may use lossy
+  compression.
+- [PDF Association, PDF/A FAQ](https://pdfa.org/pdfa-faq/)
+  — confirms that compression, including lossy compression, is permitted.
+- [OCRmyPDF: Installing the JBIG2 encoder](https://ocrmypdf.readthedocs.io/en/stable/jbig2.html)
+  — states that OCRmyPDF uses lossless JBIG2.
 
 ### Edit Menu
 
