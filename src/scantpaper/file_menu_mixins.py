@@ -287,26 +287,8 @@ class FileMenuMixins:
     def _open_session_action(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None
     ) -> None:
-        """Open session."""
-        file_chooser = Gtk.FileChooserDialog(
-            title=_("Open crashed session"),
-            transient_for=self,
-            action=Gtk.FileChooserAction.SELECT_FOLDER,
-        )
-        file_chooser.add_buttons(
-            _("Cancel"),
-            Gtk.ResponseType.CANCEL,
-            _("OK"),
-            Gtk.ResponseType.OK,
-        )
-        pad_action_area(file_chooser)
-        file_chooser.set_default_response(Gtk.ResponseType.OK)
-        file_chooser.set_current_folder(Gio.File.new_for_path(self.settings["cwd"]))
-        if run_dialog(file_chooser) == Gtk.ResponseType.OK:
-            filename = chooser_paths(file_chooser)
-            self._open_session(filename[0])
-
-        file_chooser.destroy()
+        """Open the crashed-session picker."""
+        self._show_crashed_sessions(report_empty=True)
 
     def _open_session(self, db: str) -> None:
         """Open session."""
@@ -976,12 +958,7 @@ class FileMenuMixins:
         self._chdir_cwd()
 
         # Remove temporary files and session db
-        session_path = pathlib.Path(self.session.name)
-        for file in list(session_path.glob("*")) + list(
-            session_path.parent.glob(session_path.name + ".sdb*")
-        ):
-            file.unlink()
-        pathlib.Path(self.session.name).rmdir()
+        self._remove_session_files()
         # Write window state to settings. GTK4's get_size() takes an
         # orientation, so use get_width()/get_height() instead; windows cannot
         # be positioned in GTK4, so no position is stored. A hidden window
@@ -1019,6 +996,15 @@ class FileMenuMixins:
         fcntl.lockf(self._lockfd, fcntl.LOCK_UN)
 
         return True
+
+    def _remove_session_files(self) -> None:
+        """Remove the current temporary session directory and database."""
+        session_path = pathlib.Path(self.session.name)
+        for file in list(session_path.glob("*")) + list(
+            session_path.parent.glob(session_path.name + ".sdb*")
+        ):
+            file.unlink()
+        session_path.rmdir()
 
     def _restart(self) -> None:
         """Restart the application."""

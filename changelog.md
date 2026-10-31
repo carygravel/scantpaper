@@ -1,3 +1,15 @@
+## 4.0.3 (unreleased)
+
+* Restoring a crashed session now copies its snapshot into the current
+  temporary session and removes the snapshot once the pages are available. A
+  restored session is therefore removed on a normal exit instead of being
+  offered again on every start. A failed restore leaves the snapshot intact.
+* The crashed-session picker now offers **Discard** as well as **Restore** and
+  **Cancel**. **File → Open crashed session** opens the same picker instead of
+  a folder chooser that could not select the `.sdb` file. Sessions in use by
+  another instance are skipped without blocking startup.
+
+
 ## 4.0.2 (2026-10-31)
 
 * Fix a start-up warning for legacy boolean settings such as

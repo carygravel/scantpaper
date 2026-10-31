@@ -781,43 +781,13 @@ class TestFileMenuMixins:
         assert "pagerange_callback" in kwargs
         assert kwargs["pagerange_callback"] == app._select_pagerange_callback
 
-    @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_open_session_action_ok(self, mock_gtk: MagicMock, app: MockApp) -> None:
-        """Test _open_session_action opens session on OK."""
-        app._open_session = unittest.mock.Mock()
-        mock_dialog = unittest.mock.Mock()
-        mock_dialog.get_files.return_value = [Gio.File.new_for_path("/path/to/session")]
-        mock_gtk.FileChooserDialog.return_value = mock_dialog
+    def test_open_session_action_uses_crashed_picker(self, app: MockApp) -> None:
+        """The File menu uses the shared crashed-session picker."""
+        app._show_crashed_sessions = unittest.mock.Mock()
 
-        with unittest.mock.patch(
-            "scantpaper.file_menu_mixins.run_dialog",
-            return_value=mock_gtk.ResponseType.OK,
-        ):
-            app._open_session_action(None, None)
+        app._open_session_action(None, None)
 
-        mock_gtk.FileChooserDialog.assert_called_once()
-        mock_dialog.get_files.assert_called_once()
-        app._open_session.assert_called_with("/path/to/session")
-        mock_dialog.destroy.assert_called_once()
-
-    @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
-    def test_open_session_action_cancel(
-        self, mock_gtk: MagicMock, app: MockApp
-    ) -> None:
-        """Test _open_session_action does not open session on cancel."""
-        app._open_session = unittest.mock.Mock()
-        mock_dialog = unittest.mock.Mock()
-        mock_gtk.FileChooserDialog.return_value = mock_dialog
-
-        with unittest.mock.patch(
-            "scantpaper.file_menu_mixins.run_dialog",
-            return_value=mock_gtk.ResponseType.CANCEL,
-        ):
-            app._open_session_action(None, None)
-
-        mock_gtk.FileChooserDialog.assert_called_once()
-        app._open_session.assert_not_called()
-        mock_dialog.destroy.assert_called_once()
+        app._show_crashed_sessions.assert_called_once_with(report_empty=True)
 
     def test_open_session(self, app: MockApp) -> None:
         """Test _open_session calls slist.open_session with correct args."""

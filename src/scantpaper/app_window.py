@@ -488,7 +488,7 @@ class ApplicationWindow(
         if self.settings["auto-open-scan-dialog"]:
             self.scan_dialog(None, None, hidden=True)
 
-        self._find_crashed_sessions()
+        self._show_crashed_sessions()
 
         # Deal with --import command line option
         args = self.get_application().args

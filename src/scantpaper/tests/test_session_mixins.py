@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import fcntl
 import logging
 import pathlib
 from typing import TYPE_CHECKING, cast
@@ -286,154 +287,454 @@ def test_zoom_methods(mock_session_window: object) -> None:
 def test_find_crashed_sessions_default_tmpdir_none(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _find_crashed_sessions when get_tmp_dir returns None."""
-    mocker.patch.object(pathlib.Path, "glob", return_value=[])
+    """Discovery falls back to the system temp directory."""
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value=None)
     mock_gettempdir = mocker.patch(
         "scantpaper.session_mixins.tempfile.gettempdir", return_value="/fallback"
     )
-    mock_session_window._open_session = mocker.Mock()
-    mock_session_window._find_crashed_sessions()
+    mock_glob = mocker.patch.object(pathlib.Path, "glob", return_value=[])
+
+    assert mock_session_window._find_crashed_sessions() == []
     mock_gettempdir.assert_called_once()
-    mock_session_window._open_session.assert_not_called()
+    mock_glob.assert_called_once_with("scantpaper-????????.sdb")
 
 
 def test_find_crashed_sessions_default_tmpdir_empty(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _find_crashed_sessions when get_tmp_dir returns EMPTY."""
-    mocker.patch.object(pathlib.Path, "glob", return_value=[])
+    """An empty configured directory falls back to the system temp directory."""
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value=EMPTY)
     mock_gettempdir = mocker.patch(
         "scantpaper.session_mixins.tempfile.gettempdir", return_value="/fallback"
     )
-    mock_session_window._open_session = mocker.Mock()
-    mock_session_window._find_crashed_sessions()
+    mocker.patch.object(pathlib.Path, "glob", return_value=[])
+
+    assert mock_session_window._find_crashed_sessions() == []
     mock_gettempdir.assert_called_once()
-    mock_session_window._open_session.assert_not_called()
 
 
-def test_find_crashed_sessions_running_sessions(
+def test_find_crashed_sessions_skips_locked(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _find_crashed_sessions with currently running sessions (locked)."""
-    mocker.patch.object(
-        pathlib.Path, "glob", return_value=["/tmp/scantpaper-other.sdb"]
-    )
+    """A snapshot locked by a running session is skipped without blocking."""
     mock_session_window.session = mocker.Mock()
-    mock_session_window.session.name = "/tmp/scantpaper-running"
+    mock_session_window.session.name = "/tmp/scantpaper-runningx"
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp")
-
-    # Mock _create_lockfile to fail (simulating running session)
+    mocker.patch.object(
+        pathlib.Path, "glob", return_value=["/tmp/scantpaper-lockedxx.sdb"]
+    )
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
-    mock_session_window._create_lockfile = mocker.Mock(side_effect=OSError("Locked"))
-    mock_session_window._open_session = mocker.Mock()
-    mock_session_window._find_crashed_sessions()
-    mock_session_window._open_session.assert_not_called()
+    mock_lockf = mocker.patch(
+        "scantpaper.session_mixins.fcntl.lockf", side_effect=OSError("locked")
+    )
+    mock_open = mocker.patch.object(pathlib.Path, "open", mocker.mock_open())
+
+    assert mock_session_window._find_crashed_sessions() == []
+    mock_open.assert_called_once()
+    assert mock_lockf.call_args.args[1] == fcntl.LOCK_EX | fcntl.LOCK_NB
 
 
 def test_find_crashed_sessions_skips_current(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _find_crashed_sessions skips the current running session."""
-    mocker.patch.object(
-        pathlib.Path, "glob", return_value=["/tmp/scantpaper-running.sdb"]
-    )
+    """The current application's own snapshot is never listed."""
     mock_session_window.session = mocker.Mock()
-    mock_session_window.session.name = "/tmp/scantpaper-running"
+    mock_session_window.session.name = "/tmp/scantpaper-currentx"
     mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp")
-    mock_session_window._open_session = mocker.Mock()
-    mock_session_window._create_lockfile = mocker.Mock()
+    mocker.patch.object(
+        pathlib.Path, "glob", return_value=["/tmp/scantpaper-currentx.sdb"]
+    )
+    mock_lock = mocker.patch.object(mock_session_window, "_try_lock_snapshot")
 
-    mock_session_window._find_crashed_sessions()
-
-    mock_session_window._create_lockfile.assert_not_called()
-    mock_session_window._open_session.assert_not_called()
+    assert mock_session_window._find_crashed_sessions() == []
+    mock_lock.assert_not_called()
 
 
-def test_find_crashed_sessions_recoverable(
+def test_find_crashed_sessions_lists_recoverable(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _find_crashed_sessions with a recoverable session."""
-    mocker.patch.object(
-        pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashed.sdb"]
-    )
+    """A recoverable snapshot is returned and its lock is retained."""
     mock_session_window.session = mocker.Mock()
-    mock_session_window.session.name = "/tmp/scantpaper-running"
+    mock_session_window.session.name = "/tmp/scantpaper-runningx"
+    mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp")
+    mocker.patch.object(
+        pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashedx.sdb"]
+    )
+    mock_lockfile = mocker.Mock()
+    mocker.patch.object(
+        mock_session_window, "_try_lock_snapshot", return_value=mock_lockfile
+    )
 
-    # Mock _create_lockfile to succeed (not running)
+    assert mock_session_window._find_crashed_sessions() == [
+        "/tmp/scantpaper-crashedx.sdb"
+    ]
+    assert mock_session_window._crashed_session_locks == [mock_lockfile]
+
+    mock_session_window._release_crashed_session_locks()
+    mock_lockfile.close.assert_called_once()
+
+
+def test_find_crashed_sessions_lists_orphan_and_empty(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Orphaned and empty snapshots are still offered."""
+    mock_session_window.session = mocker.Mock()
+    mock_session_window.session.name = "/tmp/scantpaper-runningx"
+    mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp")
+    dbs = [
+        pathlib.Path("/tmp/scantpaper-orphanxx.sdb"),
+        pathlib.Path("/tmp/scantpaper-emptyxxx.sdb"),
+    ]
+    mocker.patch.object(pathlib.Path, "glob", return_value=dbs)
+    mock_lockfile = mocker.Mock()
+    mocker.patch.object(
+        mock_session_window, "_try_lock_snapshot", return_value=mock_lockfile
+    )
+
+    assert mock_session_window._find_crashed_sessions() == sorted(str(db) for db in dbs)
+    mock_session_window._release_crashed_session_locks()
+
+
+def test_try_lock_snapshot_uses_session_lockfile(
+    tmp_path: pathlib.Path, mock_session_window: object
+) -> None:
+    """An existing session directory is reserved through its lockfile."""
+    session = tmp_path / "scantpaper-abcdefgh"
+    session.mkdir()
+    db = tmp_path / "scantpaper-abcdefgh.sdb"
+    db.write_text("snapshot", encoding="utf-8")
+
+    lockfile = mock_session_window._try_lock_snapshot(db)
+
+    assert lockfile is not None
+    assert (session / "lockfile").exists()
+    lockfile.close()
+
+
+def test_try_lock_snapshot_uses_sibling_lock_for_orphan(
+    tmp_path: pathlib.Path, mock_session_window: object
+) -> None:
+    """An orphaned snapshot gets its own lock file."""
+    db = tmp_path / "scantpaper-orphanxx.sdb"
+    db.write_text("snapshot", encoding="utf-8")
+
+    lockfile = mock_session_window._try_lock_snapshot(db)
+
+    assert lockfile is not None
+    assert (tmp_path / "scantpaper-orphanxx.sdb.lock").exists()
+    lockfile.close()
+
+
+def test_try_lock_snapshot_open_error(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """An unopenable lock file skips the snapshot."""
+    db = pathlib.Path("/tmp/scantpaper-failurex.sdb")
     mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
-    mock_session_window._create_lockfile = mocker.Mock()
+    mocker.patch.object(pathlib.Path, "open", side_effect=PermissionError("denied"))
 
-    # Mock Dialog
+    assert mock_session_window._try_lock_snapshot(db) is None
+
+
+def test_show_crashed_sessions_restore(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Restore keeps the reservation until the restore completes."""
+    mocker.patch.object(
+        mock_session_window,
+        "_find_crashed_sessions",
+        return_value=["/tmp/scantpaper-crashedx.sdb"],
+    )
+    mock_restore = mocker.patch.object(mock_session_window, "_restore_crashed_session")
+    mock_release = mocker.patch.object(
+        mock_session_window, "_release_crashed_session_locks"
+    )
     mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
-    mock_pad = mocker.patch("scantpaper.session_mixins.pad_content_area")
+    mocker.patch("scantpaper.session_mixins.Gtk.Label")
+    mocker.patch("scantpaper.session_mixins.pad_action_area")
+    mocker.patch("scantpaper.session_mixins.pad_content_area")
     mocker.patch(
         "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.OK
     )
-
-    # Mock SimpleList
     mock_simplelist_cls = mocker.patch("scantpaper.session_mixins.SimpleList")
     mock_simplelist = mock_simplelist_cls.return_value
-    mock_simplelist.get_selected_indices.return_value = [0]  # Select first one
+    mock_simplelist.get_selected_indices.return_value = [0]
 
-    mock_session_window._open_session = mocker.Mock()
-    mock_session_window._find_crashed_sessions()
+    mock_session_window._show_crashed_sessions()
 
-    mock_pad.assert_called_once()
-    mock_session_window._open_session.assert_called_with("/tmp/scantpaper-crashed.sdb")
+    mock_restore.assert_called_once_with("/tmp/scantpaper-crashedx.sdb")
+    mock_release.assert_not_called()
 
 
-def test_find_crashed_sessions_recoverable_no_select(
+def test_show_crashed_sessions_discard(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Test _find_crashed_sessions with a recoverable session but no selection."""
-    mocker.patch.object(pathlib.Path, "glob", return_value=["/tmp/scantpaper-crashed"])
-    mock_session_window.session = mocker.Mock()
-    mock_session_window.session.name = "/tmp/scantpaper-running"
-    mock_session_window._create_lockfile = mocker.Mock()
-    mocker.patch("os.access", return_value=True)
+    """Discard passes every selected snapshot to the discard action."""
+    dbs = ["/tmp/scantpaper-crashedx.sdb", "/tmp/scantpaper-orphanxx.sdb"]
+    mocker.patch.object(mock_session_window, "_find_crashed_sessions", return_value=dbs)
+    mock_discard = mocker.patch.object(mock_session_window, "_discard_crashed_sessions")
+    mock_release = mocker.patch.object(
+        mock_session_window, "_release_crashed_session_locks"
+    )
     mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
+    mocker.patch("scantpaper.session_mixins.Gtk.Label")
+    mocker.patch("scantpaper.session_mixins.pad_action_area")
+    mocker.patch("scantpaper.session_mixins.pad_content_area")
     mocker.patch(
-        "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.CANCEL
+        "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.REJECT
     )
     mock_simplelist_cls = mocker.patch("scantpaper.session_mixins.SimpleList")
     mock_simplelist = mock_simplelist_cls.return_value
-    mock_simplelist.get_selected_indices.return_value = []
-    mock_session_window._open_session = mocker.Mock()
+    mock_simplelist.get_selected_indices.return_value = [0, 1]
 
-    mock_session_window._find_crashed_sessions()
-    mock_session_window._open_session.assert_not_called()
+    mock_session_window._show_crashed_sessions()
+
+    mock_discard.assert_called_once_with(dbs)
+    mock_release.assert_called_once()
 
 
-def test_find_crashed_sessions_with_path_objects(
+def test_show_crashed_sessions_cancel(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """Real Path results from glob never reach the str-typed SimpleList.
-
-    Regression test for a startup TypeError where a pathlib.Path value from
-    Path.glob was appended unchanged to a str-typed SimpleList column.
-    """
+    """Cancel releases reservations without changing anything."""
     mocker.patch.object(
-        pathlib.Path,
-        "glob",
-        return_value=[pathlib.Path("/tmp/scantpaper-crashed.sdb")],
+        mock_session_window,
+        "_find_crashed_sessions",
+        return_value=["/tmp/scantpaper-crashedx.sdb"],
     )
-    mock_session_window.session = mocker.Mock()
-    mock_session_window.session.name = "/tmp/scantpaper-running"
-    mocker.patch("scantpaper.session_mixins.get_tmp_dir", return_value="/tmp")
-    mocker.patch.object(pathlib.Path, "is_dir", return_value=True)
-    mock_session_window._create_lockfile = mocker.Mock()
-
+    mock_release = mocker.patch.object(
+        mock_session_window, "_release_crashed_session_locks"
+    )
     mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
+    mocker.patch("scantpaper.session_mixins.Gtk.Label")
+    mocker.patch("scantpaper.session_mixins.pad_action_area")
+    mocker.patch("scantpaper.session_mixins.pad_content_area")
     mocker.patch(
         "scantpaper.session_mixins.run_dialog", return_value=Gtk.ResponseType.CANCEL
     )
+    mock_simplelist_cls = mocker.patch("scantpaper.session_mixins.SimpleList")
+    mock_simplelist_cls.return_value.get_selected_indices.return_value = []
 
-    mock_session_window._open_session = mocker.Mock()
+    mock_session_window._show_crashed_sessions()
 
-    mock_session_window._find_crashed_sessions()
-    mock_session_window._open_session.assert_not_called()
+    mock_release.assert_called_once()
+
+
+def test_show_crashed_sessions_report_empty(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """The File menu reports when there is nothing to restore."""
+    mocker.patch.object(mock_session_window, "_find_crashed_sessions", return_value=[])
+    mock_show = mocker.patch.object(mock_session_window, "_show_message_dialog")
+
+    mock_session_window._show_crashed_sessions(report_empty=True)
+
+    mock_show.assert_called_once()
+    assert mock_show.call_args.kwargs["message_type"] == "info"
+
+
+def test_show_crashed_sessions_silent_when_empty(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Startup does not show a message when there is nothing to restore."""
+    mocker.patch.object(mock_session_window, "_find_crashed_sessions", return_value=[])
+    mock_show = mocker.patch.object(mock_session_window, "_show_message_dialog")
+
+    mock_session_window._show_crashed_sessions()
+
+    mock_show.assert_not_called()
+
+
+def test_show_crashed_sessions_releases_on_error(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """An unexpected dialog error still releases the reservations."""
+    mocker.patch.object(
+        mock_session_window,
+        "_find_crashed_sessions",
+        return_value=["/tmp/scantpaper-crashedx.sdb"],
+    )
+    mock_release = mocker.patch.object(
+        mock_session_window, "_release_crashed_session_locks"
+    )
+    mocker.patch("scantpaper.session_mixins.Gtk.Dialog")
+    mocker.patch("scantpaper.session_mixins.Gtk.Label")
+    mocker.patch("scantpaper.session_mixins.pad_action_area")
+    mocker.patch("scantpaper.session_mixins.pad_content_area")
+    mocker.patch(
+        "scantpaper.session_mixins.run_dialog", side_effect=RuntimeError("boom")
+    )
+    mocker.patch("scantpaper.session_mixins.SimpleList")
+
+    with pytest.raises(RuntimeError, match="boom"):
+        mock_session_window._show_crashed_sessions()
+
+    mock_release.assert_called_once()
+
+
+def test_restore_crashed_session_releases_on_success(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """A successful restore releases the picker reservation."""
+    mock_session_window._pages_saved = mocker.Mock(return_value=True)
+    lockfile = mocker.Mock()
+    mock_session_window._crashed_session_locks = [lockfile]
+    mock_restore = mocker.Mock()
+    mock_restore.side_effect = lambda **kwargs: kwargs["finished_callback"](None)
+    mock_session_window.slist.restore_session = mock_restore
+
+    mock_session_window._restore_crashed_session("/tmp/scantpaper-crashedx.sdb")
+
+    mock_restore.assert_called_once()
+    mock_session_window.post_process_progress.pulse.assert_called_once()
+    mock_session_window.post_process_progress.finish.assert_called_once_with(None)
+    lockfile.close.assert_called_once()
+
+
+def test_restore_crashed_session_aborts_when_unsaved(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Declining the unsaved-work warning releases the reservation."""
+    mock_session_window._pages_saved = mocker.Mock(return_value=False)
+    lockfile = mocker.Mock()
+    mock_session_window._crashed_session_locks = [lockfile]
+    mock_restore = mocker.Mock()
+    mock_session_window.slist.restore_session = mock_restore
+
+    mock_session_window._restore_crashed_session("/tmp/scantpaper-crashedx.sdb")
+
+    mock_restore.assert_not_called()
+    lockfile.close.assert_called_once()
+
+
+def test_restore_crashed_session_without_progress(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """A host without a progress bar still restores and releases the lock."""
+    mock_session_window._pages_saved = mocker.Mock(return_value=True)
+    mock_session_window.post_process_progress = None
+    lockfile = mocker.Mock()
+    mock_session_window._crashed_session_locks = [lockfile]
+    mock_restore = mocker.Mock()
+    mock_restore.side_effect = lambda **kwargs: kwargs["finished_callback"](None)
+    mock_session_window.slist.restore_session = mock_restore
+
+    mock_session_window._restore_crashed_session("/tmp/scantpaper-crashedx.sdb")
+
+    mock_restore.assert_called_once()
+    lockfile.close.assert_called_once()
+
+
+def test_restore_crashed_session_exception(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """An exception from the document layer is reported to the user."""
+    mock_session_window._pages_saved = mocker.Mock(return_value=True)
+    lockfile = mocker.Mock()
+    mock_session_window._crashed_session_locks = [lockfile]
+    mock_session_window.slist.restore_session = mocker.Mock(
+        side_effect=RuntimeError("boom")
+    )
+
+    mock_session_window._restore_crashed_session("/tmp/scantpaper-crashedx.sdb")
+
+    mock_session_window._show_message_dialog.assert_called_once()
+    lockfile.close.assert_called_once()
+
+
+def test_restore_crashed_session_error_without_progress(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """A host without a progress bar still reports a restore error."""
+    mock_session_window._pages_saved = mocker.Mock(return_value=True)
+    mock_session_window.post_process_progress = None
+    lockfile = mocker.Mock()
+    mock_session_window._crashed_session_locks = [lockfile]
+
+    def mock_restore(**kwargs: object) -> None:
+        cast("Callable[..., object]", kwargs["error_callback"])(
+            None, "Restore file", "restore failed"
+        )
+
+    mock_session_window.slist.restore_session = mock_restore
+
+    mock_session_window._restore_crashed_session("/tmp/scantpaper-crashedx.sdb")
+
+    mock_session_window._show_message_dialog.assert_called_once()
+    lockfile.close.assert_called_once()
+
+
+def test_restore_crashed_session_error_dialog(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """A failed restore reports the error and releases the reservation."""
+    mock_session_window._pages_saved = mocker.Mock(return_value=True)
+    lockfile = mocker.Mock()
+    mock_session_window._crashed_session_locks = [lockfile]
+
+    def mock_restore(**kwargs: object) -> None:
+        cast("Callable[..., object]", kwargs["error_callback"])(
+            None, "Restore file", "restore failed"
+        )
+
+    mock_session_window.slist.restore_session = mock_restore
+
+    mock_session_window._restore_crashed_session("/tmp/scantpaper-crashedx.sdb")
+
+    mock_session_window.post_process_progress.finish.assert_called_once_with(None)
+    assert mock_session_window._show_message_dialog.call_args.kwargs["text"] == (
+        "restore failed"
+    )
+    lockfile.close.assert_called_once()
+
+
+def test_discard_crashed_sessions(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Discard removes every selected snapshot after confirmation."""
+    mock_ask = mocker.patch.object(
+        mock_session_window, "_ask_question", return_value=Gtk.ResponseType.OK
+    )
+    mock_remove = mocker.patch("scantpaper.session_mixins.remove_session_snapshot")
+
+    mock_session_window._discard_crashed_sessions(
+        ["/tmp/scantpaper-crashedx.sdb", "/tmp/scantpaper-orphanxx.sdb"]
+    )
+
+    mock_ask.assert_called_once()
+    assert "2 crashed sessions" in mock_ask.call_args.kwargs["text"]
+    assert mock_remove.call_count == 2
+
+
+def test_discard_crashed_sessions_cancelled(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Cancelling the confirmation leaves every snapshot alone."""
+    mocker.patch.object(
+        mock_session_window, "_ask_question", return_value=Gtk.ResponseType.CANCEL
+    )
+    mock_remove = mocker.patch("scantpaper.session_mixins.remove_session_snapshot")
+
+    mock_session_window._discard_crashed_sessions(["/tmp/scantpaper-crashedx.sdb"])
+
+    mock_remove.assert_not_called()
+
+
+def test_discard_crashed_sessions_failure(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """A deletion failure is reported to the user."""
+    mocker.patch.object(
+        mock_session_window, "_ask_question", return_value=Gtk.ResponseType.OK
+    )
+    mocker.patch(
+        "scantpaper.session_mixins.remove_session_snapshot",
+        side_effect=PermissionError("denied"),
+    )
+
+    mock_session_window._discard_crashed_sessions(["/tmp/scantpaper-crashedx.sdb"])
+
+    mock_session_window._show_message_dialog.assert_called_once()
 
 
 def test_finished_process_callback(

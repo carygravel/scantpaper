@@ -7,6 +7,7 @@ import locale
 import logging
 import pathlib
 import re
+import shutil
 import subprocess
 import weakref
 from dataclasses import dataclass
@@ -474,6 +475,26 @@ def get_tmp_dir(dirname: str | None, pattern: str) -> str | None:
     while re.search(pattern, dirname):
         dirname = str(pathlib.Path(dirname).parent)
     return dirname
+
+
+def remove_session_snapshot(snapshot: str | pathlib.Path) -> None:
+    """Remove a session snapshot, its sidecars and its session directory."""
+    path = pathlib.Path(snapshot)
+    for suffix in ("", "-wal", "-shm"):
+        pathlib.Path(f"{path}{suffix}").unlink(missing_ok=True)
+    pathlib.Path(f"{path}.lock").unlink(missing_ok=True)
+
+    if path.suffix != ".sdb":
+        return
+    session_dir = path.with_suffix("")
+    if not session_dir.name.startswith("scantpaper-"):
+        return
+    try:
+        shutil.rmtree(session_dir)
+    except FileNotFoundError:
+        return
+    except OSError:
+        logger.exception("Unable to remove session directory %s", session_dir)
 
 
 def chooser_path(chooser: Gtk.FileChooser) -> str:

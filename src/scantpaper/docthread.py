@@ -381,6 +381,75 @@ class DocThread(SaveThread):
         """Open a saved database on the worker thread."""
         self.open(cast("str | Path", request.args[0]))
 
+    def do_restore_snapshot(self, request: Request) -> None:
+        """Copy a crashed snapshot into the scratch database and open it.
+
+        The copy is made beside the scratch database and only replaces it once
+        SQLite has accepted the source. A failure therefore leaves both the
+        current document and the snapshot untouched.
+        """
+        snapshot = Path(cast("str", request.args[0]))
+        if self._temp_db is None:
+            msg = "Temporary session database is not configured"
+            raise RuntimeError(msg)
+        dest = Path(cast("str | Path", self._temp_db))
+        if not snapshot.is_file():
+            msg = f"Error: Unable to read {snapshot}"
+            raise FileNotFoundError(msg)
+        if snapshot.resolve() == dest.resolve():
+            msg = "Refusing to restore the current session database"
+            raise ValueError(msg)
+
+        restore = dest.with_name(f"{dest.name}.restore")
+        for suffix in ("", "-wal", "-shm"):
+            Path(f"{restore}{suffix}").unlink(missing_ok=True)
+
+        source = sqlite3.connect(snapshot)
+        try:
+            row = source.execute("PRAGMA application_id").fetchone()
+            application_id = None if row is None else cast("int | None", row[0])
+            self._validate_snapshot_application_id(snapshot, application_id)
+
+            self.close()
+            target = sqlite3.connect(restore)
+            try:
+                source.backup(target)
+            finally:
+                target.close()
+
+            # The current scratch database is only touched after the copy has
+            # succeeded, so a failed copy leaves the open document intact.
+            for suffix in ("-wal", "-shm"):
+                Path(f"{dest}{suffix}").unlink(missing_ok=True)
+            restore.replace(dest)
+            for suffix in ("-wal", "-shm"):
+                Path(f"{restore}{suffix}").unlink(missing_ok=True)
+        except Exception:
+            for suffix in ("", "-wal", "-shm"):
+                Path(f"{restore}{suffix}").unlink(missing_ok=True)
+            raise
+        finally:
+            source.close()
+
+        previous_db = self._db
+        try:
+            self.open(dest)
+        except Exception:
+            self._db = previous_db
+            raise
+
+    @staticmethod
+    def _validate_snapshot_application_id(
+        snapshot: Path, application_id: int | None
+    ) -> None:
+        """Reject a database that does not belong to scantpaper."""
+        if application_id is not None and application_id != APPLICATION_ID:
+            msg = (
+                f"{snapshot} is not a scantpaper session file "
+                f"(application_id={application_id})"
+            )
+            raise TypeError(msg)
+
     def close(self) -> None:
         """Close all database connections."""
         for con in self._con.values():

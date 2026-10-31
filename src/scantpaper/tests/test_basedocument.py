@@ -539,6 +539,187 @@ def test_open_session_leaves_no_temp_snapshot() -> None:
         shutil.rmtree(temp_dir)
 
 
+def test_restore_session_consumes_snapshot(tmp_path: pathlib.Path) -> None:
+    """A successful restore removes the snapshot and its session directory."""
+    slist = Document()
+    session_dir = tmp_path / "scantpaper-restore"
+    session_dir.mkdir()
+    snapshot = tmp_path / "scantpaper-restore.sdb"
+    snapshot.write_text("snapshot", encoding="utf-8")
+    sidecars = [pathlib.Path(f"{snapshot}-wal"), pathlib.Path(f"{snapshot}-shm")]
+    for sidecar in sidecars:
+        sidecar.write_text("sidecar", encoding="utf-8")
+    lock = pathlib.Path(f"{snapshot}.lock")
+    lock.write_text("lock", encoding="utf-8")
+
+    finished_callback = Mock()
+    error_callback = Mock()
+
+    def mock_send(process: str, *_args: object, **kwargs: object) -> MagicMock:
+        if process == "restore_snapshot" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(MagicMock())
+        elif process == "page_number_table" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(
+                MagicMock(info=[[1, None, 101]])
+            )
+        return MagicMock()
+
+    slist.thread.send = mock_send
+    slist.restore_session(
+        db=str(snapshot),
+        error_callback=error_callback,
+        finished_callback=finished_callback,
+    )
+
+    assert len(slist.data) == 1
+    assert slist.data[0][2] == 101
+    assert not snapshot.exists()
+    assert not any(sidecar.exists() for sidecar in sidecars)
+    assert not lock.exists()
+    assert not session_dir.exists()
+    finished_callback.assert_called_once_with(None)
+    error_callback.assert_not_called()
+
+
+def test_restore_session_keeps_snapshot_on_error(tmp_path: pathlib.Path) -> None:
+    """A restore failure leaves the snapshot available for another attempt."""
+    slist = Document()
+    snapshot = tmp_path / "scantpaper-failed.sdb"
+    snapshot.write_text("snapshot", encoding="utf-8")
+    errors: list[str] = []
+
+    def mock_send(process: str, *_args: object, **kwargs: object) -> MagicMock:
+        if process == "restore_snapshot" and "error_callback" in kwargs:
+            response = MagicMock()
+            response.status = "restore failed"
+            cast("Callable[..., object]", kwargs["error_callback"])(response)
+        return MagicMock()
+
+    slist.thread.send = mock_send
+    slist.restore_session(
+        db=str(snapshot),
+        error_callback=lambda _src, _msg, status: errors.append(status),
+    )
+
+    assert errors == ["restore failed"]
+    assert snapshot.exists()
+
+
+def test_restore_session_table_failure_keeps_snapshot(
+    tmp_path: pathlib.Path,
+) -> None:
+    """The snapshot is consumed only after the page table is available."""
+    slist = Document()
+    snapshot = tmp_path / "scantpaper-table-failed.sdb"
+    snapshot.write_text("snapshot", encoding="utf-8")
+    errors: list[str] = []
+
+    def mock_send(process: str, *_args: object, **kwargs: object) -> MagicMock:
+        if process == "restore_snapshot" and "finished_callback" in kwargs:
+            cast("Callable[..., object]", kwargs["finished_callback"])(MagicMock())
+        elif process == "page_number_table" and "error_callback" in kwargs:
+            response = MagicMock()
+            response.status = "table failed"
+            cast("Callable[..., object]", kwargs["error_callback"])(response)
+        return MagicMock()
+
+    slist.thread.send = mock_send
+    slist.restore_session(
+        db=str(snapshot),
+        error_callback=lambda _src, _msg, status: errors.append(status),
+    )
+
+    assert errors == ["table failed"]
+    assert snapshot.exists()
+
+
+def test_restore_session_missing_file() -> None:
+    """A missing snapshot is reported without sending a restore request."""
+    slist = Document()
+    errors: list[str] = []
+    slist.restore_session(
+        db="missing.sdb",
+        error_callback=lambda _src, _msg, status: errors.append(status),
+    )
+    assert errors
+    assert "Unable to read" in errors[0]
+
+
+def test_restore_session_no_db() -> None:
+    """A restore without a database path reports an error."""
+    slist = Document()
+    errors: list[str] = []
+    slist.restore_session(
+        error_callback=lambda _src, _msg, status: errors.append(status),
+    )
+    assert errors == ["Error: session file not defined"]
+
+
+def test_consume_snapshot_removes_orphan(tmp_path: pathlib.Path) -> None:
+    """An orphaned snapshot is removed without requiring its directory."""
+    slist = Document()
+    snapshot = tmp_path / "scantpaper-orphan.sdb"
+    snapshot.write_text("snapshot", encoding="utf-8")
+    slist._consume_snapshot(str(snapshot))
+    assert not snapshot.exists()
+
+
+def test_consume_snapshot_keeps_unrelated_directory(tmp_path: pathlib.Path) -> None:
+    """A non-session directory is not removed with the snapshot."""
+    slist = Document()
+    unrelated = tmp_path / "user"
+    unrelated.mkdir()
+    snapshot = tmp_path / "user.sdb"
+    snapshot.write_text("snapshot", encoding="utf-8")
+    slist._consume_snapshot(str(snapshot))
+    assert not snapshot.exists()
+    assert unrelated.exists()
+
+
+def test_consume_snapshot_non_sdb_suffix(tmp_path: pathlib.Path) -> None:
+    """A path without the .sdb suffix is removed without touching a directory."""
+    slist = Document()
+    snapshot = tmp_path / "not-a-session.db"
+    snapshot.write_text("snapshot", encoding="utf-8")
+    slist._consume_snapshot(str(snapshot))
+    assert not snapshot.exists()
+
+
+def test_consume_snapshot_logs_directory_error(
+    tmp_path: pathlib.Path, mocker: pytest.MockerFixture
+) -> None:
+    """A directory that cannot be removed does not hide the removed database."""
+    slist = Document()
+    session_dir = tmp_path / "scantpaper-errorx"
+    session_dir.mkdir()
+    snapshot = tmp_path / "scantpaper-errorx.sdb"
+    snapshot.write_text("snapshot", encoding="utf-8")
+    mocker.patch("scantpaper.helpers.shutil.rmtree", side_effect=OSError("denied"))
+    mock_logger = mocker.patch("scantpaper.helpers.logger")
+
+    slist._consume_snapshot(str(snapshot))
+
+    assert not snapshot.exists()
+    assert session_dir.exists()
+    mock_logger.exception.assert_called_once()
+
+
+def test_consume_snapshot_logs_remove_error(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A snapshot-removal error is logged without failing the restore."""
+    slist = Document()
+    mocker.patch(
+        "scantpaper.basedocument.remove_session_snapshot",
+        side_effect=OSError("denied"),
+    )
+    mock_logger = mocker.patch("scantpaper.basedocument.logger")
+
+    slist._consume_snapshot("snapshot.sdb")
+
+    mock_logger.exception.assert_called_once()
+
+
 def test_modify_method_callback() -> None:
     """Test the callback generated by _modify_method_generator."""
     slist = Document()

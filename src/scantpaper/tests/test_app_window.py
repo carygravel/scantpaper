@@ -150,7 +150,7 @@ def _setup_app_window_mocks(
     mock_selector_dragger = mocker.patch("scantpaper.app_window.SelectorDragger")
 
     mocker.patch("scantpaper.app_window.Gtk.Notebook.append_page")
-    mocker.patch("scantpaper.app_window.SessionMixins._find_crashed_sessions")
+    mocker.patch("scantpaper.app_window.SessionMixins._show_crashed_sessions")
 
     mocker.patch("scantpaper.app_window.shutil.disk_usage").return_value.free = (
         1000 * 1024 * 1024
@@ -262,7 +262,7 @@ def app_window(
     mocker.patch("scantpaper.app_window.Progress")
     mocker.patch("scantpaper.app_window.sane.init")
     mocker.patch("scantpaper.app_window.recursive_slurp")
-    mocker.patch("scantpaper.app_window.SessionMixins._find_crashed_sessions")
+    mocker.patch("scantpaper.app_window.SessionMixins._show_crashed_sessions")
     mocker.patch("scantpaper.app_window.Selector")
     mocker.patch("scantpaper.app_window.Dragger")
     mocker.patch("scantpaper.app_window.SelectorDragger")
@@ -1770,7 +1770,7 @@ def test_pre_flight_linux(mocker: pytest.MockerFixture) -> None:
     mocker.patch("scantpaper.app_window.Selector")
     mocker.patch("scantpaper.app_window.Dragger")
     mocker.patch("scantpaper.app_window.SelectorDragger")
-    mocker.patch("scantpaper.app_window.SessionMixins._find_crashed_sessions")
+    mocker.patch("scantpaper.app_window.SessionMixins._show_crashed_sessions")
 
     mocker.patch("scantpaper.app_window.shutil.disk_usage").return_value.free = (
         1000 * 1024 * 1024
@@ -1969,7 +1969,7 @@ def _real_layout_window(
         mocker.patch("scantpaper.layer.Canvas", MockCanvas)
     mocker.patch("scantpaper.app_window.sane.init")
     mocker.patch("scantpaper.app_window.recursive_slurp")
-    mocker.patch("scantpaper.app_window.SessionMixins._find_crashed_sessions")
+    mocker.patch("scantpaper.app_window.SessionMixins._show_crashed_sessions")
     mocker.patch("scantpaper.app_window.MultipleMessage")
     mocker.patch("scantpaper.app_window.shutil.disk_usage").return_value.free = (
         1000 * 1024 * 1024

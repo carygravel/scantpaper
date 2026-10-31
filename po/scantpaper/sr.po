@@ -2571,6 +2571,54 @@ msgid "_Save"
 msgstr "Сачувај"
 
 #, fuzzy
+#: session_mixins.py:160
+#, fuzzy
+msgid "No crashed sessions found."
+msgstr ""
+
+#: session_mixins.py:166
+#, fuzzy
+msgid "Crashed sessions"
+msgstr ""
+
+#: session_mixins.py:171
+#, fuzzy
+msgid "_Discard"
+msgstr ""
+
+#: session_mixins.py:172
+#, fuzzy
+msgid "_Restore"
+msgstr ""
+
+#: session_mixins.py:175
+#, fuzzy
+msgid "Restore or discard a crashed session"
+msgstr ""
+
+#: session_mixins.py:204
+#, fuzzy
+msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
+msgstr ""
+
+#: session_mixins.py:239
+#, fuzzy
+msgid "Restore file"
+msgstr ""
+
+#: session_mixins.py:255
+#, fuzzy, python-format
+msgid "Discard this %(count)d crashed session?"
+msgid_plural "Discard these %(count)d crashed sessions?"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: session_mixins.py:279
+#, fuzzy
+msgid "Unable to discard some crashed sessions."
+msgstr ""
+
 #~ msgid "PPI"
 #~ msgstr "PPI"
 

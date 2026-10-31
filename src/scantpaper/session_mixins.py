@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import fcntl
 import inspect
 import logging
@@ -23,12 +24,14 @@ from scantpaper.dialog import (
     pad_content_area,
     response_stored,
 )
-from scantpaper.helpers import get_tmp_dir, run_dialog
-from scantpaper.i18n import _
+from scantpaper.helpers import get_tmp_dir, remove_session_snapshot, run_dialog
+from scantpaper.i18n import _, ngettext
 from scantpaper.layer import LayerEditor
 from scantpaper.simplelist import SimpleList
 
 if TYPE_CHECKING:
+    from typing import TextIO
+
     from gi.repository import Gio
 
     from scantpaper.basethread import Response
@@ -95,54 +98,187 @@ class SessionMixins:
         fcntl.lockf(lockfd, fcntl.LOCK_EX)
         return lockfd
 
-    def _find_crashed_sessions(self) -> None:
-        """Look for crashed sessions."""
+    def _try_lock_snapshot(self, db: Path) -> TextIO | None:
+        """Reserve a crashed snapshot without waiting for another instance."""
+        db = Path(db)
+        session = db.with_suffix("") if db.suffix == ".sdb" else db.with_name(db.stem)
+        lock_path = session / "lockfile" if session.is_dir() else Path(f"{db}.lock")
+        try:
+            lockfile = lock_path.open("w", encoding="utf-8")
+        except OSError as err:
+            logger.warning("Error opening lockfile %s: %s", lock_path, err)
+            return None
+        try:
+            fcntl.lockf(lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            lockfile.close()
+            return None
+        return lockfile
+
+    def _release_crashed_session_locks(self) -> None:
+        """Release reservations held by the crashed-session picker."""
+        for lockfile in getattr(self, "_crashed_session_locks", []):
+            with contextlib.suppress(OSError):
+                lockfile.close()
+        self._crashed_session_locks = []
+
+    def _find_crashed_sessions(self) -> list[str]:
+        """Return crashed snapshots that are not in use."""
+        self._release_crashed_session_locks()
         tmpdir = get_tmp_dir(self.settings["TMPDIR"], r"scantpaper-\w\w\w\w\w\w\w\w")
         if tmpdir is None or tmpdir == EMPTY:
             tmpdir = tempfile.gettempdir()
 
         logger.info("Checking %s for crashed sessions", tmpdir)
         dbs = sorted(Path(tmpdir).glob("scantpaper-????????.sdb"))
-        crashed, selected = [], []
+        crashed: list[str] = []
+        locks: list[TextIO] = []
+        current = getattr(getattr(self, "session", None), "name", None)
 
-        # Forget those used by running sessions
         for db in dbs:
             session = str(Path(tmpdir) / PurePath(db).stem)
-            if session == self.session.name:
+            if session == current:
                 continue
-            if not Path(session).is_dir():
-                crashed.append(str(db))
+            lockfile = self._try_lock_snapshot(db)
+            if lockfile is None:
                 continue
-            try:
-                self._create_lockfile(session)
-                crashed.append(str(db))
-            except OSError as e:
-                logger.warning("Error opening lockfile %s", str(e))
+            locks.append(lockfile)
+            crashed.append(str(db))
 
-        # Allow user to pick a crashed session to restore
-        if crashed:
-            dialog = Gtk.Dialog(
-                title=_("Pick crashed session to restore"),
-                transient_for=self,
-                modal=True,
-            )
-            dialog.add_button(_("OK"), Gtk.ResponseType.OK)
-            pad_action_area(dialog)
-            label = Gtk.Label(label=_("Pick crashed session to restore"))
-            box = dialog.get_content_area()
-            pad_content_area(box)
-            box.append(label)
-            columns = {_("Session"): "text"}
-            sessionlist = SimpleList(**columns)
-            for db in crashed:
-                sessionlist.data.append([db])
-            box.append(sessionlist)
-            if run_dialog(dialog) == Gtk.ResponseType.OK:
-                selected = sessionlist.get_selected_indices()
+        self._crashed_session_locks = locks
+        return crashed
 
+    def _show_crashed_sessions(self, *, report_empty: bool = False) -> None:
+        """List crashed snapshots and let the user restore or discard them."""
+        crashed = self._find_crashed_sessions()
+        if not crashed:
+            if report_empty:
+                self._show_message_dialog(
+                    parent=self,
+                    message_type="info",
+                    buttons=Gtk.ButtonsType.CLOSE,
+                    text=_("No crashed sessions found."),
+                    store_response=True,
+                )
+            return
+
+        dialog = Gtk.Dialog(
+            title=_("Crashed sessions"),
+            transient_for=self,
+            modal=True,
+        )
+        dialog.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+        dialog.add_button(_("_Discard"), Gtk.ResponseType.REJECT)
+        dialog.add_button(_("_Restore"), Gtk.ResponseType.OK)
+        dialog.set_default_response(Gtk.ResponseType.OK)
+        pad_action_area(dialog)
+        label = Gtk.Label(label=_("Restore or discard a crashed session"))
+        box = dialog.get_content_area()
+        pad_content_area(box)
+        box.append(label)
+        columns = {_("Session"): "text"}
+        sessionlist = SimpleList(**columns)
+        sessionlist.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
+        for db in crashed:
+            sessionlist.data.append([db])
+        box.append(sessionlist)
+
+        keep_locks = False
+        try:
+            response = run_dialog(dialog)
+            selected = sessionlist.get_selected_indices()
+            if response == Gtk.ResponseType.OK and selected:
+                keep_locks = True
+                self._restore_crashed_session(crashed[selected[0]])
+            elif response == Gtk.ResponseType.REJECT and selected:
+                self._discard_crashed_sessions([crashed[i] for i in selected])
+        finally:
             dialog.destroy()
-            if selected:
-                self._open_session(crashed[selected[0]])
+            if not keep_locks:
+                self._release_crashed_session_locks()
+
+    def _restore_crashed_session(self, db: str) -> None:
+        """Restore a snapshot and release its reservation when finished."""
+        if not self._pages_saved(
+            _(
+                "Some pages have not been saved.\nDo you really want to restore a crashed session?"
+            )
+        ):
+            self._release_crashed_session_locks()
+            return
+
+        progress = getattr(self, "post_process_progress", None)
+        if progress is not None:
+            progress.pulse()
+
+        def finished_callback(_response: object) -> None:
+            if progress is not None:
+                progress.finish(None)
+            self._release_crashed_session_locks()
+
+        def error_callback(_parent: object, _msg: str, status: str) -> None:
+            if progress is not None:
+                progress.finish(None)
+            self._release_crashed_session_locks()
+            self._show_message_dialog(
+                parent=self,
+                message_type="error",
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=status,
+                store_response=True,
+            )
+
+        try:
+            self.slist.restore_session(
+                db=db,
+                error_callback=error_callback,
+                finished_callback=finished_callback,
+            )
+        except Exception as err:
+            logger.exception("Error restoring crashed session %s", db)
+            error_callback(None, _("Restore file"), str(err))
+
+    @staticmethod
+    def _remove_crashed_snapshot(db: str) -> str | None:
+        """Remove one snapshot and return an error description on failure."""
+        try:
+            remove_session_snapshot(db)
+        except OSError as err:
+            logger.exception("Error discarding crashed session %s", db)
+            return f"{db}: {err}"
+        return None
+
+    def _discard_crashed_sessions(self, dbs: list[str]) -> None:
+        """Remove selected snapshots after confirmation."""
+        count = len(dbs)
+        message = ngettext(
+            "Discard this %(count)d crashed session?",
+            "Discard these %(count)d crashed sessions?",
+            count,
+        ) % {"count": count}
+        response = self._ask_question(
+            parent=self,
+            type="question",
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            text=message,
+            default_response=Gtk.ResponseType.CANCEL,
+        )
+        if response != Gtk.ResponseType.OK:
+            return
+
+        failures = [
+            failure
+            for db in dbs
+            if (failure := self._remove_crashed_snapshot(db)) is not None
+        ]
+        if failures:
+            self._show_message_dialog(
+                parent=self,
+                message_type="error",
+                buttons=Gtk.ButtonsType.CLOSE,
+                text=_("Unable to discard some crashed sessions."),
+                store_response=True,
+            )
 
     def _check_dependencies(self) -> None:
         """Check for presence of various packages."""

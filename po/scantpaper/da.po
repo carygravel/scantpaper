@@ -2449,6 +2449,53 @@ msgstr "Afslut"
 msgid "_Save"
 msgstr "_Gem"
 
+#: session_mixins.py:160
+#, fuzzy
+msgid "No crashed sessions found."
+msgstr ""
+
+#: session_mixins.py:166
+#, fuzzy
+msgid "Crashed sessions"
+msgstr ""
+
+#: session_mixins.py:171
+#, fuzzy
+msgid "_Discard"
+msgstr ""
+
+#: session_mixins.py:172
+#, fuzzy
+msgid "_Restore"
+msgstr ""
+
+#: session_mixins.py:175
+#, fuzzy
+msgid "Restore or discard a crashed session"
+msgstr ""
+
+#: session_mixins.py:204
+#, fuzzy
+msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
+msgstr ""
+
+#: session_mixins.py:239
+#, fuzzy
+msgid "Restore file"
+msgstr ""
+
+#: session_mixins.py:255
+#, fuzzy, python-format
+msgid "Discard this %(count)d crashed session?"
+msgid_plural "Discard these %(count)d crashed sessions?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: session_mixins.py:279
+#, fuzzy
+msgid "Unable to discard some crashed sessions."
+msgstr ""
+
 #~ msgid "PPI"
 #~ msgstr "PPI"
 
@@ -2575,9 +2622,6 @@ msgstr "_Gem"
 
 #~ msgid "OCR requires gocr, tesseract, ocropus, or cuneiform\n"
 #~ msgstr "OCR kræver gocr, tesseract, ocrupus eller cuneiform\n"
-
-#~ msgid "Crashed sessions"
-#~ msgstr "Sessioner der er gået ned"
 
 #~ msgid ""
 #~ "The following list of sessions cannot be restored. Please retrieve any "

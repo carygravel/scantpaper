@@ -632,10 +632,36 @@ to the scan dialog on startup, and are kept when the file is written back.
 
 An unsaved session's data (pages, edits, OCR, annotations) is stored in an
 SQLite database in a temporary directory named `scantpaper-????????`, created
-under `$TMPDIR` (or `/tmp`) by default. You can change this location in
-**Edit → Preferences**. On exit the temporary directory is cleaned up. If
-scantpaper crashes, it survives, and on the next start you are asked whether to
-restore it via **File → Open crashed session**.
+under `$TMPDIR` (or `/tmp`) by default. The database is a sibling of that
+directory: `/tmp/scantpaper-????????.sdb`, not a file inside it. You can change
+the temporary location in **Edit → Preferences**.
+
+On a normal exit the temporary directory, the database and its sidecars are
+removed. If scantpaper crashes, they survive. The next start opens a
+**Crashed sessions** picker, and **File → Open crashed session** opens the same
+picker later. A snapshot that another instance is using is not listed.
+
+The picker offers **Restore**, **Discard** and **Cancel**:
+
+- **Restore** copies the snapshot into a fresh temporary session and opens that
+  copy. The snapshot and its directory are removed only after the restored
+  pages are available, so a failed restore leaves the snapshot intact. The
+  restored work is an ordinary unsaved temporary document: it is removed on a
+  normal exit unless you save it.
+- **Discard** asks for confirmation and then removes the selected snapshots,
+  their sidecars and their session directories.
+- **Cancel** leaves everything unchanged.
+
+A snapshot whose latest action removed every page is still listed, because its
+undo history may contain recoverable pages. Restoring it opens an empty
+document; discarding it removes it.
+
+To remove a leftover snapshot manually, quit scantpaper first and delete both
+the database and its directory:
+
+```sh
+rm -rf /tmp/scantpaper-???????? /tmp/scantpaper-????????.sdb*
+```
 
 A session saved as an `.sdb` file (**File → Save As**) can be reopened with
 **File → Open**. The opened file itself becomes the working session: edits are

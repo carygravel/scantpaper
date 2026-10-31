@@ -16,7 +16,7 @@ import gi
 
 from scantpaper.basethread import Request, Response, ResponseType
 from scantpaper.docthread import INSERT_AT_START, DocThread
-from scantpaper.helpers import _weak_callback, slurp
+from scantpaper.helpers import _weak_callback, remove_session_snapshot, slurp
 from scantpaper.i18n import _
 from scantpaper.simplelist import SimpleList
 
@@ -701,6 +701,13 @@ class BaseDocument(SimpleList):
         for suffix in ("", "-wal", "-shm"):
             pathlib.Path(base + suffix).unlink(missing_ok=True)
 
+    def _consume_snapshot(self, snapshot: str) -> None:
+        """Remove a snapshot after its data has been restored."""
+        try:
+            remove_session_snapshot(snapshot)
+        except OSError:
+            logger.exception("Unable to remove consumed session snapshot %s", snapshot)
+
     @staticmethod
     def _finish_session_open(finished_callback: object) -> None:
         """Signal completion to an import flow that opened this session."""
@@ -761,6 +768,60 @@ class BaseDocument(SimpleList):
             "open",
             db,
             finished_callback=on_open,
+            error_callback=on_error,
+        )
+
+    def restore_session(self, **kwargs: object) -> None:
+        """Restore a crashed snapshot into the temporary session."""
+        if "db" not in kwargs:
+            if kwargs["error_callback"]:
+                cast("Callable[..., object]", kwargs["error_callback"])(
+                    None, "Restore file", "Error: session file not defined"
+                )
+            return
+
+        db = pathlib.Path(cast("str", kwargs["db"]))
+        if not db.is_file():
+            if kwargs["error_callback"]:
+                cast("Callable[..., object]", kwargs["error_callback"])(
+                    None, "Restore file", f"Error: Unable to read {db}"
+                )
+            return
+
+        if self.row_changed_signal is not None:
+            self.get_model().handler_block(self.row_changed_signal)
+
+        error_callback = kwargs.get("error_callback")
+        finished_callback = kwargs.get("finished_callback")
+
+        def on_restore(_response: Response) -> None:
+            self.thread.send(
+                "page_number_table",
+                finished_callback=on_table,
+                error_callback=on_error,
+            )
+
+        def on_table(response: Response) -> None:
+            self._unblock_row_changed()
+            self.data = response.info
+            self.renumber()
+            logger.info("Restored document %s", db)
+            logger.info("Found %i pages", len(self.data))
+            self.select(0)
+            self._consume_snapshot(str(db))
+            self._finish_session_open(finished_callback)
+
+        def on_error(response: Response) -> None:
+            self._unblock_row_changed()
+            if error_callback:
+                cast("Callable[..., object]", error_callback)(
+                    None, "Restore file", response.status
+                )
+
+        self.thread.send(
+            "restore_snapshot",
+            str(db),
+            finished_callback=on_restore,
             error_callback=on_error,
         )
 

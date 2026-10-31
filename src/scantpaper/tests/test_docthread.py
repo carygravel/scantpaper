@@ -442,6 +442,213 @@ def test_open_session_file_invalid_app_id0(mocker: pytest.MockerFixture) -> None
         thread.open("test.db")
 
 
+def test_restore_snapshot_copies_and_opens(tmp_path: pathlib.Path) -> None:
+    """A snapshot is copied into the scratch database and opened there."""
+    snapshot = tmp_path / "scantpaper-crashed.sdb"
+    source = DocThread(db=str(snapshot))
+    source._write_tid = threading.get_native_id()
+    source.add_page(Page(image_object=Image.new("RGB", (10, 10), "white")))
+    source.quit()
+
+    scratch = tmp_path / "scantpaper-current.sdb"
+    thread = DocThread(db=str(scratch))
+    thread._write_tid = threading.get_native_id()
+    thread.add_page(Page(image_object=Image.new("RGB", (10, 10), "black")))
+    thread.add_page(Page(image_object=Image.new("RGB", (10, 10), "red")))
+    assert (
+        len(
+            thread.do_page_number_table(
+                Request("page_number_table", (), thread.responses)
+            )
+        )
+        == 2
+    )
+
+    try:
+        thread.do_restore_snapshot(
+            Request("restore_snapshot", (str(snapshot),), thread.responses)
+        )
+        assert thread._db == scratch
+        assert thread._temp_db == scratch
+        assert thread.db_is_temporary() is True
+        assert thread.pages_saved() is False
+        thread.mark_all_pages_saved()
+        assert thread.pages_saved() is True
+        assert (
+            len(
+                thread.do_page_number_table(
+                    Request("page_number_table", (), thread.responses)
+                )
+            )
+            == 1
+        )
+        assert snapshot.exists(), "consumption belongs to the document layer"
+    finally:
+        thread.quit()
+
+
+def test_restore_snapshot_rejects_non_session(tmp_path: pathlib.Path) -> None:
+    """A non-scantpaper database is rejected before the scratch DB changes."""
+    snapshot = tmp_path / "foreign.sdb"
+    connection = sqlite3.connect(snapshot)
+    connection.execute("PRAGMA application_id = 12345")
+    connection.execute("CREATE TABLE other (id INTEGER)")
+    connection.commit()
+    connection.close()
+
+    scratch = tmp_path / "scantpaper-current.sdb"
+    thread = DocThread(db=str(scratch))
+    thread._write_tid = threading.get_native_id()
+    thread.add_page(Page(image_object=Image.new("RGB", (10, 10), "black")))
+
+    try:
+        with pytest.raises(TypeError, match="is not a scantpaper session file"):
+            thread.do_restore_snapshot(
+                Request("restore_snapshot", (str(snapshot),), thread.responses)
+            )
+        assert thread._db == scratch
+        assert snapshot.exists()
+        assert (
+            len(
+                thread.do_page_number_table(
+                    Request("page_number_table", (), thread.responses)
+                )
+            )
+            == 1
+        )
+    finally:
+        thread.quit()
+
+
+def test_restore_snapshot_missing_file(tmp_path: pathlib.Path) -> None:
+    """A missing snapshot raises without touching the scratch database."""
+    scratch = tmp_path / "scantpaper-current.sdb"
+    thread = DocThread(db=str(scratch))
+
+    try:
+        with pytest.raises(FileNotFoundError):
+            thread.do_restore_snapshot(
+                Request(
+                    "restore_snapshot",
+                    (str(tmp_path / "missing.sdb"),),
+                    thread.responses,
+                )
+            )
+        assert thread._db == scratch
+    finally:
+        thread.quit()
+
+
+def test_restore_snapshot_clears_stale_restore_files(tmp_path: pathlib.Path) -> None:
+    """Leftovers from a failed restore do not block the next attempt."""
+    snapshot = tmp_path / "scantpaper-crashed.sdb"
+    source = DocThread(db=str(snapshot))
+    source._write_tid = threading.get_native_id()
+    source.add_page(Page(image_object=Image.new("RGB", (10, 10), "white")))
+    source.quit()
+
+    scratch = tmp_path / "scantpaper-current.sdb"
+    thread = DocThread(db=str(scratch))
+    stale = pathlib.Path(f"{scratch}.restore")
+    stale.write_bytes(b"stale")
+    pathlib.Path(f"{stale}-wal").write_bytes(b"stale wal")
+
+    try:
+        thread.do_restore_snapshot(
+            Request("restore_snapshot", (str(snapshot),), thread.responses)
+        )
+        assert not stale.exists()
+        assert not pathlib.Path(f"{stale}-wal").exists()
+        assert thread._db == scratch
+    finally:
+        thread.quit()
+
+
+def test_open_session_file_opens_in_place(tmp_path: pathlib.Path) -> None:
+    """The normal open path still adopts the selected file."""
+    session = tmp_path / "user.sdb"
+    source = DocThread(db=str(session))
+    source._write_tid = threading.get_native_id()
+    source.add_page(Page(image_object=Image.new("RGB", (10, 10), "white")))
+    source.quit()
+
+    scratch = tmp_path / "scantpaper-current.sdb"
+    thread = DocThread(db=str(scratch))
+    try:
+        thread.close()
+        thread.open(str(session))
+        assert thread._db == str(session)
+        assert thread.db_is_temporary() is False
+        assert (
+            len(
+                thread.do_page_number_table(
+                    Request("page_number_table", (), thread.responses)
+                )
+            )
+            == 1
+        )
+    finally:
+        thread.quit()
+
+
+def test_restore_snapshot_without_temp_db(tmp_path: pathlib.Path) -> None:
+    """The restore request requires a configured scratch database."""
+    thread = DocThread(db=str(tmp_path / "current.sdb"))
+    thread._temp_db = None
+    snapshot = tmp_path / "snapshot.sdb"
+    snapshot.write_text("snapshot", encoding="utf-8")
+
+    try:
+        with pytest.raises(RuntimeError, match="not configured"):
+            thread.do_restore_snapshot(
+                Request("restore_snapshot", (str(snapshot),), thread.responses)
+            )
+    finally:
+        thread.quit()
+
+
+def test_restore_snapshot_refuses_current_database(
+    tmp_path: pathlib.Path,
+) -> None:
+    """A snapshot may not be restored over the current scratch database."""
+    scratch = tmp_path / "scantpaper-current.sdb"
+    thread = DocThread(db=str(scratch))
+
+    try:
+        with pytest.raises(ValueError, match="Refusing to restore"):
+            thread.do_restore_snapshot(
+                Request("restore_snapshot", (str(scratch),), thread.responses)
+            )
+    finally:
+        thread.quit()
+
+
+def test_restore_snapshot_restores_db_after_open_failure(
+    tmp_path: pathlib.Path, mocker: pytest.MockerFixture
+) -> None:
+    """A failed open leaves the thread pointing at the previous database."""
+    snapshot = tmp_path / "scantpaper-crashed.sdb"
+    source = DocThread(db=str(snapshot))
+    source._write_tid = threading.get_native_id()
+    source.add_page(Page(image_object=Image.new("RGB", (10, 10), "white")))
+    source.quit()
+
+    scratch = tmp_path / "scantpaper-current.sdb"
+    thread = DocThread(db=str(scratch))
+    previous = thread._db
+    mocker.patch.object(thread, "open", side_effect=RuntimeError("open failed"))
+
+    try:
+        with pytest.raises(RuntimeError, match="open failed"):
+            thread.do_restore_snapshot(
+                Request("restore_snapshot", (str(snapshot),), thread.responses)
+            )
+        assert thread._db == previous
+        assert snapshot.exists()
+    finally:
+        thread.quit()
+
+
 def test_latest_action_id_empty_history(temp_db: object) -> None:
     """An empty session has no recorded action."""
     thread = DocThread(db=temp_db.name)
