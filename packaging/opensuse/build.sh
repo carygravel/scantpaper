@@ -120,6 +120,13 @@ do_setup() {
     zypper -n --gpg-auto-import-keys modifyrepo -e openSUSE:repo-non-oss
   fi
   zypper -n --gpg-auto-import-keys ref
+
+  # The Tumbleweed image can ship busybox-gawk, which conflicts with the gawk
+  # that rpm-build requires. gawk provides awk after the install.
+  if [ "$TARGET" = tumbleweed ] && rpm -q busybox-gawk >/dev/null 2>&1; then
+    zypper -n remove busybox-gawk
+  fi
+
   zypper -n --gpg-auto-import-keys install --no-recommends \
     git curl tar gzip \
     rpm-build gcc gcc-c++ make pkgconf-pkg-config \
