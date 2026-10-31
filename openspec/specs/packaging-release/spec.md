@@ -127,10 +127,11 @@ the value is not available there.
   provide
 - **THEN** verification fails and names noble
 
-### Requirement: Signing and uploads stay manual
+### Requirement: Signing happens in the build; uploads stay manual
 
-The tools SHALL NOT commit, tag, push, sign or upload. They SHALL stop after
-writing their outputs and print the commands for the maintainer to run.
+The sync tool SHALL NOT commit, tag, push or upload. The PPA tool SHALL sign
+each source package as part of its build and SHALL NOT upload it. Both SHALL
+print the remaining commands for the maintainer to run.
 
 #### Scenario: Sync stops before history
 
@@ -138,8 +139,14 @@ writing their outputs and print the commands for the maintainer to run.
 - **THEN** it prints the build, test, commit and upload commands and creates no
   commit or tag
 
-#### Scenario: PPA sources are unsigned and not uploaded
+#### Scenario: PPA sources are signed and not uploaded
 
 - **WHEN** the PPA tool has built a source package
-- **THEN** it is unsigned, nothing has been uploaded, and the tool prints
-  `debsign` and `dput` for the maintainer
+- **THEN** its `.dsc` and `.changes` are signed, nothing has been uploaded, and
+  the tool prints only `dput`
+
+#### Scenario: Signing failure stops the build
+
+- **WHEN** signing fails, for example because no usable key or passphrase is
+  available
+- **THEN** the build fails and no `dput` command is printed for that series

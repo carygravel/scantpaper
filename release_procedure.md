@@ -153,6 +153,12 @@ after the floor moves; they are independent and can be done one per release.
   `tomllib`/`tomli` branches in `src/scantpaper/const.py` and the `dev/`
   scripts, and the `fromisoformat` workaround in `src/scantpaper/document.py`
   together with the test that mocks the 3.10 path.
+- Remove `python3-tomli` from `Build-Depends-Indep` and from `Depends`; with
+  Python 3.11 the app uses `tomllib` and the explicit dependency is no longer
+  needed.
+- Drop the PPA's `python3-typing-extensions` backport; jammy's archive version
+  (3.10) is too old for the app (`override`, 4.4) and for the PPA's
+  `python3-rich` (`Self`, 4.0).
 - Switch `datetime.timezone.utc` to `datetime.UTC` (3.11+) across the
   codebase; `dev/sync_salsa.py` and its test use the longer spelling only
   because jammy's Python has no `datetime.UTC`.
