@@ -202,12 +202,14 @@ def _entry_date(args: argparse.Namespace) -> datetime.date:
     epoch = os.environ.get("SOURCE_DATE_EPOCH")
     if epoch is not None:
         try:
-            moment = datetime.datetime.fromtimestamp(int(epoch), tz=datetime.UTC)
+            moment = datetime.datetime.fromtimestamp(
+                int(epoch), tz=datetime.timezone.utc
+            )
         except (ValueError, OverflowError) as error:
             message = f"invalid SOURCE_DATE_EPOCH: {epoch}"
             raise SyncError(message) from error
         return moment.date()
-    return datetime.datetime.now(tz=datetime.UTC).date()
+    return datetime.datetime.now(tz=datetime.timezone.utc).date()
 
 
 def _format_date(day: datetime.date) -> str:

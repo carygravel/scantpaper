@@ -147,8 +147,14 @@ after the floor moves; they are independent and can be done one per release.
 
 - Raise the minimum supported distro to noble and drop jammy from the PPA
   build list (and the `oldest` CI job if it is the jammy one).
-- Bump `requires-python` / `target-version` and drop the tomli conditional
-  (`;python_version<'3.11'`), as noted above.
+- Bump `requires-python` / `target-version` and drop every Python 3.10
+  compatibility path: the `;python_version<'3.11'` tomli conditional, the
+  `tomllib`/`tomli` branches in `src/scantpaper/const.py` and the `dev/`
+  scripts, and the `fromisoformat` workaround in `src/scantpaper/document.py`
+  together with the test that mocks the 3.10 path.
+- Switch `datetime.timezone.utc` to `datetime.UTC` (3.11+) across the
+  codebase; `dev/sync_salsa.py` and its test use the longer spelling only
+  because jammy's Python has no `datetime.UTC`.
 - Replace `Gtk.Dialog` usage with `Gtk.AlertDialog` / plain `Gtk.Window`
   (deprecated since 4.10).
 - Replace `Gtk.ComboBox` / `Gtk.ComboBoxText` with `Gtk.DropDown` +
