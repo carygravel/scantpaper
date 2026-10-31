@@ -199,11 +199,12 @@ These are the openSUSE-specific decisions, each hard-won during bring-up.
   these pip-built specs. The built RPMs carry neither `python3dist()` requires
   nor provides, with or without a suppression macro - verified by rebuilding
   with the macro removed and getting identical metadata. CI asserts both
-  halves of that: that no published RPM carries a `python3dist()` require, and
-  that no spec reintroduces hand-written `python3dist()` metadata or a
-  suppression macro. Tumbleweed provides the `python3dist()` names and
-  disables the requires generator, so its target depends on the distro
-  packages directly.
+  halves of that for the Leap target: that no published RPM carries a
+  `python3dist()` require, and that no Leap-expanded spec reintroduces
+  hand-written `python3dist()` metadata or a suppression macro. Tumbleweed
+  provides the `python3dist()` names and disables the requires generator, so
+  its target depends on the distro packages directly and its sane package
+  provides `python3dist(python-sane)` to replace the distro one.
 - **A `.0` version suffix, deliberately and with no epoch.** Three packages -
   the sane package (`2.9.2.0`), `python313-img2pdf` (`0.6.3.0`) and
   `python313-pdfminer.six` (`20260107.0`) - are also offered by a repository at

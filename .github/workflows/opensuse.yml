@@ -293,11 +293,18 @@ jobs:
       # nothing, so it is banned rather than pinned.
       - name: Assert no hand-written python3dist() metadata
         run: |
+          set -e
           rc=0
+          # Check the expanded Leap specs, not the raw templates: the
+          # Tumbleweed-only sane package provides python3dist(python-sane),
+          # and that line sits in a branch Leap does not expand.
+          for spec in "$HOME"/rpmbuild/SPECS/*.spec; do
+            rpmspec -P "$spec"
+          done > /tmp/expanded-specs
           if grep -nE '^[[:space:]]*(Requires|Provides|BuildRequires):.*python3dist\(' \
-               packaging/opensuse/*.spec; then
-            echo "::error::a spec hand-writes python3dist() metadata; declare" \
-              "dependencies by concrete python313-* package name instead"
+               /tmp/expanded-specs; then
+            echo "::error::a Leap spec hand-writes python3dist() metadata;" \
+              "declare dependencies by concrete python313-* package name instead"
             rc=1
           fi
           if grep -rn '__pythondist_requires\|disable_python_dependency_generator' \
