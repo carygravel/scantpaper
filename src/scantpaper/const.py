@@ -67,6 +67,11 @@ MIN_BASELINE_COEFFICIENTS = 2
 # tends to produce a larger stream for it.
 LOW_COLOUR_DEPTH_LEVELS = 16
 
+# Maximum difference, in pixels, between an hOCR page box and the target page
+# dimensions. One pixel covers rounding differences between PDF extraction and
+# hOCR export without hiding a real crop, rotation, or resample.
+HOCR_PAGE_BOX_TOLERANCE = 1
+
 A4_WIDTH_MM = 210
 A4_HEIGHT_MM = 297
 

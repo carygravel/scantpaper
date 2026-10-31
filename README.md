@@ -213,6 +213,11 @@ you explicitly turn the toggle off.
   one at a time and page images are decoded on demand, so saving a document
   with many high-resolution pages no longer keeps every decoded page in
   memory and no longer exhausts the memory of the process.
+- **Import hOCR:** Apply a saved hOCR file to the selected pages or all pages.
+  Pages are matched in order, the page box must match the target page's pixel
+  size, and only the text layer is replaced; images and annotations are left
+  untouched. This is useful for restoring corrected OCR after rebuilding a
+  session from the original images.
 - **Thumbnails:** Page thumbnails are generated with a decimate-then-LANCZOS
   downscale for a sharp preview in the thumbnail panel without slowing down
   bulk imports, and bilevel or palette pages (common in scanned/OCR PDFs) are
@@ -671,6 +676,17 @@ existing `.sdb` file asks for confirmation before the old file is replaced; the
 replacement is atomic, so a failed save leaves the previous file intact.
 Because the opened file is the source of truth, an in-place session is not
 offered for restoration as a crashed session after a crash.
+
+To reuse corrected OCR when rebuilding a session from the original images,
+save the old session's pages as hOCR, import the images into a new session in
+the same page order, and choose **File → Import hOCR…** for the selected pages
+or all pages. The import matches hOCR pages to pages by position, checks each
+page box against the target page's pixel size, and replaces only the text
+layer as one undo step. Pages without OCR are exported as empty page boxes so
+they keep their position; importing an empty page box clears that page's text
+layer. Annotations are not part of hOCR and are not transferred. The TIFF or
+other image files must be imported in the old session's page order, because a
+wrong-order page of the same size cannot be detected from its page box.
 
 A session with no recorded actions opens as an empty document, and a session
 whose latest action removed every page reopens empty. The first page scanned

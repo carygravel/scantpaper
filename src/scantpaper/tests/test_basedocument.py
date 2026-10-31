@@ -752,6 +752,35 @@ def test_modify_method_callback() -> None:
     logger_cb.assert_called_with(response)
 
 
+def test_data_callback_forwards_progress() -> None:
+    """String progress data reaches the configured progress callback."""
+    slist = Document()
+    progress = MagicMock()
+    response = MagicMock()
+    response.info = "Importing hOCR page 1 of 2"
+
+    slist.data_callback(response, {"progress_callback": progress})
+
+    progress.assert_called_once_with(response)
+
+
+def test_import_hocr_uses_modify_method_generator() -> None:
+    """The import action forwards its options and a data callback."""
+    slist = Document()
+    captured: dict[str, object] = {}
+
+    def mock_import(**kwargs: object) -> None:
+        captured.update(kwargs)
+
+    slist.thread.import_hocr = mock_import
+    slist.import_hocr(path="/tmp/page.hocr", list_of_pages=[1, 2])
+
+    assert captured["path"] == "/tmp/page.hocr"
+    assert captured["list_of_pages"] == [1, 2]
+    assert "data_callback" in captured, "progress data callback is supplied"
+    assert "pidfile" in captured, "cancellation pidfile is supplied"
+
+
 def test_open_session_error_no_db() -> None:
     """Test open_session with missing db key."""
     slist = Document()

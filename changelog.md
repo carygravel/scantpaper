@@ -1,5 +1,14 @@
 ## 4.0.3 (unreleased)
 
+* **File → Import hOCR…** applies a saved hOCR file to the selected pages or
+  all pages. Pages are matched in order and each page box must match the
+  target page's pixel size within one pixel; only the text layer is replaced,
+  as one undo step. A rejected import shows the page count, dimensions, or
+  parse reason instead of an empty error message. Images and annotations are
+  untouched. Pages without OCR are now included in a multi-page hOCR save as
+  empty page boxes, so they keep their position and round-trip as pages with
+  no text. This lets corrected OCR be restored after rebuilding a session
+  from the original images.
 * Restoring a crashed session now copies its snapshot into the current
   temporary session and removes the snapshot once the pages are available. A
   restored session is therefore removed on a normal exit instead of being

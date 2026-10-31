@@ -20,7 +20,13 @@ from PIL import ImageChops, ImageEnhance, ImageFilter, ImageOps, ImageStat
 from typing_extensions import override
 
 from scantpaper.bboxtree import Bboxtree
-from scantpaper.const import _LOCAL_TZ, APPLICATION_ID, THUMBNAIL, USER_VERSION
+from scantpaper.const import (
+    _LOCAL_TZ,
+    APPLICATION_ID,
+    HOCR_PAGE_BOX_TOLERANCE,
+    THUMBNAIL,
+    USER_VERSION,
+)
 from scantpaper.helpers import exec_command_run
 from scantpaper.i18n import _
 from scantpaper.importthread import _note_callbacks
@@ -1265,6 +1271,136 @@ class DocThread(SaveThread):
         page_id, text = request.args
         self._version_page(cast("int", page_id), text=text)
         self._con[threading.get_native_id()].commit()
+
+    def import_hocr(self, **kwargs: object) -> uuid.UUID:
+        """Import text layers from an hOCR file into the given pages."""
+        callbacks = _note_callbacks(kwargs)
+        return self.send("import_hocr", kwargs, **callbacks)
+
+    def _read_hocr_pages(self, path: str) -> list[Bboxtree]:
+        """Read and parse an hOCR file into one tree per page."""
+        try:
+            hocr = pathlib.Path(path).read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as err:
+            msg = _("Error reading hOCR file %(path)s: %(error)s") % {
+                "path": path,
+                "error": err,
+            }
+            raise ValueError(msg) from err
+        try:
+            trees = Bboxtree.from_hocr_pages(hocr)
+        except (TypeError, ValueError) as err:
+            msg = _("Error parsing hOCR file %(path)s: %(error)s") % {
+                "path": path,
+                "error": err,
+            }
+            raise ValueError(msg) from err
+        if not trees:
+            msg = _("The file contains no hOCR pages.")
+            raise ValueError(msg)
+        return trees
+
+    def _validate_hocr_pages(
+        self,
+        request: Request,
+        page_ids: list[int],
+        trees: list[Bboxtree],
+    ) -> list[str | None]:
+        """Validate page count and geometry and return the text to import."""
+        if len(trees) != len(page_ids):
+            msg = _(
+                "The hOCR file contains %(found)i pages, but "
+                "%(expected)i pages are selected."
+            ) % {"found": len(trees), "expected": len(page_ids)}
+            raise ValueError(msg)
+
+        texts: list[str | None] = []
+        for position, (page_id, tree) in enumerate(
+            zip(page_ids, trees, strict=True), start=1
+        ):
+            request.data(
+                _("Checking hOCR page %(current)i of %(total)i")
+                % {"current": position, "total": len(page_ids)}
+            )
+            page = self.get_page(id=page_id)
+            width, height = page.get_size()
+            root = tree.bbox_tree[0] if tree.bbox_tree else None
+            bbox = root.get("bbox") if root is not None else None
+            if bbox is None:
+                msg = _("The hOCR page for page %(page)i has no page box.") % {
+                    "page": position
+                }
+                raise ValueError(msg)
+            found_width, found_height = bbox[2], bbox[3]
+            if (
+                bbox[0] != 0
+                or bbox[1] != 0
+                or abs(found_width - width) > HOCR_PAGE_BOX_TOLERANCE
+                or abs(found_height - height) > HOCR_PAGE_BOX_TOLERANCE
+            ):
+                msg = _(
+                    "The hOCR page for page %(page)i is "
+                    "%(found_width)ix%(found_height)i, but the page is "
+                    "%(width)ix%(height)i."
+                ) % {
+                    "page": position,
+                    "found_width": found_width,
+                    "found_height": found_height,
+                    "width": width,
+                    "height": height,
+                }
+                raise ValueError(msg)
+            texts.append(
+                tree.json()
+                if any(box.get("text") for box in tree.each_bbox())
+                else None
+            )
+        return texts
+
+    def do_import_hocr(self, request: Request) -> None:
+        """Import an hOCR file into the selected pages as one action."""
+        options = cast("dict[str, object]", request.args[0])
+        path = cast("str", options["path"])
+        page_ids = cast("list[int]", options["list_of_pages"])
+        if not page_ids:
+            request.error(None, _("No pages selected for hOCR import."))
+            return
+
+        try:
+            trees = self._read_hocr_pages(path)
+            texts = self._validate_hocr_pages(request, page_ids, trees)
+        except ValueError as err:
+            request.error(None, str(err))
+            return
+
+        self.check_cancelled()
+        previous_action_id = self._action_id
+        self._take_snapshot()
+        try:
+            for position, (page_id, text) in enumerate(
+                zip(page_ids, texts, strict=True), start=1
+            ):
+                self.check_cancelled()
+                request.data(
+                    _("Importing hOCR page %(current)i of %(total)i")
+                    % {"current": position, "total": len(page_ids)}
+                )
+                self._version_page(page_id, text=text)
+            self._con[threading.get_native_id()].commit()
+        except Exception:
+            self._con[threading.get_native_id()].rollback()
+            if self._action_id != previous_action_id:
+                self._execute(
+                    "DELETE FROM page_order WHERE action_id = ?",
+                    (self._action_id,),
+                )
+                self._execute(
+                    "DELETE FROM selection WHERE action_id = ?",
+                    (self._action_id,),
+                )
+                self._action_id = previous_action_id
+                self._con[threading.get_native_id()].commit()
+            raise
 
     def get_annotations(self, page_id: int) -> str | None:
         """Get the annotations layer for the given page."""

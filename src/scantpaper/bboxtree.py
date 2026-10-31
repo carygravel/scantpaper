@@ -93,17 +93,44 @@ class Bboxtree:
         """seríalise the bboxtree object as JSON."""
         return json.dumps(self.bbox_tree)
 
+    @classmethod
+    def from_hocr_pages(cls: type[Bboxtree], hocr: str | None) -> list[Bboxtree]:
+        """Return one bboxtree per ``ocr_page`` root, keeping empty pages."""
+        if (hocr is None) or not re.search(
+            r"<body>[\s\S]*<\/body>", hocr, re.MULTILINE | re.DOTALL | re.VERBOSE
+        ):
+            return []
+        trees = []
+        for root in _hocr2boxes(hocr):
+            contents = root.get("contents")
+            if contents is not None:
+                _prune_empty_branches(contents)
+            tree = cls()
+            tree._walk_bboxes(root)
+            trees.append(tree)
+        return trees
+
     def from_hocr(self, hocr: str | None) -> None:
         """Write bboxtree to HOCR string."""
         if (hocr is None) or not re.search(
             r"<body>[\s\S]*<\/body>", hocr, re.MULTILINE | re.DOTALL | re.VERBOSE
         ):
             return
-        box_tree = _hocr2boxes(hocr)
-        _prune_empty_branches(box_tree)
-        if len(box_tree) > 0:
-            self.bbox_tree = []
-            self._walk_bboxes(box_tree[0])
+        for tree in self.from_hocr_pages(hocr):
+            root = tree.bbox_tree[0]
+            if len(tree.bbox_tree) > 1 or root.get("text"):
+                self.bbox_tree = tree.bbox_tree
+                return
+
+    def from_page(self, width: int, height: int) -> None:
+        """Create a bboxtree containing an empty page box."""
+        self.bbox_tree.append(
+            {
+                "type": "page",
+                "bbox": [0, 0, width, height],
+                "depth": 0,
+            }
+        )
 
     def from_text(self, text: str, width: int, height: int) -> None:
         """Create bboxtree from string."""

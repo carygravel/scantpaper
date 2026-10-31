@@ -14,6 +14,7 @@ from gi.repository import GdkPixbuf
 from PIL import Image, ImageFile
 
 from scantpaper import config
+from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import (
     A4_HEIGHT_MM,
     A4_WIDTH_MM,
@@ -487,6 +488,70 @@ def test_import_hocr_empty() -> None:
         )
         page.import_hocr(empty_hocr)
         assert page.text_layer is None, "empty hOCR should set text_layer to None"
+
+        empty_page = page.export_hocr()
+        assert empty_page.count("class='ocr_page'") == 1, "one empty page box"
+        assert "bbox 0 0 210 297" in empty_page, "page box uses the page size"
+
+        page.import_hocr(empty_page)
+        assert page.text_layer is None, "empty page box round-trips as no text"
+
+        page.text_layer = "[]"
+        assert page.export_hocr().count("class='ocr_page'") == 1, (
+            "empty JSON exports one empty page box"
+        )
+
+
+def test_hocr_round_trip_preserves_text_layer() -> None:
+    """A canonical hOCR page survives import and export byte for byte."""
+    hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name='ocr-system' content='scantpaper {VERSION}' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
+   <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
+    <p class='ocr_par' id='par_1_1' title='bbox 1 14 420 59'>
+     <span class='ocr_line' title='bbox 1 14 77 48; textangle 90'>
+      <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48; x_wconf -3'>The</span>
+     </span>
+     <span class='ocr_line' id='line_1_1' title='bbox 92 14 420 59; baseline -0.003 -17'>
+      <span class='ocrx_word' id='word_1_2' title='bbox 92 14 202 59; x_wconf -3'>quick</span>
+      <span class='ocrx_word' id='word_1_3' title='bbox 214 14 341 48; x_wconf -3'>brown</span>
+      <span class='ocrx_word' id='word_1_4' title='bbox 355 14 420 48; x_wconf -4'>fox</span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+    page = Page(image_object=Image.new("L", (422, 61)))
+    page.import_hocr(hocr)
+
+    assert page.export_hocr() == hocr, "hOCR is reproduced byte for byte"
+    boxes = list(Bboxtree(page.text_layer).each_bbox())
+    words = [
+        (box["text"], box["bbox"], box.get("confidence"))
+        for box in boxes
+        if box["type"] == "word"
+    ]
+    assert words == [
+        ("The", [1, 14, 77, 48], -3),
+        ("quick", [92, 14, 202, 59], -3),
+        ("brown", [214, 14, 341, 48], -3),
+        ("fox", [355, 14, 420, 48], -4),
+    ], "words, boxes, and confidence are preserved"
+    rotated = [box for box in boxes if box.get("textangle") == 90]
+    assert rotated, "the rotated line is present"
+    assert rotated[0]["bbox"] == [1, 14, 77, 48], (
+        "the text angle is preserved on its line"
+    )
 
 
 def _grayscale_with_levels(levels: int) -> Image.Image:

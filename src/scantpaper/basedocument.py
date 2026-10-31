@@ -253,6 +253,8 @@ class BaseDocument(SimpleList):
             and "message_callback" in options
         ):
             cast("Callable[..., object]", options["message_callback"])(response)
+        elif isinstance(info, (str, float)) and "progress_callback" in options:
+            cast("Callable[..., object]", options["progress_callback"])(response)
         elif "logger_callback" in options:
             cast("Callable[..., object]", options["logger_callback"])(response)
 
@@ -908,6 +910,7 @@ for method_name_ in [
     "unsharp",
     "crop",
     "tesseract",
+    "import_hocr",
     "user_defined",
 ]:
     setattr(BaseDocument, method_name_, _modify_method_generator(method_name_))

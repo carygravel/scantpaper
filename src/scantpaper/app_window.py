@@ -281,6 +281,7 @@ class ApplicationWindow(
             ("new", self.new_),
             ("open", self.open_dialog),
             ("open-session", self._open_session_action),
+            ("import-hocr", self.import_hocr_dialog),
             ("scan", self.scan_dialog),
             ("save", self.save_dialog),
             ("email", self.email),
@@ -1095,6 +1096,7 @@ class ApplicationWindow(
 
             self._actions["print"].set_enabled(True)
             self._actions["save"].set_enabled(True)
+            self._actions["import-hocr"].set_enabled(True)
 
         else:
             if self._dependencies["xdg"]:
@@ -1104,6 +1106,7 @@ class ApplicationWindow(
 
             self._actions["print"].set_enabled(False)
             self._actions["save"].set_enabled(False)
+            self._actions["import-hocr"].set_enabled(False)
 
     def _check_disk_space(self) -> None:
         """Warn if free space in the session directory is running low."""

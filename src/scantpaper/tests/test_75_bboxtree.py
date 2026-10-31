@@ -1359,3 +1359,60 @@ def test_group_different_height_upright_words_do_not_merge() -> None:
         [100, 100, 320, 120],
         [340, 90, 540, 230],
     ], "the short row keeps a line that does not span the taller word"
+
+
+def test_from_hocr_pages_keeps_each_page_including_empty() -> None:
+    """Parse every ocr_page, including one with no children."""
+    hocr = f"""{HOCR_HEADER}
+  <div class='ocr_page' id='page_1' title='bbox 0 0 10 20'>
+   <span class='ocrx_word' id='word_1_1' title='bbox 1 2 3 4'>one</span>
+  </div>
+  <div class='ocr_page' id='page_2' title='bbox 0 0 30 40'></div>
+  <div class='ocr_page' id='page_3' title='bbox 0 0 50 60'>
+   <span class='ocrx_word' id='word_3_1' title='bbox 5 6 7 8'>three</span>
+  </div>
+ </body>
+</html>
+"""
+    trees = Bboxtree.from_hocr_pages(hocr)
+
+    assert len(trees) == 3, "one tree per ocr_page"
+    assert [tree.bbox_tree[0]["bbox"] for tree in trees] == [
+        [0, 0, 10, 20],
+        [0, 0, 30, 40],
+        [0, 0, 50, 60],
+    ], "page boxes are retained"
+    assert [box["text"] for box in trees[0].each_bbox() if box["type"] == "word"] == [
+        "one"
+    ], "first page words"
+    assert trees[1].bbox_tree == [
+        {"type": "page", "id": "page_2", "bbox": [0, 0, 30, 40], "depth": 0}
+    ], "empty page root is retained"
+    assert [box["text"] for box in trees[2].each_bbox() if box["type"] == "word"] == [
+        "three"
+    ], "third page words"
+
+
+def test_from_hocr_pages_rejects_missing_body() -> None:
+    """A missing or malformed document yields no pages."""
+    assert Bboxtree.from_hocr_pages(None) == []
+    assert Bboxtree.from_hocr_pages("not an hOCR document") == []
+
+
+def test_from_hocr_keeps_first_non_empty_page() -> None:
+    """The single-page parser skips an empty first page as before."""
+    hocr = f"""{HOCR_HEADER}
+  <div class='ocr_page' id='page_1' title='bbox 0 0 10 20'></div>
+  <div class='ocr_page' id='page_2' title='bbox 0 0 30 40'>
+   <span class='ocrx_word' id='word_2_1' title='bbox 1 2 3 4'>two</span>
+  </div>
+ </body>
+</html>
+"""
+    tree = Bboxtree()
+    tree.from_hocr(hocr)
+
+    assert tree.bbox_tree[0]["id"] == "page_2", "empty first page is skipped"
+    assert [box["text"] for box in tree.each_bbox() if box["type"] == "word"] == [
+        "two"
+    ], "second page is imported"

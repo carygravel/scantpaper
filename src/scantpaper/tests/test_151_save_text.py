@@ -383,6 +383,76 @@ def test_save_multipage_hocr(
         assert f.read() == hocr, "saved hOCR"
 
 
+def test_save_multipage_hocr_includes_pages_without_text(
+    import_in_mainloop: Callable[[object, list[str]], None],
+    set_text_in_mainloop: Callable[[object, str, str], None],
+    rose_pnm: str,
+    temp_db: object,
+    temp_txt: object,
+    get_page_sync: Callable[..., object],
+) -> None:
+    """Save one page box for every selected page, including empty pages."""
+    slist = Document(db=temp_db.name)
+    import_in_mainloop(slist, [rose_pnm, rose_pnm])
+    page_ids = [slist.data[0][2], slist.data[1][2]]
+
+    mlp = safe_mainloop(2000)
+    slist.save_hocr(
+        path=temp_txt.name,
+        list_of_pages=page_ids,
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+    with pathlib.Path(temp_txt.name).open(encoding="utf-8") as f:
+        saved = f.read()
+    assert saved.count("class='ocr_page'") == 2, "one page box per page"
+    assert saved.count("bbox 0 0 70 46") == 2, "both pages are empty"
+    assert saved.count("<body>") == 1, "one body"
+
+    hocr = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <meta name='ocr-system' content='scantpaper {VERSION}' />
+  <meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocr_word'/>
+ </head>
+ <body>
+  <div class='ocr_page' id='page_1' title='bbox 0 0 422 61'>
+   <div class='ocr_carea' id='block_1_1' title='bbox 1 14 420 59'>
+    <p class='ocr_par' title='bbox 1 14 420 59'>
+     <span class='ocr_line' id='line_1_1' title='bbox 1 14 420 59'>
+      <span class='ocrx_word' id='word_1_1' title='bbox 1 14 77 48'>The</span>
+     </span>
+    </p>
+   </div>
+  </div>
+ </body>
+</html>
+"""
+    page = get_page_sync(slist.thread, id=1)
+    page.import_hocr(hocr)
+    set_text_in_mainloop(slist, cast("str", cast("object", 1)), page.text_layer)
+
+    with tempfile.NamedTemporaryFile(suffix=".hocr") as mixed:
+        mlp = safe_mainloop(2000)
+        slist.save_hocr(
+            path=mixed.name,
+            list_of_pages=page_ids,
+            finished_callback=lambda _response: mlp.quit(),
+        )
+        mlp.run()
+
+        with pathlib.Path(mixed.name).open(encoding="utf-8") as f:
+            saved = f.read()
+    assert saved.count("class='ocr_page'") == 2, "one page box per page"
+    assert "id='word_1_1'" in saved, "the text page keeps its words"
+    assert saved.count("bbox 0 0 70 46") == 1, "only the empty page is empty"
+    assert saved.count("<body>") == 1, "one body"
+
+
 def test_save_hocr_structure(
     import_in_mainloop: Callable[[object, list[str]], None],
     set_text_in_mainloop: Callable[[object, str, str], None],

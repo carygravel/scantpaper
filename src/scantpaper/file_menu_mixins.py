@@ -19,8 +19,10 @@ from scantpaper import config
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import _LOCAL_TZ, ASTERISK, DIALOG_ROW_SPACING, EMPTY, EMPTY_LIST
 from scantpaper.dialog import pad_action_area, pad_content_area
+from scantpaper.dialog.importhocr import ImportHocrDialog
 from scantpaper.dialog.save import Save as SaveDialog
 from scantpaper.helpers import (
+    add_filter,
     chooser_path,
     chooser_paths,
     collate_metadata,
@@ -42,33 +44,6 @@ from gi.repository import (  # noqa: E402
 )
 
 logger = logging.getLogger(__name__)
-
-
-def add_filter(
-    file_chooser: Gtk.FileChooser, name: str, file_extensions: list[str]
-) -> None:
-    """Create a file filter to show only supported file types in FileChooser dialog."""
-    ffilter = Gtk.FileFilter()
-    for extension in file_extensions:
-        # Create case insensitive pattern
-        pattern = ["[" + char.upper() + char.lower() + "]" for char in extension]
-
-        ffilter.add_pattern("*." + EMPTY.join(pattern))
-
-    types = None
-    for ext in file_extensions:
-        if types is not None:
-            types += f", *.{ext}"
-
-        else:
-            types = f"*.{ext}"
-
-    ffilter.set_name(f"{name} ({types})")
-    file_chooser.add_filter(ffilter)
-    ffilter = Gtk.FileFilter()
-    ffilter.add_pattern("*")
-    ffilter.set_name("All files")
-    file_chooser.add_filter(ffilter)
 
 
 def file_exists(chooser: Gtk.FileChooser, filename: str) -> bool:
@@ -283,6 +258,44 @@ class FileMenuMixins:
             options["pagerange_callback"] = self._select_pagerange_callback
 
         self.slist.import_files(**options)
+
+    def import_hocr_dialog(
+        self, _action: Gio.SimpleAction, _param: GLib.Variant | None
+    ) -> None:
+        """Display the hOCR import dialog."""
+        ImportHocrDialog(
+            transient_for=self,
+            title=_("Import hOCR"),
+            page_range=self.settings["Page range"],
+            cwd=self.settings["cwd"],
+            on_accept=self._import_hocr,
+        ).present()
+
+    def _import_hocr(self, path: str, page_range: str) -> None:
+        """Import the chosen hOCR file into the selected pages."""
+        self.settings["Page range"] = page_range
+        self.settings["cwd"] = str(pathlib.Path(path).parent)
+        page_indices = self.slist.get_page_index(page_range, self._error_callback)
+        if not page_indices:
+            return
+        page_ids = [self.slist.data[i][2] for i in page_indices]
+
+        def import_hocr_finished_callback(response: Response) -> None:
+            self.post_process_progress.finish(response)
+            if self._current_page is not None:
+                self._display_image(self._current_page.id)
+
+        self.slist.import_hocr(
+            path=path,
+            list_of_pages=page_ids,
+            queued_callback=self.post_process_progress.queued,
+            started_callback=self.post_process_progress.update,
+            running_callback=self.post_process_progress.update,
+            finished_callback=import_hocr_finished_callback,
+            cancelled_callback=self.post_process_progress.finish,
+            error_callback=self._error_callback,
+            progress_callback=self.post_process_progress.update,
+        )
 
     def _open_session_action(
         self, _action: Gio.SimpleAction, _param: GLib.Variant | None

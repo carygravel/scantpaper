@@ -238,6 +238,10 @@
         <attribute name="label" translatable="yes">Open c_rashed session</attribute>
       </item>
       <item>
+        <attribute name="action">win.import-hocr</attribute>
+        <attribute name="label" translatable="yes">Import _hOCR…</attribute>
+      </item>
+      <item>
         <attribute name="action">win.scan</attribute>
         <attribute name="label" translatable="yes">S_can</attribute>
       </item>

@@ -5,8 +5,10 @@ from __future__ import annotations
 import io
 import logging
 import pathlib
+import queue
 import sqlite3
 import subprocess
+import tempfile
 import threading
 import time
 from typing import TYPE_CHECKING, Any, cast
@@ -2315,3 +2317,402 @@ def test_do_tesseract_rejects_invalid_tessdata_dir(
     mock_api.assert_not_called()
     mock_page.import_hocr.assert_not_called()
     replace_page.assert_not_called()
+
+
+def _make_hocr(*pages: tuple[int, int, str | None]) -> str:
+    """Build a minimal hOCR document with one page per tuple."""
+    body = []
+    for number, (width, height, text) in enumerate(pages, start=1):
+        content = ""
+        if text is not None:
+            content = (
+                f"\n   <span class='ocrx_word' id='word_{number}_1' "
+                f"title='bbox 1 2 3 4'>{text}</span>\n  "
+            )
+        body.append(
+            f"  <div class='ocr_page' id='page_{number}' "
+            f"title='bbox 0 0 {width} {height}'>{content}</div>"
+        )
+    return (
+        "<?xml version='1.0' encoding='UTF-8'?>\n"
+        "<html><body>\n" + "\n".join(body) + "\n</body></html>\n"
+    )
+
+
+def test_import_hocr_replaces_text_and_keeps_other_page_data(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """Import text into two pages, leaving images and annotations alone."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    first = Page(
+        image_object=Image.new("L", (10, 20)),
+        annotations='[{"type": "page", "bbox": [0, 0, 10, 20], "depth": 0}]',
+    )
+    first.text_layer = (
+        '[{"type": "page", "bbox": [0, 0, 10, 20], "depth": 0}, '
+        '{"type": "word", "bbox": [1, 2, 3, 4], "text": "old", "depth": 1}]'
+    )
+    _, _, first_id = thread.add_page(first)
+    _, _, second_id = thread.add_page(Page(image_object=Image.new("L", (30, 40))))
+    first_before = thread.get_page(id=first_id)
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".hocr", encoding="utf-8"
+    ) as hocr_file:
+        hocr_file.write(_make_hocr((10, 20, "new"), (30, 40, None)))
+        hocr_file.flush()
+
+        request = mocker.Mock()
+        request.args = [
+            {
+                "path": hocr_file.name,
+                "list_of_pages": [first_id, second_id],
+            }
+        ]
+        thread.do_import_hocr(request)
+
+    request.error.assert_not_called()
+    first_after = thread.get_page(id=first_id)
+    assert '"text": "new"' in cast("str", first_after.text_layer)
+    assert first_after.image_id == first_before.image_id, "image id unchanged"
+    assert first_after.image_object.size == (10, 20), "image unchanged"
+    assert first_after.annotations == first_before.annotations, "annotations kept"
+    assert thread.get_page(id=second_id).text_layer is None, "empty page stays empty"
+    assert [row[2] for row in thread.page_number_table() or []] == [
+        first_id,
+        second_id,
+    ], "page order unchanged"
+
+    thread.do_undo(Request("undo", (), thread.responses))
+    assert thread.get_page(id=first_id).text_layer == first_before.text_layer
+    thread.do_redo(Request("redo", (), thread.responses))
+    assert '"text": "new"' in cast("str", thread.get_page(id=first_id).text_layer)
+
+
+@pytest.mark.parametrize("page_size", [(11, 20), (10, 21)])
+def test_import_hocr_accepts_one_pixel_difference(
+    temp_db: object, mocker: pytest.MockerFixture, page_size: tuple[int, int]
+) -> None:
+    """A one-pixel width or height difference is treated as rounding."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    _, _, page_id = thread.add_page(Page(image_object=Image.new("L", (10, 20))))
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".hocr", encoding="utf-8"
+    ) as hocr_file:
+        hocr_file.write(_make_hocr((*page_size, "new")))
+        hocr_file.flush()
+        request = mocker.Mock()
+        request.args = [
+            {
+                "path": hocr_file.name,
+                "list_of_pages": [page_id],
+            }
+        ]
+        thread.do_import_hocr(request)
+
+    request.error.assert_not_called()
+    assert '"text": "new"' in cast("str", thread.get_text(page_id))
+
+
+@pytest.mark.parametrize(
+    ("hocr", "message"),
+    [
+        (_make_hocr((10, 20, "one")), "contains 1 pages"),
+        (_make_hocr((10, 20, "one"), (30, 40, None), (30, 40, None)), "contains 3"),
+        ("<html><body></body></html>", "no hOCR pages"),
+        ("not an hOCR document", "no hOCR pages"),
+        (
+            _make_hocr((10, 20, "one"), (32, 40, None)),
+            "is 32x40, but the page is 30x40",
+        ),
+        (
+            (
+                "<html><body>"
+                "<div class='ocr_page' id='page_1' title='image \"x\"'></div>"
+                "<div class='ocr_page' id='page_2' title='bbox 0 0 30 40'></div>"
+                "</body></html>"
+            ),
+            "has no page box",
+        ),
+    ],
+)
+def test_import_hocr_rejects_invalid_input_without_changes(
+    temp_db: object,
+    mocker: pytest.MockerFixture,
+    hocr: str,
+    message: str,
+) -> None:
+    """Reject count, parse, and geometry errors before writing any page."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+
+    first = Page(image_object=Image.new("L", (10, 20)))
+    first.text_layer = '[{"type": "word", "bbox": [1, 2, 3, 4], "text": "old"}]'
+    _, _, first_id = thread.add_page(first)
+    _, _, second_id = thread.add_page(Page(image_object=Image.new("L", (30, 40))))
+    before = thread.get_text(first_id)
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".hocr", encoding="utf-8"
+    ) as hocr_file:
+        hocr_file.write(hocr)
+        hocr_file.flush()
+
+        request = mocker.Mock()
+        request.args = [
+            {
+                "path": hocr_file.name,
+                "list_of_pages": [first_id, second_id],
+            }
+        ]
+        thread.do_import_hocr(request)
+
+    request.error.assert_called_once()
+    assert request.error.call_args.args[0] is None
+    assert message in request.error.call_args.args[1]
+    assert thread.get_text(first_id) == before, "first page unchanged"
+    assert thread.get_text(second_id) is None, "second page unchanged"
+
+
+def test_import_hocr_reports_unreadable_file(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """Report a missing hOCR file without changing a page."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    _, _, page_id = thread.add_page(Page(image_object=Image.new("L", (10, 20))))
+
+    request = mocker.Mock()
+    request.args = [
+        {
+            "path": "/does/not/exist.hocr",
+            "list_of_pages": [page_id],
+        }
+    ]
+    thread.do_import_hocr(request)
+
+    request.error.assert_called_once()
+    assert request.error.call_args.args[0] is None
+    assert "Error reading hOCR file" in request.error.call_args.args[1]
+    assert thread.get_text(page_id) is None
+
+
+def test_import_hocr_cancel_leaves_pages_unchanged(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """A cancel after validation leaves every page untouched."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    page = Page(image_object=Image.new("L", (10, 20)))
+    page.text_layer = '[{"type": "word", "bbox": [1, 2, 3, 4], "text": "old"}]'
+    _, _, page_id = thread.add_page(page)
+    before = thread.get_text(page_id)
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".hocr", encoding="utf-8"
+    ) as hocr_file:
+        hocr_file.write(_make_hocr((10, 20, "new")))
+        hocr_file.flush()
+
+        request = mocker.Mock()
+        request.args = [
+            {
+                "path": hocr_file.name,
+                "list_of_pages": [page_id],
+            }
+        ]
+        thread.cancel = True
+        with pytest.raises(CancelledError):
+            thread.do_import_hocr(request)
+        thread.cancel = False
+
+    assert thread.get_text(page_id) == before, "cancelled import changed no text"
+
+
+def test_import_hocr_rolls_back_a_failed_write(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """A write failure restores every page and removes the empty action."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    first = Page(image_object=Image.new("L", (10, 20)))
+    first.text_layer = '[{"type": "word", "bbox": [1, 2, 3, 4], "text": "old"}]'
+    _, _, first_id = thread.add_page(first)
+    _, _, second_id = thread.add_page(Page(image_object=Image.new("L", (30, 40))))
+    before = thread.get_text(first_id)
+    action_before = thread._action_id
+
+    original = thread._version_page
+    calls = 0
+
+    def fail_second(page_id: int, **overrides: object) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            msg = "write failed"
+            raise RuntimeError(msg)
+        original(page_id, **overrides)
+
+    mocker.patch.object(thread, "_version_page", side_effect=fail_second)
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".hocr", encoding="utf-8"
+    ) as hocr_file:
+        hocr_file.write(_make_hocr((10, 20, "new"), (30, 40, None)))
+        hocr_file.flush()
+
+        request = mocker.Mock()
+        request.args = [
+            {
+                "path": hocr_file.name,
+                "list_of_pages": [first_id, second_id],
+            }
+        ]
+        with pytest.raises(RuntimeError, match="write failed"):
+            thread.do_import_hocr(request)
+
+    assert thread.get_text(first_id) == before, "first page rolled back"
+    assert thread.get_text(second_id) is None, "second page rolled back"
+    assert thread._action_id == action_before, "empty action discarded"
+
+
+def test_import_hocr_calls_send(mocker: pytest.MockerFixture) -> None:
+    """Test that import_hocr forwards to send with the expected arguments."""
+    thread = DocThread(db=":memory:")
+    mock_send = mocker.Mock(return_value="sent")
+    thread.send = mock_send
+
+    result = thread.import_hocr(path="/tmp/page.hocr", list_of_pages=[1, 2])
+
+    mock_send.assert_called_once()
+    assert mock_send.call_args[0][0] == "import_hocr"
+    assert mock_send.call_args[0][1]["path"] == "/tmp/page.hocr"
+    assert mock_send.call_args[0][1]["list_of_pages"] == [1, 2]
+    assert result == "sent"
+
+
+def test_import_hocr_reports_parse_error(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """A parser failure is reported without touching a page."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    _, _, page_id = thread.add_page(Page(image_object=Image.new("L", (10, 20))))
+    mocker.patch(
+        "scantpaper.docthread.Bboxtree.from_hocr_pages",
+        side_effect=ValueError("bad hOCR"),
+    )
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".hocr", encoding="utf-8"
+    ) as hocr_file:
+        hocr_file.write("anything")
+        hocr_file.flush()
+        request = mocker.Mock()
+        request.args = [
+            {
+                "path": hocr_file.name,
+                "list_of_pages": [page_id],
+            }
+        ]
+        thread.do_import_hocr(request)
+
+    request.error.assert_called_once()
+    assert request.error.call_args.args[0] is None
+    assert "Error parsing hOCR file" in request.error.call_args.args[1]
+    assert thread.get_text(page_id) is None
+
+
+def test_import_hocr_rejects_no_pages(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """An import with no target pages is rejected before reading the file."""
+    thread = DocThread(db=temp_db.name)
+    request = mocker.Mock()
+    request.args = [{"path": "/tmp/page.hocr", "list_of_pages": []}]
+
+    thread.do_import_hocr(request)
+
+    request.error.assert_called_once()
+    assert request.error.call_args.args[0] is None
+    assert "No pages selected" in request.error.call_args.args[1]
+
+
+def test_import_hocr_rejection_uses_error_status(
+    temp_db: object,
+) -> None:
+    """The validation reason is carried in the error response status."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    _, _, page_id = thread.add_page(Page(image_object=Image.new("L", (10, 20))))
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".hocr", encoding="utf-8"
+    ) as hocr_file:
+        hocr_file.write(_make_hocr((12, 20, "new")))
+        hocr_file.flush()
+        responses: queue.Queue[object] = queue.Queue()
+        request = Request(
+            "import_hocr",
+            (
+                {
+                    "path": hocr_file.name,
+                    "list_of_pages": [page_id],
+                },
+            ),
+            responses,
+        )
+        thread.do_import_hocr(request)
+
+    errors = []
+    while not responses.empty():
+        response = cast("Any", responses.get())
+        if response.type.name == "ERROR":
+            errors.append(response)
+    assert len(errors) == 1
+    assert errors[0].info is None
+    assert "is 12x20, but the page is 10x20" in cast("str", errors[0].status)
+
+
+def test_import_hocr_rolls_back_without_discarding_a_shared_action(
+    temp_db: object, mocker: pytest.MockerFixture
+) -> None:
+    """A rollback inside a batch does not delete the shared action."""
+    thread = DocThread(db=temp_db.name)
+    thread._write_tid = threading.get_native_id()
+    page = Page(image_object=Image.new("L", (10, 20)))
+    page.text_layer = '[{"type": "word", "bbox": [1, 2, 3, 4], "text": "old"}]'
+    _, _, page_id = thread.add_page(page)
+    before = thread.get_text(page_id)
+    action_before = thread._action_id
+    thread._in_batch = True
+    thread._batch_pending_snapshot = False
+    msg = "write failed"
+    mocker.patch.object(
+        thread,
+        "_version_page",
+        side_effect=RuntimeError(msg),
+    )
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".hocr", encoding="utf-8"
+    ) as hocr_file:
+        hocr_file.write(_make_hocr((10, 20, "new")))
+        hocr_file.flush()
+        request = mocker.Mock()
+        request.args = [
+            {
+                "path": hocr_file.name,
+                "list_of_pages": [page_id],
+            }
+        ]
+        with pytest.raises(RuntimeError, match="write failed"):
+            thread.do_import_hocr(request)
+
+    thread._in_batch = False
+    assert thread.get_text(page_id) == before
+    assert thread._action_id == action_before, "shared action is kept"

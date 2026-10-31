@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import gi
 
-from scantpaper.const import FRACTIONAL_DIGITS
+from scantpaper.const import EMPTY, FRACTIONAL_DIGITS
 from scantpaper.dialog import MultipleMessage
 from scantpaper.i18n import _
 
@@ -38,6 +38,33 @@ logger = logging.getLogger(__name__)
 PROCESS_FAILED = -1
 SETTING = {}
 _MESSAGE_DIALOG = {"dialog": None}
+
+
+def add_filter(
+    file_chooser: Gtk.FileChooser, name: str, file_extensions: list[str]
+) -> None:
+    """Create a file filter to show only supported file types in FileChooser dialog."""
+    ffilter = Gtk.FileFilter()
+    for extension in file_extensions:
+        # Create case insensitive pattern
+        pattern = ["[" + char.upper() + char.lower() + "]" for char in extension]
+
+        ffilter.add_pattern("*." + EMPTY.join(pattern))
+
+    types = None
+    for ext in file_extensions:
+        if types is not None:
+            types += f", *.{ext}"
+
+        else:
+            types = f"*.{ext}"
+
+    ffilter.set_name(f"{name} ({types})")
+    file_chooser.add_filter(ffilter)
+    ffilter = Gtk.FileFilter()
+    ffilter.add_pattern("*")
+    ffilter.set_name("All files")
+    file_chooser.add_filter(ffilter)
 
 
 def pack_box(

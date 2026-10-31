@@ -284,7 +284,11 @@ class Page:
         self.text_layer = None if json_text == "[]" else json_text
 
     def export_hocr(self) -> str:
-        """Export hocr."""
+        """Export hocr, including an empty page box when there is no text."""
+        if not bool(self.text_layer) or self.text_layer == "[]":
+            tree = Bboxtree()
+            tree.from_page(*self.get_size())
+            return tree.to_hocr()
         return Bboxtree(self.text_layer).to_hocr()
 
     def import_djvu_txt(self, djvu: str) -> None:

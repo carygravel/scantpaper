@@ -163,7 +163,7 @@ class MockApp(unittest.mock.Mock, FileMenuMixins):
 class TestStandaloneFunctions(unittest.TestCase):
     """Test standalone functions in file_menu_mixins."""
 
-    @unittest.mock.patch("scantpaper.file_menu_mixins.Gtk")
+    @unittest.mock.patch("scantpaper.helpers.Gtk")
     def test_add_filter(self, mock_gtk: MagicMock) -> None:
         """add_filter adds correct filters and patterns."""
         mock_file_chooser = unittest.mock.Mock()
@@ -780,6 +780,66 @@ class TestFileMenuMixins:
         assert kwargs["paths"] == filenames
         assert "pagerange_callback" in kwargs
         assert kwargs["pagerange_callback"] == app._select_pagerange_callback
+
+    def test_import_hocr_dialog_uses_page_range_and_cwd(self, app: MockApp) -> None:
+        """The import dialog starts with the current page range and directory."""
+        with unittest.mock.patch(
+            "scantpaper.file_menu_mixins.ImportHocrDialog"
+        ) as dialog_cls:
+            FileMenuMixins.import_hocr_dialog(app, None, None)
+
+        dialog_cls.assert_called_once()
+        _args, kwargs = dialog_cls.call_args
+        assert kwargs["page_range"] == "all"
+        assert kwargs["cwd"] == "/tmp"
+        assert kwargs["on_accept"] == app._import_hocr
+        dialog_cls.return_value.present.assert_called_once()
+
+    def test_import_hocr_dispatches_pages_and_refreshes_current_page(
+        self, app: MockApp
+    ) -> None:
+        """The import sends page ids and reloads the displayed page."""
+        app.slist.get_page_index = unittest.mock.Mock(return_value=[0, 1])
+        app.slist.import_hocr = unittest.mock.Mock()
+        app._current_page = unittest.mock.Mock(id="uuid1")
+        app._display_image = unittest.mock.Mock()
+
+        app._import_hocr("/tmp/page.hocr", "selected")
+
+        app.slist.get_page_index.assert_called_once_with(
+            "selected", app._error_callback
+        )
+        _args, kwargs = app.slist.import_hocr.call_args
+        assert kwargs["path"] == "/tmp/page.hocr"
+        assert kwargs["list_of_pages"] == ["uuid1", "uuid2"]
+        assert kwargs["progress_callback"] == app.post_process_progress.update
+        assert app.settings["Page range"] == "selected"
+        assert app.settings["cwd"] == "/tmp"
+
+        kwargs["finished_callback"](unittest.mock.Mock())
+        app._display_image.assert_called_once_with("uuid1")
+
+    def test_import_hocr_with_no_pages_does_nothing(self, app: MockApp) -> None:
+        """No target pages means no worker request."""
+        app.slist.get_page_index = unittest.mock.Mock(return_value=[])
+        app.slist.import_hocr = unittest.mock.Mock()
+
+        app._import_hocr("/tmp/page.hocr", "selected")
+
+        app.slist.import_hocr.assert_not_called()
+
+    def test_import_hocr_finished_without_current_page(self, app: MockApp) -> None:
+        """Finishing without a displayed page does not try to refresh one."""
+        app.slist.get_page_index = unittest.mock.Mock(return_value=[0])
+        app.slist.import_hocr = unittest.mock.Mock()
+        app._current_page = None
+        app._display_image = unittest.mock.Mock()
+
+        app._import_hocr("/tmp/page.hocr", "selected")
+        _args, kwargs = app.slist.import_hocr.call_args
+        kwargs["finished_callback"](unittest.mock.Mock())
+
+        app._display_image.assert_not_called()
 
     def test_open_session_action_uses_crashed_picker(self, app: MockApp) -> None:
         """The File menu uses the shared crashed-session picker."""

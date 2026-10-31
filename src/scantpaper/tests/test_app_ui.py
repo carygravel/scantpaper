@@ -63,3 +63,20 @@ def test_menubar_exposes_the_top_level_menus(ui_builder: Gtk.Builder) -> None:
     action = section.get_item_attribute_value(0, Gio.MENU_ATTRIBUTE_ACTION, None)
     assert action is not None
     assert action.get_string() == "win.new"
+
+
+def test_file_menu_exposes_import_hocr(ui_builder: Gtk.Builder) -> None:
+    """The File menu links the hOCR import action."""
+    bar = cast("Gtk.PopoverMenuBar", ui_builder.get_object("menubar"))
+    file_menu = bar.get_menu_model().get_item_link(0, Gio.MENU_LINK_SUBMENU)
+    assert file_menu is not None
+    section = file_menu.get_item_link(0, Gio.MENU_LINK_SECTION)
+    assert section is not None
+
+    actions = []
+    for i in range(section.get_n_items()):
+        value = section.get_item_attribute_value(i, Gio.MENU_ATTRIBUTE_ACTION, None)
+        if value is not None:
+            actions.append(value.get_string())
+
+    assert "win.import-hocr" in actions

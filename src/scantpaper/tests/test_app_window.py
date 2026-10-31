@@ -734,6 +734,7 @@ def test_update_uimanager(app_window: ApplicationWindow) -> None:
     app_window._update_uimanager()
 
     assert not app_window._actions["save"].get_enabled()
+    assert not app_window._actions["import-hocr"].get_enabled()
     assert not app_window._actions["crop-dialog"].get_enabled()
 
     # Simulate selection and data
@@ -743,6 +744,7 @@ def test_update_uimanager(app_window: ApplicationWindow) -> None:
     app_window._update_uimanager()
 
     assert app_window._actions["save"].get_enabled()
+    assert app_window._actions["import-hocr"].get_enabled()
     assert app_window._actions["crop-dialog"].get_enabled()
 
 
@@ -1076,6 +1078,28 @@ def test_on_view_selection_notify(app_window: ApplicationWindow) -> None:
 
     app_window.view.selection = None
     app_window._on_view_selection_notify(None, None)
+
+
+def test_error_callback_uses_response_status(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """The error dialog receives the response status, not an empty message."""
+    app_window._show_message_dialog = MagicMock()
+    request = mocker.Mock()
+    request.args = [{"path": "page.hocr", "list_of_pages": [1]}]
+    request.process = "import_hocr"
+    response = mocker.Mock()
+    response.status = (
+        "The hOCR page for page 1 is 2480x3506, but the page is 2480x3507."
+    )
+    response.type.name = "ERROR"
+    response.request = request
+
+    app_window._error_callback(response)
+    _pump_events()
+
+    _args, kwargs = app_window._show_message_dialog.call_args
+    assert kwargs["text"] == response.status
 
 
 def test_process_error_callback(
