@@ -11,38 +11,67 @@ BuildArch:      noarch
 
 BuildRequires:  python-rpm-macros
 BuildRequires:  python3-base
+
+%if 0%{?suse_version} >= 1699
+# Tumbleweed builds the Python modules for the default python3 flavor.
+BuildRequires:  python3-devel
+BuildRequires:  python3-pip
+BuildRequires:  python3-setuptools
+BuildRequires:  python3-wheel
+BuildRequires:  python3-build
+%else
 BuildRequires:  python313-devel
 BuildRequires:  python313-pip
 BuildRequires:  python313-setuptools
 BuildRequires:  python313-wheel
 BuildRequires:  python313-build
+%endif
 
 # Native/system dependencies needed at runtime.
 BuildRequires:  gtk4-devel
 BuildRequires:  typelib-1_0-Gtk-4_0
 BuildRequires:  gobject-introspection-devel
 BuildRequires:  pkgconf-pkg-config
-BuildRequires:  python313-gobject
-BuildRequires:  python313-pycairo
-# The Python dependencies are the locally built packages.
-BuildRequires:  python313-tesserocr
 BuildRequires:  tesseract-ocr-devel
 BuildRequires:  leptonica-devel
+
+%if 0%{?suse_version} >= 1699
+# Tumbleweed provides the Python modules under the default python3 flavor.
+BuildRequires:  python3-gobject
+BuildRequires:  python3-pycairo
+BuildRequires:  python3-tesserocr
+BuildRequires:  python3-ocrmypdf
+BuildRequires:  python3-img2pdf
+BuildRequires:  python3-sane
+BuildRequires:  python3-python-iso639
+BuildRequires:  python3-Pillow
+BuildRequires:  python3-pikepdf
+# Imported by the GTK4 code; help2man imports the application at build time.
+BuildRequires:  python3-typing_extensions
+%else
+# The Python dependencies are the locally built packages.
+BuildRequires:  python313-gobject
+BuildRequires:  python313-pycairo
+BuildRequires:  python313-tesserocr
 BuildRequires:  python313-ocrmypdf
 BuildRequires:  python313-img2pdf
 BuildRequires:  python313-sane
 BuildRequires:  python313-python-iso639
 BuildRequires:  python313-Pillow
 BuildRequires:  python313-pikepdf
-# Imported by the GTK4 code; help2man imports the application at build time.
 BuildRequires:  python313-typing_extensions
+%endif
 
 # Tools used to generate the additional files installed by the package.
 BuildRequires:  gettext-tools
 BuildRequires:  help2man
+%if 0%{?suse_version} >= 1699
+BuildRequires:  python3-polib
+%else
 BuildRequires:  python313-polib
-# openSUSE Leap 16 does not ship pandoc, so the HTML documentation is
-# intentionally not generated on this distribution (Fedora does).
+%endif
+# HTML documentation is intentionally not generated on openSUSE (Fedora
+# does), so no pandoc build dependency is declared.
 
 # Runtime dependencies which are also needed while generating documentation
 # and testing the resulting installation.
@@ -53,13 +82,21 @@ BuildRequires:  rsvg-convert
 BuildRequires:  ghostscript
 
 # Python runtime dependencies, declared explicitly here to match the
-# pyproject.toml dependencies. These are the concrete python313-*
-# package names, never python3dist(...) virtual provides: the
-# pythondist dependency generator is disabled at the top of this spec,
-# and a hand-written python3dist() requirement would not be satisfiable
-# because neither the distro nor the third-party OBS Python repositories
-# (devel:languages:python, system:documentserver:paperless) provide
-# those names for every dependency.
+# pyproject.toml dependencies. These are concrete package names, never
+# python3dist(...) virtual provides: on Leap the pythondist generator does
+# not fire for these pip-built wheels, and neither the distro nor the
+# third-party OBS Python repositories provide every python3dist() name.
+%if 0%{?suse_version} >= 1699
+Requires:  python3-img2pdf
+Requires:  python3-ocrmypdf
+Requires:  python3-python-iso639
+Requires:  python3-sane
+Requires:  python3-tesserocr
+Requires:  python3-pikepdf
+Requires:  python3-pycairo
+Requires:  python3-gobject
+Requires:  python3-typing_extensions
+%else
 Requires:  python313-img2pdf
 Requires:  python313-ocrmypdf
 Requires:  python313-python-iso639
@@ -69,6 +106,7 @@ Requires:  python313-pikepdf
 Requires:  python313-pycairo
 Requires:  python313-gobject
 Requires:  python313-typing_extensions
+%endif
 
 # The tools invoked via subprocess (convert, tiffcp, pdfunite, rsvg-convert,
 # gs, and the Recommends below) are not Python packages, so they are declared
@@ -79,8 +117,8 @@ Requires:  poppler-tools
 Requires:  rsvg-convert
 Requires:  ghostscript
 
-# TIFF-to-PostScript conversion (tiff2ps) is not packaged on openSUSE Leap
-# 16 (libtiff 4.7 dropped tiff2ps); the "save as PS" path degrades with an
+# TIFF-to-PostScript conversion (tiff2ps) is not packaged on openSUSE
+# (libtiff 4.7 dropped tiff2ps); the "save as PS" path degrades with an
 # error dialog rather than being offered.
 Recommends: djvulibre
 Recommends: qpdf

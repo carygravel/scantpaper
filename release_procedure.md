@@ -59,8 +59,9 @@
    package at `Release: 1`, without an `Epoch`. Only builds launched from a tag
    are attached to a GitHub release; branch and pull-request builds are not
    published.
-1. Rebuild an already-tagged release. Dispatch the Fedora, openSUSE and
-   Debian workflows from `main` with `source_ref=vx.x.x`. The dispatch input
+1. Rebuild an already-tagged release. Dispatch the Fedora, openSUSE Leap,
+   openSUSE Tumbleweed and Debian workflows from `main` with
+   `source_ref=vx.x.x`. The dispatch input
    defaults to `github.sha`; setting it makes the renderer read the version,
    source and commit date from the selected tag instead of `main`. The run is
    a branch run, so its artifacts are not attached automatically; download

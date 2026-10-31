@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 #
-# Build the openSUSE Leap 16 RPMs for ScantPaper and its locally packaged
-# Python dependencies.
+# Build the openSUSE RPMs for ScantPaper. Leap 16 needs the locally packaged
+# Python dependency set; Tumbleweed uses the distribution modules and builds
+# only the patched python-sane.
 #
-# This is the single source of truth for the openSUSE build. The CI workflow
-# (.github/workflows/opensuse.yml) calls the same script so that a local build
-# and a CI build behave identically. See README.md in this directory for
-# usage and the openSUSE-specific gotchas that are encoded here.
+# This is the single source of truth for the openSUSE build. The CI
+# workflows (.github/workflows/opensuse.yml and
+# .github/workflows/opensuse-tumbleweed.yml) call the same script so that a
+# local build and a CI build behave identically. See README.md in this
+# directory for usage and the openSUSE-specific gotchas that are encoded
+# here.
+#
+# TARGET selects leap16 (the default) or tumbleweed.
 #
 # Subcommands:
 #   setup              Install the build toolchain and configure rpmbuild.
@@ -26,17 +31,33 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # Revision to package. CI sets this to github.sha or a dispatch input;
 # local builds default to the current checkout.
 SOURCE_REF="${SOURCE_REF:-HEAD}"
+TARGET="${TARGET:-leap16}"
 
-ORDER=(cysignals setuptools-scm hatch-vcs tesserocr iso639 sane pdfminer \
-       img2pdf ocrmypdf scantpaper)
-
-# The packages ScantPaper needs at run time, in build order. The build-only
-# helper packages (python313-setuptools-scm, python313-hatch-vcs) are
-# deliberately excluded: installing them on a target system drags in their own
-# Python dependencies from the Leap backports repositories and buys nothing at
-# run time. collect-runtime copies exactly this set (minus the -debuginfo /
-# -debugsource packages) for publishing.
-RUNTIME=(cysignals tesserocr iso639 sane pdfminer img2pdf ocrmypdf scantpaper)
+case "$TARGET" in
+  leap16)
+    ORDER=(cysignals setuptools-scm hatch-vcs tesserocr iso639 sane pdfminer \
+           img2pdf ocrmypdf scantpaper)
+    # The packages ScantPaper needs at run time, in build order. The
+    # build-only helper packages (python313-setuptools-scm,
+    # python313-hatch-vcs) are deliberately excluded: installing them on a
+    # target system drags in their own Python dependencies from the Leap
+    # backports repositories and buys nothing at run time. collect-runtime
+    # copies exactly this set (minus the -debuginfo / -debugsource packages)
+    # for publishing.
+    RUNTIME=(cysignals tesserocr iso639 sane pdfminer img2pdf ocrmypdf \
+             scantpaper)
+    ;;
+  tumbleweed)
+    # Tumbleweed provides every Python dependency except the patched
+    # python-sane, so only those two packages are built locally.
+    ORDER=(sane scantpaper)
+    RUNTIME=(sane scantpaper)
+    ;;
+  *)
+    echo "unknown target: $TARGET (expected leap16 or tumbleweed)" >&2
+    exit 1
+    ;;
+esac
 
 # Package key -> spec file name.
 spec_for() {
@@ -55,6 +76,16 @@ spec_for() {
   esac
 }
 
+# Python flavor used by the local packages, e.g. 313 or 314. Tumbleweed
+# follows its default python3; Leap 16 also resolves to 313.
+pyflavor() {
+  local flavor
+  flavor=$(python3 -c \
+    'import sys; print(sys.version_info[0] * 100 + sys.version_info[1])' \
+    2>/dev/null) || flavor=313
+  printf '%s\n' "$flavor"
+}
+
 # Package key -> RPM name prefix used for the install glob.
 rpmname_for() {
   case "$1" in
@@ -63,7 +94,7 @@ rpmname_for() {
     hatch-vcs)      echo python313-hatch-vcs ;;
     tesserocr)      echo python313-tesserocr ;;
     iso639)         echo python313-python-iso639 ;;
-    sane)           echo python313-sane ;;
+    sane)           echo "python$(pyflavor)-sane" ;;
     pdfminer)       echo python313-pdfminer.six ;;
     img2pdf)        echo python313-img2pdf ;;
     ocrmypdf)       echo python313-ocrmypdf ;;
@@ -84,7 +115,10 @@ patch_for() {
 # build dependencies are all covered here so a local build is self-contained.
 do_setup() {
   # openSUSE:repo-non-oss is preconfigured but disabled in the Leap 16 image.
-  zypper -n --gpg-auto-import-keys modifyrepo -e openSUSE:repo-non-oss
+  # Tumbleweed's image already has the repositories it needs.
+  if [ "$TARGET" = leap16 ]; then
+    zypper -n --gpg-auto-import-keys modifyrepo -e openSUSE:repo-non-oss
+  fi
   zypper -n --gpg-auto-import-keys ref
   zypper -n --gpg-auto-import-keys install --no-recommends \
     git curl tar gzip \
@@ -104,9 +138,24 @@ do_setup() {
     ghostscript poppler-tools tiff rsvg-convert ImageMagick \
     qpdf unpaper djvulibre xdg-utils gettext-tools help2man
 
-  # Leap 16 has no distribution-release package, so %{dist} is empty. Define
-  # the release suffix so built RPMs are versioned .lp160.1 like the distro.
-  printf '%s\n' '%dist .lp160.1' > /usr/lib/rpm/macros.d/macros.dist
+  if [ "$TARGET" = tumbleweed ]; then
+    # rpmbuild does not resolve BuildRequires, so install the distribution
+    # modules ScantPaper builds against. The patched python-sane is installed
+    # from the local build before ScantPaper.
+    zypper -n --gpg-auto-import-keys install --no-recommends \
+      python3-img2pdf python3-ocrmypdf python3-python-iso639 \
+      python3-tesserocr
+  fi
+
+  if [ "$TARGET" = leap16 ]; then
+    # Leap 16 has no distribution-release package, so %{dist} is empty.
+    # Define the release suffix so built RPMs are versioned .lp160.1 like
+    # the distro.
+    printf '%s\n' '%dist .lp160.1' > /usr/lib/rpm/macros.d/macros.dist
+  else
+    # Tumbleweed packages carry no distribution suffix.
+    rm -f /usr/lib/rpm/macros.d/macros.dist
+  fi
 
   # openSUSE's default rpm _topdir is /usr/src/packages; use ~/rpmbuild like
   # the Fedora packaging expects.
@@ -114,13 +163,14 @@ do_setup() {
   printf '%%_topdir %s\n' "$HOME/rpmbuild" > "$HOME/.rpmmacros"
 }
 
-# Fetch the sdist declared by Source0 in a spec. Leap has no spectool or
-# rpmdevtools (those are Fedora tools), so the URL is expanded with
-# rpmspec -P and read back.
+# Fetch the sdist declared by Source0 in a spec. The openSUSE images do not
+# install spectool or rpmdevtools, so the URL is expanded with rpmspec -P and
+# read back.
 fetch_source() {
   local spec="$1"
   local url
-  url=$(rpmspec -P "$HOME/rpmbuild/SPECS/$spec" |
+  url=$(rpmspec -P --define "pyflavor $(pyflavor)" \
+    "$HOME/rpmbuild/SPECS/$spec" |
     sed -n 's/^Source0:[[:space:]]*//p')
   curl -fL -o "$HOME/rpmbuild/SOURCES/$(basename "$url")" "$url"
 }
@@ -146,7 +196,8 @@ do_build() {
     fi
     fetch_source "$spec"
   fi
-  rpmbuild -ba "$HOME/rpmbuild/SPECS/$spec"
+  rpmbuild -ba --define "pyflavor $(pyflavor)" \
+    "$HOME/rpmbuild/SPECS/$spec"
 }
 
 do_install() {

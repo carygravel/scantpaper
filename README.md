@@ -700,9 +700,10 @@ provide (e.g. PDF encryption) are disabled.
 
 #### From openSUSE RPM packages
 
-Download the RPM files from
-[Github](https://github.com/carygravel/scantpaper/releases/) and install them
-all in a single transaction (Leap 16.0):
+Download the Leap 16.0 RPM files - the ones with the `.lp160.1` release
+suffix - from
+[Github](https://github.com/carygravel/scantpaper/releases/) into a directory
+of their own and install them all in a single transaction:
 
 ```sh
 sudo zypper install --allow-unsigned-rpm *.rpm
@@ -732,6 +733,23 @@ The RPMs are unsigned (the workflow builds them from source), hence the
 `--allow-unsigned-rpm`. That is the only flag needed. PostScript export needs
 `tiff2ps`, which is not packaged on Leap 16.0, so the PostScript save type is
 not available there.
+
+##### Tumbleweed
+
+Download the Tumbleweed RPMs - the files without the `.lp160.1` release
+suffix - into a directory of their own and install them in one transaction:
+
+```sh
+sudo zypper install --allow-unsigned-rpm *.rpm
+```
+
+Only the patched `python-sane` is rebuilt; every other Python dependency
+comes from the Tumbleweed repositories. The patched package replaces
+Tumbleweed's unpatched `2.9.2` build, so Epson `epsonscan2` scanners get the
+`snap()` fix. A later Tumbleweed `python-sane` release will sort above it
+until the fix is upstreamed. PostScript export has the same limitation as
+Leap: `tiff2ps` is not packaged on Tumbleweed (`tiff` 4.7.2), so the
+PostScript save type is not available.
 
 #### From a wheel file
 

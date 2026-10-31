@@ -1,4 +1,5 @@
-Name:           python313-sane
+%{!?pyflavor:%define pyflavor 313}
+Name:           python%{pyflavor}-sane
 # A repository also offers this package at the same upstream version, so the
 # RPM version carries a trailing ".0". That keeps our build ahead of theirs
 # without an epoch (which openSUSE's packaging guidelines discourage), while
@@ -19,19 +20,26 @@ Patch0:         python3-sane-snap-params-cache.patch
 
 BuildRequires:  python-rpm-macros
 BuildRequires:  python3-base
-BuildRequires:  python313-devel
-BuildRequires:  python313-pip
-BuildRequires:  python313-setuptools
-BuildRequires:  python313-wheel
-BuildRequires:  python313-build
+BuildRequires:  python%{pyflavor}-devel
+BuildRequires:  python%{pyflavor}-pip
+BuildRequires:  python%{pyflavor}-setuptools
+BuildRequires:  python%{pyflavor}-wheel
+BuildRequires:  python%{pyflavor}-build
 BuildRequires:  gcc
 BuildRequires:  make
 BuildRequires:  sane-backends-devel
 BuildRequires:  sane-backends
 
 Requires:       libsane1
-Requires:       python313-numpy
-Requires:       python313-Pillow
+Requires:       python%{pyflavor}-numpy
+Requires:       python%{pyflavor}-Pillow
+
+%if 0%{?suse_version} >= 1699
+# Tumbleweed's python-sane provides these unversioned names; keep them when
+# this patched build replaces the distribution package.
+Provides:       python3-sane = %{version}
+Provides:       python3dist(python-sane) = %{version}
+%endif
 
 %description
 python-sane is a Python interface to the SANE scanner API. It is built from

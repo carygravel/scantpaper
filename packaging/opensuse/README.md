@@ -1,34 +1,64 @@
-# openSUSE Leap 16 packaging
+# openSUSE packaging
 
-This directory builds the openSUSE Leap 16 RPMs for ScantPaper and the Python
-packages it needs that are not packaged for Leap 16.
+This directory builds the openSUSE RPMs for ScantPaper. Leap 16 needs a
+locally rebuilt dependency set; Tumbleweed provides every dependency except
+the patched python-sane, so its target builds only that package and
+ScantPaper.
 
 The build is driven by `build.sh`, which is the single source of truth for the
-openSUSE build: the CI workflow (`.github/workflows/opensuse.yml`) calls the
-same script, so a local build and a CI build behave identically.
+openSUSE build: the CI workflows (`.github/workflows/opensuse.yml` and
+`.github/workflows/opensuse-tumbleweed.yml`) call the same script, so a local
+build and a CI build behave identically.
 
 ## Layout
 
-- `build.sh` - the build driver (setup / build / install / all / collect).
+- `build.sh` - the build driver (setup / build / install / all / collect),
+  with `TARGET=leap16` (default) or `TARGET=tumbleweed`.
 - `*.spec` - the RPM spec for each package (ScantPaper plus its unpackaged
   Python dependencies). `scantpaper.spec` is a template; the dependency
   specs are ordinary, directly buildable specs.
 - `python3-sane-snap-params-cache.patch` - a local patch applied to python-sane.
-  It keeps its `python3-` name even though the package is `python313-sane`,
-  because the same patch is shared with the Fedora tree.
+  It keeps its `python3-` name because the same patch is shared with the
+  Fedora tree; the package name follows the target's Python flavor.
 
-The dependency packages, in build order, are: cysignals, setuptools-scm,
-hatch-vcs, tesserocr, iso639, sane, pdfminer.six, img2pdf, ocrmypdf, and
-finally scantpaper. Each later package needs the earlier ones installed, which
-is why `all` builds and installs in this order.
+On Leap 16, the dependency packages, in build order, are: cysignals,
+setuptools-scm, hatch-vcs, tesserocr, iso639, sane, pdfminer.six, img2pdf,
+ocrmypdf, and finally scantpaper. Each later package needs the earlier ones
+installed, which is why `all` builds and installs in this order.
+
+## Tumbleweed target
+
+`TARGET=tumbleweed` builds only `python-sane` and `scantpaper`; the rest of
+the Python stack comes from the Tumbleweed repositories. The sane spec takes
+a `pyflavor` macro (default `313`), and `build.sh` passes the flavor of the
+installed `python3` to both `rpmspec` and `rpmbuild`, so a default-Python
+bump changes the package name and its dependencies together.
+
+The Tumbleweed build also declares `Provides: python3-sane` and
+`Provides: python3dist(python-sane)`, so replacing Tumbleweed's package
+leaves other packages' requirements satisfiable. The `.0` version suffix
+keeps the patched build above Tumbleweed's same-version package; a later
+upstream `python-sane` release still wins.
+
+## CI
+
+`.github/workflows/opensuse.yml` builds Leap 16 and
+`.github/workflows/opensuse-tumbleweed.yml` builds Tumbleweed. Both use the
+same triggers (`push`, `pull_request` and `workflow_dispatch` with the
+`source_ref` input). The Leap artifact is published as
+`scantpaper-opensuse-leap16`; the Tumbleweed artifact is
+`scantpaper-opensuse-tumbleweed`. The Tumbleweed set has no `.lp160.1`
+suffix, so the release assets do not collide.
 
 ## Building locally
 
-Run on an openSUSE Leap 16.0 machine (a container is fine) from a source
-checkout:
+Run on the target release's machine (a container is fine) from a source
+checkout. `TARGET` defaults to `leap16`; set `TARGET=tumbleweed` on every
+command for the Tumbleweed target, including `collect-runtime`:
 
 ```sh
 bash packaging/opensuse/build.sh all
+TARGET=tumbleweed bash packaging/opensuse/build.sh all
 ```
 
 This installs the toolchain, builds and installs every package in dependency
@@ -127,6 +157,15 @@ Leap backports repositories, and a few of those (e.g. `python313-hatchling`)
 can be temporarily missing from a mirror, which then aborts the entire
 transaction with a 404.
 
+On Tumbleweed, install the runtime set in one transaction. The rest of the
+Python stack comes from the distribution:
+
+```sh
+sudo zypper install --allow-unsigned-rpm \
+    scantpaper-*.rpm \
+    python3*-sane-*.rpm
+```
+
 ## Why the specs look the way they do
 
 These are the openSUSE-specific decisions, each hard-won during bring-up.
@@ -136,15 +175,17 @@ These are the openSUSE-specific decisions, each hard-won during bring-up.
   the `%build`/`%install` sections of any spec for the pattern.
 - **Never put `%` macro tokens in spec comments.** rpm expands macros even
   inside comments, so a literal `%pyproject_install` in a comment is an error.
-- **One package per module, named `python313-<pypi-project-name>`.** The name
+- **One package per module, named for the target's Python flavor.** The name
   is derived from the PyPI project, not from the importable module. That is
   why `python-iso639` (which installs the `iso639` module) is packaged as
-  `python313-python-iso639`. The `python3-*` names were wrong: Leap 16 builds
-  Python 3.13 modules under `python313-*`, so a dependency on `python3-sane`
-  asked for a package that does not exist.
-- **No spec may hand-write `python3dist()` metadata, and no spec suppresses
-  the pythondist dependency generator.** `python3dist(foo)` is a virtual
-  provide that the generator emits from Python metadata in the buildroot.
+  `python313-python-iso639` on Leap. Leap 16 builds Python 3.13 modules under
+  `python313-*`, so a dependency on `python3-sane` asked for a package that
+  does not exist. Tumbleweed provides both the versioned and the unversioned
+  names, so its target uses `python3-*` and the sane spec's `pyflavor` macro.
+- **On Leap, no spec may hand-write `python3dist()` metadata, and no spec
+  suppresses the pythondist dependency generator.** `python3dist(foo)` is a
+  virtual provide that the generator emits from Python metadata in the
+  buildroot.
   Nothing in Leap 16 provides it for every dependency, and the third-party
   OBS Python repositories do not provide it at all, so a package that
   *requires* one is unsatisfiable - zypper reports
@@ -160,9 +201,11 @@ These are the openSUSE-specific decisions, each hard-won during bring-up.
   with the macro removed and getting identical metadata. CI asserts both
   halves of that: that no published RPM carries a `python3dist()` require, and
   that no spec reintroduces hand-written `python3dist()` metadata or a
-  suppression macro.
+  suppression macro. Tumbleweed provides the `python3dist()` names and
+  disables the requires generator, so its target depends on the distro
+  packages directly.
 - **A `.0` version suffix, deliberately and with no epoch.** Three packages -
-  `python313-sane` (`2.9.2.0`), `python313-img2pdf` (`0.6.3.0`) and
+  the sane package (`2.9.2.0`), `python313-img2pdf` (`0.6.3.0`) and
   `python313-pdfminer.six` (`20260107.0`) - are also offered by a repository at
   the same upstream version. The rule is: *if a repository offers the package
   at the same upstream version, append a trailing segment to ours.* A trailing
@@ -174,23 +217,26 @@ These are the openSUSE-specific decisions, each hard-won during bring-up.
   the real upstream version and uses it for `Source0:` and the unpack
   directory; `%{version}` keeps the `.0`.
   This is what stops a system update from silently replacing our patched
-  `python313-sane` with Leap's unpatched `2.9.2`. To go back to the
-  distribution's package, remove ours and reinstall the distro one:
+  sane package with the distribution's unpatched `2.9.2`. To go back to the
+  distribution's package, remove ours and reinstall the distro one (the name
+  is `python313-sane` on Leap and `python%{pyflavor}-sane` on Tumbleweed):
   `sudo zypper remove python313-sane && sudo zypper install python313-sane`.
 - **Installing the set replaces same-named packages from other
   repositories.** That is intended. Our builds carry fixes the repository
-  builds do not - the `snap()` patch in `python313-sane` is the important one -
-  so they install as upgrades over them. The only caveat is that a machine
-  whose rpmdb was left inconsistent by the earlier file-conflict bug may need
-  the superseding third-party packages removed first; recover it with
-  `zypper in artifacts/*.rpm`, or check for damaged files with `rpm -V
-  python313-sane`.
+  builds do not - the `snap()` patch in the sane package is the important
+  one - so they install as upgrades over them. The only caveat is that a
+  machine whose rpmdb was left inconsistent by the earlier file-conflict bug
+  may need the superseding third-party packages removed first; recover it
+  with `zypper in artifacts/*.rpm`, or check for damaged files with `rpm -V`
+  and the sane package name.
 - **The Fedora tree differs in package naming, by design.**
   `packaging/fedora/` keeps the `python3-*` names, which are correct there,
-  while this tree uses `python313-*`. Do not "fix" that divergence: it is the
-  packaging guidelines' requirement on openSUSE, not an oversight.
+  while this tree uses `python313-*` on Leap and `python3-*` on Tumbleweed.
+  Do not "fix" that divergence: it is the packaging guidelines' requirement
+  on openSUSE, not an oversight.
 - **`%{dist}` is empty in the Leap 16 image**, so `setup` writes
-  `%dist .lp160.1` to `/usr/lib/rpm/macros.d/macros.dist`.
+  `%dist .lp160.1` to `/usr/lib/rpm/macros.d/macros.dist`. Tumbleweed
+  packages carry no distribution suffix, so its target removes that file.
 - **openSUSE's default `_topdir` is `/usr/src/packages`.** `setup` points it at
   `~/rpmbuild` via `~/.rpmmacros`.
 - **No spectool/rpmdevtools.** For the dependency specs, `build.sh`
@@ -202,6 +248,8 @@ These are the openSUSE-specific decisions, each hard-won during bring-up.
   rejected.
 - **`%check` runs `cd /`** for the compiled-extension packages (tesserocr,
   sane) so the buildroot package shadows the source tree during import tests.
-- **ocrmypdf is pinned to 16.11.1.** Newer ocrmypdf needs packages (pypdfium2,
-  fpdf2, uharfbuzz, pydantic, pikepdf >= 10) that are not available for Leap
-  16; `pi-heif` is dropped.
+- **On Leap, ocrmypdf is pinned to 16.11.1.** Newer ocrmypdf needs packages
+  (pypdfium2, fpdf2, uharfbuzz, pydantic, pikepdf >= 10) that are not
+  available for Leap 16; `pi-heif` is dropped. Tumbleweed packages 17.4.2
+  with the full dependency stack, so its target uses the distribution
+  version.

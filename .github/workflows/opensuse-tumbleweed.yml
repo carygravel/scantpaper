@@ -1,0 +1,163 @@
+name: Build openSUSE Tumbleweed packages
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Git revision to package (default: github.sha)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: opensuse/tumbleweed:latest
+
+    steps:
+      # Without git, actions/checkout falls back to a REST download with no
+      # .git directory, and the renderer needs full history to count commits.
+      - name: Install git
+        run: zypper -n --gpg-auto-import-keys install git
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # The job container runs as a different user from the workspace owner,
+      # so git refuses to read the checkout unless it is marked safe.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Install RPM build tools
+        run: TARGET=tumbleweed bash packaging/opensuse/build.sh setup
+
+      # Tumbleweed provides every dependency except the patched python-sane.
+      # The target builds only that package and ScantPaper; the rest of the
+      # runtime stack is pulled from the distribution by zypper.
+      - name: Build python-sane
+        run: TARGET=tumbleweed bash packaging/opensuse/build.sh build sane
+
+      - name: Install python-sane
+        run: TARGET=tumbleweed bash packaging/opensuse/build.sh install sane
+
+      - name: Build scantpaper
+        env:
+          SOURCE_REF: ${{ inputs.source_ref || github.sha }}
+        run: TARGET=tumbleweed bash packaging/opensuse/build.sh build scantpaper
+
+      - name: Install scantpaper
+        run: TARGET=tumbleweed bash packaging/opensuse/build.sh install scantpaper
+
+      - name: Verify scantpaper installation
+        run: |
+          rpm -q scantpaper
+          rpm -qa 'python3*-sane'
+          scantpaper --version
+          python3 -c 'import sane, tesserocr, iso639, img2pdf, ocrmypdf; print("imports ok")'
+
+      - name: List RPMs
+        run: |
+          find ~/rpmbuild/RPMS \
+            -type f \
+            -name '*.rpm' \
+            -print
+
+      - name: Copy packages
+        run: TARGET=tumbleweed bash packaging/opensuse/build.sh collect-runtime artifacts
+
+      - name: Upload RPMs
+        uses: actions/upload-artifact@v7
+        with:
+          name: scantpaper-opensuse-tumbleweed
+          path: artifacts/*.rpm
+
+      - name: Release RPMs
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: artifacts/*.rpm
+
+  clean-room-install:
+    name: clean-room install (${{ matrix.scenario }})
+    needs: build
+    runs-on: ubuntu-latest
+
+    container:
+      image: opensuse/tumbleweed:latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - stock
+          - seeded
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download published RPMs
+        uses: actions/download-artifact@v7
+        with:
+          name: scantpaper-opensuse-tumbleweed
+          path: artifacts
+
+      - name: Refresh repositories
+        run: zypper -n --gpg-auto-import-keys ref
+
+      - name: Seed distribution python-sane
+        if: matrix.scenario == 'seeded'
+        run: |
+          zypper -n --gpg-auto-import-keys install python3-sane
+          rpm -qa 'python3*-sane'
+
+      - name: Install the published RPM set
+        run: |
+          # GitHub runs this with `bash -e`, so a bare failing command would
+          # abort the step before the log and the conflict check below could
+          # report anything. Capture the status in an `if` instead.
+          if zypper -n install --allow-unsigned-rpm artifacts/*.rpm \
+            > /tmp/install.log 2>&1; then
+            rc=0
+          else
+            rc=$?
+          fi
+          cat /tmp/install.log
+          if grep -qE 'Detected [0-9]+ file conflict|conflicts with file from package' \
+            /tmp/install.log; then
+            echo "::error::zypper reported file conflicts"
+            grep -iE -B2 -A8 'Detected [0-9]+ file conflict|conflicts with file from package' \
+              /tmp/install.log
+            rc=1
+          fi
+          exit "$rc"
+
+      - name: Verify installed set
+        run: |
+          rpm -q scantpaper
+          rpm -qa 'python3*-sane'
+          scantpaper --version
+          python3 -c 'import sane, tesserocr, iso639, img2pdf, ocrmypdf; print("imports ok")'
+
+      # The step above would also pass for an artifact built from a stale
+      # spec: it reports whatever version was compiled into it. On a tag
+      # build, assert that version is the tag the artifacts are attached to.
+      - name: Verify the installed version matches the release tag
+        if: github.ref_type == 'tag'
+        run: |
+          installed=$(scantpaper --version)
+          echo "$installed"
+          expected="scantpaper ${GITHUB_REF_NAME#v}"
+          if [ "$installed" != "$expected" ]; then
+            echo "::error::installed version '$installed' does not match" \
+              "tag '$expected'"
+            exit 1
+          fi
