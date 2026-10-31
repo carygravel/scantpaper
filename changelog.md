@@ -1,4 +1,4 @@
-## 4.0.2 (unreleased)
+## 4.0.2 (2026-10-31)
 
 * Fix a start-up warning for legacy boolean settings such as
   `post_save_hook` that gscan2pdf 2.x stored as an empty string for false.
