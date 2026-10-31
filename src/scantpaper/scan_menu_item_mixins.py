@@ -91,6 +91,8 @@ def _confirm_libusb_caching(
 class ScanMenuItemMixins:
     """provide methods called from scan menu item."""
 
+    _scan_progress_cancel_signal: int | None = None
+
     def scan_dialog(
         self,
         _action: Gio.SimpleAction,
@@ -161,26 +163,24 @@ class ScanMenuItemMixins:
 
         # Update default device
         window.connect("changed-device", self._changed_device_callback)
-        signal = None
 
         def started_progress_callback(_widget: Gtk.Widget, message: str) -> None:
             logger.debug("'started-process' emitted with message: %s", message)
             self._scan_progress.set_fraction(0)
             self._scan_progress.set_text(message)
             self._scan_progress.show()
-            nonlocal signal
-            signal = self._scan_progress.connect("clicked", self._windows.cancel_scan)
 
         window.connect("started-process", started_progress_callback)
         window.connect("changed-progress", self._changed_progress_callback)
         window.connect("finished-process", self._finished_process_callback)
 
         def do_process_error(_widget: Gtk.Widget, process: str, msg: str) -> None:
-            self._process_error_callback(_widget, process, msg, signal)
+            self._process_error_callback(_widget, process, msg, None)
 
         window.connect("process-error", do_process_error)
         window.connect("changed-profile", self._changed_profile_callback)
         window.connect("added-profile", self._added_profile_callback)
+        self._connect_scan_progress_cancel(window)
 
         def removed_profile_callback(_widget: Gtk.Widget, profile: str) -> None:
             del self.settings["profile"][profile]
@@ -209,6 +209,14 @@ class ScanMenuItemMixins:
         )
         window.connect(
             "changed-num-pages", self._update_postprocessing_options_callback
+        )
+
+    def _connect_scan_progress_cancel(self, window: SaneScanDialog) -> None:
+        """Connect the progress-bar Cancel once per scan dialog."""
+        if self._scan_progress_cancel_signal is not None:
+            self._scan_progress.disconnect(self._scan_progress_cancel_signal)
+        self._scan_progress_cancel_signal = self._scan_progress.connect(
+            "clicked", window.cancel_scan
         )
 
     def add_postprocessing_options(self, widget: SaneScanDialog) -> None:
@@ -470,7 +478,7 @@ class ScanMenuItemMixins:
         return bool(
             options is not None
             and widget.thread is not None
-            and options.flatbed_selected(widget.thread.get_option_value)
+            and widget.flatbed_source_selected()
         )
 
     def _flatbed_batch_active(self, widget: SaneScanDialog | None) -> bool:

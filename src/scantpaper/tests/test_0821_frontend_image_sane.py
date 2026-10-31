@@ -744,6 +744,184 @@ def test_flatbed_cancel_between_pages_disabled() -> None:
     assert fake.snap_no_cancel == [True, True], "no cancel requested between pages"
 
 
+def test_new_batch_gets_new_token_and_clears_cancelled() -> None:
+    """A new batch starts with a fresh token and no cancelled flag."""
+    thread = SaneThread()
+    thread._batch_cancelled = True
+
+    thread.scan_pages(
+        num_pages=1,
+        new_page_callback=lambda _image: None,
+        finished_callback=lambda _response: None,
+        error_callback=lambda _response: None,
+    )
+    first = thread._active_batch_id
+    assert thread._batch_cancelled is False
+    assert isinstance(first, int)
+
+    thread.scan_pages(
+        num_pages=1,
+        new_page_callback=lambda _image: None,
+        finished_callback=lambda _response: None,
+        error_callback=lambda _response: None,
+    )
+    assert thread._active_batch_id == first + 1
+
+
+def test_natural_end_does_not_mark_batch_cancelled() -> None:
+    """A page-limit end is not a user cancel."""
+    fake = FakeBrscan5Device(refill=True)
+    thread, pages, _errors = _run_with_fake(fake, {"num_pages": 2})
+    assert pages == [1, 2]
+    assert thread._batch_cancelled is False
+    assert thread._active_batch_id is None
+
+
+def test_stale_batch_response_is_ignored() -> None:
+    """A response from a superseded batch is not imported or re-queued."""
+    thread = SaneThread()
+    thread._active_batch_id = 2
+    new_page = MagicMock()
+    finished = MagicMock()
+    response = cast("Response", MagicMock(info=object(), status=None))
+
+    thread._scan_pages_finished_callback(
+        response,
+        batch_id=1,
+        new_page_callback=new_page,
+        finished_callback=finished,
+    )
+
+    new_page.assert_not_called()
+    finished.assert_not_called()
+
+
+def test_abandon_batch_releases_device_and_drops_request() -> None:
+    """Abandoning a wedged batch drops its request and closes the handle."""
+    thread = SaneThread()
+    thread._active_batch_id = 1
+    handle = MagicMock()
+    thread.device_handle = handle
+    thread.callbacks = {
+        "uid": {"request": SimpleNamespace(process="scan_page")},
+    }
+
+    thread.abandon_batch()
+
+    handle.close.assert_called_once()
+    assert thread._active_batch_id is None
+    assert thread._batch_cancelled is True
+    assert thread._device_recovery_needed is True
+    assert thread.device_handle is None
+    assert not thread.callbacks
+
+
+def test_stale_cancelled_batch_response_is_ignored() -> None:
+    """A cancelled response from a superseded batch is ignored."""
+    thread = SaneThread()
+    thread._active_batch_id = 2
+    finished = MagicMock()
+    response = cast("Response", MagicMock())
+
+    thread._scan_pages_cancelled_callback(
+        response, batch_id=1, finished_callback=finished
+    )
+
+    finished.assert_not_called()
+
+
+def test_close_device_best_effort_no_handle() -> None:
+    """A missing device handle is a no-op."""
+    thread = SaneThread()
+    thread.device_handle = None
+    thread._close_device_best_effort()
+    assert thread.device_handle is None
+
+
+def test_close_device_best_effort_close_raises() -> None:
+    """A failing close keeps the handle and does not crash."""
+    thread = SaneThread()
+    handle = MagicMock()
+    handle.close.side_effect = RuntimeError("boom")
+    thread.device_handle = handle
+
+    thread._close_device_best_effort()
+
+    assert thread.device_handle is handle
+
+
+def test_close_device_best_effort_timeout() -> None:
+    """A close that does not finish keeps the handle for the caller to report."""
+    thread = SaneThread()
+    handle = MagicMock()
+    thread.device_handle = handle
+    with patch.object(threading.Event, "wait", return_value=False):
+        thread._close_device_best_effort()
+    assert thread.device_handle is handle
+
+
+def test_cancel_from_new_page_stops_flatbed_batch() -> None:
+    """Cancelling between pages must not queue another flatbed page."""
+    fake = FakeBrscan5Device(refill=True)
+    thread = SaneThread()
+    thread.start()
+    pages: list[object] = []
+    finished: list[Response] = []
+    mlp = safe_mainloop(2000)
+
+    def quit_mlp(_response: Response) -> None:
+        mlp.quit()
+
+    with patch("sane.open", return_value=fake):
+        thread.open_device(device_name="fake", finished_callback=quit_mlp)
+        mlp.run()
+
+    mlp = safe_mainloop(2000)
+
+    def new_page(image: object) -> None:
+        pages.append(image)
+        if len(pages) == 2:
+            thread.cancel()
+
+    def finished_cb(response: Response) -> None:
+        finished.append(response)
+        mlp.quit()
+
+    thread.scan_pages(
+        num_pages=0,
+        new_page_callback=new_page,
+        finished_callback=finished_cb,
+        error_callback=quit_mlp,
+    )
+    mlp.run()
+
+    assert pages == [1, 2], "the completed page is kept and no third is acquired"
+    assert finished, "the cancelled batch reports completion"
+    assert thread._active_batch_id is None
+    assert thread._batch_cancelled is True
+
+    mlp = safe_mainloop(2000)
+    second_pages: list[object] = []
+
+    def second_new_page(image: object) -> None:
+        second_pages.append(image)
+
+    thread.scan_pages(
+        num_pages=1,
+        new_page_callback=second_new_page,
+        finished_callback=quit_mlp,
+        error_callback=quit_mlp,
+    )
+    mlp.run()
+
+    assert second_pages == [3], "a new batch starts successfully"
+    assert thread._batch_cancelled is False
+
+    mlp = safe_mainloop(2000)
+    thread.send("quit", finished_callback=quit_mlp)
+    mlp.run()
+
+
 def test_page_limit_discards_buffered_frames() -> None:
     """Reaching the requested page count terminates and drops buffered frames."""
     fake = FakeBrscan5Device(frames=[1, 2, 3])

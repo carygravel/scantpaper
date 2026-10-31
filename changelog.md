@@ -114,6 +114,15 @@
   page becomes its first undo step. Reopening a session whose latest action
   removed every page now stays empty instead of showing the deleted pages
   again; undo still brings them back.
+* Selecting a flatbed source now starts **# Pages** at one page instead of
+  inheriting the ADF `All` default. An unbounded flatbed batch is only
+  possible after choosing `All` explicitly, and the dialog warns that
+  scanning continues until cancelled.
+* Cancelling a scan between pages no longer queues the next page. If the
+  scanner does not respond to cancel, scantpaper reports the failure and
+  rebuilds the device session for the next scan; a device still held by the
+  operating system is reported as busy instead of leaving the application
+  unable to scan.
 
 
 ## 4.0.1 (2026-10-25)

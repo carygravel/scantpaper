@@ -219,18 +219,24 @@ def test_scan_dialog_callbacks(
         return mocker.Mock()
 
     mock_sane_dialog_instance.connect.side_effect = side_effect
+    mock_scan_window._scan_progress.connect.return_value = "signal_id"
+    mock_scan_window._scan_progress_cancel_signal = "old_signal"
 
     mock_scan_window.scan_dialog(None, None)
 
+    # Cancel is connected once when the dialog is created, replacing any
+    # previous dialog's handler.
+    mock_scan_window._scan_progress.disconnect.assert_called_once_with("old_signal")
+    mock_scan_window._scan_progress.connect.assert_called_once_with(
+        "clicked", mock_sane_dialog_instance.cancel_scan
+    )
+
     # Test started-process callback
     assert "started-process" in callbacks
-    mock_scan_window._scan_progress.connect.return_value = "signal_id"
     callbacks["started-process"](None, "starting")
     mock_scan_window._scan_progress.set_fraction.assert_called_with(0)
     mock_scan_window._scan_progress.set_text.assert_called_with("starting")
-    mock_scan_window._scan_progress.connect.assert_called_with(
-        "clicked", mock_sane_dialog_instance.cancel_scan
-    )
+    assert mock_scan_window._scan_progress.connect.call_count == 1
 
     # Test removed-profile callback
     assert "removed-profile" in callbacks
@@ -277,18 +283,17 @@ def test_scan_dialog_process_error_signal_forwarding(
     assert "process-error" in callbacks
     assert "started-process" in callbacks
 
-    # process-error without a prior started-process forwards None
+    # The progress-bar Cancel is connected once, so process-error forwards
+    # no per-event signal id.
     callbacks["process-error"](None, "open_device", "boom")
     mock_scan_window._process_error_callback.assert_called_with(
         None, "open_device", "boom", None
     )
 
-    # After a started-process, the real signal id is forwarded
-    mock_scan_window._scan_progress.connect.return_value = "signal_id"
     callbacks["started-process"](None, "starting")
     callbacks["process-error"](None, "open_device", "boom")
     mock_scan_window._process_error_callback.assert_called_with(
-        None, "open_device", "boom", "signal_id"
+        None, "open_device", "boom", None
     )
 
 
@@ -797,6 +802,7 @@ def test_update_postprocessing_options_callback_alternate_visibility(
     mock_widget.available_scan_options = mock_options
     mock_widget.thread = mocker.Mock()
     mock_widget.thread.get_option_value.return_value = "Flatbed"
+    mock_widget.flatbed_source_selected.return_value = True
     mock_options.flatbed_selected.return_value = True
     mock_options.can_duplex.return_value = False
 
@@ -820,6 +826,7 @@ def test_update_postprocessing_options_callback_alternate_visibility(
     # Flatbed not selected -> hidden
     mock_widget.allow_batch_flatbed = True
     mock_options.flatbed_selected.return_value = False
+    mock_widget.flatbed_source_selected.return_value = False
     mock_scan_window._update_postprocessing_options_callback(mock_widget)
     assert abutton.set_visible.call_args.args == (False,)
 
@@ -1040,6 +1047,7 @@ def test_new_scan_callback_no_alternate_on_adf(
     mock_window.available_scan_options = mock_options
     mock_window.thread = MagicMock()
     mock_options.flatbed_selected.return_value = False
+    mock_window.flatbed_source_selected.return_value = False
     mock_scan_window._windows = mock_window
 
     mock_scan_window._new_scan_callback(None, mock_image, None, "facing", 300, 300)

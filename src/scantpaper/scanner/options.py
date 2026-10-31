@@ -168,30 +168,34 @@ class Options(GObject.Object):
 
         return False
 
+    def flatbed_value_selected(self, source: object) -> bool:
+        """Return whether a source value names a flatbed."""
+        if source is None:
+            return True
+        if re.search(
+            r"(flatbed|Document[ ]Table)",
+            str(source),
+            re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+        ):
+            return True
+        return bool(
+            self.source is not None
+            and isinstance(self.source.constraint, list)
+            and len(self.source.constraint) == 1
+            and re.search(
+                r"flatbed",
+                str(self.source.constraint[0]),
+                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+            )
+        )
+
     def flatbed_selected(self, get_value: Callable[[str], str | None]) -> bool:
         """Return whether the flatbed is selected."""
         source = None
         if self.source is not None:
             with contextlib.suppress(AttributeError):
                 source = get_value(self.source.name)
-        return bool(
-            source is None
-            or re.search(
-                r"(flatbed|Document[ ]Table)",
-                source,
-                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-            )
-            or (
-                self.source is not None
-                and isinstance(self.source.constraint, list)
-                and len(self.source.constraint) == 1
-                and re.search(
-                    r"flatbed",
-                    self.source.constraint[0],
-                    re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-                )
-            )
-        )
+        return self.flatbed_value_selected(source)
 
 
 def within_tolerance(

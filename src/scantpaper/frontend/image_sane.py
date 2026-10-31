@@ -50,6 +50,10 @@ class SaneThread(BaseThread):
     _scan_progress_cb = None
     _scan_active = False
     _cancel_requested = False
+    _batch_id = 0
+    _active_batch_id: int | None = None
+    _batch_cancelled = False
+    _device_recovery_needed = False
 
     @override
     def handler_wrapper(
@@ -83,11 +87,10 @@ class SaneThread(BaseThread):
                     request.cancelled()
                 else:
                     request.error(None, str(err))
-                    if (
-                        request.process == "scan_page"
-                        and self.device_handle is not None
-                    ):
-                        self.cancel()
+                    if request.process == "scan_page":
+                        self._active_batch_id = None
+                        if self.device_handle is not None:
+                            self._end_batch()
         return True
 
     @override
@@ -288,15 +291,27 @@ class SaneThread(BaseThread):
         return result
 
     def scan_page(
-        self, *, cancel_between_pages: bool = False, **kwargs: object
+        self,
+        *,
+        cancel_between_pages: bool = False,
+        batch_id: int | None = None,
+        **kwargs: object,
     ) -> uuid.UUID:
         """Scan page."""
-        return self.send("scan_page", cancel_between_pages, **kwargs)
+        return self.send(
+            "scan_page",
+            cancel_between_pages,
+            batch_id=batch_id,
+            **kwargs,
+        )
 
     def _scan_pages_finished_callback(
         self, response: Response, **kwargs: object
     ) -> None:
         _set_default_callbacks(kwargs)
+        batch_id = cast("int | None", kwargs.get("batch_id"))
+        if batch_id != self._active_batch_id:
+            return
         cancel_between_pages = cast("bool", kwargs.get("cancel_between_pages", False))
         if response.info is not None:
             self.num_pages_scanned += 1
@@ -304,21 +319,29 @@ class SaneThread(BaseThread):
                 cast("Callable[..., object]", kwargs["new_page_callback"])(
                     response.info
                 )
+        if self._batch_cancelled:
+            self._active_batch_id = None
+            if kwargs["finished_callback"] is not None:
+                cast("Callable[..., object]", kwargs["finished_callback"])(response)
+            return
         if response.status == "Document feeder out of documents" or (
             self.num_pages != 0
             and self.num_pages_scanned >= cast("int", self.num_pages)
         ):
-            self.cancel()
+            self._end_batch()
+            self._active_batch_id = None
             if kwargs["finished_callback"] is not None:
                 cast("Callable[..., object]", kwargs["finished_callback"])(response)
             return
         self.scan_page(
             cancel_between_pages=cancel_between_pages,
+            batch_id=batch_id,
             started_callback=kwargs["started_callback"],
             running_callback=kwargs["running_callback"],
             error_callback=kwargs["error_callback"],
             finished_callback=lambda response: self._scan_pages_finished_callback(
                 response,
+                batch_id=batch_id,
                 cancel_between_pages=cancel_between_pages,
                 running_callback=kwargs["running_callback"],
                 finished_callback=kwargs["finished_callback"],
@@ -327,6 +350,7 @@ class SaneThread(BaseThread):
             ),
             cancelled_callback=lambda response: self._scan_pages_cancelled_callback(
                 response,
+                batch_id=batch_id,
                 finished_callback=kwargs["finished_callback"],
             ),
         )
@@ -335,6 +359,11 @@ class SaneThread(BaseThread):
         self, response: Response, **kwargs: object
     ) -> None:
         """Handle a page transfer interrupted by a cancel: terminate the session cleanly."""
+        _set_default_callbacks(kwargs)
+        batch_id = cast("int | None", kwargs.get("batch_id"))
+        if batch_id != self._active_batch_id:
+            return
+        self._active_batch_id = None
         # the queued "cancel" request terminates the device session via do_cancel;
         # the partial page was never handed to new_page_callback
         if kwargs["finished_callback"] is not None:
@@ -346,14 +375,20 @@ class SaneThread(BaseThread):
         """Scan pages."""
         self.num_pages_scanned = 0
         self.num_pages = cast("int", kwargs["num_pages"])
+        self._batch_id += 1
+        batch_id = self._batch_id
+        self._active_batch_id = batch_id
+        self._batch_cancelled = False
         _set_default_callbacks(kwargs)
         return self.scan_page(
             cancel_between_pages=cancel_between_pages,
+            batch_id=batch_id,
             started_callback=kwargs["started_callback"],
             running_callback=kwargs["running_callback"],
             error_callback=kwargs["error_callback"],
             finished_callback=lambda response: self._scan_pages_finished_callback(
                 response,
+                batch_id=batch_id,
                 cancel_between_pages=cancel_between_pages,
                 running_callback=kwargs["running_callback"],
                 finished_callback=kwargs["finished_callback"],
@@ -362,6 +397,7 @@ class SaneThread(BaseThread):
             ),
             cancelled_callback=lambda response: self._scan_pages_cancelled_callback(
                 response,
+                batch_id=batch_id,
                 finished_callback=kwargs["finished_callback"],
             ),
         )
@@ -375,8 +411,8 @@ class SaneThread(BaseThread):
         """Quit."""
         return self.send("quit", **kwargs)
 
-    def cancel(self, **kwargs: object) -> uuid.UUID:
-        """Flag the scan routine to abort."""
+    def _request_device_cancel(self, **kwargs: object) -> uuid.UUID:
+        """Drop queued work and terminate the device session."""
         # drop queued requests, notifying their requesters
         self.drain_cancelled_requests()
 
@@ -405,6 +441,63 @@ class SaneThread(BaseThread):
             except Exception:
                 logger.exception("Error cancelling device")
         return request
+
+    def cancel(self, **kwargs: object) -> uuid.UUID:
+        """Cancel the current batch and terminate the device session."""
+        self._batch_cancelled = True
+        return self._request_device_cancel(**kwargs)
+
+    def _end_batch(self, **kwargs: object) -> uuid.UUID:
+        """Terminate the device session at the natural end of a batch."""
+        return self._request_device_cancel(**kwargs)
+
+    def has_active_batch(self) -> bool:
+        """Return whether a scan batch is still awaiting a terminal response."""
+        return self._active_batch_id is not None
+
+    def abandon_batch(self) -> None:
+        """Abandon a batch whose worker did not stop after a cancel."""
+        self._batch_cancelled = True
+        self._active_batch_id = None
+        self._cancel_requested = True
+        self._device_recovery_needed = True
+
+        # The worker is blocked in the backend; drop the callbacks for the
+        # abandoned page so a late response cannot import or re-queue it.
+        for uid, callbacks in list(self.callbacks.items()):
+            request = callbacks.get("request")
+            if request is not None and request.process == "scan_page":
+                del self.callbacks[uid]
+
+        self._close_device_best_effort()
+
+    def _close_device_best_effort(self) -> None:
+        """Try to close the device from a helper thread without blocking forever."""
+        handle = self.device_handle
+        if handle is None:
+            return
+        done = threading.Event()
+        closed = False
+
+        def close() -> None:
+            nonlocal closed
+            try:
+                handle.close()
+                closed = True
+            except Exception:
+                # Closing a SANE handle can raise arbitrary backend errors;
+                # the recovery path must not crash.
+                logger.exception("Error closing device after cancel")
+            finally:
+                done.set()
+
+        helper = threading.Thread(target=close, daemon=True)
+        helper.start()
+        if not done.wait(timeout=2.0):
+            logger.error("Device did not close after cancel")
+            return
+        if closed and self.device_handle is handle:
+            self.device_handle = None
 
 
 def decode_info(info: int) -> str:

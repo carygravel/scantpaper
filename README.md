@@ -125,7 +125,14 @@ For multi-page flatbed batches the behaviour follows gscan2pdf semantics: the
 **Force new scan job between pages** preference (enabled via
 **Edit → Preferences**, only available when **Allow batch scanning from
 flatbed** is enabled) controls whether the session is cancelled between flatbed
-pages; the session is always cancelled at the end of the batch.
+pages; the session is always cancelled at the end of the batch. Switching to a
+flatbed source starts **# Pages** at one page. To scan an unbounded flatbed
+batch, choose **All** explicitly; the dialog then warns that scanning continues
+until you cancel. Cancelling stops the batch after the page already in
+progress. If the scanner does not respond to cancel, scantpaper reports the
+failure and rebuilds the device session for the next scan; a device still held
+by the operating system is reported as busy rather than leaving the
+application unable to scan.
 
 When scanning a book destructively (cutting off the binding and aligning every
 untorn outer edge to the same rim), enable **Alternate rotation every 2nd
@@ -955,7 +962,7 @@ It may not be supported by SANE or your scanner. If you see it in `scanimage --h
 
 ### How do I scan a multipage document with a flatbed scanner?
 
-Enable "Allow batch scanning from flatbed" in Preferences. Some scanners require additional settings.
+Enable "Allow batch scanning from flatbed" in Preferences. Some scanners require additional settings. Switching to the flatbed starts **# Pages** at one page; choose a finite count, or choose **All** to scan until you cancel.
 
 ### How do I scan a book?
 

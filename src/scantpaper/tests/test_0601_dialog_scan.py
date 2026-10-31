@@ -121,6 +121,7 @@ def test_doc_interaction(
         slist.data = [[1, None, None], [3, None, None], [5, None, None]]
         dialog._batch_start = 1
         dialog._batch_n = 3
+        dialog._flatbed_source_cached = False
         dialog.num_pages = 0
         dialog.side_to_scan = "reverse"
         assert dialog.num_pages == 3, (

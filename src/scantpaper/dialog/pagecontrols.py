@@ -1,5 +1,9 @@
 """The page controls for the Scan dialog."""
 
+from __future__ import annotations
+
+import contextlib
+import logging
 from typing import ClassVar
 
 from gi.repository import GObject, Gtk
@@ -15,6 +19,8 @@ from scantpaper.scanner.profile import Profile
 
 MAX_PAGES = 9999
 MAX_INCREMENT = 99
+
+logger = logging.getLogger(__name__)
 
 
 class PageControls(Dialog):
@@ -49,12 +55,58 @@ class PageControls(Dialog):
     available_scan_options = Options([])
     allow_batch_flatbed = False
     ignore_duplex_capabilities = False
+    # Whether the user explicitly chose All while the flatbed was selected.
+    # It gates an unbounded flatbed batch, not a finite count.
+    _flatbed_page_count_explicit = False
+    # Last known source selection. None means "not read yet"; the safe
+    # default for the page-count guard is flatbed.
+    _flatbed_source_cached: bool | None = None
     adf_defaults_scan_all_pages = GObject.Property(
         type=bool,
         default=True,
         nick="Select # pages = all on selecting ADF",
         blurb="Select # pages = all on selecting ADF",
     )
+
+    def flatbed_source_selected(self) -> bool:
+        """Return the last known source selection, defaulting to flatbed."""
+        return self._flatbed_source_cached is not False
+
+    def _refresh_flatbed_source(self) -> bool:
+        """Read the source once and cache it, keeping the last value on error."""
+        options = self.available_scan_options
+        if self.thread is None:
+            return self.flatbed_source_selected()
+
+        selected: bool | None = None
+        with contextlib.suppress(Exception):
+            selected = options.flatbed_selected(self.thread.get_option_value)
+        if selected is None:
+            logger.warning(
+                "Could not read the scan source; keeping the last known value"
+            )
+            selected = self.flatbed_source_selected()
+
+        self._flatbed_source_cached = selected
+        return selected
+
+    def _can_set_num_pages(self, newval: int) -> bool:
+        """Return whether the page count is safe for the current source."""
+        if newval == 1:
+            return True
+        # The facing pass of a double-sided workflow is deliberately open
+        # ended; the reverse pass is bounded by the facing batch.
+        if newval == 0 and self.sided == "double" and self.side_to_scan == "facing":
+            return True
+        if self.allow_batch_flatbed:
+            return not (
+                newval == 0
+                and self._flatbed_source_cached is True
+                and not self._flatbed_page_count_explicit
+            )
+        if self.thread is None or self.thread.device_handle is None:
+            return False
+        return not self.flatbed_source_selected()
 
     @property_(
         type=int,
@@ -72,16 +124,7 @@ class PageControls(Dialog):
     def num_pages(self, newval: int) -> None:
         if newval == self._num_pages:
             return
-        options = self.available_scan_options
-        if (
-            newval == 1
-            or self.allow_batch_flatbed
-            or (
-                self.thread is not None
-                and self.thread.device_handle is not None
-                and not options.flatbed_selected(self.thread.get_option_value)
-            )
-        ):
+        if self._can_set_num_pages(newval):
             self._num_pages = newval
             self.current_scan_options.add_frontend_option("num_pages", newval)
             self.emit("changed-num-pages", newval)
@@ -229,6 +272,16 @@ class PageControls(Dialog):
         spin_buttonn = Gtk.SpinButton.new_with_range(1, MAX_PAGES, 1)
         spin_buttonn.set_tooltip_text(_("Set number of pages to scan"))
         hboxn.append(spin_buttonn)
+
+        self._unbounded_label = Gtk.Label(
+            label=_("No page limit: scanning continues until you cancel."),
+            xalign=0,
+        )
+        self._unbounded_label.set_wrap(True)
+        self._unbounded_label.add_css_class("dim-label")
+        self._unbounded_label.set_visible(False)
+        vboxn.append(self._unbounded_label)
+
         self.connect(
             "changed-num-pages",
             self._do_changed_num_pages,
@@ -371,6 +424,8 @@ class PageControls(Dialog):
         self, bscanall: Gtk.CheckButton, _value: object | None
     ) -> None:
         if bscanall.get_active():
+            if self.flatbed_source_selected():
+                self._flatbed_page_count_explicit = True
             self.num_pages = 0
 
     def _do_start_page_changed(self, spin_buttons: Gtk.SpinButton) -> None:
@@ -411,6 +466,7 @@ class PageControls(Dialog):
             # it here
             bscannum.set_active(True)
             spin_buttonn.set_value(value)
+        self._update_unbounded_label()
 
     def _do_num_pages_changed(
         self, spin_buttonn: Gtk.SpinButton, bscannum: Gtk.CheckButton
@@ -446,10 +502,18 @@ class PageControls(Dialog):
         ):
             self.num_pages = self._batch_n
 
+    def _update_unbounded_label(self) -> None:
+        """Show the unbounded-batch warning for an open-ended flatbed batch."""
+        if not hasattr(self, "_unbounded_label"):
+            return
+        self._unbounded_label.set_visible(
+            self.flatbed_source_selected() and self.num_pages == 0
+        )
+
     def _flatbed_or_duplex_callback(self) -> None:
         options = self.available_scan_options
         if self.thread is not None and hasattr(self, "_vboxx"):
-            if options.flatbed_selected(self.thread.get_option_value) or (
+            if self.flatbed_source_selected() or (
                 options.can_duplex() and not self.ignore_duplex_capabilities
             ):
                 self._vboxx.hide()

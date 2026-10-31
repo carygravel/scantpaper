@@ -522,6 +522,7 @@ def test_available_scan_options_flatbed_selected(mocker: pytest.MockerFixture) -
     mocker.patch.object(
         dialog.available_scan_options, "flatbed_selected", return_value=False
     )
+    dialog._flatbed_source_cached = False
     dialog.num_pages = 2
     assert dialog.num_pages == 2
 
@@ -558,6 +559,231 @@ def test_available_scan_options_flatbed_not_selected(
 
     # Verify
     mock_set_sensitive.assert_called_with(sensitive=True)
+
+
+def _scan_with_source(source: str) -> Scan:
+    """Build a scan dialog whose source option reports the given value."""
+    dialog = Scan(title="title")
+    dialog.thread = MagicMock()
+    dialog.thread.device_handle = object()
+    dialog.thread.get_option_value.return_value = source
+    dialog.available_scan_options = Options(
+        [
+            Option(
+                index=50,
+                name="source",
+                title="Scan source",
+                desc="",
+                type=enums.TYPE_STRING,
+                unit="",
+                size=26,
+                cap=5,
+                constraint=["Flatbed", "Automatic Document Feeder"],
+            )
+        ]
+    )
+    return dialog
+
+
+def test_flatbed_source_change_defaults_to_one_page() -> None:
+    """ADF All does not follow the source to Flatbed."""
+    dialog = _scan_with_source("Automatic Document Feeder")
+    dialog.allow_batch_flatbed = True
+    dialog._changed_scan_option_callback(
+        None, "source", "Automatic Document Feeder", None, dialog._bscannum
+    )
+    assert dialog.num_pages == 0
+
+    dialog._changed_scan_option_callback(
+        None, "source", "Flatbed", None, dialog._bscannum
+    )
+    assert dialog.num_pages == 1
+    assert dialog._bscannum.get_active()
+    assert dialog.framen.get_sensitive()
+
+
+def test_flatbed_source_change_with_preference_off_ghosts_frame() -> None:
+    """A flatbed forces one page and ghosts # Pages when batch is disabled."""
+    dialog = _scan_with_source("Flatbed")
+    assert dialog.num_pages == 1
+    assert not dialog.framen.get_sensitive()
+
+    dialog._changed_scan_option_callback(
+        None, "source", "Automatic Document Feeder", None, dialog._bscannum
+    )
+    assert dialog.num_pages == 0
+    dialog._changed_scan_option_callback(
+        None, "source", "Flatbed", None, dialog._bscannum
+    )
+    assert dialog.num_pages == 1
+    assert not dialog.framen.get_sensitive()
+
+
+def test_flatbed_saved_profile_all_is_refused() -> None:
+    """A saved All value cannot put a flatbed on an unbounded batch."""
+    dialog = _scan_with_source("Flatbed")
+    dialog.allow_batch_flatbed = True
+    dialog.set_current_scan_options(Profile(frontend={"num_pages": 0}))
+    assert dialog.num_pages == 1
+
+
+def test_flatbed_explicit_all_shows_unbounded_label() -> None:
+    """An explicit All on a flatbed shows the unbounded-batch label."""
+    dialog = _scan_with_source("Flatbed")
+    dialog.allow_batch_flatbed = True
+    bscanall = dialog._bscannum.get_parent().get_parent().get_first_child()
+
+    bscanall.set_active(True)
+    assert dialog.num_pages == 0
+    assert dialog._unbounded_label.get_visible()
+
+    dialog.num_pages = 2
+    assert not dialog._unbounded_label.get_visible()
+
+    dialog._changed_scan_option_callback(
+        None, "source", "Automatic Document Feeder", None, dialog._bscannum
+    )
+    assert dialog.num_pages == 0
+    assert not dialog._unbounded_label.get_visible()
+
+
+def test_flatbed_source_change_survives_source_read_timeout() -> None:
+    """A source read failure does not abort the flatbed page-count guard."""
+    dialog = _scan_with_source("Automatic Document Feeder")
+    dialog.allow_batch_flatbed = True
+    dialog.thread.get_option_value.side_effect = TimeoutError("source read timed out")
+
+    dialog._changed_scan_option_callback(
+        None, "source", "Flatbed", None, dialog._bscannum
+    )
+    assert dialog.num_pages == 1
+
+
+def test_scan_guard_forces_one_page_for_unbounded_flatbed() -> None:
+    """scan() refuses an unbounded flatbed batch without an explicit choice."""
+    with patch("scantpaper.dialog.sane.SaneThread") as thread_cls:
+        dialog = SaneScanDialog(title="title")
+        thread = thread_cls.return_value
+        thread.device_handle = object()
+        thread.get_option_value.return_value = "Flatbed"
+        dialog.available_scan_options = Options(
+            [
+                Option(
+                    index=50,
+                    name="source",
+                    title="Scan source",
+                    desc="",
+                    type=enums.TYPE_STRING,
+                    unit="",
+                    size=26,
+                    cap=5,
+                    constraint=["Flatbed", "Automatic Document Feeder"],
+                )
+            ]
+        )
+        dialog.allow_batch_flatbed = True
+        dialog._num_pages = 0
+        dialog._flatbed_page_count_explicit = False
+        dialog._get_xy_resolution = MagicMock(return_value=(300, 300))
+
+        dialog.scan()
+
+        assert thread.scan_pages.call_args.kwargs["num_pages"] == 1
+
+
+def test_cancel_watchdog_recovers() -> None:
+    """The watchdog abandons a stuck batch and reports the failure."""
+    with patch("scantpaper.dialog.sane.SaneThread"):
+        dialog = SaneScanDialog(title="title")
+        dialog.thread = MagicMock()
+        dialog.thread.has_active_batch.return_value = True
+        dialog._recover_after_cancel = MagicMock()
+        errors = []
+        dialog.connect(
+            "process-error",
+            lambda _widget, process, message: errors.append((process, message)),
+        )
+
+        result = dialog._cancel_watchdog()
+
+        dialog._recover_after_cancel.assert_called_once()
+        assert errors
+        assert errors[0][0] == "scan_pages"
+        assert dialog.scan_button.get_sensitive()
+        assert result == GLib.SOURCE_REMOVE
+
+
+def test_cancel_watchdog_stops_on_finish() -> None:
+    """A terminal scan callback stops the recovery timer."""
+    with patch("scantpaper.dialog.sane.SaneThread"):
+        dialog = SaneScanDialog(title="title")
+        dialog.thread = MagicMock()
+        dialog._start_cancel_watchdog()
+        assert dialog._cancel_watchdog_id is not None
+
+        dialog._scan_finished_callback(MagicMock())
+
+        assert dialog._cancel_watchdog_id is None
+
+
+def test_cancel_watchdog_no_active_batch() -> None:
+    """The watchdog does nothing when the batch already ended."""
+    with patch("scantpaper.dialog.sane.SaneThread"):
+        dialog = SaneScanDialog(title="title")
+        dialog.thread = MagicMock()
+        dialog.thread.has_active_batch.return_value = False
+        dialog._recover_after_cancel = MagicMock()
+
+        assert dialog._cancel_watchdog() is False
+        dialog._recover_after_cancel.assert_not_called()
+
+
+def test_recover_after_cancel_without_device() -> None:
+    """Recovery replaces the worker without reopening when no device is set."""
+    with patch("scantpaper.dialog.sane.SaneThread") as thread_cls:
+        dialog = SaneScanDialog(title="title")
+        dialog.thread = None
+        dialog._device = None
+        dialog.scan_options = MagicMock()
+        thread_cls.reset_mock()
+
+        dialog._recover_after_cancel()
+
+        thread_cls.assert_called_once()
+        dialog.scan_options.assert_not_called()
+
+
+def test_cancel_scan_starts_watchdog() -> None:
+    """Cancelling an active batch arms the recovery timer."""
+    with patch("scantpaper.dialog.sane.SaneThread"):
+        dialog = SaneScanDialog(title="title")
+        dialog.thread = MagicMock()
+        dialog.thread.has_active_batch.return_value = True
+        dialog._start_cancel_watchdog = MagicMock()
+
+        dialog.cancel_scan(MagicMock())
+
+        dialog.thread.cancel.assert_called_once()
+        dialog._start_cancel_watchdog.assert_called_once()
+
+
+def test_recover_after_cancel_replaces_thread() -> None:
+    """Recovery abandons the old worker and opens a fresh session."""
+    with patch("scantpaper.dialog.sane.SaneThread") as thread_cls:
+        dialog = SaneScanDialog(title="title")
+        old = MagicMock()
+        dialog.thread = old
+        dialog._device = "test:0"
+        dialog.scan_options = MagicMock()
+        thread_cls.reset_mock()
+
+        dialog._recover_after_cancel()
+
+        old.abandon_batch.assert_called_once()
+        thread_cls.assert_called_once()
+        assert dialog.thread is thread_cls.return_value
+        thread_cls.return_value.start.assert_called_once()
+        dialog.scan_options.assert_called_once_with("test:0")
 
 
 def test_init_with_profiles() -> None:

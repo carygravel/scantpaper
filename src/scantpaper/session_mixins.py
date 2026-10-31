@@ -173,14 +173,9 @@ class SessionMixins:
                 ["tesseract", _("Tesseract"), _("Process image with Tesseract.")]
             )
 
-    def _finished_process_callback(
-        self, widget: SaneScanDialog, process: str, button_signal: int | None = None
-    ) -> None:
+    def _finished_process_callback(self, widget: SaneScanDialog, process: str) -> None:
         """Handle the completion of a process."""
         logger.debug("signal 'finished-process' emitted with data: %s", process)
-        if button_signal is not None:
-            self._scan_progress.disconnect(button_signal)
-
         self._scan_progress.hide()
         if process == "scan_pages" and widget.sided == "double":
 

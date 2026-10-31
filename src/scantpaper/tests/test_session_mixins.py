@@ -443,10 +443,7 @@ def test_finished_process_callback(
     mock_session_window._scan_progress = mocker.Mock()
 
     # Simple case
-    mock_session_window._finished_process_callback(
-        None, "other_process", button_signal=123
-    )
-    mock_session_window._scan_progress.disconnect.assert_called_with(123)
+    mock_session_window._finished_process_callback(None, "other_process")
     mock_session_window._scan_progress.hide.assert_called()
 
     # Double sided scanning case - facing

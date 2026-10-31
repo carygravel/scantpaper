@@ -6,7 +6,7 @@ import logging
 import re
 from typing import TYPE_CHECKING, Any, cast
 
-from gi.repository import GObject, Gtk
+from gi.repository import GLib, GObject, Gtk
 from typing_extensions import override
 
 from scantpaper.const import DIALOG_ROW_SPACING, EMPTY
@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 LAST_PAGE = -1
 FIRST_OPTIONS_PAGE = 2
+CANCEL_RECOVERY_TIMEOUT_MS = 5000
 logger = logging.getLogger(__name__)
 
 # SANE scan-mode values that request 1-bit output, from backend
@@ -70,6 +71,7 @@ class SaneScanDialog(Scan):
         self.thread.start()
         self.geometry_boxes = None
         self._option_info = {}
+        self._cancel_watchdog_id: int | None = None
 
     @override
     def get_devices(self) -> None:
@@ -545,6 +547,18 @@ class SaneScanDialog(Scan):
         """Scan."""
         self.cursor = "progress"
 
+        if (
+            self.num_pages == 0
+            and self.max_pages == 0
+            and self.flatbed_source_selected()
+            and not self._flatbed_page_count_explicit
+            and not (self.sided == "double" and self.side_to_scan == "facing")
+        ):
+            logger.warning(
+                "Refusing an unbounded flatbed batch without an explicit choice"
+            )
+            self.num_pages = 1
+
         # Get selected number of pages
         num_pages = self.num_pages
         if num_pages == 0 and self.max_pages > 0:
@@ -617,6 +631,7 @@ class SaneScanDialog(Scan):
         )
 
     def _scan_finished_callback(self, _response: Response) -> None:
+        self._stop_cancel_watchdog()
         self.emit("finished-process", "scan_pages")
         self.cursor = "default"
         if self.cycle_sane_handle:
@@ -648,10 +663,54 @@ class SaneScanDialog(Scan):
         )
 
     def _scan_error_callback(self, response: Response) -> None:
+        self._stop_cancel_watchdog()
         self.emit("process-error", "scan_pages", response.status)
         self.cursor = "default"
 
     def cancel_scan(self, _widget: Gtk.Widget) -> None:
         """Cancel any running or queued scan processes."""
         self.thread.cancel()
+        if self.thread.has_active_batch():
+            self._start_cancel_watchdog()
         logger.info("Cancelled scan")
+
+    def _start_cancel_watchdog(self) -> None:
+        """Start the bounded recovery timer for a cancelled batch."""
+        self._stop_cancel_watchdog()
+        self._cancel_watchdog_id = GLib.timeout_add(
+            CANCEL_RECOVERY_TIMEOUT_MS, self._cancel_watchdog
+        )
+
+    def _stop_cancel_watchdog(self) -> None:
+        """Stop the recovery timer if it is running."""
+        if self._cancel_watchdog_id is not None:
+            GLib.source_remove(self._cancel_watchdog_id)
+            self._cancel_watchdog_id = None
+
+    def _cancel_watchdog(self) -> bool:
+        """Recover from a backend that did not stop after a cancel."""
+        self._cancel_watchdog_id = None
+        if self.thread is None or not self.thread.has_active_batch():
+            return False
+        logger.error("Scan cancel did not complete; abandoning the batch")
+        self._recover_after_cancel()
+        self.cursor = "default"
+        self.emit(
+            "process-error",
+            "scan_pages",
+            _(
+                "The scanner did not respond to cancel. Reconnect the scanner "
+                "or choose another device."
+            ),
+        )
+        return False
+
+    def _recover_after_cancel(self) -> None:
+        """Replace the wedged worker and reopen the device session."""
+        old = self.thread
+        if old is not None:
+            old.abandon_batch()
+        self.thread = SaneThread()
+        self.thread.start()
+        if self.device not in [None, ""]:
+            self.scan_options(self.device)

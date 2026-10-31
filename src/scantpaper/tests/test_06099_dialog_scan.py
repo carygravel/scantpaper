@@ -85,6 +85,10 @@ class MockOptions:
         """Check whether the flatbed is selected."""
         return False
 
+    def flatbed_value_selected(self, value: object) -> bool:
+        """Check whether a source value names a flatbed."""
+        return str(value).lower() == "flatbed"
+
     def can_duplex(self) -> bool:
         """Check whether the device can scan both sides."""
         return False
@@ -533,7 +537,7 @@ class TestScanDialog:
 
         # Test Flatbed selection
         scan._changed_scan_option_callback(None, "source", "Flatbed", None, bscannum)
-        # Should set num_pages = 1 if not allow_batch_flatbed (default False)
+        assert scan.num_pages == 1
 
     def test_make_progress_string(self) -> None:
         """Test make_progress_string."""

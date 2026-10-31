@@ -328,18 +328,12 @@ class Scan(PageControls):
             return
         if newval:
             self.framen.set_sensitive(sensitive=True)
-        else:
-            options = cast("Options | None", self.available_scan_options)
-
-            # on startup, self.thread doesn't get set until later
-            if (
-                self.thread is not None
-                and options is not None
-                and options.flatbed_selected(self.thread.get_option_value)
-            ):
-                self.framen.set_sensitive(sensitive=False)
-
-                self.num_pages = 1
+        # on startup, self.thread doesn't get set until later
+        elif self.thread is not None and self.flatbed_source_selected():
+            self.framen.set_sensitive(sensitive=False)
+            self._flatbed_page_count_explicit = False
+            self.num_pages = 1
+        self._update_unbounded_label()
 
     @property_(
         type=bool,
@@ -371,16 +365,20 @@ class Scan(PageControls):
     def available_scan_options(self, newval: Options) -> None:
         self._available_scan_options = newval
         if hasattr(self, "framen") and self.thread is not None:
-            if not self.allow_batch_flatbed and newval.flatbed_selected(
-                self.thread.get_option_value
-            ):
+            was_flatbed = self._flatbed_source_cached
+            is_flatbed = self._refresh_flatbed_source()
+            if is_flatbed and was_flatbed is not True:
+                self._flatbed_page_count_explicit = False
                 if self.num_pages != 1:
                     self.num_pages = 1
-                self.framen.set_sensitive(sensitive=False)
-            else:
-                self.framen.set_sensitive(sensitive=True)
+            elif not is_flatbed:
+                self._flatbed_page_count_explicit = False
+            self.framen.set_sensitive(
+                sensitive=not (is_flatbed and not self.allow_batch_flatbed)
+            )
 
         self._flatbed_or_duplex_callback()
+        self._update_unbounded_label()
 
         # reload-recursion-limit is read-only
         # Each option is set at most MAX_REVERTED_OPTION_COUNT times during
@@ -580,6 +578,7 @@ class Scan(PageControls):
         """Respond to the show signal."""
         self.framex.hide()
         self._flatbed_or_duplex_callback()
+        self._update_unbounded_label()
         if (
             self.combobp is not None
             and self.combobp.get_active_text() is not None
@@ -590,6 +589,8 @@ class Scan(PageControls):
 
     def set_device(self, device: str | None) -> None:
         """Set the active device."""
+        self._flatbed_page_count_explicit = False
+        self._flatbed_source_cached = None
         if device not in [None, ""]:
             idev = None
             device_list = self.device_list
@@ -1545,24 +1546,31 @@ class Scan(PageControls):
         options = self.available_scan_options
         opt = options.by_name("source")
         if opt is not None and name == opt.name:
-            if self.allow_batch_flatbed or not options.flatbed_selected(
-                self.thread.get_option_value
-            ):
-                self.framen.set_sensitive(sensitive=True)
-            else:
+            was_flatbed = self._flatbed_source_cached
+            is_flatbed = options.flatbed_value_selected(value)
+            self._flatbed_source_cached = is_flatbed
+
+            if is_flatbed and was_flatbed is not True:
+                self._flatbed_page_count_explicit = False
                 bscannum.set_active(True)
                 self.num_pages = 1
-                self.sided = "single"
-                self.framen.set_sensitive(sensitive=False)
+                if not self.allow_batch_flatbed:
+                    self.sided = "single"
 
-            if self.adf_defaults_scan_all_pages and re.search(
-                r"(ADF|Automatic[ ]Document[ ]Feeder)",
-                str(value),
-                re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
-            ):
-                self.num_pages = 0
+            if is_flatbed:
+                self.framen.set_sensitive(sensitive=self.allow_batch_flatbed)
+            else:
+                self._flatbed_page_count_explicit = False
+                self.framen.set_sensitive(sensitive=True)
+                if self.adf_defaults_scan_all_pages and re.search(
+                    r"(ADF|Automatic[ ]Document[ ]Feeder)",
+                    str(value),
+                    re.IGNORECASE | re.MULTILINE | re.DOTALL | re.VERBOSE,
+                ):
+                    self.num_pages = 0
 
         self._flatbed_or_duplex_callback()
+        self._update_unbounded_label()
 
 
 def _geometry_option(opt: Option) -> bool:

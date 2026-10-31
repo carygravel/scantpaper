@@ -46,6 +46,24 @@ def test_do_spin_buttoni_value_changed() -> None:
     assert page_controls.page_number_increment == 0
 
 
+def test_refresh_flatbed_source_without_thread() -> None:
+    """An unset thread keeps the last known source value."""
+    page_controls = PageControls()
+    page_controls._flatbed_source_cached = False
+    assert page_controls._refresh_flatbed_source() is False
+
+
+def test_refresh_flatbed_source_keeps_last_value_on_error() -> None:
+    """A source read failure keeps the last known value."""
+    page_controls = PageControls()
+    page_controls.thread = MagicMock()
+    page_controls.available_scan_options = MagicMock()
+    page_controls.available_scan_options.flatbed_selected.side_effect = TimeoutError
+    page_controls._flatbed_source_cached = False
+
+    assert page_controls._refresh_flatbed_source() is False
+
+
 def test_do_start_page_changed() -> None:
     """Test that _do_start_page_changed sets the page-number-start property."""
     page_controls = PageControls()
@@ -77,6 +95,7 @@ def test_do_clicked_scan_number() -> None:
     """Test that activating the '# pages' button takes the spin button value."""
     page_controls = PageControls()
     page_controls.allow_batch_flatbed = True
+    page_controls._flatbed_source_cached = False
     page_controls.num_pages = 0
 
     bscannum = MagicMock()
@@ -125,6 +144,7 @@ def test_fix_batch() -> None:
     page_controls._batch_start = 1
     page_controls._batch_n = 3
     page_controls.allow_batch_flatbed = True
+    page_controls._flatbed_source_cached = False
     page_controls.num_pages = 0
     page_controls._fix_batch()
     assert page_controls.max_pages == 3

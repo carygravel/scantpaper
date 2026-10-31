@@ -77,7 +77,9 @@ open session leaks into the next batch or device operation.
 When the user cancels a scan, the device session SHALL be terminated promptly:
 a page transfer already in progress SHALL be interrupted rather than allowed
 to run to completion, and scan requests that have not yet started SHALL be
-dropped.
+dropped. A page whose transfer completed before the cancel SHALL still be
+imported, and no further page of the cancelled batch SHALL be acquired or
+queued after the cancel.
 
 #### Scenario: Cancel during a page transfer
 - **WHEN** the user presses cancel while a page is being transferred
@@ -103,6 +105,28 @@ dropped.
 - **WHEN** a scan is cancelled while it is running
 - **AND** the user subsequently starts a new scan batch
 - **THEN** the new batch SHALL acquire pages successfully
+
+#### Scenario: Cancel between pages does not queue the next page
+- **WHEN** the user cancels after a page transfer has completed but before
+  the next page starts
+- **THEN** the completed page SHALL remain in the document
+- **AND** no further page from that batch SHALL be acquired or queued
+- **AND** the batch SHALL end as cancelled, not as a completed scan
+
+### Requirement: Cancel recovers a device that does not interrupt promptly
+
+If a backend does not stop an in-flight transfer within a bounded time
+after the user cancels, the application SHALL report the failure and SHALL
+remain responsive. A subsequent scan batch SHALL start once the device is
+available.
+
+#### Scenario: Backend ignores cross-thread cancel
+- **WHEN** the user cancels and the backend does not stop the in-flight
+  transfer within the bounded time
+- **THEN** the application SHALL report the failure instead of leaving the
+  batch indefinitely running
+- **AND** the application SHALL remain responsive
+- **AND** a subsequent scan SHALL start once the device is available
 
 ### Requirement: Requested colour depth is honoured
 
