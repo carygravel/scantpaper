@@ -101,6 +101,7 @@
    autopkgtest ../scantpaper_<version>_source.changes -- unshare --release sid
    # check contents with dpkg-deb --contents
    # test dist sudo dpkg -i scantpaper_x.x.x_all.deb
+   git add -p
    debcommit -r
    git push --set-upstream git@salsa.debian.org:python-team/packages/scantpaper.git : --tags
    dput ftp-master ../scantpaper_<version>_source.changes
@@ -115,11 +116,10 @@
    python3 dev/build_ppa.py --all --verify
    ```
    The tool prepares each series from the committed branch, refuses
-   uncommitted packaging changes and prints `debsign`/`dput` for every source
-   package. Sign and upload them:
+   uncommitted packaging changes, signs each source package as it builds it
+   and prints `dput` for every one. Upload them:
 
    ```sh
-   debsign build/ppa/<series>/scantpaper_<version>_source.changes
    dput gscan2pdf-ppa build/ppa/<series>/scantpaper_<version>_source.changes
    ```
 

@@ -10,7 +10,7 @@ series' ``debhelper-compat`` and any configured test-dependency removals from
 ``packaging/ubuntu/suites.toml``, the version ``<upstream>-0~ppa1<series>`` and
 ``Distribution: <series>``. The pristine-tar orig tarball is reused.
 
-Sources are built unsigned. ``debsign`` and ``dput`` are printed, never run.
+Sources are signed as part of the build. ``dput`` is printed, never run.
 """
 
 from __future__ import annotations
@@ -281,8 +281,8 @@ def _prepare_tree(source: TreeSource, spec: SeriesSpec) -> Path:
 
 
 def _build(tree: Path) -> None:
-    """Build an unsigned source package."""
-    result = _run(tree, "debuild", "-S", "-us", "-uc", "-sa")
+    """Build and sign a source package."""
+    result = _run(tree, "debuild", "-S", "-sa")
     if result.returncode != 0:
         tail = "\n".join((result.stdout + result.stderr).splitlines()[-15:])
         _fail(f"debuild failed in {tree}:\n{tail}")
@@ -297,9 +297,8 @@ def _changes_file(series_dir: Path) -> Path:
 
 
 def _print_commands(changes: Path, target: str) -> None:
-    """Print the signing and upload commands."""
+    """Print the upload command."""
     print("Next steps:")
-    print(f"  debsign {changes}")
     print(f"  dput {target} {changes}")
 
 

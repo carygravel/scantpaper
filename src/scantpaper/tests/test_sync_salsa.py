@@ -191,6 +191,7 @@ def test_sync_copies_and_drafts(tmp_path: Path) -> None:
     assert "scantpaper (4.0.1-1)" in changelog
     assert _git(repo, "rev-list", "--count", "HEAD") == "1"
     assert "debuild -S -sa" in result.stdout
+    assert "  git add -p\n  debcommit -r" in result.stdout
     assert "dput ftp-master" in result.stdout
 
 

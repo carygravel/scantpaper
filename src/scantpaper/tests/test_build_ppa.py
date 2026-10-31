@@ -97,6 +97,7 @@ def _run(
     repo: Path,
     output: Path,
     *extra: str,
+    env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run the PPA tool and return the completed process."""
     return subprocess.run(
@@ -112,6 +113,7 @@ def _run(
         check=False,
         capture_output=True,
         text=True,
+        env=env,
     )
 
 
@@ -133,7 +135,7 @@ def test_noble_dry_run_rewrites_the_tree(tmp_path: Path) -> None:
     assert "debhelper-compat (= 13)" in control
     assert "debhelper-compat (= 14)" not in control
     assert " jbig2," in (tree / "debian" / "tests" / "control").read_text()
-    assert "debsign" in result.stdout
+    assert "debsign" not in result.stdout
     assert "dput gscan2pdf-ppa" in result.stdout
     assert _git(repo, "status", "--porcelain") == ""
 
@@ -194,3 +196,38 @@ def test_missing_orig_tarball_fails(tmp_path: Path) -> None:
     assert result.returncode != 0
     assert "orig tarball" in (result.stdout + result.stderr)
     assert "4.0.2" in (result.stdout + result.stderr)
+
+
+def test_build_signs_and_prints_only_dput(tmp_path: Path) -> None:
+    """Build with signing and leave only the upload to the maintainer."""
+    repo = _init_repo(tmp_path)
+    fakebin = tmp_path / "bin"
+    fakebin.mkdir()
+    log = tmp_path / "debuild.args"
+    script = fakebin / "debuild"
+    script.write_text(
+        "#!/bin/sh\n"
+        'printf "%s\\n" "$*" > "$FAKE_DEBUILD_LOG"\n'
+        "version=$(sed -n 's/^scantpaper (\\([^)]*\\)).*/\\1/p' debian/changelog "
+        "| head -1)\n"
+        ': > "../scantpaper_${version}_source.changes"\n',
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    env = {
+        **os.environ,
+        "PATH": f"{fakebin}{os.pathsep}{os.environ.get('PATH', '')}",
+        "FAKE_DEBUILD_LOG": str(log),
+    }
+
+    result = _run(repo, tmp_path / "out", "--series", "noble", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    arguments = log.read_text(encoding="utf-8")
+    assert "-S -sa" in arguments
+    assert "-us" not in arguments
+    assert "-uc" not in arguments
+    assert "dput gscan2pdf-ppa" in result.stdout
+    assert "debsign" not in result.stdout
+    changes = list((tmp_path / "out" / "noble").glob("*.changes"))
+    assert len(changes) == 1

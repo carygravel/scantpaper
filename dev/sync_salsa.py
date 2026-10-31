@@ -445,6 +445,7 @@ def _print_commands(version: str) -> None:
         "debuild -S -sa",
         f"lintian -iI --pedantic {changes}",
         f"autopkgtest {changes} -- unshare --release sid",
+        "git add -p",
         "debcommit -r",
         (
             "git push --set-upstream git@salsa.debian.org:python-team/packages/"
