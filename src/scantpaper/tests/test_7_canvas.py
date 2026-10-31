@@ -34,6 +34,7 @@ from scantpaper.canvas import (
 from scantpaper.const import POINTS_PER_INCH
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
+from scantpaper.tests.pixel_helpers import argb32_rgb
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator
@@ -3097,10 +3098,10 @@ def _render_canvas_scene(
     return surface
 
 
-def _canvas_pixel(surface: cairo.ImageSurface, x: int, y: int) -> bytes:
-    """Return the raw ARGB32 bytes of one pixel."""
+def _canvas_pixel(surface: cairo.ImageSurface, x: int, y: int) -> tuple[int, int, int]:
+    """Return the red, green and blue of one pixel."""
     offset = y * surface.get_stride() + x * 4
-    return bytes(surface.get_data()[offset : offset + 4])
+    return argb32_rgb(bytes(surface.get_data()), offset)
 
 
 def _canvas_selection_bounds(canvas: Canvas) -> tuple[int, int, int, int]:
@@ -3127,8 +3128,8 @@ def test_canvas_selection_paints_with_rule() -> None:
     ), "pixels outside the canvas selection must be untouched"
 
 
-def _canvas_selection_center_pixel() -> bytes:
-    """Return the raw ARGB32 bytes of a pixel well inside the selection."""
+def _canvas_selection_center_pixel() -> tuple[int, int, int]:
+    """Return the red, green and blue of a pixel well inside the selection."""
     painted = _render_canvas_scene(_rubberband_canvas(selection=True))
     x1, y1, x2, y2 = _canvas_selection_bounds(_rubberband_canvas(selection=False))
     return _canvas_pixel(painted, (x1 + x2) // 2, (y1 + y2) // 2)
@@ -3155,7 +3156,7 @@ def test_canvas_selection_is_themeable() -> None:
     assert overridden_pixel != default_pixel, (
         "a user .rubberband rule must change the selection colour"
     )
-    assert overridden_pixel == bytes((0, 0, 255, 255)), (
+    assert overridden_pixel == (255, 0, 0), (
         "the user rule's solid red must win over the shipped default"
     )
 

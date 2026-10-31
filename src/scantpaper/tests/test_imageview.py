@@ -12,6 +12,7 @@ import pytest
 
 from scantpaper.const import STYLE_CLASS_RUBBERBAND
 from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger, Tool
+from scantpaper.tests.pixel_helpers import argb32_rgb
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -371,8 +372,8 @@ class _SurfaceReader:
 
     GTK4 has no window grab, so tests render the view's draw function into an
     offscreen surface instead. get_pixel() and _find_pixel() only need the
-    pixbuf pixel accessors, which this adapter provides with the ARGB32 byte
-    order swapped to RGB.
+    pixbuf pixel accessors, which this adapter provides as an RGB buffer
+    decoded using the host byte order.
     """
 
     def __init__(self, surface: cairo.ImageSurface) -> None:
@@ -385,7 +386,7 @@ class _SurfaceReader:
         for y in range(self._height):
             for x in range(self._width):
                 offset = y * stride + x * 4
-                blue, green, red = raw[offset : offset + 3]
+                red, green, blue = argb32_rgb(raw, offset)
                 target = (y * self._width + x) * 3
                 rgb[target : target + 3] = bytes((red, green, blue))
         self._rgb = bytes(rgb)
