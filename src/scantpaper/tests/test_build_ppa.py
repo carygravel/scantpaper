@@ -192,4 +192,5 @@ def test_missing_orig_tarball_fails(tmp_path: Path) -> None:
     result = _run(repo, tmp_path / "out", "--series", "noble", "--dry-run")
 
     assert result.returncode != 0
-    assert "export-orig" in result.stdout + result.stderr
+    assert "orig tarball" in (result.stdout + result.stderr)
+    assert "4.0.2" in (result.stdout + result.stderr)

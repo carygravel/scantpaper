@@ -150,11 +150,17 @@ def _orig_tarball(root: Path, upstream: str) -> Path:
     if candidates:
         return candidates[0]
     if shutil.which("gbp") is None:
-        _fail(f"no orig tarball for {upstream} and gbp is not installed")
+        _fail(
+            f"no orig tarball for {upstream}; install gbp or place one next to "
+            "the checkout"
+        )
     result = _run(root, "gbp", "export-orig", "--pristine-tar")
     if result.returncode != 0:
         detail = (result.stderr or result.stdout).strip()
-        _fail(f"gbp export-orig failed: {detail or 'unknown error'}")
+        _fail(
+            f"cannot create the orig tarball for {upstream}: "
+            f"{detail or 'unknown error'}"
+        )
     candidates = sorted(root.parent.glob(f"scantpaper_{upstream}.orig.tar.*"))
     if not candidates:
         _fail(f"gbp export-orig did not create an orig tarball for {upstream}")
