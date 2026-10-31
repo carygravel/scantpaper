@@ -4,13 +4,6 @@
   `post_save_hook` that gscan2pdf 2.x stored as an empty string for false.
   The value is now corrected and logged instead of being reported on every
   start, and the corrected `false` is written back on exit.
-* The Debian package attached to the GitHub release is now built from
-  `packaging/debian/`, which is kept in the repository and rendered from the
-  selected git revision, instead of the workflow writing the packaging files
-  itself. Its version is `<version>-0.<commit-count>.g<short-sha>`, so it
-  sorts above earlier snapshots and below the Debian package for the same
-  release. It is built, linted and tested on Debian unstable before it is
-  published.
 * A scan batch that ends because the document feeder is empty is no longer
   logged as an error with a traceback. An empty feeder is the normal end of a
   batch, so it is now recorded at INFO level; genuine scan errors still log at
@@ -123,6 +116,17 @@
   rebuilds the device session for the next scan; a device still held by the
   operating system is reported as busy instead of leaving the application
   unable to scan.
+* The Debian package attached to the GitHub release is now built from
+  `packaging/debian/`, which is kept in the repository and rendered from the
+  selected git revision, instead of the workflow writing the packaging files
+  itself. Its version is `<version>-0.<commit-count>.g<short-sha>`, so it
+  sorts above earlier snapshots and below the Debian package for the same
+  release. It is built, linted and tested on Debian unstable before it is
+  published.
+* The Debian and Ubuntu packaging steps are scripted: `dev/sync_salsa.py`
+  copies the shared packaging into the salsa checkout and drafts the
+  changelog, and `dev/build_ppa.py` builds the per-series PPA source packages
+  from `packaging/ubuntu/suites.toml`. Signing and uploads remain manual.
 
 
 ## 4.0.1 (2026-10-25)

@@ -1,0 +1,18 @@
+# Per-series PPA build settings.
+#
+# Everything else comes from the synced Debian packaging. The compat values
+# follow each series' debhelper, and a series may drop a test dependency its
+# archive does not carry.
+
+[series.stonking]
+debhelper-compat = 14
+
+[series.resolute]
+debhelper-compat = 13
+
+[series.noble]
+debhelper-compat = 13
+
+[series.jammy]
+debhelper-compat = 13
+drop-test-depends = ["jbig2"]

@@ -35,10 +35,11 @@ Build-Depends-Indep: appstream,
                      sane-utils (>= 1.0.17),
                      xauth,
                      xfonts-base
-Maintainer: Jeffrey Ratcliffe <jffry@posteo.net>
+Maintainer: Debian Python Team <team+python@tracker.debian.org>
+Uploaders: Jeffrey Ratcliffe <jffry@posteo.net>
 Standards-Version: 4.7.4
-Vcs-Git: https://github.com/carygravel/scantpaper.git
-Vcs-Browser: https://github.com/carygravel/scantpaper
+Vcs-Git: https://salsa.debian.org/python-team/packages/scantpaper.git
+Vcs-Browser: https://salsa.debian.org/python-team/packages/scantpaper
 Homepage: https://github.com/carygravel/scantpaper
 
 Package: scantpaper

@@ -79,45 +79,54 @@
    provides the `debhelper` the packaging requires and resolves the
    dependencies without the PPA. To reproduce the artifact locally, follow
    `packaging/debian/README.md`.
-1. Build package for Debian. Update the salsa repo:
+1. Build package for Debian. Update the salsa repo and sync the packaging:
    ```sh
    gbp import-orig --pristine-tar --uscan
-   #tox -e signed_sdist
-   #sudo sbuild-update -udr sid-amd64-sbuild
+   python3 dev/sync_salsa.py
+   # edit debian/changelog if the drafted entry needs wording
    ```
-1. Make appropriate updates to debian/changelog
+   The tool copies `packaging/debian/` into `debian/`, deletes files the
+   previous release had and the new packaging does not, and refuses anything
+   in `debian/` other than the changelog. The previous release must carry its
+   `debian/<version>` tag, which `debcommit -r` creates. The first release
+   after the packaging moved upstream has no earlier `packaging/debian` to
+   compare against: remove everything under `debian/` except the changelog
+   once, then run the sync. The tool prints the build, test, commit and upload
+   commands; run them:
    ```sh
    debuild -S -sa
    # or
    sbuild -sc sid-amd64-sbuild
-   debsign .changes
-   # then
-   lintian -iI --pedantic .changes
-   autopkgtest .changes -- unshare --release sid
+   lintian -iI --pedantic ../scantpaper_<version>_source.changes
+   autopkgtest ../scantpaper_<version>_source.changes -- unshare --release sid
    # check contents with dpkg-deb --contents
    # test dist sudo dpkg -i scantpaper_x.x.x_all.deb
-   dput ftp-master .changes
-   ```
-1. Push changes to salsa:
-   ```sh
-   git add -p
    debcommit -r
    git push --set-upstream git@salsa.debian.org:python-team/packages/scantpaper.git : --tags
+   dput ftp-master ../scantpaper_<version>_source.changes
    ```
-1. Build packages for Ubuntu
-
-   Name the release -0~ppa1<release>, where release (https://wiki.ubuntu.com/Releases) is:
-   - stonking (until 2027-07)
-   - resolute (until 2031-05) - dh13
-   - noble (until 2029-06) - dh13
-   - jammy (until 2027-06) - dh13, remove override_dh_installman, clear debian/scantpaper.manpages
+1. Build packages for Ubuntu. The series and their settings are in
+   [packaging/ubuntu/suites.toml](packaging/ubuntu/suites.toml); each is named
+   `-0~ppa1<series>`, where series is an Ubuntu release from
+   [the releases page](https://wiki.ubuntu.com/Releases). When a release is
+   added or dropped, update that file and the PPA's series list. After the
+   Debian sync is committed:
+   ```sh
+   python3 dev/build_ppa.py --all --verify
+   ```
+   The tool prepares each series from the committed branch, refuses
+   uncommitted packaging changes and prints `debsign`/`dput` for every source
+   package. Sign and upload them:
 
    ```sh
-   debuild -S -sa
-   dput gscan2pdf-ppa .changes
+   debsign build/ppa/<series>/scantpaper_<version>_source.changes
+   dput gscan2pdf-ppa build/ppa/<series>/scantpaper_<version>_source.changes
    ```
 
-   Watch them [build](https://launchpad.net/~jeffreyratcliffe/+archive).
+   Watch them [build](https://launchpad.net/~jeffreyratcliffe/+archive). The
+   series are stonking (until 2027-07), resolute (until 2031-05), noble (until
+   2029-06) and jammy (until 2027-06); `--verify` checks each configured
+   `debhelper-compat` against its archive.
 
    Note: when we drop jammy, we can bump target-version & requires-python and
    drop the tomli conditional (;python_version<'3.11')
