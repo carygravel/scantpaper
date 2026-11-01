@@ -154,6 +154,74 @@ def drag_motion_callback(
     return action
 
 
+class _SplitResizeSharer:
+    """Split a pane resize evenly between its two children.
+
+    GtkPaned re-proportions its divider on resize, so the larger child would
+    take nearly all of any extra space and the other child almost none. In a
+    split view the image and the layer canvas should grow and shrink together.
+    """
+
+    def __init__(self, pane: Gtk.Paned, orientation: Gtk.Orientation) -> None:
+        """Connect the equal-sharing handlers to pane."""
+        self._pane = pane
+        self._orientation = orientation
+        self._last_size = 0
+        self._last_position = 0
+        self._resizing = False
+        pane.connect("notify::max-position", self._on_resize)
+        pane.connect("notify::position", self._on_position)
+
+    def _current_size(self) -> int:
+        if self._orientation == Gtk.Orientation.HORIZONTAL:
+            return cast("int", self._pane.get_width())
+        return cast("int", self._pane.get_height())
+
+    def _limits(self, size: int, start: Gtk.Widget, end: Gtk.Widget) -> tuple[int, int]:
+        handle = cast("int", self._pane.measure(self._orientation, -1).minimum)
+        start_min = cast("int", start.measure(self._orientation, -1).minimum)
+        end_min = cast("int", end.measure(self._orientation, -1).minimum)
+        return handle + start_min, size - handle - end_min
+
+    def _on_position(self, *_args: object) -> None:
+        """Remember a user's divider position, not GtkPaned's resize one."""
+        if not self._resizing:
+            self._last_position = self._pane.get_position()
+
+    def _end_resize(self) -> bool:
+        self._resizing = False
+        return cast("bool", GLib.SOURCE_REMOVE)
+
+    def _on_resize(self, *_args: object) -> None:
+        """Move the divider by half the pane's size change."""
+        size = self._current_size()
+        if size <= 1:
+            return
+        previous, self._last_size = self._last_size, size
+        if previous <= 1:
+            self._last_position = self._pane.get_position()
+            return
+        delta = size - previous
+        if delta == 0:
+            return
+        start = self._pane.get_start_child()
+        end = self._pane.get_end_child()
+        if start is None or end is None:
+            return
+        low, high = self._limits(size, start, end)
+        if high < low:
+            return
+        self._last_position = max(low, min(high, self._last_position + delta // 2))
+        self._resizing = True
+        self._pane.set_position(self._last_position)
+        GLib.idle_add(self._end_resize)
+
+
+def _share_split_resize_evenly(pane: Gtk.Paned, orientation: Gtk.Orientation) -> None:
+    """Let both children of a split pane absorb a resize by the same amount."""
+    _SplitResizeSharer(pane, orientation)
+
+
 def view_html(_action: Gio.SimpleAction, _param: GLib.Variant | None) -> None:
     """Perhaps we should use gtk and mallard for this in the future."""
     # Or possibly https://github.com/ultrabug/mkdocs-static-i18n
@@ -258,6 +326,8 @@ class ApplicationWindow(
         self._vnotebook = self.builder.get_object("vnotebook")
         self._hpanei = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
         self._vpanei = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
+        _share_split_resize_evenly(self._hpanei, Gtk.Orientation.HORIZONTAL)
+        _share_split_resize_evenly(self._vpanei, Gtk.Orientation.VERTICAL)
         self.connect("close-request", self._close_request)
         self.connect("notify::maximized", self._maximized_notify)
 
@@ -645,7 +715,10 @@ class ApplicationWindow(
         The default is a half split, which suits the image/layer panes. For the
         outer pane that stacks the view above the edit bar, ``end_at_minimum``
         instead pins the end child (the bar) to its minimum height so it only
-        takes the space it needs.
+        takes the space it needs. The scanner progress bar below the panes is
+        hidden when scanner detection finishes, which grows the pane and makes
+        GtkPaned re-proportion the divider, so the pin is reapplied whenever
+        the pane's geometry changes.
         """
 
         def measure(widget: Gtk.Widget | None) -> int:
@@ -666,6 +739,15 @@ class ApplicationWindow(
                 size - handle - measure(pane.get_end_child()),
                 size,
             )
+
+        def keep_at_minimum(*_args: object) -> None:
+            """Keep the end child pinned when the pane grows or shrinks."""
+            _low, high, size = bounds()
+            if size > 1 and pane.get_position() != high:
+                pane.set_position(high)
+
+        if end_at_minimum:
+            pane.connect("notify::max-position", keep_at_minimum)
 
         def on_tick(_widget: Gtk.Widget, _clock: Gdk.FrameClock) -> bool:
             low, high, size = bounds()

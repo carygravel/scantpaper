@@ -35,6 +35,18 @@
   Select & Pan selects with the left button and pans with the middle button.
   The middle button no longer pans while Pan or Select is active, and the
   pointer shows a grab hand or crosshair to match the active tool.
+* Focusing a slice while editing the text or annotation layer now zooms so
+  its line is drawn at a consistent, comfortable reading size instead of a
+  fixed fraction of the pane. Short and long words from the same line look
+  alike, and a long word still fits with a margin around it. A **Focus zoom**
+  control beside the navigation buttons adjusts that size in 5% steps from
+  50% to 200% (default 100%); it applies live, **Reset** returns it to 100%,
+  and the chosen level is remembered across restarts for both layers.
+* The control bar below the text or annotation editor now always keeps only
+  its minimum height. At startup the scanner-detection progress bar disappears
+  once detection finishes, and the space it released used to enlarge the edit
+  bar; the view now keeps that space. In a vertical split the image and the
+  layer canvas each take half of it.
 
 
 ## 4.0.2 (2026-10-31)

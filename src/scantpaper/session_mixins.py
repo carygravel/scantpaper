@@ -14,7 +14,10 @@ import gi
 
 from scantpaper.bboxtree import Bboxtree
 from scantpaper.const import (
+    DEFAULT_FOCUS_ZOOM,
     EMPTY,
+    MAX_FOCUS_ZOOM,
+    MIN_FOCUS_ZOOM,
     SPACE,
 )
 from scantpaper.dependencies import DEPS
@@ -544,6 +547,18 @@ class SessionMixins:
         def get_page() -> Page | None:
             return cast("Page | None", getattr(self, "_current_page", None))
 
+        def get_focus_zoom() -> float:
+            value = self.settings.get("focus zoom")
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                return max(MIN_FOCUS_ZOOM, min(MAX_FOCUS_ZOOM, float(value)))
+            return DEFAULT_FOCUS_ZOOM
+
+        def set_focus_zoom(level: float) -> None:
+            level = max(MIN_FOCUS_ZOOM, min(MAX_FOCUS_ZOOM, float(level)))
+            self.settings["focus zoom"] = level
+            for editor in (self._text_editor, self._ann_editor):
+                editor.controls.set_focus_zoom(level)
+
         self._text_editor = LayerEditor(
             page_attr="text_layer",
             view=view,
@@ -557,6 +572,8 @@ class SessionMixins:
             thread=self.slist.thread,
             get_page=get_page,
         )
+        for editor in (self._text_editor, self._ann_editor):
+            editor.set_focus_zoom_handlers(get_focus_zoom, set_focus_zoom)
 
         # Keep canvas aliases so existing mixins (clear_text, layout) still work.
         self.t_canvas = self._text_editor.canvas

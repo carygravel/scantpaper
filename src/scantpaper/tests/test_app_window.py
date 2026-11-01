@@ -12,7 +12,12 @@ from unittest.mock import MagicMock, patch
 import gi
 import pytest
 
-from scantpaper.app_window import ApplicationWindow, drag_motion_callback, view_html
+from scantpaper.app_window import (
+    ApplicationWindow,
+    _share_split_resize_evenly,
+    drag_motion_callback,
+    view_html,
+)
 from scantpaper.config import ConfigDict
 from scantpaper.const import SELECTORDRAGGER_TOOL
 from scantpaper.i18n import _
@@ -1650,6 +1655,157 @@ def test_init_split_pane_end_at_minimum(app_window: ApplicationWindow) -> None:
 
     # high = 600 - 1 - 40 = 559, so the bar keeps its 40px minimum.
     pane.set_position.assert_called_once_with(559)
+
+
+def test_init_split_pane_keeps_the_bar_at_its_minimum_after_a_resize(
+    app_window: ApplicationWindow,
+) -> None:
+    """The bar stays at its minimum when the pane grows after startup.
+
+    The scanner progress bar below the panes is hidden when scanner detection
+    finishes, so the pane grows and GtkPaned re-proportions the divider. That
+    used to leave the edit bar taller than its minimum.
+    """
+    pane = MagicMock()
+    pane.get_height.return_value = 600
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 0)
+    _measure_minimum(pane.get_end_child.return_value, 40)
+    app_window._init_split_pane(
+        pane, Gtk.Orientation.VERTICAL, None, end_at_minimum=True
+    )
+
+    resize_handler = pane.connect.call_args.args[1]
+    callback = pane.add_tick_callback.call_args.args[0]
+    assert callback(pane, MagicMock()) is False
+    pane.set_position.reset_mock()
+
+    pane.get_height.return_value = 700
+    resize_handler(pane, None)
+
+    # high = 700 - 1 - 40 = 659, so the bar keeps its 40px minimum.
+    pane.set_position.assert_called_once_with(659)
+
+
+def test_share_split_resize_evenly_splits_growth() -> None:
+    """Both children grow by the same amount when the pane grows."""
+    pane = MagicMock()
+    pane.get_height.return_value = 600
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 100)
+    _measure_minimum(pane.get_end_child.return_value, 40)
+    pane.get_position.return_value = 559
+    _share_split_resize_evenly(pane, Gtk.Orientation.VERTICAL)
+    handlers = {call.args[0]: call.args[1] for call in pane.connect.call_args_list}
+    on_resize = handlers["notify::max-position"]
+    on_position = handlers["notify::position"]
+
+    on_resize(pane, None)  # record the initial geometry
+    pane.get_height.return_value = 700
+    on_resize(pane, None)
+
+    # 100px of growth is split evenly: 559 + 50.
+    pane.set_position.assert_called_once_with(609)
+    _pump_events()
+
+    # A user drag re-bases the next equal split from the new divider.
+    pane.get_position.return_value = 500
+    on_position(pane, None)
+    pane.get_height.return_value = 750
+    on_resize(pane, None)
+
+    assert pane.set_position.call_args.args[0] == 525
+
+
+def test_share_split_resize_evenly_uses_the_horizontal_extent() -> None:
+    """A horizontal pane splits width changes, not height changes."""
+    pane = MagicMock()
+    pane.get_width.return_value = 400
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 100)
+    _measure_minimum(pane.get_end_child.return_value, 40)
+    pane.get_position.return_value = 321
+    _share_split_resize_evenly(pane, Gtk.Orientation.HORIZONTAL)
+    handlers = {call.args[0]: call.args[1] for call in pane.connect.call_args_list}
+    on_resize = handlers["notify::max-position"]
+
+    on_resize(pane, None)
+    pane.get_width.return_value = 500
+    on_resize(pane, None)
+
+    # 100px of width growth is split evenly: 321 + 50.
+    pane.set_position.assert_called_once_with(371)
+
+
+def test_share_split_resize_evenly_clamps_at_the_minimum() -> None:
+    """Shrinking does not push the divider below the start child's minimum."""
+    pane = MagicMock()
+    pane.get_height.return_value = 600
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 100)
+    _measure_minimum(pane.get_end_child.return_value, 40)
+    pane.get_position.return_value = 101
+    _share_split_resize_evenly(pane, Gtk.Orientation.VERTICAL)
+    on_resize = pane.connect.call_args_list[0].args[1]
+
+    on_resize(pane, None)
+    pane.get_height.return_value = 500
+    on_resize(pane, None)
+
+    # 101 - 50 would be 51; the start child's minimum keeps it at 101.
+    pane.set_position.assert_called_once_with(101)
+
+
+def test_share_split_resize_evenly_ignores_a_detached_child() -> None:
+    """A pane with a child removed during a repack is left alone."""
+    pane = MagicMock()
+    pane.get_height.return_value = 600
+    _measure_minimum(pane, 1)
+    pane.get_start_child.return_value = None
+    _measure_minimum(pane.get_end_child.return_value, 40)
+    _share_split_resize_evenly(pane, Gtk.Orientation.VERTICAL)
+    on_resize = pane.connect.call_args_list[0].args[1]
+
+    on_resize(pane, None)
+    pane.get_height.return_value = 700
+    on_resize(pane, None)
+
+    pane.set_position.assert_not_called()
+
+
+def test_share_split_resize_evenly_ignores_stale_geometry() -> None:
+    """Unallocated panes, unchanged sizes and GTK's own notifications are inert."""
+    pane = MagicMock()
+    pane.get_height.return_value = 0
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 100)
+    _measure_minimum(pane.get_end_child.return_value, 40)
+    pane.get_position.return_value = 559
+    _share_split_resize_evenly(pane, Gtk.Orientation.VERTICAL)
+    handlers = {call.args[0]: call.args[1] for call in pane.connect.call_args_list}
+    on_resize = handlers["notify::max-position"]
+    on_position = handlers["notify::position"]
+
+    on_resize(pane, None)  # not allocated yet
+    pane.get_height.return_value = 600
+    on_resize(pane, None)  # records the initial geometry
+    on_resize(pane, None)  # unchanged size
+    pane.set_position.assert_not_called()
+
+    pane.get_height.return_value = 700
+    on_resize(pane, None)
+    pane.set_position.reset_mock()
+
+    # GTK re-proportions the divider before the resize notification; that
+    # value must not become the baseline for the next equal split.
+    pane.get_position.return_value = 900
+    on_position(pane, None)
+    _pump_events()
+    pane.get_height.return_value = 800
+    on_resize(pane, None)
+
+    # The baseline stayed at 609, so 100px of growth adds 50.
+    pane.set_position.assert_called_once_with(659)
 
 
 def test_init_split_pane_waits_for_allocation(app_window: ApplicationWindow) -> None:

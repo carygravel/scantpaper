@@ -12,11 +12,20 @@ import pytest
 
 from scantpaper.const import (
     DRAGGER_TOOL,
+    FOCUS_MARGIN,
+    FOCUS_TEXT_HEIGHT,
     SELECTOR_TOOL,
     SELECTORDRAGGER_TOOL,
     STYLE_CLASS_RUBBERBAND,
 )
-from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger, Tool
+from scantpaper.imageview import (
+    MIN_ZOOM,
+    Dragger,
+    ImageView,
+    Selector,
+    SelectorDragger,
+    Tool,
+)
 from scantpaper.tests.pixel_helpers import argb32_rgb
 
 if TYPE_CHECKING:
@@ -924,6 +933,106 @@ def test_imageview_zoom_to_selection(rose_png: str) -> None:
     selection.x, selection.y, selection.width, selection.height = 5, 5, 5, 5
     view.set_selection(selection)
     view.zoom_to_selection(1.1)
+
+
+def _focus_rect(x: int, y: int, width: int, height: int) -> Gdk.Rectangle:
+    """Build a rectangle for focus-zoom tests."""
+    rect = Gdk.Rectangle()
+    rect.x, rect.y, rect.width, rect.height = x, y, width, height
+    return rect
+
+
+def test_focus_on_box_uses_text_height_not_box_aspect() -> None:
+    """Short and long boxes with the same line text height zoom alike."""
+    view = ImageView()
+    _mock_allocation(view, 800, 600)
+    short = _focus_rect(100, 100, 20, 20)
+    long = _focus_rect(100, 100, 200, 20)
+
+    view.focus_on_box(short, 50, 1.0)
+    short_zoom = view.get_zoom()
+    view.focus_on_box(long, 50, 1.0)
+    long_zoom = view.get_zoom()
+
+    expected = FOCUS_TEXT_HEIGHT * view.get_scale_factor() / 50
+    assert short_zoom == pytest.approx(expected)
+    assert long_zoom == pytest.approx(expected)
+
+
+def test_focus_on_box_level_multiplies_the_target() -> None:
+    """The user level scales the target text height."""
+    view = ImageView()
+    _mock_allocation(view, 800, 600)
+    box = _focus_rect(100, 100, 40, 20)
+
+    view.focus_on_box(box, 50, 0.5)
+
+    expected = FOCUS_TEXT_HEIGHT * 0.5 * view.get_scale_factor() / 50
+    assert view.get_zoom() == pytest.approx(expected)
+
+
+def test_focus_on_box_fits_a_long_box_with_a_margin() -> None:
+    """A box too long for the target is shown fully, with a margin."""
+    view = ImageView()
+    _mock_allocation(view, 300, 200)
+    box = _focus_rect(10, 10, 280, 20)
+
+    view.focus_on_box(box, 50, 1.0)
+
+    fit = min(300 / box.width, 200 / box.height) * view.get_scale_factor()
+    assert view.get_zoom() == pytest.approx(fit * (1 - FOCUS_MARGIN))
+    assert view.get_zoom() < FOCUS_TEXT_HEIGHT * view.get_scale_factor() / 50
+
+    x1, y1 = view.to_widget_coords(box.x, box.y)
+    x2, y2 = view.to_widget_coords(box.x + box.width, box.y + box.height)
+    assert 0 <= x1 < x2 <= 300
+    assert 0 <= y1 < y2 <= 200
+
+
+def test_focus_on_box_clamps_and_disables_zoom_to_fit() -> None:
+    """Focus zoom honours the limits and leaves zoom-to-fit off."""
+    view = ImageView()
+    _mock_allocation(view, 800, 600)
+    box = _focus_rect(100, 100, 40, 20)
+    view.setzoom_is_fit(zoom_to_fit=True)
+    view.setzoom_is_fit(zoom_to_fit=False, limit=5.0)
+
+    view.focus_on_box(box, 0.001, 1.0)
+    assert view.get_zoom() == pytest.approx(5.0 * (1 - FOCUS_MARGIN))
+    assert not view.getzoom_is_fit()
+
+    view.focus_on_box(box, 1e9, 1.0)
+    assert view.get_zoom() == pytest.approx(MIN_ZOOM)
+    assert not view.getzoom_is_fit()
+
+
+def test_focus_on_box_without_a_box_or_allocation_is_inert() -> None:
+    """Focus zoom does nothing without a box, text height or allocation."""
+    view = ImageView()
+    view.focus_on_box(None, 50, 1.0)
+
+    _mock_allocation(view, 800, 600)
+    box = _focus_rect(100, 100, 40, 20)
+    view._set_zoom(2.0)
+    view.focus_on_box(box, 0, 1.0)
+    assert view.get_zoom() == pytest.approx(2.0)
+
+    _mock_allocation(view, 0, 0)
+    view.focus_on_box(box, 50, 1.0)
+    assert view.get_zoom() == pytest.approx(2.0)
+
+
+def test_focus_on_box_with_a_degenerate_box_is_inert() -> None:
+    """A 0x0 slice (seen in some hOCR) must not divide by zero."""
+    view = ImageView()
+    _mock_allocation(view, 800, 600)
+    view._set_zoom(2.0)
+
+    view.focus_on_box(_focus_rect(100, 100, 0, 20), 50, 1.0)
+    assert view.get_zoom() == pytest.approx(2.0)
+
+    view.focus_on_box(_focus_rect(100, 100, 20, 0), 50, 1.0)
+    assert view.get_zoom() == pytest.approx(2.0)
 
 
 def test_selector_drag_edges(rose_png: str, mock_view: ImageView) -> None:

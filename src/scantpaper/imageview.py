@@ -10,6 +10,8 @@ from typing_extensions import override
 
 from scantpaper.const import (
     DRAGGER_TOOL,
+    FOCUS_MARGIN,
+    FOCUS_TEXT_HEIGHT,
     SELECTOR_TOOL,
     SELECTORDRAGGER_TOOL,
     STYLE_CLASS_BACKGROUND,
@@ -946,26 +948,62 @@ class ImageView(Gtk.DrawingArea):
             return
         if additional_factor is None:
             additional_factor = 1
+        fit_zoom = self._fit_zoom(box)
+        if fit_zoom is None:
+            return
+        ratio = self.get_resolution_ratio()
+        self._set_zoom_with_center(
+            fit_zoom * additional_factor,
+            (box.x + box.width / 2) / ratio,
+            box.y + box.height / 2,
+        )
+
+    def _fit_zoom(self, box: Gdk.Rectangle) -> float | None:
+        """Return the zoom at which box fills the allocation, or None.
+
+        None means the view cannot fit the box right now: the widget has no
+        usable allocation yet, or the box is degenerate. The result includes
+        the scale factor, so it can be used directly as a zoom value.
+        """
         allocation = self.get_allocation()
         if allocation.width <= 0 or allocation.height <= 0:
             # GTK4 gives an unallocated widget a 0x0 allocation (GTK3 used
             # 1x1). Zooming to fit now would divide by zero; the
             # do_size_allocate override re-applies it on the first
             # allocation.
-            return
+            return None
+        if box.width <= 0 or box.height <= 0:
+            # A degenerate slice (some hOCR words carry a 0x0 box) cannot be
+            # fitted; leave the view as it is.
+            return None
         ratio = self.get_resolution_ratio()
         limit = self.zoom_to_fit_limit
         sc_factor_w = min(limit, allocation.width / box.width) * ratio
         sc_factor_h = min(limit, allocation.height / box.height)
-        self._set_zoom_with_center(
-            min(sc_factor_w, sc_factor_h) * additional_factor * self.get_scale_factor(),
-            (box.x + box.width / 2) / ratio,
-            box.y + box.height / 2,
-        )
+        return cast("float", min(sc_factor_w, sc_factor_h) * self.get_scale_factor())
 
     def zoom_to_selection(self, context_factor: float) -> None:
         """Zoom to fit current selection, with an optional factor for a border."""
         self.zoom_to_box(self.get_selection(), context_factor)
+
+    def focus_on_box(
+        self, box: Gdk.Rectangle | None, text_height: float, level: float
+    ) -> None:
+        """Zoom so box's text is legible, but keep the whole box visible."""
+        if box is None or text_height <= 0:
+            return
+        fit_zoom = self._fit_zoom(box)
+        if fit_zoom is None:
+            return
+        target_zoom = FOCUS_TEXT_HEIGHT * level * self.get_scale_factor() / text_height
+        zoom = min(target_zoom, fit_zoom * (1 - FOCUS_MARGIN), self.zoom_to_fit_limit)
+        ratio = self.get_resolution_ratio()
+        self._set_zoom_with_center(
+            max(MIN_ZOOM, min(MAX_ZOOM, zoom)),
+            (box.x + box.width / 2) / ratio,
+            box.y + box.height / 2,
+        )
+        self.setzoom_is_fit(zoom_to_fit=False)
 
     def getzoom_is_fit(self) -> bool:
         """Return value of zoom_to_fit property."""

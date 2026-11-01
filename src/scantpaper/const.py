@@ -46,7 +46,15 @@ HALF = 0.5
 # wrapped in _(), because those locales do localise them.
 PERCENT = "%"
 SPACE = " "
-ZOOM_CONTEXT_FACTOR = 0.5
+# The focused slice is rendered at this logical em height when the focus level
+# is 100%. The level scales it, and FOCUS_MARGIN keeps a border around the
+# slice when the fit bound applies.
+FOCUS_TEXT_HEIGHT = 64
+FOCUS_MARGIN = 0.1
+DEFAULT_FOCUS_ZOOM = 1.0
+MIN_FOCUS_ZOOM = 0.5
+MAX_FOCUS_ZOOM = 2.0
+FOCUS_ZOOM_STEP = 0.05
 ANNOTATION_COLOR = "cccf00"
 # GTK4 removed the Gtk.STYLE_CLASS_* constants; the CSS class names are the
 # same strings in the default theme.

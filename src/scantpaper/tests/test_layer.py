@@ -7,9 +7,14 @@ from typing import TYPE_CHECKING, Any, cast
 
 from scantpaper.basethread import Response, ResponseType
 from scantpaper.bboxtree import Bboxtree
-from scantpaper.canvas import Bbox, Canvas
+from scantpaper.canvas import Bbox, Canvas, Rectangle
 from scantpaper.const import EMPTY, POINTS_PER_INCH
-from scantpaper.layer import LayerControls, LayerEditor, guess_textangle
+from scantpaper.layer import (
+    LayerControls,
+    LayerEditor,
+    focus_text_height,
+    guess_textangle,
+)
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 
@@ -207,17 +212,175 @@ def test_edit_sets_focus(mocker: pytest.MockerFixture) -> None:
     editor, _page, _thread, view = make_editor(mocker)
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
-    bbox = Bbox(text="word", bbox="rect", type="word")
+    line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), x_size=31)
+    bbox = Bbox(
+        text="word",
+        bbox=_rect(10, 10, 40, 20),
+        type="word",
+        parent=line,
+    )
 
     editor.edit(bbox)
 
     assert editor._current_bbox is bbox
     editor.controls.textbuffer.set_text.assert_called_with("word")
     editor.controls.show.assert_called()
-    view.set_selection.assert_called_with("rect")
+    view.set_selection.assert_called_with(bbox.bbox)
     view.setzoom_is_fit.assert_called_with(zoom_to_fit=False)
-    view.zoom_to_selection.assert_called()
+    view.focus_on_box.assert_called_once_with(bbox.bbox, 31, 1.0)
+    view.zoom_to_selection.assert_not_called()
     editor.canvas.set_index_by_bbox.assert_called_with(bbox)
+
+
+def test_navigation_uses_the_focus_zoom(mocker: pytest.MockerFixture) -> None:
+    """Confidence navigation focuses the next slice with the focus zoom."""
+    editor, _page, _thread, view = make_editor(mocker, features=("nav",))
+    editor.canvas = mocker.Mock()
+    line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), x_size=31)
+    bbox = Bbox(
+        text="word",
+        bbox=_rect(10, 10, 40, 20),
+        type="word",
+        parent=line,
+    )
+    editor.canvas.get_next_bbox.return_value = bbox
+
+    editor.controls.emit("go-to-next")
+
+    view.focus_on_box.assert_called_once_with(bbox.bbox, 31, 1.0)
+
+
+def _rect(x: int, y: int, width: int, height: int) -> Rectangle:
+    """Build a rectangle for text-height tests."""
+    return Rectangle(x=x, y=y, width=width, height=height)
+
+
+def test_editors_expose_the_focus_zoom_control(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Both the text and annotation editors offer the focus-level control."""
+    for page_attr in ("text_layer", "annotations"):
+        editor, _page, _thread, _view = make_editor(mocker, page_attr=page_attr)
+        assert editor.controls.focus_zoom_button is not None
+
+
+def test_editor_honours_the_shared_focus_zoom(mocker: pytest.MockerFixture) -> None:
+    """Wiring the shared accessors seeds the bar and forwards user changes."""
+    editor, _page, _thread, _view = make_editor(mocker)
+    received: list[float] = []
+
+    editor.set_focus_zoom_handlers(lambda: 1.25, received.append)
+
+    assert editor.controls.get_focus_zoom() == 1.25, "the bar shows the stored level"
+    assert editor._get_focus_zoom() == 1.25, "the editor reads the stored level"
+
+    editor.controls.focus_zoom_scale.set_value(60)
+
+    assert received == [0.6], "a user change reaches the shared setter"
+
+
+def test_focus_zoom_change_reapplies_to_the_current_slice(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Changing the level re-zooms without repeating the focus work."""
+    editor, _page, _thread, view = make_editor(mocker)
+    editor.canvas = mocker.Mock()
+    line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), x_size=31)
+    bbox = Bbox(
+        text="word",
+        bbox=_rect(10, 10, 40, 20),
+        type="word",
+        parent=line,
+    )
+    editor.edit(bbox)
+    view.focus_on_box.reset_mock()
+    editor.canvas.set_index_by_bbox.reset_mock()
+
+    editor.controls.focus_zoom_scale.set_value(50)
+
+    view.focus_on_box.assert_called_once_with(bbox.bbox, 31, 0.5)
+    editor.canvas.set_index_by_bbox.assert_not_called()
+
+
+def test_focus_zoom_change_without_a_slice_is_inert(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """With no focused slice a level change does not zoom the view."""
+    editor, _page, _thread, view = make_editor(mocker)
+    view.focus_on_box.reset_mock()
+
+    editor.controls.focus_zoom_scale.set_value(50)
+
+    view.focus_on_box.assert_not_called()
+
+
+def test_focus_text_height_prefers_the_line_font_size() -> None:
+    """The containing line's font size wins over its box height."""
+    line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), x_size=31)
+    word = Bbox(type="word", bbox=_rect(10, 10, 20, 20), parent=line)
+
+    assert focus_text_height(word) == 31
+
+
+def test_focus_text_height_uses_the_line_box_across_quarter_turns() -> None:
+    """Quarter turns use the perpendicular extent of the line box."""
+    for angle, expected in ((0, 40), (180, 40), (90, 200), (270, 200)):
+        line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), textangle=angle)
+        word = Bbox(type="word", bbox=_rect(10, 10, 20, 20), parent=line)
+
+        assert focus_text_height(word) == expected
+
+
+def test_focus_text_height_falls_back_to_the_slice_without_a_line() -> None:
+    """A slice with no line ancestor uses its own font size, then height."""
+    with_font = Bbox(type="word", bbox=_rect(0, 0, 40, 30), x_size=22)
+    without_font = Bbox(type="word", bbox=_rect(0, 0, 40, 30))
+
+    assert focus_text_height(with_font) == 22
+    assert focus_text_height(without_font) == 30
+
+
+def test_focus_text_height_ignores_a_non_positive_line_font_size() -> None:
+    """A zero font size on the line falls back to the line box."""
+    line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), x_size=0)
+    word = Bbox(type="word", bbox=_rect(10, 10, 20, 20), parent=line)
+
+    assert focus_text_height(word) == 40
+
+
+def test_focus_text_height_uses_the_canvas_accumulated_angle() -> None:
+    """A box attached to a canvas uses the canvas's inherited angle."""
+    canvas = Canvas()
+    line = Bbox(
+        type="line",
+        bbox=_rect(0, 0, 200, 40),
+        textangle=90,
+        canvas=canvas,
+    )
+    word = Bbox(
+        type="word",
+        bbox=_rect(10, 10, 20, 20),
+        parent=line,
+        canvas=canvas,
+    )
+
+    assert focus_text_height(word) == 200
+
+
+def test_focus_text_height_uses_the_smaller_extent_for_other_angles() -> None:
+    """A non-quarter turn falls back to the smaller line dimension."""
+    line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), textangle=45)
+    word = Bbox(type="word", bbox=_rect(10, 10, 20, 20), parent=line)
+
+    assert focus_text_height(word) == 40
+
+
+def test_focus_text_height_falls_back_past_a_degenerate_line() -> None:
+    """A zero-sized line box falls through to the slice's own height."""
+    line = Bbox(type="line", bbox=_rect(0, 0, 0, 0))
+    word = Bbox(type="word", bbox=_rect(0, 0, 40, 30), parent=line)
+
+    assert focus_text_height(word) == 30
 
 
 def test_ok_and_delete_with_nothing_focused_are_inert(
@@ -430,6 +593,7 @@ def test_ok_commits_and_advances(mocker: pytest.MockerFixture) -> None:
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is successor
     editor.controls.textbuffer.set_text.assert_called_with("next")
+    view.focus_on_box.assert_called_once()
 
 
 def test_copy_duplicates_box(mocker: pytest.MockerFixture) -> None:
@@ -454,11 +618,12 @@ def test_copy_duplicates_box(mocker: pytest.MockerFixture) -> None:
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is new_bbox
+    view.focus_on_box.assert_called_once()
 
 
 def test_delete_removes_box(mocker: pytest.MockerFixture) -> None:
     """delete() removes the current box and commits."""
-    editor, page, thread, _view = make_editor(mocker)
+    editor, page, thread, view = make_editor(mocker)
     editor.canvas = mocker.Mock()
     editor.controls = mocker.Mock()
     current = mocker.Mock()
@@ -472,6 +637,7 @@ def test_delete_removes_box(mocker: pytest.MockerFixture) -> None:
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     editor.controls.textbuffer.set_text.assert_called()
+    view.focus_on_box.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
@@ -502,6 +668,7 @@ def test_add_existing_layer(mocker: pytest.MockerFixture) -> None:
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is new_bbox
+    view.focus_on_box.assert_called_once()
 
 
 def test_add_default_text_when_empty(mocker: pytest.MockerFixture) -> None:

@@ -8,9 +8,16 @@ from typing import TYPE_CHECKING, cast
 
 import gi
 
-from scantpaper.canvas import Canvas
+from scantpaper.canvas import Bbox, Canvas
 from scantpaper.comboboxtext import ComboBoxText
-from scantpaper.const import EMPTY, ZOOM_CONTEXT_FACTOR
+from scantpaper.const import (
+    DEFAULT_FOCUS_ZOOM,
+    DIALOG_ROW_SPACING,
+    EMPTY,
+    FOCUS_ZOOM_STEP,
+    MAX_FOCUS_ZOOM,
+    MIN_FOCUS_ZOOM,
+)
 from scantpaper.i18n import _
 
 if TYPE_CHECKING:
@@ -19,7 +26,6 @@ if TYPE_CHECKING:
 
     from scantpaper.basethread import Response
     from scantpaper.bboxtree import BBox
-    from scantpaper.canvas import Bbox
     from scantpaper.docthread import DocThread
     from scantpaper.imageview import ImageView
     from scantpaper.page import Page
@@ -66,6 +72,62 @@ def _axis_fit(dimension: int, extent: int) -> float:
     return math.inf if extent <= 0 else dimension / extent
 
 
+def _nearest_line(bbox: Bbox) -> Bbox | None:
+    """Return the nearest line ancestor of bbox, or None."""
+    item: Bbox | None = bbox
+    while item is not None:
+        if item.type == "line":
+            return item
+        parent = item.parent
+        item = parent if isinstance(parent, Bbox) else None
+    return None
+
+
+def _accumulated_textangle(bbox: Bbox) -> int:
+    """Return bbox's text angle including its ancestors."""
+    canvas = bbox.canvas
+    if isinstance(canvas, Canvas):
+        return canvas.accumulated_textangle(bbox)
+    total = 0
+    item: Bbox | None = bbox
+    while item is not None:
+        total += item.textangle
+        parent = item.parent
+        item = parent if isinstance(parent, Bbox) else None
+    return total % 360
+
+
+def _extent_across_rotation(bbox: Bbox) -> float:
+    """Return the box extent perpendicular to its text direction."""
+    rect = bbox.bbox
+    if not isinstance(rect, Gdk.Rectangle):
+        return 0.0
+    angle = _accumulated_textangle(bbox) % 360
+    if angle in (90, 270):
+        return float(rect.width)
+    if angle in (0, 180):
+        return float(rect.height)
+    return float(min(rect.width, rect.height))
+
+
+def focus_text_height(bbox: Bbox) -> float:
+    """Return the text height, in image pixels, to use for focus zoom.
+
+    The containing line is preferred, because its font size or box is shared
+    by every word on the line. A slice with no line uses its own metrics.
+    """
+    line = _nearest_line(bbox)
+    candidates = [line, bbox] if line is not None else [bbox]
+    for candidate in candidates:
+        x_size = candidate.x_size
+        if isinstance(x_size, (int, float)) and x_size > 0:
+            return float(x_size)
+        extent = _extent_across_rotation(candidate)
+        if extent > 0:
+            return extent
+    return 0.0
+
+
 def guess_textangle(
     width: int,
     height: int,
@@ -110,6 +172,7 @@ class LayerControls(Gtk.Box):
         "delete-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
         "rotate-clockwise-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
         "rotate-anticlockwise-clicked": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "focus-zoom-changed": (GObject.SignalFlags.RUN_FIRST, None, (float,)),
     }
 
     def __init__(
@@ -119,12 +182,17 @@ class LayerControls(Gtk.Box):
         nav: bool = False,
         copy: bool = False,
         rotate: bool = False,
+        focus_zoom: bool = False,
         **kwargs: object,
     ) -> None:
         """Initialise the control bar with optional sort, navigation, copy, rotation."""
         super().__init__(*args, **kwargs)
         self._sort_enabled = sort
         self._rotate_enabled = rotate
+        self._setting_focus_zoom = False
+        self.focus_zoom_button: Gtk.MenuButton | None = None
+        self.focus_zoom_scale: Gtk.Scale | None = None
+        self.focus_zoom_reset: Gtk.Button | None = None
         textview = Gtk.TextView()
         textview.set_tooltip_text(_("Text layer"))
         # Let Tab move focus out of the field instead of inserting a tab, so
@@ -164,6 +232,8 @@ class LayerControls(Gtk.Box):
                     "go-last", _("Go to most confident text"), "go-to-last"
                 ),
             )
+        if focus_zoom:
+            self._add_focus_zoom_control()
         self.add_button = self._make_icon_button(
             "list-add", _("Add text"), "add-clicked"
         )
@@ -234,6 +304,82 @@ class LayerControls(Gtk.Box):
             button.connect("clicked", lambda _: self.emit(signal))
         return button
 
+    def _add_focus_zoom_control(self) -> None:
+        """Build the focus-level button and its slider popover."""
+        button = Gtk.MenuButton()
+        button.set_icon_name("zoom-fit-best")
+        button.set_hexpand(False)
+
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=DIALOG_ROW_SPACING,
+        )
+        label = Gtk.Label(label=_("Focus zoom"))
+        label.set_halign(Gtk.Align.START)
+        box.append(label)
+
+        scale = Gtk.Scale.new_with_range(
+            Gtk.Orientation.HORIZONTAL,
+            MIN_FOCUS_ZOOM * 100,
+            MAX_FOCUS_ZOOM * 100,
+            FOCUS_ZOOM_STEP * 100,
+        )
+        scale.set_digits(0)
+        scale.set_draw_value(True)
+        scale.set_value_pos(Gtk.PositionType.RIGHT)
+        scale.set_size_request(180, -1)
+        scale.set_value(DEFAULT_FOCUS_ZOOM * 100)
+        scale.connect("value-changed", self._on_focus_zoom_changed)
+        box.append(scale)
+
+        reset = Gtk.Button(label=_("Reset"))
+        reset.connect("clicked", lambda _: scale.set_value(DEFAULT_FOCUS_ZOOM * 100))
+        box.append(reset)
+
+        popover = Gtk.Popover()
+        popover.set_child(box)
+        button.set_popover(popover)
+        self.focus_zoom_button = button
+        self.focus_zoom_scale = scale
+        self.focus_zoom_reset = reset
+        self._update_focus_zoom_tooltip(DEFAULT_FOCUS_ZOOM)
+        self.append(button)
+
+    def _on_focus_zoom_changed(self, scale: Gtk.Scale) -> None:
+        """Emit a user change to the focus level, not a programmatic one."""
+        if self._setting_focus_zoom:
+            return
+        level = scale.get_value() / 100
+        self._update_focus_zoom_tooltip(level)
+        self.emit("focus-zoom-changed", level)
+
+    def _update_focus_zoom_tooltip(self, level: float) -> None:
+        """Show the current level in the button's tooltip."""
+        if self.focus_zoom_button is None:
+            return
+        percent = round(level * 100)
+        self.focus_zoom_button.set_tooltip_text(
+            _("Focus zoom: %(percent)d%%") % {"percent": percent}
+        )
+
+    def set_focus_zoom(self, level: float) -> None:
+        """Set the focus level without emitting a user change."""
+        if self.focus_zoom_scale is None:
+            return
+        level = max(MIN_FOCUS_ZOOM, min(MAX_FOCUS_ZOOM, level))
+        self._setting_focus_zoom = True
+        try:
+            self.focus_zoom_scale.set_value(level * 100)
+        finally:
+            self._setting_focus_zoom = False
+        self._update_focus_zoom_tooltip(level)
+
+    def get_focus_zoom(self) -> float:
+        """Return the focus level currently shown by the control."""
+        if self.focus_zoom_scale is None:
+            return DEFAULT_FOCUS_ZOOM
+        return cast("float", self.focus_zoom_scale.get_value() / 100)
+
     def set_add_enabled(self, *, enabled: bool) -> None:
         """Enable or disable the Add control and set its explanatory tooltip.
 
@@ -293,6 +439,9 @@ class LayerEditor:
         self._view = view
         self._thread = thread
         self._get_page = get_page
+        self._focus_zoom = DEFAULT_FOCUS_ZOOM
+        self._get_focus_zoom: Callable[[], float] = self._own_focus_zoom
+        self._set_focus_zoom: Callable[[float], object] = self._store_own_focus_zoom
         self._sort_enabled = "sort" in features
         self._nav_enabled = "nav" in features
         self._copy_enabled = "copy" in features
@@ -305,12 +454,32 @@ class LayerEditor:
             nav=self._nav_enabled,
             copy=self._copy_enabled,
             rotate=self._rotate_enabled,
+            focus_zoom=True,
         )
         self._connect_controls()
         self.canvas.connect("selection-drawn", self._on_selection_drawn)
         self._view.connect("notify::selection", lambda *_: self._update_add_state())
         self._update_add_state()
         self._update_rotate_state()
+
+    def _own_focus_zoom(self) -> float:
+        """Return this editor's level when no window accessor is wired."""
+        return self._focus_zoom
+
+    def _store_own_focus_zoom(self, level: float) -> None:
+        """Store a level locally and in this editor's own control."""
+        self._focus_zoom = max(MIN_FOCUS_ZOOM, min(MAX_FOCUS_ZOOM, float(level)))
+        self.controls.set_focus_zoom(self._focus_zoom)
+
+    def set_focus_zoom_handlers(
+        self,
+        get_focus_zoom: Callable[[], float],
+        set_focus_zoom: Callable[[float], object],
+    ) -> None:
+        """Share the window's focus-level accessors and seed the control."""
+        self._get_focus_zoom = get_focus_zoom
+        self._set_focus_zoom = set_focus_zoom
+        self.controls.set_focus_zoom(get_focus_zoom())
 
     def _parse(
         self, json_string: str, finished_callback: Callable[..., object] | None = None
@@ -345,6 +514,7 @@ class LayerEditor:
         controls.connect("ok-clicked", self.ok)
         controls.connect("add-clicked", self.add)
         controls.connect("delete-clicked", self.delete)
+        controls.connect("focus-zoom-changed", self._on_focus_zoom_changed)
         if self._copy_enabled:
             controls.connect("copy-clicked", self.copy)
         if self._rotate_enabled:
@@ -484,9 +654,22 @@ class LayerEditor:
         self.controls.show()
         self._view.set_selection(bbox.bbox)
         self._view.setzoom_is_fit(zoom_to_fit=False)
-        self._view.zoom_to_selection(ZOOM_CONTEXT_FACTOR)
+        self._apply_focus_zoom(bbox)
         self.canvas.set_index_by_bbox(bbox)
         self._update_rotate_state()
+
+    def _apply_focus_zoom(self, bbox: Bbox) -> None:
+        """Zoom the view so the focused slice's text is legible."""
+        self._view.focus_on_box(
+            bbox.bbox, focus_text_height(bbox), self._get_focus_zoom()
+        )
+
+    def _on_focus_zoom_changed(self, _controls: LayerControls, level: float) -> None:
+        """Store a user level change and re-zoom the focused slice."""
+        self._set_focus_zoom(level)
+        bbox = self._current_bbox
+        if bbox is not None:
+            self._apply_focus_zoom(bbox)
 
     def clear(self) -> None:
         """Forget the focused slice and empty the control and canvas.

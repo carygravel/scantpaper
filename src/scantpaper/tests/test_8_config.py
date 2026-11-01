@@ -28,6 +28,7 @@ from scantpaper.config import (
     update_config_from_imported_metadata,
     write_config,
 )
+from scantpaper.const import DEFAULT_FOCUS_ZOOM
 from scantpaper.helpers import slurp
 
 if TYPE_CHECKING:
@@ -871,6 +872,31 @@ def test_editmode_defaults_to_text_and_round_trips() -> None:
 
         restored = read_config(str(rc))
         assert restored["editmode"] == "annotation", "and read back on the next launch"
+
+
+def test_focus_zoom_defaults_to_full_size_and_round_trips() -> None:
+    """The focus level defaults to 100% and persists on write."""
+    assert DEFAULTS["focus zoom"] == DEFAULT_FOCUS_ZOOM, "defaults to 100%"
+    assert DEFAULT_FOCUS_ZOOM == 1.0
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text("{}", encoding="utf-8")
+
+        output = read_config(str(rc))
+        assert "focus zoom" not in output, "the raw config does not invent the key"
+        add_defaults(output)
+        assert output["focus zoom"] == DEFAULT_FOCUS_ZOOM, (
+            "add_defaults fills the default"
+        )
+
+        output["focus zoom"] = 1.25
+        write_config(str(rc), cast("dict[str, object]", cast("object", output)))
+        persisted = json.loads(slurp(rc))
+        assert persisted["focus zoom"] == 1.25, "the level is written back"
+
+        restored = read_config(str(rc))
+        assert restored["focus zoom"] == 1.25, "and read back on the next launch"
 
 
 def test_unrecognised_editmode_resets_to_default() -> None:

@@ -13,7 +13,12 @@ import pytest
 
 from scantpaper.basethread import Request, Response, ResponseType
 from scantpaper.canvas import Canvas
-from scantpaper.const import DRAGGER_TOOL, EMPTY, SELECTORDRAGGER_TOOL
+from scantpaper.const import (
+    DEFAULT_FOCUS_ZOOM,
+    DRAGGER_TOOL,
+    EMPTY,
+    SELECTORDRAGGER_TOOL,
+)
 from scantpaper.document import Document
 from scantpaper.file_menu_mixins import FileMenuMixins
 from scantpaper.imageview import Dragger, ImageView
@@ -1330,6 +1335,14 @@ def test_add_text_view_layers(
             self.canvas = mocker.Mock()
             self.controls = mocker.Mock()
 
+        def set_focus_zoom_handlers(
+            self,
+            get_focus_zoom: object,
+            set_focus_zoom: object,
+        ) -> None:
+            self.get_focus_zoom = get_focus_zoom
+            self.set_focus_zoom = set_focus_zoom
+
     mocker.patch("scantpaper.session_mixins.LayerEditor", FakeEditor)
     mock_session_window.view = mocker.Mock()
     mock_session_window.slist.thread = mocker.Mock()
@@ -1352,6 +1365,83 @@ def test_add_text_view_layers(
         assert kwargs["thread"] is mock_session_window.slist.thread
 
 
+def test_add_text_view_layers_shares_the_focus_zoom(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Both editors share one clamped, persisted focus level."""
+    editors: list[object] = []
+
+    class FakeEditor:
+        def __init__(self, **_kwargs: object) -> None:
+            editors.append(self)
+            self.canvas = mocker.Mock()
+            self.controls = mocker.Mock()
+
+        def set_focus_zoom_handlers(
+            self,
+            get_focus_zoom: object,
+            set_focus_zoom: object,
+        ) -> None:
+            self.get_focus_zoom = get_focus_zoom
+            self.set_focus_zoom = set_focus_zoom
+
+    mocker.patch("scantpaper.session_mixins.LayerEditor", FakeEditor)
+    mock_session_window.view = mocker.Mock()
+    mock_session_window.slist.thread = mocker.Mock()
+    mock_session_window.builder.get_object.return_value = mocker.Mock()
+    mock_session_window.settings["focus zoom"] = 1.25
+
+    mock_session_window._add_text_view_layers()
+
+    assert len(editors) == 2
+    text_editor, ann_editor = editors
+    assert text_editor.get_focus_zoom() == 1.25
+    assert ann_editor.get_focus_zoom() == 1.25
+
+    text_editor.set_focus_zoom(0.6)
+
+    assert mock_session_window.settings["focus zoom"] == 0.6
+    text_editor.controls.set_focus_zoom.assert_called_with(0.6)
+    ann_editor.controls.set_focus_zoom.assert_called_with(0.6)
+
+    text_editor.set_focus_zoom(5.0)
+    assert mock_session_window.settings["focus zoom"] == 2.0, "the top is clamped"
+
+    text_editor.set_focus_zoom(0.01)
+    assert mock_session_window.settings["focus zoom"] == 0.5, "the floor is clamped"
+
+
+def test_add_text_view_layers_ignores_an_invalid_focus_zoom(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """A corrupt stored level falls back to the default on read."""
+    editors: list[object] = []
+
+    class FakeEditor:
+        def __init__(self, **_kwargs: object) -> None:
+            editors.append(self)
+            self.canvas = mocker.Mock()
+            self.controls = mocker.Mock()
+
+        def set_focus_zoom_handlers(
+            self,
+            get_focus_zoom: object,
+            set_focus_zoom: object,
+        ) -> None:
+            self.get_focus_zoom = get_focus_zoom
+            self.set_focus_zoom = set_focus_zoom
+
+    mocker.patch("scantpaper.session_mixins.LayerEditor", FakeEditor)
+    mock_session_window.view = mocker.Mock()
+    mock_session_window.slist.thread = mocker.Mock()
+    mock_session_window.builder.get_object.return_value = mocker.Mock()
+    mock_session_window.settings["focus zoom"] = "garbage"
+
+    mock_session_window._add_text_view_layers()
+
+    assert editors[0].get_focus_zoom() == DEFAULT_FOCUS_ZOOM
+
+
 def test_add_text_view_layers_binds_tool_mode(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
@@ -1362,6 +1452,14 @@ def test_add_text_view_layers_binds_tool_mode(
         def __init__(self, **_kwargs: object) -> None:
             self.canvas = Canvas()
             self.controls = mocker.Mock()
+
+        def set_focus_zoom_handlers(
+            self,
+            get_focus_zoom: object,
+            set_focus_zoom: object,
+        ) -> None:
+            self.get_focus_zoom = get_focus_zoom
+            self.set_focus_zoom = set_focus_zoom
 
     mocker.patch("scantpaper.session_mixins.LayerEditor", FakeEditor)
     mock_session_window.view = ImageView()

@@ -12,7 +12,7 @@ import shutil
 from types import SimpleNamespace
 from typing import Any, cast
 
-from scantpaper.const import _LOCAL_TZ, SELECTORDRAGGER_TOOL
+from scantpaper.const import _LOCAL_TZ, DEFAULT_FOCUS_ZOOM, SELECTORDRAGGER_TOOL
 from scantpaper.helpers import slurp
 from scantpaper.i18n import _
 
@@ -28,6 +28,7 @@ DEFAULTS = {
     "viewer_tools": "tabbed",
     "editmode": "text",
     "image_control_tool": SELECTORDRAGGER_TOOL,
+    "focus zoom": DEFAULT_FOCUS_ZOOM,
     "scan_window_width": None,
     "scan_window_height": None,
     "message_window_width": 600,

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import gi
+import pytest
 
+from scantpaper.const import DEFAULT_FOCUS_ZOOM, MAX_FOCUS_ZOOM, MIN_FOCUS_ZOOM
 from scantpaper.layer import LayerControls
 
 gi.require_version("Gtk", "4.0")
@@ -139,3 +141,98 @@ def test_layer_controls_set_rotate_enabled_noop_without_rotate() -> None:
     controls.set_rotate_enabled(enabled=True)
     assert controls.rotate_cw_button is None
     assert controls.rotate_ccw_button is None
+
+
+def test_layer_controls_focus_zoom_is_optional() -> None:
+    """The focus-zoom control only exists when the bar enables it."""
+    controls = LayerControls()
+
+    assert controls.focus_zoom_button is None
+    assert controls.focus_zoom_scale is None
+    assert controls.get_focus_zoom() == pytest.approx(DEFAULT_FOCUS_ZOOM)
+
+    # A bar without the control ignores level changes instead of raising.
+    controls.set_focus_zoom(0.75)
+    assert controls.get_focus_zoom() == pytest.approx(DEFAULT_FOCUS_ZOOM)
+    controls._update_focus_zoom_tooltip(1.5)
+    assert controls.focus_zoom_button is None
+
+
+def test_layer_controls_focus_zoom_starts_at_the_default() -> None:
+    """The control shows the default percentage and a value tooltip."""
+    controls = LayerControls(focus_zoom=True)
+
+    assert isinstance(controls.focus_zoom_button, Gtk.MenuButton)
+    assert controls.focus_zoom_scale is not None
+    assert controls.get_focus_zoom() == pytest.approx(DEFAULT_FOCUS_ZOOM)
+    assert controls.focus_zoom_scale.get_value() == pytest.approx(
+        DEFAULT_FOCUS_ZOOM * 100
+    )
+    tooltip = controls.focus_zoom_button.get_tooltip_text()
+    assert tooltip is not None
+    assert "100" in tooltip
+
+
+def test_layer_controls_focus_zoom_emits_on_a_scale_change() -> None:
+    """Dragging the scale emits the level as a multiplier."""
+    controls = LayerControls(focus_zoom=True)
+    received: list[float] = []
+    controls.connect(
+        "focus-zoom-changed", lambda _widget, value: received.append(value)
+    )
+    assert controls.focus_zoom_scale is not None
+
+    controls.focus_zoom_scale.set_value(60)
+
+    assert received == [pytest.approx(0.6)]
+
+
+def test_layer_controls_focus_zoom_reset_restores_the_default() -> None:
+    """Reset returns the scale to 100% and emits the change."""
+    controls = LayerControls(focus_zoom=True)
+    received: list[float] = []
+    controls.connect(
+        "focus-zoom-changed", lambda _widget, value: received.append(value)
+    )
+    assert controls.focus_zoom_scale is not None
+    controls.focus_zoom_scale.set_value(60)
+    received.clear()
+
+    assert controls.focus_zoom_reset is not None
+    controls.focus_zoom_reset.emit("clicked")
+
+    assert controls.focus_zoom_scale.get_value() == pytest.approx(
+        DEFAULT_FOCUS_ZOOM * 100
+    )
+    assert received == [pytest.approx(DEFAULT_FOCUS_ZOOM)]
+
+
+def test_layer_controls_set_focus_zoom_does_not_emit() -> None:
+    """A programmatic level change updates the control without a signal."""
+    controls = LayerControls(focus_zoom=True)
+    received: list[float] = []
+    controls.connect(
+        "focus-zoom-changed", lambda _widget, value: received.append(value)
+    )
+
+    controls.set_focus_zoom(0.75)
+
+    assert not received
+    assert controls.get_focus_zoom() == pytest.approx(0.75)
+    assert controls.focus_zoom_scale is not None
+    assert controls.focus_zoom_scale.get_value() == pytest.approx(75)
+    assert controls.focus_zoom_button is not None
+    tooltip = controls.focus_zoom_button.get_tooltip_text()
+    assert tooltip is not None
+    assert "75" in tooltip
+
+
+def test_layer_controls_set_focus_zoom_clamps_to_the_range() -> None:
+    """Programmatic values are clamped to the supported range."""
+    controls = LayerControls(focus_zoom=True)
+
+    controls.set_focus_zoom(5.0)
+    assert controls.get_focus_zoom() == pytest.approx(MAX_FOCUS_ZOOM)
+
+    controls.set_focus_zoom(0.01)
+    assert controls.get_focus_zoom() == pytest.approx(MIN_FOCUS_ZOOM)

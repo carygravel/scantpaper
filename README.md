@@ -337,7 +337,14 @@ Further reading:
   you were last editing is remembered when you restart. Click a slice to focus
   it for correction; with the Select or Select & Pan tool active, press or drag
   anywhere else in the pane to start a new selection rectangle, while the Pan
-  tool pans instead.
+  tool pans instead. Focusing a slice zooms so its line is drawn at a
+  consistent, comfortable reading size rather than a fixed fraction of the
+  pane, so short and long words from the same line look alike and a long word
+  still fits with a margin around it. The zoom button beside the navigation
+  controls opens a **Focus zoom** slider (50-200%, default 100%) that adjusts
+  that size while you work. **Reset** returns it to 100%, and the chosen level
+  is remembered across restarts and applies to both the text and annotation
+  layers.
 
 ### Keyboard Shortcuts
 
