@@ -31,7 +31,12 @@ from scantpaper.canvas import (
     rgba,
     string2rgb,
 )
-from scantpaper.const import POINTS_PER_INCH
+from scantpaper.const import (
+    DRAGGER_TOOL,
+    POINTS_PER_INCH,
+    SELECTOR_TOOL,
+    SELECTORDRAGGER_TOOL,
+)
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 from scantpaper.tests.pixel_helpers import argb32_rgb
@@ -612,6 +617,18 @@ def test_initialisation(mocker: pytest.MockerFixture) -> None:
     assert canvas.min_confidence == 50, "min-confidence"
 
 
+def test_canvas_tool_mode_defaults_and_updates(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A canvas follows the combined tool until given another mode."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    canvas = Canvas()
+    assert canvas.tool_mode == SELECTORDRAGGER_TOOL
+
+    canvas.tool_mode = DRAGGER_TOOL
+    assert canvas.tool_mode == DRAGGER_TOOL
+
+
 def test_drag_text_layer(mocker: pytest.MockerFixture) -> None:
     """Test dragging a text layer."""
     mock_display = mocker.patch("gi.repository.Gdk.Display.get_default")
@@ -669,6 +686,141 @@ def test_canvas_drag_cursor(mocker: pytest.MockerFixture) -> None:
     set_cursor.reset_mock()
     canvas._button_released(_gesture(2), 1, 0.0, 0.0)
 
+    set_cursor.assert_called_once_with(None)
+
+
+def _routing_canvas(mocker: pytest.MockerFixture) -> Canvas:
+    """Return a canvas that can pan and select at a known scale."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    mocker.patch("gi.repository.Gdk.Cursor.new_from_name")
+    canvas = Canvas()
+    canvas.set_cursor = MagicMock()
+    canvas.set_page_extent(1000, 1000)
+    allocation = Gdk.Rectangle()
+    allocation.width, allocation.height = 100, 100
+    canvas.get_allocation = MagicMock(return_value=allocation)
+    canvas.get_scale_factor = MagicMock(return_value=1)
+    return canvas
+
+
+@pytest.mark.parametrize(
+    ("mode", "button", "pans", "selects"),
+    [
+        (DRAGGER_TOOL, Gdk.BUTTON_PRIMARY, True, False),
+        (DRAGGER_TOOL, Gdk.BUTTON_MIDDLE, False, False),
+        (SELECTOR_TOOL, Gdk.BUTTON_PRIMARY, False, True),
+        (SELECTOR_TOOL, Gdk.BUTTON_MIDDLE, False, False),
+        (SELECTORDRAGGER_TOOL, Gdk.BUTTON_PRIMARY, False, True),
+        (SELECTORDRAGGER_TOOL, Gdk.BUTTON_MIDDLE, True, False),
+        (SELECTORDRAGGER_TOOL, Gdk.BUTTON_SECONDARY, False, False),
+    ],
+)
+def test_canvas_button_routing_follows_tool(
+    mocker: pytest.MockerFixture,
+    mode: str,
+    button: int,
+    *,
+    pans: bool,
+    selects: bool,
+) -> None:
+    """The active tool decides whether a press pans or selects."""
+    canvas = _routing_canvas(mocker)
+    canvas.tool_mode = mode
+    received = []
+    canvas.connect(
+        "selection-drawn",
+        lambda _c, rect: received.append((rect.x, rect.y, rect.width, rect.height)),
+    )
+
+    canvas._button_pressed(_gesture(button), 1, 20, 20)
+    canvas._motion(None, 10, 10)
+    canvas._button_released(_gesture(button), 1, 10, 10)
+
+    offset = canvas.get_offset()
+    assert (offset.x, offset.y) == ((-10, -10) if pans else (0, 0))
+    assert received == ([(10, 10, 10, 10)] if selects else [])
+
+
+def test_canvas_gesture_is_committed_at_press(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Changing the tool mid-drag does not switch the gesture already begun."""
+    canvas = _routing_canvas(mocker)
+    received = []
+    canvas.connect(
+        "selection-drawn",
+        lambda _c, rect: received.append((rect.x, rect.y, rect.width, rect.height)),
+    )
+
+    # A pan begun under Pan stays a pan under Select.
+    canvas.tool_mode = DRAGGER_TOOL
+    canvas._button_pressed(_gesture(Gdk.BUTTON_PRIMARY), 1, 20, 20)
+    canvas.tool_mode = SELECTOR_TOOL
+    canvas._motion(None, 10, 10)
+    canvas._button_released(_gesture(Gdk.BUTTON_PRIMARY), 1, 10, 10)
+
+    offset = canvas.get_offset()
+    assert (offset.x, offset.y) == (-10, -10)
+    assert received == []
+    assert canvas.dragging is False
+
+    # A selection begun under Select stays a selection under Pan.
+    canvas.set_offset(0, 0)
+    canvas.tool_mode = SELECTOR_TOOL
+    canvas._button_pressed(_gesture(Gdk.BUTTON_PRIMARY), 1, 20, 20)
+    canvas.tool_mode = DRAGGER_TOOL
+    canvas._motion(None, 10, 10)
+    assert canvas._drawing is True
+    canvas._button_released(_gesture(Gdk.BUTTON_PRIMARY), 1, 10, 10)
+
+    offset = canvas.get_offset()
+    assert (offset.x, offset.y) == (0, 0)
+    assert received == [(10, 10, 10, 10)]
+
+
+def test_canvas_cursor_follows_tool(mocker: pytest.MockerFixture) -> None:
+    """The cursor shows the active tool and clears off the page."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+    cursor_new = mocker.patch("gi.repository.Gdk.Cursor.new_from_name")
+    canvas = Canvas()
+    set_cursor = mocker.patch.object(canvas, "set_cursor")
+    canvas.set_page_extent(1000, 1000)
+    allocation = Gdk.Rectangle()
+    allocation.width, allocation.height = 100, 100
+    canvas.get_allocation = MagicMock(return_value=allocation)
+    canvas.get_scale_factor = MagicMock(return_value=1)
+
+    # Pan over the page shows a grab cursor, and repeats are cached.
+    canvas.tool_mode = DRAGGER_TOOL
+    canvas._motion(None, 50, 50)
+    cursor_new.assert_called_once_with("grab", None)
+    set_cursor.assert_called_once_with(cursor_new.return_value)
+
+    set_cursor.reset_mock()
+    cursor_new.reset_mock()
+    canvas._motion(None, 60, 60)
+    set_cursor.assert_not_called()
+    cursor_new.assert_not_called()
+
+    # A press starts a pan and shows the grabbing cursor.
+    canvas._button_pressed(_gesture(Gdk.BUTTON_PRIMARY), 1, 60, 60)
+    cursor_new.assert_called_once_with("grabbing", None)
+    set_cursor.assert_called_once_with(cursor_new.return_value)
+    canvas._button_released(_gesture(Gdk.BUTTON_PRIMARY), 1, 60, 60)
+
+    # Selecting tools show a crosshair.
+    for mode in (SELECTOR_TOOL, SELECTORDRAGGER_TOOL):
+        canvas._motion(None, -5000, -5000)
+        canvas.tool_mode = mode
+        set_cursor.reset_mock()
+        cursor_new.reset_mock()
+        canvas._motion(None, 50, 50)
+        cursor_new.assert_called_once_with("crosshair", None)
+        set_cursor.assert_called_once_with(cursor_new.return_value)
+
+    # Off the page the cursor is cleared.
+    set_cursor.reset_mock()
+    canvas._motion(None, 5000, 5000)
     set_cursor.assert_called_once_with(None)
 
 
@@ -2909,6 +3061,40 @@ def test_canvas_click_on_bbox_does_not_draw_selection(
 
     assert received == []
     assert not canvas._drawing
+
+
+def test_pan_tool_press_on_word_does_not_focus(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Under Pan a press on a word pans and never focuses the slice."""
+    canvas = _routing_canvas(mocker)
+    canvas.tool_mode = DRAGGER_TOOL
+    canvas.confidence_index = ListIter()
+    root = canvas.get_root_item()
+    page = canvas.add_box(
+        text="",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="page",
+        parent=root,
+    )
+    edit_callback = MagicMock()
+    canvas.add_box(
+        text="word",
+        bbox=Rectangle(x=0, y=0, width=100, height=100),
+        type="word",
+        parent=page,
+        edit_callback=edit_callback,
+    )
+
+    canvas._button_pressed(_gesture(Gdk.BUTTON_PRIMARY), 1, 50, 50)
+    edit_callback.assert_not_called()
+    assert canvas.dragging is True
+    canvas._motion(None, 40, 40)
+    canvas._button_released(_gesture(Gdk.BUTTON_PRIMARY), 1, 40, 40)
+
+    offset = canvas.get_offset()
+    assert (offset.x, offset.y) == (-10, -10)
+    assert canvas._drawing is False
 
 
 def test_container_press_does_not_focus_or_crash_in_confidence_order(

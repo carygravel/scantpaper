@@ -29,6 +29,12 @@
   returns to the caller instead of leaving it waiting. Message text is a
   selectable label rather than a focusable text view, which avoids a segfault
   in the GTK4 IBus input-method module when the dialog is closed.
+* The text-layer and annotation canvases now follow the active Pan, Select or
+  Select & Pan tool, so each tool behaves the same in the image and in a layer
+  pane. Pan pans with the left button, Select selects with the left button, and
+  Select & Pan selects with the left button and pans with the middle button.
+  The middle button no longer pans while Pan or Select is active, and the
+  pointer shows a grab hand or crosshair to match the active tool.
 
 
 ## 4.0.2 (2026-10-31)

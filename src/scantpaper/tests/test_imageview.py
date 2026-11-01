@@ -10,7 +10,12 @@ import cairo
 import gi
 import pytest
 
-from scantpaper.const import STYLE_CLASS_RUBBERBAND
+from scantpaper.const import (
+    DRAGGER_TOOL,
+    SELECTOR_TOOL,
+    SELECTORDRAGGER_TOOL,
+    STYLE_CLASS_RUBBERBAND,
+)
 from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger, Tool
 from scantpaper.tests.pixel_helpers import argb32_rgb
 
@@ -67,6 +72,21 @@ def mock_view() -> ImageView:
     view = ImageView()
     view.set_cursor = MagicMock()
     return view
+
+
+def test_tool_mode_reports_active_tool() -> None:
+    """Each tool exposes its identifier as the view's tool mode."""
+    view = ImageView()
+    assert view.tool_mode == SELECTORDRAGGER_TOOL
+
+    view.set_tool(Dragger(view))
+    assert view.tool_mode == DRAGGER_TOOL
+
+    view.set_tool(Selector(view))
+    assert view.tool_mode == SELECTOR_TOOL
+
+    view.set_tool(SelectorDragger(view))
+    assert view.tool_mode == SELECTORDRAGGER_TOOL
 
 
 def test_basics(rose_png: str) -> None:
@@ -594,6 +614,7 @@ def test_tool_base_methods() -> None:
     tool = Tool(view)
     assert tool.view() == view
     assert tool.button_pressed(1, 0.0, 0.0) is False
+    assert tool.handles_button(Gdk.BUTTON_PRIMARY) is False
     assert tool.button_released(1, 0.0, 0.0) is None
     assert tool.motion(0.0, 0.0) is None
     assert tool.cursor_type_at_point(0, 0) is None
@@ -646,6 +667,11 @@ def test_selector_edge_cases(rose_png: str, mock_view: ImageView) -> None:
     event = MockEvent(button=3, x=10, y=10)
     assert selector.button_pressed(event.button, event.x, event.y) is False
 
+    # a middle press starts no selection, even when called directly
+    event = MockEvent(button=2, x=10, y=10)
+    assert selector.button_pressed(event.button, event.x, event.y) is False
+    assert selector.dragging is False
+
     # selector without selection
     assert selector.cursor_type_at_point(10, 10) == "crosshair"
 
@@ -687,6 +713,70 @@ def test_selector_dragger_tool(rose_png: str, mock_view: ImageView) -> None:
 
     # cursor
     assert tool.cursor_type_at_point(10, 10) == "se-resize"
+
+    # a middle drag pans the image
+    event = MockEvent(button=2, x=10, y=10)
+    tool.button_pressed(event.button, event.x, event.y)
+    assert isinstance(tool._tool, Dragger)
+    start = view.get_offset()
+    assert start is not None
+    event.x, event.y = 30, 30
+    tool.motion(event.x, event.y)
+    end = view.get_offset()
+    assert end is not None
+    assert (end.x, end.y) == (start.x + 20, start.y + 20)
+    tool.button_released(event.button, event.x, event.y)
+    assert isinstance(tool._tool, Selector)
+
+
+def test_middle_button_is_handled_only_by_the_combined_tool(
+    rose_png: str, mock_view: ImageView
+) -> None:
+    """Select and Pan ignore a middle press; Select & Pan pans with it."""
+    view = mock_view
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
+
+    dragger = Dragger(view)
+    view.set_tool(dragger)
+    assert dragger.handles_button(Gdk.BUTTON_PRIMARY) is True
+    assert dragger.handles_button(Gdk.BUTTON_MIDDLE) is False
+    view._button_pressed(_gesture(Gdk.BUTTON_MIDDLE), 1, 10, 10)
+    assert dragger.dragging is False
+
+    selector = Selector(view)
+    view.set_tool(selector)
+    assert selector.handles_button(Gdk.BUTTON_PRIMARY) is True
+    assert selector.handles_button(Gdk.BUTTON_MIDDLE) is False
+    view._button_pressed(_gesture(Gdk.BUTTON_MIDDLE), 1, 10, 10)
+    assert selector.dragging is False
+
+    combined = SelectorDragger(view)
+    view.set_tool(combined)
+    assert combined.handles_button(Gdk.BUTTON_PRIMARY) is True
+    assert combined.handles_button(Gdk.BUTTON_MIDDLE) is True
+    assert combined.handles_button(Gdk.BUTTON_SECONDARY) is False
+    view._button_pressed(_gesture(Gdk.BUTTON_MIDDLE), 1, 10, 10)
+    assert combined._tool is combined._dragger
+    assert combined._dragger.dragging is True
+
+
+def test_ignored_middle_release_keeps_a_primary_gesture(
+    rose_png: str, mock_view: ImageView
+) -> None:
+    """A release for a button the tool ignores must not end a drag."""
+    view = mock_view
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
+    dragger = Dragger(view)
+    view.set_tool(dragger)
+
+    view._button_pressed(_gesture(Gdk.BUTTON_PRIMARY), 1, 10, 10)
+    assert dragger.dragging is True
+
+    view._button_released(_gesture(Gdk.BUTTON_MIDDLE), 1, 10, 10)
+    assert dragger.dragging is True
+
+    view._button_released(_gesture(Gdk.BUTTON_PRIMARY), 1, 10, 10)
+    assert dragger.dragging is False
 
 
 def test_imageview_more_basics(rose_png: str) -> None:

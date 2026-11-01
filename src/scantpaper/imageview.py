@@ -9,6 +9,9 @@ import gi
 from typing_extensions import override
 
 from scantpaper.const import (
+    DRAGGER_TOOL,
+    SELECTOR_TOOL,
+    SELECTORDRAGGER_TOOL,
     STYLE_CLASS_BACKGROUND,
     STYLE_CLASS_RUBBERBAND,
     VIEWER_MIN_SIZE,
@@ -30,6 +33,7 @@ class Tool:
     """Base tool class for Dragger, Selector & DraggerSelector."""
 
     dragging = False
+    mode: ClassVar[str] = ""
 
     def __init__(self, view: ImageView) -> None:
         """Initialise Tool."""
@@ -40,6 +44,11 @@ class Tool:
     def view(self) -> ImageView:
         """Provide the base view accessor."""
         return self._view
+
+    def handles_button(self, button: int) -> bool:
+        """Return whether this tool acts on the given mouse button."""
+        del button
+        return False
 
     def button_pressed(self, button: int, x: float, y: float) -> bool:
         """Provide the base button-pressed handler."""
@@ -80,6 +89,12 @@ class Dragger(Tool):
 
     dnd_eligible = False
     button = 1
+    mode = DRAGGER_TOOL
+
+    @override
+    def handles_button(self, button: int) -> bool:
+        """Only the primary button pans."""
+        return button == Gdk.BUTTON_PRIMARY
 
     @override
     def button_pressed(self, button: int, x: float, y: float) -> bool:
@@ -200,12 +215,18 @@ class Selector(Tool):
 
     h_edge = None
     v_edge = None
+    mode = SELECTOR_TOOL
+
+    @override
+    def handles_button(self, button: int) -> bool:
+        """Only the primary button selects."""
+        return button == Gdk.BUTTON_PRIMARY
 
     @override
     def button_pressed(self, button: int, x: float, y: float) -> bool:
         """React to button-press events from the view."""
-        # Don't block context menu
-        if button == Gdk.BUTTON_SECONDARY:
+        # Only the primary button selects; leave other buttons alone.
+        if button != Gdk.BUTTON_PRIMARY:
             return False
 
         self.drag_start = {"x": None, "y": None}
@@ -379,12 +400,19 @@ class Selector(Tool):
 class SelectorDragger(Tool):
     """Select with LMB, drag with MMB."""
 
+    mode = SELECTORDRAGGER_TOOL
+
     def __init__(self, view: ImageView) -> None:
         """Initialise SelectorDragger."""
         super().__init__(view)
         self._selector = Selector(view)
         self._dragger = Dragger(view)
         self._tool = self._selector
+
+    @override
+    def handles_button(self, button: int) -> bool:
+        """Return whether the combined tool acts on the given button."""
+        return button in (Gdk.BUTTON_PRIMARY, Gdk.BUTTON_MIDDLE)
 
     @override
     def button_pressed(self, button: int, x: float, y: float) -> bool:
@@ -538,6 +566,25 @@ class ImageView(Gtk.DrawingArea):
         blurb="Ratio of x-resolution/y-resolution",
     )
     tool = GObject.Property(type=object, nick="tool", blurb="Active Tool")
+
+    _tool_mode = SELECTORDRAGGER_TOOL
+
+    @property_(
+        type=str,
+        default=SELECTORDRAGGER_TOOL,
+        nick="tool-mode",
+        blurb="Identifier of the active tool",
+    )
+    def tool_mode(self) -> str:
+        """Getter for the active tool identifier."""
+        return self._tool_mode
+
+    @tool_mode.setter
+    def tool_mode(self, value: str) -> None:
+        """Setter for the active tool identifier."""
+        if value != self._tool_mode:
+            self._tool_mode = value
+
     selection = GObject.Property(
         type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
     )
@@ -637,13 +684,19 @@ class ImageView(Gtk.DrawingArea):
         self, gesture: Gtk.GestureClick, _n_press: int, x: float, y: float
     ) -> None:
         """Respond to the button_press gesture."""
-        self.get_tool().button_pressed(gesture.get_current_button(), x, y)
+        tool = self.get_tool()
+        button = gesture.get_current_button()
+        if tool.handles_button(button):
+            tool.button_pressed(button, x, y)
 
     def _button_released(
         self, gesture: Gtk.GestureClick, _n_press: int, x: float, y: float
     ) -> None:
         """Respond to the button_release gesture."""
-        self.get_tool().button_released(gesture.get_current_button(), x, y)
+        tool = self.get_tool()
+        button = gesture.get_current_button()
+        if tool.handles_button(button):
+            tool.button_released(button, x, y)
 
     def _motion(
         self, _controller: Gtk.EventControllerMotion, x: float, y: float
@@ -751,6 +804,7 @@ class ImageView(Gtk.DrawingArea):
         self._pointer: tuple[float, float] = (0.0, 0.0)
         if self.tool is None:
             self.tool = SelectorDragger(self)
+        self.tool_mode = self.get_tool().mode
         self._cached_surface = None
         self._cached_pixbuf_id = None
         self._offset = None
@@ -965,6 +1019,7 @@ class ImageView(Gtk.DrawingArea):
             msg = "invalid set_tool call"
             raise TypeError(msg)
         self.tool = tool
+        self.tool_mode = tool.mode
         if self.get_selection() is not None:
             self.queue_draw()
         self.emit("tool-changed", tool)

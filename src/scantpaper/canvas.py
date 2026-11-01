@@ -15,10 +15,12 @@ from typing_extensions import override
 from scantpaper.bboxtree import is_empty_branch
 from scantpaper.const import (
     _100_PERCENT,
+    DRAGGER_TOOL,
     EMPTY,
     EMPTY_LIST,
     MIN_BASELINE_COEFFICIENTS,
     NOT_FOUND,
+    SELECTORDRAGGER_TOOL,
     SPACE,
     STYLE_CLASS_RUBBERBAND,
     VIEWER_MIN_SIZE,
@@ -537,6 +539,8 @@ class Canvas(Gtk.DrawingArea):
         ),
     }
 
+    _tool_mode: str = SELECTORDRAGGER_TOOL
+
     def __init__(self, *args: object, **kwargs: object) -> None:
         """Initialise Canvas."""
         super().__init__(*args, **kwargs)
@@ -572,6 +576,8 @@ class Canvas(Gtk.DrawingArea):
         self.confidence_index = None
         self._layout_cache: dict[tuple[Bbox, str, str], Pango.Layout] = {}
         self.dragging = False
+        self._pan_button: int | None = None
+        self._cursor_name: str | None = None
         self._drag_start: dict[str, float] = {}
         self._pixbuf_size = None
         self._color_lookup_table = None
@@ -684,6 +690,21 @@ class Canvas(Gtk.DrawingArea):
         if newval != self._resolution_ratio:
             self._resolution_ratio = newval
             self.queue_draw()
+
+    @property_(
+        type=str,
+        default=SELECTORDRAGGER_TOOL,
+        nick="tool-mode",
+        blurb="Identifier of the active viewer tool",
+    )
+    def tool_mode(self) -> str:
+        """Getter for the active viewer tool identifier."""
+        return self._tool_mode
+
+    @tool_mode.setter
+    def tool_mode(self, newval: str) -> None:
+        """Setter for the active viewer tool identifier."""
+        self._tool_mode = newval
 
     @property_(
         type=Gdk.Rectangle, nick="Selection", blurb="Gdk.Rectangle of selected region"
@@ -1507,37 +1528,86 @@ class Canvas(Gtk.DrawingArea):
         self.zoom = zoom
         self.set_offset(offset_x, offset_y)
 
+    def _begin_pan(self, button: int, x: float, y: float) -> None:
+        """Start panning the view from a press with the given button."""
+        self._pan_button = button
+        self._drag_start = {"x": x, "y": y}
+        self.dragging = True
+
+    def _pan_to(self, x: float, y: float) -> None:
+        """Move the view by the pointer delta since the last position."""
+        offset = self.get_offset()
+        sx, sy = self._scale_factors()
+        offset_x = offset.x + (x - self._drag_start["x"]) / sx
+        offset_y = offset.y + (y - self._drag_start["y"]) / sy
+        self._drag_start["x"], self._drag_start["y"] = (x, y)
+        self.set_offset(offset_x, offset_y)
+
+    def _end_pan(self) -> None:
+        """Finish an in-progress pan."""
+        self._pan_button = None
+        self.dragging = False
+
+    def _update_cursor(self, x: float, y: float) -> None:
+        """Show the cursor implied by the active tool under the pointer."""
+        if self.dragging:
+            name = "grabbing"
+        elif not self._on_page(x, y):
+            name = None
+        elif self._tool_mode == DRAGGER_TOOL:
+            name = "grab"
+        else:
+            name = "crosshair"
+        if name == self._cursor_name:
+            return
+        self._cursor_name = name
+        self.set_cursor(None if name is None else Gdk.Cursor.new_from_name(name, None))
+
+    def _on_page(self, x: float, y: float) -> bool:
+        """Return whether the widget point falls on the displayed page."""
+        size = self.get_pixbuf_size()
+        if size is None:
+            return False
+        rect = self._widget_to_image_rect(x, y, x, y)
+        return bool(0 <= rect.x < size["width"] and 0 <= rect.y < size["height"])
+
     def _button_pressed(
         self, gesture: Gtk.GestureClick, _n_press: int, x: float, y: float
     ) -> None:
         button = gesture.get_current_button()
-        if button == Gdk.BUTTON_MIDDLE:
-            self._drag_start = {"x": x, "y": y}
-            self.dragging = True
-            self.set_cursor(Gdk.Cursor.new_from_name("grabbing", None))
-        elif button == 1:
-            focus = False
-            try:
-                bbox = self._hit_test(x, y)
-                if (
-                    bbox is not None
-                    and bbox.is_slice
-                    and hasattr(bbox, "edit_callback")
-                    and bbox.edit_callback
-                ):
-                    button_press_callback(
-                        bbox,
-                        self,
-                        button,
-                        cast("Callable[..., object]", bbox.edit_callback),
-                    )
-                    focus = True
-            except ReferenceError:
-                pass
-            self._drawing = False
-            self._drag_selection = None
-            if not focus and self.get_pixbuf_size() is not None:
-                self._start_draw(x, y)
+        if button == Gdk.BUTTON_PRIMARY:
+            if self._tool_mode == DRAGGER_TOOL:
+                self._begin_pan(button, x, y)
+            else:
+                self._begin_select(button, x, y)
+        elif button == Gdk.BUTTON_MIDDLE and self._tool_mode == SELECTORDRAGGER_TOOL:
+            self._begin_pan(button, x, y)
+        self._update_cursor(x, y)
+
+    def _begin_select(self, button: int, x: float, y: float) -> None:
+        """Focus a word or start drawing a selection at the press position."""
+        focus = False
+        try:
+            bbox = self._hit_test(x, y)
+            if (
+                bbox is not None
+                and bbox.is_slice
+                and hasattr(bbox, "edit_callback")
+                and bbox.edit_callback
+            ):
+                button_press_callback(
+                    bbox,
+                    self,
+                    button,
+                    cast("Callable[..., object]", bbox.edit_callback),
+                )
+                focus = True
+        except ReferenceError:
+            pass
+        self._drawing = False
+        self._drag_selection = None
+        if not focus and self.get_pixbuf_size() is not None:
+            self._start_draw(x, y)
 
     def _start_draw(self, x: float, y: float) -> None:
         """Begin drawing a selection rectangle at the press position."""
@@ -1564,25 +1634,25 @@ class Canvas(Gtk.DrawingArea):
         return rect
 
     def _button_released(
-        self, gesture: Gtk.GestureClick, _n_press: int, _x: float, _y: float
+        self, gesture: Gtk.GestureClick, _n_press: int, x: float, y: float
     ) -> None:
         button = gesture.get_current_button()
-        if button == 1 and self._drawing:
+        if button == Gdk.BUTTON_PRIMARY and self._drawing:
             rect = self._drag_selection
             self._drawing = False
             self._drag_selection = None
             if rect is not None and rect.width > 0 and rect.height > 0:
                 self.emit("selection-drawn", rect)
             self.queue_draw()
-            return
-        if button == Gdk.BUTTON_MIDDLE:
-            self.dragging = False
-            self.set_cursor(None)
+        elif self.dragging and button == self._pan_button:
+            self._end_pan()
+        self._update_cursor(x, y)
 
     def _motion(
         self, _controller: Gtk.EventControllerMotion, x: float, y: float
     ) -> None:
         self._pointer = (x, y)
+        self._update_cursor(x, y)
         if self._drawing and self._draw_start is not None:
             self._drag_selection = self._widget_to_image_rect(
                 self._draw_start[0], self._draw_start[1], x, y
@@ -1591,12 +1661,7 @@ class Canvas(Gtk.DrawingArea):
             return
         if not self.dragging:
             return
-        offset = self.get_offset()
-        sx, sy = self._scale_factors()
-        offset_x = offset.x + (x - self._drag_start["x"]) / sx
-        offset_y = offset.y + (y - self._drag_start["y"]) / sy
-        self._drag_start["x"], self._drag_start["y"] = (x, y)
-        self.set_offset(offset_x, offset_y)
+        self._pan_to(x, y)
 
     def _scroll(
         self, _controller: Gtk.EventControllerScroll, _dx: float, dy: float

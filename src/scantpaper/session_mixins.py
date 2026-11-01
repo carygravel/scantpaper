@@ -587,6 +587,12 @@ class SessionMixins:
                 "selection",
                 GObject.BindingFlags.DEFAULT | GObject.BindingFlags.SYNC_CREATE,
             )
+            self.view.bind_property(
+                "tool_mode",
+                canvas,
+                "tool_mode",
+                GObject.BindingFlags.DEFAULT | GObject.BindingFlags.SYNC_CREATE,
+            )
 
         edit_hbox = self.builder.get_object("edit_hbox")
         edit_hbox.append(self._text_editor.controls)

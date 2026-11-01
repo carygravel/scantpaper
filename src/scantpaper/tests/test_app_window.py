@@ -14,6 +14,7 @@ import pytest
 
 from scantpaper.app_window import ApplicationWindow, drag_motion_callback, view_html
 from scantpaper.config import ConfigDict
+from scantpaper.const import SELECTORDRAGGER_TOOL
 from scantpaper.i18n import _
 
 if TYPE_CHECKING:
@@ -56,6 +57,12 @@ class MockImageView(Gtk.DrawingArea):
         nick="resolution-ratio",
         blurb="Ratio of x-resolution/y-resolution",
     )
+    tool_mode = GObject.Property(
+        type=str,
+        default=SELECTORDRAGGER_TOOL,
+        nick="tool-mode",
+        blurb="Identifier of the active tool",
+    )
 
     def set_tool(self, tool: object) -> None:
         """Mock set_tool."""
@@ -94,6 +101,12 @@ class MockCanvas(Gtk.DrawingArea):
         default=1.0,
         nick="resolution-ratio",
         blurb="Ratio of x-resolution/y-resolution",
+    )
+    tool_mode = GObject.Property(
+        type=str,
+        default=SELECTORDRAGGER_TOOL,
+        nick="tool-mode",
+        blurb="Identifier of the active viewer tool",
     )
 
     def clear_text(self) -> None:

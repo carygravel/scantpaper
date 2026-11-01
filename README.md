@@ -314,11 +314,14 @@ Further reading:
 
 ### View Menu
 
-- Pan, Select, Select & Pan tools:
-    - Pan: Use the left mouse button to drag the image or canvas to pan the view
-    - Select: Use the left mouse button to select a rectangular box
+- Pan, Select, Select & Pan tools, for both the image and the text-layer or
+  annotation canvas:
+    - Pan: Use the left mouse button to drag the image or canvas to pan the
+      view. The middle mouse button does nothing.
+    - Select: Use the left mouse button to select a rectangular box. The
+      middle mouse button does nothing.
     - Select & Pan: Use the left mouse button to select a rectangular box, and
-      the middle mouse button to drag the image or canvas to pan the view
+      the middle mouse button to drag the image or canvas to pan the view.
     - In all of the above, the mouse wheel zooms in or out.
 - Zoom: 100%, fit to window, in, and out.
 - Rendering: pages are shown at high quality whenever they are static, so the
@@ -332,8 +335,9 @@ Further reading:
   split view the chosen layer is displayed beside the image, so the annotation
   layer can be corrected next to the scan as well as the text layer. The layer
   you were last editing is remembered when you restart. Click a slice to focus
-  it for correction; press or drag anywhere else in the pane to start a new
-  selection rectangle.
+  it for correction; with the Select or Select & Pan tool active, press or drag
+  anywhere else in the pane to start a new selection rectangle, while the Pan
+  tool pans instead.
 
 ### Keyboard Shortcuts
 

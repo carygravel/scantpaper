@@ -12,9 +12,11 @@ import gi
 import pytest
 
 from scantpaper.basethread import Request, Response, ResponseType
-from scantpaper.const import EMPTY
+from scantpaper.canvas import Canvas
+from scantpaper.const import DRAGGER_TOOL, EMPTY, SELECTORDRAGGER_TOOL
 from scantpaper.document import Document
 from scantpaper.file_menu_mixins import FileMenuMixins
+from scantpaper.imageview import Dragger, ImageView
 from scantpaper.session_mixins import SessionMixins
 
 if TYPE_CHECKING:
@@ -1348,6 +1350,34 @@ def test_add_text_view_layers(
     for kwargs in captured:
         assert kwargs["get_page"]() is mock_session_window._current_page
         assert kwargs["thread"] is mock_session_window.slist.thread
+
+
+def test_add_text_view_layers_binds_tool_mode(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Both canvases follow the active viewer tool."""
+    mocker.patch("gi.repository.Gdk.Display.get_default")
+
+    class FakeEditor:
+        def __init__(self, **_kwargs: object) -> None:
+            self.canvas = Canvas()
+            self.controls = mocker.Mock()
+
+    mocker.patch("scantpaper.session_mixins.LayerEditor", FakeEditor)
+    mock_session_window.view = ImageView()
+    mock_session_window.slist.thread = mocker.Mock()
+    mock_session_window.builder.get_object.return_value = mocker.Mock()
+    mock_session_window._pack_viewer_tools = mocker.Mock()
+
+    mock_session_window._add_text_view_layers()
+
+    assert mock_session_window.t_canvas.tool_mode == SELECTORDRAGGER_TOOL
+    assert mock_session_window.a_canvas.tool_mode == SELECTORDRAGGER_TOOL
+
+    mock_session_window.view.set_tool(Dragger(mock_session_window.view))
+
+    assert mock_session_window.t_canvas.tool_mode == DRAGGER_TOOL
+    assert mock_session_window.a_canvas.tool_mode == DRAGGER_TOOL
 
 
 def test_edit_mode_callback(
