@@ -61,6 +61,16 @@
   `openspec validate --archived --no-interactive`, and verify each reports no
   failures
 
+## 6. Run summary
+
+- [x] 6.1 Include the human summary in the JSON report and append it to
+  `$GITHUB_STEP_SUMMARY` in the workflow, and verify with a test that the
+  `summary` field is present and named the state for a current pin and for a
+  blocked candidate
+- [x] 6.2 Re-run `python3 -m pytest`, `ruff check`, `ruff format --check`,
+  `ty check .`, `python3 dev/check_test_coverage.py` and the three
+  `openspec validate` commands, and verify each reports no failures
+
 ## Workflow follow-up
 
 - After merge, dispatch the workflow manually and confirm it opens exactly one

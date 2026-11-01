@@ -290,6 +290,7 @@ def build_report(
             for result in results
         ],
         "markdown": _markdown(pinned, installed, latest, state, results),
+        "summary": _summary(pinned, installed, latest, state, results),
     }
 
 
@@ -390,7 +391,7 @@ def main() -> int:
     elif args.markdown:
         print(report["markdown"])
     else:
-        print(_summary(pinned, installed, latest, str(report["state"]), results))
+        print(report["summary"])
     return 0
 
 

@@ -99,6 +99,30 @@ to upgrade or blocked.
 - **THEN** the issue is closed, so an outdated recommendation does not
   linger
 
+### Requirement: Every run records its conclusion
+
+Each scheduled or manual run SHALL record the pinned, installed and latest
+versions and the resulting state on the run summary page, whether or not an
+issue is filed.
+
+#### Scenario: The pin is current
+
+- **WHEN** a run finds no newer release than the pin
+- **THEN** the summary states that the pin is current, and no issue is filed
+  or updated
+
+#### Scenario: The candidate is blocked
+
+- **WHEN** a run classifies the newer release as blocked
+- **THEN** the summary names the failing command, in addition to the issue
+  that carries its full output
+
+#### Scenario: The state cannot be determined
+
+- **WHEN** the pin file or registry cannot be read
+- **THEN** the run fails with the underlying error instead of recording a
+  summary that reads like a clean result
+
 ### Requirement: An undeterminable state fails loudly
 
 The check SHALL distinguish "no update" from "could not tell": an unreadable

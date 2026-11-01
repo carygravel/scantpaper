@@ -32,6 +32,7 @@ class PayloadJson(TypedDict):
     changed: bool
     validations: list[ValidationJson]
     markdown: str
+    summary: str
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -119,9 +120,9 @@ def test_read_installed_reports_none_for_a_missing_command() -> None:
 
 
 def test_read_installed_returns_the_command_version() -> None:
-    """An installed CLI reports its version on stdout."""
+    """An installed command reports its version on stdout."""
     check = _load_check()
-    assert check.read_installed("openspec") is not None
+    assert check.read_installed(sys.executable) is not None
 
 
 def test_default_validation_commands_are_the_commands_ci_runs() -> None:
@@ -146,6 +147,7 @@ def test_current_pin_reports_nothing_to_do(tmp_path: Path) -> None:
     assert payload["validations"] == []
     assert "nothing to do" in payload["markdown"]
     assert "npm install" not in payload["markdown"]
+    assert "up to date: nothing to do" in payload["summary"]
 
 
 def test_pin_ahead_of_the_registry_is_current(tmp_path: Path) -> None:
@@ -188,6 +190,15 @@ def test_validation_stops_at_the_first_failure(tmp_path: Path) -> None:
     result = _run(tmp_path, "--json", commands=(_FAIL, _PASS))
     assert result.returncode == 0, result.stdout + result.stderr
     assert len(_payload(result)["validations"]) == 1
+
+
+def test_summary_names_the_failing_command(tmp_path: Path) -> None:
+    """The run summary says which command blocked the candidate."""
+    result = _run(tmp_path, "--json", commands=(_PASS, _FAIL))
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = _payload(result)
+    assert "blocked by a failing validation command" in payload["summary"]
+    assert f"FAILED (3): {_FAIL}" in payload["summary"]
 
 
 def test_markdown_reports_the_installed_version(tmp_path: Path) -> None:

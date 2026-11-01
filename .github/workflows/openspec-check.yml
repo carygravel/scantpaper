@@ -31,7 +31,13 @@ jobs:
       # filed. Only an unreadable pin, registry, or candidate version exits
       # non-zero, which fails the job instead of silently reporting "current".
       - name: Compare the pin with npm and validate the candidate
-        run: python3 dev/check_openspec.py --json > report.json
+        run: |
+          python3 dev/check_openspec.py --json > report.json
+          # Every run leaves its conclusion on the summary page, so "no issue
+          # was filed" is distinguishable from "the check did not run".
+          python3 -c \
+            "import json; print(json.load(open('report.json'))['summary'])" \
+            >> "$GITHUB_STEP_SUMMARY"
       - name: Report the state in a single issue
         env:
           GH_TOKEN: ${{ github.token }}

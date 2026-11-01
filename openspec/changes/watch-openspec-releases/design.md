@@ -75,6 +75,16 @@ so each can be closed independently - rejected, because the states are
 mutually exclusive and an edited single issue cannot leave a stale
 recommendation behind.
 
+### Silence is not evidence: every run leaves a summary
+
+A run that finds nothing files no issue, which is indistinguishable from a run
+that never happened; that ambiguity already produced one false alarm after the
+first manual dispatch. The checker therefore includes its human summary in the
+JSON report, and the workflow appends it to `$GITHUB_STEP_SUMMARY`, so the run
+page always states the versions and the conclusion. Alternatives: commenting on
+a tracking issue every run (noise on a daily cron), or filing an issue even
+when current (defeats the self-closing rule).
+
 ### Exit codes follow the translations check
 
 `0` whenever the state was determined, including when an update was found and

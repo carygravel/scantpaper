@@ -24,6 +24,8 @@ forgotten, so the pin drifts.
   the candidate CLI, runs the check, and files a single living issue whose
   title says either "safe to upgrade" or "blocked by" the failing command.
   When the pin catches up the issue is closed automatically.
+- Record the conclusion of every run on the workflow's summary page, so a run
+  that found nothing is distinguishable from a run that never happened.
 - Bump the pin from 1.14.3 to 1.16.0, which both validation commands accept
   today.
 - Document the workflow and the bump procedure in `AGENTS.md`.
