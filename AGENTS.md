@@ -74,11 +74,15 @@ This document provides essential context for anyone working on this project. Adh
 -   **Local Development Environment:** Set up a Python virtual environment and
     install dependencies using `pip install .`. From a source checkout the
     application is run with `PYTHONPATH=src python3 -m scantpaper.app`.
--   **Testing:** Tests are written using the `pytest` framework. They can be
-    executed by running the `pytest` command in the root directory; tests run
-    directly against the source tree via `pythonpath = ["src"]`. The
-    `pyproject.toml` file configures test runs to include coverage reports and
-    to fail if coverage drops below a certain threshold.
+-   **Testing:** Tests are written using the `pytest` framework. Run `pytest`
+    from the repository root; tests run directly against the source tree via
+    `pythonpath = ["src"]`. The coverage gate measures only the shipped
+    `scantpaper` package and fails below 99%, so its result does not depend
+    on which optional test tooling is installed. Developer-tooling tests
+    live under `dev/tests/` next to the scripts they exercise. After a
+    complete run, audit test code for unexecuted statements with
+    `python3 dev/check_test_coverage.py`; it runs in GitHub's `latest` job
+    and ratchets partial branches at the recorded baseline.
 -   **Translations:** Translation strings are marked with `_()` in the source.
     The workflow for handling translations is:
     1. Regenerate the translation template with

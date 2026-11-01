@@ -45,7 +45,7 @@ exclude = ["scantpaper.tests"]
 scantpaper = ["app.ui", "icons/**/*"]
 
 [tool.pytest.ini_options]
-addopts = "--timeout=300 --cov=scantpaper --cov-report=html --cov-fail-under=99"
+addopts = "--timeout=300 --cov=scantpaper --cov=dev/tests --cov-report=html --cov-fail-under=99"
 pythonpath = ["src"]
 # pytest-xvfb's 16-bit default is a legacy visual configuration; 24-bit avoids
 # that variable (see openspec/changes/disable-gl-renderer-in-tests).
@@ -64,6 +64,13 @@ filterwarnings = [
 branch = true
 
 [tool.coverage.report]
+# Test modules are traced but excluded from the reported total: the 99% gate
+# answers whether the shipped package is covered. The execution data is kept
+# for dev/check_test_coverage.py, which audits test code for unexecuted
+# statements. Use report-level omit rather than run-level, which would
+# discard that data. Both test roots are measured by pytest (--cov=...), so
+# the relocated developer-tooling tests stay in the audit.
+omit = ["*/scantpaper/tests/*", "*/dev/tests/*"]
 exclude_lines = [
     "if TYPE_CHECKING:",
     "#\\s*pragma:\\s*no\\s*cover",
@@ -132,6 +139,21 @@ task-tags = ["TODO", "FIXME"]
 # idiomatic way to inject them. Tests also assert on private widget state
 # (SLF001) to verify behaviour white-box.
 "src/scantpaper/tests/**" = [
+    "S101",
+    "S105",
+    "S108",
+    "S603",
+    "S607",
+    "PLR0913",
+    "PLR0917",
+    "PLR2004",
+    "SLF001",
+]
+# Developer-tooling tests follow the same patterns as the application test
+# suite: they assert, create temporary repositories and files, and invoke
+# the scripts under test through a path. Keep the list identical so the move
+# to dev/tests/ does not change which rules apply.
+"dev/tests/**" = [
     "S101",
     "S105",
     "S108",

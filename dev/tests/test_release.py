@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 RELEASE = REPO_ROOT / "dev" / "release.py"
 
 CHANGELOG = """## 3.0.22 (unreleased)

@@ -15,7 +15,7 @@ pytestmark = pytest.mark.skipif(
     reason="git is not available",
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 BUILD = REPO_ROOT / "dev" / "build_ppa.py"
 
 CHANGELOG = """scantpaper (4.0.2-1) unstable; urgency=medium

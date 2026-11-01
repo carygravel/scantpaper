@@ -117,6 +117,8 @@ jobs:
         run: ty check --extra-search-path "$(python3 -m site --user-site)" .
       - name: Test
         run: pytest
+      - name: Audit test-code coverage
+        run: python3 dev/check_test_coverage.py
 
   oldest:
     runs-on: ubuntu-22.04

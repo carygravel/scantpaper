@@ -16,7 +16,7 @@ pytestmark = pytest.mark.skipif(
     reason="git is not available",
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 SYNC = REPO_ROOT / "dev" / "sync_salsa.py"
 
 PYPROJECT = """[project]

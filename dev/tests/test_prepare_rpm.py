@@ -16,7 +16,7 @@ pytestmark = pytest.mark.skipif(
     reason="git is not available",
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 PREPARE = REPO_ROOT / "dev" / "prepare_rpm.py"
 
 TEMPLATE = """Name:           scantpaper

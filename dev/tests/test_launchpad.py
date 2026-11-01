@@ -56,7 +56,7 @@ class PayloadJson(TypedDict):
     local_pot: LocalPotJson
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 CHECK = REPO_ROOT / "dev" / "check_launchpad.py"
 
 _ETAG = '"fixture-etag"'

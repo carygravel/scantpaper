@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import stat
 from pathlib import Path
+from typing import cast
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -84,3 +85,19 @@ def test_debian_rules_is_executable() -> None:
     """Record the executable bit Debian policy requires for debian/rules."""
     mode = (DEBIAN / "rules").stat().st_mode
     assert mode & stat.S_IXUSR
+
+
+def _field(text: str, name: str) -> str:
+    """Return the continuation lines of a Debian control field."""
+    match = re.search(rf"(?ms)^{name}:\s*(.*?)(?=^\S|\Z)", text)
+    assert match is not None, name
+    return cast("str", match.group(1))
+
+
+def test_autopkgtest_declares_git_but_runtime_does_not() -> None:
+    """Debian can run the git-dependent tests without shipping git."""
+    tests_control = (DEBIAN / "tests" / "control").read_text(encoding="utf-8")
+    runtime_control = (DEBIAN / "control").read_text(encoding="utf-8")
+
+    assert re.search(r"(?m)^\s*git,\s*$", _field(tests_control, "Depends"))
+    assert not re.search(r"(?m)^\s*git(?:,|\s*$)", _field(runtime_control, "Depends"))
