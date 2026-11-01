@@ -284,6 +284,31 @@ def test_get_pdf_image_codecs_ccitt_xobject(tmp_path: pathlib.Path) -> None:
     assert get_pdf_image_codecs(str(path)) == ["/CCITTFaxDecode", "Group4"]
 
 
+@pytest.mark.parametrize(
+    ("k", "group"),
+    [(-1, "Group4"), (0, "Group3")],
+)
+def test_get_pdf_image_codecs_inline_ccitt(
+    tmp_path: pathlib.Path, k: int, group: str
+) -> None:
+    """An inlined CCITT image is reported from its shortened filter.
+
+    Ghostscript inlines small bilevel images during OCRmyPDF's PDF/A step.
+    That form is not guaranteed by every toolchain, so exercise it directly
+    rather than relying on a particular encoder to produce it.
+    """
+    content = (
+        b"q 1 0 0 1 0 0 cm /BI /W 1 /H 1 /BPC 1 /CS /G "
+        b"/F/CCF /DP << /K " + str(k).encode() + b" >> ID \x00 EI Q"
+    )
+    pdf = pikepdf.new()
+    page = pdf.add_blank_page(page_size=(72, 72))
+    page.obj["/Contents"] = pdf.make_stream(content)
+    path = tmp_path / f"ccitt-inline-{group}.pdf"
+    pdf.save(str(path))
+    assert get_pdf_image_codecs(str(path)) == ["/CCITTFaxDecode", group]
+
+
 def test_do_save_pdf(rose_pnm: str, temp_db: object, temp_pdf: object) -> None:
     """Test writing basic PDF."""
     thread = DocThread(db=temp_db.name)
