@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, patch
 
 import gi
+import pytest
 
 from scantpaper.const import (
     DIALOG_BUTTON_SPACING,
@@ -25,6 +26,9 @@ from gi.repository import (  # noqa: E402
     Gdk,
     Gtk,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def test_dialog() -> None:
@@ -363,3 +367,110 @@ def test_multiple_message_duplicate() -> None:
     }
     dialog.add_message(row)
     assert dialog.grid_rows == 1, "duplicate message not added"
+
+
+@pytest.mark.parametrize(
+    "texts",
+    [
+        [""],
+        ["message one", "message two", "message three"],
+    ],
+    ids=["one-empty-message", "several-messages"],
+)
+def test_multiple_message_global_checkbox_above_action_area(
+    texts: list[str],
+    wait_until: Callable[[Callable[[], bool]], None],
+) -> None:
+    """The global checkbox is mapped above the action area and the list expands."""
+    dialog = MultipleMessage()
+    for index, text in enumerate(texts, start=1):
+        dialog.add_row(
+            {
+                "page": index,
+                "process": "scan",
+                "message_type": "error",
+                "text": text,
+                "store_response": True,
+            }
+        )
+    dialog.set_default_size(600, 400)
+    dialog.present()
+
+    def message_list_is_laid_out() -> bool:
+        natural_height = dialog.grid.measure(Gtk.Orientation.VERTICAL, -1)[1]
+        return bool(
+            dialog.get_mapped()
+            and dialog.cbn.get_mapped()
+            and dialog.scrolled_window.get_height() > 0
+            and dialog.grid.get_height() <= natural_height + 2
+        )
+
+    wait_until(message_list_is_laid_out)
+
+    assert dialog.cbn.get_mapped(), "global checkbox is mapped"
+    checkbox_found, checkbox_bounds = dialog.cbn.compute_bounds(dialog)
+    action_found, action_bounds = _action_area(dialog).compute_bounds(dialog)
+    assert checkbox_found, "checkbox has bounds"
+    assert checkbox_bounds is not None, "checkbox bounds are available"
+    assert action_found, "action area has bounds"
+    assert action_bounds is not None, "action area bounds are available"
+    assert (
+        checkbox_bounds.get_y() + checkbox_bounds.get_height() <= action_bounds.get_y()
+    ), "global checkbox ends above the action area"
+
+    grid_natural_height = dialog.grid.measure(Gtk.Orientation.VERTICAL, -1)[1]
+    assert dialog.scrolled_window.get_height() > grid_natural_height, (
+        "message list expands into the surplus height"
+    )
+    assert dialog.grid.get_height() <= grid_natural_height + 2, (
+        "message rows keep their natural height"
+    )
+
+    dialog.destroy()
+
+
+def test_multiple_message_columns_have_gap(
+    wait_until: Callable[[Callable[[], bool]], None],
+) -> None:
+    """Adjacent header cells are separated by the grid's column spacing."""
+    dialog = MultipleMessage()
+    dialog.add_row(
+        {
+            "page": 1,
+            "process": "scan",
+            "message_type": "error",
+            "text": "message",
+            "store_response": True,
+        }
+    )
+    dialog.set_default_size(600, 300)
+    dialog.present()
+
+    def header_is_laid_out() -> bool:
+        header = dialog.grid.get_child_at(0, 0)
+        return bool(
+            dialog.get_mapped()
+            and dialog.grid.get_mapped()
+            and header is not None
+            and header.get_height() > 0
+        )
+
+    wait_until(header_is_laid_out)
+
+    assert dialog.grid.get_column_spacing() == DIALOG_ROW_SPACING, "column spacing"
+    assert dialog.grid.get_row_spacing() == DIALOG_ROW_SPACING, "row spacing"
+    for column in range(4):
+        left = dialog.grid.get_child_at(column, 0)
+        right = dialog.grid.get_child_at(column + 1, 0)
+        assert left is not None, f"column {column} header exists"
+        assert right is not None, f"column {column + 1} header exists"
+        left_found, left_bounds = left.compute_bounds(dialog.grid)
+        right_found, right_bounds = right.compute_bounds(dialog.grid)
+        assert left_found, f"column {column} header has bounds"
+        assert left_bounds is not None, f"column {column} header bounds available"
+        assert right_found, f"column {column + 1} header has bounds"
+        assert right_bounds is not None, f"column {column + 1} header bounds available"
+        gap = right_bounds.get_x() - (left_bounds.get_x() + left_bounds.get_width())
+        assert gap > 0, f"headers in columns {column} and {column + 1} touch"
+
+    dialog.destroy()

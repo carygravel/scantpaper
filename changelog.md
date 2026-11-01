@@ -17,6 +17,18 @@
   **Cancel**. **File → Open crashed session** opens the same picker instead of
   a folder chooser that could not select the `.sdb` file. Sessions in use by
   another instance are skipped without blocking startup.
+* The Messages dialog no longer clips its global "Don't show this message
+  again" label and checkbox. The control now sits in a fixed row below the
+  message list and above the buttons, so it stays visible however many messages
+  there are, and the list uses the dialog's spare height while each message row
+  keeps its natural height. The columns and rows are now separated by the same
+  spacing used elsewhere in the dialog, so headers, message cells, and hide
+  checkboxes no longer touch. A message without a page number leaves its Page
+  cell empty instead of showing "None".
+* Closing the Messages dialog with Escape or the window close control now
+  returns to the caller instead of leaving it waiting. Message text is a
+  selectable label rather than a focusable text view, which avoids a segfault
+  in the GTK4 IBus input-method module when the dialog is closed.
 
 
 ## 4.0.2 (2026-10-31)

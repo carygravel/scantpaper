@@ -6,6 +6,7 @@ import re
 from typing import TYPE_CHECKING, cast
 
 import gi
+from typing_extensions import override
 
 from scantpaper.const import (
     DIALOG_BUTTON_SPACING,
@@ -183,10 +184,16 @@ class MultipleMessage(Dialog):
         """Initialise MultipleMessage."""
         super().__init__(*args, **kwargs)
 
-        # to ensure dialog can't grow too big if we have too many messages
-        scwin = Gtk.ScrolledWindow()
-        self.get_content_area().append(scwin)
+        # to ensure dialog can't grow too big if we have too many messages,
+        # but let the list use the height the dialog makes available
+        self.scrolled_window = Gtk.ScrolledWindow()
+        self.scrolled_window.set_vexpand(True)
+        self.get_content_area().append(self.scrolled_window)
         self.grid = Gtk.Grid()
+        self.grid.set_column_spacing(DIALOG_ROW_SPACING)
+        self.grid.set_row_spacing(DIALOG_ROW_SPACING)
+        # keep rows at their natural height; the viewport supplies the surplus
+        self.grid.set_valign(Gtk.Align.START)
         self.grid_rows = 0
         self.stored_responses = {}
         self.grid.attach(Gtk.Label(label=_("Page")), 0, self.grid_rows, 1, 1)
@@ -199,15 +206,43 @@ class MultipleMessage(Dialog):
             Gtk.Label(label=_("Hide")), COL_CHECKBUTTON, self.grid_rows, 1, 1
         )
         self.grid_rows += 1
+        self.scrolled_window.set_child(self.grid)
+
+        # the global control stays outside the scrolling list so that many
+        # messages cannot scroll it out of view
+        self.global_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.cbl = Gtk.Label(label=_("Don't show this message again"))
         self.cbl.set_halign(Gtk.Align.END)
-        self.grid.attach(self.cbl, COL_MESSAGE, self.grid_rows, 1, 1)
+        self.cbl.set_hexpand(True)
+        self.global_row.append(self.cbl)
         self.cbn = Gtk.CheckButton()
         self.cbn.set_halign(Gtk.Align.CENTER)
-        self.grid.attach(self.cbn, COL_CHECKBUTTON, self.grid_rows, 1, 1)
-        scwin.set_child(self.grid)
+        self.global_row.append(self.cbn)
+        self.get_content_area().append(self.global_row)
         self.cbn.connect("toggled", self.on_toggled)
         self.add_actions([(_("_Close"), close_callback)])
+
+    @override
+    def _on_close_request(self, _widget: Gtk.Widget) -> bool:
+        """Close via a response so a waiting run_dialog() loop returns."""
+        self.response(Gtk.ResponseType.CLOSE)
+        self.hide()
+        return True
+
+    @override
+    def _on_key_pressed(
+        self,
+        _controller: Gtk.EventControllerKey,
+        keyval: int,
+        _keycode: int,
+        _state: Gdk.ModifierType,
+    ) -> bool:
+        """Close on Escape via a response so a waiting loop returns."""
+        if keyval == Gdk.KEY_Escape:
+            self.response(Gtk.ResponseType.CLOSE)
+            self.hide()
+            return True
+        return False
 
     def on_toggled(self, _data: object | None = None) -> None:
         """Handle a checkbutton toggle."""
@@ -219,7 +254,9 @@ class MultipleMessage(Dialog):
         """Add a row with a new message."""
         self.grid.insert_row(self.grid_rows)
         if "page" in row:
-            self.grid.attach(Gtk.Label(label=str(row["page"])), 0, self.grid_rows, 1, 1)
+            page = row["page"]
+            page_text = "" if page is None else str(page)
+            self.grid.attach(Gtk.Label(label=page_text), 0, self.grid_rows, 1, 1)
         if "process" in row:
             self.grid.attach(Gtk.Label(label=row["process"]), 1, self.grid_rows, 1, 1)
         self.grid.attach(
@@ -229,9 +266,6 @@ class MultipleMessage(Dialog):
             1,
             1,
         )
-        view = Gtk.TextView()
-        buffer = view.get_buffer()
-
         # strip newlines from the end of the string, but not the end of the line
         row["text"] = re.sub(
             r"\s+\Z",
@@ -240,9 +274,10 @@ class MultipleMessage(Dialog):
             count=1,
             flags=re.MULTILINE | re.DOTALL | re.VERBOSE,
         )
-        buffer.set_text(row["text"])
-        view.set_editable(False)
-        view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        view = Gtk.Label(label=row["text"])
+        view.set_selectable(True)
+        view.set_wrap(True)
+        view.set_xalign(0.0)
         view.set_hexpand(True)
         self.grid.attach(view, COL_MESSAGE, self.grid_rows, 1, 1)
         self.grid_rows += 1
@@ -328,14 +363,8 @@ class MultipleMessage(Dialog):
                             break
 
                 if filt:
-                    buffer = self.grid.get_child_at(COL_MESSAGE, row).get_buffer()
-                    messages.append(
-                        buffer.get_text(
-                            buffer.get_start_iter(),
-                            buffer.get_end_iter(),
-                            include_hidden_chars=True,
-                        )
-                    )
+                    label = cast("Gtk.Label", self.grid.get_child_at(COL_MESSAGE, row))
+                    messages.append(label.get_text())
 
         return cast("list[str]", (messages))
 

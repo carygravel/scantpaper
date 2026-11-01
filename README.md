@@ -237,7 +237,12 @@ you explicitly turn the toggle off.
   up and Preferences dialogs, rows keep the height their content needs when
   the window is taller than the page: the surplus appears as empty space below
   the last row instead of stretching a frame, checkbox or label-and-control
-  row.
+  row. A message dialog keeps its "Don't show this message again" control in
+  a fixed row below the scrolling list, gives the spare height to the list,
+  and shows each message as selectable text. A message without a page number
+  leaves its Page cell empty instead of showing "None". Escape and the window
+  close control close it with a response, so the caller returns and the dialog
+  does not trip the GTK4 IBus module's focus-out crash.
 
 ### JBIG2 and the Xerox character-substitution bug
 
