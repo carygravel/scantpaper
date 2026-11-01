@@ -306,6 +306,9 @@ Further reading:
   undone or redone as a single step, reverting every affected page
   together. Text and annotation corrections are undone and redone the same
   way; undoing an edit also restores the page's previous saved state.
+  Clearing the document with **New File** is itself an undo step: undo right
+  after it restores the cleared pages, and undoing a later edit never
+  resurrects pages that were cleared before it.
 - **Cut, Copy, Paste:** Cut, copy, or paste selected pages.
 - **Delete:** Remove selected pages.
 - **Select:** Select all, odd, even, inverted, blank, dark, or modified pages, or pages without (up-to-date) OCR.

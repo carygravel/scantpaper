@@ -7,7 +7,7 @@
 - [x] 1.2 Update `packaging/fedora/scantpaper.spec` and
       `packaging/opensuse/scantpaper.spec` BuildRequires/Requires for GTK4
       (gtk4, typelib-1_0-Gtk-4_0, python3-gobject/pycairo as-is).
-- [ ] 1.3 Confirm CI produces and runs a GTK4 build on `ubuntu-latest`,
+- [x] 1.3 Confirm CI produces and runs a GTK4 build on `ubuntu-latest`,
       `ubuntu-22.04` (jammy), Fedora 43/44, and openSUSE Leap 16.
 
 ## 2. Foundation

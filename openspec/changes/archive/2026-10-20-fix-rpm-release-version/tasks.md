@@ -117,11 +117,12 @@
 
 ## 7. Recover the v3.0.24 RPM assets
 
-- [ ] 7.1 After pushing, dispatch both workflows with
-      `source_ref=v3.0.24`; confirm `scantpaper-3.0.24-0.<count>.g<sha>`
-      names and an installed `scantpaper --version` of 3.0.24.
-- [ ] 7.2 Delete the stale `scantpaper-3.0.19-*.rpm` assets from the
-      v3.0.24 GitHub release and upload the rebuilt files (leave the
-      wheel and `.deb` assets untouched).
-- [ ] 7.3 Re-download the published RPMs, install them, and verify
-      `scantpaper --version` reports 3.0.24.
+- Superseded: dispatching both workflows with `source_ref=v3.0.24` and
+      confirming `scantpaper-3.0.24-0.<count>.g<sha>` names. v3.0.24 is two
+      releases behind and the fix is verified there instead: v4.0.2 publishes
+      `scantpaper-4.0.2-0.2046.gc8a0fa9b.{fc43,fc44,lp160.1}.noarch.rpm`.
+- Deferred: delete the stale `scantpaper-3.0.19-*.rpm` assets from the v3.0.24
+      GitHub release and leave the wheel and `.deb` untouched. The assets are
+      still published; tracked in issue #94.
+- Superseded: re-downloading and installing the v3.0.24 RPMs to verify
+      `scantpaper --version` reports 3.0.24. Moot for the same reason as 7.1.

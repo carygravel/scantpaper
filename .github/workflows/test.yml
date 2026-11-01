@@ -103,6 +103,11 @@ jobs:
           npm install -g @fission-ai/openspec@1.14.3
       - name: Validate OpenSpec specs
         run: openspec validate --specs --strict --no-interactive
+      - name: Validate archived changes are complete
+        # --archived cannot be combined with --specs, so it is a separate
+        # step. Every task in openspec/changes/archive must be ticked; a
+        # deferred task is de-tracked as prose naming its tracking issue.
+        run: openspec validate --archived --no-interactive
 
       - name: Display Python version
         run: python3 -c "import sys; print(sys.version)"

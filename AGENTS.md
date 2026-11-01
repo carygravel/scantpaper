@@ -191,6 +191,12 @@ This document provides essential context for anyone working on this project. Adh
     `openspec validate --specs --strict --no-interactive`. `--strict`
     turns warnings (such as an over-long requirement) into failures, so
     without it a change can pass locally and fail CI.
+    Archived changes are validated by a separate command,
+    `openspec validate --archived --no-interactive`, because `--archived`
+    does not combine with `--specs`. It requires every task in every
+    archive to be ticked, so a task that is deliberately deferred is
+    rewritten as a plain prose bullet naming the issue that tracks it, not
+    left as an open checkbox. Run both before pushing.
 -   **imports:** The project uses package-absolute imports for first-party
     modules: import statements always carry a leading `scantpaper` prefix,
     e.g. `from scantpaper.const import VERSION`.

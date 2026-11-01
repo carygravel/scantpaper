@@ -119,10 +119,10 @@
       drift); confirm the installed app imports and reports a sane
       version. Done: 198 packages installed, all imports OK, ocrmypdf
       16.11.1.
-- [ ] 3.3 Check OBS `devel:languages:python` for prebuilt Leap 16.0
-      `ocrmypdf`/`img2pdf`/`pdfminer.six`/`pypdf` rpms; if current, note
-      them as an install-time alternative to the local builds (optional,
-      does not change the workflow).
+- Deferred (optional, dropped): check OBS `devel:languages:python` for
+      prebuilt Leap 16.0 `ocrmypdf`/`img2pdf`/`pdfminer.six`/`pypdf` rpms. The
+      packaging workflows build these locally and the resulting packages
+      install, so the prebuilt alternative was never needed.
 
 ## 4. Documentation
 

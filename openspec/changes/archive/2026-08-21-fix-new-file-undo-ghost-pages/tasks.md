@@ -22,6 +22,6 @@
 
 ## 5. Docs & quality gates
 
-- [ ] 5.1 Document the changed behaviour in README.md: "New File" is now undoable; undoing an edit after "New File" no longer resurrects earlier pages.
+- [x] 5.1 Document the changed behaviour in README.md: "New File" is now undoable; undoing an edit after "New File" no longer resurrects earlier pages.
 - [x] 5.2 Run full `pytest`; ensure coverage numbers for touched files are same or better. *(Clean-data comparison vs baseline: no file worse; file_menu_mixins.py partial branches 23→22; total uncovered statements unchanged at 3. Note: `--cov-append` in addopts silently accumulates stale data — always `rm .coverage` before coverage comparisons.)*
 - [x] 5.3 Run `black` on modified files; ensure `pylint` score is same or better with no new disables. *(black clean across the tree; pylint 9.53 → 9.54 for the touched modules; no new disables.)*

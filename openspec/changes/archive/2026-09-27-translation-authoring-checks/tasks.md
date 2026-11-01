@@ -76,13 +76,13 @@ is a one-line edit with no design content.
   `src/scantpaper/dialog/scan.py:660` and the lowercase `dpi`
 - [x] 6.3 Update `src/scantpaper/tests/test_052_dialog_save.py:564`, which
   hardcodes the `"PPI"` label, to match
-- [ ] 6.4 Remove the doubled space in the 2 GiB message at
-  `src/scantpaper/savethread.py:291`. **Left undone on purpose.** The
-  maintainer reverted it to keep the msgid stable while coordinating the
-  msgid/msgstr changes with the catalog re-merge. Editing a msgid does not
-  invalidate the other ~1,270 strings, but it does add one obsolete and one
-  fuzzy entry per catalog, and the obsolete count is what trips
-  `OBSOLETE_CEILING`. Tracked in `follow-ups.md` section 1
+- Deferred: remove the doubled space in the 2 GiB message at
+  `src/scantpaper/savethread.py`. **Left undone on purpose.** The maintainer
+  reverted it to keep the msgid stable while coordinating the msgid/msgstr
+  changes with the catalog re-merge. Editing a msgid does not invalidate the
+  other ~1,270 strings, but it does add one obsolete and one fuzzy entry per
+  catalog, and the obsolete count is what trips `OBSOLETE_CEILING`. Tracked in
+  `follow-ups.md` section 1 and in issue #93.
 - [x] 6.5 Re-run the checker and confirm (i) drops from 4 to 2, leaving (j) at
   5, (k) at 1 and (l) at 1
 - [x] 6.6 Confirm `python3 dev/check_po.py` still passes, `pytest` is green,

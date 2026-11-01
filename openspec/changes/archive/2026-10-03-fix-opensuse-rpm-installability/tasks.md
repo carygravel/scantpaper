@@ -101,15 +101,14 @@
       `design.md`). The macro and its comment are gone from all ten specs. Net
       result of this task: no spec suppresses the pythondist generator, and CI
       now asserts that so a macro cannot creep back in.
-- [ ] 2.2 Build one representative package (the cheapest: `python313-
-      img2pdf`) and confirm the generated requires are gone:
-      `rpm -qp --requires ~/rpmbuild/RPMS/noarch/python313-img2pdf-*.rpm`
-      contains no `python3dist(`, while `rpm -qp --provides` still
-      contains `python3dist(img2pdf)` and `python3.13dist(img2pdf)`.
+- Dropped: build one representative package (the cheapest: `python313-img2pdf`)
+      and confirm the generated requires are gone. The build check was run on
+      2026-10-03, and the task is not a goal as written.
 
       **Measured 2026-10-03; the provides half is false as written, and is no
-      longer a goal.** This box stays unticked on purpose - the task asserts
-      something the build disproves, and ticking it would record a falsehood.
+      longer a goal.** The task was dropped rather than ticked on purpose - it
+      asserts something the build disproves, and ticking it would record a
+      falsehood.
       The decision that replaced it is recorded in "Open Questions" in
       `design.md` (option 3: no provides, no macro). In a real Leap 16.0
       container the built `python313-img2pdf-0.6.3.0` RPM gives:
