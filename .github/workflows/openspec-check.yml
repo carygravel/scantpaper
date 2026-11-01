@@ -1,0 +1,73 @@
+name: Check OpenSpec CLI updates
+
+on:
+  schedule:
+    # Daily at 07:00 UTC, like the translations check. Best-effort on GitHub:
+    # it can be delayed, and it is disabled after long repository inactivity.
+    # This is a reminder, not a gate.
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      # The pinned release is already exercised by test.yml on every push, so
+      # this job installs npm's latest and asks whether *that* release passes
+      # the same validation. The checker reads the pin itself.
+      - name: Install the candidate release
+        run: |
+          npm install -g @fission-ai/openspec@latest
+          openspec --version
+      # A detected update, safe or blocked, exits 0 so the report can be
+      # filed. Only an unreadable pin, registry, or candidate version exits
+      # non-zero, which fails the job instead of silently reporting "current".
+      - name: Compare the pin with npm and validate the candidate
+        run: python3 dev/check_openspec.py --json > report.json
+      - name: Report the state in a single issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          label="openspec-update"
+          gh label create "$label" \
+            --description "A newer OpenSpec CLI release is available" --force
+
+          read_report() {
+            python3 -c "import json; print(json.load(open('report.json'))['$1'])"
+          }
+
+          state=$(read_report state)
+          number=$(gh issue list --label "$label" --state open --json number \
+            --jq '.[0].number // empty')
+
+          if [ "$state" = "current" ]; then
+            # The pin caught up, so an open recommendation is now wrong.
+            if [ -n "$number" ]; then
+              gh issue comment "$number" \
+                --body "The pin now matches npm's latest release."
+              gh issue close "$number"
+            fi
+            exit 0
+          fi
+
+          version=$(read_report latest)
+          if [ "$state" = "update-safe" ]; then
+            title="OpenSpec $version is available and safe to upgrade"
+          else
+            title="OpenSpec $version is blocked: validation fails here"
+          fi
+
+          read_report markdown > body.md
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --title "$title" --body-file body.md
+          else
+            gh issue create --title "$title" --body-file body.md --label "$label"
+          fi

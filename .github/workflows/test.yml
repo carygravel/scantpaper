@@ -99,8 +99,10 @@ jobs:
       - name: Install OpenSpec
         run: |
           # Pinned so a new upstream rule cannot turn CI red without a
-          # deliberate upgrade; bump together with the local CLI.
-          npm install -g @fission-ai/openspec@1.14.3
+          # deliberate upgrade. The pin is the one-line dev/openspec-version,
+          # shared with the scheduled openspec-check workflow; bump it there
+          # and install the same release locally.
+          npm install -g "@fission-ai/openspec@$(cat dev/openspec-version)"
       - name: Validate OpenSpec specs
         run: openspec validate --specs --strict --no-interactive
       - name: Validate archived changes are complete

@@ -179,14 +179,19 @@ This document provides essential context for anyone working on this project. Adh
       explicit agreement from the maintainer.
 -   **Security:** Be mindful of security. Do not hardcode secrets or keys.
 -   **Dependencies:** To add a new Python dependency, add it to `pyproject.toml`. Ensure it is available on common distributions or via `pip`.
--   **OpenSpec:** The `openspec` CLI manages change workflows. Install the
-    version pinned in `.github/workflows/test.yml`, not whatever npm calls
-    latest, so local validation matches CI. Check the pin against your CLI
-    with `npm view @fission-ai/openspec version` (npm's latest),
-    `npm outdated -g --depth=0` (local drift), and `openspec --version`.
-    Install or move to a version with
-    `npm install -g @fission-ai/openspec@<version>`; bump the workflow pin
-    and the global install together when adopting a newer release.
+-   **OpenSpec:** The `openspec` CLI manages change workflows. The version CI
+    installs is recorded once, in `dev/openspec-version`; install that same
+    release locally, never whatever npm calls latest, so local validation
+    matches CI:
+    `npm install -g "@fission-ai/openspec@$(cat dev/openspec-version)"`.
+    The scheduled `openspec-check` workflow compares the pin with npm's latest
+    release, runs the candidate through the same strict validation, and keeps
+    one issue labelled `openspec-update` whose title says either "safe to
+    upgrade" or "blocked"; it closes itself once the pin matches. Run the same
+    check locally with `python3 dev/check_openspec.py` (`--json` for the
+    machine report). Adopt a reported release by editing
+    `dev/openspec-version`, reinstalling as above, and running both commands
+    below.
     Validate with the exact CI command:
     `openspec validate --specs --strict --no-interactive`. `--strict`
     turns warnings (such as an over-long requirement) into failures, so
