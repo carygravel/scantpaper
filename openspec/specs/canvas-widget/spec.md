@@ -547,14 +547,13 @@ the user's gtk.css SHALL override the application's default.
 
 ### Requirement: A primary press focuses only a word slice
 
-While a selecting tool (Select or Select & Pan) is active, a
-primary-button press on the Canvas SHALL focus a slice only when the
-pointer lands on a word box. Any other press SHALL NOT focus anything,
-SHALL NOT change the active navigation order or its current position, and
-SHALL begin a selection drag when the page extent is known. While the Pan
-tool is active, a primary press SHALL NOT focus anything and SHALL pan
-instead. The geometric lookup that resolves a box at a point SHALL remain
-available for choosing a new slice's parent.
+While a selecting tool (Select or Select & Pan) is active, a primary
+press on the Canvas SHALL focus a slice only when the pointer lands on a
+word box. Any other press SHALL NOT focus, SHALL NOT change the
+navigation order, and SHALL begin a selection drag when the page extent
+is known. While the Pan tool is active, a primary press SHALL NOT focus
+and SHALL pan instead. The geometric lookup that resolves a box at a
+point SHALL remain available for choosing a new slice's parent.
 
 #### Scenario: A press on a word focuses that word
 
