@@ -1117,6 +1117,126 @@ def test_to_hocr_manual_word_under_carea_and_bare_line() -> None:
     assert hocr.count("class='ocrx_word'") == 2, "both words survive"
 
 
+def test_to_hocr_manual_word_inside_ocr_para_wrapped() -> None:
+    """A word added inside an OCR paragraph is wrapped in a synthetic line."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 1000, 1400]},
+        {"type": "para", "depth": 1, "bbox": [10, 10, 990, 1390]},
+        {"type": "line", "depth": 2, "bbox": [20, 20, 400, 60]},
+        {"type": "word", "depth": 3, "bbox": [30, 30, 200, 55], "text": "OCR"},
+        {"type": "word", "depth": 2, "bbox": [600, 900, 800, 960], "text": "MANUAL"},
+    ]
+    hocr = tree.to_hocr()
+    assert hocr.count("class='ocr_par'") == 1, "no nested paragraph"
+    assert hocr.count("class='ocr_line'") == 2, "OCR line plus synthetic line"
+    assert hocr.count("class='ocrx_word'") == 2, "both words survive"
+
+    exported = Bboxtree()
+    exported.from_hocr(hocr)
+    boxes = list(exported.each_bbox())
+    index = next(i for i, box in enumerate(boxes) if box.get("text") == "MANUAL")
+    parents = [
+        box for box in boxes[:index] if box["depth"] == boxes[index]["depth"] - 1
+    ]
+    assert parents, "the manual word has a parent"
+    assert parents[-1]["type"] == "line", "the manual word sits inside a line"
+    assert parents[-1]["bbox"] == boxes[index]["bbox"], "the line wraps only the word"
+
+
+def test_to_hocr_bare_words_before_and_after_existing_line_wrapped() -> None:
+    """Bare words around an existing line each get their own synthetic line."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 400, 400]},
+        {"type": "para", "depth": 1, "bbox": [10, 10, 390, 390]},
+        {"type": "word", "depth": 2, "bbox": [20, 20, 100, 50], "text": "before"},
+        {"type": "line", "depth": 2, "bbox": [20, 100, 200, 140]},
+        {"type": "word", "depth": 3, "bbox": [30, 110, 150, 130], "text": "middle"},
+        {"type": "word", "depth": 2, "bbox": [20, 200, 100, 230], "text": "after"},
+    ]
+    hocr = tree.to_hocr()
+    assert hocr.count("class='ocr_par'") == 1, "one paragraph"
+    assert hocr.count("class='ocr_line'") == 3, "two synthetic lines plus the OCR line"
+    assert hocr.count("class='ocrx_word'") == 3, "all words survive"
+
+    exported = Bboxtree()
+    exported.from_hocr(hocr)
+    boxes = list(exported.each_bbox())
+    texts = [box.get("text") for box in boxes if box["type"] == "word"]
+    assert texts == ["before", "middle", "after"], "word order is preserved"
+    for text in texts:
+        index = next(i for i, box in enumerate(boxes) if box.get("text") == text)
+        parents = [
+            box for box in boxes[:index] if box["depth"] == boxes[index]["depth"] - 1
+        ]
+        assert parents, f"{text} has a parent"
+        assert parents[-1]["type"] == "line", f"{text} sits inside a line"
+
+
+def test_to_hocr_para_with_only_bare_words_wrapped() -> None:
+    """A paragraph made only of bare words gets synthetic lines."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 300, 300]},
+        {"type": "para", "depth": 1, "bbox": [10, 10, 290, 290]},
+        {"type": "word", "depth": 2, "bbox": [20, 20, 100, 50], "text": "one"},
+        {"type": "word", "depth": 2, "bbox": [110, 20, 200, 50], "text": "two"},
+        {"type": "word", "depth": 2, "bbox": [20, 60, 100, 90], "text": "three"},
+    ]
+    hocr = tree.to_hocr()
+    assert hocr.count("class='ocr_par'") == 1, "one paragraph"
+    assert hocr.count("class='ocr_line'") == 2, "two synthetic rows"
+    assert hocr.count("class='ocrx_word'") == 3, "all words survive"
+
+    exported = Bboxtree()
+    exported.from_hocr(hocr)
+    boxes = list(exported.each_bbox())
+    for text in ("one", "two", "three"):
+        index = next(i for i, box in enumerate(boxes) if box.get("text") == text)
+        parents = [
+            box for box in boxes[:index] if box["depth"] == boxes[index]["depth"] - 1
+        ]
+        assert parents, f"{text} has a parent"
+        assert parents[-1]["type"] == "line", f"{text} sits inside a line"
+
+
+def test_to_hocr_rotated_bare_word_inside_para_moves_angle_to_line() -> None:
+    """A rotated word added inside an OCR paragraph keeps its angle."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 400, 400]},
+        {"type": "para", "depth": 1, "bbox": [10, 10, 390, 390]},
+        {"type": "line", "depth": 2, "bbox": [20, 20, 200, 60]},
+        {"type": "word", "depth": 3, "bbox": [30, 30, 100, 50], "text": "OCR"},
+        {
+            "type": "word",
+            "depth": 2,
+            "bbox": [260, 30, 300, 150],
+            "text": "SLICE",
+            "textangle": 90,
+        },
+    ]
+
+    exported = Bboxtree()
+    exported.from_hocr(tree.to_hocr())
+    boxes = list(exported.each_bbox())
+    lines = [box for box in boxes if box["type"] == "line"]
+    words = [box for box in boxes if box["type"] == "word"]
+
+    assert len(lines) == 2, "the rotated word gets its own line"
+    vertical = next(line for line in lines if line.get("textangle") == 90)
+    assert vertical["bbox"] == [260, 30, 300, 150], "the line wraps only the word"
+    assert all("textangle" not in word for word in words), "word angles cleared"
+
+    index = next(i for i, box in enumerate(boxes) if box.get("text") == "SLICE")
+    parents = [
+        box for box in boxes[:index] if box["depth"] == boxes[index]["depth"] - 1
+    ]
+    assert parents, "the rotated word has a parent"
+    assert parents[-1] is vertical, "the rotated word sits in the angled line"
+
+
 def test_to_hocr_rotated_bare_word_moves_angle_to_synthetic_line() -> None:
     """A bare rotated word exports with the angle on its generated line."""
     tree = Bboxtree()

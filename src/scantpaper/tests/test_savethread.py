@@ -1567,6 +1567,52 @@ def test_hocr_flat_tree_embeds_searchable_text(
         assert "second" in text, "second row preserved"
 
 
+def test_hocr_manual_word_inside_para_embeds_searchable_text(
+    rose_png: str,
+) -> None:
+    """A word added inside an OCR paragraph survives the real save path."""
+    tree = Bboxtree()
+    tree.bbox_tree = [
+        {"type": "page", "depth": 0, "bbox": [0, 0, 70, 46]},
+        {"type": "para", "depth": 1, "bbox": [0, 0, 70, 46]},
+        {"type": "line", "depth": 2, "bbox": [1, 1, 30, 15]},
+        {"type": "word", "depth": 3, "bbox": [1, 1, 30, 15], "text": "OCRWORD"},
+        {
+            "type": "word",
+            "depth": 2,
+            "bbox": [1, 25, 60, 40],
+            "text": "MANUALWORD",
+        },
+    ]
+    hocr = tree.to_hocr()
+    assert hocr.count("class='ocr_line'") == 2, "the manual word gets a line"
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        outdir = pathlib.Path(tempdir)
+        (outdir / "000001_ocr_hocr.hocr").write_text(hocr, encoding="utf-8")
+        (outdir / "000001_hocr.json").write_text(
+            json.dumps({"pageno": 0, "orientation_correction": 0}),
+            encoding="utf-8",
+        )
+        (outdir / "origin.pdf").write_bytes(img2pdf.convert([rose_png]))
+        result = outdir / "result.pdf"
+        ocrmypdf.api._hocr_to_ocr_pdf(
+            outdir,
+            result,
+            optimize=0,
+            plugins=["scantpaper.savethread"],
+        )
+
+        text = subprocess.run(
+            ["pdftotext", str(result), "-"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        assert "OCRWORD" in text, "OCR word is searchable after save"
+        assert "MANUALWORD" in text, "manual word inside the paragraph survives"
+
+
 def test_save_pdf_releases_pages_during_assembly(tmp_path: pathlib.Path) -> None:
     """A multi-page save holds at most the page being processed, not all of them.
 

@@ -1756,6 +1756,25 @@ def test_share_split_resize_evenly_clamps_at_the_minimum() -> None:
     pane.set_position.assert_called_once_with(101)
 
 
+def test_share_split_resize_evenly_ignores_a_pane_below_the_minimums() -> None:
+    """A pane too small for both children's minimums is left alone."""
+    pane = MagicMock()
+    pane.get_height.return_value = 600
+    _measure_minimum(pane, 1)
+    _measure_minimum(pane.get_start_child.return_value, 100)
+    _measure_minimum(pane.get_end_child.return_value, 40)
+    pane.get_position.return_value = 559
+    _share_split_resize_evenly(pane, Gtk.Orientation.VERTICAL)
+    on_resize = pane.connect.call_args_list[0].args[1]
+
+    on_resize(pane, None)
+    pane.get_height.return_value = 100
+    on_resize(pane, None)
+
+    # low = 101 and high = 59, so there is no valid divider position.
+    pane.set_position.assert_not_called()
+
+
 def test_share_split_resize_evenly_ignores_a_detached_child() -> None:
     """A pane with a child removed during a repack is left alone."""
     pane = MagicMock()

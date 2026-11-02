@@ -47,6 +47,11 @@
   once detection finishes, and the space it released used to enlarge the edit
   bar; the view now keeps that space. In a vertical split the image and the
   layer canvas each take half of it.
+* A word added manually inside an existing OCR paragraph's bounding box, but
+  outside its lines, is now included in the saved PDF's searchable text layer.
+  The exporter gives such words the synthetic OCR line the PDF renderer
+  requires, so words added after importing an old hOCR layer no longer
+  disappear from the output.
 
 
 ## 4.0.2 (2026-10-31)

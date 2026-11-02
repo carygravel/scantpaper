@@ -792,16 +792,60 @@ def _set_textangle(node: BBox, angle: int, *, keep_zero: bool = False) -> None:
         node.pop("textangle", None)
 
 
+def _make_synthetic_line(group: list[BBox]) -> BBox:
+    """Return a synthetic line wrapping the given words."""
+    line: BBox = {"type": "line", "contents": group}
+    group_boxes = [word for word in group if "bbox" in word]
+    if group_boxes:
+        line["bbox"] = _union_bbox(group_boxes)
+    return line
+
+
+def _wrap_bare_words_in_lines(children: list[BBox]) -> list[BBox]:
+    """Replace runs of bare word children with synthetic line nodes.
+
+    Existing non-word children, including OCR lines, keep their position and
+    remain untouched. Wrapping the words in place preserves document order.
+    """
+    wrapped: list[BBox] = []
+    pending: list[BBox] = []
+    for child in children:
+        if child["type"] == "word":
+            pending.append(child)
+            continue
+        if pending:
+            wrapped.extend(
+                _make_synthetic_line(group)
+                for group in _group_words_into_lines(pending)
+            )
+            pending = []
+        wrapped.append(child)
+    if pending:
+        wrapped.extend(
+            _make_synthetic_line(group) for group in _group_words_into_lines(pending)
+        )
+    return wrapped
+
+
 def _ensure_hocr_containers(node: BBox) -> None:
     """Recursively wrap word/line children of a node in a synthetic para.
 
     ``line`` and the other line-level containers (``header``, ``footer``,
     ``caption``) already group their words and must be left untouched, whether
     they sit under a ``para`` or directly under a ``page``/``carea``.
+
+    A ``para`` can also contain bare words when the user adds a word inside the
+    paragraph's bounding box but outside any of its lines. Those words need a
+    synthetic ``line`` directly under the existing ``para``; creating a
+    synthetic ``para`` there would nest paragraphs and still leave the words
+    invisible to the PDF text-layer renderer.
     """
-    if node["type"] in ("word", "line", "para", "header", "footer", "caption"):
-        for child in node.get("contents", []):
+    if node["type"] == "para":
+        node["contents"] = _wrap_bare_words_in_lines(node.get("contents", []))
+        for child in node["contents"]:
             _ensure_hocr_containers(child)
+        return
+    if node["type"] in ("word", "line", "header", "footer", "caption"):
         return
     children = node.get("contents", [])
     wrap = [c for c in children if c["type"] in ("word", "line")]
@@ -815,12 +859,9 @@ def _ensure_hocr_containers(node: BBox) -> None:
     for child in wrap:
         if child["type"] == "line":
             para["contents"].append(child)
-    for group in _group_words_into_lines(words):
-        line: BBox = {"type": "line", "contents": group}
-        group_boxes = [w for w in group if "bbox" in w]
-        if group_boxes:
-            line["bbox"] = _union_bbox(group_boxes)
-        para["contents"].append(line)
+    para["contents"].extend(
+        _make_synthetic_line(group) for group in _group_words_into_lines(words)
+    )
 
     para_boxes = [c for c in para["contents"] if "bbox" in c]
     if para_boxes:
