@@ -1016,7 +1016,9 @@ class FileMenuMixins:
         for file in list(session_path.glob("*")) + list(
             session_path.parent.glob(session_path.name + ".sdb*")
         ):
-            file.unlink()
+            # SQLite may remove a -wal or -shm file as it closes, so a file
+            # listed by glob can already be gone by the time it is removed.
+            file.unlink(missing_ok=True)
         session_path.rmdir()
 
     def _restart(self) -> None:

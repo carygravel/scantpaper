@@ -5,6 +5,7 @@ from __future__ import annotations
 import pathlib
 import threading
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 from PIL import Image
@@ -15,6 +16,9 @@ from scantpaper.file_menu_mixins import FileMenuMixins
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 from scantpaper.session_mixins import SessionMixins
+
+if TYPE_CHECKING:
+    import pytest
 
 
 class _DiscoveryWindow(SessionMixins):
@@ -86,6 +90,33 @@ def test_restore_consumes_snapshot_and_quit_cleans_temporary_session(
         assert discovery._find_crashed_sessions() == []
     finally:
         slist.thread.quit()
+
+
+def test_remove_session_files_tolerates_a_vanished_sidecar(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A SQLite sidecar may disappear between glob and unlink."""
+    current = tmp_path / "scantpaper-currentx"
+    current.mkdir()
+    (current / "artifact").write_text("temporary", encoding="utf-8")
+    sidecar = pathlib.Path(f"{current}.sdb-wal")
+    sidecar.write_text("wal", encoding="utf-8")
+    original_glob = pathlib.Path.glob
+
+    def glob_then_remove(self: pathlib.Path, pattern: str) -> list[pathlib.Path]:
+        matches = list(original_glob(self, pattern))
+        if pattern.endswith(".sdb*"):
+            sidecar.unlink()
+        return matches
+
+    monkeypatch.setattr(pathlib.Path, "glob", glob_then_remove)
+
+    cleanup = FileMenuMixins()
+    cleanup.session = SimpleNamespace(name=str(current))
+    cleanup._remove_session_files()
+
+    assert not current.exists()
+    assert not sidecar.exists()
 
 
 def test_restore_failure_leaves_snapshot(tmp_path: pathlib.Path) -> None:

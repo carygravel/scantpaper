@@ -1001,7 +1001,7 @@ def test_hiding_the_bar_closes_the_focus_zoom_popover(
     editor.controls.show()
     button = editor.controls.focus_zoom_button
     assert button is not None
-    button.set_active(True)
+    button.popup()
     assert button.get_active(), "the popover starts open"
 
     editor.set_active(active=False)
@@ -1020,12 +1020,12 @@ def test_focus_zoom_opens_on_first_activation_after_the_bar_returns(
     editor.set_active(active=True)
     button = editor.controls.focus_zoom_button
     assert button is not None
-    button.set_active(True)
+    button.popup()
     editor.set_active(active=False)
     assert not button.get_active()
 
     editor.set_active(active=True)
-    button.set_active(True)
+    button.popup()
 
     assert button.get_active(), "one activation opens the popover again"
     window.destroy()
