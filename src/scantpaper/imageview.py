@@ -219,6 +219,11 @@ class Selector(Tool):
     v_edge = None
     mode = SELECTOR_TOOL
 
+    def __init__(self, view: ImageView) -> None:
+        """Initialise Selector."""
+        super().__init__(view)
+        self.drag_start = {}
+
     @override
     def handles_button(self, button: int) -> bool:
         """Only the primary button selects."""
@@ -230,8 +235,15 @@ class Selector(Tool):
         # Only the primary button selects; leave other buttons alone.
         if button != Gdk.BUTTON_PRIMARY:
             return False
+        if self.view().get_pixbuf_size() is None:
+            # Nothing to select: leave no gesture behind for the next press.
+            self.dragging = False
+            self.drag_start = {}
+            self.h_edge = None
+            self.v_edge = None
+            return False
 
-        self.drag_start = {"x": None, "y": None}
+        self.drag_start = {}
         self.dragging = True
         self.view().update_cursor(x, y)
         self._update_selection(x, y)
@@ -252,52 +264,43 @@ class Selector(Tool):
         self._update_selection(x, y)
 
     def _update_selection(self, ex: float, ey: float) -> None:
-        x, y, x2, y2, x_old, y_old, x2_old, y2_old = (
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        )
+        """Update the selection from the drag origin and the event point."""
+        if self.view().get_pixbuf_size() is None:
+            # No image: end any gesture so a later motion cannot resume it.
+            self.dragging = False
+            self.drag_start = {}
+            return
         if self.h_edge is None:
             self.h_edge = "mid"
         if self.v_edge is None:
             self.v_edge = "mid"
-        x, x2 = _drag_edge(self.h_edge, x, x2, ex, self.drag_start["x"])
-        y, y2 = _drag_edge(self.v_edge, y, y2, ey, self.drag_start["y"])
+        x, x2 = _drag_edge(self.h_edge, None, None, ex, self.drag_start.get("x"))
+        y, y2 = _drag_edge(self.v_edge, None, None, ey, self.drag_start.get("y"))
 
         if self.h_edge == "mid" and self.v_edge == "mid":
-            x = self.drag_start["x"]
-            y = self.drag_start["y"]
+            x = self.drag_start.get("x")
+            y = self.drag_start.get("y")
             x2 = ex
             y2 = ey
-        else:
-            selection = self.view().get_selection()
+
+        selection = self.view().get_selection()
+        if selection is not None:
             if x is None or y is None:
                 x_old, y_old = self.view().to_widget_coords(selection.x, selection.y)
+                x = x_old if x is None else x
+                y = y_old if y is None else y
             if x2 is None or y2 is None:
                 x2_old, y2_old = self.view().to_widget_coords(
                     selection.x + selection.width,
                     selection.y + selection.height,
                 )
-            if x is None:
-                x = x_old
-            if x2 is None:
-                x2 = x2_old
-            if y is None:
-                y = y_old
-            if y2 is None:
-                y2 = y2_old
+                x2 = x2_old if x2 is None else x2
+                y2 = y2_old if y2 is None else y2
 
-        x, x2, y, y2 = (
-            cast("float", x),
-            cast("float", x2),
-            cast("float", y),
-            cast("float", y2),
-        )
+        x = ex if x is None else x
+        y = ey if y is None else y
+        x2 = ex if x2 is None else x2
+        y2 = ey if y2 is None else y2
 
         w, h = self.view().to_image_distance(abs(x2 - x), abs(y2 - y))
         x, y = cast(
@@ -336,10 +339,10 @@ class Selector(Tool):
                         self.v_edge = "upper"
                         self.drag_start = {"x": x, "y": y}
 
-                    elif "x" not in self.drag_start:
+                    elif self.drag_start.get("x") is None:
                         self.drag_start["x"] = sx2 if self.v_edge == "lower" else sx1
 
-                elif self.v_edge == "mid" and "y" not in self.drag_start:
+                elif self.v_edge == "mid" and self.drag_start.get("y") is None:
                     self.drag_start["y"] = sy2 if self.h_edge == "lower" else sy1
 
             else:

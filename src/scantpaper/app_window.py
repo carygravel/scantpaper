@@ -321,8 +321,8 @@ class ApplicationWindow(
         self._windowr = None
         self._windowp = None
         self._hpaned = self.builder.get_object("hpaned")
-        self._vpaned = self.builder.get_object("vpaned")
-        self._vpaned_initialised = False
+        self._view_box = self.builder.get_object("view_box")
+        self._edit_hbox = self.builder.get_object("edit_hbox")
         self._vnotebook = self.builder.get_object("vnotebook")
         self._hpanei = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
         self._vpanei = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
@@ -596,14 +596,6 @@ class ApplicationWindow(
         self._add_secondary_click_controller(self.slist)
         scwin_thumbs.set_child(self.slist)
 
-        # Notebook, split panes for detail view and OCR output
-        # controls in pack1/2 don't seem to be available via UI XML in Gtk4
-        self._vpaned.set_start_child(None)
-        self._vpaned.set_start_child(self._vnotebook)
-        edit_hbox = self.builder.get_object("edit_hbox")
-        self._vpaned.set_end_child(None)
-        self._vpaned.set_end_child(edit_hbox)
-
         # ImageView for detail view
         self.view = ImageView()
         if self.settings["image_control_tool"] == SELECTOR_TOOL:
@@ -697,8 +689,6 @@ class ApplicationWindow(
         pane: Gtk.Paned,
         orientation: Gtk.Orientation,
         saved_position: int | None,
-        *,
-        end_at_minimum: bool = False,
     ) -> None:
         """Give a split pane a usable divider position on startup.
 
@@ -711,14 +701,6 @@ class ApplicationWindow(
         under an older, larger geometry would otherwise fill the whole pane
         and hide a child. (GtkPaned's own minimum request is just the handle
         size, and it overflows rather than clamps a too-large position.)
-
-        The default is a half split, which suits the image/layer panes. For the
-        outer pane that stacks the view above the edit bar, ``end_at_minimum``
-        instead pins the end child (the bar) to its minimum height so it only
-        takes the space it needs. The scanner progress bar below the panes is
-        hidden when scanner detection finishes, which grows the pane and makes
-        GtkPaned re-proportion the divider, so the pin is reapplied whenever
-        the pane's geometry changes.
         """
 
         def measure(widget: Gtk.Widget | None) -> int:
@@ -740,38 +722,28 @@ class ApplicationWindow(
                 size,
             )
 
-        def keep_at_minimum(*_args: object) -> None:
-            """Keep the end child pinned when the pane grows or shrinks."""
-            _low, high, size = bounds()
-            if size > 1 and pane.get_position() != high:
-                pane.set_position(high)
-
-        if end_at_minimum:
-            pane.connect("notify::max-position", keep_at_minimum)
-
         def on_tick(_widget: Gtk.Widget, _clock: Gdk.FrameClock) -> bool:
             low, high, size = bounds()
             if size <= 1:
                 # Not allocated yet; keep ticking until the pane has a size.
                 return True
-            if saved_position is None:
-                position = high if end_at_minimum else size // 2
-            else:
-                position = int(saved_position)
+            position = size // 2 if saved_position is None else int(saved_position)
             pane.set_position(max(min(position, high), low))
             # Returning False removes the tick callback.
             return False
 
         pane.add_tick_callback(on_tick)
 
+    def _set_view_container(self, container: Gtk.Widget) -> None:
+        """Put container above the edit bar, replacing the current view."""
+        container.set_hexpand(True)
+        container.set_vexpand(True)
+        for existing in (self._vnotebook, self._hpanei, self._vpanei):
+            if existing.get_parent() is self._view_box:
+                self._view_box.remove(existing)
+        self._view_box.prepend(container)
+
     def _pack_viewer_tools(self) -> None:
-        # The .ui and _populate_panes leave _vnotebook in _vpaned's pack1.
-        # GtkPaned.pack1 silently keeps an existing pack1 child, so it must be
-        # removed before packing the (possibly different) view container, or a
-        # split view would never become visible on startup.
-        child1 = self._vpaned.get_start_child()
-        if child1 is not None:
-            self._vpaned.set_start_child(None)
         if self.settings["viewer_tools"] == "tabbed":
             # Returning to the notebook: release the split panes first so the
             # pages can be re-appended.
@@ -784,10 +756,10 @@ class ApplicationWindow(
             self._vnotebook.append_page(
                 self.a_canvas, Gtk.Label(label=_("Annotations"))
             )
-            self._vpaned.set_start_child(self._vnotebook)
+            self._set_view_container(self._vnotebook)
         elif self.settings["viewer_tools"] == "horizontal":
             self._dock_view_and_layer(self._hpanei)
-            self._vpaned.set_start_child(self._hpanei)
+            self._set_view_container(self._hpanei)
             self._init_split_pane(
                 self._hpanei,
                 Gtk.Orientation.HORIZONTAL,
@@ -795,25 +767,11 @@ class ApplicationWindow(
             )
         else:  # vertical
             self._dock_view_and_layer(self._vpanei)
-            self._vpaned.set_start_child(self._vpanei)
+            self._set_view_container(self._vpanei)
             self._init_split_pane(
                 self._vpanei,
                 Gtk.Orientation.VERTICAL,
                 self.settings.get("split panel v"),
-            )
-
-        # The outer pane collapses to child1's minimum request (the tab
-        # header or the paned handle) unless given an explicit position:
-        # a bare DrawingArea requests a 0x0 minimum, so the image view
-        # would end up a 0-1px sliver. Apply the default once per process,
-        # so view-mode switches keep the user's adjustment.
-        if not self._vpaned_initialised:
-            self._vpaned_initialised = True
-            self._init_split_pane(
-                self._vpaned,
-                Gtk.Orientation.VERTICAL,
-                None,
-                end_at_minimum=True,
             )
 
     def _dock_view_and_layer(self, pane: Gtk.Paned) -> None:

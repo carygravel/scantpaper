@@ -57,6 +57,15 @@
   dropping the click and making the user click again. The focus-zoom popover
   also closes when its layer control bar is hidden, so switching layers and
   coming back no longer needs an extra click to open it.
+* Pressing or dragging in the image view while no page is displayed no longer
+  raises a `TypeError`. Select and Select & Pan now ignore input with no image
+  and leave no partial gesture, so the first selection after a page appears
+  starts where the user pressed.
+* The layer control bar now appears and disappears immediately with its layer,
+  without waiting for a window resize. It has a fixed height instead of sitting
+  behind a draggable divider, so the image or split view always keeps all the
+  remaining vertical space and returning to the Image tab reclaims the bar's
+  space at once.
 
 
 ## 4.0.2 (2026-10-31)

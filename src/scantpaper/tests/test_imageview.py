@@ -1265,6 +1265,97 @@ def test_selector_update_selection_edge_branches(rose_png: str) -> None:
     assert sel.height == 20
 
 
+def test_selector_ignores_press_without_image() -> None:
+    """A selector press with no image is a harmless no-op."""
+    view = ImageView()
+    selector = Selector(view)
+    view.set_tool(selector)
+
+    assert selector.button_pressed(Gdk.BUTTON_PRIMARY, 10.0, 10.0) is False
+    assert not selector.dragging
+    assert selector.drag_start == {}
+
+    selector.motion(20.0, 20.0)
+    assert view.get_selection() is None
+
+
+def test_selector_dragger_ignores_selection_input_without_image() -> None:
+    """The combined tool's buttons leave no gesture behind without an image."""
+    view = ImageView()
+    view.set_tool(SelectorDragger(view))
+
+    view._button_pressed(_gesture(Gdk.BUTTON_PRIMARY), 1, 10.0, 10.0)
+    view._motion(None, 20.0, 20.0)
+    assert view.get_selection() is None
+
+    view._button_pressed(_gesture(Gdk.BUTTON_MIDDLE), 1, 10.0, 10.0)
+    view._motion(None, 20.0, 20.0)
+    assert view.get_selection() is None
+
+
+def test_selector_ignored_press_does_not_leak_into_next_selection(
+    rose_png: str,
+) -> None:
+    """A press ignored without an image does not move the next drag's origin."""
+    view = ImageView()
+    selector = Selector(view)
+    view.set_tool(selector)
+
+    selector.button_pressed(Gdk.BUTTON_PRIMARY, 5.0, 5.0)
+    selector.motion(20.0, 20.0)
+
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
+    assert selector.button_pressed(Gdk.BUTTON_PRIMARY, 30.0, 30.0) is True
+    selector.motion(40.0, 40.0)
+
+    selection = view.get_selection()
+    assert selection is not None
+    start_x, start_y = cast("tuple[float, float]", view.to_image_coords(30.0, 30.0))
+    assert selection.x == int(start_x + 0.5)
+    assert selection.y == int(start_y + 0.5)
+    assert selection.width > 0
+    assert selection.height > 0
+
+
+def test_selector_update_selection_treats_none_origin_as_unset(
+    rose_png: str,
+) -> None:
+    """A production-shaped origin with None values falls back to the selection."""
+    view = ImageView()
+    view.set_pixbuf(GdkPixbuf.Pixbuf.new_from_file(rose_png), zoom_to_fit=False)
+    initial = Gdk.Rectangle()
+    initial.x, initial.y, initial.width, initial.height = 20, 20, 20, 20
+    view.set_selection(initial)
+
+    selector = Selector(view)
+    selector.dragging = True
+    selector.drag_start = {"x": None, "y": None}
+    ex, ey = view.to_widget_coords(40.0, 40.0)
+    selector._update_selection(ex, ey)
+
+    selection = view.get_selection()
+    assert selection is not None
+    assert (selection.x, selection.y, selection.width, selection.height) == (
+        20,
+        20,
+        20,
+        20,
+    )
+
+
+def test_selector_update_selection_without_image_clears_drag() -> None:
+    """A motion after the image disappears ends the gesture instead of raising."""
+    view = ImageView()
+    selector = Selector(view)
+    selector.dragging = True
+    selector.drag_start = {"x": 10.0, "y": 20.0}
+
+    selector._update_selection(30.0, 40.0)
+
+    assert not selector.dragging
+    assert selector.drag_start == {}
+
+
 def test_selector_cursor_dragging_branches(rose_png: str, mock_view: ImageView) -> None:
     """Test Selector.cursor_type_at_point dragging branches."""
     view = mock_view

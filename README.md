@@ -328,6 +328,8 @@ Further reading:
     - Select & Pan: Use the left mouse button to select a rectangular box, and
       the middle mouse button to drag the image or canvas to pan the view.
     - In all of the above, the mouse wheel zooms in or out.
+    - When no page is displayed in the image view, pressing or dragging does
+      nothing.
 - Zoom: 100%, fit to window, in, and out.
 - Rendering: pages are shown at high quality whenever they are static, so the
   full-page view is easy to assess; a faster rendering is used only while you
@@ -339,7 +341,9 @@ Further reading:
   the Image tab neither layer is selected and no control bar is shown). In a
   split view the chosen layer is displayed beside the image, so the annotation
   layer can be corrected next to the scan as well as the text layer. The layer
-  you were last editing is remembered when you restart. Click a slice to focus
+  you were last editing is remembered when you restart. The control bar has a
+  fixed height: it appears or disappears with its layer immediately, and cannot
+  be resized by dragging. Click a slice to focus
   it for correction; with the Select or Select & Pan tool active, press or drag
   anywhere else in the pane to start a new selection rectangle, while the Pan
   tool pans instead. Focusing a slice zooms so its line is drawn at a

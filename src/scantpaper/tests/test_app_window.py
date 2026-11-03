@@ -654,7 +654,7 @@ def test_change_view_cb(app_window: ApplicationWindow) -> None:
     app_window._vnotebook = MagicMock()
     app_window._hpanei = MagicMock()
     app_window._vpanei = MagicMock()
-    app_window._vpaned = MagicMock()
+    app_window._view_box = MagicMock()
 
     app_window.settings["viewer_tools"] = "tabbed"
     variant = GLib.Variant("s", "horizontal")
@@ -1307,7 +1307,7 @@ def test_pack_viewer_tools(app_window: ApplicationWindow) -> None:
     app_window._vnotebook = MagicMock()
     app_window._hpanei = MagicMock()
     app_window._vpanei = MagicMock()
-    app_window._vpaned = MagicMock()
+    app_window._view_box = MagicMock()
     app_window.view = MagicMock()
     app_window.t_canvas = MagicMock()
     app_window.a_canvas = MagicMock()
@@ -1342,13 +1342,15 @@ def test_pack_viewer_tools(app_window: ApplicationWindow) -> None:
 def test_pack_viewer_tools_split_attaches_on_startup(
     app_window: ApplicationWindow, mocker: pytest.MockerFixture
 ) -> None:
-    """A split view replaces the vnotebook left in _vpaned at startup."""
-    # The fixture patches Gtk paned pack methods globally; restore the real
-    # GTK behaviour so this test exercises actual packing.
+    """A split view replaces the notebook above the edit bar at startup."""
+    # The fixture mocks the builder; restore real widgets so this test
+    # exercises actual box packing.
     mocker.stopall()
-    app_window._vpaned = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
+    app_window._view_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     app_window._vnotebook = Gtk.Notebook()
-    app_window._vpaned.set_start_child(app_window._vnotebook)
+    app_window._edit_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+    app_window._view_box.append(app_window._vnotebook)
+    app_window._view_box.append(app_window._edit_hbox)
     app_window._hpanei = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
     app_window._vpanei = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
     app_window.view = Gtk.Box()
@@ -1358,13 +1360,19 @@ def test_pack_viewer_tools_split_attaches_on_startup(
 
     app_window.settings["viewer_tools"] = "vertical"
     app_window._pack_viewer_tools()
-    assert app_window._vpaned.get_start_child() is app_window._vpanei
+    assert app_window._view_box.get_first_child() is app_window._vpanei
+    assert app_window._view_box.get_last_child() is app_window._edit_hbox
     assert app_window._vnotebook.get_parent() is None
 
-    app_window._vpaned.set_start_child(app_window._vnotebook)
+    app_window.settings["viewer_tools"] = "tabbed"
+    app_window._pack_viewer_tools()
+    assert app_window._view_box.get_first_child() is app_window._vnotebook
+    assert app_window._view_box.get_last_child() is app_window._edit_hbox
+
     app_window.settings["viewer_tools"] = "horizontal"
     app_window._pack_viewer_tools()
-    assert app_window._vpaned.get_start_child() is app_window._hpanei
+    assert app_window._view_box.get_first_child() is app_window._hpanei
+    assert app_window._view_box.get_last_child() is app_window._edit_hbox
     assert app_window._vnotebook.get_parent() is None
 
 
@@ -1373,8 +1381,11 @@ def test_switch_split_orientation_moves_children(
 ) -> None:
     """Switching split orientation re-docks the children without a stale parent."""
     mocker.stopall()
-    app_window._vpaned = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
+    app_window._view_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     app_window._vnotebook = Gtk.Notebook()
+    app_window._edit_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+    app_window._view_box.append(app_window._vnotebook)
+    app_window._view_box.append(app_window._edit_hbox)
     app_window._hpanei = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
     app_window._vpanei = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
     app_window.view = Gtk.Box()
@@ -1386,11 +1397,13 @@ def test_switch_split_orientation_moves_children(
     app_window.settings["viewer_tools"] = "horizontal"
     app_window._pack_viewer_tools()
     assert app_window._hpanei.get_start_child() is app_window.view
+    assert app_window._view_box.get_first_child() is app_window._hpanei
 
     app_window.settings["viewer_tools"] = "vertical"
     app_window._pack_viewer_tools()
     assert app_window._vpanei.get_start_child() is app_window.view
     assert app_window._hpanei.get_start_child() is None
+    assert app_window._view_box.get_first_child() is app_window._vpanei
 
 
 def test_startup_tabbed_defaults_to_text(
@@ -1533,7 +1546,7 @@ def test_pack_viewer_tools_uses_active_canvas(
     app_window._vnotebook = MagicMock()
     app_window._hpanei = MagicMock()
     app_window._vpanei = MagicMock()
-    app_window._vpaned = MagicMock()
+    app_window._view_box = MagicMock()
     app_window.view = MagicMock()
     app_window.t_canvas = MagicMock()
     app_window.a_canvas = MagicMock()
@@ -1636,55 +1649,6 @@ def test_init_split_pane_default_half_horizontal(
     assert callback(pane, MagicMock()) is False
 
     pane.set_position.assert_called_once_with(450)
-
-
-def test_init_split_pane_end_at_minimum(app_window: ApplicationWindow) -> None:
-    """The outer pane pins its end child (the edit bar) to its minimum height."""
-    pane = MagicMock()
-    pane.get_height.return_value = 600
-    _measure_minimum(pane, 1)
-    _measure_minimum(pane.get_start_child.return_value, 0)
-    _measure_minimum(pane.get_end_child.return_value, 40)
-    app_window._init_split_pane(
-        pane, Gtk.Orientation.VERTICAL, None, end_at_minimum=True
-    )
-    assert pane.add_tick_callback.call_count == 1
-
-    callback = pane.add_tick_callback.call_args.args[0]
-    assert callback(pane, MagicMock()) is False
-
-    # high = 600 - 1 - 40 = 559, so the bar keeps its 40px minimum.
-    pane.set_position.assert_called_once_with(559)
-
-
-def test_init_split_pane_keeps_the_bar_at_its_minimum_after_a_resize(
-    app_window: ApplicationWindow,
-) -> None:
-    """The bar stays at its minimum when the pane grows after startup.
-
-    The scanner progress bar below the panes is hidden when scanner detection
-    finishes, so the pane grows and GtkPaned re-proportions the divider. That
-    used to leave the edit bar taller than its minimum.
-    """
-    pane = MagicMock()
-    pane.get_height.return_value = 600
-    _measure_minimum(pane, 1)
-    _measure_minimum(pane.get_start_child.return_value, 0)
-    _measure_minimum(pane.get_end_child.return_value, 40)
-    app_window._init_split_pane(
-        pane, Gtk.Orientation.VERTICAL, None, end_at_minimum=True
-    )
-
-    resize_handler = pane.connect.call_args.args[1]
-    callback = pane.add_tick_callback.call_args.args[0]
-    assert callback(pane, MagicMock()) is False
-    pane.set_position.reset_mock()
-
-    pane.get_height.return_value = 700
-    resize_handler(pane, None)
-
-    # high = 700 - 1 - 40 = 659, so the bar keeps its 40px minimum.
-    pane.set_position.assert_called_once_with(659)
 
 
 def test_share_split_resize_evenly_splits_growth() -> None:
@@ -2255,9 +2219,8 @@ def test_image_view_allocated_at_startup(
     """The image area is allocated a usable share at startup in every mode.
 
     Regression test for the GTK4 migration: a bare DrawingArea requests a
-    0x0 minimum, and a GtkPaned without an explicit position defaults its
-    divider to child1's minimum request, collapsing the image view to a
-    zero-height sliver.
+    0x0 minimum, so the view container must be given an explicit share of
+    the box rather than collapsing to a zero-height sliver.
     """
     app, win = _real_layout_window(mocker, tmp_path, viewer_tools)
     try:
@@ -2291,6 +2254,82 @@ def test_startup_tabbed_hides_bar_on_image_page(
         assert win._actions["editmode"].get_state().get_string() == "text"
         assert not win._text_editor.controls.get_visible()
         assert not win._ann_editor.controls.get_visible()
+    finally:
+        win.destroy()
+        app.quit()
+
+
+def test_edit_bar_lays_out_without_a_window_resize(
+    mocker: pytest.MockerFixture,
+    tmp_path: pathlib.Path,
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+) -> None:
+    """The edit bar appears inside the window as soon as its layer is shown.
+
+    The bar used to sit below the bottom of the outer pane until a window
+    resize, because showing controls inside the always-visible edit container
+    did not move the pane's divider.
+    """
+    app, win = _real_layout_window(mocker, tmp_path, "tabbed")
+    try:
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: win.view.get_allocation().height > 100,
+        )
+        bar = win._edit_hbox
+        notebook = win._vnotebook
+        box_height = win._view_box.get_allocation().height
+        assert bar.get_allocation().height <= 1, "bar starts hidden"
+        assert notebook.get_allocation().height == box_height, (
+            "the notebook takes the full height while the bar is hidden"
+        )
+
+        notebook.set_current_page(1)
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: (
+                win._text_editor.controls.get_visible()
+                and bar.get_allocation().height > 1
+                and notebook.get_allocation().height < box_height
+            ),
+        )
+        bar_height = bar.get_allocation().height
+        box_height = win._view_box.get_allocation().height
+        bar_bottom = bar.get_allocation().y + bar_height
+        assert bar_bottom <= box_height, "bar is allocated inside the window"
+        assert box_height - notebook.get_allocation().height >= bar_height - 1
+
+        notebook.set_current_page(0)
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: (
+                not win._text_editor.controls.get_visible()
+                and notebook.get_allocation().height == box_height
+            ),
+        )
+        assert bar.get_allocation().height <= 1, "bar releases its space"
+
+        win._change_view_cb(win._actions["viewtype"], GLib.Variant("s", "vertical"))
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: (
+                win._text_editor.controls.get_visible()
+                and bar.get_allocation().height > 1
+            ),
+        )
+        box_height = win._view_box.get_allocation().height
+        bar_bottom = bar.get_allocation().y + bar.get_allocation().height
+        assert bar_bottom <= box_height, "split view lays out the bar immediately"
+
+        shown_height = bar.get_allocation().height
+        win.set_default_size(820, 620)
+        _wait_until(
+            mainloop_with_timeout,
+            lambda: win._view_box.get_allocation().height > box_height,
+        )
+        assert bar.get_allocation().height == shown_height, (
+            "resizing leaves the bar at its natural height"
+        )
     finally:
         win.destroy()
         app.quit()
@@ -2400,10 +2439,11 @@ def test_canvas_page_visible_after_shrink_while_hidden(
 
         # Shrink the image area while the canvas is hidden: the view re-fits
         # against the shrunk allocation and pushes the new offset.
-        win._vpaned.set_position(100)
+        visible_height = win.view.get_allocation().height
+        win.set_default_size(800, 300)
         _wait_until(
             mainloop_with_timeout,
-            lambda: win.view.get_allocation().height < 70,
+            lambda: win.view.get_allocation().height < visible_height - 50,
         )
 
         # Show the canvas: the page must be visible within the live,
@@ -2412,7 +2452,7 @@ def test_canvas_page_visible_after_shrink_while_hidden(
         _wait_until(
             mainloop_with_timeout,
             lambda: (
-                win.t_canvas.get_allocation().height < 70
+                win.t_canvas.get_allocation().height < visible_height - 50
                 and win.t_canvas.get_allocation().height > 0
             ),
         )
