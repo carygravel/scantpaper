@@ -55,7 +55,9 @@ Install scantpaper and its dependencies (see [Download, Installation & Removal](
 
 1. Start the application with `scantpaper` (or `python3 -m scantpaper.app` from a source checkout, with `PYTHONPATH=src` set).
    Add `--debug|info|warn|error|fatal` to enable logging at the required level.
-2. Scan one or several pages with **File → Scan**.
+2. Scan one or several pages with **File → Scan**. Activating **Scan** while
+   scan options are still being applied starts the scan when the apply
+   finishes, so a second click is not needed.
 3. Select the pages and create a PDF with **File → Save**.
 4. To make the saved PDF searchable, enable **OCR** in the scan window or run **Tools → OCR** before saving.
 

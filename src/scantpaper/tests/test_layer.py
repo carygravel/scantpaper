@@ -27,7 +27,8 @@ if TYPE_CHECKING:
 import gi
 
 gi.require_version("Gdk", "4.0")
-from gi.repository import Gdk, GLib  # noqa: E402
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gdk, GLib, Gtk  # noqa: E402
 
 
 def make_editor(
@@ -988,6 +989,46 @@ def test_set_active_toggles_controls(mocker: pytest.MockerFixture) -> None:
     editor.controls.show.assert_called_once()
     editor.set_active(active=False)
     editor.controls.hide.assert_called_once()
+
+
+def test_hiding_the_bar_closes_the_focus_zoom_popover(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Hiding the control bar leaves no popover logically open."""
+    editor, _page, _thread, _view = make_editor(mocker)
+    window = Gtk.Window()
+    window.set_child(editor.controls)
+    editor.controls.show()
+    button = editor.controls.focus_zoom_button
+    assert button is not None
+    button.set_active(True)
+    assert button.get_active(), "the popover starts open"
+
+    editor.set_active(active=False)
+
+    assert not button.get_active(), "hiding the bar closes the popover"
+    window.destroy()
+
+
+def test_focus_zoom_opens_on_first_activation_after_the_bar_returns(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Showing the bar again needs only one activation to open the popover."""
+    editor, _page, _thread, _view = make_editor(mocker)
+    window = Gtk.Window()
+    window.set_child(editor.controls)
+    editor.set_active(active=True)
+    button = editor.controls.focus_zoom_button
+    assert button is not None
+    button.set_active(True)
+    editor.set_active(active=False)
+    assert not button.get_active()
+
+    editor.set_active(active=True)
+    button.set_active(True)
+
+    assert button.get_active(), "one activation opens the popover again"
+    window.destroy()
 
 
 def test_sort_method(mocker: pytest.MockerFixture) -> None:

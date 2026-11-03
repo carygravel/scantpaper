@@ -374,6 +374,11 @@ class LayerControls(Gtk.Box):
             self._setting_focus_zoom = False
         self._update_focus_zoom_tooltip(level)
 
+    def close_focus_zoom(self) -> None:
+        """Close the focus-level popover before its control bar is hidden."""
+        if self.focus_zoom_button is not None:
+            self.focus_zoom_button.popdown()
+
     def get_focus_zoom(self) -> float:
         """Return the focus level currently shown by the control."""
         if self.focus_zoom_scale is None:
@@ -817,6 +822,7 @@ class LayerEditor:
         if active:
             self.controls.show()
         else:
+            self.controls.close_focus_zoom()
             self.controls.hide()
 
     def _new_layer_json(

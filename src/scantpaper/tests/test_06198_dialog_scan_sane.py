@@ -29,6 +29,7 @@ def test_reloads_in_profile(
     sane_scan_dialog: SaneScanDialog,
     set_device_wait_reload: Callable[[SaneScanDialog, str], None],
     mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    wait_until: Callable[[Callable[[], bool]], None],
     sane_scan_mocks: SimpleNamespace,
 ) -> None:
     """Given a profile of scan options that trigger multiple reloads.
@@ -82,8 +83,42 @@ def test_reloads_in_profile(
     dialog.connect("changed-profile", changed_profile_cb)
     dialog.profile = "my profile"
     loop.run()
+    wait_until(lambda: dialog._busy_depth == 0)
 
     assert callbacks == 2, "changed-profile only called once"
+    assert dialog._busy_depth == 0, "reloads are balanced"
+
+
+def test_clean_apply_returns_busy_depth_to_zero(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    sane_scan_mocks: SimpleNamespace,
+) -> None:
+    """A completed profile apply leaves no outstanding busy work."""
+    sane_scan_mocks.patch_all(mocker)
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
+    assert dialog._busy_depth == 0, "device setup is balanced"
+
+    loop = mainloop_with_timeout()
+    signal = None
+
+    def changed_current_scan_options_cb(
+        _widget: Gtk.Widget, _profile: object, _uuid: str
+    ) -> None:
+        dialog.disconnect(signal)
+        loop.quit()
+
+    signal = dialog.connect(
+        "changed-current-scan-options", changed_current_scan_options_cb
+    )
+    dialog.set_current_scan_options(Profile(backend=[("brightness", 10)]))
+    loop.run()
+
+    assert dialog._busy_depth == 0, "a clean apply settles the counter"
+    assert not dialog._scan_pending, "nothing was queued by the apply"
 
 
 def test_legacy_default_scan_options_applied_and_saved(

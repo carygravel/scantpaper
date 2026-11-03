@@ -132,6 +132,10 @@ class SaneScanDialog(Scan):
         self.option_widgets = {}
         self._option_info = {}
 
+        # The device open and the option retrieval that follows it are one
+        # busy unit. Start it synchronously so a click between the request and
+        # the thread starting is remembered rather than starting a scan early.
+        self._begin_busy()
         self.thread.open_device(
             device_name=self.device,
             started_callback=self._device_opening_started,
@@ -147,8 +151,9 @@ class SaneScanDialog(Scan):
         self.cursor = "wait"
         self.emit("started-process", _("Opening device"))
 
-        # Ghost the scan button whilst options being updated
-        self.set_response_sensitive(Gtk.ResponseType.OK, setting=False)
+        # Options are being prepared, but the Scan action stays available so
+        # an activation can be remembered instead of dropped by GTK.
+        self._update_scan_button_sensitivity()
 
     def _device_opened(self, _data: object) -> None:
         self.emit("finished-process", "open_device")
@@ -161,6 +166,9 @@ class SaneScanDialog(Scan):
             _("Error opening device: ") + cast("str", response.status),
         )
         self.cursor = "default"
+        self._scan_available = False
+        self._end_busy()
+        self._update_scan_button_sensitivity()
 
     def _request_scan_options(self) -> None:
         def started_callback(_data: object) -> None:
@@ -176,6 +184,9 @@ class SaneScanDialog(Scan):
             self.available_scan_options = options
             self._set_paper_sizes(self.paper_sizes)
             self.cursor = "default"
+            self._scan_available = True
+            self._end_busy()
+            self._update_scan_button_sensitivity()
 
         def error_callback(response: Response) -> None:
             self.emit(
@@ -184,6 +195,8 @@ class SaneScanDialog(Scan):
                 _("Error retrieving scanner options: ") + cast("str", response.status),
             )
             self.cursor = "default"
+            self._scan_available = False
+            self._update_scan_button_sensitivity()
 
         self.thread.get_options(
             started_callback=started_callback,
@@ -210,7 +223,9 @@ class SaneScanDialog(Scan):
         for i in range(2, self.notebook.get_n_pages()):
             self.notebook.get_nth_page(i).show()
 
-        self.set_response_sensitive(Gtk.ResponseType.OK, setting=True)
+        self._scan_available = True
+        self._end_busy()
+        self._update_scan_button_sensitivity()
 
     def _new_group_page(self, opt: Option) -> Gtk.Box:
         vbox = Gtk.Box(
@@ -518,6 +533,8 @@ class SaneScanDialog(Scan):
     def _reload_options_after_set(
         self, option: Option, value: object, uuid: object | None
     ) -> None:
+        self._begin_busy()
+
         def started_callback(_data: object) -> None:
             self.emit("started-process", _("Retrieving options"))
 
@@ -527,6 +544,7 @@ class SaneScanDialog(Scan):
         def finished_callback(data: Response) -> None:
             self._update_options(Options(cast("list[Option] | None", data.info)))
             self._post_set_option_hook(option, value, uuid)
+            self._end_busy()
 
         def error_callback(response: Response) -> None:
             self.emit(
@@ -545,6 +563,8 @@ class SaneScanDialog(Scan):
     @override
     def scan(self) -> None:
         """Scan."""
+        self._scan_running = True
+        self._update_scan_button_sensitivity()
         self.cursor = "progress"
 
         if (
@@ -634,6 +654,8 @@ class SaneScanDialog(Scan):
         self._stop_cancel_watchdog()
         self.emit("finished-process", "scan_pages")
         self.cursor = "default"
+        self._scan_running = False
+        self._update_scan_button_sensitivity()
         if self.cycle_sane_handle:
             current = self.current_scan_options
             signal = None
@@ -666,6 +688,8 @@ class SaneScanDialog(Scan):
         self._stop_cancel_watchdog()
         self.emit("process-error", "scan_pages", response.status)
         self.cursor = "default"
+        self._scan_running = False
+        self._update_scan_button_sensitivity()
 
     def cancel_scan(self, _widget: Gtk.Widget) -> None:
         """Cancel any running or queued scan processes."""
@@ -695,6 +719,8 @@ class SaneScanDialog(Scan):
         logger.error("Scan cancel did not complete; abandoning the batch")
         self._recover_after_cancel()
         self.cursor = "default"
+        self._scan_running = False
+        self._update_scan_button_sensitivity()
         self.emit(
             "process-error",
             "scan_pages",

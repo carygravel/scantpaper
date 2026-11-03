@@ -52,6 +52,11 @@
   The exporter gives such words the synthetic OCR line the PDF renderer
   requires, so words added after importing an old hOCR layer no longer
   disappear from the output.
+* **Scan** now remembers a click made while scan options are still being
+  applied and starts the scan as soon as the apply finishes, instead of
+  dropping the click and making the user click again. The focus-zoom popover
+  also closes when its layer control bar is hidden, so switching layers and
+  coming back no longer needs an extra click to open it.
 
 
 ## 4.0.2 (2026-10-31)

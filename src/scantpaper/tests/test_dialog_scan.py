@@ -434,6 +434,166 @@ def test_cursor_setter_none() -> None:
     assert dialog.cursor == "wait", "Cursor should not change if None is passed"
 
 
+def test_cursor_setter_does_not_ghost_scan_button() -> None:
+    """The busy cursor must not make Scan insensitive.
+
+    GTK discards a click whose press or release lands on an insensitive
+    button, so the wait cursor is only a visual cue.
+    """
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.scan_button.set_sensitive(True)
+
+    dialog.cursor = "wait"
+    assert dialog.scan_button.get_sensitive(), "wait cursor leaves Scan available"
+
+    dialog.cursor = "default"
+    assert dialog.scan_button.get_sensitive(), "cursor change never ghosts Scan"
+
+
+def test_scan_activations_coalesce_while_busy(
+    mocker: pytest.MockerFixture,
+    wait_until: Callable[[Callable[[], bool]], None],
+) -> None:
+    """Clicks during an option apply start one scan when it settles."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.scan = mocker.Mock()
+    activations = 0
+
+    def on_scan(_widget: object) -> None:
+        nonlocal activations
+        activations += 1
+
+    dialog.connect("clicked-scan-button", on_scan)
+    dialog._begin_busy()
+
+    for _ in range(3):
+        dialog._do_scan()
+
+    assert activations == 3, "every accepted activation still emits the signal"
+    assert dialog.scan.call_count == 0, "nothing starts before the apply settles"
+
+    dialog._end_busy()
+    wait_until(lambda: dialog.scan.call_count == 1)
+    assert dialog.scan.call_count == 1, "repeated activations coalesce"
+
+
+def test_running_scan_refuses_a_second_activation(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A second activation while scanning is refused, not queued."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.scan = mocker.Mock()
+    idle_add = mocker.patch("scantpaper.dialog.scan.GLib.idle_add")
+    activations = 0
+
+    def on_scan(_widget: object) -> None:
+        nonlocal activations
+        activations += 1
+
+    dialog.connect("clicked-scan-button", on_scan)
+    dialog._scan_running = True
+
+    dialog._do_scan()
+
+    assert activations == 1, "the accepted activation still emits the signal"
+    assert not dialog._scan_pending, "a running scan refuses a queued click"
+    idle_add.assert_not_called()
+    dialog.scan.assert_not_called()
+
+
+def test_hide_clears_pending_scan(mocker: pytest.MockerFixture) -> None:
+    """Closing the dialog drops a queued Scan activation."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.scan = mocker.Mock()
+    idle_add = mocker.patch("scantpaper.dialog.scan.GLib.idle_add")
+    dialog._begin_busy()
+    dialog._do_scan()
+
+    dialog.hide()
+    dialog._end_busy()
+
+    assert not dialog._scan_pending
+    idle_add.assert_not_called()
+    dialog.scan.assert_not_called()
+
+
+def test_hide_cancels_a_scheduled_pending_scan(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Closing the dialog drops a pending scan that is already scheduled."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.scan = mocker.Mock()
+    mocker.patch("scantpaper.dialog.scan.GLib.idle_add", return_value=99)
+    source_remove = mocker.patch("scantpaper.dialog.scan.GLib.source_remove")
+    dialog._begin_busy()
+    dialog._do_scan()
+    dialog._end_busy()
+    assert dialog._pending_scan_source == 99
+
+    dialog.hide()
+
+    source_remove.assert_called_once_with(99)
+    assert dialog._pending_scan_source is None
+    dialog.scan.assert_not_called()
+
+
+def test_option_error_clears_pending_scan(mocker: pytest.MockerFixture) -> None:
+    """An option error reports the failure and drops the queued scan."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.scan = mocker.Mock()
+    idle_add = mocker.patch("scantpaper.dialog.scan.GLib.idle_add")
+    errors = []
+    dialog.connect(
+        "process-error",
+        lambda _widget, process, message: errors.append((process, message)),
+    )
+    dialog._begin_busy()
+    dialog._do_scan()
+
+    dialog.emit("process-error", "set_option", "boom")
+    dialog._end_busy()
+
+    assert errors == [("set_option", "boom")], "the error reaches the user"
+    assert not dialog._scan_pending
+    assert dialog._busy_depth == 0
+    idle_add.assert_not_called()
+    dialog.scan.assert_not_called()
+
+
+def test_scan_button_unavailable_without_a_device() -> None:
+    """Scan is unavailable only when no device can be scanned from."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+
+    dialog.device = None
+    assert not dialog.scan_button.get_sensitive()
+
+    dialog.device = "test:0"
+    assert dialog.scan_button.get_sensitive()
+
+
+def test_scan_button_sensitivity_tracks_running_state(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    sane_scan_mocks: SimpleNamespace,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+) -> None:
+    """Options being prepared keep Scan available; a running scan does not."""
+    sane_scan_mocks.patch_all(mocker)
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
+    mocker.patch.object(dialog.thread, "scan_pages")
+
+    dialog._begin_busy()
+    assert dialog.scan_button.get_sensitive(), "options in flight do not ghost Scan"
+
+    dialog.scan()
+    assert not dialog.scan_button.get_sensitive(), "a running scan refuses a second"
+
+    dialog._scan_finished_callback(MagicMock())
+    assert dialog.scan_button.get_sensitive(), "finishing restores the action"
+    dialog._end_busy()
+
+
 def test_sided_buttons_sync_on_programmatic_change() -> None:
     """The sided property tracks the buttons once construction is complete.
 
@@ -698,6 +858,7 @@ def test_cancel_watchdog_recovers() -> None:
         dialog.thread = MagicMock()
         dialog.thread.has_active_batch.return_value = True
         dialog._recover_after_cancel = MagicMock()
+        dialog.device = "test:0"  # a real dialog has a selected device
         errors = []
         dialog.connect(
             "process-error",

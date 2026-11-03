@@ -8,7 +8,7 @@ import weakref
 from copy import copy
 from typing import TYPE_CHECKING, Any, ClassVar, cast
 
-from gi.repository import Gdk, GObject, Gtk
+from gi.repository import Gdk, GLib, GObject, Gtk
 from typing_extensions import override
 
 from scantpaper.comboboxtext import ComboBoxText
@@ -187,6 +187,13 @@ class Scan(PageControls):
     )
     _profile = None
     _last_window_size: tuple[int, int] | None = None
+    # Number of option-related jobs that are currently preparing the dialog.
+    _busy_depth = 0
+    # At most one Scan activation is remembered while those jobs run.
+    _scan_pending = False
+    _scan_running = False
+    _scan_available = False
+    _pending_scan_source: int | None = None
 
     @property_(type=object, nick="Profile", blurb="Name of current profile")
     def profile(self) -> str | None:
@@ -402,10 +409,9 @@ class Scan(PageControls):
         self._cursor = newval
 
         # GTK4: set the cursor on the widget itself; cursors are created
-        # without a display argument.
+        # without a display argument. This is only a busy indication; it must
+        # not make the Scan action insensitive, or GTK drops the click.
         self.set_cursor(Gdk.Cursor.new_from_name(newval, None))
-
-        self.scan_button.set_sensitive(newval == "default")
 
     @property_(
         type=object,
@@ -505,6 +511,8 @@ class Scan(PageControls):
         # several times. Tested by t/06198_Dialog_Scan_Image_Sane.t
         self.setting_profile = []
         self.setting_current_scan_options = []
+        self.connect("process-error", self._abort_busy_on_error)
+        self._update_scan_button_sensitivity()
         self.connect(
             "changed-scan-option", self._changed_scan_option_callback, self._bscannum
         )
@@ -517,6 +525,8 @@ class Scan(PageControls):
         recorded size is persisted on quit by ``file_menu_mixins._can_quit``.
         """
         self._last_window_size = (self.get_width(), self.get_height())
+        self._scan_pending = False
+        self._cancel_pending_scan_source()
         super().hide()
 
     def _add_device_combobox(self) -> None:
@@ -568,7 +578,67 @@ class Scan(PageControls):
 
     def _do_scan(self) -> None:
         self.emit("clicked-scan-button")
+        if self._busy_depth > 0:
+            # Keep at most one activation and run it when the option work
+            # settles, instead of letting GTK discard the click.
+            self._scan_pending = True
+            return
+        if self._scan_running:
+            return
         self.scan()
+
+    def _begin_busy(self) -> None:
+        """Mark the start of work that prepares scan options."""
+        self._busy_depth += 1
+
+    def _end_busy(self) -> None:
+        """Mark option preparation finished and run a pending scan once."""
+        if self._busy_depth > 0:
+            self._busy_depth -= 1
+        if self._busy_depth == 0:
+            self._settle_pending_scan()
+
+    def _abort_busy(self) -> None:
+        """Forget outstanding option work after an error."""
+        self._busy_depth = 0
+        self._scan_pending = False
+        self._cancel_pending_scan_source()
+
+    def _abort_busy_on_error(
+        self, _widget: Gtk.Widget, process: str, _message: str
+    ) -> None:
+        """Clear pending work when option or device preparation fails."""
+        if process in {
+            "open_device",
+            "find_scan_options",
+            "set_option",
+            "update_options",
+        }:
+            self._abort_busy()
+
+    def _settle_pending_scan(self) -> None:
+        """Run a queued Scan activation after the current callback unwinds."""
+        if not self._scan_pending:
+            return
+        self._scan_pending = False
+        self._pending_scan_source = GLib.idle_add(self._start_pending_scan)
+
+    def _cancel_pending_scan_source(self) -> None:
+        """Drop a scheduled pending scan, for example on close."""
+        if self._pending_scan_source is not None:
+            GLib.source_remove(self._pending_scan_source)
+            self._pending_scan_source = None
+
+    def _start_pending_scan(self) -> bool:
+        """Run the queued scan unless one is already running."""
+        self._pending_scan_source = None
+        if not self._scan_running:
+            self.scan()
+        return False  # GLib.SOURCE_REMOVE
+
+    def _update_scan_button_sensitivity(self) -> None:
+        """Show whether the Scan action can run now."""
+        self.scan_button.set_sensitive(self._scan_available and not self._scan_running)
 
     def _do_profile_changed(self, combobsp: ComboBoxText) -> None:
         self.num_reloads = 0  # num-reloads is read-only
@@ -592,6 +662,8 @@ class Scan(PageControls):
         self._flatbed_page_count_explicit = False
         self._flatbed_source_cached = None
         if device not in [None, ""]:
+            self._scan_available = True
+            self._update_scan_button_sensitivity()
             idev = None
             device_list = self.device_list
             if device_list:
@@ -607,11 +679,16 @@ class Scan(PageControls):
                 if idev is not None:
                     self.combobd.set_active(idev)
                 else:
+                    self._scan_available = False
+                    self._update_scan_button_sensitivity()
                     self.emit(
                         "process-error",
                         "open_device",
                         _("Error: unknown device: %s") % (device),
                     )
+        else:
+            self._scan_available = False
+            self._update_scan_button_sensitivity()
 
     def set_device_list(self, device_list: list[SimpleNamespace]) -> None:
         """Fill the combobox with the list of devices."""
@@ -1286,6 +1363,7 @@ class Scan(PageControls):
 
         # First clone the profile, as otherwise it would be self-modifying
         clone = copy(profile)
+        self._begin_busy()
         self.setting_current_scan_options.append(clone.uuid)
 
         # Give the GUI a chance to catch up between settings,
@@ -1426,6 +1504,7 @@ class Scan(PageControls):
             "changed-current-scan-options", self.current_scan_options, profile.uuid
         )
         self.cursor = "default"
+        self._end_busy()
 
     def _finalize_profile(self, profile: Profile) -> None:
         # Having set all backend options, set the frontend options

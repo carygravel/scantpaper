@@ -1780,6 +1780,44 @@ def test_get_options_error(
     dialog.connect("process-error", process_error_cb)
     dialog.set_option(opt, 42)
     assert callbacks == 1
+    assert dialog._busy_depth == 0, "a failed reload settles the counter"
+
+
+def test_option_error_returns_busy_depth_to_zero(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    wait_until: Callable[[Callable[[], bool]], None],
+    sane_scan_mocks: SimpleNamespace,
+) -> None:
+    """A failed option apply clears the busy counter and any queued scan."""
+    sane_scan_mocks.patch_all(mocker)
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
+
+    def error_set_option(**kwargs: object) -> None:
+        cast("Callable[[object], None]", kwargs["error_callback"])(
+            SimpleNamespace(status="Error setting option", info=None)
+        )
+
+    mocker.patch.object(dialog.thread, "set_option", side_effect=error_set_option)
+    errors: list[str] = []
+    dialog.connect(
+        "process-error",
+        lambda _widget, process, _message: errors.append(process),
+    )
+
+    dialog._begin_busy()
+    dialog.scan = mocker.Mock()
+    dialog._do_scan()
+    dialog._add_current_scan_options(Profile(backend=[("brightness", 10)]))
+    wait_until(lambda: bool(errors))
+
+    assert errors, "the failure is reported"
+    assert errors[0] == "set_option", "the failure is reported"
+    assert dialog._busy_depth == 0, "a failed apply settles the counter"
+    assert not dialog._scan_pending, "a failed apply drops the queued scan"
+    dialog.scan.assert_not_called()
 
 
 @pytest.mark.parametrize(
