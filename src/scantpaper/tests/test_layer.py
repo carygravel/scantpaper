@@ -998,6 +998,9 @@ def test_hiding_the_bar_closes_the_focus_zoom_popover(
     editor, _page, _thread, _view = make_editor(mocker)
     window = Gtk.Window()
     window.set_child(editor.controls)
+    # GTK 4.6 corrupts state if a popover is shown on an unmapped window,
+    # segfaulting a later test's main loop.
+    window.present()
     editor.controls.show()
     button = editor.controls.focus_zoom_button
     assert button is not None
@@ -1019,6 +1022,9 @@ def test_focus_zoom_opens_on_first_activation_after_the_bar_returns(
     editor, _page, _thread, _view = make_editor(mocker)
     window = Gtk.Window()
     window.set_child(editor.controls)
+    # GTK 4.6 corrupts state if a popover is shown on an unmapped window,
+    # segfaulting a later test's main loop.
+    window.present()
     editor.set_active(active=True)
     button = editor.controls.focus_zoom_button
     assert button is not None
@@ -1032,6 +1038,7 @@ def test_focus_zoom_opens_on_first_activation_after_the_bar_returns(
     button.popup()
 
     assert popover.get_visible(), "one activation opens the popover again"
+    editor.set_active(active=False)
     window.destroy()
 
 
