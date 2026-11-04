@@ -103,8 +103,14 @@ class PreferencesDialog(Dialog):
         label = Gtk.Label(label=_("Device blacklist"))
         hboxb.append(label)
         self._blacklist = Gtk.Entry()
+        self._blacklist.set_placeholder_text(_("e.g. Camera or v4l:.*"))
+        self._blacklist.set_tooltip_text(
+            _(
+                "Regular expression matched case-insensitively against the device "
+                "label and backend name, e.g. Camera or v4l:.*"
+            )
+        )
         hboxb.append(self._blacklist)
-        hboxb.set_tooltip_text(_("Device blacklist (regular expression)"))
         if (
             "device blacklist" in self.settings
             and self.settings["device blacklist"] is not None

@@ -48,6 +48,10 @@ def test_preferences_blacklist_setting() -> None:
 
     # Assert that the blacklist entry is set correctly
     assert dialog._blacklist.get_text() == "scanner1|scanner2"
+    assert dialog._blacklist.get_placeholder_text() == "e.g. Camera or v4l:.*"
+    tooltip = dialog._blacklist.get_tooltip_text()
+    assert tooltip is not None
+    assert "label and backend name" in tooltip
 
 
 def test_preferences_threshold_spins_fractional() -> None:

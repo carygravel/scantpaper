@@ -146,6 +146,16 @@ from the flatbed is allowed; rotation still runs before OCR. In manual
 (single-page) mode the alternating parity persists across consecutive scans until
 you explicitly turn the toggle off.
 
+#### Hiding unwanted devices
+
+SANE backends sometimes list a webcam or another non-scanner as a device. Select
+it in the **Device** list and click **Blacklist this device** to hide it; the
+pattern is stored in the **Device blacklist** field in **Edit → Preferences**.
+That field also accepts a regular expression, matched case-insensitively
+against the label shown in the list and the device's backend name, so patterns
+such as `Camera` or `v4l:.*` work. If a pattern hides every device, scantpaper
+reports that no devices were found rather than offering an empty list.
+
 ### Main Features
 
 - **Scan:** Options for device, page count, source document, side to scan, and

@@ -123,6 +123,7 @@ class MockScan(Scan):
         self._device_list = []
         self.combobd = unittest.mock.Mock()
         self.combobd.get_num_rows.return_value = 0
+        self.combobd.get_active.return_value = -1
         self.combobd_changed_signal = 1
         self.option_widgets = {}
         self._geometry_boxes = {}
@@ -205,6 +206,7 @@ class TestScanDialog:
 
         scan.combobd = unittest.mock.Mock()
         scan.combobd.get_num_rows.return_value = 1
+        scan.combobd.get_active.return_value = -1
 
         scan.set_device_list(
             cast("list[SimpleNamespace]", cast("object", [dev1, dev2, dev3]))

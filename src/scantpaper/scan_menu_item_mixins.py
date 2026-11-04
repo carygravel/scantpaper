@@ -31,31 +31,73 @@ from gi.repository import Gtk  # noqa: E402
 logger = logging.getLogger(__name__)
 
 
-def _apply_device_blacklist(
-    device_list: list[object], settings: dict[str, object], widget: SaneScanDialog
-) -> None:
-    """Remove blacklisted device names from the list in place."""
-    if "device blacklist" not in settings or settings["device blacklist"] in [None, ""]:
-        return
-    initial_len = len(device_list)
-    i = 0
-    while i < len(device_list):
-        if re.search(
-            str(device_list[i].name),
-            str(settings["device blacklist"]),
-            re.MULTILINE | re.DOTALL | re.VERBOSE,
-        ):
-            logger.info("Blacklisting device %s", device_list[i].name)
-            del device_list[i]
-        else:
-            i += 1
+def _device_search_text(device: object) -> str:
+    """Return the device fields a blacklist pattern is matched against."""
+    parts: list[str] = []
+    for field in ("label", "name", "vendor", "model"):
+        value = getattr(device, field, None)
+        if isinstance(value, str) and value:
+            parts.append(value)
+    return "\n".join(parts)
 
-    if len(device_list) < initial_len:
-        widget.device_list = device_list
+
+def _blacklist_pattern(settings: dict[str, object]) -> str | None:
+    """Return the configured blacklist pattern, or None when unset."""
+    if "device blacklist" not in settings:
+        return None
+    value = settings["device blacklist"]
+    if value in [None, ""]:
+        return None
+    return str(value)
+
+
+def _filter_blacklisted_devices(
+    device_list: list[SimpleNamespace], settings: dict[str, object]
+) -> list[SimpleNamespace]:
+    """Return the devices that do not match the device blacklist pattern."""
+    pattern = _blacklist_pattern(settings)
+    if pattern is None:
+        return device_list
+    try:
+        regex = re.compile(pattern, re.IGNORECASE | re.MULTILINE)
+    except re.error:
+        logger.warning("Invalid device blacklist regular expression: %s", pattern)
+        return device_list
+
+    kept = []
+    for device in device_list:
+        if regex.search(_device_search_text(device)):
+            logger.info("Blacklisting device %s", getattr(device, "name", device))
+        else:
+            kept.append(device)
+    return kept
+
+
+def _apply_device_blacklist(
+    device_list: list[SimpleNamespace],
+    settings: dict[str, object],
+    widget: SaneScanDialog,
+) -> None:
+    """Remove blacklisted devices from the list in place and refresh the selector."""
+    filtered = _filter_blacklisted_devices(device_list, settings)
+    if len(filtered) == len(device_list):
+        return
+    device_list[:] = filtered
+    # Call set_device_list directly: assigning the property would re-emit
+    # changed-device-list and run this filter again.
+    widget.set_device_list(device_list)
+
+
+def _report_no_devices(widget: SaneScanDialog) -> None:
+    """Report that filtering left no usable devices."""
+    widget.emit("process-error", "get_devices", _("No devices found"))
+    widget.destroy()
 
 
 def _confirm_libusb_caching(
-    parent: Gtk.Widget, device_list: list[object], settings: dict[str, object]
+    parent: Gtk.Widget,
+    device_list: list[SimpleNamespace],
+    settings: dict[str, object],
 ) -> bool:
     """Return whether the cached device list should be stored.
 
@@ -151,7 +193,13 @@ class ScanMenuItemMixins:
             and self.settings["cache-device-list"]
             and len(self.settings["device list"])
         ):
-            self._windows.device_list = self.settings["device list"]
+            cached = cast("list[SimpleNamespace]", self.settings["device list"])
+            device_list = _filter_blacklisted_devices(list(cached), self.settings)
+            if device_list:
+                self._windows.device_list = device_list
+            else:
+                _report_no_devices(self._windows)
+                self._windows = None
         else:
             self._windows.get_devices()
 
@@ -160,6 +208,7 @@ class ScanMenuItemMixins:
         # Can't set the device when creating the window,
         # as the list does not exist then
         window.connect("changed-device-list", self._changed_device_list_callback)
+        window.connect("blacklist-device", self._blacklist_device_callback)
 
         # Update default device
         window.connect("changed-device", self._changed_device_callback)
@@ -440,13 +489,18 @@ class ScanMenuItemMixins:
             )
 
     def _changed_device_list_callback(
-        self, widget: SaneScanDialog, device_list: list[object]
+        self, widget: SaneScanDialog, device_list: list[SimpleNamespace]
     ) -> None:  # widget is windows
         """Handle changed device list signal."""
         logger.info("signal 'changed-device-list' emitted with data: %s", device_list)
         if len(device_list):
             # Apply the device blacklist
             _apply_device_blacklist(device_list, self.settings, widget)
+
+            if not device_list:
+                _report_no_devices(widget)
+                self._windows = None
+                return
 
             if self.settings["cache-device-list"] and _confirm_libusb_caching(
                 self, device_list, self.settings
@@ -464,6 +518,31 @@ class ScanMenuItemMixins:
             widget.device = device_list[0].name
 
         else:
+            self._windows = None
+
+    def _blacklist_device_callback(self, widget: SaneScanDialog, device: str) -> None:
+        """Add the selected device's label to the blacklist and refresh."""
+        label = device
+        for entry in widget.device_list:
+            if getattr(entry, "name", None) == device:
+                candidate = getattr(entry, "label", None)
+                if isinstance(candidate, str) and candidate:
+                    label = candidate
+                break
+
+        pattern = re.escape(label)
+        existing = self.settings.get("device blacklist")
+        existing = "" if existing in [None, ""] else str(existing)
+        if pattern not in existing:
+            self.settings["device blacklist"] = (
+                f"{existing}|{pattern}" if existing else pattern
+            )
+
+        _apply_device_blacklist(widget.device_list, self.settings, widget)
+        if widget.device_list:
+            widget.device = widget.device_list[0].name
+        else:
+            _report_no_devices(widget)
             self._windows = None
 
     def _flatbed_source_active(self, widget: SaneScanDialog | None) -> bool:

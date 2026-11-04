@@ -130,6 +130,7 @@ class Scan(PageControls):
         ),
         "changed-device": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
         "changed-device-list": (GObject.SignalFlags.RUN_FIRST, None, (object,)),
+        "blacklist-device": (GObject.SignalFlags.RUN_FIRST, None, (str,)),
         "changed-scan-option": (
             GObject.SignalFlags.RUN_FIRST,
             None,
@@ -544,9 +545,11 @@ class Scan(PageControls):
                 return
             index = self.combobd.get_active()
             device_list = self.device_list
+            self._update_blacklist_button_sensitivity()
             if index > len(device_list) - 1:
                 self.combobd.hide()
                 labeld.hide()
+                self.blacklist_button.hide()
                 self.device = None  # to make sure that the device is reloaded
                 self.get_devices()
 
@@ -556,25 +559,44 @@ class Scan(PageControls):
         self.combobd_changed_signal = self.combobd.connect(
             "changed", do_device_dropdown_changed
         )
-
-        def do_changed_device(self: Scan, device: str) -> None:
-            device_list = self.device_list
-            if device not in [None, ""]:
-                for dev in device_list:
-                    if dev.name == device:
-                        self.combobd.set_active_by_text(dev.label)
-                        self.scan_options(device)
-                        return
-            else:
-                self.combobd.set_active(NO_INDEX)
-
-        self.connect("changed-device", do_changed_device)
+        self.connect("changed-device", self._on_changed_device)
         self.combobd.set_tooltip_text(_("Sets the device to be used for the scan"))
         self.hboxd.append(self.combobd)
+
+        self.blacklist_button = Gtk.Button(label=_("Blacklist this device"))
+        self.blacklist_button.set_tooltip_text(
+            _("Hide the selected device from the device list")
+        )
+        self.blacklist_button.connect("clicked", self._on_blacklist_clicked)
+        self.hboxd.append(self.blacklist_button)
+        self._update_blacklist_button_sensitivity()
         # The PageControls initialiser appended the options notebook to the
         # content area first, so prepend the device row to keep the device
         # selector as the first (top) control of the dialog.
         self.get_content_area().prepend(self.hboxd)
+
+    def _on_changed_device(self, _widget: Scan, device: str) -> None:
+        """Select the matching label when the device changes."""
+        device_list = self.device_list
+        if device not in [None, ""]:
+            for dev in device_list:
+                if dev.name == device:
+                    self.combobd.set_active_by_text(dev.label)
+                    self.scan_options(device)
+                    return
+        else:
+            self.combobd.set_active(NO_INDEX)
+
+    def _on_blacklist_clicked(self, _button: Gtk.Button) -> None:
+        """Emit the selected device for blacklisting."""
+        index = self.combobd.get_active()
+        if NO_INDEX < index < len(self.device_list):
+            self.emit("blacklist-device", self.device_list[index].name)
+
+    def _update_blacklist_button_sensitivity(self) -> None:
+        """Enable blacklisting only for a selected device, not the rescan row."""
+        index = self.combobd.get_active()
+        self.blacklist_button.set_sensitive(NO_INDEX < index < len(self.device_list))
 
     def _do_scan(self) -> None:
         self.emit("clicked-scan-button")
@@ -708,6 +730,8 @@ class Scan(PageControls):
             self.combobd.insert_text(i, dev.label)
 
         self.combobd.handler_unblock(self.combobd_changed_signal)
+        self.blacklist_button.show()
+        self._update_blacklist_button_sensitivity()
 
     def _pack_widget(
         self,

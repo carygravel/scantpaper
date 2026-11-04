@@ -170,6 +170,37 @@ def test_device_dropdown_changed(mocker: pytest.MockerFixture) -> None:
     dialog.get_devices.assert_called_once()
 
 
+def test_blacklist_button_sensitivity(mocker: pytest.MockerFixture) -> None:
+    """Blacklist is available only for a selected device, not the rescan row."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.get_devices = mocker.Mock()
+
+    assert not dialog.blacklist_button.get_sensitive()
+
+    dialog.device_list = [SimpleNamespace(name="dev1", label="Device 1")]
+    assert not dialog.blacklist_button.get_sensitive()
+
+    dialog.combobd.set_active(0)
+    assert dialog.blacklist_button.get_sensitive()
+
+    dialog.combobd.set_active(1)
+    assert not dialog.blacklist_button.get_sensitive()
+    dialog.get_devices.assert_called_once()
+
+
+def test_blacklist_button_emits_selected_device() -> None:
+    """Clicking the button emits the selected device's backend name."""
+    dialog = Scan(title="title", transient_for=Gtk.Window())
+    dialog.device_list = [SimpleNamespace(name="dev1", label="Device 1")]
+    received: list[str] = []
+    dialog.connect("blacklist-device", lambda _widget, name: received.append(name))
+
+    dialog.combobd.set_active(0)
+    dialog.blacklist_button.emit("clicked")
+
+    assert received == ["dev1"]
+
+
 def test_edit_paper_apply(mocker: pytest.MockerFixture) -> None:
     """Test _edit_paper and applying changes."""
     dialog = Scan(title="title", transient_for=Gtk.Window())

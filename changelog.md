@@ -66,6 +66,13 @@
   behind a draggable divider, so the image or split view always keeps all the
   remaining vertical space and returning to the Image tab reclaims the bar's
   space at once.
+* **Device blacklist** now works as its hint says. The value is matched
+  case-insensitively against the label shown in the Device list and the
+  backend name, so `CameraA` hides a camera that SANE offers as a scanner.
+  A **Blacklist this device** button hides the selected device in one click,
+  cached device lists are filtered without a rescan, and a pattern that hides
+  every device reports that no devices were found instead of crashing. The
+  preference now explains what it matches and gives an example.
 
 
 ## 4.0.2 (2026-10-31)

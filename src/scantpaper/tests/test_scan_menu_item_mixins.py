@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
@@ -11,7 +12,10 @@ import gi
 import pytest
 
 from scantpaper import scan_menu_item_mixins
-from scantpaper.scan_menu_item_mixins import ScanMenuItemMixins
+from scantpaper.scan_menu_item_mixins import (
+    ScanMenuItemMixins,
+    _filter_blacklisted_devices,
+)
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
@@ -329,6 +333,49 @@ def test_scan_dialog_cached_device(
     mock_scan_window.scan_dialog(None, None, scan=False)
 
     assert mock_scan_window._windows.device_list[0].name == "cached"
+
+
+def test_scan_dialog_cached_device_blacklisted(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """A cached device matching the blacklist is not installed."""
+    mocker.patch("scantpaper.scan_menu_item_mixins.SaneScanDialog")
+    mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+
+    camera = SimpleNamespace(name="v4l:/dev/video0", label="Noname CameraA: CameraA")
+    scanner = SimpleNamespace(name="epsonscan2:Perfection", label="EPSON V39")
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_scan_window.settings["device blacklist"] = "CameraA"
+    mock_scan_window.settings["device list"] = [camera, scanner]
+
+    mock_scan_window.scan_dialog(None, None, scan=False)
+
+    assert [device.name for device in mock_scan_window._windows.device_list] == [
+        "epsonscan2:Perfection"
+    ]
+
+
+def test_scan_dialog_cached_device_all_blacklisted(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """An entirely blacklisted cache reports no devices."""
+    dialog_cls = mocker.patch("scantpaper.scan_menu_item_mixins.SaneScanDialog")
+    mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_scan_window.settings["device blacklist"] = ".*"
+    mock_scan_window.settings["device list"] = [
+        SimpleNamespace(name="cached", label="cached")
+    ]
+
+    mock_scan_window.scan_dialog(None, None, scan=False)
+
+    dialog_cls.return_value.emit.assert_called_with(
+        "process-error", "get_devices", "No devices found"
+    )
+    assert mock_scan_window._windows is None
 
 
 def test_add_postprocessing_options_clicked_cb(
@@ -728,23 +775,190 @@ def test_changed_device_list_callback(mock_scan_window: object) -> None:
     assert mock_widget.device == "dev1"
 
 
+def test_filter_blacklisted_devices_matches_label() -> None:
+    """A pattern matches the label shown in the Device selector."""
+    camera = SimpleNamespace(
+        name="v4l:/dev/video0",
+        label="Noname CameraA: CameraA",
+        vendor="Noname",
+        model="CameraA",
+    )
+    scanner = SimpleNamespace(
+        name="epsonscan2:Perfection",
+        label="EPSON Perfection V39",
+        vendor="EPSON",
+        model="Perfection V39",
+    )
+
+    filtered = _filter_blacklisted_devices(
+        [camera, scanner], {"device blacklist": "CameraA"}
+    )
+
+    assert filtered == [scanner]
+
+
+def test_filter_blacklisted_devices_matches_backend_name() -> None:
+    """A regular expression can target the backend name."""
+    camera = SimpleNamespace(
+        name="v4l:/dev/video0",
+        label="Noname CameraA: CameraA",
+        vendor="Noname",
+        model="CameraA",
+    )
+
+    filtered = _filter_blacklisted_devices([camera], {"device blacklist": "v4l:.*"})
+
+    assert filtered == []
+
+
+def test_filter_blacklisted_devices_matches_spaces_literally() -> None:
+    """Spaces in the pattern are not ignored as they are under re.VERBOSE."""
+    camera = SimpleNamespace(
+        name="v4l:/dev/video0",
+        label="Noname FaceTime HD Camera",
+        vendor="Noname",
+        model="FaceTime HD Camera",
+    )
+
+    filtered = _filter_blacklisted_devices(
+        [camera], {"device blacklist": "FaceTime HD Camera"}
+    )
+
+    assert filtered == []
+
+
+def test_filter_blacklisted_devices_keeps_non_matching() -> None:
+    """A pattern that does not match leaves the device in the list."""
+    scanner = SimpleNamespace(
+        name="epsonscan2:Perfection",
+        label="EPSON Perfection V39",
+        vendor="EPSON",
+        model="Perfection V39",
+    )
+
+    filtered = _filter_blacklisted_devices([scanner], {"device blacklist": "CameraA"})
+
+    assert filtered == [scanner]
+
+
+def test_filter_blacklisted_devices_exact_backend_name() -> None:
+    """A stored exact backend name keeps working after the fix."""
+    camera = SimpleNamespace(name="v4l:/dev/video0", label="Noname CameraA: CameraA")
+
+    filtered = _filter_blacklisted_devices(
+        [camera], {"device blacklist": "v4l:/dev/video0"}
+    )
+
+    assert filtered == []
+
+
+def test_filter_blacklisted_devices_invalid_pattern_keeps_all() -> None:
+    """An invalid stored pattern is logged and does not hide devices."""
+    camera = SimpleNamespace(name="v4l:/dev/video0", label="Noname CameraA")
+
+    filtered = _filter_blacklisted_devices([camera], {"device blacklist": "["})
+
+    assert filtered == [camera]
+
+
+@pytest.mark.parametrize("blacklist", [None, ""])
+def test_filter_blacklisted_devices_unset_value_keeps_all(
+    blacklist: str | None,
+) -> None:
+    """A present but empty blacklist setting does not hide devices."""
+    camera = SimpleNamespace(name="v4l:/dev/video0", label="Noname CameraA")
+
+    filtered = _filter_blacklisted_devices([camera], {"device blacklist": blacklist})
+
+    assert filtered == [camera]
+
+
 def test_changed_device_list_callback_blacklist(mock_scan_window: object) -> None:
     """Test _changed_device_list_callback with blacklist."""
-    mock_scan_window.settings["device blacklist"] = "dev1"
+    mock_scan_window.settings["device blacklist"] = "scan.*"
 
     mock_widget = MagicMock()
-    device1 = MagicMock()
-    device1.name = "dev1"
-    device2 = MagicMock()
-    device2.name = "dev2"
+    device1 = SimpleNamespace(name="scanner1", label="Scanner 1")
+    device2 = SimpleNamespace(name="camera2", label="Camera 2")
     device_list = [device1, device2]
 
     mock_scan_window._changed_device_list_callback(mock_widget, device_list)
 
-    # dev1 should be removed, so dev2 becomes the first/default
+    # scanner1 should be removed, so camera2 becomes the first/default
     assert len(device_list) == 1
-    assert device_list[0].name == "dev2"
-    assert mock_widget.device == "dev2"
+    assert device_list[0].name == "camera2"
+    assert mock_widget.device == "camera2"
+
+
+def test_changed_device_list_callback_blacklist_all(
+    mock_scan_window: object,
+) -> None:
+    """Filtering every device reports no devices instead of raising."""
+    mock_scan_window.settings["device blacklist"] = ".*"
+
+    mock_widget = MagicMock()
+    device_list = [SimpleNamespace(name="scanner1", label="Scanner 1")]
+    mock_scan_window._windows = mock_widget
+
+    mock_scan_window._changed_device_list_callback(mock_widget, device_list)
+
+    mock_widget.emit.assert_called_with(
+        "process-error", "get_devices", "No devices found"
+    )
+    mock_widget.destroy.assert_called_once()
+    assert mock_scan_window._windows is None
+
+
+def test_blacklist_device_callback(mock_scan_window: object) -> None:
+    """Blacklisting the selected device appends an escaped label."""
+    label = "Noname Camera (A): A"
+    camera = SimpleNamespace(
+        name="v4l:/dev/video0",
+        label=label,
+        vendor="Noname",
+        model="Camera (A): A",
+    )
+    scanner = SimpleNamespace(name="epsonscan2:Perfection", label="EPSON V39")
+    mock_widget = MagicMock()
+    mock_widget.device_list = [camera, scanner]
+    mock_scan_window.settings["device blacklist"] = "hp.*"
+
+    mock_scan_window._blacklist_device_callback(mock_widget, camera.name)
+
+    assert mock_scan_window.settings["device blacklist"] == f"hp.*|{re.escape(label)}"
+    assert mock_widget.device_list == [scanner]
+    mock_widget.set_device_list.assert_called_once_with([scanner])
+    assert mock_widget.device == "epsonscan2:Perfection"
+
+
+def test_blacklist_device_callback_skips_duplicate(mock_scan_window: object) -> None:
+    """Blacklisting the same device twice does not duplicate the pattern."""
+    label = "Noname CameraA: CameraA"
+    camera = SimpleNamespace(name="v4l:/dev/video0", label=label)
+    pattern = re.escape(label)
+    mock_widget = MagicMock()
+    mock_widget.device_list = [camera]
+    mock_scan_window.settings["device blacklist"] = pattern
+
+    mock_scan_window._blacklist_device_callback(mock_widget, camera.name)
+
+    assert mock_scan_window.settings["device blacklist"] == pattern
+
+
+def test_blacklist_device_callback_last_device(mock_scan_window: object) -> None:
+    """Blacklisting the last device reports no devices."""
+    camera = SimpleNamespace(name="v4l:/dev/video0", label="Noname CameraA")
+    mock_widget = MagicMock()
+    mock_widget.device_list = [camera]
+    mock_scan_window._windows = mock_widget
+
+    mock_scan_window._blacklist_device_callback(mock_widget, camera.name)
+
+    mock_widget.emit.assert_called_with(
+        "process-error", "get_devices", "No devices found"
+    )
+    mock_widget.destroy.assert_called_once()
+    assert mock_scan_window._windows is None
 
 
 def test_changed_device_list_callback_empty(mock_scan_window: object) -> None:
