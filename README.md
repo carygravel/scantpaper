@@ -505,6 +505,20 @@ is reported before OCR starts, and the file paths that will be applied are
 written to the log. Invalid or unknown options are reported before any page is
 modified.
 
+The **Available parameters** button below the field opens a browser of the
+engine parameters that the installed Tesseract reports, with each parameter's
+name, default value, and description. Nothing is bundled with the application,
+so the list follows the installed engine. Type in the filter to narrow the list
+by name or description; matching is case-insensitive, and a filter that matches
+nothing says so. Select a parameter and press **Enter** or **Insert** to write
+`name=` at the cursor in the advanced field and return to the field with the
+cursor after the `=`, ready for the value. If there is already text on the
+current line, the new parameter starts on its own line.
+**tessedit_pageseg_mode** and **tessedit_ocr_engine_mode** stay visible but are
+annotated with the control that sets them and cannot be inserted. If the list
+cannot be read, the browser says so and OCR still runs with the parameters
+already in the field.
+
 The `tessdata_best` language models give more accurate OCR but are larger and
 notably slower, and they only support the LSTM engine. Point the **Tessdata
 directory** control (see below) at their directory to use them; the

@@ -4,10 +4,10 @@ context: |
   AGENTS.md is the authoritative AI-collaboration guide. This block is a compact,
   OpenSpec-specific distillation of it; if they diverge, AGENTS.md wins.
 
-  scantpaper is a desktop GUI (PyGObject / GTK3, Python >=3.10) for turning scanned
+  scantpaper is a desktop GUI (PyGObject / GTK4, Python >=3.10) for turning scanned
   documents into OCR'd PDFs or DjVus. End-user utility; monolithic, not client-server.
 
-  Tech stack: GTK3 + pycairo rendering, python-sane for scanner I/O, tesserocr for OCR,
+  Tech stack: GTK4 + pycairo rendering, python-sane for scanner I/O, tesserocr for OCR,
   ocrmypdf/img2pdf/pikepdf for PDF generation. SQLite stores the entire session state
   (pages, images as blobs, undo/redo, page order, metadata).
 

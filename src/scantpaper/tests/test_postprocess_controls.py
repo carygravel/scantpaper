@@ -9,12 +9,15 @@ import gi
 import pytest
 
 from scantpaper.const import DIALOG_ROW_SPACING
+from scantpaper.helpers import Proc
 from scantpaper.postprocess_controls import (
+    MANAGED_VARIABLES,
     OCRControls,
     RotateControlRow,
     RotateControls,
 )
 from scantpaper.session_mixins import SessionMixins
+from scantpaper.tesseract import TesseractParameter, get_tesseract_parameters
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # noqa: E402
@@ -621,6 +624,203 @@ class TestOCRControls:
             active=True,
         )
         assert not controls._variables_view.get_accepts_tab()
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_available_parameters_button_only_for_tesseract(self) -> None:
+        """The parameter browser is offered for Tesseract only."""
+        controls = OCRControls(available_engines=[["tesseract", "Tesseract", "Desc"]])
+        assert controls._browse_button.get_label() == "_Available parameters"
+        assert controls._browse_button.get_use_underline() is True
+
+        other = OCRControls(available_engines=[["gocr", "GOCR", "desc"]])
+        assert not hasattr(other, "_browse_button")
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_browse_parameters_inserts_the_selected_name(
+        self, mocker: pytest.MockerFixture
+    ) -> None:
+        """Choosing a row in the browser writes its name into the field."""
+        parameters = (
+            TesseractParameter("user_defined_dpi", "70", "User defined image DPI"),
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.get_tesseract_parameters",
+            return_value=parameters,
+        )
+        dialog = MagicMock()
+        dialog.selected_name = "user_defined_dpi"
+        dialog_class = mocker.patch(
+            "scantpaper.postprocess_controls.TesseractParametersDialog",
+            return_value=dialog,
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.run_dialog",
+            return_value=Gtk.ResponseType.OK,
+        )
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+
+        controls._browse_parameters()
+
+        dialog_class.assert_called_once_with(
+            parameters=parameters,
+            managed=MANAGED_VARIABLES,
+            transient_for=controls.get_root(),
+        )
+        dialog.destroy.assert_called_once()
+        assert controls.variables == "user_defined_dpi="
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_browse_parameters_close_writes_nothing(
+        self, mocker: pytest.MockerFixture
+    ) -> None:
+        """Closing the browser leaves the field untouched."""
+        dialog = MagicMock()
+        dialog.selected_name = None
+        mocker.patch(
+            "scantpaper.postprocess_controls.TesseractParametersDialog",
+            return_value=dialog,
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.run_dialog",
+            return_value=Gtk.ResponseType.CLOSE,
+        )
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            variables="user_words_file=/tmp/words.txt",
+            active=True,
+        )
+
+        controls._browse_parameters()
+
+        dialog.destroy.assert_called_once()
+        assert controls.variables == "user_words_file=/tmp/words.txt"
+
+    def test_browse_parameters_ok_without_a_name_writes_nothing(
+        self, mocker: pytest.MockerFixture
+    ) -> None:
+        """An OK response with no selected name leaves the field untouched."""
+        dialog = MagicMock()
+        dialog.selected_name = None
+        mocker.patch(
+            "scantpaper.postprocess_controls.TesseractParametersDialog",
+            return_value=dialog,
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.run_dialog",
+            return_value=Gtk.ResponseType.OK,
+        )
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            variables="user_words_file=/tmp/words.txt",
+            active=True,
+        )
+
+        controls._browse_parameters()
+
+        dialog.destroy.assert_called_once()
+        assert controls.variables == "user_words_file=/tmp/words.txt"
+
+    def test_browse_parameters_reuses_the_cached_parse(
+        self, mocker: pytest.MockerFixture
+    ) -> None:
+        """Opening the browser after validation does not shell out again."""
+        get_tesseract_parameters.cache_clear()
+        mocker.patch(
+            "scantpaper.postprocess_controls.resolve_tessdata_dir",
+            return_value=("/usr/share/tesseract-ocr/5/tessdata/", None),
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.get_tesseract_codes",
+            return_value=["eng"],
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.languages",
+            return_value={"eng": "English"},
+        )
+        exec_mock = mocker.patch("scantpaper.tesseract.exec_command")
+        exec_mock.return_value = Proc(
+            0,
+            "Tesseract parameters:\nuser_words_file\tSTRING\tUser words file\n",
+            "",
+        )
+        mocker.patch(
+            "scantpaper.postprocess_controls.run_dialog",
+            return_value=Gtk.ResponseType.CLOSE,
+        )
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+        assert controls.validation_error is None
+
+        controls._browse_parameters()
+
+        parameter_calls = [
+            call
+            for call in exec_mock.call_args_list
+            if call.args[0] == ["tesseract", "--print-parameters"]
+        ]
+        assert len(parameter_calls) == 1
+        get_tesseract_parameters.cache_clear()
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_insert_variable_into_an_empty_field(self) -> None:
+        """Inserting into an empty field writes the name and leaves the value."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            active=True,
+        )
+
+        controls.insert_variable("user_defined_dpi")
+
+        assert controls.variables == "user_defined_dpi="
+        buffer = controls._variables_view.get_buffer()
+        cursor = buffer.get_iter_at_mark(buffer.get_insert())
+        assert cursor.get_offset() == len("user_defined_dpi=")
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_insert_variable_starts_a_new_line(self) -> None:
+        """Text before the cursor without a trailing newline gets one."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            variables="user_words_file=/tmp/words.txt",
+            active=True,
+        )
+        buffer = controls._variables_view.get_buffer()
+        buffer.place_cursor(buffer.get_end_iter())
+
+        controls.insert_variable("user_defined_dpi")
+
+        assert controls.variables == (
+            "user_words_file=/tmp/words.txt\nuser_defined_dpi="
+        )
+
+    @pytest.mark.usefixtures("mock_ocr_setup")
+    def test_insert_variable_after_a_newline(self) -> None:
+        """An entry after a trailing newline needs no extra one."""
+        controls = OCRControls(
+            available_engines=[["tesseract", "Tesseract", "Desc"]],
+            language="eng",
+            variables="user_words_file=/tmp/words.txt\n",
+            active=True,
+        )
+        buffer = controls._variables_view.get_buffer()
+        buffer.place_cursor(buffer.get_end_iter())
+
+        controls.insert_variable("user_defined_dpi")
+
+        assert controls.variables == (
+            "user_words_file=/tmp/words.txt\nuser_defined_dpi="
+        )
 
     @pytest.mark.usefixtures("mock_ocr_setup")
     def test_page_segmentation_mode(self) -> None:

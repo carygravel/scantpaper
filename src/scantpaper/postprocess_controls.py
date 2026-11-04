@@ -10,6 +10,7 @@ import gi
 from scantpaper.comboboxtext import ComboBoxText
 from scantpaper.const import DIALOG_ROW_SPACING, PERCENT
 from scantpaper.dialog import pad_action_area
+from scantpaper.dialog.tesseractparams import TesseractParametersDialog
 from scantpaper.gobject import property_
 from scantpaper.helpers import chooser_path, run_dialog
 from scantpaper.i18n import _
@@ -18,6 +19,7 @@ from scantpaper.tesseract import (
     code2name,
     engine_modes,
     get_tesseract_codes,
+    get_tesseract_parameters,
     get_tesseract_variables,
     join_language_spec,
     languages,
@@ -785,8 +787,44 @@ class OCRControls(Gtk.Box):
         self._variables_view.get_buffer().set_text(self._variables)
         scrolled.set_child(self._variables_view)
         vbox.append(scrolled)
+        browse_box = Gtk.Box(halign=Gtk.Align.END)
+        browse = Gtk.Button(label=_("_Available parameters"))
+        browse.set_use_underline(True)
+        browse.set_tooltip_text(
+            _("Browse the parameters the installed Tesseract reports")
+        )
+        browse.connect("clicked", self._browse_parameters)
+        browse_box.append(browse)
+        vbox.append(browse_box)
+        self._browse_button = browse
         expander.set_child(vbox)
         self._options_box.append(expander)
+
+    def _browse_parameters(self, _button: Gtk.Button | None = None) -> None:
+        """Browse the engine parameters and insert the chosen name."""
+        dialog = TesseractParametersDialog(
+            parameters=get_tesseract_parameters(),
+            managed=MANAGED_VARIABLES,
+            transient_for=cast("Gtk.Window | None", self.get_root()),
+        )
+        try:
+            response = run_dialog(dialog)
+            if response == Gtk.ResponseType.OK and dialog.selected_name is not None:
+                self.insert_variable(dialog.selected_name)
+        finally:
+            dialog.destroy()
+            self._variables_view.grab_focus()
+
+    def insert_variable(self, name: str) -> None:
+        """Write ``name=`` at the cursor, starting a new line when needed."""
+        buffer = self._variables_view.get_buffer()
+        cursor = buffer.get_iter_at_mark(buffer.get_insert())
+        before = buffer.get_text(
+            buffer.get_start_iter(), cursor, include_hidden_chars=True
+        )
+        prefix = "\n" if before and not before.endswith("\n") else ""
+        buffer.insert_at_cursor(f"{prefix}{name}=")
+        self._variables_view.scroll_mark_onscreen(buffer.get_insert())
 
     def _load_language(self) -> None:
         codes = split_language_spec(self._language)

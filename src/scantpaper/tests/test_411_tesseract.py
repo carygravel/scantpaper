@@ -15,9 +15,11 @@ from scantpaper.document import Document
 from scantpaper.helpers import Proc
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.tesseract import (
+    TesseractParameter,
     _iso639_1to3,
     find_system_tessdata_dir,
     get_tesseract_codes,
+    get_tesseract_parameters,
     get_tesseract_variables,
     join_language_spec,
     languages,
@@ -255,7 +257,7 @@ def test_validate_variable_names() -> None:
 
 def test_get_tesseract_variables(mocker: pytest.MockerFixture) -> None:
     """Test querying the tesseract variable names."""
-    get_tesseract_variables.cache_clear()
+    get_tesseract_parameters.cache_clear()
     mock_exec = mocker.patch("scantpaper.tesseract.exec_command")
     mock_exec.return_value = Proc(
         0,
@@ -275,17 +277,62 @@ def test_get_tesseract_variables(mocker: pytest.MockerFixture) -> None:
     }
     mock_exec.assert_called_once()
 
-    get_tesseract_variables.cache_clear()
+    get_tesseract_parameters.cache_clear()
     mock_exec.return_value = Proc(-1, None, "not found")
     assert get_tesseract_variables() is None
 
-    get_tesseract_variables.cache_clear()
+    get_tesseract_parameters.cache_clear()
     mock_exec.return_value = Proc(0, "Tesseract parameters:\n", "")
     assert get_tesseract_variables() is None
 
-    get_tesseract_variables.cache_clear()
+    get_tesseract_parameters.cache_clear()
     mock_exec.return_value = Proc(0, "unexpected output\n", "")
     assert get_tesseract_variables() is None
+
+
+def test_get_tesseract_parameters(mocker: pytest.MockerFixture) -> None:
+    """Test parsing parameter names, defaults and descriptions."""
+    get_tesseract_parameters.cache_clear()
+    mock_exec = mocker.patch("scantpaper.tesseract.exec_command")
+    mock_exec.return_value = Proc(
+        0,
+        "Tesseract parameters:\n"
+        "user_defined_dpi\t70\tUser defined image DPI\n"
+        "tessedit_char_whitelist\t\tWhitelist of characters\n"
+        "some_parameter\t\tA description\twith a tab\n",
+        "",
+    )
+    assert get_tesseract_parameters() == (
+        TesseractParameter("user_defined_dpi", "70", "User defined image DPI"),
+        TesseractParameter("tessedit_char_whitelist", "", "Whitelist of characters"),
+        TesseractParameter("some_parameter", "", "A description\twith a tab"),
+    )
+    # Both views share the one cached shell-out.
+    assert get_tesseract_variables() == {
+        "user_defined_dpi",
+        "tessedit_char_whitelist",
+        "some_parameter",
+    }
+    mock_exec.assert_called_once()
+
+
+def test_get_tesseract_parameters_ignores_malformed_rows(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Test that rows without three fields are ignored."""
+    get_tesseract_parameters.cache_clear()
+    mock_exec = mocker.patch("scantpaper.tesseract.exec_command")
+    mock_exec.return_value = Proc(
+        0,
+        "Tesseract parameters:\n"
+        "not a parameter row\n"
+        "two_fields\tvalue\n"
+        "\t\tmissing name\n",
+        "",
+    )
+    assert get_tesseract_parameters() is None
+    assert get_tesseract_variables() is None
+    mock_exec.assert_called_once()
 
 
 def test_tesseract_in_thread(

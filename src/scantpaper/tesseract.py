@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import shutil
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -451,9 +452,25 @@ def resolve_file_variables(variables: Mapping[str, str]) -> dict[str, str]:
     }
 
 
+@dataclass(frozen=True)
+class TesseractParameter:
+    """One engine parameter reported by tesseract."""
+
+    name: str
+    default: str
+    description: str
+
+
+_PARAMETER_FIELDS = 3
+
+
 @lru_cache(maxsize=1)
-def get_tesseract_variables() -> set[str] | None:
-    """Return the variable names supported by tesseract."""
+def get_tesseract_parameters() -> tuple[TesseractParameter, ...] | None:
+    """Return the engine parameters supported by tesseract.
+
+    The command reports one parameter per tab-separated row: name, default
+    value and description. Rows that do not have that shape are ignored.
+    """
     proc = exec_command(["tesseract", "--print-parameters"])
     if proc.stdout is None or proc.returncode != 0:
         logger.info(proc.stderr)
@@ -462,15 +479,28 @@ def get_tesseract_variables() -> set[str] | None:
     first_line = next((line.strip() for line in lines if line.strip()), "")
     if not first_line.endswith(":"):
         return None
-    variables: set[str] = set()
+    parameters: list[TesseractParameter] = []
     for line in lines:
-        stripped = line.strip()
-        if not stripped or stripped.endswith(":"):
+        fields = line.split("\t", 2)
+        if len(fields) != _PARAMETER_FIELDS:
             continue
-        name = stripped.split(maxsplit=1)[0]
-        if re.fullmatch(r"[A-Za-z0-9_]+", name):
-            variables.add(name)
-    return variables or None
+        name = fields[0].strip()
+        if not re.fullmatch(r"[A-Za-z0-9_]+", name):
+            continue
+        parameters.append(
+            TesseractParameter(
+                name=name,
+                default=fields[1].strip(),
+                description=fields[2].strip(),
+            )
+        )
+    return tuple(parameters) or None
+
+
+def get_tesseract_variables() -> set[str] | None:
+    """Return the variable names supported by tesseract."""
+    parameters = get_tesseract_parameters()
+    return None if parameters is None else {param.name for param in parameters}
 
 
 def validate_language_spec(
