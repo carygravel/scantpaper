@@ -179,6 +179,9 @@ after the floor moves; they are independent and can be done one per release.
   the port) now that the floor is newer.
 - Remove the corresponding `gi.require_version` workarounds introduced to
   stay on 4.6-compatible APIs, and clear any GTK4 deprecation warnings.
+- Replace the `placeholder-text` property assignment on the parameter
+  browser's filter with `Gtk.SearchEntry.set_placeholder_text()` again. The
+  property is used only because jammy's GTK 4.6 lacks that method.
 
 A release that ships a GTK4 widget must drop jammy in the same release, so a
 jammy user never installs a build that requires a widget its GTK4 cannot

@@ -53,7 +53,7 @@ class TesseractParametersDialog(Dialog):
         content = self.get_content_area()
 
         self._search = Gtk.SearchEntry()
-        self._search.set_placeholder_text(_("Filter parameters"))
+        self._search.set_property("placeholder-text", _("Filter parameters"))
         self._search.set_sensitive(parameters is not None)
         self._search.connect("search-changed", self._on_search_changed)
         content.append(self._search)

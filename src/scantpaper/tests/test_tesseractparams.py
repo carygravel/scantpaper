@@ -49,6 +49,7 @@ def test_columns_and_rows() -> None:
 
     titles = [column.get_title() for column in dialog._list.get_columns()]
     assert titles == ["Name", "Default", "Description"]
+    assert dialog._search.get_property("placeholder-text") == "Filter parameters"
     assert row_names(dialog) == [
         "tessedit_char_whitelist",
         "tessedit_ocr_engine_mode",
