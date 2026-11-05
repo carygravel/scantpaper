@@ -340,6 +340,9 @@ Further reading:
     - In all of the above, the mouse wheel zooms in or out.
     - When no page is displayed in the image view, pressing or dragging does
       nothing.
+- Clear image selection: Remove the selection rectangle from the image and
+  layer panes. The same action is also on the toolbar next to the selection
+  tools and available from the keyboard with Escape.
 - Zoom: 100%, fit to window, in, and out.
 - Rendering: pages are shown at high quality whenever they are static, so the
   full-page view is easy to assess; a faster rendering is used only while you
@@ -391,6 +394,7 @@ Further reading:
 | Dark         | Ctrl+D         |
 | Modified     | Ctrl+M         |
 | **View**     |                |
+| Clear image selection | Esc    |
 | Zoom in      | +              |
 | Zoom out     | −              |
 | Rotate 90° clockwise   | Ctrl+Shift+R |

@@ -73,6 +73,31 @@ def test_coverage() -> None:
     assert dialog.selection is not None
 
 
+def test_crop_selection_can_be_cleared() -> None:
+    """Assigning None clears the dialog without dereferencing the rectangle."""
+    dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)
+    rect = Gdk.Rectangle()
+    rect.x, rect.y, rect.width, rect.height = 10, 20, 30, 40
+    dialog.selection = rect
+
+    changed = []
+    dialog.connect("changed-selection", lambda _d, sel: changed.append(sel))
+    dialog.selection = None
+
+    assert dialog.selection is None
+    assert changed == [None]
+    assert [
+        dialog._sb_x.get_value(),
+        dialog._sb_y.get_value(),
+        dialog._sb_width.get_value(),
+        dialog._sb_height.get_value(),
+    ] == [0, 0, 0, 0]
+
+    # A page resize updates the spin ranges without a selection.
+    dialog.page_width = 200
+    dialog.page_height = 200
+
+
 def test_crop_selector_with_existing_selection() -> None:
     """Test on_sb_selector_value_changed when selection already exists."""
     dialog = Crop(transient_for=Gtk.Window(), page_width=100, page_height=100)

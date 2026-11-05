@@ -73,6 +73,11 @@
   cached device lists are filtered without a rescan, and a pattern that hides
   every device reports that no devices were found instead of crashing. The
   preference now explains what it matches and gives an example.
+* The image selection can now be cleared explicitly with **View → Clear image
+  selection**, a toolbar button next to the selection tools, or Escape.
+  Clearing removes the rectangle instead of collapsing it to a zero-size
+  selection, so **Add** is disabled and **Crop** reports no region; navigating
+  to another page keeps it cleared.
 
 
 ## 4.0.2 (2026-10-31)

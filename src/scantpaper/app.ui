@@ -370,6 +370,12 @@
     </section>
     <section>
       <item>
+        <attribute name="action">win.clear-image-selection</attribute>
+        <attribute name="label" translatable="yes">_Clear image selection</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
         <attribute name="label" translatable="yes">_Tabbed</attribute>
         <attribute name="action">win.viewtype</attribute>
         <attribute name="target">tabbed</attribute>
@@ -669,6 +675,16 @@
             <property name="action_name">win.tooltype</property>
             <property name="action-target">'selectordragger'</property>
             <property name="icon-name">media-playback-start</property>
+            <property name="hexpand">False</property>
+            <property name="vexpand">False</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="toolbutton_clear_selection">
+            <property name="can_focus">False</property>
+            <property name="tooltip_text" translatable="yes">Clear image selection</property>
+            <property name="action_name">win.clear-image-selection</property>
+            <property name="icon-name">edit-clear</property>
             <property name="hexpand">False</property>
             <property name="vexpand">False</property>
           </object>

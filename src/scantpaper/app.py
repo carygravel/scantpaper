@@ -102,6 +102,7 @@ class Application(Gtk.Application):
             "win.select-blank": ["<Primary>b"],
             "win.select-dark": ["<Primary>d"],
             "win.select-modified": ["<Primary>m"],
+            "win.clear-image-selection": ["Escape"],
             "win.zoom-in": ["plus"],
             "win.zoom-out": ["minus"],
             "win.rotate-90": ["<Primary><Shift>r"],

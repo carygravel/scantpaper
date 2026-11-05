@@ -57,11 +57,15 @@ class Crop(Dialog):
 
     @selection.setter
     def selection(self, newval: Gdk.Rectangle | None) -> None:
-        if (
-            newval is not None
-            and self._selection is not None
-            and newval.equal(self._selection)
-        ):
+        if newval is None:
+            self._updating_selection = True
+            for row in LAYOUT:
+                getattr(self, f"_sb_{row[0]}").set_value(0)
+            self._updating_selection = False
+            self._selection = None
+            self.emit("changed-selection", newval)
+            return
+        if self._selection is not None and newval.equal(self._selection):
             return
         self._updating_selection = True
         for row in LAYOUT:
@@ -180,6 +184,7 @@ class Crop(Dialog):
             dimension
         ]
         if getattr(self, f"_sb_{otherattr}", None) is not None:
+            offset = 0 if self.selection is None else getattr(self.selection, dimension)
             getattr(self, f"_sb_{otherattr}").set_range(
-                0, getattr(self, pagedim) - getattr(self.selection, dimension)
+                0, getattr(self, pagedim) - offset
             )

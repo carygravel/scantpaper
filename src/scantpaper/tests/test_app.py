@@ -81,6 +81,14 @@ def test_application_do_activate(mocker: pytest.MockerFixture) -> None:
 
 
 @pytest.mark.usefixtures("mock_deps")
+def test_setup_accelerators_registers_escape() -> None:
+    """Escape is registered for clearing the image selection."""
+    app = Application()
+    app._setup_accelerators()
+    assert app.get_accels_for_action("win.clear-image-selection") == ["Escape"]
+
+
+@pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_default(mocker: pytest.MockerFixture) -> None:
     """Test _parse_arguments with default arguments."""
     with patch("sys.argv", ["prog"]):

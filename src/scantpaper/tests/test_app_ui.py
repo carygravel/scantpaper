@@ -30,6 +30,20 @@ def _top_level_labels(model: Gio.MenuModel) -> list[str]:
     return labels
 
 
+def _menu_action_names(model: Gio.MenuModel) -> list[str]:
+    """Return every action name referenced by the menu model, recursively."""
+    names: list[str] = []
+    for i in range(model.get_n_items()):
+        action = model.get_item_attribute_value(i, Gio.MENU_ATTRIBUTE_ACTION, None)
+        if action is not None:
+            names.append(cast("str", action.get_string()))
+        for link in (Gio.MENU_LINK_SECTION, Gio.MENU_LINK_SUBMENU):
+            submenu = model.get_item_link(i, link)
+            if submenu is not None:
+                names.extend(_menu_action_names(submenu))
+    return names
+
+
 def test_menubar_is_an_in_window_popover_menu_bar(ui_builder: Gtk.Builder) -> None:
     """The window presents the menus itself as a Gtk.PopoverMenuBar."""
     bar = ui_builder.get_object("menubar")
@@ -80,3 +94,24 @@ def test_file_menu_exposes_import_hocr(ui_builder: Gtk.Builder) -> None:
             actions.append(value.get_string())
 
     assert "win.import-hocr" in actions
+
+
+def test_view_menu_exposes_clear_image_selection(ui_builder: Gtk.Builder) -> None:
+    """The View menu links the image-selection clear action."""
+    bar = cast("Gtk.PopoverMenuBar", ui_builder.get_object("menubar"))
+    view_menu = bar.get_menu_model().get_item_link(2, Gio.MENU_LINK_SUBMENU)
+    assert view_menu is not None
+
+    assert "win.clear-image-selection" in _menu_action_names(view_menu)
+
+
+def test_toolbar_exposes_clear_image_selection(ui_builder: Gtk.Builder) -> None:
+    """The clear action sits next to the selection tools on the toolbar."""
+    button = cast("Gtk.Button", ui_builder.get_object("toolbutton_clear_selection"))
+    assert isinstance(button, Gtk.Button)
+    assert button.get_action_name() == "win.clear-image-selection"
+    assert button.get_icon_name() == "edit-clear"
+    assert button.get_tooltip_text() == "Clear image selection"
+
+    selectordragger = ui_builder.get_object("toolbutton_selectordragger")
+    assert button.get_prev_sibling() is selectordragger

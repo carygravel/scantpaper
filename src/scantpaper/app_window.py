@@ -371,6 +371,7 @@ class ApplicationWindow(
             ("select-dark", self.select_dark),
             ("select-modified", self.select_modified_since_ocr),
             ("select-no-ocr", self.select_no_ocr),
+            ("clear-image-selection", self.clear_image_selection),
             ("clear-ocr", self.clear_ocr),
             ("properties", self.properties),
             ("preferences", self.preferences),
@@ -397,6 +398,8 @@ class ApplicationWindow(
             self._actions[name] = Gio.SimpleAction.new(name, None)
             self._actions[name].connect("activate", function)
             self.add_action(self._actions[name])
+
+        self._actions["clear-image-selection"].set_enabled(False)
 
         # action with a state created (name, parameter type, initial state)
         self._actions["tooltype"] = Gio.SimpleAction.new_stateful(
@@ -852,19 +855,31 @@ class ApplicationWindow(
         gesture.set_state(Gtk.EventSequenceState.CLAIMED)
 
     def _view_selection_changed_callback(
-        self, _view: ImageView, sel: Gdk.Rectangle
+        self, _view: ImageView, sel: Gdk.Rectangle | None
     ) -> None:
         # copy required here because somehow the garbage collection
         # destroys the Gdk.Rectangle too early and afterwards, the
         # contents are corrupt.
-        self.settings["selection"] = sel.copy()
+        self.settings["selection"] = None if sel is None else sel.copy()
 
     def _on_view_selection_notify(
         self, _view: GObject.Object, _pspec: GObject.ParamSpec
     ) -> None:
         sel = self.view.selection
-        if sel is not None:
-            self.settings["selection"] = sel.copy()
+        self.settings["selection"] = None if sel is None else sel.copy()
+        action = self._actions.get("clear-image-selection")
+        if action is not None:
+            action.set_enabled(sel is not None)
+
+    def clear_image_selection(
+        self, _action: Gio.SimpleAction | None, _param: GLib.Variant | None
+    ) -> None:
+        """Clear the image selection and the state that depends on it."""
+        self.settings["selection"] = None
+        if self.view is not None:
+            self.view.set_selection(None)
+        if self._windowc is not None:
+            self._windowc.selection = None
 
     def _on_key_press(
         self,

@@ -536,6 +536,8 @@ def test_init_actions(app_window: ApplicationWindow) -> None:
     assert "save" in actions
     assert "quit" in actions
     assert "tooltype" in actions
+    assert "clear-image-selection" in actions
+    assert not app_window._actions["clear-image-selection"].get_enabled()
 
     # Check initial state
     assert app_window._actions["tooltype"].get_state().get_string() == "selector"
@@ -1062,11 +1064,12 @@ def test_view_selection_changed_callback(app_window: ApplicationWindow) -> None:
 
 
 def test_view_selection_changed_callback_none(app_window: ApplicationWindow) -> None:
-    """Test _view_selection_changed_callback with None."""
-    with pytest.raises(AttributeError):
-        app_window._view_selection_changed_callback(
-            cast("ImageView", cast("object", None)), None
-        )
+    """Clearing the selection mirrors None instead of raising."""
+    app_window.settings["selection"] = MagicMock()
+    app_window._view_selection_changed_callback(
+        cast("ImageView", cast("object", None)), None
+    )
+    assert app_window.settings["selection"] is None
 
 
 def test_on_key_press(app_window: ApplicationWindow) -> None:
@@ -1084,18 +1087,60 @@ def test_on_key_press(app_window: ApplicationWindow) -> None:
 
 
 def test_on_view_selection_notify(app_window: ApplicationWindow) -> None:
-    """Test _on_view_selection_notify with a non-None selection."""
+    """Test _on_view_selection_notify mirrors the selection and its state."""
     sel = MagicMock()
     copied = MagicMock()
     sel.copy.return_value = copied
 
     app_window.view = MagicMock()
     app_window.view.selection = sel
+    action = app_window._actions["clear-image-selection"]
     app_window._on_view_selection_notify(None, None)
     assert app_window.settings["selection"] == copied
+    assert action.get_enabled()
 
     app_window.view.selection = None
     app_window._on_view_selection_notify(None, None)
+    assert app_window.settings["selection"] is None
+    assert not action.get_enabled()
+
+
+def test_on_view_selection_notify_without_clear_action(
+    app_window: ApplicationWindow,
+) -> None:
+    """Mirroring a selection tolerates a missing clear action."""
+    app_window.view = MagicMock()
+    app_window.view.selection = None
+    app_window._actions.pop("clear-image-selection")
+
+    app_window._on_view_selection_notify(None, None)
+
+    assert app_window.settings["selection"] is None
+
+
+def test_clear_image_selection(app_window: ApplicationWindow) -> None:
+    """Activating the action clears the view, settings and crop dialog."""
+    app_window.view = MagicMock()
+    app_window.view.selection = MagicMock()
+    app_window._windowc = MagicMock()
+    app_window._on_view_selection_notify(None, None)
+
+    app_window._actions["clear-image-selection"].activate(None)
+
+    app_window.view.set_selection.assert_called_once_with(None)
+    assert app_window.settings["selection"] is None
+    assert app_window._windowc.selection is None
+
+
+def test_clear_image_selection_without_view(app_window: ApplicationWindow) -> None:
+    """Clearing without a view or crop dialog stays a no-op."""
+    app_window.view = None
+    app_window._windowc = None
+    app_window.settings["selection"] = None
+
+    app_window.clear_image_selection(None, None)
+
+    assert app_window.settings["selection"] is None
 
 
 def test_error_callback_uses_response_status(
