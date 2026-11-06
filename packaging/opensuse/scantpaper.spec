@@ -153,7 +153,10 @@ python3 -m pip wheel \
 python3 dev/compile_mo.py \
     --src po \
     --out locale \
-    --domain scantpaper
+    --domain scantpaper \
+    --approvals po/translation-approvals.json \
+    --pot po/scantpaper/scantpaper.pot \
+    --report translation-report.json
 
 %install
 python3 -m pip install \

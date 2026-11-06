@@ -1,0 +1,166 @@
+{
+  "language": "ja",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "出力ページ数"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "OCR出力をテキストバッファーの末尾に追加します。"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "ファイル %s は読み込み専用です"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "すべての用紙サイズは削除できません"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "ページ数"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "新規メールにPDFとして添付する"
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "ページをインポート中 %i/%i"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "すべてのページをクリア"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "unpaperでスキャン済みの画像のゴミ取りをします"
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "処理中 %i/%i"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "切り取り(_T)"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "すべて"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "CCITT Group 3 (G3)エンコーディングで出力を圧縮します。"
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "処理中 %i/%i (%s)"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "選択したページを削除"
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "末尾に追加"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "CCITT Group 4 (G4)エンコーディングで出力を圧縮します。"
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "警告: %s を一時ストレージとして使用できません。代わりに %s をデフォルトにします。"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "設定(_N)"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "自動"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "JPEGエンコーディングで出力を圧縮します。"
+    },
+    {
+      "msgid": "Writing page %i of %i",
+      "msgstr": "ページの書き込み中 %i/%i"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "プロパティ(_I)"
+    },
+    {
+      "msgid": "Blank threshold",
+      "msgstr": "空白のしきい値"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Lempel-Ziv & Welch (LZW)エンコーディングで出力を圧縮します。"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "100% に拡大(_1)"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "終了"
+    },
+    {
+      "msgid": "Both sides",
+      "msgstr": "両面"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Packbitsエンコーディングで出力を圧縮します。"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "100% に拡大"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "180度回転"
+    },
+    {
+      "msgid": "Both sides.",
+      "msgstr": "両面"
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "deflateエンコーディングで出力を圧縮します。"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "反時計回りに90度回転"
+    },
+    {
+      "msgid": "Browse",
+      "msgstr": "参照"
+    },
+    {
+      "msgid": "CompuServe graphics interchange format",
+      "msgstr": "CompuServe graphics interchange (GIF)フォーマット"
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "時計回りに90度回転"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "圧縮"
+    },
+    {
+      "msgid": "Default PDF & DjVu filename",
+      "msgstr": "PDFのデフォルトファイル名"
+    }
+  ]
+}

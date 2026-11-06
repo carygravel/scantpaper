@@ -11,7 +11,10 @@ execute_after_dh_auto_build:
 	python3 dev/compile_mo.py \
 		--src po \
 		--out debian/locale \
-		--domain scantpaper
+		--domain scantpaper \
+		--approvals po/translation-approvals.json \
+		--pot po/scantpaper/scantpaper.pot \
+		--report debian/translation-report.json
 
 	pandoc README.md -o debian/documentation.html
 	python3 dev/strip_remote_images.py debian/documentation.html

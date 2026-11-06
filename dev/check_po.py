@@ -38,6 +38,7 @@ Exit status is non-zero if any hard check fails. Run in CI via
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import string
@@ -46,12 +47,38 @@ import sys
 import tempfile
 import unicodedata
 from collections import Counter, defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 import polib
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEV_DIR = REPO_ROOT / "dev"
+
+# The fuzzy backlog predates the checks that now cover it. A defect listed here
+# is reported but does not fail the build; the list is a ratchet that may only
+# shrink. New defects and fixed entries are both visible in every run.
+DEFAULT_BASELINE = REPO_ROOT / "po" / "fuzzy-defect-baseline.json"
+BASELINE_VERSION = 1
+
+
+@dataclass(frozen=True)
+class PlaceholderViolation:
+    """One placeholder defect, keyed by catalog, msgid and check."""
+
+    catalog: str
+    msgid: str
+    check: str
+    message: str
+
+    def baseline_key(self) -> tuple[str, str, str]:
+        """Return the stable key used by the defect baseline."""
+        return (self.catalog, self.msgid, self.check)
+
+
+class BaselineError(Exception):
+    """A defect baseline that cannot be read or trusted."""
+
 
 # The GtkBuilder ITS rules dev/generate_pot.py extracts .ui strings with. They
 # are vendored under dev/ so the msgid set is the same on every machine; the
@@ -169,7 +196,7 @@ OBSOLETE_CEILING: dict[str, int] = {
 # A printf conversion letter preceded by whitespace directly after a `%`.
 # A single `%` followed by whitespace and one of these letters is the
 # translation-time rewrap artifact this check targets.
-_PRINTF_POISON = re.compile(r"%\s+[diouxXeEfgGaAcspn]")
+_PRINTF_POISON = re.compile(r"%\s+[diouxXeEfgGaAcrspn]")
 
 # A word character immediately followed by a parenthesised bare plural suffix,
 # as in `Open image file(s)`. Such a string is not a counted message, so it
@@ -180,7 +207,14 @@ _PLURAL_HACK = re.compile(r"\w\((?:s|es)\)")
 
 # A printf placeholder, used to decide whether a msgid ending in a colon is a
 # self-contained sentence or a fragment meant to be concatenated with a value.
-_PRINTF_PLACEHOLDER = re.compile(r"%[-+ #0-9.*]*[diouxXeEfgGaAcspn]")
+_PRINTF_PLACEHOLDER = re.compile(r"%[-+ #0-9.*]*[diouxXeEfgGaAcrspn]")
+
+# A printf token, including an optional named or positional selector. Used to
+# compare the placeholders of a fuzzy proposal with its source, which
+# `msgfmt --check` skips.
+_PRINTF_TOKEN = re.compile(
+    r"%(?P<name>\([^)]+\))?(?:\d+\$)?[-+ #0-9.*]*(?P<conv>[diouxXeEfgGaAcrspn])"
+)
 
 # A msgid ending in a colon, with no trailing word after it, is intended to be
 # followed by a runtime value or list. The fragment pins the sentence's word
@@ -221,8 +255,15 @@ def plural_forms_nplurals(po_text: str) -> int | None:
 
 
 def _translated_strings(entry: polib.RESEntry) -> list[str]:
-    """Return the non-empty translated bodies for one entry."""
-    bodies = entry.msgstr if isinstance(entry.msgstr, list) else [entry.msgstr]
+    """Return the non-empty translated bodies for one entry.
+
+    Plural entries keep their text in ``msgstr_plural``; checking only
+    ``msgstr`` would skip exactly the plural proposals the gate must validate.
+    """
+    if entry.msgid_plural and entry.msgstr_plural:
+        bodies = list(entry.msgstr_plural.values())
+    else:
+        bodies = entry.msgstr if isinstance(entry.msgstr, list) else [entry.msgstr]
     return [body for body in bodies if body.strip()]
 
 
@@ -251,6 +292,22 @@ def _active_entries(po: polib.POFile) -> list[polib.RESEntry]:
 def _printf_poison(text: str) -> bool:
     """Return True if text has a `%` split from its conversion letter."""
     return bool(_PRINTF_POISON.search(text.replace("%%", "")))
+
+
+def _printf_signature(text: str) -> tuple[str, ...]:
+    """Return the printf placeholder signature of a message.
+
+    Unnamed placeholders are compared as an ordered sequence of conversion
+    letters, so a translation that reorders ``%d`` and ``%s`` is rejected:
+    Python's ``%`` cannot reorder arguments. Named placeholders are compared
+    as a sorted multiset because ``%(name)s`` may legitimately be reordered.
+    """
+    tokens = [
+        match.group(0) for match in _PRINTF_TOKEN.finditer(text.replace("%%", ""))
+    ]
+    if any(token.startswith("%(") for token in tokens):
+        return tuple(sorted(tokens))
+    return tuple(token[-1] for token in tokens)
 
 
 def _carries_placeholder(text: str) -> bool:
@@ -498,36 +555,131 @@ def _catalog_advisories(po: polib.POFile, name: str) -> list[str]:
     return lines
 
 
-def _check_placeholders(path: Path) -> list[str]:
-    """Return hard-error messages for malformed placeholders in a catalog."""
-    errors: list[str] = []
+def _printf_violations(
+    path: Path,
+    entry: polib.RESEntry,
+    strings: list[str],
+    expected: tuple[str, ...],
+) -> list[PlaceholderViolation]:
+    """Return printf violations for one entry's translated bodies."""
+    violations: list[PlaceholderViolation] = []
+    for body in strings:
+        if _printf_poison(body):
+            violations.append(
+                PlaceholderViolation(
+                    catalog=path.name,
+                    msgid=entry.msgid,
+                    check="printf-split",
+                    message=(
+                        f"{path.name}: printf token split by space in "
+                        f"{entry.msgid!r} -> {body!r}"
+                    ),
+                )
+            )
+        elif _printf_signature(body) != expected:
+            violations.append(
+                PlaceholderViolation(
+                    catalog=path.name,
+                    msgid=entry.msgid,
+                    check="printf-placeholders",
+                    message=(
+                        f"{path.name}: printf placeholders changed "
+                        f"in {entry.msgid!r} -> {body!r}"
+                    ),
+                )
+            )
+    return violations
+
+
+def _format_violations(
+    path: Path,
+    entry: polib.RESEntry,
+    strings: list[str],
+    expected: Counter[str],
+) -> list[PlaceholderViolation]:
+    """Return str.format violations for one entry's translated bodies."""
+    violations: list[PlaceholderViolation] = []
+    for body in strings:
+        got = _format_fields(body)
+        if got is None:
+            violations.append(
+                PlaceholderViolation(
+                    catalog=path.name,
+                    msgid=entry.msgid,
+                    check="format-braces",
+                    message=(
+                        f"{path.name}: malformed braces in {entry.msgid!r} -> {body!r}"
+                    ),
+                )
+            )
+        elif Counter(got) != expected:
+            violations.append(
+                PlaceholderViolation(
+                    catalog=path.name,
+                    msgid=entry.msgid,
+                    check="format-fields",
+                    message=(
+                        f"{path.name}: str.format fields changed "
+                        f"in {entry.msgid!r} -> {body!r}"
+                    ),
+                )
+            )
+    return violations
+
+
+def _check_placeholders(path: Path) -> list[PlaceholderViolation]:
+    """Return placeholder violations for every active catalog entry.
+
+    Every non-obsolete entry is checked, fuzzy included, because an approval
+    may clear the flag and ship the text. Entries with no translation are
+    skipped: there is nothing to validate yet.
+    """
+    violations: list[PlaceholderViolation] = []
     for entry in _active_entries(polib.pofile(str(path))):
         strings = _translated_strings(entry)
         if not strings:
             continue
-        flagged_printf = any(flag.endswith("-format") for flag in entry.flags)
-        if flagged_printf:
-            errors.extend(
-                f"{path.name}: printf token split by space in "
-                f"{entry.msgid!r} -> {body!r}"
-                for body in strings
-                if _printf_poison(body)
-            )
+
+        expected_printf = _printf_signature(entry.msgid)
+        if expected_printf:
+            violations.extend(_printf_violations(path, entry, strings, expected_printf))
+
         id_fields = _format_fields(entry.msgid)
         if id_fields is not None:
-            expected = Counter(id_fields)
-            for body in strings:
-                got = _format_fields(body)
-                if got is None:
-                    errors.append(
-                        f"{path.name}: malformed braces in {entry.msgid!r} -> {body!r}"
-                    )
-                elif Counter(got) != expected:
-                    errors.append(
-                        f"{path.name}: str.format fields changed "
-                        f"in {entry.msgid!r} -> {body!r}"
-                    )
-    return errors
+            violations.extend(
+                _format_violations(path, entry, strings, Counter(id_fields))
+            )
+    return violations
+
+
+def load_baseline(path: Path) -> set[tuple[str, str, str]]:
+    """Load the ratcheted defect baseline, or an empty set when absent."""
+    if not path.exists():
+        return set()
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        msg = f"cannot read baseline {path}: {error}"
+        raise BaselineError(msg) from error
+    if not isinstance(data, dict) or data.get("version") != BASELINE_VERSION:
+        msg = f"{path} is not a version-{BASELINE_VERSION} baseline"
+        raise BaselineError(msg)
+    defects = data.get("defects")
+    if not isinstance(defects, list):
+        msg = f"{path} has no 'defects' list"
+        raise BaselineError(msg)
+
+    keys: set[tuple[str, str, str]] = set()
+    for defect in defects:
+        if not isinstance(defect, dict):
+            msg = f"{path} has a non-object defect"
+            raise BaselineError(msg)
+        fields = [defect.get(field) for field in ("catalog", "msgid", "check")]
+        if not all(isinstance(field, str) for field in fields):
+            msg = f"{path} has a defect without catalog, msgid and check"
+            raise BaselineError(msg)
+        keys.add((fields[0], fields[1], fields[2]))
+    return keys
 
 
 def _hygiene(path: Path) -> tuple[list[str], list[str]]:
@@ -579,8 +731,12 @@ def _hygiene(path: Path) -> tuple[list[str], list[str]]:
     return advisory_lines, errors
 
 
-def check_catalog(path: Path) -> int:
-    """Check one catalog; return the number of errors found."""
+def check_catalog(
+    path: Path,
+    baseline: set[tuple[str, str, str]],
+    used_baseline: set[tuple[str, str, str]],
+) -> int:
+    """Check one catalog; return the number of unbaselined errors found."""
     errors = 0
     lang = language_from_filename(path)
 
@@ -604,9 +760,14 @@ def check_catalog(path: Path) -> int:
             f"but CLDR specifies {CLDR_NPLURALS[lang]} for {lang}"
         )
 
-    for message in _check_placeholders(path):
-        errors += 1
-        print(f"[FAIL] {message}")
+    for violation in _check_placeholders(path):
+        key = violation.baseline_key()
+        if key in baseline:
+            used_baseline.add(key)
+            print(f"[baselined] {violation.message}")
+        else:
+            errors += 1
+            print(f"[FAIL] {violation.message}")
 
     advisory_lines, hygiene_errors = _hygiene(path)
     for message in hygiene_errors:
@@ -640,10 +801,25 @@ def main() -> int:
         help="Search this directory for installed copies of the vendored ITS "
         "rules, instead of the standard gettext locations",
     )
+    parser.add_argument(
+        "--baseline",
+        type=Path,
+        default=DEFAULT_BASELINE,
+        help=(
+            "Accepted placeholder defects to report without failing "
+            f"(default: {DEFAULT_BASELINE.relative_to(REPO_ROOT)})"
+        ),
+    )
     args = parser.parse_args()
 
     for line in _its_advisories(args.its_dir):
         print(line)
+
+    try:
+        baseline = load_baseline(args.baseline)
+    except BaselineError as error:
+        print(f"[FAIL] {error}")
+        return 1
 
     try:
         msgids = source_msgids(args.pot)
@@ -654,9 +830,16 @@ def main() -> int:
     src = Path(args.src)
     total_errors = 0
     checked = 0
+    used_baseline: set[tuple[str, str, str]] = set()
     for po_path in sorted(src.glob("*.po")):
         checked += 1
-        total_errors += check_catalog(po_path)
+        total_errors += check_catalog(po_path, baseline, used_baseline)
+
+    for catalog, msgid, check in sorted(baseline - used_baseline):
+        print(
+            f"[advisory] baseline entry no longer found: "
+            f"{catalog} {msgid!r} ({check}); remove it"
+        )
 
     # Source-wide conditions are properties of the msgid set, so they are
     # evaluated and reported once rather than once per catalog.

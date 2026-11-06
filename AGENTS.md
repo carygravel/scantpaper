@@ -84,6 +84,9 @@ This document provides essential context for anyone working on this project. Adh
     `python3 dev/check_test_coverage.py`; it runs in GitHub's `latest` job
     and ratchets partial branches at the recorded baseline.
 -   **Translations:** Translation strings are marked with `_()` in the source.
+    The full maintainer workflow, including setup, catalog refresh, coverage,
+    the approval ledger, translation memory and the machine gate, is in
+    `po/README.md`.
     The workflow for handling translations is:
     1. Regenerate the translation template with
        `PYTHONPATH=src python3 dev/generate_pot.py`, which creates the `.pot`
@@ -132,6 +135,18 @@ This document provides essential context for anyone working on this project. Adh
        drift, escaping, plural-entry counts) and validates each catalog's
        `Plural-Forms` header against CLDR. Never disable a check to make a
        catalog pass.
+    8. The machine gate may clear a fuzzy flag without a per-string human
+       decision only by recording an approval in
+       `po/translation-approvals.json`. The evidence ladder is: unchanged
+       pre-2026 text -> `human-historical`; a mnemonic or placeholder-only
+       rebase -> `in-project-rebase`; a dominant cross-project match plus
+       the deterministic checks -> `tm-consensus`; full independent
+       proposals, blind judging and back-translation -> `machine-strong`.
+       A translation-memory match alone never approves, and a high-impact
+       menu action, destructive verb or data-loss message needs human-origin
+       evidence or `machine-strong`. Machine approvals are provisional and
+       may be revoked by language, deployment or release; revocation takes
+       effect at the next build.
     Source conventions: counted strings must use `ngettext`, never `_()`;
     new-language catalogs must declare a CLDR-correct `Plural-Forms`
     header.

@@ -1,0 +1,166 @@
+{
+  "language": "pt_BR",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Páginas de saída"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Anexar como PDF em um novo email"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Arquivo %s é somente leitura"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Não é possível remover todos os tamanhos de papel"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# páginas"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Brilho / Contraste"
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "Importando página %i de %i"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Limpar todas as páginas"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Proporção de brilho acima do qual um pixel é considerado branco."
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Processo %i de %i"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Recorta_r"
+    },
+    {
+      "msgid": "Accept corrections",
+      "msgstr": "Aceitar correções"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Proporção de brilho abaixo do qual um pixel é considerado preto (sem tons de cinza). Isto é usado para filtro de cinza. Este valor é usado quando se converte uma imagem em escala de cinza para preto e branco."
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Processo %i de %i (%s)"
+    },
+    {
+      "msgid": "Delete annotation",
+      "msgstr": "Apagar anotação"
+    },
+    {
+      "msgid": "Add annotation",
+      "msgstr": "Adicionar anotação"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Limpar imagens com o recurso \"unpaper\""
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "Aviso: Não foi possível usar %s para armazenamento temporário. Escolhendo %s por padrão."
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Excluir páginas selecionadas"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Adicionar texto"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Comprimir saída com codificação CCIITT Group 3"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Zoom _100%"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Apagar texto"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Alinhar com a borda"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Comprimir saída com codificação CCIITT Group 4"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Zoom em 100%"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Preferê_ncias"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Todos"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Comprimir saída com codificação JPEG."
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Propr_iedades"
+    },
+    {
+      "msgid": "Annotations",
+      "msgstr": "Anotações"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Comprimir saída com codificação Lempel-Ziv & Welch"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Sair"
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Anexar"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Comprimir saída com codificação Packbits."
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Girar 180°"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automático"
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "Comprimir saída com codificação deflate"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "Girar 90º no sentido anti-horário"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "language": "he",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "מספר עמודי פלט"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "צרף כמסמך PDF להודעת דואל חדשה"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "ז_ום 100%"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "מוחק כל העמודים"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "מספר עמודים"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "מעל יחס בהירות זה הפיקסל יחשב לבן"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "קבע זום ל- 100%"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "גזו_ר"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "מתחת יחס בהירות זה הפיקסל יחשב שחור (לא-אפור). פרמטר זה בשימוש על ידי פילטר-אפור, וכאשר מתבצעת המרה בין תמונת גווני-אפור למצב שחור-לבן."
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "מחק דפים מסומנים"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "ישר לקצה"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "נקה את התמונות הסרוקות עם unpaper"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "העד_פות"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "הכל"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "דחס פלט באמצעות קידוד Lempel-Ziv & Welch"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "מאפיי_נים"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "אוטומטי"
+    },
+    {
+      "msgid": "Disable aligning of the area detected by border scanning.",
+      "msgstr": "בטל את יישור האיזור שזוהה בסריקת המסגרת"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "יציאה"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "רמת סף שחור"
+    },
+    {
+      "msgid": "Disable black area scan.",
+      "msgstr": "בטל סריקת איזור שחור"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "סובב 180°"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "שולי גבול"
+    },
+    {
+      "msgid": "Disable border scanning.",
+      "msgstr": "בטל סריקת מסגרת"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "סובב 90° נגד כיוון השעון"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "למטה"
+    },
+    {
+      "msgid": "Disable gray area scan.",
+      "msgstr": "בטל סריקת איזור אפור"
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "סובב 90° עם כיוון השעון"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "דחיסה"
+    },
+    {
+      "msgid": "Disable mask detection.",
+      "msgstr": "בטל את זיהוי המסכה"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "_סרוק"
+    },
+    {
+      "msgid": "Copy selection",
+      "msgstr": "העתק בחירה"
+    },
+    {
+      "msgid": "Disable noise filter.",
+      "msgstr": "בטל פילטר רעש"
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "הת_קרב"
+    },
+    {
+      "msgid": "Cut selection",
+      "msgstr": "גזור בחירה"
+    },
+    {
+      "msgid": "Don't show this message again",
+      "msgstr": "אל תציג הודעה זו שוב"
+    },
+    {
+      "msgid": "Zoom _out",
+      "msgstr": "התרח_ק"
+    },
+    {
+      "msgid": "Disable blur filter.",
+      "msgstr": "בטל פילטר טשטוש (blur)"
+    },
+    {
+      "msgid": "Edge to which to align the page.",
+      "msgstr": "קצה על פיו ייושר העמוד"
+    }
+  ]
+}

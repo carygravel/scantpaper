@@ -1,0 +1,166 @@
+{
+  "language": "sv",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Blad"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Lägg som PDF-bilaga till nytt e-postmeddelande"
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "Katalogen %s är skrivskyddad"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Kan ej radera alla pappersstorlekar"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Sidor"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Ovanför detta tröskelvärde anses en pixel vara vit."
+    },
+    {
+      "msgid": "Error converting PDF to PS: %s",
+      "msgstr": "Fel vid konvertering av PDF till PS: %s"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Tömmer alla sidor"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Nedanför detta tröskelvärde anses en pixel vara svart, ej grå). Detta värde används av gråskalefiltret. Värdet används också när en gråskalebild konverteras till svart-vit."
+    },
+    {
+      "msgid": "Error: unknown device: %s",
+      "msgstr": "Fel: okänd enhet: %s"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Klipp _ut"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Linjera till kant"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Rensa scannade filer från fula kanter med unpaper"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "File %s är skrivskyddad"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Ta bort markerade sidor"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Alla"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Komprimera resultatet med CCITT Grupp 3 encoding"
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "Importerar sida %i av %i"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Fel vid öppnande av enhet: "
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automatiskt"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Komprimera resultatet med CCITT Grupp 4 encoding"
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Process %i av %i"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Inställ_ningar"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "Tröskelvärde för svart"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Komprimera resultatet med JPEG encoding"
+    },
+    {
+      "msgid": "Writing page %i of %i",
+      "msgstr": "Skriver sida %i av %i"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "_Egenskaper"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Marginal"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Komprimera resultatet med Lempel-Ziv & Welch encoding"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Zooma _100%"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Avsluta"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "Kantmarginal"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Komprimerar resultatet med Packbits encoding"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Zooma till 100%"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Rotera 180°"
+    },
+    {
+      "msgid": "Both sides",
+      "msgstr": "Båda sidor"
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "Komprimera resultatet med deflate encoding"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "Rotera 90° moturs"
+    },
+    {
+      "msgid": "Both sides.",
+      "msgstr": "Båda sidor"
+    }
+  ]
+}

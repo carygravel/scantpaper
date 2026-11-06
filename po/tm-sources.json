@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "project": "scantpaper",
+      "language": "*",
+      "license": "GPL-3.0-only",
+      "origin": "po/scantpaper"
+    },
+    {
+      "project": "sane-backends",
+      "language": "*",
+      "license": "GPL-2.0-or-later",
+      "origin": "/usr/share/locale"
+    },
+    {
+      "project": "gettext",
+      "language": "*",
+      "license": "GPL-3.0-or-later",
+      "origin": "/usr/share/locale"
+    },
+    {
+      "project": "libtiff",
+      "language": "*",
+      "license": "BSD-3-Clause",
+      "origin": "/usr/share/locale"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "language": "bg",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "Брой на изходните страници"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Прикачване като PDF към ново е-писмо"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Файлът %s е само за четене"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Изчистване на всички страници"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Коефициент на яркостта, над който всеки пиксел се счита за бял."
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Мащаб _100%"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Из_рязване"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Подравняване по ръба"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Коефициент на яркостта, под койт всеки пиксел се счита за черен (несив). Това се използва от филтъра за сиви. Тази стойност също се използва, когато изображение със степени на сивото се превръща в черно-бяло."
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Мащаб 100%"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Изтриване на избраните страници"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "автоматично"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Почистване на сканираните страници с unpaper"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Настрой_ки"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "Праг на черното"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Компресиране на изходния файл с алгоритма Група 3 на CCITT."
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Сво_йства"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "Поле до ръба"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Компресиране на изходния файл с алгоритма Група 4 на CCITT."
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Спиране на програмата"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "Отдолу"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Компресиране на изходния файл с алгоритма JPEG."
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "С_каниране"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "Компресия"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Компресиране на изходния файл с алгоритма на Лемпел-Зив-Уелх."
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "_Увеличение"
+    },
+    {
+      "msgid": "Copy selection",
+      "msgstr": "Копиране на избраното"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Компресиране на изходния файл с алгоритма Пакбитс."
+    },
+    {
+      "msgid": "Zoom _out",
+      "msgstr": "_Умаляване"
+    },
+    {
+      "msgid": "Cut selection",
+      "msgstr": "Отрязване на избраните"
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "Компресиране на изходния файл с алгоритма Дифлейт."
+    },
+    {
+      "msgid": "Zoom to _fit",
+      "msgstr": "На_пасване по екрана"
+    },
+    {
+      "msgid": "Deskew to edge",
+      "msgstr": "Премахване на дефектите до ръба"
+    },
+    {
+      "msgid": "Disable aligning of the area detected by border scanning.",
+      "msgstr": "Изключване на подраняването на областите, открити от сканирането на ръба."
+    },
+    {
+      "msgid": "_About",
+      "msgstr": "_Относно"
+    },
+    {
+      "msgid": "Disable blur filter.",
+      "msgstr": "Изключване на филтъра за замъгляване."
+    },
+    {
+      "msgid": "Disable black area scan.",
+      "msgstr": "Изключване на сканирането на черни области."
+    },
+    {
+      "msgid": "_All",
+      "msgstr": "_Всичко"
+    },
+    {
+      "msgid": "Disable deskewing.",
+      "msgstr": "Изключване на премахването на дефекти."
+    }
+  ]
+}

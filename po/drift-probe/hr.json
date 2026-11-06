@@ -1,0 +1,166 @@
+{
+  "language": "hr",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Pridruži PDF u novi e-mail"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Zumiraj  _100%"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Brisanje svi stranica"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Poravnaj sa rubom"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Počisti scaniranu sliku pomoću unpaper"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Zumiraj na 100%"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Iz_reži"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Sve"
+    },
+    {
+      "msgid": "One page per sheet, oriented upwards without rotation.",
+      "msgstr": "Jedna stranica po listu, orijentacija naviše bez rotacije"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Obriši slektirane stranice"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automatski"
+    },
+    {
+      "msgid": "Portable Document Format",
+      "msgstr": "Portable Document Format"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Postavke"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Rub"
+    },
+    {
+      "msgid": "Portable Network Graphics",
+      "msgstr": "Portable Network Graphics"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Postavke"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "Dno"
+    },
+    {
+      "msgid": "Sets the device to be used for the scan",
+      "msgstr": "Odaberi uređaj za skeniranje"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Izlaz"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "Kompresija"
+    },
+    {
+      "msgid": "Some pages have not been saved.\nDo you really want to quit?",
+      "msgstr": "Neke stranice nisu sačuvane.\nDa li želite izaći iz programa?"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Rotiraj 180"
+    },
+    {
+      "msgid": "Copy selection",
+      "msgstr": "Kopiraj izabrano"
+    },
+    {
+      "msgid": "Tagged Image File Format",
+      "msgstr": "Označeni format slike (TIFF)"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "Rotiraj 90 udesno"
+    },
+    {
+      "msgid": "Crop",
+      "msgstr": "Izreži"
+    },
+    {
+      "msgid": "Two pages per sheet, landscape orientation (one page on the left half, one page on the right half).",
+      "msgstr": "Dvije stranice po listu , landscape orijentacija(jedna stranica na lijevoj polovici, jedna stranica na drugoj polovici)."
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "Rotiraj 90 u smjeru kazaljke"
+    },
+    {
+      "msgid": "Cut selection",
+      "msgstr": "Izreži izabrano"
+    },
+    {
+      "msgid": "Use the rectangular selection tool",
+      "msgstr": "Koristi pravokutni odabira alata"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "U stanju"
+    },
+    {
+      "msgid": "Device",
+      "msgstr": "Uređaj"
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "Uvećaj_"
+    },
+    {
+      "msgid": "Double",
+      "msgstr": "Dvostruko"
+    },
+    {
+      "msgid": "Zoom _out",
+      "msgstr": "Umanji_"
+    },
+    {
+      "msgid": "Edit",
+      "msgstr": "Uredi"
+    },
+    {
+      "msgid": "Zoom to _fit",
+      "msgstr": "Prilagođeno _uvećanje"
+    },
+    {
+      "msgid": "Error copying page",
+      "msgstr": "Greška kopiranja stranice"
+    },
+    {
+      "msgid": "_About",
+      "msgstr": "_O"
+    }
+  ]
+}

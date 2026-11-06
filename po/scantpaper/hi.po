@@ -65,8 +65,8 @@ msgstr ""
 #, fuzzy, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
-msgstr[0] "%s में %d MB खाली है।"
-msgstr[1] "%s में %d MB खाली हैं।"
+msgstr[0] "%d MB खाली है %s में।"
+msgstr[1] "%d MB खाली हैं %s में।"
 
 #: app_window.py:864 helpers.py:372
 #, fuzzy

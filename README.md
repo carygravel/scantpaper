@@ -1102,109 +1102,17 @@ back to English until a translator confirms them, so only confirmed
 translations reach users. In a button label, `_` marks the character after
 it as a keyboard mnemonic and is drawn as an underline, not a literal
 underscore; write `__` for a literal underscore. The catalogs live in the
-`po/scantpaper/`
-template directory, one `po/scantpaper/<language>.po` per language next to
-the generated `po/scantpaper/scantpaper.pot` — the layout Rosetta expects,
-so the directory can be tarballed and uploaded as-is.
+`po/scantpaper/` template directory, one `po/scantpaper/<language>.po` per
+language next to the generated `po/scantpaper/scantpaper.pot` — the layout
+Rosetta expects, so the directory can be tarballed and uploaded as-is.
+
+The maintainer workflow — catalog refresh, coverage, validation, the approval
+ledger, translation memory, Rosetta import and the machine gate — is
+documented in [po/README.md](po/README.md).
 
 - Scanner option translations come from sane-backends. Contribute via the
 [sane-devel mailing list](mailto:sane-devel@lists.alioth.debian.org) or
 [SANE project](http://www.sane-project.org/cvs.html).
-
-To test updated `.po` files:
-
-```sh
-python3 dev/compile_mo.py --src po/scantpaper --out src/scantpaper/locale --domain scantpaper
-PYTHONPATH=src python3 -m scantpaper.app --log=log --locale=locale
-```
-
-Set locale variables as needed (e.g., for Russian):
-
-```sh
-LC_ALL=ru_RU.utf8 LC_MESSAGES=ru_RU.utf8 LC_CTYPE=ru_RU.utf8 LANG=ru_RU.utf8 LANGUAGE=ru_RU.utf8 PYTHONPATH=src python3 -m scantpaper.app --log=log --locale=locale
-```
-
-### Checking for upstream translations
-
-```sh
-python3 dev/check_launchpad.py
-```
-
-reports whether anything has moved on
-[Launchpad](https://translations.launchpad.net/scantpaper) since the last sync,
-by comparing the current state of the translation template and of every
-language against the committed baseline `po/launchpad-state.json`. Two triggers
-are watched: the template (the message set / `.pot`), read from the Launchpad
-JSON API with a conditional request, and each language's last-changed time,
-which exists only on the public series translation page. A language is reported
-when its last-changed time is newer than the baseline, when a new locale
-appears, or when the template changes.
-
-It also reports the reverse direction: whether the local template generated
-from source is stale relative to the last pot uploaded to Launchpad. The local
-message set is compared against the `uploaded_pot` fingerprint recorded in the
-baseline; a difference (new, removed or changed strings) is reported as
-`Local pot is stale:` naming the added and removed strings, and the exit code
-is unaffected unless `--fail-on-change` is given.
-
-The check is advisory by default: it exits successfully whether or not it found
-changes, and it never downloads a catalog (Launchpad requires a login to export
-one). `--fail-on-change` makes a detected change non-zero for CI. The one
-always-non-zero outcome is a state the check could not read, so a broken check
-is loud rather than mistaken for "nothing new". The committed baseline is
-advanced deliberately, after the catalogs have been synced:
-
-```sh
-python3 dev/check_launchpad.py --update
-```
-
-After a new template has been uploaded to Launchpad, record its message set so
-the next run no longer reports the pot as stale:
-
-```sh
-python3 dev/check_launchpad.py --record-pot
-```
-
-The [translations-check workflow](.github/workflows/translations-check.yml)
-runs the same check daily and on demand (`workflow_dispatch`), and files one
-labelled issue when it detects upstream changes and a separate one when new
-strings are ready to upload.
-
-### Validating catalogs and source strings
-
-```sh
-python3 dev/check_po.py
-```
-
-This needs `xgettext`, `msgcat` and `msgfmt` on `PATH`. `intltool` is not
-needed: the translatable strings in the `.ui` files are extracted with the
-GtkBuilder ITS rules vendored in `dev/`, so the template does not depend on the
-gettext version installed. CI runs the same script via `test_po_files.py`.
-`dev/check_po.py` compares those vendored rules against the copies gettext
-installed and reports any drift as an advisory.
-
-Errors fail the script; advisories are printed but do not. A release is
-therefore never blocked by an advisory, but they are worth reading.
-
-The hard checks catch defects that break a catalog or a translation: a bad
-format specifier, an unbalanced or renamed placeholder, a plural entry with
-the wrong number of forms, a `Plural-Forms` header that disagrees with CLDR,
-an obsolete-entry count over the catalog's ceiling, and counted strings
-written as `%(plural)s` rather than `ngettext`.
-
-The advisories fall into two groups. Source-side ones report strings that are
-hard to translate, so they are best fixed by rewording: a concatenation
-fragment that fixes English word order into a translatable string, a msgid
-differing from another only by case, a doubled space, a msgid over 200
-characters, and a `μs` written with GREEK SMALL LETTER MU. Catalog-side ones
-report mistranslations that only a native speaker can judge: a `msgstr` copied
-verbatim from a different msgid (the signature of a bad fuzzy match), and two
-sibling controls such as `Select Odd` and `Select Even` sharing one
-translation.
-
-`dev/check_po.py` has a `--pot` option that points it at an existing template
-instead of generating one, which the test suite uses to exercise the
-source-side checks.
 
 ---
 

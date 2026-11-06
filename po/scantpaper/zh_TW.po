@@ -78,8 +78,8 @@ msgstr "註解"
 #, fuzzy, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
-msgstr[0] "%s 中有 %dMB 可用空間。"
-msgstr[1] "%s 中有 %dMB 可用空間。"
+msgstr[0] "%dMB 可用空間，位於 %s。"
+msgstr[1] "%dMB 可用空間，位於 %s。"
 
 #: app_window.py:864 helpers.py:372
 #, fuzzy

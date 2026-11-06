@@ -1,0 +1,166 @@
+{
+  "language": "en_GB",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Output pages"
+    },
+    {
+      "msgid": "Allow batch scanning from flatbed",
+      "msgstr": "Allow batch scanning from flatbed"
+    },
+    {
+      "msgid": "Analysing page %i of %i",
+      "msgstr": "Analysing page %i of %i"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Cannot delete all paper sizes"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Pages"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Append the OCR output to the text buffer."
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "Directory %s is read-only"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Clears all pages"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Append to an existing PDF",
+      "msgstr": "Append to an existing PDF"
+    },
+    {
+      "msgid": "Editing scan profile \"%s\"",
+      "msgstr": "Editing scan profile \"%s\""
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Cu_t"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Attach as PDF to a new email"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "Enter user password for PDF %s"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Delete selected pages"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Align to edge"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Automatically open the scan dialogue in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners"
+    },
+    {
+      "msgid": "Error appending PDF: %s",
+      "msgstr": "Error appending PDF: %s"
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Error"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "All"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Brightness / Contrast"
+    },
+    {
+      "msgid": "Error converting PDF to PS: %s",
+      "msgstr": "Error converting PDF to PS: %s"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Error opening device: "
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Append"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Brightness ratio above which a pixel is considered white."
+    },
+    {
+      "msgid": "Error converting TIFF to PS: %s",
+      "msgstr": "Error converting TIFF to PS: %s"
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Error retrieving scanner options: "
+    },
+    {
+      "msgid": "Append to PDF",
+      "msgstr": "Append to PDF"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Brightness ratio below which a pixel is considered black (non-grey). This is used by the grey-filter. This value is also used when converting a greyscale image to black-and-white mode."
+    },
+    {
+      "msgid": "Error encrypting PDF: %s",
+      "msgstr": "Error encrypting PDF: %s"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Prefere_nces"
+    },
+    {
+      "msgid": "Author",
+      "msgstr": "Author"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Clean up scanned images with unpaper"
+    },
+    {
+      "msgid": "Error importing zero-length file %s.",
+      "msgstr": "Error importing zero-length file %s."
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Propert_ies"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automatic"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Compress output with CCITT Group 3 encoding."
+    },
+    {
+      "msgid": "Error prepending PDF: %s",
+      "msgstr": "Error prepending PDF: %s"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Quit"
+    }
+  ]
+}

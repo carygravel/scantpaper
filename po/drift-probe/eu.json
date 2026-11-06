@@ -1,0 +1,166 @@
+{
+  "language": "eu",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Irteerako orrialdeak"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Erantsi OCR irteera testuaren tarteko memoriari (bufferrari)."
+    },
+    {
+      "msgid": "Error: unknown device: %s",
+      "msgstr": "Errorea: gailu ezezaguna: %s"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Ezin dira paper tamaina guztiak ezabatu"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "#Orrialdeak"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Erantsi PDF legez posta-e mezu berri batean"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "%s fitxategi hori irakurtzekoa besterik ez"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Ezabatu orrialde guztiak"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4 formatua ( 8.27 × 11.69 hazbete)"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Ireki modu automatikoan eskaneatze menua aplikazioaren hasiera-atariaren atzeko aldean. Honek denbora aurrezten du botoiari klik egiterakoan eta gutxiago itxaron beharko da aplikazioak eskaner zerrenda arakatu bitartean"
+    },
+    {
+      "msgid": "File %s not found",
+      "msgstr": "Ez da %s fitxategia aurkitu"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "E_baki"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Lerrokatu ertzean"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Distira maila non hortik gora pixel bat zuritzat hartuko da."
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "Inportatzen %itik %i orrialdea"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Ezabatu hautaturiko orrialdeak"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Denak"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Distira maila non horren azpitik pixel bat belztzat hartuko da (ez gristzat). Aukera hau gris-iragazkiak erabili ohi du.  Balio hau gris-eskalako irudi bat zuri-beltzeko irudi modura bihurtzen denean ere erabili ohi da."
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Procesuan %i   %i tik"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Errore gailua zabaltzerakoan: "
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Erantsi"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Garbitu eskaneaturiko irudiak unpaper aplikazioaz (http://unpaper.berlios.de/)"
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Procesuan %i   %i (%s)tik"
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Errorea eskanerraren aukerak berreskuratzerakoan: "
+    },
+    {
+      "msgid": "Author",
+      "msgstr": "Egilea"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Konpresio irteera CCITT Group 3 kodetze sistemarekin."
+    },
+    {
+      "msgid": "Scanning page %d",
+      "msgstr": "Eskaneatzen %d orrialdea"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Hobespe_nak"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automatikoa"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Konpresio irteera CCITT Group 4 kodetze sistemarekin."
+    },
+    {
+      "msgid": "Scanning page %d of %d",
+      "msgstr": "Eskaneatzen %dtik  %d orrialdea(k)"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "_Propietateak"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "Atalase beltza"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Konprimitu irteera JPEG algoritmoa erabiliz."
+    },
+    {
+      "msgid": "Setting option %s",
+      "msgstr": "Ezartzen %s aukera"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Irten"
+    },
+    {
+      "msgid": "Blank threshold",
+      "msgstr": "Atalase zuria"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Konprimitu irteera Lempel-Ziv & Welch algoritmoa erabiliz."
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "Kontuz: ezin izan da %s hori erabili denboraldi batean gordetzeko. Lehenetsitako beste %s hori erabili behar izan da."
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Biratu 180º"
+    }
+  ]
+}

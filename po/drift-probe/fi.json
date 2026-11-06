@@ -1,0 +1,166 @@
+{
+  "language": "fi",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Tulostussivut"
+    },
+    {
+      "msgid": "Allow batch scanning from flatbed",
+      "msgstr": "Salli eräskannaus tasoskannauksesta"
+    },
+    {
+      "msgid": "Analysing page %i of %i",
+      "msgstr": "Analysoidaan sivua %i / %i"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Kaikkia paperikokoja ei voi poistaa"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Sivut"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Liitä OCR-tuloste tekstipuskuriin."
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "Kansio %s on vain luku-oikeus"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Tyhjentää kaikki sivut"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Append to an existing PDF",
+      "msgstr": "Liitä olemassa olevaan PDF-tiedostoon"
+    },
+    {
+      "msgid": "Editing scan profile \"%s\"",
+      "msgstr": "Muokataan skannausprofiilia \"%s\""
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "_Leikkaa"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Lisää PDF:nä uuteen sähköpostiin"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "Anna käyttäjän salasana PDF:lle %s"
+    },
+    {
+      "msgid": "Delete annotation",
+      "msgstr": "Poista huomautus"
+    },
+    {
+      "msgid": "Accept corrections",
+      "msgstr": "Accept corrections"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Avaa skannausikkuna automaattisesti taustalla ohjelman käynnistyessä. Tämä säästää aikaa, kun napsautat skannauspainiketta ja odotat, että ohjelma löytää skanneriluettelon"
+    },
+    {
+      "msgid": "Error appending PDF: %s",
+      "msgstr": "Virhe PDF-tiedoston liittämisessä: %s"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Poista valitut sivut"
+    },
+    {
+      "msgid": "Add annotation",
+      "msgstr": "Lisää huomautus"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Kirkkaus / kontrasti"
+    },
+    {
+      "msgid": "Error converting PDF to PS: %s",
+      "msgstr": "Virhe PDF:n muuntamisessa PS:ksi: %s"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Poista teksti"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Lisää teksti"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Kirkkaussuhde, jonka yläpuolella pikseli katsotaan valkoiseksi."
+    },
+    {
+      "msgid": "Error converting TIFF to PS: %s",
+      "msgstr": "Virhe muunnettaessa TIFF PS: %s"
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Virhe"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Tasaa reunaan"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Kirkkaussuhde, jonka alapuolella pikseli katsotaan mustaksi (ei harmaaksi). Tätä käyttää harmaa-suodatin. Tätä arvoa käytetään myös muunnettaessa harmaasävykuvaa mustavalkotilaan."
+    },
+    {
+      "msgid": "Error encrypting PDF: %s",
+      "msgstr": "Virhe salattaessa PDF:%s"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Virhe avattaessa laitetta: "
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Kaikki"
+    },
+    {
+      "msgid": "Changes will only take effect after restarting scantpaper.",
+      "msgstr": "Muutokset tulevat voimaan vasta, kun scantpaper on käynnistetty uudelleen."
+    },
+    {
+      "msgid": "Error importing zero-length file %s.",
+      "msgstr": "Virhe tuotaessa nolla-pituista tiedostoa %s."
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Virhe skannerin vaihtoehtoja noudettaessa: "
+    },
+    {
+      "msgid": "Annotations",
+      "msgstr": "Huomautukset"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Puhdista skannatut kuvat paperittomalla"
+    },
+    {
+      "msgid": "Error prepending PDF: %s",
+      "msgstr": "Virhe liitettäessä PDF-tiedostoa: %s"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "A_setukset"
+    }
+  ]
+}

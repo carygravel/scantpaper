@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -24,6 +25,7 @@ def _run_check_po(
     body: str,
     lang: str = "de",
     pot_msgids: tuple[str, ...] | None = None,
+    baseline: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Write a one-entry catalog for ``lang`` and run check_po.py over it.
 
@@ -63,8 +65,23 @@ def _run_check_po(
             encoding="utf-8",
         )
         command += ["--pot", str(pot)]
+    if baseline is not None:
+        command += ["--baseline", str(baseline)]
 
     return subprocess.run(command, capture_output=True, text=True, check=False)
+
+
+def _write_baseline(path: Path, *defects: tuple[str, str, str]) -> Path:
+    """Write a defect baseline keyed by catalog, msgid and check."""
+    payload = {
+        "version": 1,
+        "defects": [
+            {"catalog": catalog, "msgid": msgid, "check": check}
+            for catalog, msgid, check in defects
+        ],
+    }
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
 
 
 def test_compile_po_files(tmp_path: Path) -> None:
@@ -114,6 +131,69 @@ def test_split_printf_token_fails(tmp_path: Path) -> None:
     result = _run_check_po(tmp_path, body)
     assert result.returncode != 0
     assert "printf token split by space" in result.stdout
+
+
+def test_fuzzy_entry_with_bad_printf_placeholder_fails(tmp_path: Path) -> None:
+    """A fuzzy proposal gets the same placeholder check as shipped text."""
+    body = '#, fuzzy\nmsgid "Open file: %s"\nmsgstr "Apri file: %d"\n'
+    result = _run_check_po(tmp_path, body, pot_msgids=("Open file: %s",))
+    assert result.returncode != 0
+    assert "printf placeholders changed" in result.stdout
+
+
+def test_fuzzy_plural_reordering_printf_fails(tmp_path: Path) -> None:
+    """Plural proposals are checked, not skipped with an empty msgstr."""
+    body = (
+        "#, fuzzy\n"
+        'msgid "%dMb free in %s."\n'
+        'msgid_plural "%dMb free in %s."\n'
+        'msgstr[0] "%s has %d"\n'
+        'msgstr[1] "%s has %d"\n'
+    )
+    result = _run_check_po(tmp_path, body, pot_msgids=("%dMb free in %s.",))
+    assert result.returncode != 0
+    assert "printf placeholders changed" in result.stdout
+
+
+def test_baselined_placeholder_defect_is_reported_without_failing(
+    tmp_path: Path,
+) -> None:
+    """A known defect is visible but does not block the build."""
+    body = '#, fuzzy\nmsgid "Open file: %s"\nmsgstr "Apri file: %d"\n'
+    baseline = _write_baseline(
+        tmp_path / "baseline.json", ("de.po", "Open file: %s", "printf-placeholders")
+    )
+    result = _run_check_po(
+        tmp_path, body, pot_msgids=("Open file: %s",), baseline=baseline
+    )
+    assert result.returncode == 0, result.stdout
+    assert "[baselined]" in result.stdout
+
+
+def test_new_placeholder_defect_fails_beside_a_baseline(tmp_path: Path) -> None:
+    """A defect absent from the baseline still fails the build."""
+    body = '#, fuzzy\nmsgid "Open file: %s"\nmsgstr "Apri file: %d"\n'
+    baseline = _write_baseline(
+        tmp_path / "baseline.json", ("fr.po", "Other: %s", "printf-placeholders")
+    )
+    result = _run_check_po(
+        tmp_path, body, pot_msgids=("Open file: %s",), baseline=baseline
+    )
+    assert result.returncode != 0
+    assert "printf placeholders changed" in result.stdout
+
+
+def test_fixed_defect_can_be_removed_from_the_baseline(tmp_path: Path) -> None:
+    """A stale baseline entry is advisory, so the ratchet can shrink."""
+    body = 'msgid "Open file: %s"\nmsgstr "Apri file: %s"\n'
+    baseline = _write_baseline(
+        tmp_path / "baseline.json", ("de.po", "Open file: %s", "printf-placeholders")
+    )
+    result = _run_check_po(
+        tmp_path, body, pot_msgids=("Open file: %s",), baseline=baseline
+    )
+    assert result.returncode == 0, result.stdout
+    assert "baseline entry no longer found" in result.stdout
 
 
 def test_positional_reorder_passes(tmp_path: Path) -> None:

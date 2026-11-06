@@ -1,0 +1,166 @@
+{
+  "language": "zh_CN",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# 输出页面"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "添加PDF文件作为新的电子邮件的附件"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "文件 %s 是只读的"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "无法删除全部纸张尺寸"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# 页码"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "用 JPEG 编码压缩输出。"
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "正在导入页面 %i/%i"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "清理所有页面"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "使用 Lempel-Ziv 和 Welch 编码"
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "进程 %i/%i"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "剪切(_T)"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "对齐到边界"
+    },
+    {
+      "msgid": "Default PDF & DjVu filename",
+      "msgstr": "PDF 默认文件名"
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "进程 %i/%i(%s)"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "删除选中的页面"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "全部"
+    },
+    {
+      "msgid": "Disable black area scan.",
+      "msgstr": "禁用黑色区域扫描。"
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "警告：无法将 %s 用作临时存储。默认替换为 %s。"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "首选项(_N)"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "自动"
+    },
+    {
+      "msgid": "Disable border scanning.",
+      "msgstr": "禁用边界扫描。"
+    },
+    {
+      "msgid": "Writing page %i of %i",
+      "msgstr": "正在写入页面 %i/%i"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "属性(_I)"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "黑色临界值"
+    },
+    {
+      "msgid": "Disable gray area scan.",
+      "msgstr": "禁用灰色区域扫描。"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "缩放 _100%"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "退出"
+    },
+    {
+      "msgid": "Blank threshold",
+      "msgstr": "空白阈值"
+    },
+    {
+      "msgid": "Disable mask detection.",
+      "msgstr": "禁用档板检测。"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "缩放到 100%"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "旋转 180 度"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "边框"
+    },
+    {
+      "msgid": "Disable noise filter.",
+      "msgstr": "禁用杂点过滤。"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "逆时针旋转 90 度"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "边界余量"
+    },
+    {
+      "msgid": "Don't show this message again",
+      "msgstr": "不再显示此信息"
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "顺时针旋转 90 度"
+    },
+    {
+      "msgid": "Both sides",
+      "msgstr": "两面都是"
+    },
+    {
+      "msgid": "Edge to which to align the page.",
+      "msgstr": "页面对齐的边界"
+    }
+  ]
+}

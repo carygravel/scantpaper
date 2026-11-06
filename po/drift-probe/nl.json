@@ -1,0 +1,166 @@
+{
+  "language": "nl",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Aantal pagina's"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "De OCR-uitvoer achteraan in de tekstbuffer toevoegen."
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Bestand %s is alleen-lezen"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Kan niet alle papierformaten verwijderen"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# paginas"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Voeg als PDF toe aan email"
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Voortgang %i van %i"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Wist alle paginas"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Grenswaarde waarboven een beeldpunt als wit gezien zal worden."
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Voortgang %i van %i (%s)"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "K_nippen"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Lijn uit tot rand"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Grenswaarde waaronder een beeldpunt als zwart gezien zal worden. Dit wordt gebruikt door de grijs filter. Deze waarde wordt ook gebruikt om een grijs afbeelding naar zwart-wit om te zetten."
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "Waarschuwing: Gebruiken van %s als tijdelijke opslag is mislukt. Er wordt teruggevallen op standaarwaarde %s."
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Geselecteerde paginas verwijderen"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Alle"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Gescande afbeeldingen opschonen met unpaper"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "_Originele grootte"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Voorkeure_n"
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Toevoegen"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Comprimeer uitvoer met CCITT Group 3 encoding."
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Zoom naar 100%"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "E_igenschappen"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automatisch"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Comprimeer uitvoer met CCITT Group 4 encoding."
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Afsluiten"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "Zwartdrempel"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Comprimeer output met JPEG encoding."
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Roteren 180"
+    },
+    {
+      "msgid": "Blank threshold",
+      "msgstr": "Drempelwaarde voor blanco"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Comprimeer uitvoer met Lempel-Ziv & Welch encoding."
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "Roteren 90 tegen klok in"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Kader"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Comprimeer uitvoer met Packbits encoding."
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "Roteren 90 klok mee"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "Marge van de rand"
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "Comprimeer uitvoer met deflate encoding."
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "S_cannen"
+    },
+    {
+      "msgid": "Both sides",
+      "msgstr": "Beide zijden"
+    }
+  ]
+}

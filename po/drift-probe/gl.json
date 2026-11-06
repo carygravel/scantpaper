@@ -1,0 +1,166 @@
+{
+  "language": "gl",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "Nº de páxinas de saída"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Engadir a saída do OCR ó buffer de texto."
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "O directorio %s é de só lectura"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Non é posible borrar todos os tamaños de papel"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Páxinas"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Adxuntar como PDF nun mail novo"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "Introuduce a seña de usuaria para PDF %s"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Elimina todas as páxinas"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Brillo / Contraste"
+    },
+    {
+      "msgid": "Error: unknown device: %s",
+      "msgstr": "Erro: dispositivo descoñecido: %s"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Cor_tar"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Proporción de brillo por riba do cal un pixel é considerado branco"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "O arquivo %s é de só lectura"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Eliminar as páxinas seleccionadas"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Engadir texto"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Proporción de brillo por baixo do cal un pixel é considerado negro (non gris). Isto é usado para o filtro de cinza. Este valor é usado cando se convirte unha imaxe en escala de cinza para branco e negro."
+    },
+    {
+      "msgid": "File %s not found",
+      "msgstr": "Arquivo %s non atopado"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Borrar o texto"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Aliñar á marxe"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Limpar as imaxes escaneadas con \"unpaper\""
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "Importando páxina %i de %i"
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Erro"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Todos"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Comprimir saída con codificación CCITT Group 3"
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Proceso %i de %i"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Erro ó abrir o dispositivo: "
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Anexar"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Comprimir saída con codificación CCITT Group 4"
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Proceso %i de %i (%s)"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Prefere_ncias"
+    },
+    {
+      "msgid": "Author",
+      "msgstr": "Autoría"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Comprimir saída con codificación JPG"
+    },
+    {
+      "msgid": "Scanning page %d",
+      "msgstr": "Dixitalizando a páxina %d"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Propie_dades"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automático"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Comprimir saída con codificación Lempel-Ziv & Welch."
+    },
+    {
+      "msgid": "Scanning page %d of %d",
+      "msgstr": "Dixitalizando a páxina %d de %d"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Saír"
+    }
+  ]
+}

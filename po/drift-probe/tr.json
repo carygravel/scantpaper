@@ -1,0 +1,166 @@
+{
+  "language": "tr",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Çıktı sayfaları"
+    },
+    {
+      "msgid": "Allow batch scanning from flatbed",
+      "msgstr": "Düz yataktan toplu taramaya izin ver"
+    },
+    {
+      "msgid": "Analysing page %i of %i",
+      "msgstr": "%i / %i sayfa inceleniyor"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Tüm kağıt boyutlarını silemezsiniz."
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Sayfalar"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "OKT çıktısını metin arabelleğine ekle"
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "%s dizini salt-okunur"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Tüm sayfaları temizle"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Append to an existing PDF",
+      "msgstr": "Var olan PDF'nin sonuna ekle"
+    },
+    {
+      "msgid": "Editing scan profile \"%s\"",
+      "msgstr": "\"%s\" tarama profili düzenleniyor"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "_Kes"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Yeni e-postaya PDF olarak ekle"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "%s PDF'si için kullanıcı parolasını gir"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Seçili sayfaları sil"
+    },
+    {
+      "msgid": "Accept corrections",
+      "msgstr": "Düzenlemeleri kabul et"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Program başladığında tarama penceresini arka planda kendiliğinden aç. Bu, tarama düğmesine basma ve programın tarayıcı listesini bulmasından zaman kazanır."
+    },
+    {
+      "msgid": "Error appending PDF: %s",
+      "msgstr": "PDF sonuna eklenirken hata: %s"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Metni sil"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Metin ekle"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Parlaklık / Karşıtlık"
+    },
+    {
+      "msgid": "Error converting PDF to PS: %s",
+      "msgstr": "PDF, PS'ye dönüştürülürken hata: %s"
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Hata"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Kenara hizala"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Bu parlaklık oranının üzerindeki benek beyaz kabul edilir."
+    },
+    {
+      "msgid": "Error converting TIFF to PS: %s",
+      "msgstr": "TIFF, PS'ye dönüştürülürken hata: %s"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Aygıt açılırken hata: "
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Tümü"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Bu parlaklık orarının altındaki piksel siyah (gri olmayan) kabul edilir . Bu, gri süzgecince kullanılır. Aynı zamanda gri tonlamalı bir resmi siyah beyaza çevirirken kullanılır."
+    },
+    {
+      "msgid": "Error encrypting PDF: %s",
+      "msgstr": "PDF şifrelenirken hata: %s"
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Tarayıcı seçenekleri elde edilirken hata: "
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Sonuna ekle"
+    },
+    {
+      "msgid": "Changes will only take effect after restarting scantpaper.",
+      "msgstr": "Değişiklikler scantpaper yeniden başlatıldığında gerçekleşecek."
+    },
+    {
+      "msgid": "Error importing zero-length file %s.",
+      "msgstr": "Sıfır genişlikteki %s dosyası içe aktarılırken hata."
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "_Seçenekler"
+    },
+    {
+      "msgid": "Append to PDF",
+      "msgstr": "PDF'nin sonuna ekle"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Taranmış görüntüleri unpaper ile düzelt"
+    },
+    {
+      "msgid": "Error prepending PDF: %s",
+      "msgstr": "PDF başına eklenirken hata: %s"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Özellikler"
+    }
+  ]
+}

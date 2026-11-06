@@ -1,0 +1,166 @@
+{
+  "language": "sl",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# izhodnih strani"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Pripni kot PDF novemu sporočilu"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Datoteka %s je samo za branje"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Ne morem izbrisate vseh velikosti papirja"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# strani"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Razmerje svetlosti nad katerim se točka smatra za belega."
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Povečava _100%"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Počisti vse strani"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Razmerje svetlosti nad katero se točka smatra za črno (ne sivo). Uporablja se za sivinski filter. Ta vrednost se uporablja tudi ob pretvorbi sivinske slike v črno-beli način."
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Povečaj na 100 %"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "I_zreži"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Poravnaj to roba"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Počisti skeniranje strani s programom unpaper"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Izbriši izbrane strani"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Vse"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Stisni izhodne podatke s CCITT skupine 3 kodiranjem."
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "_Nastavitve"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Samodejno"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Stisni izhodne podatke s CCITT skupine 4 kodiranjem."
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "_Lastnosti"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "Prag črnine"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Stisni izhodne podatke z JPEG kodiranjem."
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Končaj"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Rob"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Stisni izhodne podatke z Lempel-Ziv & Welch kodiranjem."
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Obrni za 180˚"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "Odmik roba"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Stisni izhodne podatke s kodiranjem s paketnimi biti."
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "Obrni za 90˚ v nasprotni smeri urinega kazalca"
+    },
+    {
+      "msgid": "Both sides",
+      "msgstr": "Obe strani"
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "Stisni izhodne podatke s spuščenim kodiranjem."
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "Obrni za 90˚ v smeri urinega kazalca"
+    },
+    {
+      "msgid": "Both sides.",
+      "msgstr": "Obe strani."
+    },
+    {
+      "msgid": "CompuServe graphics interchange format",
+      "msgstr": "CompuServe grafična oblika"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "S_keniraj"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "Dno"
+    },
+    {
+      "msgid": "Disable aligning of the area detected by border scanning.",
+      "msgstr": "Onemogoči poravnavo površine, ki jo zazna skeniranje robov."
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "P_ovečaj"
+    },
+    {
+      "msgid": "Clean up images",
+      "msgstr": "Počisti slike"
+    }
+  ]
+}

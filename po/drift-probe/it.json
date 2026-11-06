@@ -1,0 +1,166 @@
+{
+  "language": "it",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Pagine di output"
+    },
+    {
+      "msgid": "Allow batch scanning from flatbed",
+      "msgstr": "Permetti la scansione ripetuta dal piano fisso"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "Inserisci la password utente per il file PDF %s"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Impossibile eliminare tutte le dimensioni del foglio"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Pagine"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Scrivi l'output dell'OCR ala fine del buffer di testo"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Il file %s è di sola lettura"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Elimina tutte le pagine"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Append to an existing PDF",
+      "msgstr": "Aggiungi ad un esistente PDF"
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "Importazione della pagina %i di %i"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "_Taglia"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Allega come PDF a una nuova email"
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Processo %i di %i"
+    },
+    {
+      "msgid": "Delete annotation",
+      "msgstr": "Cancella annotazioni"
+    },
+    {
+      "msgid": "Accept corrections",
+      "msgstr": "Accetta correzioni"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Attiva automaticamente la finestra di dialogo di scansione all'apertura del programma. Questo fa risparmiare tempo (non è necessario cliccare sul pulsante di scansione per fare in modo che il programma ritrovi la lista degli scanner)"
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Processo %i di %i (%s)"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Cancella le pagine selezionate"
+    },
+    {
+      "msgid": "Add annotation",
+      "msgstr": "Aggiungi un'annotazione"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Luminosità / Contrasto"
+    },
+    {
+      "msgid": "Run command on saved file. The available commands are those user-defined tools that do not specify %o",
+      "msgstr": "Esegui comando sul file salvato. I comandi disponibili sono quelli definiti dall'utente che non specificano %o"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Cancellare il testo"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Aggiungi testo"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Livello di luminosità sopra il quale un pixel è considerato bianco"
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "Avviso: impossibile utilizzare %s per l'immagazzinamento temporaneo. Verrà utilizzato %s."
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Errore"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Allinea al bordo"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Livello di luminosità sotto il quale un pixel è considerato nero (non grigio). Utilizzato dal filtro grigio. Questo valore viene anche utilizzato quando si converte un immagine in scala di grigi ad un immagine in bianco e nero."
+    },
+    {
+      "msgid": "Writing page %i of %i",
+      "msgstr": "Scrivendo la pagina %i di %i"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Errore durante l'apertura del dispositivo: "
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Tutto"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Immagini scansionate migliorate con unpaper"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Zoom _100%"
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Errore nel recupero delle opzioni dello scanner: "
+    },
+    {
+      "msgid": "Annotations",
+      "msgstr": "Annotazioni"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Output compresso con la codifca CCITT Gruppo 3."
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Ingrandisce al 100%"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Preferen_ze"
+    }
+  ]
+}

@@ -19,6 +19,18 @@
    "could not determine" result (non-zero exit) means the check could not read
    Launchpad, not that nothing changed, so the download below is still needed.
 1. Download new translations (https://translations.launchpad.net/scantpaper)
+1. Import the downloaded `.po` files and refresh the catalogs
+   ```sh
+   python3 dev/rosetta_import.py --import ~/Downloads/de.po \
+       --language de --apply
+   PYTHONPATH=src python3 dev/merge_po.py
+   python3 dev/summarise_po.py --pot po/scantpaper/scantpaper.pot
+   ```
+   A non-fuzzy entry without a valid approval in
+   [po/translation-approvals.json](po/translation-approvals.json) falls back to
+   English. The packaging build passes that ledger to `dev/compile_mo.py` and
+   writes `translation-report.json` with per-language coverage and fallbacks.
+   See [po/README.md](po/README.md) for the full translation workflow.
 1. Advance the translation baseline, so the next check compares against the
    state the catalogs were just synced from
    ```sh

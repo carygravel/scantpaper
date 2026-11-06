@@ -1,0 +1,150 @@
+{
+  "language": "oc",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Escafa totas las paginas"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Apondre de tèxte"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "_Talhar"
+    },
+    {
+      "msgid": "Annotations",
+      "msgstr": "Anotacions"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Suprimir lo tèxte"
+    },
+    {
+      "msgid": "Copy selection",
+      "msgstr": "Còpia la seleccion"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Propr_ietats"
+    },
+    {
+      "msgid": "Cut selection",
+      "msgstr": "Talha la seleccion"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Quitar"
+    },
+    {
+      "msgid": "Image",
+      "msgstr": "Imatge"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "N_umarizar"
+    },
+    {
+      "msgid": "Paste selection",
+      "msgstr": "Pegar la seleccion"
+    },
+    {
+      "msgid": "_All",
+      "msgstr": "_Totas"
+    },
+    {
+      "msgid": "Redo",
+      "msgstr": "Restablir"
+    },
+    {
+      "msgid": "_Blank",
+      "msgstr": "Void"
+    },
+    {
+      "msgid": "Save",
+      "msgstr": "Salvar"
+    },
+    {
+      "msgid": "_Dark",
+      "msgstr": "E_scur"
+    },
+    {
+      "msgid": "Scan document",
+      "msgstr": "Numerizar lo document"
+    },
+    {
+      "msgid": "_Delete",
+      "msgstr": "_Suprimir"
+    },
+    {
+      "msgid": "Select all pages",
+      "msgstr": "Seleccionatz totas las paginas"
+    },
+    {
+      "msgid": "_Edit",
+      "msgstr": "_Editar"
+    },
+    {
+      "msgid": "Text layer",
+      "msgstr": "Calc de tèxte"
+    },
+    {
+      "msgid": "_Email as PDF",
+      "msgstr": "_Email coma PDF"
+    },
+    {
+      "msgid": "US Legal",
+      "msgstr": "Legal US"
+    },
+    {
+      "msgid": "_File",
+      "msgstr": "_Fichièr"
+    },
+    {
+      "msgid": "US Letter",
+      "msgstr": "Letra US"
+    },
+    {
+      "msgid": "_New",
+      "msgstr": "_Novèl"
+    },
+    {
+      "msgid": "Undo",
+      "msgstr": "Anullar"
+    },
+    {
+      "msgid": "_Open",
+      "msgstr": "_Dobrir"
+    },
+    {
+      "msgid": "_Copy",
+      "msgstr": "_Copiar"
+    },
+    {
+      "msgid": "_Paste",
+      "msgstr": "_Pegar"
+    },
+    {
+      "msgid": "_Quit",
+      "msgstr": "_Quitar"
+    },
+    {
+      "msgid": "_Redo",
+      "msgstr": "_Restablir"
+    },
+    {
+      "msgid": "_Select",
+      "msgstr": "_Seleccionar"
+    },
+    {
+      "msgid": "_Undo",
+      "msgstr": "An_ullar"
+    }
+  ]
+}

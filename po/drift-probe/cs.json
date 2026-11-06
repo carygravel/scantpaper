@@ -1,0 +1,166 @@
+{
+  "language": "cs",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Výstupní stránky"
+    },
+    {
+      "msgid": "Allow batch scanning from flatbed",
+      "msgstr": "Umožnit dávkové skenování z osvitové desky"
+    },
+    {
+      "msgid": "Analysing page %i of %i",
+      "msgstr": "Analyzuje se stránka %i z %i"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Nelze smazat všechny rozměry stránek"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# stránek"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Připojit výstup OCR do textové vyrovnávací paměti."
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "Složka %s je pouze pro čtení"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Smazat všechny stránky"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Append to an existing PDF",
+      "msgstr": "Připojit k existujícímu PDF souboru"
+    },
+    {
+      "msgid": "Editing scan profile \"%s\"",
+      "msgstr": "Upravit profil skenování „%s“"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "_Vyjmout"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Připojit jako PDF k novému emailu"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "Zadejte uživatelské heslo pro PDF %s"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Smazat vybrané stránky"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Zarovnat k okraji"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Automatické spuštění skenovacího dialogu na pozadí při spuštění programu. Ušetří čekání při kliknutí na skenovací tlačítko - nečeká se na hledání skenerů."
+    },
+    {
+      "msgid": "Error appending PDF: %s",
+      "msgstr": "Chyba při přidávání k PDF: %s"
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Chyba"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Všechny"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Jas/kontrast"
+    },
+    {
+      "msgid": "Error converting PDF to PS: %s",
+      "msgstr": "Chyba při převodu PDF na PS. %s."
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Chyba při otevírání zařízení: "
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Připojit"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Poměr jasu, nad který je pixel považován za bílý."
+    },
+    {
+      "msgid": "Error converting TIFF to PS: %s",
+      "msgstr": "Chyba při převádění TIFF na PS: %s"
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Chyba při získávání předvoleb skeneru: "
+    },
+    {
+      "msgid": "Append to PDF",
+      "msgstr": "Připojit k PDF"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Poměr jasu, nad který je pixel považován za bílý (ne šedý). Je to používáno filtrem šedé. Tato hodnota je také používána při konverzi šedého obrázku do černobílé."
+    },
+    {
+      "msgid": "Error encrypting PDF: %s",
+      "msgstr": "Chyba šifrování PDF: %s"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "_Nastavení"
+    },
+    {
+      "msgid": "Author",
+      "msgstr": "Autor"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Vyčistit skenované stránky pomocí unpaper"
+    },
+    {
+      "msgid": "Error importing zero-length file %s.",
+      "msgstr": "Chyba při importu prázdného souboru %s."
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "_Vlastnosti"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automaticky"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Kompresovat výstup pomocí kódování CCITT Skupiny 3."
+    },
+    {
+      "msgid": "Error prepending PDF: %s",
+      "msgstr": "Chyba při připojování na začátek PDF: %s"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Konec"
+    }
+  ]
+}

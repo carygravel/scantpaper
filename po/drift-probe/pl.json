@@ -1,0 +1,166 @@
+{
+  "language": "pl",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "Liczba stron"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Dołącz wyjście OCR do bufora tekstu."
+    },
+    {
+      "msgid": "Error: unknown device: %s",
+      "msgstr": "Błąd: nieznane urządzenie: %s"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Nie mogę usunąć wszystkich rozmiarów papieru"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Stron"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Załącz jako PDF do nowego e-maila"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Plik %s jest tylko do odczytu"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Usuń wszystkie strony"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Automatycznie otwieraj w tle okno skanowania na początku programu. To oszczędza czas przeznaczany na klikanie przycisku skanowania i czekanie aż program odnajdzie listę skanerów."
+    },
+    {
+      "msgid": "File %s not found",
+      "msgstr": "Nie odnaleziono pliku %s"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "_Wytnij"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Wyrównaj do krawędzi"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Poziom jasności, powyżej którego piksel będzie interpretowany jako biały"
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "Importuję stronę %i z %i"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Skasuj wybrane strony"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Wszystkie"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Poziom jasności, poniżej którego piksel będzie interpretowany jako czarny (nie szary). Funkcja używana przez filtr szarości. Wartość ta służy także przy konwersji obrazu w skali szarości do obrazu czarno-białego."
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Obrabiaj %i z %i"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Błąd otwarcia urządzenia: "
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Dołącz"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Czyści zeskanowane obrazy za pomocą narzędzia unpaper"
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Obrabiaj %i z %i (%s)"
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Błąd pozyskiwania opcji skanera: "
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automatyczna"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Skompresuj materiał wyjściowy za pomocą kodowania CCITT Group 3"
+    },
+    {
+      "msgid": "Scanning page %d",
+      "msgstr": "Skanowanie strony %d"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "P_referencje"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "Próg czerni"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Skompresuj materiały wyjściowe za pomocą kodowania CCITT Group 4"
+    },
+    {
+      "msgid": "Scanning page %d of %d",
+      "msgstr": "Skanowanie strony %d z %d"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "_Właściwości"
+    },
+    {
+      "msgid": "Blank threshold",
+      "msgstr": "Próg pustych stron"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Kompresuj plik wyjściowy algorytmem JPEG"
+    },
+    {
+      "msgid": "Setting option %s",
+      "msgstr": "Ustawianie opcji %s"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Wyjście"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Granica"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Kompresuj plik wyjściowy algorytmem Lempel-Ziv & Welch"
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "Ostrzeżenie: nie można użyć %s jako miejsca przechowywania danych tymczasowych. Zostanie wybrane miejsce domyślne: %s."
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Obróć o 180°"
+    }
+  ]
+}

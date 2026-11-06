@@ -1,0 +1,166 @@
+{
+  "language": "ko",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Pages",
+      "msgstr": "# 페이지"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "새 이메일에 PDF 첨부"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "크기 _100%"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "모든 페이지 지우기"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "출력을 JPEG 인코딩으로 압축"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "100%로 확대"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "잘라내기(_t)"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "모두"
+    },
+    {
+      "msgid": "Disable black area scan.",
+      "msgstr": "검은 영역을 스캔하지 않음"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "선택한 페이지 지우기"
+    },
+    {
+      "msgid": "Both sides",
+      "msgstr": "양면 모두"
+    },
+    {
+      "msgid": "Don't show this message again",
+      "msgstr": "이 메시지를 다시 보이지 않습니다"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "환경설정(_N)"
+    },
+    {
+      "msgid": "Both sides.",
+      "msgstr": "양면 모두."
+    },
+    {
+      "msgid": "Extended page numbering",
+      "msgstr": "확장 페이지 번호"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "속성 (_i)"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "아래"
+    },
+    {
+      "msgid": "Number of pages to output.",
+      "msgstr": "출력할 페이지의 수"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "끝내기"
+    },
+    {
+      "msgid": "Copy selection",
+      "msgstr": "선택 복사하기"
+    },
+    {
+      "msgid": "One page per sheet, oriented upwards without rotation.",
+      "msgstr": "회전 없이 바로 선 한 장의 용지에 한 페이지"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "180도 회전"
+    },
+    {
+      "msgid": "Cut selection",
+      "msgstr": "선택 잘라내기"
+    },
+    {
+      "msgid": "Portable Document Format",
+      "msgstr": "Portable Document Format"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "반시계방향으로 90도 회전"
+    },
+    {
+      "msgid": "Device",
+      "msgstr": "장치"
+    },
+    {
+      "msgid": "Process image with Tesseract.",
+      "msgstr": "Tesseract를 이용하여 이미지 처리"
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "시계방향으로 90도 회전"
+    },
+    {
+      "msgid": "DjVu",
+      "msgstr": "DjVu"
+    },
+    {
+      "msgid": "Rotate image 180 degrees clockwise.",
+      "msgstr": "시계방향으로 180도 회전"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "스캔"
+    },
+    {
+      "msgid": "DjVu filename",
+      "msgstr": "DjVu 파일이름f"
+    },
+    {
+      "msgid": "Rotate image 90 degrees anticlockwise.",
+      "msgstr": "반시계방향으로 90도 회전"
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "확대(_i)"
+    },
+    {
+      "msgid": "Double sided",
+      "msgstr": "양면"
+    },
+    {
+      "msgid": "Rotate image 90 degrees clockwise.",
+      "msgstr": "시계방향으로 90도 회전"
+    },
+    {
+      "msgid": "Zoom _out",
+      "msgstr": "축소(_o)"
+    },
+    {
+      "msgid": "Edit",
+      "msgstr": "편집"
+    },
+    {
+      "msgid": "Rotate image after scanning",
+      "msgstr": "스캔 후 이미지 회전"
+    }
+  ]
+}

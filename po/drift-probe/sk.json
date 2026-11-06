@@ -1,0 +1,166 @@
+{
+  "language": "sk",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Výstupné stránky"
+    },
+    {
+      "msgid": "Allow batch scanning from flatbed",
+      "msgstr": "Umožniť hromadné skenovanie z plochého skenera"
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "Adresár %s je iba na čítanie"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Nie je možné zmazať všetky veľkosti papiera"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Stránky"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Pridať výstup OCR do vyrovnávacej pamäte textu."
+    },
+    {
+      "msgid": "Editing scan profile \"%s\"",
+      "msgstr": "Upraviť profil skenovania \"%s\""
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Zmazať všetky stránky"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Append to an existing PDF",
+      "msgstr": "Vložiť na koniec do existujúceho PDF"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "Zadajte používateľské heslo pre dokument PDF %s"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Vys_trihnúť"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Pripojiť ako pdf k novému e-mailu"
+    },
+    {
+      "msgid": "Error appending PDF: %s",
+      "msgstr": "Chyba pri vkladaní na koniec PDF: %s"
+    },
+    {
+      "msgid": "Delete annotation",
+      "msgstr": "Odstrániť poznámku"
+    },
+    {
+      "msgid": "Accept corrections",
+      "msgstr": "Prijať opravy"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Automaticky otvorí dialógové okno skenovania po spustení aplikácie. Týmto ušetríte čas klikaním na tlačidlo skenovať a čakaním, kým aplikácia nájde zoznam skenerov"
+    },
+    {
+      "msgid": "Error converting PDF to PS: %s",
+      "msgstr": "Chyba počas konverzie formátu PDF do PS: %s"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Odstrániť označené stránky"
+    },
+    {
+      "msgid": "Add annotation",
+      "msgstr": "Pridať poznámku"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Jas / kontrast"
+    },
+    {
+      "msgid": "Error converting TIFF to PS: %s",
+      "msgstr": "Chyba počas konverzie formátu TIFF do PS: %s"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Odstrániť text"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Pridať text"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Pomer jasu, nad ktorý je pixel považovaný za biely."
+    },
+    {
+      "msgid": "Error encrypting PDF: %s",
+      "msgstr": "Chyba počas šifrovania PDF: %s"
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Chyba"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Zarovnať k okrajom"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Pomer jasu, pod ktorý je pixel považovaný za čierny (nie šedý). Toto sa využíva pri filtrovaní šedej farby. Táto hodnota sa tiež použije pri konvertovaní obrázka v odtieňoch šedej do čierno-bieleho režimu."
+    },
+    {
+      "msgid": "Error importing zero-length file %s.",
+      "msgstr": "Chyba pri importovaní súboru s nulovou veľkosťou %s."
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Chyba pri otváraní zariadenia: "
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Všetky"
+    },
+    {
+      "msgid": "Changes will only take effect after restarting scantpaper.",
+      "msgstr": "Zmeny sa prejavia až po reštarte scantpaper."
+    },
+    {
+      "msgid": "Error prepending PDF: %s",
+      "msgstr": "Chyba vkladaní na začiatok PDF: %s"
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Chyba pri získavaní volieb skenera: "
+    },
+    {
+      "msgid": "Annotations",
+      "msgstr": "Poznámky"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Vyčistiť naskenované obrázky s programom „unpaper“"
+    },
+    {
+      "msgid": "Error: unknown device: %s",
+      "msgstr": "Chyba: neznáme zariadenie: %s"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Nastave_nia"
+    }
+  ]
+}

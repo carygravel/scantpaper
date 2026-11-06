@@ -1,0 +1,166 @@
+{
+  "language": "ca",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Pàgines"
+    },
+    {
+      "msgid": "Append to an existing PDF",
+      "msgstr": "Afegeix al final d'un PDF existent"
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "El directory %s és només de lectura"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Neteja totes les pàgines"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Adjunta com a PDF a un nou email"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Fitxer %s és només de lectura"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "_Talla"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Tot"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Obre automàticament el diàleg d'exploració en segon pla a l'inici del programa. Això estalvia temps de fer clic al botó d'exploració i d'esperar que el programa trobi la llista d'escàners."
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Procés %i de %i"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Suprimeix les pàgines seleccionades"
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Afegeix"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Neteja les imatges escanejades amb unpaper"
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Procés %i de %i (%s)"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Preferè_ncies"
+    },
+    {
+      "msgid": "Append to PDF",
+      "msgstr": "Afegeix al final d'un PDF"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Comprimeix la sortida amb la codificació de JPEG."
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "Avís: no es pot fer servir %s per a l'emmagatzematge temporal. Es torna per defecte a %s."
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Propiet_ats"
+    },
+    {
+      "msgid": "Author",
+      "msgstr": "Autor/a"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Comprimeix la sortida amb la codificació Lempel-Ziv & Welch."
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Ampliació _100%"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Surt"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automàtic"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Comprimeix la sortida amb la codificació de Packbits."
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Amplia al 100%"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "E_scaneja"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Contorn"
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "Comprimeix la sortida amb la codificació de desinflació."
+    },
+    {
+      "msgid": "U_ser-defined",
+      "msgstr": "Definit per l'u_suari"
+    },
+    {
+      "msgid": "Both sides",
+      "msgstr": "Ambdós costats"
+    },
+    {
+      "msgid": "Disable black area scan.",
+      "msgstr": "Desactiva escaneig d'àrea de negre"
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "_Amplia"
+    },
+    {
+      "msgid": "Both sides.",
+      "msgstr": "Ambdós costats"
+    },
+    {
+      "msgid": "Disable gray area scan.",
+      "msgstr": "Desactiva escaneig d'àrea de grisos"
+    },
+    {
+      "msgid": "Zoom _out",
+      "msgstr": "Allunya"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "Inferior"
+    },
+    {
+      "msgid": "Disable mask detection.",
+      "msgstr": "Desactiva la màscara de detecció"
+    },
+    {
+      "msgid": "Zoom to _fit",
+      "msgstr": "Amplia per _encabir"
+    }
+  ]
+}

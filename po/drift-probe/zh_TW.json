@@ -1,0 +1,166 @@
+{
+  "language": "zh_TW",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Pages",
+      "msgstr": "# 頁"
+    },
+    {
+      "msgid": "Must scan facing pages first",
+      "msgstr": "必須先掃描正面"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "實際尺寸(_100%)"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "清除所有頁面"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "全部"
+    },
+    {
+      "msgid": "Set number of pages to scan",
+      "msgstr": "指定要掃描的頁面編號"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "實際大小"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "刪除所選頁面"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "壓縮"
+    },
+    {
+      "msgid": "Sets the device to be used for the scan",
+      "msgstr": "指定使用此裝置來掃描"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "退出"
+    },
+    {
+      "msgid": "Device",
+      "msgstr": "裝置"
+    },
+    {
+      "msgid": "Sets which side of a double-sided document is scanned",
+      "msgstr": "指定雙面文件要掃描正或反面"
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "放大(_i)"
+    },
+    {
+      "msgid": "Double sided",
+      "msgstr": "雙面"
+    },
+    {
+      "msgid": "Source document is double-sided",
+      "msgstr": "來源文件為雙面"
+    },
+    {
+      "msgid": "Zoom _out",
+      "msgstr": "縮小(_o)"
+    },
+    {
+      "msgid": "Edit",
+      "msgstr": "編輯(E)"
+    },
+    {
+      "msgid": "Source document is single-sided",
+      "msgstr": "來源文件為單面"
+    },
+    {
+      "msgid": "Zoom to _fit",
+      "msgstr": "符合頁面(_f)"
+    },
+    {
+      "msgid": "Facing",
+      "msgstr": "正面"
+    },
+    {
+      "msgid": "To aid the scan-to-PDF process",
+      "msgstr": "加速掃描至 PDF 流程"
+    },
+    {
+      "msgid": "_About",
+      "msgstr": "關於(_A)"
+    },
+    {
+      "msgid": "JPEG",
+      "msgstr": "JPEG 格式"
+    },
+    {
+      "msgid": "_Delete",
+      "msgstr": "刪除(_D)"
+    },
+    {
+      "msgid": "JPEG Quality",
+      "msgstr": "JPEG 品質"
+    },
+    {
+      "msgid": "_Edit",
+      "msgstr": "編輯(_E)"
+    },
+    {
+      "msgid": "Keywords",
+      "msgstr": "關鍵字"
+    },
+    {
+      "msgid": "_File",
+      "msgstr": "檔案"
+    },
+    {
+      "msgid": "None",
+      "msgstr": "無"
+    },
+    {
+      "msgid": "_Help",
+      "msgstr": "說明(_H)"
+    },
+    {
+      "msgid": "PDF filename",
+      "msgstr": "PDF 檔名"
+    },
+    {
+      "msgid": "_New",
+      "msgstr": "新增(_N)"
+    },
+    {
+      "msgid": "Paper size",
+      "msgstr": "紙張大小"
+    },
+    {
+      "msgid": "_Quit",
+      "msgstr": "離開(_Q)"
+    },
+    {
+      "msgid": "Reverse",
+      "msgstr": "反面"
+    },
+    {
+      "msgid": "_View",
+      "msgstr": "檢視(_V)"
+    },
+    {
+      "msgid": "Scan",
+      "msgstr": "掃描"
+    },
+    {
+      "msgid": "Scan Document",
+      "msgstr": "掃描文件"
+    },
+    {
+      "msgid": "Scan all pages",
+      "msgstr": "全選頁面"
+    }
+  ]
+}

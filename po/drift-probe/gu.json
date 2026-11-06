@@ -1,0 +1,166 @@
+{
+  "language": "gu",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "A4",
+      "msgstr": "એ૪"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "PDF તરીકે નવા ઇમેલ સાથે જોડો"
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "પ્રક્રિયા %i ના  %i"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "બધાં પેજ કાઢી નાખે છે"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "કિનારને સમાંતરિત કરો"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "તેજસ્વિતા નું પરિમાણ કે જેની ઉપરનાં કોઇ પણ બિન્દુને શ્વેત ગણવામાં આવે છે."
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "પ્રક્રિયા %i  જે  %i(%s) માંથી"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "કાપો (_t)"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "સ્વચાલિત"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "તેજસ્વિતા નું પરિમાણ કે જેની નીચેનાં કોઇ પણ બિન્દુને શ્યામ (રાખોડી નહીં તેવું) ગણવામાં આવે છે. ગ્રે-ફિલ્ટર દ્વારા આનો ઉપયોગ થાય છે. આ અંકનો ઉપયોગ ગ્રે-સ્કેલ (રાખોડી રંગનાં વિવિધ આછા થી લઇ ગહન પ્રકારોથી બનેલા ) ચિત્રને શ્વેત-શ્યામ માં પરીવર્તિત કરવામાં પણ થાય છે."
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "ચેતાવણી: હંગામી સંચય માટે %s વાપરવામાં અક્ષમ છે,  તેના બદલે %s પર મૂળભૂત સ્થિતિ કરે છે."
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "પસંદગીનાં પાનાં કાઢી નાંખો"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "શ્યામ સીમા"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "unpaper નો ઉપયોગ કરી , પ્રતીકૃત ચિત્રોને ચોખ્ખા કરો"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "_100% zoom કરો"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "પસંદગીઓ (_n)"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "કિનાર"
+    },
+    {
+      "msgid": "Don't show this message again",
+      "msgstr": "ફરીથી આ સંદેશને બતાવવો નહિં"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "100% zoom કરો"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "લાક્ષણિકતાઓ ( _I)"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "છેડાનો હાંસિયો"
+    },
+    {
+      "msgid": "Edge to which to align the page.",
+      "msgstr": "એ કિનાર જેનાથી પાનાને સમાંતરિત કરવાનું છે."
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "બંધ કરો"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "નીચે"
+    },
+    {
+      "msgid": "First page to extract",
+      "msgstr": "જુદુ કરવાનું પ્રથમ પાનું"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "180 અંશે ફેરવો"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "સંકોચન"
+    },
+    {
+      "msgid": "Horizontal distance to keep from the sheet edge when aligning a border area.",
+      "msgstr": "કિનારનાં વિસ્તારને સમાંતરિત કરવા માટે કાગળનાં છેડેથી રાખવાનો આડો ગાળો."
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "90 અંશે જમણેથી ડાબે ફેરવો"
+    },
+    {
+      "msgid": "Copy selection",
+      "msgstr": "પસંદગીની નકલ કરો"
+    },
+    {
+      "msgid": "Pick crashed session to restore",
+      "msgstr": "પુનર્જીવિત કરવા માટે નિષ્ફળ સત્રને પસંદ કરો"
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "90 અંશે ડાબેથી જમણે  ફેરવો"
+    },
+    {
+      "msgid": "Cut selection",
+      "msgstr": "પસંદગીને કાપો"
+    },
+    {
+      "msgid": "Portable Document Format",
+      "msgstr": "પોર્ટેબલ દસ્તાવેજ બંધારણ"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "સ્કેન કરો"
+    },
+    {
+      "msgid": "Deskew",
+      "msgstr": "ત્રાંસ (વાંક) નિવૃત્ત કરો"
+    },
+    {
+      "msgid": "Portable Network Graphics",
+      "msgstr": "પોર્ટેબલ નેટવર્ક ગ્રાફિક્સ"
+    },
+    {
+      "msgid": "U_ser-defined",
+      "msgstr": "ઉપયોગ કર્તા દ્વારા વ્યાખ્યાયિત"
+    },
+    {
+      "msgid": "Deskew to edge",
+      "msgstr": "કિનારથી ત્રાંસ નિવૃત્ત કરો"
+    },
+    {
+      "msgid": "Process image with Tesseract.",
+      "msgstr": "Tesseract થી ચિત્રને પ્રસાધિત કરો"
+    }
+  ]
+}

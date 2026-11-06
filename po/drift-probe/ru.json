@@ -1,0 +1,166 @@
+{
+  "language": "ru",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "Выводимых страниц: #"
+    },
+    {
+      "msgid": "Allow batch scanning from flatbed",
+      "msgstr": "Разрешить пакетное сканирование с планшетного сканера"
+    },
+    {
+      "msgid": "Analysing page %i of %i",
+      "msgstr": "Анализ страницы %i из %i"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Невозможно удалить все размеры бумаги"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# страниц"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Помещать вывод распознанного текста в конец текстового буфера"
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "Каталог %s доступен только для чтения"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Очистить все страницы"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Append to an existing PDF",
+      "msgstr": "Добавить в конец существующего PDF"
+    },
+    {
+      "msgid": "Editing scan profile \"%s\"",
+      "msgstr": "Редактирование профиля сканирования «%s»"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "_Вырезать"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Вложить PDF в письмо"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "Введите пароль для PDF %s"
+    },
+    {
+      "msgid": "Delete annotation",
+      "msgstr": "Удалить примечание"
+    },
+    {
+      "msgid": "Accept corrections",
+      "msgstr": "Принять исправления"
+    },
+    {
+      "msgid": "Automatically open the scan dialog in the background at program start. This saves time clicking the scan button and waiting for the program to find the list of scanners",
+      "msgstr": "Автоматически открыть параметры сканирования в фоновом режиме при запуске программы. Эта возможность позволяет сократить время на нажатие кнопки сканирования и время ожидания поиска доступных сканеров"
+    },
+    {
+      "msgid": "Error appending PDF: %s",
+      "msgstr": "Ошибка добавления в конец PDF: %s"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Удалить выделенные страницы"
+    },
+    {
+      "msgid": "Add annotation",
+      "msgstr": "Добавить примечание"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Яркость / Контраст"
+    },
+    {
+      "msgid": "Error converting PDF to PS: %s",
+      "msgstr": "Ошибка преобразования PDF в PS: %s"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Удалить текст"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Добавить текст"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Уровень яркости, выше которого пиксел считается белым."
+    },
+    {
+      "msgid": "Error converting TIFF to PS: %s",
+      "msgstr": "Ошибка преобразования TIFF в PS: %s"
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Ошибка"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Выравнивание по краю"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Уровень яркости, ниже которого пиксел будет считаться чёрным (не серым). Используется фильтром серого цвета. Это значение используется также при конвертации изображения в оттенках серого в чёрно-белое изображение."
+    },
+    {
+      "msgid": "Error encrypting PDF: %s",
+      "msgstr": "Ошибка шифрования PDF: %s"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "Ошибка при открытии устройства: "
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Все"
+    },
+    {
+      "msgid": "Changes will only take effect after restarting scantpaper.",
+      "msgstr": "Изменения будут применены только после перезапуска scantpaper."
+    },
+    {
+      "msgid": "Error importing zero-length file %s.",
+      "msgstr": "Ошибка импорта файла нулевого размера (%s)."
+    },
+    {
+      "msgid": "Error retrieving scanner options: ",
+      "msgstr": "Ошибка при получении параметров сканера: "
+    },
+    {
+      "msgid": "Annotations",
+      "msgstr": "Примечание"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Очистить сканированные изображения с помощью unpaper"
+    },
+    {
+      "msgid": "Error prepending PDF: %s",
+      "msgstr": "Ошибка добавления в начало PDF: %s"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "_Параметры"
+    }
+  ]
+}

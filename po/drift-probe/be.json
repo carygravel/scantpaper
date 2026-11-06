@@ -1,0 +1,166 @@
+{
+  "language": "be",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Аркушы"
+    },
+    {
+      "msgid": "Must scan facing pages first",
+      "msgstr": "Трэба адсканаваць спачатку пярэднія бакі"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Маштаб _100%"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Ачышчае ўсе аркушы"
+    },
+    {
+      "msgid": "Accept corrections",
+      "msgstr": "Прыняць выпраўленні"
+    },
+    {
+      "msgid": "Set number of pages to scan",
+      "msgstr": "Вызначыць колькасць неабходных аркушаў"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Маштаб 100%"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Выдаліць выбраныя старонкі"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Усе"
+    },
+    {
+      "msgid": "Sets the device to be used for the scan",
+      "msgstr": "Вызначыць сканар"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Выдаліць тэкст"
+    },
+    {
+      "msgid": "Cancel corrections",
+      "msgstr": "Скасаваць выпраўленні"
+    },
+    {
+      "msgid": "Sets which side of a double-sided document is scanned",
+      "msgstr": "Вызначае бок дакумэнта, які скануецца"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Выйсце"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "Уціск"
+    },
+    {
+      "msgid": "Source document is double-sided",
+      "msgstr": "Дакумэнт двухбаковы"
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "Па_вяліць"
+    },
+    {
+      "msgid": "Device",
+      "msgstr": "Прыстасаванне"
+    },
+    {
+      "msgid": "Source document is single-sided",
+      "msgstr": "Дакумэнт аднабаковы"
+    },
+    {
+      "msgid": "Zoom _out",
+      "msgstr": "Па_меншыць"
+    },
+    {
+      "msgid": "Double sided",
+      "msgstr": "Двухбаковы"
+    },
+    {
+      "msgid": "To aid the scan-to-PDF process",
+      "msgstr": "Падтрымаць працэс сканавання ў PDF"
+    },
+    {
+      "msgid": "Zoom to _fit",
+      "msgstr": "Расцягнуць у _вакне"
+    },
+    {
+      "msgid": "Edit",
+      "msgstr": "Змяніць"
+    },
+    {
+      "msgid": "_About",
+      "msgstr": "_Аб праграме"
+    },
+    {
+      "msgid": "Facing",
+      "msgstr": "Пярэдні"
+    },
+    {
+      "msgid": "_Delete",
+      "msgstr": "_Выдаліць"
+    },
+    {
+      "msgid": "JPEG",
+      "msgstr": "JPEG"
+    },
+    {
+      "msgid": "_Edit",
+      "msgstr": "З_мяніць"
+    },
+    {
+      "msgid": "JPEG Quality",
+      "msgstr": "Якасць JPEG"
+    },
+    {
+      "msgid": "_File",
+      "msgstr": "_Файл"
+    },
+    {
+      "msgid": "Keywords",
+      "msgstr": "Галоўныя словы"
+    },
+    {
+      "msgid": "_Help",
+      "msgstr": "_Даведка"
+    },
+    {
+      "msgid": "None",
+      "msgstr": "Няма"
+    },
+    {
+      "msgid": "_New",
+      "msgstr": "_Новы"
+    },
+    {
+      "msgid": "PDF filename",
+      "msgstr": "Назва файла PDF"
+    },
+    {
+      "msgid": "_Quit",
+      "msgstr": "_Выйсце"
+    },
+    {
+      "msgid": "Paper size",
+      "msgstr": "Памер ліста"
+    },
+    {
+      "msgid": "_View",
+      "msgstr": "_Выгляд"
+    },
+    {
+      "msgid": "Reverse",
+      "msgstr": "Адваротны"
+    }
+  ]
+}

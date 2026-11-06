@@ -1,0 +1,166 @@
+{
+  "language": "fr",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# pages de sortie"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Joindre comme PDF dans un nouveau courriel"
+    },
+    {
+      "msgid": "Directory %s is read-only",
+      "msgstr": "Le dossier %s est en lecture seulement"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Impossible de supprimer toutes les tailles de papier"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Pages"
+    },
+    {
+      "msgid": "Brightness / Contrast",
+      "msgstr": "Luminosité / Contraste"
+    },
+    {
+      "msgid": "Enter user password for PDF %s",
+      "msgstr": "Entrer le mot de passe pour le PDF %s"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Efface toutes les pages"
+    },
+    {
+      "msgid": "A3",
+      "msgstr": "A3"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Rapport de luminosité au dessus duquel un pixel est considéré comme blanc."
+    },
+    {
+      "msgid": "Error: unknown device: %s",
+      "msgstr": "Erreur: périphérique inconnu: %s"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "C_ouper"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Rapport de luminosité en dessous duquel un pixel est considéré comme noir (non gris). Cette valeur est utilisée par le filtre des gris et pour convertir une image en niveaux de gris en une image noire et blanc."
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Le fichier %s est en lecture seul"
+    },
+    {
+      "msgid": "Delete annotation",
+      "msgstr": "Supprimer la note"
+    },
+    {
+      "msgid": "Accept corrections",
+      "msgstr": "Accepter les corrections"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Nettoyer les images scannées avec unpaper"
+    },
+    {
+      "msgid": "File %s not found",
+      "msgstr": "Fichier %s non trouvé"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Supprimer les pages sélectionnées"
+    },
+    {
+      "msgid": "Add annotation",
+      "msgstr": "Ajouter une note"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Compresser la sortie avec l'encodage CCITT Groupe 3."
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "Importer la page %i sur %i"
+    },
+    {
+      "msgid": "Delete text",
+      "msgstr": "Supprimer le texte"
+    },
+    {
+      "msgid": "Add text",
+      "msgstr": "Ajouter du texte"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Compresser la sortie avec l'encodage CCITT Groupe 4."
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Processus %i sur %i"
+    },
+    {
+      "msgid": "Error",
+      "msgstr": "Erreur"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Aligner au bord"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Compresse la sortie avec l'encodage JPEG."
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Processus  %i sur %i (%s)"
+    },
+    {
+      "msgid": "Error opening device: ",
+      "msgstr": "erreur d'ouverture du périphérique "
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Tous"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Compresse la sortie avec l'encodage de Lempel-Ziv & Welch."
+    },
+    {
+      "msgid": "Scanning page %d",
+      "msgstr": "Numérisation page %d"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Préfére_nces"
+    },
+    {
+      "msgid": "Annotations",
+      "msgstr": "Notes"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Compresser la sortie avec l'encodage Packbits."
+    },
+    {
+      "msgid": "Scanning page %d of %d",
+      "msgstr": "Numérisation de la page %d sur %d"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Propr_iétés"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "language": "el",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Αριθμός εξαγώγιμων σελίδων"
+    },
+    {
+      "msgid": "Append the OCR output to the text buffer.",
+      "msgstr": "Προσάρτηση της εξόδου του OCR στο buffer κειμένου"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Το αρχείο %s είναι μόνο για ανάγνωση"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Αδύνατη η διαγραφή όλων των μεγεθών σελίδας"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Σελίδων"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Επισύναψη σαν PDF σε νέο email"
+    },
+    {
+      "msgid": "Importing page %i of %i",
+      "msgstr": "Εισαγωγή σελίδας %i του %i"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Καθαρισμός όλων των σελίδων"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Τιμή φωτεινότητας πάνω από την οποία ένα εικονοστοιχείο θα θεωρείται ως λευκό."
+    },
+    {
+      "msgid": "Process %i of %i",
+      "msgstr": "Επεξεργασία %i απο %i"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Απο_κοπή"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Στοίχιση στην ακμή"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Αναλογία φωτεινότητας κάτω από την οποία ένα εικονοστοιχείο θεωρείται μαύρο (όχι γκρι). Αυτό χρησιμοποιείται από το φίλτρο γκρι. Η ποσότητα αυτή επίσης χρησιμοποιείται στη μετατροπή μίας εικόνας από τόνους γκρι σε μαυρόασπρη."
+    },
+    {
+      "msgid": "Process %i of %i (%s)",
+      "msgstr": "Λειτουργία %i επί συνόλου %i (%s)"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Διαγραφή επιλεγμένων σελίδων"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Όλα"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Καθαρίστε τις σαρωμένες εικόνες με τον αποσελιδοποιητή"
+    },
+    {
+      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
+      "msgstr": "Προσοχή: αδύνατη η χρήση του %s για προσωρινή αποθήκευση. Αντί για αυτό, γίνεται μετάπτωση στο %s"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Προτι_μήσεις"
+    },
+    {
+      "msgid": "Append",
+      "msgstr": "Προσάρτηση"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 3"
+    },
+    {
+      "msgid": "Writing page %i of %i",
+      "msgstr": "Γίνεται εγγραφη της σελίδας %i (επί συνόλου %i)"
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Ιδιό_τητες"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Αυτόματα"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 4"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Μεγέθυνση _100%"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "'Εξοδος"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "Ανοχή μαύρου"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Συμπίεση εξαγώγιμου με κωδικοποίηση JPEG"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Κλίμακα στο 100%"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Περιστροφή 180"
+    },
+    {
+      "msgid": "Blank threshold",
+      "msgstr": "Όριο ανοχής λευκού"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Συμπίεση εξαγώγιμου με κωδικοποίηση Lempel-Ziv & Welch"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "Περιστροφή 90 αριστερόστροφα"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Περίγραμμα"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Συμπίεση εξαγώγιμου με κωδικοποίηση Packbits"
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "Περιστροφή 90 δεξιόστροφα"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "περίγραμμα περιθωρίου"
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "Συμπίεση εξαγώγιμου με κωδικοποίηση deflate"
+    }
+  ]
+}

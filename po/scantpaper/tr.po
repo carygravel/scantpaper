@@ -76,8 +76,8 @@ msgstr "Ek açıklamalar"
 #, fuzzy, python-format
 msgid "%dMb free in %s."
 msgid_plural "%dMb free in %s."
-msgstr[0] "%2$s içinde %1$dMb boş."
-msgstr[1] "%2$s içinde %1$dMb boş."
+msgstr[0] "%dMb boş, %s içinde."
+msgstr[1] "%dMb boş, %s içinde."
 
 #: app_window.py:864 helpers.py:372
 msgid "Messages"

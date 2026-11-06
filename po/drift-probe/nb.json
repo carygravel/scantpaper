@@ -1,0 +1,166 @@
+{
+  "language": "nb",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Sider"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Legg ved som PDF til ny e-post"
+    },
+    {
+      "msgid": "File %s is read-only",
+      "msgstr": "Filen %s er skrivebeskyttet"
+    },
+    {
+      "msgid": "Cannot delete all paper sizes",
+      "msgstr": "Kan ikke slette alle papirstørrelser"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Brightness ratio above which a pixel is considered white.",
+      "msgstr": "Lysstyrken der en piksel er vurdert som hvit."
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Zoom _100%"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Fjerner alle sider"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Justér til kant"
+    },
+    {
+      "msgid": "Brightness ratio below which a pixel is considered black (non-gray). This is used by the gray-filter. This value is also used when converting a grayscale image to black-and-white mode.",
+      "msgstr": "Lysstyrken der en piksel er vurdert som svart (ikke-grå). Dette er bruk av gråfilteret. Denne verdien brukes også når et gråtone-bilde konverteres til svar/hvitt-modus."
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Zoom til 100%"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Klipp u_t"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Alle"
+    },
+    {
+      "msgid": "Clean up scanned images with unpaper",
+      "msgstr": "Rydd opp skannede bilder med unpaper"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Slett valgte sider"
+    },
+    {
+      "msgid": "Automatic",
+      "msgstr": "Automatisk"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Komprimér med CCITT Group 3-koding."
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "_Innstillinger"
+    },
+    {
+      "msgid": "Black threshold",
+      "msgstr": "Svartterskel"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Komprimér med CCITT Group 4-koding."
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Egenskaper"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Kant"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Komprimér med JPEG-koding."
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Avslutt"
+    },
+    {
+      "msgid": "Border margin",
+      "msgstr": "Kantmarg"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Komprimér med Lempel-Ziv & Welch-koding."
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Rotér 180"
+    },
+    {
+      "msgid": "Both sides",
+      "msgstr": "Begge sider"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Komprimér med Packbits-koding."
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "Roter 90 mot klokka"
+    },
+    {
+      "msgid": "Both sides.",
+      "msgstr": "Begge sider."
+    },
+    {
+      "msgid": "Compress output with deflate encoding.",
+      "msgstr": "Komprimér med Deflate-koding."
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "Rotér 90 med klokka"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "Nederst"
+    },
+    {
+      "msgid": "CompuServe graphics interchange format",
+      "msgstr": "CompuServe graphics interchange format"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "S_can"
+    },
+    {
+      "msgid": "Clean up images",
+      "msgstr": "Rydd opp bilder"
+    },
+    {
+      "msgid": "Disable aligning of the area detected by border scanning.",
+      "msgstr": "Slå av justering av området kantskanningen oppdaget."
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "Zoom _inn"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "Komprimering"
+    }
+  ]
+}

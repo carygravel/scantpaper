@@ -1,0 +1,86 @@
+{
+  "language": "fa",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "بزرگ‌نمایی به ۱۰۰٪"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "برش"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "فشرده سازی‌"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "خروج"
+    },
+    {
+      "msgid": "None",
+      "msgstr": "هیچ‌کدام"
+    },
+    {
+      "msgid": "_About",
+      "msgstr": "_درباره"
+    },
+    {
+      "msgid": "Redo",
+      "msgstr": "دوباره"
+    },
+    {
+      "msgid": "_Delete",
+      "msgstr": "_حذف"
+    },
+    {
+      "msgid": "Save",
+      "msgstr": "ذخیره"
+    },
+    {
+      "msgid": "_Edit",
+      "msgstr": "_ویرایش"
+    },
+    {
+      "msgid": "Undo",
+      "msgstr": "برگردان"
+    },
+    {
+      "msgid": "_File",
+      "msgstr": "_پرونده"
+    },
+    {
+      "msgid": "_Help",
+      "msgstr": "_راهنما"
+    },
+    {
+      "msgid": "_New",
+      "msgstr": "_جدید"
+    },
+    {
+      "msgid": "_Quit",
+      "msgstr": "_خروج"
+    },
+    {
+      "msgid": "_Redo",
+      "msgstr": "_دوباره"
+    },
+    {
+      "msgid": "_Tools",
+      "msgstr": "_ابزارها"
+    },
+    {
+      "msgid": "_Undo",
+      "msgstr": "_برگردان"
+    },
+    {
+      "msgid": "_View",
+      "msgstr": "_نما"
+    }
+  ]
+}

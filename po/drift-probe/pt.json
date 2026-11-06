@@ -1,0 +1,166 @@
+{
+  "language": "pt",
+  "version": 1,
+  "items": [
+    {
+      "msgid": "# Output pages",
+      "msgstr": "# Páginas de saída"
+    },
+    {
+      "msgid": "Attach as PDF to a new email",
+      "msgstr": "Anexar como PDF num novo email"
+    },
+    {
+      "msgid": "Zoom _100%",
+      "msgstr": "Zoom _100%"
+    },
+    {
+      "msgid": "Clears all pages",
+      "msgstr": "Apagar todas as páginas"
+    },
+    {
+      "msgid": "# Pages",
+      "msgstr": "# Páginas"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 3 encoding.",
+      "msgstr": "Comprimir saída com codificação CCIITT Group 3"
+    },
+    {
+      "msgid": "Zoom to 100%",
+      "msgstr": "Zoom a 100%"
+    },
+    {
+      "msgid": "Cu_t",
+      "msgstr": "Cor_tar"
+    },
+    {
+      "msgid": "A4",
+      "msgstr": "A4"
+    },
+    {
+      "msgid": "Compress output with CCITT Group 4 encoding.",
+      "msgstr": "Comprimir saída com codificação CCIITT Group 4"
+    },
+    {
+      "msgid": "Delete selected pages",
+      "msgstr": "Apagar páginas seleccionadas"
+    },
+    {
+      "msgid": "Align to edge",
+      "msgstr": "Alinhar à margem"
+    },
+    {
+      "msgid": "Compress output with JPEG encoding.",
+      "msgstr": "Comprimir saída com codificação JPEG"
+    },
+    {
+      "msgid": "Prefere_nces",
+      "msgstr": "Preferê_ncias"
+    },
+    {
+      "msgid": "All",
+      "msgstr": "Tudo"
+    },
+    {
+      "msgid": "Compress output with Lempel-Ziv & Welch encoding.",
+      "msgstr": "Comprimir saída com a codificação Lempel-Ziv & Welch."
+    },
+    {
+      "msgid": "Propert_ies",
+      "msgstr": "Propr_iedades"
+    },
+    {
+      "msgid": "Border",
+      "msgstr": "Borda"
+    },
+    {
+      "msgid": "Compress output with Packbits encoding.",
+      "msgstr": "Comprimir saída com codificação Packbits"
+    },
+    {
+      "msgid": "Quit",
+      "msgstr": "Sair"
+    },
+    {
+      "msgid": "Bottom",
+      "msgstr": "Fundo"
+    },
+    {
+      "msgid": "CompuServe graphics interchange format",
+      "msgstr": "CompuServe graphics interchange format"
+    },
+    {
+      "msgid": "Rotate 180°",
+      "msgstr": "Rodar 180º"
+    },
+    {
+      "msgid": "Compression",
+      "msgstr": "Compressão"
+    },
+    {
+      "msgid": "Don't show this message again",
+      "msgstr": "Não mostrar esta mensagem outra vez"
+    },
+    {
+      "msgid": "Rotate 90° anticlockwise",
+      "msgstr": "Rodar 90° em sentido anti-horário"
+    },
+    {
+      "msgid": "Copy selection",
+      "msgstr": "Copiar a selecção"
+    },
+    {
+      "msgid": "Edge to which to align the page.",
+      "msgstr": "Margem para alinhar página."
+    },
+    {
+      "msgid": "Rotate 90° clockwise",
+      "msgstr": "Rodar 90° em sentido horário"
+    },
+    {
+      "msgid": "Crop",
+      "msgstr": "Recortar"
+    },
+    {
+      "msgid": "Joint Photographic Experts Group JFIF format",
+      "msgstr": "Joint Photographic Experts Group JFIF format"
+    },
+    {
+      "msgid": "S_can",
+      "msgstr": "_Digitalizar"
+    },
+    {
+      "msgid": "Cut selection",
+      "msgstr": "Cortar a selecção"
+    },
+    {
+      "msgid": "Must scan facing pages first",
+      "msgstr": "Deve digitalizar página da frente primeiro"
+    },
+    {
+      "msgid": "Zoom _in",
+      "msgstr": "_Aumentar zoom"
+    },
+    {
+      "msgid": "Device",
+      "msgstr": "Dispositivo"
+    },
+    {
+      "msgid": "One page per sheet, oriented upwards without rotation.",
+      "msgstr": "Uma página por folha, orientada para cima e sem rotação"
+    },
+    {
+      "msgid": "Zoom _out",
+      "msgstr": "Diminuir z_oom"
+    },
+    {
+      "msgid": "DjVu filename",
+      "msgstr": "Nome do ficheiro DjVu"
+    },
+    {
+      "msgid": "Portable Network Graphics",
+      "msgstr": "Portable Network Graphics"
+    }
+  ]
+}

@@ -74,7 +74,10 @@ pages, OCR, metadata handling and PDF/DjVu generation.
 python3 dev/compile_mo.py \
     --src po \
     --out locale \
-    --domain scantpaper
+    --domain scantpaper \
+    --approvals po/translation-approvals.json \
+    --pot po/scantpaper/scantpaper.pot \
+    --report translation-report.json
 
 # Generate HTML documentation.
 pandoc README.md -o documentation.html

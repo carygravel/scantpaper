@@ -19,6 +19,9 @@ for the current set. Findings are advisories, so they never fail a release.
 
 This file remains the record of what still needs a native pass.
 
+> Historical record: this file captures the first 2026 review pass. The
+> current workflow, approval ledger and machine gate are documented in
+> [README.md](README.md).
 
 ## sk
 - Select All == '_Select' (dropped 'All')
@@ -147,13 +150,17 @@ across the un-reviewed locales (read from the `.po`, not tooling output):
   fa gu he oc.
 - **Untranslated, form count topped up to `nplurals`** in this change:
   be (3), ar (6).
-- **Genuine latent bugs - `fuzzy`-masked, NOT auto-fixable (native reword)**:
-  - **hi**: uses `%s` before `%d`. Python's `%` cannot reorder args, so
-    un-fuzzing as-is raises at runtime. Reword `%d`-first (or move the source
-    to a named `%(free)s` format).
-  - **tr**: uses C positional `%1$d`/`%2$s`, which Python's `%` rejects
-    (`unsupported format character '$'`). Same fix.
+- **Genuine latent bugs, now corrected but still `fuzzy` for native wording**:
+  - **hi**: used `%s` before `%d`; reordered to put `%d` first.
+  - **tr**: used C positional `%1$d`/`%2$s`, which Python's `%` rejects;
+    reworded with `%d` before `%s`.
+  - **gu** and **zh_TW** had the same `%s`-before-`%d` ordering; the
+    plural-aware check found them and both are reordered too.
 
 `zh_CN` and `ja` had exactly these bugs and were fixed during fluent review.
-`msgfmt --check` skips `fuzzy`, so `hi`/`tr` stay silent until un-fuzzied -
-the one real landmine, and it is exactly two strings.
+`msgfmt --check` skips `fuzzy`, and the old check read only the singular
+`msgstr`, so the plural forms stayed silent until un-fuzzied. The render
+check in `src/scantpaper/tests/test_rendered_catalogs.py` now formats every
+form, and `dev/check_po.py` reads `msgstr_plural`, so none of these can
+return unnoticed. The four corrected strings remain fuzzy until a native
+speaker confirms the wording.
