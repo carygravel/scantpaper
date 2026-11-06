@@ -39,6 +39,9 @@ po/scantpaper/scantpaper.pot    generated template (git-ignored)
 po/translation-approvals.json   approval ledger
 po/translation-audit.json       human-core audit report
 po/translation-gate.json        model releases and deployments
+po/translation-gate.roles.json  proposer and judge roles
+po/translation-gate.example.json  generic fallback config
+po/translation-gate.roles.example.json  generic fallback roles
 po/tm-sources.json              translation-memory licence manifest
 po/drift-probe/<language>.json  fixed human-translation probe
 po/fuzzy-defect-baseline.json   ratcheted known-defect baseline
@@ -50,6 +53,19 @@ Quick checks:
 python3 dev/check_po.py
 python3 dev/translation_gate.py validate
 ```
+
+To validate the committed generic example pair:
+
+```sh
+python3 dev/translation_gate.py \
+    --config po/translation-gate.example.json \
+    --roles po/translation-gate.roles.example.json validate
+```
+
+The real `po/translation-gate.json` and `po/translation-gate.roles.json` are
+local and git-ignored, because they can name private providers. The committed
+`*.example.json` files are generic fallbacks for validation and templates. Use
+`dev/sync_translation_gate.py` to generate the real files.
 
 ## Refresh the catalogs
 
@@ -375,9 +391,71 @@ V2 `providers` and legacy `provider`, JSON and JSONC, and only imports
 OpenAI-compatible packages. It validates the result with the gate loader
 before writing.
 
-The mapping is:
+The OpenCode config lists only providers you added. Import the resolved
+catalog, including the default `opencode` models, with:
 
-| OpenCode | Gate |
+```sh
+python3 dev/sync_translation_gate.py \
+    --from-api \
+    --roles po/translation-gate.roles.json \
+    --dry-run
+```
+
+That calls `opencode api get` for `/api/model`, `/api/provider` and
+`/api/integration/<id>`. The command reads only the local API, so it does not
+need a provider key. For offline review or tests, save the responses and pass
+them explicitly:
+
+```sh
+python3 dev/sync_translation_gate.py \
+    --from-api \
+    --models-json models.json \
+    --providers-json providers.json \
+    --integrations-json integrations/ \
+    --roles po/translation-gate.roles.json \
+    --dry-run
+```
+
+The API source maps:
+
+| OpenCode API | Gate |
+| --- | --- |
+| `providerID` | deployment `provider` |
+| `env` name from integration | deployment `key_env` |
+| `settings.baseURL` | deployment `endpoint` and chat path |
+| model id, or `modelID` | release `model` and deployment model id |
+| model `family` | release `family` for independence |
+| `time.released` | release `revision` as an ISO date |
+| model `cost` | deployment base price and context tiers |
+| model `limit` | deployment `limits` |
+| provider/model `headers` | deployment `headers` |
+
+Only OpenAI-compatible chat packages are imported. Responses/native packages
+are skipped because the gate client uses `/chat/completions`.
+
+Credentials come from the integration's environment method, for example
+`OPENCODE_API_KEY`. A provider that offers only OAuth is skipped; use
+`--key-env provider=ENV` to supply a key variable explicitly. No key value is
+read or copied.
+
+Provider metadata headers such as `x-opencode-org-id` are stored in the local
+config and sent with each request. `Authorization`, proxy authorization and
+cookie headers are never copied.
+
+The config-file source remains available:
+
+```sh
+python3 dev/sync_translation_gate.py \
+    --opencode ~/.config/opencode/opencode.jsonc \
+    --roles po/translation-gate.roles.json \
+    --dry-run
+```
+
+Both sources preserve `thresholds`, `quantization`, `prompt_hash`, `decoding`
+and unknown top-level keys. `--force` replaces the deployment fields. The
+mapping is:
+
+| OpenCode config | Gate |
 | --- | --- |
 | provider id | deployment `provider` |
 | `env[0]` | deployment `key_env` |
@@ -418,13 +496,25 @@ Each deployment may carry per-million-token prices and token limits:
   "input": 0.6,
   "output": 3.3,
   "cache_read": 0.12,
-  "cache_write": null
+  "cache_write": null,
+  "tiers": [
+    {
+      "context": 272000,
+      "input": 4.0,
+      "output": 15.0,
+      "cache_read": 0.2,
+      "cache_write": 5.0
+    }
+  ]
 },
 "limits": {
   "context": 256000,
   "output": 32768
 }
 ```
+
+The base price applies below the first tier. A prompt above a tier's context
+size uses that tier's prices, and the selected tier is recorded with the call.
 
 Every model call records the provider's usage, latency and computed cost in
 the ledger. A call with no usage or no price is recorded as unknown, never as

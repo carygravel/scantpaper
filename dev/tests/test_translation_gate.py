@@ -212,6 +212,19 @@ def test_optional_cost_and_limits_load(tmp_path: Path) -> None:
     assert deployment.limits.output == 32768
 
 
+def test_optional_headers_load_and_reject_non_strings(tmp_path: Path) -> None:
+    """Deployment headers are optional strings."""
+    data = _config_data()
+    deployments = cast("dict[str, dict[str, object]]", data["deployments"])
+    deployments["p1"]["headers"] = {"x-test": "value"}
+    config = GATE.load_config(_write_config(tmp_path, data))
+    assert config.deployments["p1"].headers == {"x-test": "value"}
+
+    deployments["p1"]["headers"] = {"x-test": 1}
+    with pytest.raises(GATE.GateError, match="must be a string"):
+        GATE.load_config(_write_config(tmp_path, data))
+
+
 def test_negative_price_or_limit_is_rejected(tmp_path: Path) -> None:
     """A negative price or limit is a configuration error."""
     data = _config_data()
@@ -303,6 +316,103 @@ def test_missing_price_is_unknown_not_zero() -> None:
     assert reason == "price missing"
 
 
+def test_tiered_prices_select_the_context_band() -> None:
+    """A prompt above a tier threshold uses that tier's prices."""
+    usage = GATE.Usage(
+        prompt_tokens=300_000,
+        completion_tokens=20,
+        total_tokens=300_020,
+        cached_tokens=0,
+        cache_write_tokens=0,
+    )
+    cost = GATE.CostRates(
+        currency="USD",
+        unit="per_million_tokens",
+        input=2.0,
+        output=10.0,
+        cache_read=0.1,
+        cache_write=None,
+        tiers=(
+            GATE.CostTier(
+                context=272_000,
+                input=4.0,
+                output=15.0,
+                cache_read=0.2,
+                cache_write=None,
+            ),
+        ),
+    )
+    tier = GATE.select_cost_tier(usage, cost)
+    assert tier is not None
+    assert tier.context == 272_000
+    value, reason = GATE.compute_cost(usage, cost)
+    assert reason is None
+    assert value == pytest.approx(1.2003)
+
+
+def test_base_price_applies_below_a_tier() -> None:
+    """A short prompt uses the base price, not a context tier."""
+    usage = GATE.Usage(
+        prompt_tokens=100,
+        completion_tokens=20,
+        total_tokens=120,
+        cached_tokens=0,
+        cache_write_tokens=0,
+    )
+    cost = GATE.CostRates(
+        currency="USD",
+        unit="per_million_tokens",
+        input=1.0,
+        output=2.0,
+        cache_read=None,
+        cache_write=None,
+        tiers=(
+            GATE.CostTier(
+                context=100_000,
+                input=4.0,
+                output=8.0,
+                cache_read=None,
+                cache_write=None,
+            ),
+        ),
+    )
+    assert GATE.select_cost_tier(usage, cost) is None
+    value, reason = GATE.compute_cost(usage, cost)
+    assert reason is None
+    assert value == pytest.approx(0.00014)
+
+
+def test_missing_tier_price_is_unknown() -> None:
+    """A selected tier without an output price is unknown, not zero."""
+    usage = GATE.Usage(
+        prompt_tokens=200_000,
+        completion_tokens=20,
+        total_tokens=200_020,
+        cached_tokens=0,
+        cache_write_tokens=0,
+    )
+    cost = GATE.CostRates(
+        currency="USD",
+        unit="per_million_tokens",
+        input=1.0,
+        output=2.0,
+        cache_read=None,
+        cache_write=None,
+        tiers=(
+            GATE.CostTier(
+                context=100_000,
+                input=4.0,
+                output=None,
+                cache_read=None,
+                cache_write=None,
+            ),
+        ),
+    )
+    value, reason = GATE.compute_cost(usage, cost)
+    assert value is None
+    assert reason == "input or output token price missing"
+
+
 def test_client_parses_usage_and_computes_cost(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -316,9 +426,11 @@ def test_client_parses_usage_and_computes_cost(
         "output": 2.0,
         "cache_read": 0.5,
     }
+    deployments["p1"]["headers"] = {"x-opencode-org-id": "test-org"}
     config = GATE.load_config(_write_config(tmp_path, data))
     deployment = config.deployments["p1"]
     monkeypatch.setenv(deployment.key_env, "test-key")
+    captured: dict[str, str] = {}
 
     class FakeResponse:
         def read(self) -> bytes:
@@ -338,8 +450,8 @@ def test_client_parses_usage_and_computes_cost(
         def __init__(self, *_args: object, **_kwargs: object) -> None:
             pass
 
-        def request(self, *_args: object, **_kwargs: object) -> None:
-            pass
+        def request(self, *_args: object, **kwargs: object) -> None:
+            captured.update(cast("dict[str, str]", kwargs.get("headers", {})))
 
         def getresponse(self) -> FakeResponse:
             return FakeResponse()
@@ -354,6 +466,8 @@ def test_client_parses_usage_and_computes_cost(
     assert completion.usage.cached_tokens == 40
     assert completion.cost_usd == pytest.approx(0.00012)
     assert completion.latency_ms >= 0
+    assert captured["x-opencode-org-id"] == "test-org"
+    assert captured["Authorization"] == "Bearer test-key"
 
 
 def test_role_policy_must_name_independent_deployments(tmp_path: Path) -> None:

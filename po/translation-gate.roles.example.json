@@ -1,0 +1,7 @@
+{
+  "proposers": [
+    "example-a",
+    "example-b"
+  ],
+  "judge": "example-c"
+}

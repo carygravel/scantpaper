@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "thresholds": {
+    "qualification": 0.8,
+    "drift": 0.75,
+    "defect_rate": 0.05,
+    "sample_size": 20,
+    "backtranslation": 0.6,
+    "chars_per_token": 4.0
+  },
+  "releases": {
+    "example/a@2026-01": {
+      "family": "example-a",
+      "model": "example-a",
+      "revision": "2026-01"
+    },
+    "example/b@2026-01": {
+      "family": "example-b",
+      "model": "example-b",
+      "revision": "2026-01"
+    },
+    "example/c@2026-01": {
+      "family": "example-c",
+      "model": "example-c",
+      "revision": "2026-01"
+    }
+  },
+  "deployments": {
+    "example-a": {
+      "release": "example/a@2026-01",
+      "provider": "example-provider-a",
+      "endpoint": "https://api.example.invalid/v1/chat/completions",
+      "quantization": "unknown",
+      "prompt_hash": "sha256:example-prompt-v1",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 1.0
+      },
+      "key_env": "EXAMPLE_API_KEY",
+      "proposer": true,
+      "judge": false,
+      "cost": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "input": 1.0,
+        "output": 2.0,
+        "cache_read": 0.1,
+        "tiers": [
+          {
+            "context": 64000,
+            "input": 2.0,
+            "output": 4.0,
+            "cache_read": 0.2
+          }
+        ]
+      },
+      "limits": {
+        "context": 128000,
+        "output": 8192
+      },
+      "headers": {
+        "x-example": "local-only"
+      }
+    },
+    "example-b": {
+      "release": "example/b@2026-01",
+      "provider": "example-provider-b",
+      "endpoint": "https://api.example.invalid/v1/chat/completions",
+      "quantization": "unknown",
+      "prompt_hash": "sha256:example-prompt-v1",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 1.0
+      },
+      "key_env": "EXAMPLE_API_KEY",
+      "proposer": true,
+      "judge": false,
+      "cost": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "input": 1.0,
+        "output": 2.0,
+        "cache_read": 0.1
+      },
+      "limits": {
+        "context": 128000,
+        "output": 8192
+      }
+    },
+    "example-c": {
+      "release": "example/c@2026-01",
+      "provider": "example-provider-c",
+      "endpoint": "https://api.example.invalid/v1/chat/completions",
+      "quantization": "unknown",
+      "prompt_hash": "sha256:example-prompt-v1",
+      "decoding": {
+        "temperature": 0.0,
+        "top_p": 1.0
+      },
+      "key_env": "EXAMPLE_API_KEY",
+      "proposer": false,
+      "judge": true,
+      "cost": {
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "input": 1.0,
+        "output": 2.0,
+        "cache_read": 0.1
+      },
+      "limits": {
+        "context": 128000,
+        "output": 8192
+      }
+    }
+  }
+}

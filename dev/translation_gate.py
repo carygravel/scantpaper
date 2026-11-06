@@ -63,7 +63,9 @@ if TYPE_CHECKING:
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = REPO_ROOT / "po" / "translation-gate.json"
+EXAMPLE_CONFIG = REPO_ROOT / "po" / "translation-gate.example.json"
 DEFAULT_ROLES = REPO_ROOT / "po" / "translation-gate.roles.json"
+EXAMPLE_ROLES = REPO_ROOT / "po" / "translation-gate.roles.example.json"
 DEFAULT_PROBE_DIR = REPO_ROOT / "po" / "drift-probe"
 CONFIG_VERSION = 1
 DEFAULT_HIGH_IMPACT_MIN_PROJECTS = 2
@@ -114,6 +116,17 @@ class Release:
 
 
 @dataclass(frozen=True)
+class CostTier:
+    """One context-tiered price band for a deployment."""
+
+    context: int
+    input: float | None
+    output: float | None
+    cache_read: float | None
+    cache_write: float | None
+
+
+@dataclass(frozen=True)
 class CostRates:
     """Token prices for one deployment, per million tokens."""
 
@@ -123,6 +136,7 @@ class CostRates:
     output: float | None
     cache_read: float | None
     cache_write: float | None
+    tiers: tuple[CostTier, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -157,6 +171,7 @@ class Completion:
     latency_ms: float
     cost_usd: float | None = None
     cost_reason: str | None = None
+    cost_tier: int | None = None
 
     def as_dict(self) -> dict[str, object]:
         """Return a JSON-ready call record."""
@@ -177,6 +192,7 @@ class Completion:
             "latency_ms": self.latency_ms,
             "cost_usd": self.cost_usd,
             "cost_reason": self.cost_reason,
+            "cost_tier": self.cost_tier,
         }
 
 
@@ -218,6 +234,7 @@ class Deployment:
     judge: bool
     cost: CostRates | None = None
     limits: TokenLimits | None = None
+    headers: dict[str, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -395,6 +412,24 @@ def _optional_number(
     return float(value)
 
 
+def _load_cost_tier(raw: object, where: str) -> CostTier:
+    """Parse one context tier."""
+    if not isinstance(raw, dict):
+        msg = f"{where} cost tier must be an object"
+        raise GateError(msg)
+    context = raw.get("context")
+    if isinstance(context, bool) or not isinstance(context, int) or context <= 0:
+        msg = f"{where} cost tier context must be a positive integer"
+        raise GateError(msg)
+    return CostTier(
+        context=context,
+        input=_optional_number(raw, "input", where),
+        output=_optional_number(raw, "output", where),
+        cache_read=_optional_number(raw, "cache_read", where),
+        cache_write=_optional_number(raw, "cache_write", where),
+    )
+
+
 def _load_cost(deployment: Mapping[str, object], where: str) -> CostRates | None:
     """Parse an optional deployment cost block."""
     raw = deployment.get("cost")
@@ -414,6 +449,16 @@ def _load_cost(deployment: Mapping[str, object], where: str) -> CostRates | None
     if unit != "per_million_tokens":
         msg = f"{where} cost unit must be 'per_million_tokens'"
         raise GateError(msg)
+    raw_tiers = raw.get("tiers", [])
+    if not isinstance(raw_tiers, list):
+        msg = f"{where} cost tiers must be a list"
+        raise GateError(msg)
+    tiers = tuple(
+        sorted(
+            (_load_cost_tier(item, where) for item in raw_tiers),
+            key=lambda item: item.context,
+        )
+    )
     return CostRates(
         currency=currency,
         unit=unit,
@@ -421,6 +466,7 @@ def _load_cost(deployment: Mapping[str, object], where: str) -> CostRates | None
         output=_optional_number(raw, "output", where),
         cache_read=_optional_number(raw, "cache_read", where),
         cache_write=_optional_number(raw, "cache_write", where),
+        tiers=tiers,
     )
 
 
@@ -443,6 +489,28 @@ def _load_limits(deployment: Mapping[str, object], where: str) -> TokenLimits | 
         else:
             values[name] = value
     return TokenLimits(context=values["context"], output=values["output"])
+
+
+def _load_headers(
+    deployment: Mapping[str, object], where: str
+) -> dict[str, str] | None:
+    """Parse optional non-empty string headers."""
+    raw = deployment.get("headers")
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        msg = f"{where} headers must be an object"
+        raise GateError(msg)
+    headers: dict[str, str] = {}
+    for key, value in raw.items():
+        if not isinstance(key, str) or not key:
+            msg = f"{where} has an invalid header name"
+            raise GateError(msg)
+        if not isinstance(value, str):
+            msg = f"{where} header {key!r} must be a string"
+            raise GateError(msg)
+        headers[key] = value
+    return headers
 
 
 def _load_deployments(
@@ -482,6 +550,7 @@ def _load_deployments(
             judge=bool(deployment.get("judge", False)),
             cost=_load_cost(deployment, deployment_id),
             limits=_load_limits(deployment, deployment_id),
+            headers=_load_headers(deployment, deployment_id),
         )
     return deployments
 
@@ -501,6 +570,8 @@ def _load_thresholds(data: Mapping[str, object], path: Path) -> dict[str, float]
 
 def load_config(path: Path = DEFAULT_CONFIG) -> GateConfig:
     """Load and validate the gate configuration."""
+    if path == DEFAULT_CONFIG and not path.exists() and EXAMPLE_CONFIG.exists():
+        path = EXAMPLE_CONFIG
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
@@ -553,6 +624,8 @@ def validate_config(config: GateConfig) -> None:
 
 def load_roles(path: Path = DEFAULT_ROLES) -> RolePolicy:
     """Load the proposer and judge role policy."""
+    if path == DEFAULT_ROLES and not path.exists() and EXAMPLE_ROLES.exists():
+        path = EXAMPLE_ROLES
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
@@ -647,6 +720,19 @@ def parse_usage(data: object) -> Usage | None:
     )
 
 
+def select_cost_tier(usage: Usage | None, cost: CostRates | None) -> CostTier | None:
+    """Return the highest context tier applicable to a call, if any."""
+    if usage is None or cost is None or usage.prompt_tokens is None:
+        return None
+    selected: CostTier | None = None
+    for tier in cost.tiers:
+        if tier.context <= usage.prompt_tokens:
+            selected = tier
+        else:
+            break
+    return selected
+
+
 def compute_cost(
     usage: Usage | None, cost: CostRates | None
 ) -> tuple[float | None, str | None]:
@@ -655,25 +741,26 @@ def compute_cost(
         return None, "usage missing"
     if cost is None:
         return None, "price missing"
+    active = select_cost_tier(usage, cost) or cost
     if (
         usage.prompt_tokens is None
         or usage.completion_tokens is None
-        or cost.input is None
-        or cost.output is None
+        or active.input is None
+        or active.output is None
     ):
         return None, "input or output token price missing"
     cached = usage.cached_tokens or 0
     cache_write = usage.cache_write_tokens or 0
-    if cached and cost.cache_read is None:
+    if cached and active.cache_read is None:
         return None, "cache_read price missing"
-    if cache_write and cost.cache_write is None:
+    if cache_write and active.cache_write is None:
         return None, "cache_write price missing"
     uncached = max(0, usage.prompt_tokens - cached)
     total = (
-        uncached * cost.input
-        + cached * (cost.cache_read or 0.0)
-        + cache_write * (cost.cache_write or 0.0)
-        + usage.completion_tokens * cost.output
+        uncached * active.input
+        + cached * (active.cache_read or 0.0)
+        + cache_write * (active.cache_write or 0.0)
+        + usage.completion_tokens * active.output
     )
     return round(total / 1_000_000, 6), None
 
@@ -727,16 +814,16 @@ class OpenAICompatibleClient:
         connection = connection_class(
             parsed.hostname, parsed.port, timeout=self.timeout
         )
+        request_headers = dict(deployment.headers or {})
+        request_headers["Content-Type"] = "application/json"
+        request_headers["Authorization"] = f"Bearer {key}"
         started = time.perf_counter()
         try:
             connection.request(
                 "POST",
                 path,
                 body=json.dumps(payload).encode(),
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {key}",
-                },
+                headers=request_headers,
             )
             response = connection.getresponse()
             raw = response.read()
@@ -761,6 +848,7 @@ class OpenAICompatibleClient:
             raise ModelError(msg)
         usage = parse_usage(data.get("usage") if isinstance(data, dict) else None)
         cost_usd, cost_reason = compute_cost(usage, deployment.cost)
+        tier = select_cost_tier(usage, deployment.cost)
         return Completion(
             text=cast("str", content).strip(),
             deployment=deployment.id,
@@ -770,6 +858,7 @@ class OpenAICompatibleClient:
             latency_ms=latency_ms,
             cost_usd=cost_usd,
             cost_reason=cost_reason,
+            cost_tier=tier.context if tier is not None else None,
         )
 
 
@@ -2276,11 +2365,10 @@ def _catalogs_from_directory(directory: Path) -> dict[str, polib.POFile]:
     }
 
 
-def _command_validate(config: GateConfig) -> int:
+def _command_validate(args: argparse.Namespace, config: GateConfig) -> int:
     """Print the validated configuration size."""
-    if DEFAULT_ROLES.exists():
-        roles = load_roles(DEFAULT_ROLES)
-        validate_roles(config, roles)
+    roles = load_roles(args.roles)
+    validate_roles(config, roles)
     print(
         f"valid: {len(config.releases)} releases, {len(config.deployments)} deployments"
     )
@@ -2482,7 +2570,7 @@ def _command_approve(args: argparse.Namespace, _config: GateConfig) -> int:
 def _dispatch(args: argparse.Namespace, config: GateConfig) -> int:
     """Route one subcommand to its handler."""
     handlers = {
-        "validate": lambda: _command_validate(config),
+        "validate": lambda: _command_validate(args, config),
         "capability": lambda: _command_capability(args, config),
         "costs": lambda: _command_costs(args, config),
         "estimate": lambda: _command_estimate(args, config),
@@ -2503,6 +2591,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     """Run the gate command."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    parser.add_argument("--roles", type=Path, default=DEFAULT_ROLES)
     parser.add_argument("--ledger", type=Path, default=DEFAULT_LEDGER_PATH)
     parser.add_argument("--probe-dir", type=Path, default=DEFAULT_PROBE_DIR)
     sub = parser.add_subparsers(dest="command", required=True)

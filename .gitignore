@@ -15,3 +15,5 @@ po/scantpaper/scantpaper.pot
 
 # Local translation-memory index, reproducible from po/tm-sources.json
 .cache/
+po/translation-gate.json
+po/translation-gate.roles.json

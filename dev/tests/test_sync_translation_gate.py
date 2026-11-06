@@ -243,3 +243,284 @@ def test_cli_dry_run_and_apply(tmp_path: Path) -> None:
     assert SYNC.main([arg for arg in args if arg != "--dry-run"]) == 0
     assert output.exists()
     assert SYNC.load_config(output).deployments["acme/a"].cost is not None
+
+
+def _api_fixture(
+    tmp_path: Path,
+) -> tuple[Path, Path, Path, Path]:
+    """Write saved model, provider and integration responses."""
+    models = {
+        "data": [
+            {
+                "id": "deepseek-v4.1-flash",
+                "modelID": "deepseek-v4.1-flash",
+                "providerID": "opencode",
+                "family": "deepseek-flash",
+                "package": "@opencode/ai/providers/openai-compatible",
+                "settings": {"baseURL": "https://opencode.ai/inference/openai/v1"},
+                "headers": {"x-opencode-org-id": "org-1"},
+                "time": {"released": 1788998400000},
+                "cost": [
+                    {
+                        "input": 0.3,
+                        "output": 1.2,
+                        "cache": {"read": 0.006, "write": 0},
+                    },
+                    {
+                        "tier": {"type": "context", "size": 272000},
+                        "input": 0.6,
+                        "output": 1.8,
+                        "cache": {"read": 0.012, "write": 0},
+                    },
+                ],
+                "limit": {"context": 1000000, "output": 384000},
+                "status": "active",
+                "enabled": True,
+            },
+            {
+                "id": "qwen3.8-flash",
+                "providerID": "opencode",
+                "family": "qwen",
+                "package": "@opencode/ai/providers/openai-compatible",
+                "time": {"released": 1787702400000},
+                "cost": [{"input": 0.15, "output": 0.47, "cache": {"read": 0}}],
+                "limit": {"context": 256000, "output": 32768},
+                "status": "active",
+                "enabled": True,
+            },
+            {
+                "id": "glm-5.3",
+                "providerID": "opencode",
+                "family": "glm",
+                "package": "@opencode/ai/providers/openai-compatible",
+                "time": {"released": 1786665600000},
+                "cost": [{"input": 1.4, "output": 4.4, "cache": {"read": 0.26}}],
+                "limit": {"context": 256000, "output": 32768},
+                "status": "active",
+                "enabled": True,
+            },
+            {
+                "id": "native-gpt",
+                "providerID": "opencode",
+                "family": "gpt",
+                "package": "@opencode/ai/providers/openai",
+                "time": {"released": 1790640000000},
+                "cost": [{"input": 2, "output": 10, "cache": {"read": 0.1}}],
+                "limit": {"context": 200000, "output": 8192},
+                "status": "active",
+                "enabled": True,
+            },
+        ]
+    }
+    providers = {
+        "data": [
+            {
+                "id": "opencode",
+                "integrationID": "opencode",
+                "package": "@opencode/ai/providers/openai-compatible",
+                "settings": {"baseURL": "https://opencode.ai/inference/openai/v1"},
+                "headers": {"x-opencode-org-id": "org-1"},
+            }
+        ]
+    }
+    integrations = tmp_path / "integrations"
+    integrations.mkdir()
+    _write(
+        integrations / "opencode.json",
+        {
+            "data": {
+                "id": "opencode",
+                "methods": [
+                    {"type": "key"},
+                    {"type": "env", "names": ["OPENCODE_API_KEY"]},
+                ],
+            }
+        },
+    )
+    models_path = _write(tmp_path / "models.json", models)
+    providers_path = _write(tmp_path / "providers.json", providers)
+    roles_path = tmp_path / "api-roles.json"
+    roles_path.write_text(
+        json.dumps(
+            {
+                "proposers": [
+                    "opencode/deepseek-v4.1-flash",
+                    "opencode/qwen3.8-flash",
+                ],
+                "judge": "opencode/glm-5.3",
+            }
+        ),
+        encoding="utf-8",
+    )
+    return models_path, providers_path, integrations, roles_path
+
+
+def test_api_import_maps_default_model_metadata(tmp_path: Path) -> None:
+    """The API source maps identity, headers, cost tiers and limits."""
+    models, providers, integrations, roles = _api_fixture(tmp_path)
+    request = SYNC.ApiImportRequest(
+        models=SYNC._object_list(SYNC._load_saved_payload(models), str(models)),
+        providers=SYNC._object_list(
+            SYNC._load_saved_payload(providers), str(providers)
+        ),
+        integrations=SYNC._load_integrations(integrations),
+        roles=SYNC.load_roles(roles),
+    )
+    config = SYNC.build_gate_config_from_api(request)
+    deployment = config["deployments"]["opencode/deepseek-v4.1-flash"]
+    assert deployment["endpoint"] == (
+        "https://opencode.ai/inference/openai/v1/chat/completions"
+    )
+    assert deployment["key_env"] == "OPENCODE_API_KEY"
+    assert deployment["headers"] == {"x-opencode-org-id": "org-1"}
+    assert deployment["cost"]["tiers"][0]["context"] == 272000
+    assert deployment["limits"]["context"] == 1000000
+    assert "opencode/native-gpt" not in config["deployments"]
+
+
+def test_api_import_cli_is_offline_and_deterministic(tmp_path: Path) -> None:
+    """Saved responses import without a server; a second run is identical."""
+    models, providers, integrations, roles = _api_fixture(tmp_path)
+    output = tmp_path / "gate.json"
+    args = [
+        "--from-api",
+        "--models-json",
+        str(models),
+        "--providers-json",
+        str(providers),
+        "--integrations-json",
+        str(integrations),
+        "--roles",
+        str(roles),
+        "--output",
+        str(output),
+    ]
+    assert SYNC.main([*args, "--dry-run"]) == 0
+    assert not output.exists()
+    assert SYNC.main(args) == 0
+    first = output.read_text(encoding="utf-8")
+    assert SYNC.main(args) == 0
+    assert output.read_text(encoding="utf-8") == first
+
+
+def test_oauth_only_provider_is_skipped_or_overridden(tmp_path: Path) -> None:
+    """OAuth-only providers need an explicit key variable."""
+    models, providers, integrations, roles = _api_fixture(tmp_path)
+    integration_path = integrations / "opencode.json"
+    integration_path.write_text(
+        json.dumps(
+            {
+                "data": {
+                    "id": "opencode",
+                    "methods": [{"type": "oauth", "id": "device"}],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    request = SYNC.ApiImportRequest(
+        models=SYNC._object_list(SYNC._load_saved_payload(models), str(models)),
+        providers=SYNC._object_list(
+            SYNC._load_saved_payload(providers), str(providers)
+        ),
+        integrations=SYNC._load_integrations(integrations),
+        roles=SYNC.load_roles(roles),
+    )
+    with pytest.raises(SYNC.SyncError, match="no OpenAI-compatible"):
+        SYNC.build_gate_config_from_api(request)
+
+    overridden = SYNC.ApiImportRequest(
+        models=request.models,
+        providers=request.providers,
+        integrations=request.integrations,
+        roles=request.roles,
+        key_env_overrides={"opencode": "OPENCODE_API_KEY"},
+    )
+    config = SYNC.build_gate_config_from_api(overridden)
+    assert config["deployments"]["opencode/deepseek-v4.1-flash"]["key_env"] == (
+        "OPENCODE_API_KEY"
+    )
+
+
+def test_authorization_headers_are_not_copied(tmp_path: Path) -> None:
+    """A catalog Authorization header never reaches the local config."""
+    models, providers, integrations, roles = _api_fixture(tmp_path)
+    provider_payload = SYNC._load_saved_payload(providers)
+    assert isinstance(provider_payload, list)
+    provider_payload[0]["headers"]["Authorization"] = "secret"
+    providers.write_text(json.dumps({"data": provider_payload}), encoding="utf-8")
+    config = SYNC.build_gate_config_from_api(
+        SYNC.ApiImportRequest(
+            models=SYNC._object_list(SYNC._load_saved_payload(models), str(models)),
+            providers=SYNC._object_list(provider_payload, str(providers)),
+            integrations=SYNC._load_integrations(integrations),
+            roles=SYNC.load_roles(roles),
+        )
+    )
+    assert (
+        "Authorization"
+        not in config["deployments"]["opencode/deepseek-v4.1-flash"]["headers"]
+    )
+    assert "secret" not in json.dumps(config)
+
+
+def test_api_source_invokes_the_opencode_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The live source calls the documented OpenCode API routes."""
+    models, providers, integrations, roles = _api_fixture(tmp_path)
+    model_data = SYNC._load_saved_payload(models)
+    provider_data = SYNC._load_saved_payload(providers)
+    integration_data = SYNC._load_saved_payload(integrations / "opencode.json")
+    calls: list[str] = []
+
+    class FakeResult:
+        returncode = 0
+        stderr = ""
+
+        def __init__(self, payload: object) -> None:
+            self.stdout = json.dumps({"data": payload})
+
+    def fake_run(command: list[str], **_kwargs: object) -> FakeResult:
+        path = command[-1]
+        calls.append(path)
+        if path == "/api/model":
+            return FakeResult(model_data)
+        if path == "/api/provider":
+            return FakeResult(provider_data)
+        return FakeResult(integration_data)
+
+    monkeypatch.setattr(SYNC.subprocess, "run", fake_run)
+    output = tmp_path / "gate.json"
+    status = SYNC.main(
+        [
+            "--from-api",
+            "--roles",
+            str(roles),
+            "--output",
+            str(output),
+        ]
+    )
+    assert status == 0
+    assert output.exists()
+    assert "/api/model" in calls
+    assert "/api/provider" in calls
+    assert "/api/integration/opencode" in calls
+
+
+def test_missing_api_response_writes_nothing(tmp_path: Path) -> None:
+    """An unreadable saved response fails before writing."""
+    output = tmp_path / "gate.json"
+    status = SYNC.main(
+        [
+            "--from-api",
+            "--models-json",
+            str(tmp_path / "missing.json"),
+            "--providers-json",
+            str(tmp_path / "also-missing.json"),
+            "--output",
+            str(output),
+        ]
+    )
+    assert status == 1
+    assert not output.exists()
