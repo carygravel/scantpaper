@@ -15,7 +15,7 @@ import pytest
 if TYPE_CHECKING:
     from types import ModuleType
 
-    from translation_gate import GateConfig
+    from translation_gate import GateConfig, GateDecision
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEV_DIR = REPO_ROOT / "dev"
@@ -48,11 +48,13 @@ class FakeClient:
         *,
         judge: str = "A",
         backtranslation: str | None = None,
+        cost_usd: float | None = None,
     ) -> None:
         """Store the canned proposal, judge and back-translation answers."""
         self.answers = answers or {}
         self.judge = judge
         self.backtranslation = backtranslation
+        self.cost_usd = cost_usd
 
     def complete(self, deployment: object, prompt: str) -> object:
         """Answer a proposal, judge or back-translation prompt."""
@@ -76,6 +78,7 @@ class FakeClient:
                 cache_write_tokens=0,
             ),
             latency_ms=1.0,
+            cost_usd=self.cost_usd,
         )
 
 
@@ -923,6 +926,143 @@ def _completion(text: str) -> object:
         ),
         latency_ms=1.0,
     )
+
+
+def _write_catalog(path: Path, entries: tuple[polib.POEntry, ...]) -> Path:
+    """Write a catalog with the standard test metadata."""
+    catalog = polib.POFile()
+    catalog.metadata = {
+        "MIME-Version": "1.0",
+        "Content-Type": "text/plain; charset=UTF-8",
+        "Content-Transfer-Encoding": "8bit",
+    }
+    for entry in entries:
+        catalog.append(entry)
+    catalog.save(str(path))
+    return path
+
+
+def _batch_entry(
+    msgid: str,
+    msgstr: str = "",
+    *,
+    fuzzy: bool = False,
+    plural: bool = False,
+    context: str | None = None,
+) -> polib.POEntry:
+    """Build one entry for a batch test."""
+    entry = polib.POEntry(msgid=msgid, msgstr=msgstr)
+    if fuzzy:
+        entry.flags.append("fuzzy")
+    if plural:
+        entry.msgid_plural = f"{msgid}s"
+        entry.msgstr_plural = {0: "", 1: ""}
+    if context is not None:
+        entry.msgctxt = context
+    return entry
+
+
+def _batch_decision(msgid: str, translation: str | None = "Löschen") -> GateDecision:
+    """Build an approved decision for one entry."""
+    entry = polib.POEntry(msgid=msgid, msgstr=translation or "")
+    record = LEDGER.make_record(
+        "de",
+        entry,
+        "machine-strong",
+        context=LEDGER.ApprovalContext(
+            approval_date="2026-01-01",
+            model_release="r1",
+            deployment="p1",
+        ),
+    )
+    return cast(
+        "GateDecision",
+        GATE.GateDecision(
+            approved=True,
+            reason="every check and the judge agree",
+            translation=translation,
+            record=record,
+        ),
+    )
+
+
+def _batch_setup(
+    tmp_path: Path,
+    *,
+    costed: bool = False,
+    qualified: bool = True,
+    paused: bool = False,
+    entries: tuple[polib.POEntry, ...] = (),
+) -> tuple[Path, Path, Path, Path]:
+    """Write a config, roles, ledger and catalog for a batch test."""
+    data = _config_data()
+    if costed:
+        deployments = cast("dict[str, dict[str, object]]", data["deployments"])
+        for deployment in deployments.values():
+            deployment["cost"] = {
+                "currency": "USD",
+                "unit": "per_million_tokens",
+                "input": 1.0,
+                "output": 2.0,
+                "cache_read": 0.5,
+            }
+    config_path = _write_config(tmp_path, data)
+    roles_path = tmp_path / "roles.json"
+    roles_path.write_text(
+        json.dumps({"proposers": ["p1", "p2"], "judge": "j"}),
+        encoding="utf-8",
+    )
+    ledger = _ledger()
+    if qualified:
+        for release in ("r1", "r2", "r3"):
+            GATE._replace_section(
+                ledger,
+                "qualifications",
+                {"release": release, "language": "de", "qualified": True},
+                key_fields=("release", "language"),
+            )
+    if paused:
+        GATE.record_drift_excursion(
+            ledger,
+            {
+                "release": "r1",
+                "deployment": "p1",
+                "language": "de",
+                "score": 0.1,
+                "threshold": 0.75,
+                "calls": [],
+                "total_cost_usd": 0.0,
+                "latency_ms": 0.0,
+            },
+            since="2026-01-01",
+        )
+    ledger_path = _write_ledger(tmp_path / "ledger.json", ledger)
+    catalog_path = _write_catalog(tmp_path / "de.po", entries)
+    return config_path, ledger_path, catalog_path, roles_path
+
+
+def _batch_args(
+    config_path: Path,
+    ledger_path: Path,
+    catalog_path: Path,
+    roles_path: Path,
+    *extra: str,
+) -> list[str]:
+    """Build the common CLI arguments for a batch test."""
+    return [
+        "--config",
+        str(config_path),
+        "--roles",
+        str(roles_path),
+        "--ledger",
+        str(ledger_path),
+        "translate",
+        "--language",
+        "de",
+        "--catalog",
+        str(catalog_path),
+        *extra,
+    ]
 
 
 def test_estimate_tokens_and_output_bounds() -> None:
@@ -1780,6 +1920,411 @@ def test_drift_cli_repeated_failure_keeps_the_pause(
     ledger = LEDGER.load_ledger(ledger_path)
     assert GATE.is_paused(ledger, "r1", "de")
     assert len(LEDGER.approvals(ledger)) == 1
+
+
+def test_apply_decision_fills_and_replaces() -> None:
+    """An approved decision writes the text and clears fuzzy."""
+    ledger: dict[str, object] = _ledger()
+    entry = _batch_entry("Delete", fuzzy=True)
+    GATE._apply_decision(ledger, entry, _batch_decision("Delete"))
+    assert entry.msgstr == "Löschen"
+    assert "fuzzy" not in entry.flags
+    assert len(LEDGER.approvals(ledger)) == 1
+
+    entry.msgstr = "Alt"
+    entry.flags.append("fuzzy")
+    GATE._apply_decision(ledger, entry, _batch_decision("Delete", "Neu"))
+    assert entry.msgstr == "Neu"
+    assert "fuzzy" not in entry.flags
+    assert len(LEDGER.approvals(ledger)) == 1
+
+
+def test_apply_decision_rejects_missing_translation() -> None:
+    """A decision without text leaves the catalog and ledger alone."""
+    ledger: dict[str, object] = _ledger()
+    entry = _batch_entry("Delete")
+    with pytest.raises(GATE.GateError, match="no translation"):
+        GATE._apply_decision(ledger, entry, _batch_decision("Delete", None))
+    assert entry.msgstr == ""
+    assert LEDGER.approvals(ledger) == []
+
+
+def test_approve_decision_fills_empty_entry(tmp_path: Path) -> None:
+    """The single-string approve path writes the translation too."""
+    catalog_path = _write_catalog(tmp_path / "de.po", (_batch_entry("Delete"),))
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    GATE.approve_decision(
+        catalog_path, ledger_path, "Delete", _batch_decision("Delete")
+    )
+    saved = polib.pofile(str(catalog_path)).find("Delete")
+    assert saved is not None
+    assert saved.msgstr == "Löschen"
+    assert "fuzzy" not in saved.flags
+    assert len(LEDGER.approvals(LEDGER.load_ledger(ledger_path))) == 1
+
+
+def test_select_batch_entries_defaults_and_opt_in() -> None:
+    """Empty entries are selected; fuzzy proposals and unsupported entries differ."""
+    catalog = polib.POFile()
+    for entry in (
+        _batch_entry("Delete"),
+        _batch_entry("Open", fuzzy=True),
+        _batch_entry("Close", "Schließen", fuzzy=True),
+        _batch_entry("Save", "Speichern"),
+        _batch_entry("File", plural=True),
+        _batch_entry("Cut", context="menu"),
+    ):
+        catalog.append(entry)
+
+    selection = GATE._select_batch_entries(catalog, include_fuzzy=False, limit=None)
+    assert [entry.msgid for entry in selection.selected] == ["Delete", "Open"]
+    assert {entry.msgid for entry, _ in selection.unsupported} == {"Cut", "File"}
+    assert selection.skipped == 2
+
+    included = GATE._select_batch_entries(catalog, include_fuzzy=True, limit=None)
+    assert [entry.msgid for entry in included.selected] == [
+        "Close",
+        "Delete",
+        "Open",
+    ]
+    assert included.skipped == 1
+
+    limited = GATE._select_batch_entries(catalog, include_fuzzy=False, limit=1)
+    assert [entry.msgid for entry in limited.selected] == ["Delete"]
+
+
+def test_translate_cli_approves_and_reports(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A batch fills empty entries and reports skipped and unsupported ones."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(
+            _batch_entry("Delete"),
+            _batch_entry("Open", fuzzy=True),
+            _batch_entry("Save", "Speichern"),
+            _batch_entry("File", plural=True),
+            _batch_entry("Cut", context="menu"),
+        ),
+    )
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    assert client.complete.call_count == 6
+    catalog = polib.pofile(str(catalog_path))
+    delete = catalog.find("Delete")
+    opened = catalog.find("Open")
+    assert delete is not None
+    assert delete.msgstr == "Löschen"
+    assert opened is not None
+    assert opened.msgstr == "Löschen"
+    assert "fuzzy" not in opened.flags
+    ledger = LEDGER.load_ledger(ledger_path)
+    assert len(LEDGER.approvals(ledger)) == 2
+    assert len(LEDGER.section(ledger, "gate_runs")) == 2
+    out = capsys.readouterr().out
+    assert "approved 2" in out
+    assert "abstained 0" in out
+    assert "unsupported 2" in out
+    assert "skipped 1" in out
+
+
+def test_translate_cli_backtranslates_a_sentence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A sentence entry uses the proposer, judge and back-translation calls."""
+    source = "This is a sufficiently long sentence for back translation."
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry(source),),
+    )
+    client = Mock(
+        wraps=FakeClient(
+            {"p1": "Löschen", "p2": "Löschen"},
+            backtranslation=source,
+        )
+    )
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    assert client.complete.call_count == 4
+    saved = polib.pofile(str(catalog_path)).find(source)
+    assert saved is not None
+    assert saved.msgstr == "Löschen"
+
+
+def test_translate_cli_abstains(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An abstention leaves the fuzzy entry unchanged."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete", fuzzy=True),),
+    )
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}, judge="ABSTAIN"),
+    )
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    saved = polib.pofile(str(catalog_path)).find("Delete")
+    assert saved is not None
+    assert saved.msgstr == ""
+    assert "fuzzy" in saved.flags
+    ledger = LEDGER.load_ledger(ledger_path)
+    assert LEDGER.approvals(ledger) == []
+    assert len(LEDGER.section(ledger, "gate_runs")) == 1
+    assert "abstained 1" in capsys.readouterr().out
+
+
+def test_translate_cli_reports_json(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The JSON report carries the applied translation and counts."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete"),),
+    )
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+    )
+    status = GATE.main(
+        _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["selected"] == 1
+    assert payload["approved"][0]["msgid"] == "Delete"
+    assert payload["approved"][0]["translation"] == "Löschen"
+    assert payload["abstained"] == []
+    assert payload["unsupported"] == []
+    assert payload["remaining"] == 0
+    assert payload["ready"] is True
+
+
+def test_translate_cli_requires_qualification(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An unqualified release blocks the run and is reported by a dry run."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        qualified=False,
+        entries=(_batch_entry("Delete"),),
+    )
+    client = Mock()
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    before_catalog = catalog_path.read_text(encoding="utf-8")
+    before_ledger = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 1
+    assert "not qualified" in capsys.readouterr().err
+    client.complete.assert_not_called()
+    assert catalog_path.read_text(encoding="utf-8") == before_catalog
+    assert ledger_path.read_text(encoding="utf-8") == before_ledger
+
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--dry-run",
+            "--json",
+        )
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["ready"] is False
+    assert any("not qualified" in item for item in payload["blockers"])
+    client.complete.assert_not_called()
+
+
+def test_translate_cli_requires_unpaused(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A paused language blocks the run and makes no call."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        paused=True,
+        entries=(_batch_entry("Delete"),),
+    )
+    client = Mock()
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    before_catalog = catalog_path.read_text(encoding="utf-8")
+    before_ledger = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 1
+    assert "paused" in capsys.readouterr().err
+    client.complete.assert_not_called()
+    assert catalog_path.read_text(encoding="utf-8") == before_catalog
+    assert ledger_path.read_text(encoding="utf-8") == before_ledger
+
+
+def test_translate_cli_preflight_budget(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An over-budget pre-estimate makes no call and writes nothing."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        costed=True,
+        entries=(_batch_entry("Delete"), _batch_entry("Open")),
+    )
+    client = Mock()
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    before_catalog = catalog_path.read_text(encoding="utf-8")
+    before_ledger = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--max-cost",
+            "0",
+        )
+    )
+    assert status == 1
+    assert "exceeds budget" in capsys.readouterr().err
+    client.complete.assert_not_called()
+    assert catalog_path.read_text(encoding="utf-8") == before_catalog
+    assert ledger_path.read_text(encoding="utf-8") == before_ledger
+
+
+def test_run_batch_stops_at_budget(tmp_path: Path) -> None:
+    """A batch stops before the entry that would exceed the cap."""
+    config_path, ledger_path, catalog_path, _roles_path = _batch_setup(
+        tmp_path,
+        costed=True,
+        entries=(_batch_entry("Delete"), _batch_entry("Open")),
+    )
+    config = GATE.load_config(config_path)
+    ledger = LEDGER.load_ledger(ledger_path)
+    catalog = polib.pofile(str(catalog_path))
+    high = GATE.estimate_gate(config, "de", ["Delete"]).high_cost_usd
+    assert high is not None
+    client = FakeClient({"p1": "Löschen", "p2": "Löschen"}, cost_usd=0.001)
+    approved, abstained, stopped, spent = GATE._run_batch(
+        GATE.BatchRun(
+            config=config,
+            catalog=catalog,
+            ledger=ledger,
+            catalog_path=catalog_path,
+            ledger_path=ledger_path,
+            language="de",
+            entries=tuple(catalog),
+            client=client,
+            max_cost=high + 0.001,
+            tm_db=None,
+        )
+    )
+    assert stopped == "budget"
+    assert len(approved) == 1
+    assert approved[0]["msgid"] == "Delete"
+    assert abstained == []
+    assert spent == pytest.approx(0.003)
+    saved = polib.pofile(str(catalog_path))
+    delete = saved.find("Delete")
+    opened = saved.find("Open")
+    assert delete is not None
+    assert delete.msgstr == "Löschen"
+    assert opened is not None
+    assert opened.msgstr == ""
+    ledger = LEDGER.load_ledger(ledger_path)
+    assert len(LEDGER.approvals(ledger)) == 1
+    assert len(LEDGER.section(ledger, "gate_runs")) == 1
+
+
+def test_translate_cli_dry_run_lists_unsupported(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A dry run lists unsupported entries and writes nothing."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(
+            _batch_entry("Delete"),
+            _batch_entry("File", plural=True),
+            _batch_entry("Cut", context="menu"),
+        ),
+    )
+    client = Mock()
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    before_catalog = catalog_path.read_text(encoding="utf-8")
+    before_ledger = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--dry-run",
+            "--json",
+        )
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["selected"] == 1
+    assert {item["msgid"] for item in payload["unsupported"]} == {
+        "Cut",
+        "File",
+    }
+    assert payload["ready"] is True
+    client.complete.assert_not_called()
+    assert catalog_path.read_text(encoding="utf-8") == before_catalog
+    assert ledger_path.read_text(encoding="utf-8") == before_ledger
+
+
+def test_translate_cli_include_fuzzy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A fuzzy proposal is skipped by default and replaced when requested."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Close", "Alt", fuzzy=True),),
+    )
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+    )
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    saved = polib.pofile(str(catalog_path)).find("Close")
+    assert saved is not None
+    assert saved.msgstr == "Alt"
+
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--include-fuzzy",
+        )
+    )
+    assert status == 0
+    saved = polib.pofile(str(catalog_path)).find("Close")
+    assert saved is not None
+    assert saved.msgstr == "Löschen"
+    assert "fuzzy" not in saved.flags
+    assert len(LEDGER.approvals(LEDGER.load_ledger(ledger_path))) == 1
 
 
 def test_costs_cli_reports_json(

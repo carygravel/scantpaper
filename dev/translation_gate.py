@@ -965,6 +965,8 @@ def blind_judge(
     judge = config.judges[0]
     completion = client.complete(judge, prompt)
     answer = completion.text.strip().upper()
+    if answer.startswith("ABSTAIN"):
+        return None, answer, completion
     for index, label in enumerate(labels):
         if answer.startswith(label):
             return index, answer, completion
@@ -2255,31 +2257,51 @@ def revoke(
     write_ledger(ledger, ledger_path)
 
 
-def approve_decision(
-    catalog_path: Path,
-    ledger_path: Path,
-    msgid: str,
+def _apply_decision(
+    ledger: dict[str, object],
+    entry: polib.POEntry,
     decision: GateDecision,
 ) -> None:
-    """Clear fuzzy on an approved entry and record the approval."""
+    """Write an approved translation into a catalog entry and the ledger."""
     if not decision.approved or decision.record is None:
         msg = "cannot approve an abstained decision"
         raise GateError(msg)
-    catalog = polib.pofile(str(catalog_path))
-    entry = catalog.find(msgid)
-    if entry is None:
-        msg = f"{msgid!r} is not in {catalog_path}"
+    translation = decision.translation
+    if translation is None or not translation.strip():
+        msg = "approved decision has no translation"
         raise GateError(msg)
+    entry.msgstr = translation
     entry.flags = [flag for flag in entry.flags if flag != "fuzzy"]
-    catalog.save(str(catalog_path))
-    ledger = load_ledger(ledger_path)
     _replace_section(
         ledger,
         "approvals",
         decision.record,
         key_fields=("language", "msgctxt", "msgid", "msgid_plural"),
     )
+
+
+def approve_decision(
+    catalog_path: Path,
+    ledger_path: Path,
+    msgid: str,
+    decision: GateDecision,
+) -> None:
+    """Write an approved translation and record the approval."""
+    if not decision.approved or decision.record is None:
+        msg = "cannot approve an abstained decision"
+        raise GateError(msg)
+    if decision.translation is None or not decision.translation.strip():
+        msg = "approved decision has no translation"
+        raise GateError(msg)
+    catalog = polib.pofile(str(catalog_path))
+    entry = catalog.find(msgid)
+    if entry is None:
+        msg = f"{msgid!r} is not in {catalog_path}"
+        raise GateError(msg)
+    ledger = load_ledger(ledger_path)
+    _apply_decision(ledger, entry, decision)
     write_ledger(ledger, ledger_path)
+    catalog.save(str(catalog_path))
 
 
 def _probe_item(entry: polib.POEntry) -> tuple[str, dict[str, str]]:
@@ -2604,6 +2626,344 @@ def _command_drift(args: argparse.Namespace, config: GateConfig) -> int:
     return 0
 
 
+@dataclass(frozen=True)
+class BatchSelection:
+    """Entries selected for one catalog batch."""
+
+    selected: tuple[polib.POEntry, ...]
+    unsupported: tuple[tuple[polib.POEntry, str], ...]
+    skipped: int
+
+
+@dataclass(frozen=True)
+class BatchRun:
+    """Inputs for one catalog batch."""
+
+    config: GateConfig
+    catalog: polib.POFile
+    ledger: dict[str, object]
+    catalog_path: Path
+    ledger_path: Path
+    language: str
+    entries: tuple[polib.POEntry, ...]
+    client: ModelClient
+    max_cost: float | None
+    tm_db: Path | None
+
+
+@dataclass(frozen=True)
+class BatchReport:
+    """One completed catalog batch."""
+
+    language: str
+    catalog: str
+    dry_run: bool
+    selected: int
+    approved: tuple[dict[str, object], ...]
+    abstained: tuple[dict[str, object], ...]
+    skipped: int
+    unsupported: tuple[dict[str, str], ...]
+    spent_usd: float
+    remaining: int
+    stopped: str | None
+    blockers: tuple[str, ...]
+    estimate: ActionEstimate
+    over_budget: bool
+
+    def as_dict(self) -> dict[str, object]:
+        """Return a JSON-ready report."""
+        return {
+            "language": self.language,
+            "catalog": self.catalog,
+            "dry_run": self.dry_run,
+            "selected": self.selected,
+            "approved": list(self.approved),
+            "abstained": list(self.abstained),
+            "skipped": self.skipped,
+            "unsupported": list(self.unsupported),
+            "spent_usd": round(self.spent_usd, 6),
+            "remaining": self.remaining,
+            "stopped": self.stopped,
+            "blockers": list(self.blockers),
+            "estimate": self.estimate.as_dict(),
+            "over_budget": self.over_budget,
+            "ready": not self.blockers and not self.over_budget,
+        }
+
+
+def _select_batch_entries(
+    catalog: polib.POFile,
+    *,
+    include_fuzzy: bool,
+    limit: int | None,
+) -> BatchSelection:
+    """Select missing entries and report unsupported and skipped ones."""
+    selected: list[polib.POEntry] = []
+    unsupported: list[tuple[polib.POEntry, str]] = []
+    skipped = 0
+    ordered = sorted(
+        (entry for entry in catalog if not entry.obsolete),
+        key=lambda entry: (entry.msgctxt or "", entry.msgid),
+    )
+    for entry in ordered:
+        if entry.msgctxt:
+            unsupported.append((entry, "message context is not supported"))
+            continue
+        if entry.msgid_plural:
+            unsupported.append((entry, "plural forms are not supported"))
+            continue
+        if "fuzzy" in entry.flags:
+            if (entry.msgstr or "").strip() and not include_fuzzy:
+                skipped += 1
+                continue
+            selected.append(entry)
+            continue
+        if not (entry.msgstr or "").strip():
+            selected.append(entry)
+        else:
+            skipped += 1
+    if limit is not None:
+        selected = selected[:limit]
+    return BatchSelection(tuple(selected), tuple(unsupported), skipped)
+
+
+def _batch_blockers(
+    config: GateConfig,
+    ledger: Mapping[str, object],
+    roles: RolePolicy,
+    language: str,
+) -> list[str]:
+    """Return the qualification and pause blockers for a batch."""
+    releases = dict.fromkeys(
+        config.deployments[deployment_id].release
+        for deployment_id in (*roles.proposers, roles.judge)
+    )
+    blockers: list[str] = []
+    for release in releases:
+        if _qualified(ledger, release, language) is None:
+            blockers.append(f"{release} is not qualified for {language}; run qualify")
+        if is_paused(ledger, release, language):
+            blockers.append(f"{release} is paused for {language}; re-qualify and audit")
+    return blockers
+
+
+def _decision_cost(decision: GateDecision) -> float:
+    """Return the recorded cost of one gate decision."""
+    calls = decision.evidence.get("calls", [])
+    if not isinstance(calls, list):
+        return 0.0
+    summary = summarize_calls(
+        [cast("dict[str, object]", call) for call in calls if isinstance(call, dict)]
+    )
+    cost = summary.get("total_cost_usd")
+    if isinstance(cost, int | float) and not isinstance(cost, bool):
+        return float(cost)
+    return 0.0
+
+
+def _remaining_missing(catalog: polib.POFile) -> int:
+    """Return the number of non-obsolete entries without a translation."""
+    return sum(
+        1
+        for entry in catalog
+        if not entry.obsolete and not (entry.msgstr or "").strip()
+    )
+
+
+def _run_batch(
+    run: BatchRun,
+) -> tuple[list[dict[str, object]], list[dict[str, object]], str | None, float]:
+    """Run the gate over one batch and persist each outcome."""
+    approved: list[dict[str, object]] = []
+    abstained: list[dict[str, object]] = []
+    spent = 0.0
+    stopped: str | None = None
+    for entry in run.entries:
+        if run.max_cost is not None:
+            high = estimate_gate(run.config, run.language, [entry.msgid]).high_cost_usd
+            if high is not None and spent + high > run.max_cost:
+                stopped = "budget"
+                break
+        decision = run_gate(
+            entry.msgid,
+            run.language,
+            run.config,
+            run.client,
+            options=GateOptions(
+                occurrences=tuple(entry.occurrences),
+                tm_db=run.tm_db,
+            ),
+        )
+        record_gate_run(run.ledger, decision, run.language)
+        cost = _decision_cost(decision)
+        spent += cost
+        if decision.approved:
+            _apply_decision(run.ledger, entry, decision)
+            approved.append(
+                {
+                    "msgid": entry.msgid,
+                    "translation": decision.translation,
+                    "cost_usd": cost,
+                }
+            )
+        else:
+            abstained.append(
+                {
+                    "msgid": entry.msgid,
+                    "reason": decision.reason,
+                    "cost_usd": cost,
+                }
+            )
+        write_ledger(run.ledger, run.ledger_path)
+        if decision.approved:
+            run.catalog.save(str(run.catalog_path))
+    return approved, abstained, stopped, spent
+
+
+def _print_batch(report: BatchReport) -> None:
+    """Print a batch summary."""
+    if report.dry_run:
+        estimate = report.estimate
+        print(
+            f"translate {report.language} dry run: "
+            f"selected {report.selected} skipped {report.skipped} "
+            f"unsupported {len(report.unsupported)} "
+            f"estimate {estimate.low_cost_usd}-{estimate.high_cost_usd}"
+        )
+    else:
+        print(
+            f"translate {report.language}: approved {len(report.approved)} "
+            f"abstained {len(report.abstained)} skipped {report.skipped} "
+            f"unsupported {len(report.unsupported)} "
+            f"spent {round(report.spent_usd, 6)} "
+            f"remaining {report.remaining}"
+        )
+        if report.stopped is not None:
+            print(f"  stopped: {report.stopped}")
+    for blocker in report.blockers:
+        print(f"  blocker: {blocker}")
+    if report.over_budget:
+        print("  blocker: the estimate exceeds --max-cost")
+
+
+def _print_batch_json(report: BatchReport, *, as_json: bool) -> None:
+    """Print a batch report in the requested form."""
+    if as_json:
+        print(json.dumps(report.as_dict(), ensure_ascii=False, indent=2))
+    else:
+        _print_batch(report)
+
+
+def _batch_catalog(path: Path) -> polib.POFile:
+    """Load a catalog, reporting an unreadable file as a gate error."""
+    try:
+        return polib.pofile(str(path))
+    except OSError as error:
+        msg = f"cannot read catalog {path}: {error}"
+        raise GateError(msg) from error
+
+
+def _require_batch_ready(blockers: Sequence[str]) -> None:
+    """Raise the combined precondition blockers for a batch."""
+    if blockers:
+        msg = "\n".join(blockers)
+        raise GateError(msg)
+
+
+def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
+    """Translate and apply missing entries in one catalog."""
+    if args.limit is not None and args.limit <= 0:
+        print("error: --limit must be positive", file=sys.stderr)
+        return 1
+    if args.tm is not None and not args.tm.exists():
+        print(f"error: cannot read TM database {args.tm}", file=sys.stderr)
+        return 1
+    catalog_path = args.catalog or (
+        REPO_ROOT / "po" / "scantpaper" / f"{args.language}.po"
+    )
+    try:
+        catalog = _batch_catalog(catalog_path)
+        ledger = load_ledger(args.ledger)
+        selection = _select_batch_entries(
+            catalog,
+            include_fuzzy=args.include_fuzzy,
+            limit=args.limit,
+        )
+        roles = load_roles(args.roles)
+        validate_roles(config, roles)
+        estimate = estimate_gate(
+            config,
+            args.language,
+            [entry.msgid for entry in selection.selected],
+        )
+        blockers = _batch_blockers(config, ledger, roles, args.language)
+        over_budget = (
+            args.max_cost is not None
+            and estimate.high_cost_usd is not None
+            and estimate.high_cost_usd > args.max_cost
+        )
+        unsupported = tuple(
+            {"msgid": entry.msgid, "reason": reason}
+            for entry, reason in selection.unsupported
+        )
+        if args.dry_run:
+            report = BatchReport(
+                language=args.language,
+                catalog=str(catalog_path),
+                dry_run=True,
+                selected=len(selection.selected),
+                approved=(),
+                abstained=(),
+                skipped=selection.skipped,
+                unsupported=unsupported,
+                spent_usd=0.0,
+                remaining=_remaining_missing(catalog),
+                stopped=None,
+                blockers=tuple(blockers),
+                estimate=estimate,
+                over_budget=over_budget,
+            )
+            _print_batch_json(report, as_json=args.json)
+        else:
+            _require_batch_ready(blockers)
+            ensure_budget(estimate, args.max_cost)
+            approved, abstained, stopped, spent = _run_batch(
+                BatchRun(
+                    config=config,
+                    catalog=catalog,
+                    ledger=ledger,
+                    catalog_path=catalog_path,
+                    ledger_path=args.ledger,
+                    language=args.language,
+                    entries=selection.selected,
+                    client=OpenAICompatibleClient(),
+                    max_cost=args.max_cost,
+                    tm_db=args.tm,
+                )
+            )
+            report = BatchReport(
+                language=args.language,
+                catalog=str(catalog_path),
+                dry_run=False,
+                selected=len(selection.selected),
+                approved=tuple(approved),
+                abstained=tuple(abstained),
+                skipped=selection.skipped,
+                unsupported=unsupported,
+                spent_usd=spent,
+                remaining=_remaining_missing(catalog),
+                stopped=stopped,
+                blockers=(),
+                estimate=estimate,
+                over_budget=False,
+            )
+            _print_batch_json(report, as_json=args.json)
+    except (GateError, LedgerError, OSError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def _command_revoke(args: argparse.Namespace, _config: GateConfig) -> int:
     """Record a revocation."""
     revoke(args.ledger, args.scope, args.value)
@@ -2713,6 +3073,7 @@ def _dispatch(args: argparse.Namespace, config: GateConfig) -> int:
         "estimate": lambda: _command_estimate(args, config),
         "qualify": lambda: _command_qualify(args, config),
         "drift": lambda: _command_drift(args, config),
+        "translate": lambda: _command_translate(args, config),
         "revoke": lambda: _command_revoke(args, config),
         "sample": lambda: _command_sample(args, config),
         "build-probes": lambda: _command_build_probes(args, config),
@@ -2756,6 +3117,21 @@ def _add_qualify_drift_parsers(sub: _SubParser) -> None:
     drift_parser.add_argument("--json", action="store_true")
 
 
+def _add_translate_parser(sub: _SubParser) -> None:
+    """Add the catalog batch translation subcommand."""
+    translate_parser = sub.add_parser(
+        "translate", help="Translate missing catalog entries"
+    )
+    translate_parser.add_argument("--language", required=True)
+    translate_parser.add_argument("--catalog", type=Path)
+    translate_parser.add_argument("--limit", type=int)
+    translate_parser.add_argument("--include-fuzzy", action="store_true")
+    translate_parser.add_argument("--max-cost", type=float)
+    translate_parser.add_argument("--tm", type=Path)
+    translate_parser.add_argument("--dry-run", action="store_true")
+    translate_parser.add_argument("--json", action="store_true")
+
+
 def _build_parser() -> argparse.ArgumentParser:
     """Build the gate command-line parser."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -2784,6 +3160,7 @@ def _build_parser() -> argparse.ArgumentParser:
     estimate_parser.add_argument("--max-cost", type=float)
     estimate_parser.add_argument("--json", action="store_true")
     _add_qualify_drift_parsers(cast("_SubParser", sub))
+    _add_translate_parser(cast("_SubParser", sub))
     sub.add_parser("build-probes", help="Regenerate the drift-probe files")
     gate_parser = sub.add_parser("gate", help="Gate one string")
     gate_parser.add_argument("--language", required=True)

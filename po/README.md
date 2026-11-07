@@ -385,7 +385,9 @@ python3 dev/translation_gate.py sample --language de
 ```
 
 `gate` uses the model credentials only when it makes a request. A missing
-variable is reported by name, never by value.
+variable is reported by name, never by value. `approve` writes the decision's
+translation into the catalog before clearing fuzzy, so it can fill an empty
+entry.
 
 Machine approvals are provisional. Revoke them by language, deployment or
 release; the next build applies the revocation:
@@ -404,6 +406,41 @@ defect-rate threshold demotes that language's machine approvals:
 ```sh
 python3 dev/translation_gate.py sample --language de --size 20 --seed 7
 ```
+
+### Translating missing entries
+
+The first targets are the English and German catalogs: `en_GB`, `en_US` and
+`de`. There is no `en.po`.
+
+Refresh the catalogs, qualify each role release, run a drift probe, then
+translate a small batch:
+
+```sh
+PYTHONPATH=src python3 dev/merge_po.py
+python3 dev/translation_gate.py qualify \
+    --release qwen/3.8@2026-09 --language de --count 100
+python3 dev/translation_gate.py drift \
+    --deployment qwen-a --language de
+python3 dev/translation_gate.py translate --language de --limit 10 \
+    --max-cost 0.05
+```
+
+`translate` selects entries with an empty `msgstr` by default, writes each
+approved translation into the catalog, clears fuzzy and records the approval.
+`--include-fuzzy` also reconsiders entries that already have a fuzzy proposal
+and replaces them. `--language` defaults the catalog to
+`po/scantpaper/<language>.po`; `--catalog` overrides it. `--max-cost` caps the
+whole batch, `--limit` caps the number of entries, `--tm` adds translation-
+memory evidence, and `--dry-run` reports the selection and estimate without
+writing.
+
+The command refuses a language when a proposer or judge release is not
+qualified or when the language is paused for drift. It reports plural
+(`msgid_plural`) and context (`msgctxt`) entries as unsupported and leaves
+them unchanged.
+
+`machine-strong` is accepted for high-impact menu and destructive strings;
+the batch does not add a separate human-review gate.
 
 ### High-impact strings
 
