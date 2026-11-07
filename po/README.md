@@ -277,6 +277,13 @@ The gate obtains two proposals from independent model families, judges them
 blindly with a third family, checks determinism, and back-translates
 sentences. Any missing or failing evidence means abstention.
 
+When every passing proposal has the same trimmed text and at least two
+independent families produced it, the agreement is the semantic verdict. The
+gate records the tie and does not call the judge; a sentence is still
+back-translated. This avoids paying a reasoning judge to return `ABSTAIN` when
+it has no choice to make. The two-family requirement and the deterministic
+checks still apply.
+
 ### Releases and deployments
 
 `po/translation-gate.json` separates a **release** from a **deployment**:

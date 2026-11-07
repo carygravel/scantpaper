@@ -1088,23 +1088,37 @@ def run_gate(
             },
         )
 
-    index, verdict, judge_completion = blind_judge(
-        source, language, passing, config, client
-    )
-    if judge_completion is not None:
-        calls.append({**judge_completion.as_dict(), "role": "judge"})
-    if index is None:
-        return GateDecision(
-            approved=False,
-            reason="judge abstained or returned no usable choice",
-            evidence={
-                "proposals": proposal_records,
-                "checks": checks,
-                "verdict": verdict,
-                "calls": calls,
-            },
+    texts = {proposal.text.strip() for proposal in passing}
+    families = {proposal.family for proposal in passing}
+    if len(texts) == 1 and len(families) >= MIN_PROPOSER_FAMILIES:
+        preferred = passing[0]
+        judge_evidence: dict[str, object] = {
+            "tie": True,
+            "verdict": "identical",
+            "families": sorted(families),
+        }
+    else:
+        index, verdict, judge_completion = blind_judge(
+            source, language, passing, config, client
         )
-    preferred = passing[index]
+        if judge_completion is not None:
+            calls.append({**judge_completion.as_dict(), "role": "judge"})
+        if index is None:
+            return GateDecision(
+                approved=False,
+                reason="judge abstained or returned no usable choice",
+                evidence={
+                    "proposals": proposal_records,
+                    "checks": checks,
+                    "verdict": verdict,
+                    "calls": calls,
+                },
+            )
+        preferred = passing[index]
+        judge_evidence = {
+            "deployment": config.judges[0].id,
+            "verdict": verdict,
+        }
     preferred_text = preferred.text
 
     backtranslation: bool | None = None
@@ -1124,7 +1138,7 @@ def run_gate(
                 evidence={
                     "proposals": proposal_records,
                     "checks": checks,
-                    "verdict": verdict,
+                    "judge": judge_evidence,
                     "backtranslation": False,
                     "calls": calls,
                 },
@@ -1134,7 +1148,7 @@ def run_gate(
     evidence: dict[str, object] = {
         "proposals": proposal_records,
         "checks": checks,
-        "judge": {"deployment": config.judges[0].id, "verdict": verdict},
+        "judge": judge_evidence,
         "backtranslation": backtranslation,
         "high_impact": high_impact,
         "prompt_version": PROMPT_VERSION,

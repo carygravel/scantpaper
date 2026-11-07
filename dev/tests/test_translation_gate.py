@@ -671,14 +671,102 @@ def test_gate_approves_when_every_check_and_the_judge_agree(
         "Delete",
         "de",
         config,
-        FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+        FakeClient({"p1": "Löschen", "p2": "Entfernen"}),
     )
     assert decision.approved is True
     assert decision.record is not None
     assert decision.record["provenance_class"] == "machine-strong"
     assert decision.record["model_release"] == "r1"
     assert decision.record["deployment"] == "p1"
+    judge = cast("dict[str, object]", decision.evidence["judge"])
+    assert judge["deployment"] == "j"
+    assert judge["verdict"] == "A"
     assert decision.evidence["prompt_version"] == GATE.PROMPT_VERSION
+
+
+def test_gate_approves_an_identical_tie_without_the_judge(
+    tmp_path: Path,
+) -> None:
+    """Two independent families agreeing is a tie and never calls the judge."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    decision = GATE.run_gate("Delete", "de", config, client)
+    assert decision.approved is True
+    assert client.complete.call_count == 2
+    judge = cast("dict[str, object]", decision.evidence["judge"])
+    assert judge["tie"] is True
+    assert judge["verdict"] == "identical"
+    assert judge["families"] == ["family-a", "family-b"]
+    assert "deployment" not in judge
+    assert decision.record is not None
+    assert decision.record["provenance_class"] == "machine-strong"
+
+    ledger: dict[str, object] = _ledger()
+    GATE.record_gate_run(ledger, decision, "de")
+    runs = LEDGER.section(ledger, "gate_runs")
+    assert len(runs) == 1
+    calls = cast("list[dict[str, object]]", runs[0]["calls"])
+    assert [call.get("role") for call in calls] == ["proposer", "proposer"]
+    assert runs[0]["call_count"] == 2
+
+
+def test_gate_judges_differing_proposals(tmp_path: Path) -> None:
+    """Differing proposals still go through the blind judge."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="B"))
+    decision = GATE.run_gate("Delete", "de", config, client)
+    assert decision.approved is True
+    assert client.complete.call_count == 3
+    judge = cast("dict[str, object]", decision.evidence["judge"])
+    assert judge["deployment"] == "j"
+    assert judge["verdict"] == "B"
+    assert "tie" not in judge
+    assert decision.record is not None
+    assert decision.record["deployment"] == "p2"
+
+
+def test_gate_judges_a_single_passing_proposal(tmp_path: Path) -> None:
+    """A single passing proposal is not a tie and still uses the judge."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    client = Mock(wraps=FakeClient({"p1": "Offen %d", "p2": "Öffnen %s"}, judge="A"))
+    decision = GATE.run_gate("Open %s", "de", config, client)
+    assert decision.approved is True
+    assert client.complete.call_count == 3
+    judge = cast("dict[str, object]", decision.evidence["judge"])
+    assert judge["deployment"] == "j"
+    assert judge["verdict"] == "A"
+
+
+def test_gate_abstains_when_every_proposal_fails_a_check(
+    tmp_path: Path,
+) -> None:
+    """No passing proposal means no tie and no judge call."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    client = Mock(wraps=FakeClient({"p1": "Offen %d", "p2": "Offen %d"}))
+    decision = GATE.run_gate("Open %s", "de", config, client)
+    assert decision.approved is False
+    assert "failed a deterministic check" in decision.reason
+    assert client.complete.call_count == 2
+
+
+def test_gate_sentence_tie_still_backtranslates(tmp_path: Path) -> None:
+    """A sentence tie still spends the back-translation call."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    source = "This is a sufficiently long sentence for back translation."
+    client = Mock(
+        wraps=FakeClient(
+            {
+                "p1": "Ein ausreichend langer Satz.",
+                "p2": "Ein ausreichend langer Satz.",
+            },
+            backtranslation=source,
+        )
+    )
+    decision = GATE.run_gate(source, "de", config, client)
+    assert decision.approved is True
+    assert client.complete.call_count == 3
+    judge = cast("dict[str, object]", decision.evidence["judge"])
+    assert judge["tie"] is True
 
 
 def test_gate_abstains_without_two_families(tmp_path: Path) -> None:
@@ -2009,7 +2097,7 @@ def test_translate_cli_approves_and_reports(
             _batch_entry("Cut", context="menu"),
         ),
     )
-    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Entfernen"}))
     monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
     status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
     assert status == 0
@@ -2043,7 +2131,7 @@ def test_translate_cli_backtranslates_a_sentence(
     )
     client = Mock(
         wraps=FakeClient(
-            {"p1": "Löschen", "p2": "Löschen"},
+            {"p1": "Löschen", "p2": "Entfernen"},
             backtranslation=source,
         )
     )
@@ -2069,7 +2157,7 @@ def test_translate_cli_abstains(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}, judge="ABSTAIN"),
+        lambda: FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="ABSTAIN"),
     )
     status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
     assert status == 0
@@ -2218,7 +2306,7 @@ def test_run_batch_stops_at_budget(tmp_path: Path) -> None:
     catalog = polib.pofile(str(catalog_path))
     high = GATE.estimate_gate(config, "de", ["Delete"]).high_cost_usd
     assert high is not None
-    client = FakeClient({"p1": "Löschen", "p2": "Löschen"}, cost_usd=0.001)
+    client = FakeClient({"p1": "Löschen", "p2": "Entfernen"}, cost_usd=0.001)
     approved, abstained, stopped, spent = GATE._run_batch(
         GATE.BatchRun(
             config=config,
@@ -2356,23 +2444,24 @@ def test_deterministic_checks_reject_a_placeholder_change() -> None:
 def test_gate_abstains_when_backtranslation_changes_meaning(
     tmp_path: Path,
 ) -> None:
-    """A sentence whose back-translation differs is not approved."""
+    """A sentence tie still abstains when the back-translation differs."""
     config = GATE.load_config(_write_config(tmp_path, _config_data()))
     source = "This is a sufficiently long sentence for a back translation."
-    decision = GATE.run_gate(
-        source,
-        "de",
-        config,
-        FakeClient(
+    client = Mock(
+        wraps=FakeClient(
             {
                 "p1": "Ein ausreichend langer Satz.",
                 "p2": "Ein ausreichend langer Satz.",
             },
             backtranslation="Something completely unrelated.",
-        ),
+        )
     )
+    decision = GATE.run_gate(source, "de", config, client)
     assert decision.approved is False
     assert "back-translation" in decision.reason
+    assert client.complete.call_count == 3
+    judge = cast("dict[str, object]", decision.evidence["judge"])
+    assert judge["tie"] is True
 
 
 def test_gate_accepts_an_unchanged_backtranslation(tmp_path: Path) -> None:
@@ -2600,6 +2689,8 @@ def test_dominant_tm_match_completes_the_evidence(tmp_path: Path) -> None:
     assert decision.approved is True
     assert decision.record is not None
     assert decision.record["provenance_class"] == "tm-consensus"
+    judge = cast("dict[str, object]", decision.evidence["judge"])
+    assert judge["tie"] is True
 
 
 def test_high_impact_string_cannot_be_approved_from_one_weak_proposal(
