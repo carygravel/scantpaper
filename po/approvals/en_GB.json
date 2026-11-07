@@ -104,20 +104,6 @@
     {
       "language": "en_GB",
       "msgctxt": null,
-      "msgid": "Analysing page %i of %i",
-      "msgid_plural": null,
-      "translation_sha256": "f58d984ce9f578ceb24b1a15f109ae5e879500babbb6f8bc90dd55cd9f240f15",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Analysing page %i of %i",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
       "msgid": "Append",
       "msgid_plural": null,
       "translation_sha256": "9b0fd895aa560a163ed9835660d923eebfff20fca80e9c05c1371e6b1345fb17",
@@ -827,20 +813,6 @@
       "deployment": null,
       "approval_date": "2026-02-28",
       "msgstr": "Device blacklist",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
-      "msgid": "Device blacklist (regular expression)",
-      "msgid_plural": null,
-      "translation_sha256": "432d2e002db10ae3b415a8c72ac8544ad6e97f5a1ef650db9210943e2b4f1206",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Device blacklist (regular expression)",
       "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
     },
     {
@@ -1896,20 +1868,6 @@
     {
       "language": "en_GB",
       "msgctxt": null,
-      "msgid": "Importing page %i of %i",
-      "msgid_plural": null,
-      "translation_sha256": "654a428b1c05d0fad5a49decd8718188e52b257ff9c4ee42a318b03715a6fb43",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Importing page %i of %i",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
       "msgid": "Invalid regex. Try without special characters such as '*'",
       "msgid_plural": null,
       "translation_sha256": "95884b74b18dc2c680147edb46f6b4bc517ecd2f282d017e7bbcdafc8ac8e152",
@@ -1933,20 +1891,6 @@
       "deployment": null,
       "approval_date": "2026-02-28",
       "msgstr": "JPEG",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
-      "msgid": "JPEG Quality",
-      "msgid_plural": null,
-      "translation_sha256": "d247459678c67dde1cb401c87153f2c0e8c09a5f2d0ea351e1e28a17b470df38",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "JPEG Quality",
       "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
     },
     {
@@ -2526,20 +2470,6 @@
     {
       "language": "en_GB",
       "msgctxt": null,
-      "msgid": "Open crashed session",
-      "msgid_plural": null,
-      "translation_sha256": "3f275de8ca2d9f21a2bb59d4a4d0e1d018869b10fe488b2d37c5e34dd5e693cc",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Open crashed session",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
       "msgid": "Open image",
       "msgid_plural": null,
       "translation_sha256": "e8fddb6a37914f97b26187953758827512cdbd4c06bfb6e41eebd124b8611602",
@@ -2820,20 +2750,6 @@
     {
       "language": "en_GB",
       "msgctxt": null,
-      "msgid": "Pick crashed session to restore",
-      "msgid_plural": null,
-      "translation_sha256": "46e41e579540b17f822135e91f412089ae1223c79253f83fd711a6872b3182b5",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Pick crashed session to restore",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
       "msgid": "Plain text",
       "msgid_plural": null,
       "translation_sha256": "5527d36d8e30fb560f088fc010c3fbbfa10c7d6776ab2c4dc63d31e5ad9c233e",
@@ -2843,20 +2759,6 @@
       "deployment": null,
       "approval_date": "2026-02-28",
       "msgstr": "Plain text",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
-      "msgid": "Please see https://imagemagick.org/script/resources.php for more information",
-      "msgid_plural": null,
-      "translation_sha256": "46abcea1cf43d689b26e675eff84e69cf761e0cf779f200ad8ef456feffd75d1",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Please see https://imagemagick.org/script/resources.php for more information",
       "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
     },
     {
@@ -3095,34 +2997,6 @@
       "deployment": null,
       "approval_date": "2026-02-28",
       "msgstr": "Process",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
-      "msgid": "Process %i of %i",
-      "msgid_plural": null,
-      "translation_sha256": "d0d3f6f43ef70eeff4daf677a4c31217107d2177a6d6674ce100a17be423fc23",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Process %i of %i",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
-      "msgid": "Process %i of %i (%s)",
-      "msgid_plural": null,
-      "translation_sha256": "5d5e54a4881e0befc04f12ee8d924123cf946296eaed51d6a645bd0fae477013",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Process %i of %i (%s)",
       "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
     },
     {
@@ -3655,34 +3529,6 @@
       "deployment": null,
       "approval_date": "2026-02-28",
       "msgstr": "Scan profiles",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
-      "msgid": "Scanning page %d",
-      "msgid_plural": null,
-      "translation_sha256": "448cac074304017215a4e82ea7cfe625dd5b587b13bc0de7f6ce082bd6fb22c6",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Scanning page %d",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
-      "msgid": "Scanning page %d of %d",
-      "msgid_plural": null,
-      "translation_sha256": "3cfcdf0e11b566228883c2173530216fd7640f116b4932f2f300b33d0b7977a4",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Scanning page %d of %d",
       "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
     },
     {
@@ -4920,20 +4766,6 @@
     {
       "language": "en_GB",
       "msgctxt": null,
-      "msgid": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
-      "msgid_plural": null,
-      "translation_sha256": "e1e593b31ca805055d05c26b03dcc3dca165690c868a2bd998cdb18f9e3a8300",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Warning: unable to use %s for temporary storage. Defaulting to %s instead.",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
       "msgid": "Whilst this might work, it is not currently supported.",
       "msgid_plural": null,
       "translation_sha256": "c869909d629775c30ef4c2b45a0295c2b774753d345ac79fa48986df4c4241d8",
@@ -4971,20 +4803,6 @@
       "deployment": null,
       "approval_date": "2026-02-28",
       "msgstr": "Width",
-      "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
-    },
-    {
-      "language": "en_GB",
-      "msgctxt": null,
-      "msgid": "Writing page %i of %i",
-      "msgid_plural": null,
-      "translation_sha256": "867338fd6a61fed8dbab1ebea06878ec98b7af290155a9e1ba157e8f8800a816",
-      "provenance_class": "human-historical",
-      "evidence": {},
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-02-28",
-      "msgstr": "Writing page %i of %i",
       "evidence_sha256": "aeef0c4cb6f9e0a449db980dbef2fe51213c1504b26948e3b2c41984be6ccc34"
     },
     {
@@ -11125,6 +10943,2046 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-07",
       "msgstr": "Clear image selection"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Text layer",
+      "msgid_plural": null,
+      "translation_sha256": "0c5ccb3f380850feaa9f96877589bc078e8be804c4ede9e3ccf04fc9e8a809c8",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Text layer"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Annotations",
+      "msgid_plural": null,
+      "translation_sha256": "eacf439d1f9389395b6a035c7e66a2cb74e918bb38d02805824f066e9a72a96b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Annotations"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Error opening the last device used.",
+      "msgid_plural": null,
+      "translation_sha256": "27d578cc5261850df898cebe83e1f239c9c60ac6d8e1cc57f4a23e93ecd71459",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Error opening the last device used."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "There was an error opening the last device used.",
+      "msgid_plural": null,
+      "translation_sha256": "4c1181d9cfb3410792ca22d648b27fac842cc05f0b20038b306ff33e93046947",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "There was an error opening the last device used."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Whoops! I forgot to turn it on. Try again now.",
+      "msgid_plural": null,
+      "translation_sha256": "ef3df1588d13d615cc8fb9a051c2b97f8504ffd305f81ec8f0f6c09bb68c0a4f",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Whoops! I forgot to turn it on. Try again now."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Restart scantpaper.",
+      "msgid_plural": null,
+      "translation_sha256": "6158fb2b868697ad7b2c12485ab31b74b83c103e170b9fb9908e11c3d825df57",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Restart scantpaper."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Just ignore the error. I don't need the scanner yet.",
+      "msgid_plural": null,
+      "translation_sha256": "dcd34cdeee168ac706e5e59720e26c0bdc6bdecdca35dbe09c62e764a0b12d85",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Just ignore the error. I don't need the scanner yet."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Cache device list",
+      "msgid_plural": null,
+      "translation_sha256": "9162a34b27b9d40878d7e629878aaf2b30df7050eb135a20b40520ec25c18eb4",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Cache device list"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Save image and Save as PDF both require imagemagick",
+      "msgid_plural": null,
+      "translation_sha256": "1854ac152fb8979ca7ede37020b7603fcc545512d028a521e42b7075348bfa92",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Save image and Save as PDF both require imagemagick"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Save image requires libtiff",
+      "msgid_plural": null,
+      "translation_sha256": "92db84f9dff62cf6a77ca924419e7d8ad1973c619f471cc22ea34b5843c344f5",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Save image requires libtiff"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Save as DjVu requires djvulibre-bin",
+      "msgid_plural": null,
+      "translation_sha256": "a6d3c30b5988f6145186aa827cad7333b06d35bd584088d9cdcee276da946f50",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Save as DjVu requires djvulibre-bin"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Email as PDF requires xdg-email",
+      "msgid_plural": null,
+      "translation_sha256": "8502f288ce0bd8dfbae616ccdfb138bff5ff8b35f32bdbab7f395d0a3fcbfbb3",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Email as PDF requires xdg-email"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "unpaper missing",
+      "msgid_plural": null,
+      "translation_sha256": "923a422653d5ed8f28be562bddcedae76284acfd77618155792b8d8c38984d90",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "unpaper missing"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "OCR requires tesseract",
+      "msgid_plural": null,
+      "translation_sha256": "7b3b5e2dda7bae0c21e55bf69abb0c5ea504f3c4619fd3888e98c0b155b2c322",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "OCR requires tesseract"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "PDF encryption requires qpdf",
+      "msgid_plural": null,
+      "translation_sha256": "d7b2c55e61720dffa8757ce0fe56c501f649977ae6aa45da923a812200e7c4d9",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "PDF encryption requires qpdf"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Info",
+      "msgid_plural": null,
+      "translation_sha256": "5836f9606ff5ae798f6a6ba132806755de6c49efa2a2c926314280f729cc5189",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Info"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "_OK",
+      "msgid_plural": null,
+      "translation_sha256": "a686676f6cc70e746ff63e49c6e0f7f4caa012501b08567dcd1aff9c7560c031",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "_OK"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "_Cancel",
+      "msgid_plural": null,
+      "translation_sha256": "2bf7aee2b96c0799ffdb52b749715563036c165e59cea89678314cc058c14d52",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "_Cancel"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Cancel",
+      "msgid_plural": null,
+      "translation_sha256": "2e3e9900cf3f8733834953eaeac33b365b7475b3234edfdd6b73ccc8e5682d97",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Cancel"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Insert before page N",
+      "msgid_plural": null,
+      "translation_sha256": "ab47eeb6e732f835d59f18bdd349eee9bd56d04d648e6ff4b2f725f9b4497ebb",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Insert before page N"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Page number before which scans will be inserted",
+      "msgid_plural": null,
+      "translation_sha256": "303220828131dfb4048f354c5fb236d6611130daca47af3f74a6366c45545177",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Page number before which scans will be inserted"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Position advance",
+      "msgid_plural": null,
+      "translation_sha256": "8d78b5866f421c815e1e67838fda531eb0118a8b957e7588d3265792e626fd62",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Position advance"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Position advance for each subsequent scan (0 = keep inserting before the same page)",
+      "msgid_plural": null,
+      "translation_sha256": "4d2c28976655843910756e7da58bba54642333e70a7494182a15a784eaaf0ea4",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Position advance for each subsequent scan (0 = keep inserting before the same page)"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Ignore duplex capabilities of scanner",
+      "msgid_plural": null,
+      "translation_sha256": "2e7f20234cdfbaf6ace02282400fca025981b99e78b420d9abf79614d0dc29d5",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Ignore duplex capabilities of scanner"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "If set, any duplex capabilities are ignored, and facing/reverse widgets are displayed to allow manual interleaving of pages.",
+      "msgid_plural": null,
+      "translation_sha256": "c3f17002e33c927cee4fcd6ac1255951d712e14d21a808da94100f10bce3d02e",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "If set, any duplex capabilities are ignored, and facing/reverse widgets are displayed to allow manual interleaving of pages."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "If this option is enabled, opening the scanner is quicker, as scantpaper does not first search for available devices.",
+      "msgid_plural": null,
+      "translation_sha256": "3dcd2d0c8c2b9b476e7f43a30e93106c267321177114d17e2ec9b1bff1a603bf",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "If this option is enabled, opening the scanner is quicker, as scantpaper does not first search for available devices."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "This is only effective if the device names do not change between sessions.",
+      "msgid_plural": null,
+      "translation_sha256": "6a442aaa77ba8b0cfbdf400308473bf94867c9dab26ccc273c4120775aeab9bb",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "This is only effective if the device names do not change between sessions."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "strftime codes, e.g.:\n%Y\tcurrent year\n\nwith the following additions:\n%Da\tauthor\n%De\tfilename extension\n%Dk\tkeywords\n%Ds\tsubject\n%Dt\ttitle\n\nAll document date codes use strftime codes with a leading D, e.g.:\n%DY\tdocument year\n%Dm\tdocument month\n%Dd\tdocument day\n",
+      "msgid_plural": null,
+      "translation_sha256": "acd038aa3827f7f4a9294b1fedb8007abdc3b6395b63bf9a29e4533e0fd393f1",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "strftime codes, e.g.:\n%Y\tcurrent year\n\nwith the following additions:\n%Da\tauthor\n%De\tfilename extension\n%Dk\tkeywords\n%Ds\tsubject\n%Dt\ttitle\n\nAll document date codes use strftime codes with a leading D, e.g.:\n%DY\tdocument year\n%Dm\tdocument month\n%Dd\tdocument day\n"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "OK",
+      "msgid_plural": null,
+      "translation_sha256": "0c494fbb64cf20801deb99b5e216aef28525bdd4bc85a874b697774ce1b0b455",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "OK"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "The following user-defined tools could not be found:\n",
+      "msgid_plural": null,
+      "translation_sha256": "c25c46c547af2d93e309e1356a5f1ad915f7ccfe6c622f22185fac95402ef884",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "The following user-defined tools could not be found:\n"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Please check that the command is installed and in your PATH.",
+      "msgid_plural": null,
+      "translation_sha256": "517882e609dfc96bd5f93c12bea740d390486acbc09f78cc1a0826d3d03a0d20",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Please check that the command is installed and in your PATH."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "User-defined tool not found",
+      "msgid_plural": null,
+      "translation_sha256": "63164d556803cdbd61f648e62aa6fb72afe7a86e8fb021f14ad6c5fb6cb6705d",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "User-defined tool not found"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Setting option %s",
+      "msgid_plural": null,
+      "translation_sha256": "30c1aea54f51f75f562cff12b34941a9d9244bb58593e8fc3f9c2eaaf251a9d6",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Setting option %s"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Error setting option: ",
+      "msgid_plural": null,
+      "translation_sha256": "821e783fa8e588cb3932c0f4c2906d474fb30fcfcf7f4e5c0053affbd47640eb",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Error setting option: "
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "scantpaper session database",
+      "msgid_plural": null,
+      "translation_sha256": "ecbac9f7b28c1f85b80cfa6e22c7fa31cce59461fcd353960cd13f0aa7fddee9",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "scantpaper session database"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Flate",
+      "msgid_plural": null,
+      "translation_sha256": "b331b88344007bf90a132e6839063a75d97f771647f6aad208265afcc4261bce",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Flate"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Compress output with flate encoding.",
+      "msgid_plural": null,
+      "translation_sha256": "0403ebec8720d1dc8ab0a3691b6eccbe07f7863651e2bf0ec5688251dddcc300",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Compress output with flate encoding."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Compress output with JPEG (DCT) encoding.",
+      "msgid_plural": null,
+      "translation_sha256": "9f40468bc034d21230a3f1792be91c3bcd3eb1b9ecf0af136e9f30f576071256",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Compress output with JPEG (DCT) encoding."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Apply",
+      "msgid_plural": null,
+      "translation_sha256": "096dd2fdbf8f5781b0231589b1eaf0763cd33a58ec705bd6e58fe05fa73919e8",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Apply"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "No tesseract language specified",
+      "msgid_plural": null,
+      "translation_sha256": "3b3b171221aeff0e3a3882ca08c253f405834474458e2f4d5be495844681bf17",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "No tesseract language specified"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Changes will only take effect after restarting scantpaper.",
+      "msgid_plural": null,
+      "translation_sha256": "b9836402162f42fc45c9b757b6d87e37da29a6f815c331f158d7a38ddca5a1bd",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Changes will only take effect after restarting scantpaper."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Restart scantpaper now?",
+      "msgid_plural": null,
+      "translation_sha256": "3268f4c49b606726ce995d66b606b27050e6834521e0a78e2cebb328cada25bb",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Restart scantpaper now?"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "_Save",
+      "msgid_plural": null,
+      "translation_sha256": "12610cd30d2a30c9718c287d8ec34894966cfbb80bfd1b3069502aed44016e36",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "_Save"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "This operation would overwrite %s",
+      "msgid_plural": null,
+      "translation_sha256": "0d6beab11b38a4183bdfb9a795d0556f53c6e4cffd10802a9cea3f5494566324",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "This operation would overwrite %s"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Please install djvulibre-bin in order to open DjVu files: %s",
+      "msgid_plural": null,
+      "translation_sha256": "66114dd9ee6ca584f3f6eefa7dc5a3805c52cab1007bf1696ff3201d4ea9d726",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Please install djvulibre-bin in order to open DjVu files: %s"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Please install libtiff-tools in order to open TIFF files: %s",
+      "msgid_plural": null,
+      "translation_sha256": "e6a23777badd67c4e364b7899442b779507357972bc4a3ba71eeb12b9998cbbf",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Please install libtiff-tools in order to open TIFF files: %s"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Warning: scantpaper expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported. If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.",
+      "msgid_plural": null,
+      "translation_sha256": "1f816eb2041c357a70118b0ed8b597fc8cbe7dde55b17f5b710c3e3f790fd743",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Warning: scantpaper expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported. If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Sort by confidence",
+      "msgid_plural": null,
+      "translation_sha256": "47094cd5174919ecfde61daf8f9c318c97acd0cd5de42c8a563acb0c1d8d8388",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Sort by confidence"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Sort OCR text boxes by confidence.",
+      "msgid_plural": null,
+      "translation_sha256": "88a81cb7a0c76ed1e3db3dcbb778e75bd3f94be99dadaf35d893b520466a0266",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Sort OCR text boxes by confidence."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Sort by position",
+      "msgid_plural": null,
+      "translation_sha256": "8c4eeef934cb79a9ad17cfec5ee654bbe4279b1e2997f75e9c1d4fe6c0e4e95f",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Sort by position"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Sort OCR text boxes by position.",
+      "msgid_plural": null,
+      "translation_sha256": "044702214b2bbc9090aa4f54996287b7fd2b206222e2054b616ec0a9052b327c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Sort OCR text boxes by position."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "my-new-word",
+      "msgid_plural": null,
+      "translation_sha256": "a66c81b660376e3edf67cb824c26759d201d669397b8cfe7c5c78359da96a1a2",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "my-new-word"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "my-new-annotation",
+      "msgid_plural": null,
+      "translation_sha256": "969802453fd71b51a346a92c4eead07042c8186b2acf759b4eb109f661b445c4",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "my-new-annotation"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Go to least confident text",
+      "msgid_plural": null,
+      "translation_sha256": "2698684f4c460c844ade8f9d1b241d4edb856ee32cd92d4c21d9f5da711b93e5",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Go to least confident text"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Go to previous text",
+      "msgid_plural": null,
+      "translation_sha256": "776c02f71518bc9a8cccfefcb44fdbb4046c5e5903cdb48cb8fe8069186ac5eb",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Go to previous text"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Select sort method for OCR boxes",
+      "msgid_plural": null,
+      "translation_sha256": "7cdc61dba02cb3768887a39295258c68c112f2b692e2b6f0f1eb2b403efcfde9",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Select sort method for OCR boxes"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Go to next text",
+      "msgid_plural": null,
+      "translation_sha256": "3bcfb645a882c68263982541e4f3d30a9fdadcfc63c1a2a10bd0ec9e40b31b34",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Go to next text"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Go to most confident text",
+      "msgid_plural": null,
+      "translation_sha256": "61493f501a84a8caf99455ce93066b8b0673c61f7129294061cd98317ce05369",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Go to most confident text"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Add text",
+      "msgid_plural": null,
+      "translation_sha256": "b3b93ca60306ade21890fc325b0512b1aed5b1dbc037553406ce35073a5820ee",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Add text"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Accept corrections",
+      "msgid_plural": null,
+      "translation_sha256": "b0ea8bf3a382a738ff650424a799d74ac784083a24b5a83994ffe5818fa74acf",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Accept corrections"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Cancel corrections",
+      "msgid_plural": null,
+      "translation_sha256": "5ddded4ebaa29c1398a42f0eebcc8a3aab44d986f1f1f85a32184ce9f0bfd227",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Cancel corrections"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Duplicate text",
+      "msgid_plural": null,
+      "translation_sha256": "05be6d95aa666d3b673b1e2d484e155935a922b6d6207528f64289163fd965ba",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Duplicate text"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Delete text",
+      "msgid_plural": null,
+      "translation_sha256": "181af24c0aca70d5989ac2ce46f728fcf873bd0d54a2306bfe4317816c632bd1",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Delete text"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "90°",
+      "msgid_plural": null,
+      "translation_sha256": "52cf784f5ef16ba044df69cfb24bbe39217211b09713fca4bc0c42c94efb2646",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "90°"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "180°",
+      "msgid_plural": null,
+      "translation_sha256": "d9530ac9b8f92bc36055d068768cfd6b97b8fe1dd876f79a72749ddf1df9ae3c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "180°"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "270°",
+      "msgid_plural": null,
+      "translation_sha256": "703652cc26a51da3981c2b8670dca42dee182fee883d66c891b0137d3b32b776",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "270°"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Select angle of rotation",
+      "msgid_plural": null,
+      "translation_sha256": "930d39efd32a8e6c874fbcaa5e114641ca814841231275aa2d57a43ca6f851da",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Select angle of rotation"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Anticlockwise",
+      "msgid_plural": null,
+      "translation_sha256": "f89d856f0e449cb5096165d19c2af282f3c92783257fe2ff00cfe1248ffdd7cf",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Anticlockwise"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Pixels that differ from the paper colour by more than this percentage are rendered black. Higher values only keep stronger marks.",
+      "msgid_plural": null,
+      "translation_sha256": "b00063f2e1800b6a19f01f57f270ab74470b6d5252ab6c9fd1431efef936450d",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Pixels that differ from the paper colour by more than this percentage are rendered black. Higher values only keep stronger marks."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Processing PDF",
+      "msgid_plural": null,
+      "translation_sha256": "b8f57780464dfa95d8487c77215ec6f8f92b152a918c06c59be73d631bc6ed0c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Processing PDF"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Embedding text layer",
+      "msgid_plural": null,
+      "translation_sha256": "dec7ff0bedc121a65e0318ab1e6e89a5095d5f5f49923b6498727074c681ca76",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Embedding text layer"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages.",
+      "msgid_plural": null,
+      "translation_sha256": "7858e5ac1767a00441af6a766eb4e8940a0ccb855b58609955e2e060c096aa37",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Writing PDF",
+      "msgid_plural": null,
+      "translation_sha256": "b5831dad77addb7ce934af41bee7a73c7ddfb91b705e1c9244a42a647dbf605e",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Writing PDF"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Error merging DjVu: %s",
+      "msgid_plural": null,
+      "translation_sha256": "342481cdf99fe8c522099b151ec1843e7c726ced0992ab192a325e60402d4a48",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Error merging DjVu: %s"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Really cache libusb device names?",
+      "msgid_plural": null,
+      "translation_sha256": "8c9ca6a1de862a6fb54a57243bd4d877458334466a3fd8ada5785b48e64dce0d",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Really cache libusb device names?"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Caching device list with libusb devices included is not recommended as they can change between reboots.",
+      "msgid_plural": null,
+      "translation_sha256": "2c4e8bff0a49941c29cd67c2610aecc6985f171d00684e354578c7baf00a29e5",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Caching device list with libusb devices included is not recommended as they can change between reboots."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Are you sure you want to do this?",
+      "msgid_plural": null,
+      "translation_sha256": "e6cb86ee696976ce850ce2c84f0073513ee15321c8d94053eab03c09557b5117",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Are you sure you want to do this?"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Postprocessing",
+      "msgid_plural": null,
+      "translation_sha256": "546c14346c28d74622e2fd32e275eeee644c594f4d5353c37825f9c4cab82b0c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Postprocessing"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Alternate rotation every 2nd page",
+      "msgid_plural": null,
+      "translation_sha256": "af739b6be4123222056d14aedf534414f9356d2952e9489d519ac14391bc7d59",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Alternate rotation every 2nd page"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Rotate odd pages by the chosen angle and even pages by that angle plus 180 degrees. Use when scanning a book where every sheet is aligned to the same edge, so the back of each sheet is rotated 180 degrees relative to its front.",
+      "msgid_plural": null,
+      "translation_sha256": "73b8982bfd814ed0326999b4497da5f1fa0ea0a5dae7b1458dba7b1fb3b41312",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Rotate odd pages by the chosen angle and even pages by that angle plus 180 degrees. Use when scanning a book where every sheet is aligned to the same edge, so the back of each sheet is rotated 180 degrees relative to its front."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "tessdata directory not found",
+      "msgid_plural": null,
+      "translation_sha256": "63069486eeeb42af02c42c8fcedf55e8934e7311f62a1b62fb90b8e288881fc3",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "tessdata directory not found"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "You are using locale '%s'.",
+      "msgid_plural": null,
+      "translation_sha256": "f8f846c669171f821185ec9dea4d25d69c1768c90a6f313583d088780c79be59",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "You are using locale '%s'."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "scantpaper does not currently know which tesseract language package would be necessary for that locale.",
+      "msgid_plural": null,
+      "translation_sha256": "7212d0c0264692116462d63fe8045726eccccae7be6f1d7935d8910fcf1959d0",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "scantpaper does not currently know which tesseract language package would be necessary for that locale."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Please contact the developers to add support for that locale.",
+      "msgid_plural": null,
+      "translation_sha256": "60e5c6c7f409639094f1257a8155a02b4987093de0b2a10c087ea21d269a230c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Please contact the developers to add support for that locale."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "There is no tesseract package for %s",
+      "msgid_plural": null,
+      "translation_sha256": "a1b3c74b39475acde157ea2afd27ebbab02a08a4a42a679d3c74d686d705121c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "There is no tesseract package for %s"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "If this is in error, please contact the scantpaper developers.",
+      "msgid_plural": null,
+      "translation_sha256": "f0be184f053ceca5e9038bd95a3c6c8a3379ccbd70d0f0c55b8690be9da8b599",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "If this is in error, please contact the scantpaper developers."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Writing page",
+      "msgid_plural": null,
+      "translation_sha256": "6f7fbdac29be769a56adf2742915a0cff1298b68e46053cbef12f69106c42442",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Writing page"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Ink strength",
+      "msgid_plural": null,
+      "translation_sha256": "b6a6553eb6ada88120800408f69241f66e25dec466e518d9e0a2f0734e5ff79c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Ink strength"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Blur Radius.",
+      "msgid_plural": null,
+      "translation_sha256": "59ff0f569ef894d26860c9075be1c2fd3a66496f8ba9360b3fde556865ee295b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Blur Radius."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Percentage",
+      "msgid_plural": null,
+      "translation_sha256": "da51f01feb3ca5003ac5f2947f60ce93aac769eb2ae09d6ff3cc0eeaffde23fe",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Percentage"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Unsharp strength, in percent.",
+      "msgid_plural": null,
+      "translation_sha256": "144c70ef411e772fcda5601d2a7006900ec44fcb67ccc3ba9e9f899b710d341b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Unsharp strength, in percent."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Threshold controls the minimum brightness change that will be sharpened.",
+      "msgid_plural": null,
+      "translation_sha256": "b89fe0b89bc68612f259e081eb9a605ba46ed205be919876d316a9fe92fb3b37",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Threshold controls the minimum brightness change that will be sharpened."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Split",
+      "msgid_plural": null,
+      "translation_sha256": "d59dde442ba8233be2a61b86726d5e9917d32a338840e8abf410ac9c09436a5d",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Split"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Direction",
+      "msgid_plural": null,
+      "translation_sha256": "10dedc7d5d6fe30b81e583fd3f81f80de8ed0546969126a3f9665e1451ef510d",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Direction"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Vertically",
+      "msgid_plural": null,
+      "translation_sha256": "1613ea9c3e0e8e5aa5ad4fc52b4b2aee20dde614dab007b1130f06e86a72a7a3",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Vertically"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Split the page vertically into left and right pages.",
+      "msgid_plural": null,
+      "translation_sha256": "7512e489041fc5b07af5708fc3a0d7ff1fb49dd0ea66a69a486941b7028f46d7",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Split the page vertically into left and right pages."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Horizontally",
+      "msgid_plural": null,
+      "translation_sha256": "c6bca9dc9a035b87440a35df3a5f9338f87d59bfa70437289f48915497cd9a38",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Horizontally"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Split the page horizontally into top and bottom pages.",
+      "msgid_plural": null,
+      "translation_sha256": "7123934b2e1482d0ab120dcd94fa01ea55f292b63676fb7e33a8604be32b0741",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Split the page horizontally into top and bottom pages."
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Position",
+      "msgid_plural": null,
+      "translation_sha256": "6b78d8c5e48f2472637e679b89abcd0dcfbe9c6b731959bae3dc73c22a32a86b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Position"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Copyright 2006--2026 Jeffrey Ratcliffe",
+      "msgid_plural": null,
+      "translation_sha256": "3eea6fb6ae4b3a9ad558e57f222960a77a8702c781fab65761514cc7b4bc4515",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Copyright 2006--2026 Jeffrey Ratcliffe"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Cut",
+      "msgid_plural": null,
+      "translation_sha256": "8ed97cb912093d3298b199a5d620556e547d1cf7bfec332064654b0cbc76b63b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Cut"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Copy",
+      "msgid_plural": null,
+      "translation_sha256": "a4c62fdc0a407f9c95cfe7ef33236488325353943ee618a247c15f618e572c53",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Copy"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Paste",
+      "msgid_plural": null,
+      "translation_sha256": "611b85d59b9045d69bd04d43c74ef338ea8ce3ba8139dbe4836b312b1a9679da",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Paste"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Delete",
+      "msgid_plural": null,
+      "translation_sha256": "5121c75ff643f4ba9d7b247011ec972388ced5416e5d540b32e23c407da36293",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Delete"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Select All",
+      "msgid_plural": null,
+      "translation_sha256": "facd7855e763881647a0fb1c51073f7c1209240764eaacc55b37aca40a85085c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Select All"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Select Odd",
+      "msgid_plural": null,
+      "translation_sha256": "cc6c0f5eeb38a60cedebed8501eb3d96fac0a9a142d8bab591e5273f53b349ba",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Select Odd"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Select Even",
+      "msgid_plural": null,
+      "translation_sha256": "e967bb1c15812dca36fab5bda0420daa456c69666935983d8191cbdc1776ab41",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Select Even"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Invert selection",
+      "msgid_plural": null,
+      "translation_sha256": "97d87f537119acba69f47d5dfb944bf44517baacf0a2611000f176737b3d2f08",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Invert selection"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Clear OCR",
+      "msgid_plural": null,
+      "translation_sha256": "a68aac7364876908eb327bac2f0ecc607695f38c565ab11b28d2e8a83eb81c5c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Clear OCR"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "_Invert",
+      "msgid_plural": null,
+      "translation_sha256": "bb290f90d02f7f9938738a0e1a7d2980b3cf2ab2c346344eaffe4e6fdb730db9",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "_Invert"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "_Pan",
+      "msgid_plural": null,
+      "translation_sha256": "04cabdf11e8db1872a712d99c69276730bed5ffc8e1f73195537d2506288e4b8",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "_Pan"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "_Select & pan",
+      "msgid_plural": null,
+      "translation_sha256": "9bac20c70aa73648691987c74759f51fe9c9cd5224ef5de499c58c114ed923e7",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "_Select & pan"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "_Split horizontally",
+      "msgid_plural": null,
+      "translation_sha256": "b02e1843eb4867c41e321f04019bc148bbdd967aa7e72716402ab107581abf18",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "_Split horizontally"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "_Split vertically",
+      "msgid_plural": null,
+      "translation_sha256": "bb50ad0cf908090c7dcd212cc2a340802d3d1b06f2b9b43cf030c842279e60ab",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "_Split vertically"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Edit text layer",
+      "msgid_plural": null,
+      "translation_sha256": "0c0750cfa38c52660699abf4122406da7299282c3a71b874e0544aa565c3ea9f",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Edit text layer"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Edit annotations",
+      "msgid_plural": null,
+      "translation_sha256": "8b64efb297019929997efa050a8120619cdaef430ee3f38fd93efc218846a06b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Edit annotations"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Open images",
+      "msgid_plural": null,
+      "translation_sha256": "f3bcdc4d086fbe55e8d041a2c068cf296b545940f4b96693593b3a9caa8f1a2f",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Open images"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Use the pan tool",
+      "msgid_plural": null,
+      "translation_sha256": "a408bdf5beb8c93277409b5108ec52fc2babaed286d5cac644bf49fb6b199989",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Use the pan tool"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Use the rectangular selection tool",
+      "msgid_plural": null,
+      "translation_sha256": "17a4805b135fb65b7827d2103e0fdf4fd9bd9c1e3b39366d6ded6b19c3704153",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Use the rectangular selection tool"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Use the combined select and pan tool",
+      "msgid_plural": null,
+      "translation_sha256": "40caf73e1de12d19bc5c0084586643a49e5ee3cea35642d808cf582b5ad98717",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "legacy_translation": true
+      },
+      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-07",
+      "msgstr": "Use the combined select and pan tool"
     }
   ],
   "qualifications": [
