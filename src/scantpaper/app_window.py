@@ -71,6 +71,59 @@ _ANNOTATION_PAGE = 2
 # The layers that can be active; the image-only tab is represented by None.
 _EDIT_LAYERS = ("text", "annotation")
 
+# Scoped to a bubble-phase window controller so a focused text control gets
+# first refusal on its own editing keys.
+_TEXT_INPUT_TYPES = (Gtk.TextView, Gtk.Editable)
+_CONTROL_ACTIONS: dict[int, str] = {
+    Gdk.KEY_x: "cut",
+    Gdk.KEY_c: "copy",
+    Gdk.KEY_v: "paste",
+    Gdk.KEY_a: "select-all",
+    Gdk.KEY_z: "undo",
+}
+_ZOOM_ACTIONS: dict[int, str] = {
+    Gdk.KEY_plus: "zoom-in",
+    Gdk.KEY_KP_Add: "zoom-in",
+    Gdk.KEY_minus: "zoom-out",
+    Gdk.KEY_KP_Subtract: "zoom-out",
+}
+
+
+def _is_text_input(widget: Gtk.Widget | None) -> bool:
+    """Return whether widget is a text input."""
+    return isinstance(widget, _TEXT_INPUT_TYPES)
+
+
+def _normalize_shortcut(
+    keyval: int, state: Gdk.ModifierType
+) -> tuple[int, bool, bool, bool]:
+    """Return the lower-case key value and control, shift, and other modifiers."""
+    control = bool(state & Gdk.ModifierType.CONTROL_MASK)
+    shift = bool(state & Gdk.ModifierType.SHIFT_MASK)
+    other = bool(
+        state
+        & (
+            Gdk.ModifierType.ALT_MASK
+            | Gdk.ModifierType.SUPER_MASK
+            | Gdk.ModifierType.META_MASK
+        )
+    )
+    return cast("int", Gdk.keyval_to_lower(keyval)), control, shift, other
+
+
+def _shortcut_action(keyval: int, state: Gdk.ModifierType) -> str | None:
+    """Return the window action for a scoped shortcut, or None."""
+    keyval, control, shift, other = _normalize_shortcut(keyval, state)
+    if other or (keyval == Gdk.KEY_Delete and (control or shift)):
+        return None
+    if keyval == Gdk.KEY_Delete:
+        return "delete"
+    if control:
+        if shift:
+            return "redo" if keyval == Gdk.KEY_z else None
+        return _CONTROL_ACTIONS.get(keyval)
+    return _ZOOM_ACTIONS.get(keyval)
+
 
 def _attach_thumbnail_css() -> Gtk.CssProvider | None:
     """Pin the paint size of the thumbnail pixbufs to the generated size.
@@ -525,8 +578,9 @@ class ApplicationWindow(
             "changed", self._page_selection_changed_callback
         )
 
-        # Without these, the imageviewer and page list steal -/+/ctrl x/c/v keys
-        # from the OCR textview
+        # This controller runs in the bubble phase, so a focused text control
+        # keeps its own editing keys. The viewer and page list only receive
+        # the shortcuts that the focused widget did not consume.
         self._key_controller = Gtk.EventControllerKey()
         self._key_controller.connect("key-pressed", self._on_key_press)
         self.add_controller(self._key_controller)
@@ -886,11 +940,14 @@ class ApplicationWindow(
         _controller: Gtk.EventControllerKey,
         keyval: int,
         _keycode: int,
-        _state: Gdk.ModifierType,
+        state: Gdk.ModifierType,
     ) -> bool:
-        if keyval != Gdk.KEY_Delete:
+        if _is_text_input(self.get_focus()):
             return False
-        self.delete_selection(None, None)
+        action = _shortcut_action(keyval, state)
+        if action is None:
+            return False
+        self._actions[action].activate(None)
         return True
 
     _in_tool_change = False

@@ -402,6 +402,13 @@ Further reading:
 | Rotate 90° anticlockwise | Ctrl+Shift+C |
 | Help         | Ctrl+H         |
 
+When a text field has focus, it keeps its standard editing shortcuts:
+Ctrl+X, Ctrl+C, Ctrl+V, Ctrl+A, Ctrl+Z and Ctrl+Shift+Z edit the text, and
+`+` and `-` type those characters. The page and zoom shortcuts above apply
+when focus is outside a text field, and the page actions remain available
+from the Edit menu while editing. The mouse wheel continues to zoom over the
+image view.
+
 ### Tools
 
 - **Threshold:** Binarize images. The value is an ink-strength cutoff: pixels that differ from the paper colour by more than the given percentage are rendered black, so coloured text and annotations (stamps, highlighters) on white paper are kept. The default is 20; values saved by older versions are migrated automatically.

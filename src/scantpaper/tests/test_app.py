@@ -89,6 +89,33 @@ def test_setup_accelerators_registers_escape() -> None:
 
 
 @pytest.mark.usefixtures("mock_deps")
+def test_setup_accelerators_defers_editing_shortcuts() -> None:
+    """Editing and zoom shortcuts are handled by the window, not globally."""
+    app = Application()
+    app._setup_accelerators()
+    for action in (
+        "win.undo",
+        "win.redo",
+        "win.cut",
+        "win.copy",
+        "win.paste",
+        "win.select-all",
+        "win.zoom-in",
+        "win.zoom-out",
+    ):
+        assert app.get_accels_for_action(action) == []
+
+
+@pytest.mark.usefixtures("mock_deps")
+def test_setup_accelerators_keeps_universal_shortcuts() -> None:
+    """Universal application shortcuts stay in the global accelerator table."""
+    app = Application()
+    app._setup_accelerators()
+    assert app.get_accels_for_action("win.new") == ["<Control>n"]
+    assert app.get_accels_for_action("win.select-odd") == ["<Control>1"]
+
+
+@pytest.mark.usefixtures("mock_deps")
 def test_parse_arguments_default(mocker: pytest.MockerFixture) -> None:
     """Test _parse_arguments with default arguments."""
     with patch("sys.argv", ["prog"]):

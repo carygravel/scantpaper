@@ -77,10 +77,12 @@ class Application(Gtk.Application):
         self._setup_accelerators()
 
     def _setup_accelerators(self) -> None:
-        """Register the keyboard shortcuts formerly declared in the menu model.
+        """Register the global application keyboard shortcuts.
 
         GTK4 does not honour ``accel`` attributes inside a GMenuModel, so the
-        shortcuts are registered here against the window actions.
+        shortcuts are registered here against the window actions. Shortcuts
+        that must defer to a focused text control are handled by the window's
+        key controller instead.
         """
         accels: dict[str, list[str]] = {
             "win.new": ["<Primary>n"],
@@ -90,12 +92,6 @@ class Application(Gtk.Application):
             "win.email": ["<Primary>e"],
             "win.print": ["<Primary>p"],
             "win.quit": ["<Primary>q"],
-            "win.undo": ["<Primary>z"],
-            "win.redo": ["<Primary><Shift>z"],
-            "win.cut": ["<Primary>x"],
-            "win.copy": ["<Primary>c"],
-            "win.paste": ["<Primary>v"],
-            "win.select-all": ["<Primary>a"],
             "win.select-odd": ["<Primary>1"],
             "win.select-even": ["<Primary>2"],
             "win.select-invert": ["<Primary>i"],
@@ -103,8 +99,6 @@ class Application(Gtk.Application):
             "win.select-dark": ["<Primary>d"],
             "win.select-modified": ["<Primary>m"],
             "win.clear-image-selection": ["Escape"],
-            "win.zoom-in": ["plus"],
-            "win.zoom-out": ["minus"],
             "win.rotate-90": ["<Primary><Shift>r"],
             "win.rotate-180": ["<Primary><Shift>f"],
             "win.rotate-270": ["<Primary><Shift>c"],

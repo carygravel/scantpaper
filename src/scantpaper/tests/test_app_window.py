@@ -14,6 +14,8 @@ import pytest
 
 from scantpaper.app_window import (
     ApplicationWindow,
+    _is_text_input,
+    _normalize_shortcut,
     _share_split_resize_evenly,
     drag_motion_callback,
     view_html,
@@ -768,6 +770,33 @@ def test_update_uimanager(app_window: ApplicationWindow) -> None:
     assert app_window._actions["crop-dialog"].get_enabled()
 
 
+def test_scoped_actions_remain_available_with_text_focus(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """The page and view actions stay enabled regardless of text focus."""
+    app_window.slist.get_selected_indices.return_value = [0]
+    cast("Any", app_window.slist).data = [MagicMock()]
+    app_window.slist.thread.can_undo.return_value = True
+    app_window.slist.thread.can_redo.return_value = True
+    app_window.clipboard.data = [MagicMock()]
+    mocker.patch.object(app_window, "get_focus", return_value=Gtk.TextView())
+
+    app_window._update_uimanager()
+
+    for name in (
+        "cut",
+        "copy",
+        "paste",
+        "delete",
+        "select-all",
+        "undo",
+        "redo",
+        "zoom-in",
+        "zoom-out",
+    ):
+        assert app_window._actions[name].get_enabled()
+
+
 def test_paste_action_reflects_clipboard(app_window: ApplicationWindow) -> None:
     """Test paste action is enabled by clipboard data via the changed signal."""
     assert not app_window._actions["paste"].get_enabled()
@@ -1072,18 +1101,180 @@ def test_view_selection_changed_callback_none(app_window: ApplicationWindow) -> 
     assert app_window.settings["selection"] is None
 
 
-def test_on_key_press(app_window: ApplicationWindow) -> None:
-    """Test _on_key_press."""
-    app_window.delete_selection = MagicMock()
+def _mock_key_actions(
+    app_window: ApplicationWindow, *names: str
+) -> dict[str, MagicMock]:
+    """Replace the named window actions with mocks and return them."""
+    actions = {}
+    for name in names:
+        action = MagicMock()
+        app_window._actions[name] = action
+        actions[name] = action
+    return actions
 
-    # Delete key
+
+def test_is_text_input() -> None:
+    """Text views and editable widgets are text inputs; others are not."""
+    assert _is_text_input(Gtk.TextView())
+    assert _is_text_input(Gtk.Entry())
+    assert not _is_text_input(Gtk.Label(label="text"))
+    assert not _is_text_input(None)
+
+
+def test_normalize_shortcut() -> None:
+    """Key values are lower-cased and modifier kinds are separated."""
+    keyval, control, shift, other = _normalize_shortcut(
+        Gdk.KEY_Z,
+        Gdk.ModifierType.CONTROL_MASK
+        | Gdk.ModifierType.SHIFT_MASK
+        | Gdk.ModifierType.ALT_MASK,
+    )
+    assert keyval == Gdk.KEY_z
+    assert control
+    assert shift
+    assert other
+
+    keyval, control, shift, other = _normalize_shortcut(Gdk.KEY_A, Gdk.ModifierType(0))
+    assert keyval == Gdk.KEY_a
+    assert not control
+    assert not shift
+    assert not other
+
+
+def test_on_key_press_delete(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """Plain Delete deletes pages; modified Delete presses are ignored."""
+    actions = _mock_key_actions(app_window, "delete")
+    mocker.patch.object(app_window, "get_focus", return_value=None)
+
     assert (
         app_window._on_key_press(None, Gdk.KEY_Delete, 0, Gdk.ModifierType(0)) is True
     )
-    app_window.delete_selection.assert_called_once()
+    actions["delete"].activate.assert_called_once_with(None)
+    actions["delete"].reset_mock()
 
-    # Other key
-    assert app_window._on_key_press(None, Gdk.KEY_a, 0, Gdk.ModifierType(0)) is False
+    for state in (
+        Gdk.ModifierType.SHIFT_MASK,
+        Gdk.ModifierType.CONTROL_MASK,
+        Gdk.ModifierType.ALT_MASK,
+    ):
+        assert app_window._on_key_press(None, Gdk.KEY_Delete, 0, state) is False
+    actions["delete"].activate.assert_not_called()
+
+
+def test_on_key_press_editing_shortcuts(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """Control shortcuts drive the page actions outside a text control."""
+    actions = _mock_key_actions(
+        app_window,
+        "cut",
+        "copy",
+        "paste",
+        "select-all",
+        "undo",
+        "redo",
+    )
+    mocker.patch.object(app_window, "get_focus", return_value=None)
+    cases = (
+        (Gdk.KEY_x, Gdk.ModifierType.CONTROL_MASK, "cut"),
+        (Gdk.KEY_c, Gdk.ModifierType.CONTROL_MASK, "copy"),
+        (Gdk.KEY_v, Gdk.ModifierType.CONTROL_MASK, "paste"),
+        (Gdk.KEY_a, Gdk.ModifierType.CONTROL_MASK, "select-all"),
+        (Gdk.KEY_z, Gdk.ModifierType.CONTROL_MASK, "undo"),
+        (
+            Gdk.KEY_Z,
+            Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK,
+            "redo",
+        ),
+    )
+    for keyval, state, name in cases:
+        assert app_window._on_key_press(None, keyval, 0, state) is True
+        actions[name].activate.assert_called_once_with(None)
+        actions[name].reset_mock()
+
+
+def test_on_key_press_ignores_modified_or_unknown_keys(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """Shifted editing forms, other modifiers, and unknown keys do nothing."""
+    actions = _mock_key_actions(app_window, "cut", "zoom-in")
+    mocker.patch.object(app_window, "get_focus", return_value=None)
+    cases = (
+        (Gdk.KEY_x, Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK),
+        (Gdk.KEY_x, Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK),
+        (Gdk.KEY_plus, Gdk.ModifierType.CONTROL_MASK),
+        (Gdk.KEY_a, Gdk.ModifierType(0)),
+    )
+    for keyval, state in cases:
+        assert app_window._on_key_press(None, keyval, 0, state) is False
+    actions["cut"].activate.assert_not_called()
+    actions["zoom-in"].activate.assert_not_called()
+
+
+def test_on_key_press_zoom_keys(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """Bare and keypad plus/minus zoom outside a text control."""
+    actions = _mock_key_actions(app_window, "zoom-in", "zoom-out")
+    mocker.patch.object(app_window, "get_focus", return_value=None)
+    for keyval in (Gdk.KEY_plus, Gdk.KEY_KP_Add):
+        assert app_window._on_key_press(None, keyval, 0, Gdk.ModifierType(0)) is True
+        actions["zoom-in"].activate.assert_called_once_with(None)
+        actions["zoom-in"].reset_mock()
+    for keyval in (Gdk.KEY_minus, Gdk.KEY_KP_Subtract):
+        assert app_window._on_key_press(None, keyval, 0, Gdk.ModifierType(0)) is True
+        actions["zoom-out"].activate.assert_called_once_with(None)
+        actions["zoom-out"].reset_mock()
+
+    # Shift is ignored because some layouts need it to type '+'.
+    assert (
+        app_window._on_key_press(None, Gdk.KEY_plus, 0, Gdk.ModifierType.SHIFT_MASK)
+        is True
+    )
+    actions["zoom-in"].activate.assert_called_once_with(None)
+
+
+def test_on_key_press_text_focus_keeps_keys(
+    app_window: ApplicationWindow, mocker: pytest.MockerFixture
+) -> None:
+    """A focused text control keeps every scoped key."""
+    actions = _mock_key_actions(
+        app_window,
+        "delete",
+        "cut",
+        "copy",
+        "paste",
+        "select-all",
+        "undo",
+        "redo",
+        "zoom-in",
+        "zoom-out",
+    )
+    focus = mocker.patch.object(app_window, "get_focus", return_value=Gtk.TextView())
+    cases = (
+        (Gdk.KEY_Delete, Gdk.ModifierType(0)),
+        (Gdk.KEY_x, Gdk.ModifierType.CONTROL_MASK),
+        (Gdk.KEY_c, Gdk.ModifierType.CONTROL_MASK),
+        (Gdk.KEY_v, Gdk.ModifierType.CONTROL_MASK),
+        (Gdk.KEY_a, Gdk.ModifierType.CONTROL_MASK),
+        (Gdk.KEY_z, Gdk.ModifierType.CONTROL_MASK),
+        (
+            Gdk.KEY_Z,
+            Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK,
+        ),
+        (Gdk.KEY_plus, Gdk.ModifierType(0)),
+        (Gdk.KEY_minus, Gdk.ModifierType(0)),
+        (Gdk.KEY_KP_Add, Gdk.ModifierType(0)),
+        (Gdk.KEY_KP_Subtract, Gdk.ModifierType(0)),
+    )
+    for widget_type in (Gtk.TextView, Gtk.Entry):
+        focus.return_value = widget_type()
+        for keyval, state in cases:
+            assert app_window._on_key_press(None, keyval, 0, state) is False
+    for action in actions.values():
+        action.activate.assert_not_called()
 
 
 def test_on_view_selection_notify(app_window: ApplicationWindow) -> None:

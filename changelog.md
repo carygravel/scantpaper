@@ -1,3 +1,12 @@
+## 4.0.4 (unreleased)
+
+* Text fields now keep their standard editing shortcuts. When the text-layer
+  editor has focus, `Ctrl+X`, `Ctrl+C`, `Ctrl+V`, `Ctrl+A`, `Ctrl+Z`,
+  `Ctrl+Shift+Z`, `+` and `-` edit the text instead of acting on pages or
+  zooming the image. Page and zoom shortcuts still work when focus is outside
+  a text field, and the mouse wheel continues to zoom.
+
+
 ## 4.0.3 (2026-11-07)
 
 * **File → Import hOCR…** applies a saved hOCR file to the selected pages or
