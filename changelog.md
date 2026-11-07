@@ -1,4 +1,4 @@
-## 4.0.3 (unreleased)
+## 4.0.3 (2026-11-07)
 
 * **File → Import hOCR…** applies a saved hOCR file to the selected pages or
   all pages. Pages are matched in order and each page box must match the
