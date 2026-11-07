@@ -178,6 +178,7 @@ jobs:
         if: github.ref_type == 'tag'
         with:
           files: dist/${{ env.GITHUB_REPO_NAME }}-${{ env.VERSION }}-py3-none-any.whl
+          body_path: .github/release-notes.md
 
       - name: Test
         run: pytest

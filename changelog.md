@@ -5,6 +5,13 @@
   `Ctrl+Shift+Z`, `+` and `-` edit the text instead of acting on pages or
   zooming the image. Page and zoom shortcuts still work when focus is outside
   a text field, and the mouse wheel continues to zoom.
+* GitHub releases now group the RPMs into one `.tar.gz` per target
+  (`fedora-43`, `fedora-44`, `opensuse-leap-16.0` and
+  `opensuse-tumbleweed`) instead of publishing every RPM separately. The
+  release page explains which archive to download and how to install it, and
+  each archive contains the complete runtime set, `SHA256SUMS` and
+  `INSTALL.txt`. Fedora `-debuginfo` and `-debugsource` packages are no
+  longer published. The `.deb` and wheel remain single files.
 
 
 ## 4.0.3 (2026-11-07)

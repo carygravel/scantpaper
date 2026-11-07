@@ -65,7 +65,10 @@
    defaults to `github.sha`; setting it makes the renderer read the version,
    source and commit date from the selected tag instead of `main`. The run is
    a branch run, so its artifacts are not attached automatically; download
-   them and replace the release assets manually.
+   each target's archive (`fedora-43`, `fedora-44`,
+   `opensuse-leap-16.0` and `opensuse-tumbleweed`) and replace the
+   corresponding archive on the release. Replace the Debian `.deb` on its
+   own. The release body is static and needs no edit.
 1. The Debian `.deb` attached to the release is built by
    [deb.yml](.github/workflows/deb.yml) from the pushed tag, in the same way.
    Its packaging is maintained in

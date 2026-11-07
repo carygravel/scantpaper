@@ -79,11 +79,19 @@ jobs:
           name: scantpaper-opensuse-tumbleweed
           path: artifacts/*.rpm
 
-      - name: Release RPMs
+      - name: Build release bundle
+        run: |
+          python3 dev/make_release_bundle.py \
+            --target opensuse-tumbleweed \
+            --input artifacts \
+            --output dist
+
+      - name: Release bundle
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
         with:
-          files: artifacts/*.rpm
+          files: dist/*.tar.gz
+          body_path: .github/release-notes.md
 
   clean-room-install:
     name: clean-room install (${{ matrix.scenario }})

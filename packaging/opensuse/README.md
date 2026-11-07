@@ -45,10 +45,10 @@ upstream `python-sane` release still wins.
 `.github/workflows/opensuse.yml` builds Leap 16 and
 `.github/workflows/opensuse-tumbleweed.yml` builds Tumbleweed. Both use the
 same triggers (`push`, `pull_request` and `workflow_dispatch` with the
-`source_ref` input). The Leap artifact is published as
-`scantpaper-opensuse-leap16`; the Tumbleweed artifact is
-`scantpaper-opensuse-tumbleweed`. The Tumbleweed set has no `.lp160.1`
-suffix, so the release assets do not collide.
+`source_ref` input). The Leap set is published in
+`scantpaper-<version>-opensuse-leap-16.0.tar.gz` and the Tumbleweed set in
+`scantpaper-<version>-opensuse-tumbleweed.tar.gz`. The CI artifacts keep the
+names `scantpaper-opensuse-leap16` and `scantpaper-opensuse-tumbleweed`.
 
 ## Building locally
 
@@ -79,8 +79,10 @@ packages):
 bash packaging/opensuse/build.sh collect-runtime /tmp/rpms
 ```
 
-The GitHub release artifact is built with `collect-runtime`, so the published
-RPMs are the runtime set only.
+The GitHub release archive is built from the `collect-runtime` set, so it
+contains the runtime RPMs only. Both workflows pass that directory to
+`dev/make_release_bundle.py`, which adds `SHA256SUMS` and `INSTALL.txt` and
+writes the target archive.
 
 To iterate on a single package (after `setup`, and once its dependencies are
 installed):

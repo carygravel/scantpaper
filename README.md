@@ -835,15 +835,17 @@ sudo apt remove scantpaper
 
 #### From Fedora RPM packages
 
-Download the RPM files from
-[Github](https://github.com/carygravel/scantpaper/releases/) and install them
-all in a single transaction:
+Download the `fedora-43` or `fedora-44` archive for your Fedora release from
+[Github](https://github.com/carygravel/scantpaper/releases/), extract it, and
+install all of its RPMs in a single transaction:
 
 ```sh
-sudo dnf install *.rpm
+# Use fedora-44 instead on Fedora 44.
+tar -xf scantpaper-*-fedora-43.tar.gz
+sudo dnf install scantpaper-*-fedora-43/*.rpm
 ```
 
-The release provides scantpaper together with locally rebuilt versions of
+The archive provides scantpaper together with locally rebuilt versions of
 `python3-sane`, `python3-tesserocr`, `python3-cysignals` and `python3-iso639`
 (packaged as RPMs because the Fedora versions do not satisfy scantpaper's
 dependencies, and with a `python3-sane` patch for Epson `epsonscan2` scanners).
@@ -863,21 +865,22 @@ provide (e.g. PDF encryption) are disabled.
 
 #### From openSUSE RPM packages
 
-Download the Leap 16.0 RPM files - the ones with the `.lp160.1` release
-suffix - from
-[Github](https://github.com/carygravel/scantpaper/releases/) into a directory
-of their own and install them all in a single transaction:
+Download the `opensuse-leap-16.0` archive from
+[Github](https://github.com/carygravel/scantpaper/releases/), extract it, and
+install all of its RPMs in a single transaction:
 
 ```sh
-sudo zypper install --allow-unsigned-rpm *.rpm
+tar -xf scantpaper-*-opensuse-leap-16.0.tar.gz
+sudo zypper install --allow-unsigned-rpm \
+  scantpaper-*-opensuse-leap-16.0/*.rpm
 ```
 
-The release provides scantpaper together with locally rebuilt, Leap 16.0
+The archive provides scantpaper together with locally rebuilt, Leap 16.0
 versions of the Python dependencies that the distro does not package
 (`python313-sane`, `python313-tesserocr`, `python313-cysignals`,
-`python313-python-iso639`, `python313-pdfminer.six`, `python313-img2pdf`,
-`python313-ocrmypdf`, `python313-setuptools-scm` and `python313-hatch-vcs`,
-with a `python313-sane` patch for Epson `epsonscan2` scanners).
+`python313-python-iso639`, `python313-pdfminer.six`, `python313-img2pdf`
+and `python313-ocrmypdf`, with a `python313-sane` patch for Epson
+`epsonscan2` scanners).
 
 Installing the set replaces any same-named packages you already have from
 repo-oss or from a third-party repository such as
@@ -899,11 +902,14 @@ not available there.
 
 ##### Tumbleweed
 
-Download the Tumbleweed RPMs - the files without the `.lp160.1` release
-suffix - into a directory of their own and install them in one transaction:
+Download the `opensuse-tumbleweed` archive from
+[Github](https://github.com/carygravel/scantpaper/releases/), extract it, and
+install all of its RPMs in one transaction:
 
 ```sh
-sudo zypper install --allow-unsigned-rpm *.rpm
+tar -xf scantpaper-*-opensuse-tumbleweed.tar.gz
+sudo zypper install --allow-unsigned-rpm \
+  scantpaper-*-opensuse-tumbleweed/*.rpm
 ```
 
 Only the patched `python-sane` is rebuilt; every other Python dependency

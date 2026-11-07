@@ -85,6 +85,7 @@ jobs:
         with:
           files: |
             build/deb/scantpaper_${{ env.VERSION }}_all.deb
+          body_path: .github/release-notes.md
 
   debian-checks:
     needs: build
