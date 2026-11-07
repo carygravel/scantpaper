@@ -1936,6 +1936,17 @@ def _print_qualification(record: Mapping[str, object]) -> None:
     print(f"qualification {language} ({release}): {outcome} ({', '.join(parts)})")
 
 
+def _print_drift(result: Mapping[str, object]) -> None:
+    """Print a compact drift-probe result."""
+    outcome = "paused" if result.get("paused") is True else "ok"
+    print(
+        f"drift {result.get('language')} {result.get('deployment')} "
+        f"({result.get('release')}): {outcome} "
+        f"(score {result.get('score')}, threshold {result.get('threshold')}, "
+        f"calls {result.get('call_count')}, cost {result.get('total_cost_usd')})"
+    )
+
+
 def _process_gate_call(
     call: Mapping[str, object],
     language: str,
@@ -2545,6 +2556,54 @@ def _command_qualify(args: argparse.Namespace, config: GateConfig) -> int:
     return 0
 
 
+def _command_drift(args: argparse.Namespace, config: GateConfig) -> int:
+    """Run one fixed drift probe and record a pause when it drops."""
+    deployment = config.deployments.get(args.deployment)
+    if deployment is None:
+        print(
+            f"error: deployment {args.deployment!r} is not configured",
+            file=sys.stderr,
+        )
+        return 1
+    probe_path = args.probe or (DEFAULT_PROBE_DIR / f"{args.language}.json")
+    try:
+        probe = load_probe(probe_path)
+    except GateError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+    if not probe:
+        print(f"error: probe {probe_path} has no items", file=sys.stderr)
+        return 1
+    ledger = load_ledger(args.ledger)
+    request = DriftRequest(
+        deployment.release,
+        args.deployment,
+        args.language,
+        probe,
+        budget_usd=args.max_cost,
+    )
+    try:
+        result = drift_probe(config, request, OpenAICompatibleClient())
+    except GateError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+    if result.get("paused") is True and not args.dry_run:
+        record_drift_excursion(ledger, result, since=args.since or _today())
+        try:
+            write_ledger(ledger, args.ledger)
+        except (LedgerError, OSError) as error:
+            print(
+                f"error: cannot write ledger {args.ledger}: {error}",
+                file=sys.stderr,
+            )
+            return 1
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        _print_drift(result)
+    return 0
+
+
 def _command_revoke(args: argparse.Namespace, _config: GateConfig) -> int:
     """Record a revocation."""
     revoke(args.ledger, args.scope, args.value)
@@ -2653,6 +2712,7 @@ def _dispatch(args: argparse.Namespace, config: GateConfig) -> int:
         "costs": lambda: _command_costs(args, config),
         "estimate": lambda: _command_estimate(args, config),
         "qualify": lambda: _command_qualify(args, config),
+        "drift": lambda: _command_drift(args, config),
         "revoke": lambda: _command_revoke(args, config),
         "sample": lambda: _command_sample(args, config),
         "build-probes": lambda: _command_build_probes(args, config),
@@ -2664,6 +2724,36 @@ def _dispatch(args: argparse.Namespace, config: GateConfig) -> int:
         msg = f"unknown command {args.command!r}"
         raise GateError(msg)
     return handler()
+
+
+class _SubParser(Protocol):
+    """The subparser action used while building the command line."""
+
+    def add_parser(
+        self,
+        name: str,
+        **kwargs: object,
+    ) -> argparse.ArgumentParser:
+        """Add and return one subcommand parser."""
+
+
+def _add_qualify_drift_parsers(sub: _SubParser) -> None:
+    """Add the qualify and drift subcommands."""
+    qualify_parser = sub.add_parser("qualify", help="Qualify a release for a language")
+    qualify_parser.add_argument("--release", required=True)
+    qualify_parser.add_argument("--language", required=True)
+    qualify_parser.add_argument("--catalog", type=Path)
+    qualify_parser.add_argument("--count", type=int, default=20)
+    qualify_parser.add_argument("--max-cost", type=float)
+    qualify_parser.add_argument("--json", action="store_true")
+    drift_parser = sub.add_parser("drift", help="Run the fixed drift probe")
+    drift_parser.add_argument("--deployment", required=True)
+    drift_parser.add_argument("--language", required=True)
+    drift_parser.add_argument("--probe", type=Path)
+    drift_parser.add_argument("--max-cost", type=float)
+    drift_parser.add_argument("--since")
+    drift_parser.add_argument("--dry-run", action="store_true")
+    drift_parser.add_argument("--json", action="store_true")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -2693,13 +2783,7 @@ def _build_parser() -> argparse.ArgumentParser:
     estimate_parser.add_argument("--chars-per-token", type=float)
     estimate_parser.add_argument("--max-cost", type=float)
     estimate_parser.add_argument("--json", action="store_true")
-    qualify_parser = sub.add_parser("qualify", help="Qualify a release for a language")
-    qualify_parser.add_argument("--release", required=True)
-    qualify_parser.add_argument("--language", required=True)
-    qualify_parser.add_argument("--catalog", type=Path)
-    qualify_parser.add_argument("--count", type=int, default=20)
-    qualify_parser.add_argument("--max-cost", type=float)
-    qualify_parser.add_argument("--json", action="store_true")
+    _add_qualify_drift_parsers(cast("_SubParser", sub))
     sub.add_parser("build-probes", help="Regenerate the drift-probe files")
     gate_parser = sub.add_parser("gate", help="Gate one string")
     gate_parser.add_argument("--language", required=True)

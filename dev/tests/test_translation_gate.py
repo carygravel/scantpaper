@@ -870,6 +870,61 @@ def _qualification_setup(
     return config_path, ledger_path, catalog_path
 
 
+def _drift_setup(
+    tmp_path: Path,
+    *,
+    costed: bool = False,
+    items: list[dict[str, str]] | None = None,
+    approvals: tuple[dict[str, object], ...] = (),
+) -> tuple[Path, Path, Path]:
+    """Write a config, a ledger and a drift probe."""
+    data = _config_data()
+    if costed:
+        deployments = cast("dict[str, dict[str, object]]", data["deployments"])
+        for deployment in deployments.values():
+            deployment["cost"] = {
+                "currency": "USD",
+                "unit": "per_million_tokens",
+                "input": 1.0,
+                "output": 2.0,
+                "cache_read": 0.5,
+            }
+    config_path = _write_config(tmp_path, data)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger(*approvals))
+    probe_path = tmp_path / "de.json"
+    probe_path.write_text(
+        json.dumps(
+            {
+                "language": "de",
+                "version": 1,
+                "items": items
+                if items is not None
+                else [{"msgid": "Delete", "msgstr": "Löschen"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return config_path, ledger_path, probe_path
+
+
+def _completion(text: str) -> object:
+    """Build one deterministic completion for a probe client."""
+    return GATE.Completion(
+        text=text,
+        deployment="p1",
+        release="r1",
+        model="a",
+        usage=GATE.Usage(
+            prompt_tokens=10,
+            completion_tokens=5,
+            total_tokens=15,
+            cached_tokens=0,
+            cache_write_tokens=0,
+        ),
+        latency_ms=1.0,
+    )
+
+
 def test_estimate_tokens_and_output_bounds() -> None:
     """The heuristic is configurable and the output range is bounded."""
     assert GATE.estimate_tokens("12345678", 4.0) == 2
@@ -1314,6 +1369,417 @@ def test_qualify_cli_replaces_an_earlier_record(
     assert len(records) == 1
     assert records[0]["qualified"] is False
     assert records[0]["score"] == 0.0
+
+
+def test_drift_cli_reports_a_pass(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A probe above the threshold reports and writes no pause."""
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path)
+    client = Mock(wraps=FakeClient({"p1": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+        ]
+    )
+    assert status == 0
+    assert client.complete.call_count == 1
+    ledger = LEDGER.load_ledger(ledger_path)
+    assert LEDGER.section(ledger, "drift_excursions") == []
+    out = capsys.readouterr().out
+    assert "drift de p1 (r1)" in out
+    assert "score 1.0" in out
+    assert "ok" in out
+
+
+def test_drift_cli_makes_one_call_per_item(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The probe sends one request for every item."""
+    items = [
+        {"msgid": "Delete", "msgstr": "Löschen"},
+        {"msgid": "Open", "msgstr": "Öffnen"},
+    ]
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path, items=items)
+    client = Mock()
+    client.complete.side_effect = [_completion("Löschen"), _completion("Öffnen")]
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+        ]
+    )
+    assert status == 0
+    assert client.complete.call_count == 2
+    assert LEDGER.section(LEDGER.load_ledger(ledger_path), "drift_excursions") == []
+
+
+def test_drift_cli_records_a_pause_without_demoting(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A below-threshold probe pauses and leaves approvals untouched."""
+    approval = _machine_record("de", "Delete", "r1", "p1")
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path, approvals=(approval,))
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Falsch"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+            "--since",
+            "2026-01-01",
+        ]
+    )
+    assert status == 0
+    ledger = LEDGER.load_ledger(ledger_path)
+    excursions = LEDGER.section(ledger, "drift_excursions")
+    assert len(excursions) == 1
+    assert excursions[0]["release"] == "r1"
+    assert excursions[0]["deployment"] == "p1"
+    assert excursions[0]["language"] == "de"
+    assert excursions[0]["since"] == "2026-01-01"
+    assert excursions[0]["status"] == "paused"
+    assert len(LEDGER.approvals(ledger)) == 1
+    assert "paused" in capsys.readouterr().out
+
+
+def test_drift_cli_defaults_since_to_today(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A recorded pause without --since uses the run date."""
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path)
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Falsch"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+        ]
+    )
+    assert status == 0
+    excursions = LEDGER.section(LEDGER.load_ledger(ledger_path), "drift_excursions")
+    assert excursions[0]["since"] == GATE._today()
+
+
+def test_drift_cli_uses_the_default_probe(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The default path is the language file under the probe directory."""
+    config_path, ledger_path, _probe_path = _drift_setup(tmp_path)
+    monkeypatch.setattr(GATE, "DEFAULT_PROBE_DIR", tmp_path)
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+        ]
+    )
+    assert status == 0
+
+
+def test_drift_cli_dry_run_does_not_record(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A dry run reports a pause without writing it."""
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path)
+    before = ledger_path.read_text(encoding="utf-8")
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Falsch"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+            "--dry-run",
+        ]
+    )
+    assert status == 0
+    assert ledger_path.read_text(encoding="utf-8") == before
+    assert "paused" in capsys.readouterr().out
+
+
+def test_drift_cli_rejects_an_unknown_deployment(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An unknown deployment fails before reading the probe."""
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path)
+    before = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "missing",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+        ]
+    )
+    assert status == 1
+    assert "not configured" in capsys.readouterr().err
+    assert ledger_path.read_text(encoding="utf-8") == before
+
+
+def test_drift_cli_rejects_an_empty_probe(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An empty probe is an error, not a false pause."""
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path, items=[])
+    before = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+        ]
+    )
+    assert status == 1
+    assert "has no items" in capsys.readouterr().err
+    assert ledger_path.read_text(encoding="utf-8") == before
+
+
+def test_drift_cli_rejects_an_unreadable_probe(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An unreadable probe leaves the ledger unchanged."""
+    config_path, ledger_path, _probe_path = _drift_setup(tmp_path)
+    before = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(tmp_path / "missing.json"),
+        ]
+    )
+    assert status == 1
+    assert "cannot read probe" in capsys.readouterr().err
+    assert ledger_path.read_text(encoding="utf-8") == before
+
+
+def test_drift_cli_reports_a_missing_credential(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A missing key variable is named and no pause is written."""
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path)
+    monkeypatch.delenv("SCANTPAPER_TEST_KEY", raising=False)
+    before = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+        ]
+    )
+    assert status == 1
+    err = capsys.readouterr().err
+    assert "SCANTPAPER_TEST_KEY" in err
+    assert "Bearer" not in err
+    assert ledger_path.read_text(encoding="utf-8") == before
+
+
+def test_drift_cli_stops_before_a_request_when_over_budget(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An over-budget probe makes no call and writes no pause."""
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path, costed=True)
+    client = Mock()
+    client.complete.side_effect = AssertionError("no request expected")
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+            "--max-cost",
+            "0",
+        ]
+    )
+    assert status == 1
+    client.complete.assert_not_called()
+    assert LEDGER.section(LEDGER.load_ledger(ledger_path), "drift_excursions") == []
+    assert "exceeds budget" in capsys.readouterr().err
+
+
+def test_drift_cli_reports_json(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The JSON form carries the inferred release and probe result."""
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path, costed=True)
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe_path),
+            "--json",
+        ]
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["release"] == "r1"
+    assert payload["score"] == 1.0
+    assert payload["threshold"] == 0.75
+    assert payload["paused"] is False
+    assert payload["call_count"] == 1
+    assert "total_cost_usd" in payload
+
+
+def test_drift_cli_repeated_failure_keeps_the_pause(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A second failing run leaves the language paused."""
+    approval = _machine_record("de", "Delete", "r1", "p1")
+    config_path, ledger_path, probe_path = _drift_setup(tmp_path, approvals=(approval,))
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Falsch"}),
+    )
+    args = [
+        "--config",
+        str(config_path),
+        "--ledger",
+        str(ledger_path),
+        "drift",
+        "--deployment",
+        "p1",
+        "--language",
+        "de",
+        "--probe",
+        str(probe_path),
+    ]
+    assert GATE.main(args) == 0
+    assert GATE.main(args) == 0
+    ledger = LEDGER.load_ledger(ledger_path)
+    assert GATE.is_paused(ledger, "r1", "de")
+    assert len(LEDGER.approvals(ledger)) == 1
 
 
 def test_costs_cli_reports_json(

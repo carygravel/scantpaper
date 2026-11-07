@@ -350,6 +350,28 @@ and high-impact actions. A score below the drift threshold pauses new
 approvals for that release and language and queues the window for audit. It
 does not demote existing approvals; only confirmed defects do that.
 
+Run a probe with:
+
+```sh
+python3 dev/translation_gate.py estimate --action drift \
+    --deployment qwen-a --language de
+python3 dev/translation_gate.py drift \
+    --deployment qwen-a --language de --max-cost 0.01
+```
+
+`drift` infers the release from the deployment and reads
+`po/drift-probe/<language>.json` by default. `--probe` overrides the file,
+`--since` sets the audit-window start stored with a pause (default today), and
+`--json` prints the full result. A passing probe writes nothing. A failing
+probe appends a `drift_excursions` record and pauses new approvals; it does
+not demote existing approvals.
+
+Use `--dry-run` to screen a new model without pausing anything. Nine
+languages currently have no probe items (`ab`, `af`, `ar`, `en_US`, `hi`,
+`id`, `ro`, `sr`, `vi`); the command rejects an empty probe instead of
+recording a false pause. There is no resume command yet: resolving a pause
+requires re-qualification and audit.
+
 ### Running the gate
 
 ```sh
