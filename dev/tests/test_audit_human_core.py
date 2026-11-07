@@ -223,7 +223,7 @@ def test_apply_writes_a_valid_ledger_and_report(tmp_path: Path) -> None:
 
 def test_committed_report_accounts_for_every_shipped_entry() -> None:
     """Every shipped entry has an approval or is named as pending."""
-    ledger = AUDIT.load_ledger(REPO_ROOT / "po" / "translation-approvals.json")
+    ledger = AUDIT.load_ledger(REPO_ROOT / "po" / "approvals")
     report = json.loads(
         (REPO_ROOT / "po" / "translation-audit.json").read_text(encoding="utf-8")
     )
@@ -256,7 +256,7 @@ def test_committed_report_accounts_for_every_shipped_entry() -> None:
 
     totals = report["totals"]
     assert totals["shipped"] == shipped
-    assert totals["unchanged"] == 9908
+    assert totals["unchanged"] == 9895
     assert totals["model-changed"] == 1467
     assert totals["approved"] + totals["pending"] == shipped
-    assert shipped == 14163
+    assert shipped == 14269

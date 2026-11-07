@@ -37,18 +37,26 @@ from urllib.parse import urlparse
 import polib
 from tm_index import dominant_match
 from translation_ledger import (
-    LEDGER_PATH as DEFAULT_LEDGER_PATH,
-)
-from translation_ledger import (
+    EVIDENCE_PATH,
     ApprovalContext,
     ApprovalRecord,
     LedgerError,
     add_section_record,
     approvals,
+    compact_evidence,
+    compact_operational_record,
+    load_gate_run_calls,
+    load_language_ledger,
     load_ledger,
     make_record,
     section,
+    write_evidence,
+    write_global_ledger,
+    write_language_ledger,
     write_ledger,
+)
+from translation_ledger import (
+    LEDGER_PATH as DEFAULT_LEDGER_PATH,
 )
 from translation_policy import (
     MACHINE_PROVENANCE_CLASSES,
@@ -294,6 +302,16 @@ class GateOptions:
     context: str = ""
     occurrences: tuple[object, ...] = ()
     tm_db: Path | None = None
+    evidence_path: Path | None = None
+
+
+@dataclass(frozen=True)
+class GateRunOptions:
+    """Optional metadata for one recorded gate run."""
+
+    action: str = "gate"
+    timestamp: str | None = None
+    evidence_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -347,6 +365,7 @@ class QualificationRequest:
     entries: Sequence[polib.POEntry]
     approval_date: str | None = None
     budget_usd: float | None = None
+    evidence_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -1164,13 +1183,24 @@ def run_gate(
     ):
         provenance_class = "tm-consensus"
         evidence["tm_dominant"] = True
+    evidence_summary = evidence
+    evidence_sha256: str | None = None
+    if options.evidence_path is not None:
+        evidence_sha256 = write_evidence(
+            evidence,
+            options.evidence_path,
+            kind="approval",
+            language=language,
+        )
+        evidence_summary = compact_evidence(evidence)
     record = make_record(
         language,
         _entry_for(source, preferred_text),
         provenance_class,
         context=ApprovalContext(
             approval_date=_today(),
-            evidence=evidence,
+            evidence=evidence_summary,
+            evidence_sha256=evidence_sha256,
             model_release=release,
             deployment=deployment,
         ),
@@ -1189,10 +1219,10 @@ def record_gate_run(
     decision: GateDecision,
     language: str,
     *,
-    action: str = "gate",
-    timestamp: str | None = None,
+    options: GateRunOptions | None = None,
 ) -> dict[str, object]:
     """Append one gate outcome, including abstentions, to the ledger."""
+    options = options or GateRunOptions()
     calls = decision.evidence.get("calls", [])
     call_records = (
         [cast("dict[str, object]", call) for call in calls]
@@ -1207,11 +1237,11 @@ def record_gate_run(
         }
     )
     record: dict[str, object] = {
-        "action": action,
+        "action": options.action,
         "language": language,
         "outcome": "approved" if decision.approved else "abstained",
         "reason": decision.reason,
-        "timestamp": timestamp
+        "timestamp": options.timestamp
         or datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "winning_deployment": (
             decision.record.get("deployment") if decision.record is not None else None
@@ -1225,6 +1255,8 @@ def record_gate_run(
         "calls": call_records,
         **summarize_calls(call_records),
     }
+    if options.evidence_path is not None:
+        compact_operational_record(record, options.evidence_path, kind="gate_run")
     add_section_record(ledger, "gate_runs", record)
     return record
 
@@ -1308,6 +1340,8 @@ def qualify_release(
             "calls": calls,
             **summary,
         }
+    if request.evidence_path is not None:
+        compact_operational_record(record, request.evidence_path, kind="qualification")
     _replace_section(
         ledger,
         "qualifications",
@@ -1460,23 +1494,23 @@ def record_drift_excursion(
     since: str,
 ) -> None:
     """Record a paused drift excursion without demoting any approval."""
-    add_section_record(
-        ledger,
-        "drift_excursions",
-        {
-            "release": result["release"],
-            "deployment": result["deployment"],
-            "language": result["language"],
-            "score": result["score"],
-            "threshold": result["threshold"],
-            "since": since,
-            "status": "paused",
-            "queued_for_audit": True,
-            "calls": result.get("calls", []),
-            "total_cost_usd": result.get("total_cost_usd"),
-            "latency_ms": result.get("latency_ms"),
-        },
-    )
+    record: dict[str, object] = {
+        "release": result["release"],
+        "deployment": result["deployment"],
+        "language": result["language"],
+        "score": result["score"],
+        "threshold": result["threshold"],
+        "since": since,
+        "status": "paused",
+        "queued_for_audit": True,
+        "total_cost_usd": result.get("total_cost_usd"),
+        "latency_ms": result.get("latency_ms"),
+    }
+    if "calls" in result:
+        record["calls"] = result["calls"]
+    if "evidence_sha256" in result:
+        record["evidence_sha256"] = result["evidence_sha256"]
+    add_section_record(ledger, "drift_excursions", record)
 
 
 def is_paused(ledger: Mapping[str, object], release: str, language: str) -> bool:
@@ -1994,10 +2028,16 @@ def _process_gate_run(
     run: Mapping[str, object],
     result: dict[str, dict[str, CostBucket]],
     indexes: RunIndexes,
+    *,
+    evidence_path: Path | None = None,
 ) -> None:
     """Accumulate one gate run and its outcome."""
     language = str(run.get("language", ""))
-    calls = run.get("calls")
+    calls = (
+        load_gate_run_calls(run, evidence_path)
+        if evidence_path is not None
+        else run.get("calls")
+    )
     if isinstance(calls, list):
         for call in calls:
             if isinstance(call, dict):
@@ -2020,13 +2060,20 @@ def costs_report(
     ledger: Mapping[str, object],
     *,
     languages: Iterable[str] = (),
+    evidence_path: Path | None = None,
 ) -> dict[str, object]:
     """Aggregate spend and quality by language and deployment."""
     result: dict[str, dict[str, CostBucket]] = {language: {} for language in languages}
     indexes = RunIndexes()
 
     for run_index, run in enumerate(section(ledger, "gate_runs")):
-        _process_gate_run(run_index, run, result, indexes)
+        _process_gate_run(
+            run_index,
+            run,
+            result,
+            indexes,
+            evidence_path=evidence_path,
+        )
     for record in section(ledger, "qualifications"):
         _add_qualification(result, record)
     for record in section(ledger, "drift_excursions"):
@@ -2268,7 +2315,10 @@ def revoke(
             "date": approval_date or _today(),
         },
     )
-    write_ledger(ledger, ledger_path)
+    if _ledger_is_dir(ledger_path):
+        write_global_ledger(ledger, ledger_path)
+    else:
+        write_ledger(ledger, ledger_path)
 
 
 def _apply_decision(
@@ -2312,9 +2362,18 @@ def approve_decision(
     if entry is None:
         msg = f"{msgid!r} is not in {catalog_path}"
         raise GateError(msg)
-    ledger = load_ledger(ledger_path)
-    _apply_decision(ledger, entry, decision)
-    write_ledger(ledger, ledger_path)
+    language = decision.record.get("language")
+    if _ledger_is_dir(ledger_path):
+        if not isinstance(language, str) or not language:
+            msg = "the decision has no language for the split ledger"
+            raise GateError(msg)
+        ledger = load_language_ledger(ledger_path, language)
+        _apply_decision(ledger, entry, decision)
+        write_language_ledger(ledger, ledger_path, language)
+    else:
+        ledger = load_ledger(ledger_path)
+        _apply_decision(ledger, entry, decision)
+        write_ledger(ledger, ledger_path)
     catalog.save(str(catalog_path))
 
 
@@ -2464,7 +2523,11 @@ def _command_costs(args: argparse.Namespace, _config: GateConfig) -> int:
     """Print the cost/performance report."""
     ledger = load_ledger(args.ledger)
     languages = [args.language] if args.language else []
-    payload = costs_report(ledger, languages=languages)
+    payload = costs_report(
+        ledger,
+        languages=languages,
+        evidence_path=args.evidence,
+    )
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
@@ -2559,13 +2622,14 @@ def _command_qualify(args: argparse.Namespace, config: GateConfig) -> int:
             file=sys.stderr,
         )
         return 1
-    ledger = load_ledger(args.ledger)
+    ledger = _load_ledger_for(args.ledger, args.language)
     entries = _held_out(ledger, catalog, args.language, args.count)
     request = QualificationRequest(
         args.release,
         args.language,
         entries,
         budget_usd=args.max_cost,
+        evidence_path=args.evidence,
     )
     try:
         record = qualify_release(
@@ -2578,7 +2642,7 @@ def _command_qualify(args: argparse.Namespace, config: GateConfig) -> int:
         print(f"error: {error}", file=sys.stderr)
         return 1
     try:
-        write_ledger(ledger, args.ledger)
+        _write_ledger_for(ledger, args.ledger, args.language)
     except (LedgerError, OSError) as error:
         print(
             f"error: cannot write ledger {args.ledger}: {error}",
@@ -2610,7 +2674,7 @@ def _command_drift(args: argparse.Namespace, config: GateConfig) -> int:
     if not probe:
         print(f"error: probe {probe_path} has no items", file=sys.stderr)
         return 1
-    ledger = load_ledger(args.ledger)
+    ledger = _load_ledger_for(args.ledger, args.language)
     request = DriftRequest(
         deployment.release,
         args.deployment,
@@ -2624,9 +2688,11 @@ def _command_drift(args: argparse.Namespace, config: GateConfig) -> int:
         print(f"error: {error}", file=sys.stderr)
         return 1
     if result.get("paused") is True and not args.dry_run:
+        if args.evidence is not None:
+            compact_operational_record(result, args.evidence, kind="drift")
         record_drift_excursion(ledger, result, since=args.since or _today())
         try:
-            write_ledger(ledger, args.ledger)
+            _write_ledger_for(ledger, args.ledger, args.language)
         except (LedgerError, OSError) as error:
             print(
                 f"error: cannot write ledger {args.ledger}: {error}",
@@ -2663,6 +2729,7 @@ class BatchRun:
     client: ModelClient
     max_cost: float | None
     tm_db: Path | None
+    evidence_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -2806,9 +2873,15 @@ def _run_batch(
             options=GateOptions(
                 occurrences=tuple(entry.occurrences),
                 tm_db=run.tm_db,
+                evidence_path=run.evidence_path,
             ),
         )
-        record_gate_run(run.ledger, decision, run.language)
+        record_gate_run(
+            run.ledger,
+            decision,
+            run.language,
+            options=GateRunOptions(evidence_path=run.evidence_path),
+        )
         cost = _decision_cost(decision)
         spent += cost
         if decision.approved:
@@ -2828,10 +2901,37 @@ def _run_batch(
                     "cost_usd": cost,
                 }
             )
-        write_ledger(run.ledger, run.ledger_path)
+        _write_ledger_for(run.ledger, run.ledger_path, run.language)
         if decision.approved:
             run.catalog.save(str(run.catalog_path))
     return approved, abstained, stopped, spent
+
+
+def _ledger_is_dir(path: Path) -> bool:
+    """Return whether a ledger path is the split directory form."""
+    return path.is_dir() or path.suffix != ".json"
+
+
+def _load_ledger_for(
+    path: Path,
+    language: str | None = None,
+) -> dict[str, object]:
+    """Load a merged ledger or one language file, depending on the path."""
+    if _ledger_is_dir(path) and language is not None:
+        return load_language_ledger(path, language)
+    return load_ledger(path)
+
+
+def _write_ledger_for(
+    data: Mapping[str, object],
+    path: Path,
+    language: str | None = None,
+) -> None:
+    """Write a merged ledger or one language file, depending on the path."""
+    if _ledger_is_dir(path) and language is not None:
+        write_language_ledger(data, path, language)
+    else:
+        write_ledger(data, path)
 
 
 def _print_batch(report: BatchReport) -> None:
@@ -2897,7 +2997,7 @@ def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
     )
     try:
         catalog = _batch_catalog(catalog_path)
-        ledger = load_ledger(args.ledger)
+        ledger = _load_ledger_for(args.ledger, args.language)
         selection = _select_batch_entries(
             catalog,
             include_fuzzy=args.include_fuzzy,
@@ -2953,6 +3053,7 @@ def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
                     client=OpenAICompatibleClient(),
                     max_cost=args.max_cost,
                     tm_db=args.tm,
+                    evidence_path=args.evidence,
                 )
             )
             report = BatchReport(
@@ -3037,11 +3138,19 @@ def _command_gate(args: argparse.Namespace, config: GateConfig) -> int:
         args.language,
         config,
         OpenAICompatibleClient(),
-        options=GateOptions(context=args.context),
+        options=GateOptions(
+            context=args.context,
+            evidence_path=args.evidence,
+        ),
     )
-    ledger = load_ledger(args.ledger)
-    record_gate_run(ledger, decision, args.language)
-    write_ledger(ledger, args.ledger)
+    ledger = _load_ledger_for(args.ledger, args.language)
+    record_gate_run(
+        ledger,
+        decision,
+        args.language,
+        options=GateRunOptions(evidence_path=args.evidence),
+    )
+    _write_ledger_for(ledger, args.ledger, args.language)
     payload = {
         "approved": decision.approved,
         "reason": decision.reason,
@@ -3152,6 +3261,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--roles", type=Path, default=DEFAULT_ROLES)
     parser.add_argument("--ledger", type=Path, default=DEFAULT_LEDGER_PATH)
+    parser.add_argument("--evidence", type=Path)
     parser.add_argument("--probe-dir", type=Path, default=DEFAULT_PROBE_DIR)
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("validate", help="Validate the configuration")
@@ -3199,6 +3309,8 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Iterable[str] | None = None) -> int:
     """Run the gate command."""
     args = _build_parser().parse_args(list(argv) if argv is not None else None)
+    if args.evidence is None and _ledger_is_dir(args.ledger):
+        args.evidence = EVIDENCE_PATH
     try:
         config = load_config(args.config)
         return _dispatch(args, config)

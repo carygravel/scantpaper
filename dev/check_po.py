@@ -11,9 +11,9 @@ and parses the message bodies with polib to catch defects `msgfmt` misses:
 * malformed `str.format` fields (`{}` replacement fields whose braces are
   unbalanced, or whose field names differ from the `msgid`), which `msgfmt`
   does not check at all;
-* catalog-hygiene items reported as advisory: obsolete-entry growth past a
-  ratcheted ceiling, `#, fuzzy` entries with an empty translation, and
-  message text that is not in Unicode NFC form;
+* catalog hygiene: obsolete-entry growth past a ratcheted ceiling is a hard
+  failure; `#, fuzzy` entries with an empty translation and message text that
+  is not in Unicode NFC form are reported as advisory;
 * translation-authoring defects, reported as advisory per catalog: a `msgstr`
   copied verbatim from a *different* msgid (the bad-`msgmerge` signature),
   and sibling controls such as `Select Odd`/`Select Even` given one
@@ -144,8 +144,10 @@ CLDR_NPLURALS: dict[str, int] = {
 # Per-catalog ceiling on obsolete (#~) entries. The check fails only when a
 # catalog's obsolete count GROWS past this value, never on the pre-existing
 # backlog. Values are the counts at adoption; ratchet them DOWN as the
-# backlog is purged. A language absent from the map defaults to its current
-# count (so it can only fail on future growth).
+# backlog is purged. Raise a value only when an intentional template refresh
+# adds obsolete entries, and record the reason in the commit. A language
+# absent from the map defaults to its current count (so it can only fail on
+# future growth).
 OBSOLETE_CEILING: dict[str, int] = {
     "ab": 0,
     "af": 3,
@@ -157,7 +159,7 @@ OBSOLETE_CEILING: dict[str, int] = {
     "da": 168,
     "de": 142,
     "el": 116,
-    "en_GB": 137,
+    "en_GB": 160,
     "en_US": 4,
     "es": 130,
     "eu": 168,

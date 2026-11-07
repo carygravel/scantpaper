@@ -36,7 +36,9 @@ The layout is:
 ```text
 po/scantpaper/<language>.po     catalogs, one per language
 po/scantpaper/scantpaper.pot    generated template (git-ignored)
-po/translation-approvals.json   approval ledger
+po/approvals/manifest.json      approval ledger manifest
+po/approvals/global.json        global conformances and revocations
+po/approvals/<language>.json    per-language approvals and summaries
 po/translation-audit.json       human-core audit report
 po/translation-gate.json        model releases and deployments
 po/translation-gate.roles.json  proposer and judge roles
@@ -170,14 +172,30 @@ No token or key belongs in the repository or CI, and CI never authenticates.
 
 ## The approval ledger
 
-`po/translation-approvals.json` is the source of truth for whether a
-translation may ship. It is separate from the `#, fuzzy` flag, and the two
-answer different questions:
+`po/approvals/` is the source of truth for whether a translation may ship.
+The directory holds a small `manifest.json`, a `global.json` for conformances
+and revocations, and one file per language. It is separate from the `#, fuzzy`
+flag, and the two answer different questions:
 
 - `fuzzy` is a gettext proposal state. A fuzzy entry is never compiled into a
   released catalog, whatever the ledger says.
 - An approval says that the exact translation text may ship. A non-fuzzy
   entry without a valid approval falls back to English in a release build.
+
+Each approval carries an `evidence_sha256`. The full proposal, check and call
+payloads are stored in `.cache/translation-evidence.ndjson`, a
+content-addressed, git-ignored sidecar. Archive that file with the release
+artifacts. A checkout without it can still build a release; `costs` reports
+the summary totals, and a deep audit reports the evidence as unavailable.
+
+The one-time migration is:
+
+```sh
+python3 dev/split_translation_ledger.py --write
+```
+
+It verifies every approval key and translation digest before removing the old
+single file. The sidecar is append-only; archive it, do not commit it.
 
 The ledger is keyed by `(language, msgctxt, msgid, msgid_plural)` plus the
 SHA-256 of the canonical translation text. Editing the source string, the
@@ -648,7 +666,7 @@ python3 dev/compile_mo.py \
     --src po/scantpaper \
     --out src/scantpaper/locale \
     --domain scantpaper \
-    --approvals po/translation-approvals.json \
+    --approvals po/approvals \
     --pot po/scantpaper/scantpaper.pot \
     --report translation-report.json
 ```

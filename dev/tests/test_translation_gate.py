@@ -2415,6 +2415,303 @@ def test_translate_cli_include_fuzzy(
     assert len(LEDGER.approvals(LEDGER.load_ledger(ledger_path))) == 1
 
 
+def _split_ledger(tmp_path: Path, languages: tuple[str, ...] = ("de", "en_GB")) -> Path:
+    """Write a split ledger with one historical approval per language."""
+    records = []
+    for language in languages:
+        entry = polib.POEntry(msgid=f"{language}-old", msgstr="old")
+        records.append(
+            LEDGER.make_record(
+                language,
+                entry,
+                "human-historical",
+                context=LEDGER.ApprovalContext(approval_date="2026-02-28"),
+            )
+        )
+    data: dict[str, object] = {
+        "version": 1,
+        "snapshot": "a" * 40,
+        "approvals": records,
+    }
+    directory = tmp_path / "approvals"
+    LEDGER.write_ledger(data, directory)
+    return directory
+
+
+def _split_config(tmp_path: Path) -> Path:
+    """Write a gate config for split-ledger tests."""
+    return _write_config(tmp_path, _config_data())
+
+
+def test_gate_with_split_ledger_writes_one_language(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A gate run writes only its language file and the evidence sidecar."""
+    directory = _split_ledger(tmp_path)
+    config_path = _split_config(tmp_path)
+    sidecar = tmp_path / "evidence.ndjson"
+    before_en = (directory / "en_GB.json").read_text(encoding="utf-8")
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(directory),
+            "--evidence",
+            str(sidecar),
+            "gate",
+            "--language",
+            "de",
+            "--msgid",
+            "Delete",
+        ]
+    )
+    assert status == 0
+    de_data = LEDGER.load_language_ledger(directory, "de")
+    runs = LEDGER.section(de_data, "gate_runs")
+    assert len(runs) == 1
+    assert "calls" not in runs[0]
+    assert runs[0]["evidence_sha256"]
+    assert sidecar.exists()
+    assert (directory / "en_GB.json").read_text(encoding="utf-8") == before_en
+
+
+def test_costs_resolves_compact_gate_runs(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The cost report resolves calls from the sidecar."""
+    directory = _split_ledger(tmp_path)
+    config_path = _split_config(tmp_path)
+    sidecar = tmp_path / "evidence.ndjson"
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+    )
+    assert (
+        GATE.main(
+            [
+                "--config",
+                str(config_path),
+                "--ledger",
+                str(directory),
+                "--evidence",
+                str(sidecar),
+                "gate",
+                "--language",
+                "de",
+                "--msgid",
+                "Delete",
+            ]
+        )
+        == 0
+    )
+    capsys.readouterr()
+    assert (
+        GATE.main(
+            [
+                "--ledger",
+                str(directory),
+                "--evidence",
+                str(sidecar),
+                "costs",
+                "--json",
+            ]
+        )
+        == 0
+    )
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["languages"]["de"]["p1"]["calls"] == 1
+
+
+def test_approve_with_split_ledger_writes_one_language(tmp_path: Path) -> None:
+    """Approving a decision writes only the decision's language file."""
+    directory = _split_ledger(tmp_path)
+    config_path = _split_config(tmp_path)
+    catalog_path = _write_catalog(tmp_path / "de.po", (_batch_entry("Delete"),))
+    before_en = (directory / "en_GB.json").read_text(encoding="utf-8")
+    decision = _batch_decision("Delete")
+    decision_path = tmp_path / "decision.json"
+    decision_path.write_text(
+        json.dumps(
+            {
+                "approved": True,
+                "reason": decision.reason,
+                "translation": decision.translation,
+                "record": decision.record,
+            }
+        ),
+        encoding="utf-8",
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(directory),
+            "approve",
+            "--catalog",
+            str(catalog_path),
+            "--msgid",
+            "Delete",
+            "--decision",
+            str(decision_path),
+        ]
+    )
+    assert status == 0
+    saved = polib.pofile(str(catalog_path)).find("Delete")
+    assert saved is not None
+    assert saved.msgstr == "Löschen"
+    assert (directory / "en_GB.json").read_text(encoding="utf-8") == before_en
+    de_data = LEDGER.load_language_ledger(directory, "de")
+    assert len(LEDGER.approvals(de_data)) == 2
+
+
+def test_revoke_with_split_ledger_writes_global_only(tmp_path: Path) -> None:
+    """A revocation updates global.json without rewriting language files."""
+    directory = _split_ledger(tmp_path)
+    before_de = (directory / "de.json").read_text(encoding="utf-8")
+    before_en = (directory / "en_GB.json").read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--ledger",
+            str(directory),
+            "revoke",
+            "--scope",
+            "language",
+            "--value",
+            "de",
+        ]
+    )
+    assert status == 0
+    global_data = LEDGER.load_global_ledger(directory)
+    assert LEDGER.section(global_data, "revocations")[0]["value"] == "de"
+    assert (directory / "de.json").read_text(encoding="utf-8") == before_de
+    assert (directory / "en_GB.json").read_text(encoding="utf-8") == before_en
+
+
+def test_qualify_with_split_ledger_compacts_calls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A qualification writes only its language file and compacts calls."""
+    de_entry = polib.POEntry(msgid="Delete", msgstr="Löschen")
+    records = [
+        LEDGER.make_record(
+            "de",
+            de_entry,
+            "human-historical",
+            context=LEDGER.ApprovalContext(approval_date="2026-02-28"),
+        ),
+        LEDGER.make_record(
+            "en_GB",
+            polib.POEntry(msgid="old", msgstr="old"),
+            "human-historical",
+            context=LEDGER.ApprovalContext(approval_date="2026-02-28"),
+        ),
+    ]
+    directory = tmp_path / "approvals"
+    LEDGER.write_ledger(
+        {"version": 1, "snapshot": "a" * 40, "approvals": records},
+        directory,
+    )
+    config_path = _split_config(tmp_path)
+    catalog_path = _write_catalog(
+        tmp_path / "de.po", (_batch_entry("Delete", "Löschen"),)
+    )
+    sidecar = tmp_path / "evidence.ndjson"
+    before_en = (directory / "en_GB.json").read_text(encoding="utf-8")
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(directory),
+            "--evidence",
+            str(sidecar),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+            "--count",
+            "1",
+        ]
+    )
+    assert status == 0
+    de_data = LEDGER.load_language_ledger(directory, "de")
+    qualifications = LEDGER.section(de_data, "qualifications")
+    assert len(qualifications) == 1
+    assert "calls" not in qualifications[0]
+    assert qualifications[0]["evidence_sha256"]
+    assert sidecar.exists()
+    assert (directory / "en_GB.json").read_text(encoding="utf-8") == before_en
+
+
+def test_drift_with_split_ledger_compacts_calls(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A paused drift probe writes only its language file and sidecar."""
+    directory = _split_ledger(tmp_path)
+    config_path = _split_config(tmp_path)
+    probe = tmp_path / "de.json"
+    probe.write_text(
+        json.dumps(
+            {
+                "language": "de",
+                "version": 1,
+                "items": [{"msgid": "Delete", "msgstr": "Löschen"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    sidecar = tmp_path / "evidence.ndjson"
+    before_en = (directory / "en_GB.json").read_text(encoding="utf-8")
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Falsch"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(directory),
+            "--evidence",
+            str(sidecar),
+            "drift",
+            "--deployment",
+            "p1",
+            "--language",
+            "de",
+            "--probe",
+            str(probe),
+        ]
+    )
+    assert status == 0
+    de_data = LEDGER.load_language_ledger(directory, "de")
+    excursions = LEDGER.section(de_data, "drift_excursions")
+    assert len(excursions) == 1
+    assert "calls" not in excursions[0]
+    assert excursions[0]["evidence_sha256"]
+    assert sidecar.exists()
+    assert (directory / "en_GB.json").read_text(encoding="utf-8") == before_en
+
+
 def test_costs_cli_reports_json(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

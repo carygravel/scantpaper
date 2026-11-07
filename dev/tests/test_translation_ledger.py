@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEV_DIR = REPO_ROOT / "dev"
 LEDGER_MODULE_PATH = DEV_DIR / "translation_ledger.py"
-LEDGER_PATH = REPO_ROOT / "po" / "translation-approvals.json"
+LEDGER_PATH = REPO_ROOT / "po" / "approvals"
 FINDINGS_PATH = REPO_ROOT / "po" / "README.md"
 
 sys.path.insert(0, str(DEV_DIR))
@@ -200,3 +200,134 @@ def _po(*entries: polib.POEntry) -> polib.POFile:
     for entry in entries:
         po.append(entry)
     return po
+
+
+def test_split_ledger_round_trip(tmp_path: Path) -> None:
+    """Per-language files merge back into the same approval set."""
+    fr_entry = polib.POEntry(msgid="Open", msgstr="Ouvrir")
+    fr_record = cast(
+        "dict[str, object]",
+        LEDGER.make_record(
+            "fr",
+            fr_entry,
+            "human-historical",
+            context=LEDGER.ApprovalContext(approval_date="2026-02-28"),
+        ),
+    )
+    data: dict[str, object] = {
+        "version": 1,
+        "snapshot": "a" * 40,
+        "approvals": [_record(), fr_record],
+        "qualifications": [{"release": "r1", "language": "de"}],
+        "conformances": [{"release": "r1", "deployment": "p1"}],
+        "revocations": [{"scope": "language", "value": "fr"}],
+        "gate_runs": [{"language": "de", "calls": []}],
+    }
+    LEDGER.write_ledger(data, tmp_path)
+    assert (tmp_path / LEDGER.MANIFEST_NAME).exists()
+    assert (tmp_path / LEDGER.GLOBAL_NAME).exists()
+    assert (tmp_path / "de.json").exists()
+    assert (tmp_path / "fr.json").exists()
+
+    merged = LEDGER.load_ledger(tmp_path)
+    assert len(LEDGER.approvals(merged)) == 2
+    assert LEDGER.section(merged, "qualifications")
+    assert LEDGER.section(merged, "conformances")
+    assert LEDGER.section(merged, "revocations")
+
+    de_data = LEDGER.load_language_ledger(tmp_path, "de")
+    assert [record["language"] for record in LEDGER.approvals(de_data)] == ["de"]
+    fr_before = (tmp_path / "fr.json").read_text(encoding="utf-8")
+    approvals_list = cast("list[dict[str, object]]", de_data["approvals"])
+    approvals_list.append(
+        cast(
+            "dict[str, object]",
+            LEDGER.make_record(
+                "de",
+                polib.POEntry(msgid="Open", msgstr="Öffnen"),
+                "human-historical",
+                context=LEDGER.ApprovalContext(approval_date="2026-02-28"),
+            ),
+        )
+    )
+    LEDGER.write_language_ledger(de_data, tmp_path, "de")
+    assert (tmp_path / "fr.json").read_text(encoding="utf-8") == fr_before
+
+
+def test_split_ledger_rejects_duplicate_approvals(tmp_path: Path) -> None:
+    """A duplicate approval key is rejected before it is written."""
+    with pytest.raises(LEDGER.LedgerError, match="duplicate approval"):
+        LEDGER.write_ledger(_ledger(_record(), _record()), tmp_path)
+
+
+def test_evidence_store_dedupes_and_resolves(tmp_path: Path) -> None:
+    """The sidecar stores one copy of a payload and resolves it by digest."""
+    path = tmp_path / "evidence.ndjson"
+    payload = {"calls": [{"cost_usd": 0.1}]}
+    digest = LEDGER.write_evidence(payload, path, kind="gate_run", language="de")
+    assert path.read_text(encoding="utf-8").count("\n") == 1
+    assert (
+        LEDGER.write_evidence(payload, path, kind="gate_run", language="de") == digest
+    )
+    assert path.read_text(encoding="utf-8").count("\n") == 1
+    assert LEDGER.load_evidence(digest, path) == payload
+    assert LEDGER.load_evidence("0" * 64, path) is None
+
+
+def test_compact_approval_record_keeps_a_summary(tmp_path: Path) -> None:
+    """Compaction moves the full evidence to the sidecar and keeps the digest."""
+    evidence: dict[str, object] = {
+        "proposals": [
+            {
+                "deployment": "p1",
+                "release": "r1",
+                "family": "family-a",
+                "text": "Löschen",
+                "call": {"cost_usd": 1.0},
+            }
+        ],
+        "checks": {"p1": []},
+        "judge": {"deployment": "j", "verdict": "A"},
+        "calls": [{"cost_usd": 1.0}],
+        "high_impact": False,
+        "prompt_version": 1,
+        "prompt_hash": "sha256:test",
+    }
+    record = cast(
+        "dict[str, object]",
+        LEDGER.make_record(
+            "de",
+            _entry(),
+            "machine-strong",
+            context=LEDGER.ApprovalContext(
+                approval_date="2026-02-28",
+                evidence=evidence,
+                model_release="r1",
+                deployment="p1",
+            ),
+        ),
+    )
+    path = tmp_path / "evidence.ndjson"
+    LEDGER.compact_approval_record(record, path)
+    summary = cast("dict[str, object]", record["evidence"])
+    assert "calls" not in summary
+    proposals = cast("list[dict[str, object]]", summary["proposals"])
+    assert "text" not in proposals[0]
+    digest = cast("str", record["evidence_sha256"])
+    assert LEDGER.load_evidence(digest, path) == evidence
+    LEDGER.validate_record(record, index=0)
+
+
+def test_compact_operational_record_resolves_calls(tmp_path: Path) -> None:
+    """A compact gate run can recover its calls from the sidecar."""
+    path = tmp_path / "evidence.ndjson"
+    record: dict[str, object] = {
+        "language": "de",
+        "calls": [{"cost_usd": 0.1}],
+        "call_count": 1,
+        "total_cost_usd": 0.1,
+        "latency_ms": 1.0,
+    }
+    LEDGER.compact_operational_record(record, path, kind="gate_run")
+    assert "calls" not in record
+    assert LEDGER.load_gate_run_calls(record, path) == [{"cost_usd": 0.1}]

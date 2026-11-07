@@ -137,7 +137,7 @@ This document provides essential context for anyone working on this project. Adh
        catalog pass.
     8. The machine gate may clear a fuzzy flag without a per-string human
        decision only by recording an approval in
-       `po/translation-approvals.json`. The evidence ladder is: unchanged
+       `po/approvals/`. The evidence ladder is: unchanged
        pre-2026 text -> `human-historical`; a mnemonic or placeholder-only
        rebase -> `in-project-rebase`; a dominant cross-project match plus
        the deterministic checks -> `tm-consensus`; full independent

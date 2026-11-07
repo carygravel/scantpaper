@@ -27,7 +27,7 @@
    python3 dev/summarise_po.py --pot po/scantpaper/scantpaper.pot
    ```
    A non-fuzzy entry without a valid approval in
-   [po/translation-approvals.json](po/translation-approvals.json) falls back to
+   [po/approvals/](po/approvals/) falls back to
    English. The packaging build passes that ledger to `dev/compile_mo.py` and
    writes `translation-report.json` with per-language coverage and fallbacks.
    See [po/README.md](po/README.md) for the full translation workflow.

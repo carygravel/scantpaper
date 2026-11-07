@@ -4,7 +4,7 @@ Usage:
   python3 compile_mo.py # compiles po/scantpaper/*.po into src/scantpaper/locale/<lang>/LC_MESSAGES/<domain>.mo
   python3 compile_mo.py --src po/scantpaper --out src/scantpaper/locale
   python3 compile_mo.py --src po/scantpaper --out src/scantpaper/locale --domain scantpaper
-  python3 compile_mo.py --approvals po/translation-approvals.json
+  python3 compile_mo.py --approvals po/approvals
 
 With ``--approvals`` only entries that carry a valid approval are compiled; an
 unapproved non-fuzzy entry is blanked so gettext falls back to its English
