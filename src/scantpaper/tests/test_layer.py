@@ -226,11 +226,57 @@ def test_edit_sets_focus(mocker: pytest.MockerFixture) -> None:
     assert editor._current_bbox is bbox
     editor.controls.textbuffer.set_text.assert_called_with("word")
     editor.controls.show.assert_called()
+    editor.controls.textview.grab_focus.assert_called_once_with()
+    editor.controls.textbuffer.select_range.assert_called_once_with(
+        editor.controls.textbuffer.get_start_iter.return_value,
+        editor.controls.textbuffer.get_end_iter.return_value,
+    )
     view.set_selection.assert_called_with(bbox.bbox)
     view.setzoom_is_fit.assert_called_with(zoom_to_fit=False)
     view.focus_on_box.assert_called_once_with(bbox.bbox, 31, 1.0)
     view.zoom_to_selection.assert_not_called()
     editor.canvas.set_index_by_bbox.assert_called_with(bbox)
+
+
+def test_edit_annotation_focuses_and_selects(mocker: pytest.MockerFixture) -> None:
+    """The annotation editor focuses and selects its note text too."""
+    editor, _page, _thread, _view = make_editor(mocker, page_attr="annotations")
+    editor.canvas = mocker.Mock()
+    editor.controls = mocker.Mock()
+    line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), x_size=31)
+    bbox = Bbox(
+        text="note",
+        bbox=_rect(10, 10, 40, 20),
+        type="word",
+        parent=line,
+    )
+
+    editor.edit(bbox)
+
+    editor.controls.textview.grab_focus.assert_called_once_with()
+    editor.controls.textbuffer.select_range.assert_called_once_with(
+        editor.controls.textbuffer.get_start_iter.return_value,
+        editor.controls.textbuffer.get_end_iter.return_value,
+    )
+
+
+def test_edit_selects_the_whole_text(mocker: pytest.MockerFixture) -> None:
+    """Selecting the slice text lets typing replace it."""
+    editor, _page, _thread, _view = make_editor(mocker)
+    editor.canvas = mocker.Mock()
+    line = Bbox(type="line", bbox=_rect(0, 0, 200, 40), x_size=31)
+    bbox = Bbox(
+        text="helo",
+        bbox=_rect(10, 10, 40, 20),
+        type="word",
+        parent=line,
+    )
+
+    editor.edit(bbox)
+
+    start, end = editor.controls.textbuffer.get_selection_bounds()
+    assert start.get_offset() == 0
+    assert end.get_offset() == len("helo")
 
 
 def test_navigation_uses_the_focus_zoom(mocker: pytest.MockerFixture) -> None:
@@ -245,9 +291,14 @@ def test_navigation_uses_the_focus_zoom(mocker: pytest.MockerFixture) -> None:
         parent=line,
     )
     editor.canvas.get_next_bbox.return_value = bbox
+    grab_focus = mocker.patch.object(editor.controls.textview, "grab_focus")
 
     editor.controls.emit("go-to-next")
 
+    grab_focus.assert_called_once_with()
+    start, end = editor.controls.textbuffer.get_selection_bounds()
+    assert start.get_offset() == 0
+    assert end.get_offset() == len(bbox.text)
     view.focus_on_box.assert_called_once_with(bbox.bbox, 31, 1.0)
 
 
@@ -410,6 +461,8 @@ def test_edit_none_clears_control(mocker: pytest.MockerFixture) -> None:
     editor.edit(None)
     assert editor._current_bbox is None
     editor.controls.textbuffer.set_text.assert_called_once_with(EMPTY)
+    editor.controls.textview.grab_focus.assert_not_called()
+    editor.controls.textbuffer.select_range.assert_not_called()
     editor.canvas.set_index_by_bbox.assert_not_called()
 
 
@@ -594,6 +647,7 @@ def test_ok_commits_and_advances(mocker: pytest.MockerFixture) -> None:
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is successor
     editor.controls.textbuffer.set_text.assert_called_with("next")
+    editor.controls.textview.grab_focus.assert_called_once_with()
     view.focus_on_box.assert_called_once()
 
 
@@ -619,6 +673,7 @@ def test_copy_duplicates_box(mocker: pytest.MockerFixture) -> None:
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is new_bbox
+    editor.controls.textview.grab_focus.assert_called_once_with()
     view.focus_on_box.assert_called_once()
 
 
@@ -669,6 +724,7 @@ def test_add_existing_layer(mocker: pytest.MockerFixture) -> None:
     page.import_hocr.assert_called_with(editor.canvas.hocr())
     thread.set_text.assert_called_once_with(page.id, page.text_layer)
     assert editor._current_bbox is new_bbox
+    editor.controls.textview.grab_focus.assert_called_once_with()
     view.focus_on_box.assert_called_once()
 
 
@@ -938,6 +994,8 @@ def test_create_clears_stale_focus_before_rebuild(
 
     assert editor._current_bbox is None, "rebuild clears the stale focused slice"
     editor.controls.textbuffer.set_text.assert_called_once_with(EMPTY)
+    editor.controls.textview.grab_focus.assert_not_called()
+    editor.controls.textbuffer.select_range.assert_not_called()
 
 
 def test_clear_resets_focus_and_empties(mocker: pytest.MockerFixture) -> None:
@@ -951,6 +1009,8 @@ def test_clear_resets_focus_and_empties(mocker: pytest.MockerFixture) -> None:
 
     assert editor._current_bbox is None
     editor.controls.textbuffer.set_text.assert_called_once_with(EMPTY)
+    editor.controls.textview.grab_focus.assert_not_called()
+    editor.controls.textbuffer.select_range.assert_not_called()
     editor.canvas.clear_text.assert_called_once()
 
 

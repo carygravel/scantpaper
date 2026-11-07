@@ -5,6 +5,10 @@
   `Ctrl+Shift+Z`, `+` and `-` edit the text instead of acting on pages or
   zooming the image. Page and zoom shortcuts still work when focus is outside
   a text field, and the mouse wheel continues to zoom.
+* Focusing a slice in the text or annotation editor now puts keyboard focus in
+  its text control and selects the slice text. Pressing Delete therefore clears
+  the OCR text instead of deleting the page, and typing replaces the selected
+  text. Page deletion with Delete still works from the page list.
 * GitHub releases now group the RPMs into one `.tar.gz` per target
   (`fedora-43`, `fedora-44`, `opensuse-leap-16.0` and
   `opensuse-tumbleweed`) instead of publishing every RPM separately. The

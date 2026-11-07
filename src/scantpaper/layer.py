@@ -655,8 +655,11 @@ class LayerEditor:
             self.controls.textbuffer.set_text(EMPTY)
             self._update_rotate_state()
             return
-        self.controls.textbuffer.set_text(bbox.text)
+        textbuffer = self.controls.textbuffer
+        textbuffer.set_text(bbox.text)
         self.controls.show()
+        self.controls.textview.grab_focus()
+        textbuffer.select_range(textbuffer.get_start_iter(), textbuffer.get_end_iter())
         self._view.set_selection(bbox.bbox)
         self._view.setzoom_is_fit(zoom_to_fit=False)
         self._apply_focus_zoom(bbox)

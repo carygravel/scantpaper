@@ -357,9 +357,12 @@ Further reading:
   you were last editing is remembered when you restart. The control bar has a
   fixed height: it appears or disappears with its layer immediately, and cannot
   be resized by dragging. Click a slice to focus
-  it for correction; with the Select or Select & Pan tool active, press or drag
-  anywhere else in the pane to start a new selection rectangle, while the Pan
-  tool pans instead. Focusing a slice zooms so its line is drawn at a
+  it for correction; focusing a slice also puts keyboard focus in the text
+  control and selects the slice text, so Delete clears the OCR text instead of
+  deleting the page. Click inside the control to place the caret for
+  character-level edits. With the Select or Select & Pan tool active, press or
+  drag anywhere else in the pane to start a new selection rectangle, while the
+  Pan tool pans instead. Focusing a slice zooms so its line is drawn at a
   consistent, comfortable reading size rather than a fixed fraction of the
   pane, so short and long words from the same line look alike and a long word
   still fits with a margin around it. The zoom button beside the navigation
