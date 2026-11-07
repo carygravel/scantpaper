@@ -831,6 +831,45 @@ def _costed_config(tmp_path: Path) -> GateConfig:
     return cast("GateConfig", GATE.load_config(_write_config(tmp_path, data)))
 
 
+def _qualification_setup(
+    tmp_path: Path, *, costed: bool = False
+) -> tuple[Path, Path, Path]:
+    """Write a config, a human approval and a matching catalog."""
+    data = _config_data()
+    if costed:
+        deployments = cast("dict[str, dict[str, object]]", data["deployments"])
+        for deployment in deployments.values():
+            deployment["cost"] = {
+                "currency": "USD",
+                "unit": "per_million_tokens",
+                "input": 1.0,
+                "output": 2.0,
+                "cache_read": 0.5,
+            }
+    config_path = _write_config(tmp_path, data)
+    entry = polib.POEntry(msgid="Delete", msgstr="Löschen")
+    record = cast(
+        "dict[str, object]",
+        LEDGER.make_record(
+            "de",
+            entry,
+            "human-review",
+            context=LEDGER.ApprovalContext(approval_date="2026-01-01"),
+        ),
+    )
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger(record))
+    catalog_path = tmp_path / "de.po"
+    catalog = polib.POFile()
+    catalog.metadata = {
+        "MIME-Version": "1.0",
+        "Content-Type": "text/plain; charset=UTF-8",
+        "Content-Transfer-Encoding": "8bit",
+    }
+    catalog.append(entry)
+    catalog.save(str(catalog_path))
+    return config_path, ledger_path, catalog_path
+
+
 def test_estimate_tokens_and_output_bounds() -> None:
     """The heuristic is configurable and the output range is bounded."""
     assert GATE.estimate_tokens("12345678", 4.0) == 2
@@ -944,6 +983,337 @@ def test_estimate_cli_reports_a_range(
     assert payload["action"] == "gate"
     assert len(payload["deployments"]) == 3
     assert payload["high_cost_usd"] is not None
+
+
+def test_qualify_cli_records_a_passing_release(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A matching proposal writes a qualified record and a summary."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+            "--count",
+            "1",
+        ]
+    )
+    assert status == 0
+    records = LEDGER.section(LEDGER.load_ledger(ledger_path), "qualifications")
+    assert len(records) == 1
+    assert records[0]["qualified"] is True
+    assert records[0]["score"] == 1.0
+    assert records[0]["baseline_size"] == 1
+    out = capsys.readouterr().out
+    assert "qualification de" in out
+    assert "qualified" in out
+    assert "score 1.0" in out
+
+
+def test_qualify_cli_reports_json(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The JSON form prints the stored record."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Löschen"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+            "--count",
+            "1",
+            "--json",
+        ]
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["release"] == "r1"
+    assert payload["language"] == "de"
+    assert payload["qualified"] is True
+    assert payload["score"] == 1.0
+
+
+def test_qualify_cli_records_a_miss(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A proposal below the tolerance is recorded as not qualified."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda: FakeClient({"p1": "Falsch"}),
+    )
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+            "--count",
+            "1",
+        ]
+    )
+    assert status == 0
+    records = LEDGER.section(LEDGER.load_ledger(ledger_path), "qualifications")
+    assert len(records) == 1
+    assert records[0]["qualified"] is False
+    assert records[0]["score"] == 0.0
+    assert "not qualified" in capsys.readouterr().out
+
+
+def test_qualify_cli_records_no_baseline_without_a_model_call(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An empty baseline records the reason and makes no request."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
+    _write_ledger(ledger_path, _ledger())
+    client = Mock()
+    client.complete.side_effect = AssertionError("no request expected")
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+            "--count",
+            "1",
+        ]
+    )
+    assert status == 0
+    records = LEDGER.section(LEDGER.load_ledger(ledger_path), "qualifications")
+    assert len(records) == 1
+    assert records[0]["qualified"] is False
+    assert records[0]["reason"] == "no held-out human entries"
+    client.complete.assert_not_called()
+    assert "ineligible" in capsys.readouterr().out
+
+
+def test_qualify_cli_rejects_an_unknown_release(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An unknown release fails before reading the ledger or catalog."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
+    before = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "missing",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+        ]
+    )
+    assert status == 1
+    assert "not configured" in capsys.readouterr().err
+    assert ledger_path.read_text(encoding="utf-8") == before
+
+
+def test_qualify_cli_rejects_an_unreadable_catalog(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An unreadable catalog leaves the ledger unchanged."""
+    config_path, ledger_path, _catalog_path = _qualification_setup(tmp_path)
+    before = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(tmp_path / "missing.po"),
+        ]
+    )
+    assert status == 1
+    assert "cannot read catalog" in capsys.readouterr().err
+    assert ledger_path.read_text(encoding="utf-8") == before
+
+
+def test_qualify_cli_reports_a_missing_credential(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A missing key variable is named and no record is written."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
+    monkeypatch.delenv("SCANTPAPER_TEST_KEY", raising=False)
+    before = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+            "--count",
+            "1",
+        ]
+    )
+    assert status == 1
+    err = capsys.readouterr().err
+    assert "SCANTPAPER_TEST_KEY" in err
+    assert "Bearer" not in err
+    assert ledger_path.read_text(encoding="utf-8") == before
+
+
+def test_qualify_cli_rejects_a_non_positive_count(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A zero count is rejected before selecting entries."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
+    before = ledger_path.read_text(encoding="utf-8")
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+            "--count",
+            "0",
+        ]
+    )
+    assert status == 1
+    assert "must be positive" in capsys.readouterr().err
+    assert ledger_path.read_text(encoding="utf-8") == before
+
+
+def test_qualify_cli_stops_before_a_request_when_over_budget(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An over-budget estimate makes no call and writes no record."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path, costed=True)
+    client = Mock()
+    client.complete.side_effect = AssertionError("no request expected")
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(
+        [
+            "--config",
+            str(config_path),
+            "--ledger",
+            str(ledger_path),
+            "qualify",
+            "--release",
+            "r1",
+            "--language",
+            "de",
+            "--catalog",
+            str(catalog_path),
+            "--count",
+            "1",
+            "--max-cost",
+            "0",
+        ]
+    )
+    assert status == 1
+    client.complete.assert_not_called()
+    assert LEDGER.section(LEDGER.load_ledger(ledger_path), "qualifications") == []
+    assert "exceeds budget" in capsys.readouterr().err
+
+
+def test_qualify_cli_replaces_an_earlier_record(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A second run updates the one record for the release and language."""
+    config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
+    clients = [FakeClient({"p1": "Löschen"}), FakeClient({"p1": "Falsch"})]
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: clients.pop(0))
+    args = [
+        "--config",
+        str(config_path),
+        "--ledger",
+        str(ledger_path),
+        "qualify",
+        "--release",
+        "r1",
+        "--language",
+        "de",
+        "--catalog",
+        str(catalog_path),
+        "--count",
+        "1",
+    ]
+    assert GATE.main(args) == 0
+    assert GATE.main(args) == 0
+    records = LEDGER.section(LEDGER.load_ledger(ledger_path), "qualifications")
+    assert len(records) == 1
+    assert records[0]["qualified"] is False
+    assert records[0]["score"] == 0.0
 
 
 def test_costs_cli_reports_json(

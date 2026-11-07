@@ -1913,6 +1913,29 @@ def _print_estimate(estimate: ActionEstimate) -> None:
     print(f"  assumption: {estimate.assumptions['method']}")
 
 
+def _print_qualification(record: Mapping[str, object]) -> None:
+    """Print a compact qualification result."""
+    release = record.get("release")
+    language = record.get("language")
+    reason = record.get("reason")
+    if record.get("qualified") is True:
+        outcome = "qualified"
+    elif isinstance(reason, str) and reason:
+        outcome = f"ineligible: {reason}"
+    else:
+        outcome = "not qualified"
+    parts = [
+        f"score {record.get('score')}",
+        f"tolerance {record.get('tolerance')}",
+        f"baseline {record.get('baseline_size')}",
+    ]
+    deployment = record.get("deployment")
+    if isinstance(deployment, str) and deployment:
+        parts.append(f"deployment {deployment}")
+    parts.append(f"cost {record.get('total_cost_usd')}")
+    print(f"qualification {language} ({release}): {outcome} ({', '.join(parts)})")
+
+
 def _process_gate_call(
     call: Mapping[str, object],
     language: str,
@@ -2467,6 +2490,61 @@ def _command_estimate(args: argparse.Namespace, config: GateConfig) -> int:
     return 0
 
 
+def _command_qualify(args: argparse.Namespace, config: GateConfig) -> int:
+    """Qualify one release for one language and record the result."""
+    if args.count <= 0:
+        print("error: --count must be positive", file=sys.stderr)
+        return 1
+    if args.release not in config.releases or not config.deployments_for(args.release):
+        print(
+            f"error: release {args.release!r} is not configured",
+            file=sys.stderr,
+        )
+        return 1
+    catalog_path = args.catalog or (
+        REPO_ROOT / "po" / "scantpaper" / f"{args.language}.po"
+    )
+    try:
+        catalog = polib.pofile(str(catalog_path))
+    except OSError as error:
+        print(
+            f"error: cannot read catalog {catalog_path}: {error}",
+            file=sys.stderr,
+        )
+        return 1
+    ledger = load_ledger(args.ledger)
+    entries = _held_out(ledger, catalog, args.language, args.count)
+    request = QualificationRequest(
+        args.release,
+        args.language,
+        entries,
+        budget_usd=args.max_cost,
+    )
+    try:
+        record = qualify_release(
+            ledger,
+            config,
+            request,
+            OpenAICompatibleClient(),
+        )
+    except GateError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+    try:
+        write_ledger(ledger, args.ledger)
+    except (LedgerError, OSError) as error:
+        print(
+            f"error: cannot write ledger {args.ledger}: {error}",
+            file=sys.stderr,
+        )
+        return 1
+    if args.json:
+        print(json.dumps(record, ensure_ascii=False, indent=2))
+    else:
+        _print_qualification(record)
+    return 0
+
+
 def _command_revoke(args: argparse.Namespace, _config: GateConfig) -> int:
     """Record a revocation."""
     revoke(args.ledger, args.scope, args.value)
@@ -2574,6 +2652,7 @@ def _dispatch(args: argparse.Namespace, config: GateConfig) -> int:
         "capability": lambda: _command_capability(args, config),
         "costs": lambda: _command_costs(args, config),
         "estimate": lambda: _command_estimate(args, config),
+        "qualify": lambda: _command_qualify(args, config),
         "revoke": lambda: _command_revoke(args, config),
         "sample": lambda: _command_sample(args, config),
         "build-probes": lambda: _command_build_probes(args, config),
@@ -2587,8 +2666,8 @@ def _dispatch(args: argparse.Namespace, config: GateConfig) -> int:
     return handler()
 
 
-def main(argv: Iterable[str] | None = None) -> int:
-    """Run the gate command."""
+def _build_parser() -> argparse.ArgumentParser:
+    """Build the gate command-line parser."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--roles", type=Path, default=DEFAULT_ROLES)
@@ -2614,6 +2693,13 @@ def main(argv: Iterable[str] | None = None) -> int:
     estimate_parser.add_argument("--chars-per-token", type=float)
     estimate_parser.add_argument("--max-cost", type=float)
     estimate_parser.add_argument("--json", action="store_true")
+    qualify_parser = sub.add_parser("qualify", help="Qualify a release for a language")
+    qualify_parser.add_argument("--release", required=True)
+    qualify_parser.add_argument("--language", required=True)
+    qualify_parser.add_argument("--catalog", type=Path)
+    qualify_parser.add_argument("--count", type=int, default=20)
+    qualify_parser.add_argument("--max-cost", type=float)
+    qualify_parser.add_argument("--json", action="store_true")
     sub.add_parser("build-probes", help="Regenerate the drift-probe files")
     gate_parser = sub.add_parser("gate", help="Gate one string")
     gate_parser.add_argument("--language", required=True)
@@ -2632,8 +2718,12 @@ def main(argv: Iterable[str] | None = None) -> int:
     sample_parser.add_argument("--language", required=True)
     sample_parser.add_argument("--size", type=int, default=20)
     sample_parser.add_argument("--seed", type=int, default=0)
-    args = parser.parse_args(list(argv) if argv is not None else None)
+    return parser
 
+
+def main(argv: Iterable[str] | None = None) -> int:
+    """Run the gate command."""
+    args = _build_parser().parse_args(list(argv) if argv is not None else None)
     try:
         config = load_config(args.config)
         return _dispatch(args, config)

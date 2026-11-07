@@ -320,6 +320,26 @@ Qualification reproduces held-out human approvals for a language and records
 the metric, tolerance, release and drift baseline in the ledger. A language
 with no human baseline stays ineligible.
 
+Run one qualification from the command line:
+
+```sh
+python3 dev/translation_gate.py estimate --action qualification \
+    --release qwen/3.8@2026-09 --language de
+python3 dev/translation_gate.py qualify \
+    --release qwen/3.8@2026-09 --language de --max-cost 0.01
+```
+
+`qualify` selects up to `--count` (default 20) held-out human approvals,
+records the score, tolerance, baseline size, deployment and cost in the
+ledger, and prints them. `--catalog` overrides the default
+`po/scantpaper/<language>.po`, and `--json` prints the whole record.
+
+A language with no human baseline is recorded as ineligible with the reason
+`no held-out human entries` and makes no model call. A score below the
+tolerance is recorded with `qualified: false`. Both write a record and exit
+successfully. An unknown release, unreadable catalog, missing credential or
+over-budget estimate exits non-zero without writing one.
+
 Conformance admits a deployment of an already-qualified release after a
 passing probe. A merely similar model does not inherit and needs full
 qualification.
