@@ -296,10 +296,11 @@ def _changes_file(series_dir: Path) -> Path:
     return changes[0]
 
 
-def _print_commands(changes: Path, target: str) -> None:
-    """Print the upload command."""
+def _print_commands(changes: list[Path], target: str) -> None:
+    """Print the upload commands for every finished series."""
     print("Next steps:")
-    print(f"  dput {target} {changes}")
+    for path in changes:
+        print(f"  dput {target} {path}")
 
 
 def _output_dir(root: Path, configured: Path) -> Path:
@@ -333,8 +334,8 @@ def _load(
     return root, matrix, selected
 
 
-def _build_series(context: Context, spec: SeriesSpec) -> None:
-    """Prepare, build and report one series."""
+def _build_series(context: Context, spec: SeriesSpec) -> Path:
+    """Prepare and build one series, returning its changes file."""
     series_dir = context.output / spec.name
     series_dir.mkdir(parents=True, exist_ok=True)
     tree = _prepare_tree(
@@ -349,16 +350,12 @@ def _build_series(context: Context, spec: SeriesSpec) -> None:
     )
     if context.dry_run:
         print(f"{spec.name}: prepared {tree} for {spec.version}")
-        _print_commands(
-            series_dir / f"scantpaper_{spec.version}_source.changes",
-            context.dput_target,
-        )
-        return
+        return series_dir / f"scantpaper_{spec.version}_source.changes"
     _build(tree)
     changes = _changes_file(series_dir)
     shutil.rmtree(tree)
     print(f"{spec.name}: built {changes}")
-    _print_commands(changes, context.dput_target)
+    return changes
 
 
 def build(args: argparse.Namespace) -> None:
@@ -379,8 +376,17 @@ def build(args: argparse.Namespace) -> None:
         dry_run=args.dry_run,
     )
     context.output.mkdir(parents=True, exist_ok=True)
-    for series in selected:
-        _build_series(context, _spec(series, matrix[series], upstream))
+    changes: list[Path] = []
+    try:
+        # extend() keeps the paths yielded before a failure, so the finally
+        # block can still print the series that finished.
+        changes.extend(
+            _build_series(context, _spec(series, matrix[series], upstream))
+            for series in selected
+        )
+    finally:
+        if changes:
+            _print_commands(changes, context.dput_target)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

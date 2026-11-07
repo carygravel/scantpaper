@@ -117,8 +117,10 @@
    python3 dev/build_ppa.py --all --verify
    ```
    The tool prepares each series from the committed branch, refuses
-   uncommitted packaging changes, signs each source package as it builds it
-   and prints `dput` for every one. Upload them:
+   uncommitted packaging changes, and signs each source package as it builds
+   it. It collects the `dput` commands and prints them together at the end,
+   one per series, including any series that finished before a later failure.
+   Upload them:
 
    ```sh
    dput gscan2pdf-ppa build/ppa/<series>/scantpaper_<version>_source.changes

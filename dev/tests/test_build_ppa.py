@@ -44,6 +44,9 @@ Depends: @,
 MATRIX = """[series.noble]
 debhelper-compat = 13
 
+[series.resolute]
+debhelper-compat = 13
+
 [series.jammy]
 debhelper-compat = 13
 drop-test-depends = ["jbig2"]
@@ -115,6 +118,31 @@ def _run(
         text=True,
         env=env,
     )
+
+
+def _fake_debuild(tmp_path: Path, fail_series: str | None = None) -> dict[str, str]:
+    """Install a fake debuild and return an env that finds it."""
+    fakebin = tmp_path / "bin"
+    fakebin.mkdir(exist_ok=True)
+    script = fakebin / "debuild"
+    script.write_text(
+        "#!/bin/sh\n"
+        'printf "%s\\n" "$*" > "$FAKE_DEBUILD_LOG"\n'
+        'if [ -n "$FAKE_DEBUILD_FAIL_SERIES" ]; then\n'
+        '  case "$(pwd)" in *"/$FAKE_DEBUILD_FAIL_SERIES/"*) exit 1 ;; esac\n'
+        "fi\n"
+        "version=$(sed -n 's/^scantpaper (\\([^)]*\\)).*/\\1/p' debian/changelog "
+        "| head -1)\n"
+        ': > "../scantpaper_${version}_source.changes"\n',
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    return {
+        **os.environ,
+        "PATH": f"{fakebin}{os.pathsep}{os.environ.get('PATH', '')}",
+        "FAKE_DEBUILD_LOG": str(tmp_path / "debuild.args"),
+        "FAKE_DEBUILD_FAIL_SERIES": fail_series or "",
+    }
 
 
 def test_noble_dry_run_rewrites_the_tree(tmp_path: Path) -> None:
@@ -201,24 +229,8 @@ def test_missing_orig_tarball_fails(tmp_path: Path) -> None:
 def test_build_signs_and_prints_only_dput(tmp_path: Path) -> None:
     """Build with signing and leave only the upload to the maintainer."""
     repo = _init_repo(tmp_path)
-    fakebin = tmp_path / "bin"
-    fakebin.mkdir()
+    env = _fake_debuild(tmp_path)
     log = tmp_path / "debuild.args"
-    script = fakebin / "debuild"
-    script.write_text(
-        "#!/bin/sh\n"
-        'printf "%s\\n" "$*" > "$FAKE_DEBUILD_LOG"\n'
-        "version=$(sed -n 's/^scantpaper (\\([^)]*\\)).*/\\1/p' debian/changelog "
-        "| head -1)\n"
-        ': > "../scantpaper_${version}_source.changes"\n',
-        encoding="utf-8",
-    )
-    script.chmod(0o755)
-    env = {
-        **os.environ,
-        "PATH": f"{fakebin}{os.pathsep}{os.environ.get('PATH', '')}",
-        "FAKE_DEBUILD_LOG": str(log),
-    }
 
     result = _run(repo, tmp_path / "out", "--series", "noble", env=env)
 
@@ -231,3 +243,95 @@ def test_build_signs_and_prints_only_dput(tmp_path: Path) -> None:
     assert "debsign" not in result.stdout
     changes = list((tmp_path / "out" / "noble").glob("*.changes"))
     assert len(changes) == 1
+
+
+def _dput(output: Path, series: str) -> str:
+    """Return the expected dput command for a series."""
+    return (
+        f"dput gscan2pdf-ppa {output / series}/"
+        f"scantpaper_4.0.2-0~ppa1{series}_source.changes"
+    )
+
+
+def test_dry_run_prints_one_next_steps_block(tmp_path: Path) -> None:
+    """Collect the dry-run commands into one block in selection order."""
+    repo = _init_repo(tmp_path)
+    output = tmp_path / "out"
+
+    result = _run(repo, output, "--series", "jammy", "--series", "noble", "--dry-run")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.count("Next steps:") == 1
+    header = result.stdout.index("Next steps:")
+    assert header > result.stdout.index("jammy: prepared")
+    assert header > result.stdout.index("noble: prepared")
+    jammy = _dput(output, "jammy")
+    noble = _dput(output, "noble")
+    assert result.stdout.index(jammy) < result.stdout.index(noble)
+
+
+def test_two_series_build_print_one_next_steps_block(tmp_path: Path) -> None:
+    """Collect built packages into one block in selection order."""
+    repo = _init_repo(tmp_path)
+    output = tmp_path / "out"
+    env = _fake_debuild(tmp_path)
+
+    result = _run(repo, output, "--series", "jammy", "--series", "noble", env=env)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.count("Next steps:") == 1
+    header = result.stdout.index("Next steps:")
+    assert header > result.stdout.index("jammy: built")
+    assert header > result.stdout.index("noble: built")
+    assert result.stdout.count("dput gscan2pdf-ppa") == 2
+    jammy = _dput(output, "jammy")
+    noble = _dput(output, "noble")
+    assert result.stdout.index(jammy) < result.stdout.index(noble)
+
+
+def test_failure_keeps_the_commands_of_earlier_series(
+    tmp_path: Path,
+) -> None:
+    """Print the commands for series built before a later failure."""
+    repo = _init_repo(tmp_path)
+    output = tmp_path / "out"
+    env = _fake_debuild(tmp_path, fail_series="jammy")
+
+    result = _run(
+        repo,
+        output,
+        "--series",
+        "noble",
+        "--series",
+        "resolute",
+        "--series",
+        "jammy",
+        env=env,
+    )
+
+    assert result.returncode != 0
+    assert "debuild failed" in result.stderr
+    assert result.stdout.count("Next steps:") == 1
+    assert _dput(output, "noble") in result.stdout
+    assert _dput(output, "resolute") in result.stdout
+    assert _dput(output, "jammy") not in result.stdout
+    assert "jammy: built" not in result.stdout
+
+
+def test_first_failure_prints_no_next_steps(tmp_path: Path) -> None:
+    """Do not print an empty block when no series finishes."""
+    repo = _init_repo(tmp_path)
+    env = _fake_debuild(tmp_path, fail_series="jammy")
+
+    result = _run(
+        repo,
+        tmp_path / "out",
+        "--series",
+        "jammy",
+        "--series",
+        "noble",
+        env=env,
+    )
+
+    assert result.returncode != 0
+    assert "Next steps:" not in result.stdout
