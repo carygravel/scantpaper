@@ -36,6 +36,15 @@ def test_specs_do_not_set_epoch() -> None:
         assert not re.search(r"(?m)^Epoch:", text), spec
 
 
+def test_fedora_spec_requires_gtk_and_cairo_typelibs() -> None:
+    """Require the packages that provide the Gtk and cairo typelibs."""
+    text = (REPO_ROOT / "packaging" / "fedora" / "scantpaper.spec").read_text(
+        encoding="utf-8"
+    )
+    assert re.search(r"(?m)^Requires:\s+gtk4$", text)
+    assert re.search(r"(?m)^Requires:\s+gobject-introspection$", text)
+
+
 def test_opensuse_spec_has_tumbleweed_and_leap_dependency_branches() -> None:
     """Keep the Tumbleweed and Leap dependency sets separate."""
     text = (REPO_ROOT / "packaging" / "opensuse" / "scantpaper.spec").read_text(

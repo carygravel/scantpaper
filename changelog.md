@@ -12,6 +12,9 @@
   each archive contains the complete runtime set, `SHA256SUMS` and
   `INSTALL.txt`. Fedora `-debuginfo` and `-debugsource` packages are no
   longer published. The `.deb` and wheel remain single files.
+* The Fedora RPM now requires `gtk4` and `gobject-introspection`. The Python
+  metadata pulled the GObject bindings but not the Gtk and cairo typelibs, so
+  a fresh install could fail to start with `Namespace Gtk not available`.
 
 
 ## 4.0.3 (2026-11-07)

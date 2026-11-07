@@ -40,6 +40,10 @@ BuildRequires:  ocrmypdf
 # The tools invoked via subprocess (qpdf, convert, tiffcp, unpaper, ...) are
 # not covered by the Python METADATA auto-requires, so they are declared
 # explicitly, mirroring the Debian package's dependency lists:
+# GObject-Introspection typelibs are not Python modules either: gtk4 ships
+# Gtk-4.0.typelib and gobject-introspection ships cairo-1.0.typelib.
+Requires:  gtk4
+Requires:  gobject-introspection
 Requires:  ImageMagick
 Requires:  libtiff-tools
 Requires:  librsvg2
