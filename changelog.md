@@ -1,9 +1,5 @@
 ## 4.0.4 (unreleased)
 
-* Saving a scan profile works again. The GTK4 port built the profile naming
-  dialog with a positional title, which GTK4 rejects, so the save button in the
-  **Scan profiles** frame did nothing. Profiles can now be named, listed and
-  reused across sessions.
 * Text fields now keep their standard editing shortcuts. When the text-layer
   editor has focus, `Ctrl+X`, `Ctrl+C`, `Ctrl+V`, `Ctrl+A`, `Ctrl+Z`,
   `Ctrl+Shift+Z`, `+` and `-` edit the text instead of acting on pages or
@@ -13,6 +9,15 @@
   its text control and selects the slice text. Pressing Delete therefore clears
   the OCR text instead of deleting the page, and typing replaces the selected
   text. Page deletion with Delete still works from the page list.
+* Saving a scan profile works again. The GTK4 port built the profile naming
+  dialog with a positional title, which GTK4 rejects, so the save button in the
+  **Scan profiles** frame did nothing. Profiles can now be named, listed and
+  reused across sessions.
+* The scan profile buttons now show **Save**, **Edit** and **Delete**, and the
+  icon-only buttons in the scan and preferences dialogs explain themselves with
+  a tooltip and an accessible name. The buttons use symbolic icon names, so
+  they render under Adwaita as well as desktop themes, and the Edit button no
+  longer shows a broken-image placeholder.
 * GitHub releases now group the RPMs into one `.tar.gz` per target
   (`fedora-43`, `fedora-44`, `opensuse-leap-16.0` and
   `opensuse-tumbleweed`) instead of publishing every RPM separately. The

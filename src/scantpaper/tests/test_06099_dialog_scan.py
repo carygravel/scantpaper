@@ -979,7 +979,7 @@ def test_reproduce_bug(
     assert edit_window is not None
 
     # Find the remove button
-    rbutton = find_button_with_icon(edit_window, "list-remove")
+    rbutton = find_button_with_icon(edit_window, "list-remove-symbolic")
     assert rbutton is not None
 
     # Click the remove button

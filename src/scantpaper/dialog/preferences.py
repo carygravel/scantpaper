@@ -15,6 +15,7 @@ from scantpaper.helpers import (
     chooser_path,
     configure_fractional_spinbutton,
     get_tmp_dir,
+    icon_button,
     pack_box,
     run_dialog,
     set_margins,
@@ -366,8 +367,7 @@ All document date codes use strftime codes with a leading D, e.g.:
         frame.set_child(self._vboxt)
         for tool in cast("list[object]", self.settings["user_defined_tools"]):
             self._add_user_defined_tool_entry(cast("str", tool))
-        abutton = Gtk.Button()
-        abutton.set_child(Gtk.Image.new_from_icon_name("list-add"))
+        abutton = icon_button("list-add-symbolic", _("Add a user-defined tool"))
         pack_box(self._vboxt, abutton)
         abutton.connect("clicked", self._clicked_add_udt)
 

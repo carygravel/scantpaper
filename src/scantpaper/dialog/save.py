@@ -14,7 +14,7 @@ from scantpaper.dependencies import jbig2_available
 from scantpaper.dialog import Dialog
 from scantpaper.entry_completion import EntryCompletion
 from scantpaper.gobject import property_
-from scantpaper.helpers import pack_box
+from scantpaper.helpers import icon_button, pack_box
 from scantpaper.i18n import _
 
 gi.require_version("Gtk", "4.0")
@@ -422,11 +422,10 @@ class Save(Dialog):
         focus_controller = Gtk.EventControllerFocus()
         focus_controller.connect("leave", self._datetime_focus_out_callback)
         self._meta_datetime_widget.add_controller(focus_controller)
-        icon = Gtk.Image.new_from_icon_name("document-edit")
-        button = Gtk.Button()
-        button.set_child(icon)
+        button = icon_button(
+            "document-properties-symbolic", _("Select date with calendar")
+        )
         button.connect("clicked", self._clicked_edit_date_button)
-        button.set_tooltip_text(_("Select date with calendar"))
         pack_box(vboxdt, hboxe, expand=True)
         hboxe.prepend(button)
         hboxe.prepend(self._meta_datetime_widget)

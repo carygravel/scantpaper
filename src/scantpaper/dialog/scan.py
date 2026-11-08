@@ -22,6 +22,8 @@ from scantpaper.gobject import property_
 from scantpaper.helpers import (
     _weak_callback,
     format_number_precise,
+    icon_button,
+    labelled_icon_button,
     pack_box,
     parse_number,
     run_dialog,
@@ -476,27 +478,21 @@ class Scan(PageControls):
 
         # Save button
         ref = weakref.ref(self)
-        icon = Gtk.Image.new_from_icon_name("document-save")
-        vbutton = Gtk.Button()
-        vbutton.set_child(icon)
+        vbutton = labelled_icon_button("document-save-symbolic", _("Save"))
         vbutton.connect(
             "clicked", lambda w: _save_profile_callback(w, cast("Scan", ref()))
         )
         pack_box(hboxsp, vbutton, expand=True)
 
         # Edit button
-        icon = Gtk.Image.new_from_icon_name("document-edit")
-        ebutton = Gtk.Button()
-        ebutton.set_child(icon)
+        ebutton = labelled_icon_button("document-properties-symbolic", _("Edit"))
         ebutton.connect(
             "clicked", lambda w: _edit_profile_callback(w, cast("Scan", ref()))
         )
         hboxsp.append(ebutton)
 
         # Delete button
-        icon = Gtk.Image.new_from_icon_name("edit-delete")
-        dbutton = Gtk.Button()
-        dbutton.set_child(icon)
+        dbutton = labelled_icon_button("edit-delete-symbolic", _("Delete"))
         dbutton.connect(
             "clicked",
             lambda _x: ref() and ref().remove_profile(ref().combobsp.get_active_text()),
@@ -1149,14 +1145,12 @@ class Scan(PageControls):
             orientation=Gtk.Orientation.VERTICAL, spacing=DIALOG_ROW_SPACING
         )
         hboxl.append(vboxb)
-        icon = Gtk.Image.new_from_icon_name("list-add")
-        dbutton = Gtk.Button()
-        dbutton.set_child(icon)
+        dbutton = icon_button("list-add-symbolic", _("Add a paper size"))
         pack_box(vboxb, dbutton, expand=True)
         dbutton.set_halign(Gtk.Align.START)
-        icon = Gtk.Image.new_from_icon_name("list-remove")
-        rbutton = Gtk.Button()
-        rbutton.set_child(icon)
+        rbutton = icon_button(
+            "list-remove-symbolic", _("Remove the selected paper size")
+        )
         pack_box(vboxb, rbutton, expand=True)
         rbutton.set_halign(Gtk.Align.START)
 
@@ -1841,9 +1835,10 @@ def _build_profile_table(profile: Profile, options: Options, vbox: Gtk.Box) -> N
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         label = Gtk.Label(label=d_sane(opt.title))
         hbox.append(label)
-        icon = Gtk.Image.new_from_icon_name("edit-delete")
-        button = Gtk.Button()
-        button.set_child(icon)
+        button = icon_button(
+            "edit-delete-symbolic",
+            _("Remove %(option)s from the profile") % {"option": d_sane(opt.title)},
+        )
         hbox.append(button)
 
         button.connect(
@@ -1863,9 +1858,10 @@ def _build_profile_table(profile: Profile, options: Options, vbox: Gtk.Box) -> N
         hbox = Gtk.Box(spacing=DIALOG_ROW_SPACING)
         label = Gtk.Label(label=name)
         hbox.append(label)
-        icon = Gtk.Image.new_from_icon_name("edit-delete")
-        button = Gtk.Button()
-        button.set_child(icon)
+        button = icon_button(
+            "edit-delete-symbolic",
+            _("Remove %(option)s from the profile") % {"option": name},
+        )
         hbox.append(button)
 
         def do_delete_profile_frontend_item(_widget: Gtk.Button, _name: str) -> None:

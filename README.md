@@ -159,11 +159,11 @@ reports that no devices were found rather than offering an empty list.
 #### Saving and reusing scan profiles
 
 The **Scan profiles** frame in the scan dialog stores the current scan options
-under a name. Set the device and options as you want them, click the save
-button, and enter a name; the profile then appears in the list above the
-buttons. Choosing a profile from the list applies its saved options. **Edit**
-opens the profile's option list, where individual backend and frontend options
-can be changed or removed, and **Delete** removes the selected profile.
+under a name. Set the device and options as you want them, click **Save**, and
+enter a name; the profile then appears in the list above the buttons. Choosing
+a profile from the list applies its saved options. **Edit** opens the profile's
+option list, where individual backend and frontend options can be changed or
+removed, and **Delete** removes the selected profile.
 
 Profiles are stored in `~/.config/scantpaperrc` and are available again the
 next time scantpaper starts.

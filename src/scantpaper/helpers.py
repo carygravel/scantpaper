@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import gi
 
-from scantpaper.const import EMPTY, FRACTIONAL_DIGITS
+from scantpaper.const import DIALOG_ROW_SPACING, EMPTY, FRACTIONAL_DIGITS
 from scantpaper.dialog import MultipleMessage
 from scantpaper.i18n import _
 
@@ -96,6 +96,26 @@ def set_margins(widget: Gtk.Widget, value: int) -> None:
     widget.set_margin_bottom(value)
     widget.set_margin_start(value)
     widget.set_margin_end(value)
+
+
+def icon_button(icon_name: str, tooltip: str) -> Gtk.Button:
+    """Build an icon-only button with a tooltip and an accessible name."""
+    button = Gtk.Button()
+    button.set_child(Gtk.Image.new_from_icon_name(icon_name))
+    button.set_tooltip_text(tooltip)
+    button.update_property([Gtk.AccessibleProperty.LABEL], [tooltip])
+    return button
+
+
+def labelled_icon_button(icon_name: str, label: str) -> Gtk.Button:
+    """Build a button showing an icon and a visible, accessible label."""
+    button = Gtk.Button()
+    content = Gtk.Box(spacing=DIALOG_ROW_SPACING)
+    content.append(Gtk.Image.new_from_icon_name(icon_name))
+    content.append(Gtk.Label(label=label))
+    button.set_child(content)
+    button.update_property([Gtk.AccessibleProperty.LABEL], [label])
+    return button
 
 
 @lru_cache
