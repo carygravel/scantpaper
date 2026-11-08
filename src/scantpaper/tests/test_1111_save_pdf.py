@@ -1894,3 +1894,9 @@ def test_save_pdf_with_empty_text_layer(
         thread.do_save_pdf(request)
         width, height = get_page_size(temp_pdf.name)
         assert (width, height) == pytest.approx((70, 46), 0.1), "valid PDF created"
+
+
+def test_has_rotated_text_distinguishes_translation_from_rotation() -> None:
+    """A translation-only text matrix is not mistaken for rotation."""
+    assert _has_rotated_text(b"BT 1 0 0 1 10 20 Tm (x) Tj ET") is False
+    assert _has_rotated_text(b"BT 0 1 -1 0 10 20 Tm (x) Tj ET") is True
