@@ -29,7 +29,7 @@ jobs:
           sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
             gettext \
             gobject-introspection gir1.2-gtk-4.0 imagemagick jbig2 \
-            libtiff-tools poppler-utils python3-gi python3-gi-cairo python3-sane \
+            libtiff-tools poppler-utils python3-cysignals-bare python3-gi python3-gi-cairo python3-sane \
             python3-tesserocr qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper
           python3 -m pip install --upgrade pip
           pip install --upgrade pip setuptools wheel packaging build
@@ -103,7 +103,7 @@ jobs:
             appstream djvulibre-bin file fonts-dejavu-core gettext \
             gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf jbig2 \
             libtiff-tools locales nodejs npm ocrmypdf poppler-utils \
-            python3-gi python3-gi-cairo python3-iso639 python3-pip \
+            python3-cysignals-bare python3-gi python3-gi-cairo python3-iso639 python3-pip \
             python3-polib python3-sane python3-tesserocr python3-tomli qpdf \
             tesseract-ocr-eng tesseract-ocr-deu unpaper xauth xvfb
           locale-gen de_DE.UTF-8
@@ -156,7 +156,7 @@ jobs:
           sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
             gettext \
             gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf \
-            jbig2 libtiff-tools ocrmypdf poppler-utils python3-gi python3-gi-cairo \
+            jbig2 libtiff-tools ocrmypdf poppler-utils python3-cysignals-bare python3-gi python3-gi-cairo \
             python3-iso639 python3-polib python3-sane python3-tesserocr \
             python3-tomli qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper \
             xauth xvfb
@@ -233,7 +233,7 @@ jobs:
           sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
             gettext \
             gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf \
-            jbig2 libtiff-tools ocrmypdf poppler-utils python3-gi python3-gi-cairo \
+            jbig2 libtiff-tools ocrmypdf poppler-utils python3-cysignals-bare python3-gi python3-gi-cairo \
             python3-iso639 python3-polib python3-sane python3-tesserocr \
             python3-tomli qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper \
             xauth xvfb
@@ -283,7 +283,7 @@ jobs:
           sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
             gettext \
             gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf \
-            libtiff-tools ocrmypdf poppler-utils python3-gi python3-gi-cairo \
+            libtiff-tools ocrmypdf poppler-utils python3-cysignals-bare python3-gi python3-gi-cairo \
             python3-iso639 python3-polib python3-sane python3-tesserocr \
             python3-tomli qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper \
             xauth xvfb
