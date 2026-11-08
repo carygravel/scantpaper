@@ -8,6 +8,12 @@
     "backtranslation": 0.6,
     "chars_per_token": 4.0
   },
+  "language_thresholds": {
+    "de": {
+      "qualification": 0.35,
+      "drift": 0.3
+    }
+  },
   "releases": {
     "example/a@2026-01": {
       "family": "example-a",

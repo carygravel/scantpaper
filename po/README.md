@@ -359,6 +359,23 @@ records the score, tolerance, baseline size, deployment and cost in the
 ledger, and prints them. `--catalog` overrides the default
 `po/scantpaper/<language>.po`, and `--json` prints the whole record.
 
+`thresholds` holds the global defaults. A language whose reviewed translations
+reproduce less exactly can record a calibrated override under
+`language_thresholds`:
+
+```json
+"language_thresholds": {
+  "de": {"qualification": 0.35, "drift": 0.3}
+}
+```
+
+The override replaces the global `qualification` or `drift` value for that
+language only; every other language keeps the default. Calibrate it from a
+real qualification and drift run, not from a single string, and record the
+measured scores with the change that introduces it. The exact-match metric is
+generous to English variants, whose target often equals the source, and strict
+for a genuine translation, so the two cannot share one tolerance.
+
 A language with no human baseline is recorded as ineligible with the reason
 `no held-out human entries` and makes no model call. A score below the
 tolerance is recorded with `qualified: false`. Both write a record and exit
@@ -450,8 +467,9 @@ python3 dev/translation_gate.py translate --language de --limit 10 \
     --max-cost 0.05
 ```
 
-`translate` selects entries with an empty `msgstr` by default, writes each
-approved translation into the catalog, clears fuzzy and records the approval.
+`translate` selects entries with an empty `msgstr`, or a plural entry with an
+empty form in `msgstr_plural`, writes each approved translation into the
+catalog, clears fuzzy and records the approval.
 `--include-fuzzy` also reconsiders entries that already have a fuzzy proposal
 and replaces them. `--language` defaults the catalog to
 `po/scantpaper/<language>.po`; `--catalog` overrides it. `--max-cost` caps the
@@ -460,9 +478,15 @@ memory evidence, and `--dry-run` reports the selection and estimate without
 writing.
 
 The command refuses a language when a proposer or judge release is not
-qualified or when the language is paused for drift. It reports plural
-(`msgid_plural`) and context (`msgctxt`) entries as unsupported and leaves
-them unchanged.
+qualified or when the language is paused for drift.
+
+Plural entries are translated as a complete form set when the catalog header
+declares `nplurals` and `msgstr_plural` has that many forms. Each proposer
+returns all forms in one indexed response (`0: ...`, `1: ...`); every form
+passes the deterministic checks, and the judge compares complete sets. A
+sentence form is back-translated like a singular sentence. A missing header or
+a form-count mismatch is reported as unsupported, as are context (`msgctxt`)
+entries; both are left unchanged.
 
 `machine-strong` is accepted for high-impact menu and destructive strings;
 the batch does not add a separate human-review gate.

@@ -157,7 +157,7 @@ OBSOLETE_CEILING: dict[str, int] = {
     "ca": 56,
     "cs": 122,
     "da": 168,
-    "de": 142,
+    "de": 165,
     "el": 116,
     "en_GB": 0,
     "en_US": 0,

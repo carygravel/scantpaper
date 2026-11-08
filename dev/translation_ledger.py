@@ -216,7 +216,9 @@ def make_record(
     if msgstr_plural is None:
         record["msgstr"] = msgstr
     else:
-        record["msgstr_plural"] = msgstr_plural
+        record["msgstr_plural"] = {
+            str(index): text for index, text in msgstr_plural.items()
+        }
     return record
 
 

@@ -128,6 +128,32 @@ def test_plural_digest_is_order_independent() -> None:
     )
 
 
+def test_plural_record_stores_string_keys() -> None:
+    """make_record stores plural keys as strings that validate and apply."""
+    entry = polib.POEntry(
+        msgid="File",
+        msgid_plural="Files",
+        msgstr_plural={0: "Datei", 1: "Dateien"},
+    )
+    record = cast(
+        "dict[str, object]",
+        LEDGER.make_record(
+            "de",
+            entry,
+            "human-review",
+            context=LEDGER.ApprovalContext(approval_date="2026-01-01"),
+        ),
+    )
+    assert record["msgstr_plural"] == {"0": "Datei", "1": "Dateien"}
+    LEDGER.validate_record(record, index=0)
+    assert LEDGER.approval_for_entry(_ledger(record), "de", entry) == record
+
+    changed = dict(record)
+    changed["translation_sha256"] = "0" * 64
+    with pytest.raises(LEDGER.LedgerError, match="does not match"):
+        LEDGER.validate_record(changed, index=0)
+
+
 def test_valid_approval_binds_to_the_catalog_entry() -> None:
     """A matching language, context, msgid and digest approves the entry."""
     data = LEDGER.validate_ledger(_ledger(_record()))

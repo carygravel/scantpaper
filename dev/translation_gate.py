@@ -81,6 +81,7 @@ MIN_PROPOSER_FAMILIES = 2
 _SHORT_LABEL_CHARS = 20
 _SENTENCE_CHARS = 25
 PROMPT_VERSION = "2026-11-01"
+PLURAL_PROMPT_VERSION = "2026-11-08"
 DEFAULT_CHARS_PER_TOKEN = 4.0
 
 
@@ -90,6 +91,7 @@ def _prompt_hash(version: str = PROMPT_VERSION) -> str:
 
 
 PROMPT_HASH = _prompt_hash()
+PLURAL_PROMPT_HASH = _prompt_hash(PLURAL_PROMPT_VERSION)
 
 
 def _today() -> str:
@@ -213,16 +215,36 @@ class Proposal:
     family: str
     text: str
     completion: Completion
+    forms: dict[int, str] | None = None
 
     def as_dict(self) -> dict[str, object]:
         """Return a JSON-ready proposal record."""
-        return {
+        record: dict[str, object] = {
             "deployment": self.deployment,
             "release": self.release,
             "family": self.family,
             "text": self.text,
             "call": self.completion.as_dict(),
         }
+        if self.forms is not None:
+            record["forms"] = {
+                str(index): self.forms[index] for index in sorted(self.forms)
+            }
+        return record
+
+
+@dataclass(frozen=True)
+class PluralSource:
+    """One plural entry's source forms and declared plural rule."""
+
+    msgid: str
+    msgid_plural: str
+    nplurals: int
+    plural_expression: str
+
+    def source_forms(self) -> tuple[str, ...]:
+        """Return the source text for each form index."""
+        return (self.msgid, *((self.msgid_plural,) * (self.nplurals - 1)))
 
 
 @dataclass(frozen=True)
@@ -252,6 +274,21 @@ class GateConfig:
     releases: dict[str, Release]
     deployments: dict[str, Deployment]
     thresholds: dict[str, float]
+    language_thresholds: dict[str, dict[str, float]] = field(default_factory=dict)
+
+    def threshold(
+        self,
+        name: str,
+        *,
+        language: str | None = None,
+        default: float,
+    ) -> float:
+        """Return a threshold, preferring a language-specific override."""
+        if language is not None:
+            override = self.language_thresholds.get(language, {})
+            if name in override:
+                return override[name]
+        return self.thresholds.get(name, default)
 
     @property
     def proposers(self) -> list[Deployment]:
@@ -291,6 +328,7 @@ class GateDecision:
     approved: bool
     reason: str
     translation: str | None = None
+    forms: dict[int, str] | None = None
     record: ApprovalRecord | None = None
     evidence: dict[str, object] = field(default_factory=dict)
 
@@ -587,6 +625,41 @@ def _load_thresholds(data: Mapping[str, object], path: Path) -> dict[str, float]
     }
 
 
+def _load_language_thresholds(
+    data: Mapping[str, object], path: Path
+) -> dict[str, dict[str, float]]:
+    """Parse per-language threshold overrides."""
+    raw = data.get("language_thresholds", {})
+    if not isinstance(raw, dict):
+        msg = f"{path} language_thresholds must be an object"
+        raise GateError(msg)
+    overrides: dict[str, dict[str, float]] = {}
+    for language, values in raw.items():
+        if not isinstance(language, str) or not language:
+            msg = f"{path} language_thresholds has an invalid language"
+            raise GateError(msg)
+        if not isinstance(values, dict):
+            msg = f"{path} language_thresholds[{language!r}] must be an object"
+            raise GateError(msg)
+        parsed: dict[str, float] = {}
+        for name, value in values.items():
+            if not isinstance(name, str) or not isinstance(value, int | float):
+                msg = (
+                    f"{path} language_thresholds[{language!r}] "
+                    "must map names to numbers"
+                )
+                raise GateError(msg)
+            if name in {"qualification", "drift"} and not 0 <= float(value) <= 1:
+                msg = (
+                    f"{path} language_thresholds[{language!r}][{name!r}] "
+                    "must be between 0 and 1"
+                )
+                raise GateError(msg)
+            parsed[name] = float(value)
+        overrides[language] = parsed
+    return overrides
+
+
 def load_config(path: Path = DEFAULT_CONFIG) -> GateConfig:
     """Load and validate the gate configuration."""
     if path == DEFAULT_CONFIG and not path.exists() and EXAMPLE_CONFIG.exists():
@@ -611,6 +684,7 @@ def load_config(path: Path = DEFAULT_CONFIG) -> GateConfig:
         releases=releases,
         deployments=deployments,
         thresholds=thresholds,
+        language_thresholds=_load_language_thresholds(data, path),
     )
     validate_config(config)
     return config
@@ -905,6 +979,75 @@ def prompt_for(
     return f"{action}: {source}"
 
 
+_PLURAL_NPLURALS_RE = re.compile(r"nplurals\s*=\s*(\d+)")
+_PLURAL_RULE_RE = re.compile(r"plural\s*=\s*([^;]+)")
+_PLURAL_FORM_LINE_RE = re.compile(r"^\s*(\d+)\s*[:.)]\s?(.*)$")
+
+
+def catalog_plural_info(catalog: polib.POFile) -> tuple[int | None, str]:
+    """Return the declared plural form count and rule from a catalog."""
+    header = catalog.metadata.get("Plural-Forms", "")
+    count = _PLURAL_NPLURALS_RE.search(header)
+    rule = _PLURAL_RULE_RE.search(header)
+    expression = str(rule.group(1)).strip() if rule is not None else ""
+    return (
+        int(count.group(1)) if count is not None else None,
+        expression,
+    )
+
+
+def prompt_for_plural(
+    language: str,
+    source: PluralSource,
+    context: str = "",
+) -> str:
+    """Build a provider-neutral prompt for a plural form set."""
+    suffix = f"\nContext: {context}" if context else ""
+    rule = (
+        f"\nPlural rule: {source.plural_expression}" if source.plural_expression else ""
+    )
+    return (
+        f"Translate the following UI string into {language}. "
+        f"It has {source.nplurals} plural forms. Return exactly "
+        f"{source.nplurals} lines, each prefixed with its form index, "
+        "for example `0: ...`. Preserve every placeholder, mnemonic and "
+        "line break in every form."
+        f"{rule}"
+        f"\nSource (singular): {source.msgid}"
+        f"\nSource (plural): {source.msgid_plural}{suffix}"
+    )
+
+
+def parse_plural_response(text: str, nplurals: int) -> dict[int, str] | None:
+    """Parse indexed plural forms, or return None for an unusable answer."""
+    if nplurals <= 0:
+        return None
+    forms: dict[int, str] = {}
+    current: int | None = None
+    for line in text.splitlines():
+        match = _PLURAL_FORM_LINE_RE.match(line)
+        if match is not None:
+            index = int(match.group(1))
+            if index in forms:
+                return None
+            forms[index] = match.group(2)
+            current = index
+        elif current is not None:
+            forms[current] = f"{forms[current]}\n{line}"
+        elif line.strip():
+            return None
+    if set(forms) != set(range(nplurals)):
+        return None
+    if any(not value.strip() for value in forms.values()):
+        return None
+    return forms
+
+
+def _plural_listing(forms: Mapping[int, str]) -> str:
+    """Render one ordered form set for a prompt or judge listing."""
+    return "\n".join(f"{index}: {forms[index]}" for index in sorted(forms))
+
+
 def _normalise(text: str) -> str:
     """Normalise a translation for exact-match comparison."""
     return " ".join(text.replace("_", "").casefold().split())
@@ -935,6 +1078,24 @@ def deterministic_checks(source: str, translation: str) -> list[str]:
     return defects
 
 
+def deterministic_plural_checks(
+    source: PluralSource,
+    forms: Mapping[int, str] | None,
+) -> list[str]:
+    """Return every deterministic defect in a plural form set."""
+    if forms is None:
+        return ["wrong number of forms or unparseable response"]
+    if set(forms) != set(range(source.nplurals)):
+        return ["wrong number of forms"]
+    defects: list[str] = []
+    for index, source_text in enumerate(source.source_forms()):
+        defects.extend(
+            f"form {index}: {defect}"
+            for defect in deterministic_checks(source_text, forms[index])
+        )
+    return defects
+
+
 def propose(
     source: str,
     language: str,
@@ -961,6 +1122,33 @@ def propose(
     return proposals
 
 
+def propose_plural(
+    source: PluralSource,
+    language: str,
+    config: GateConfig,
+    client: ModelClient,
+    *,
+    context: str = "",
+) -> list[Proposal]:
+    """Return one complete plural proposal from every proposer deployment."""
+    proposals: list[Proposal] = []
+    for deployment in config.proposers:
+        completion = client.complete(
+            deployment, prompt_for_plural(language, source, context)
+        )
+        proposals.append(
+            Proposal(
+                deployment=deployment.id,
+                release=deployment.release,
+                family=config.release_for(deployment).family,
+                text=completion.text,
+                completion=completion,
+                forms=parse_plural_response(completion.text, source.nplurals),
+            )
+        )
+    return proposals
+
+
 def blind_judge(
     source: str,
     language: str,
@@ -980,6 +1168,39 @@ def blind_judge(
         f"Choose the best {language} translation of this source string. "
         "Answer with the letter only, or ABSTAIN.\n"
         f"Source: {source}\n{listing}"
+    )
+    judge = config.judges[0]
+    completion = client.complete(judge, prompt)
+    answer = completion.text.strip().upper()
+    if answer.startswith("ABSTAIN"):
+        return None, answer, completion
+    for index, label in enumerate(labels):
+        if answer.startswith(label):
+            return index, answer, completion
+    return None, answer, completion
+
+
+def blind_judge_plural(
+    source: PluralSource,
+    language: str,
+    proposals: Sequence[Proposal],
+    config: GateConfig,
+    client: ModelClient,
+) -> tuple[int | None, str, Completion | None]:
+    """Ask a third family to choose one complete plural form set."""
+    if not proposals:
+        return None, "no proposals", None
+    labels = [chr(ord("A") + index) for index in range(len(proposals))]
+    listing = "\n".join(
+        f"{label}:\n{_plural_listing(cast('dict[int, str]', proposal.forms))}"
+        for label, proposal in zip(labels, proposals, strict=True)
+    )
+    prompt = (
+        f"Choose the best {language} plural translation of this source string. "
+        f"Each proposal gives all {source.nplurals} forms. "
+        "Answer with the letter only, or ABSTAIN.\n"
+        f"Source (singular): {source.msgid}\n"
+        f"Source (plural): {source.msgid_plural}\n{listing}"
     )
     judge = config.judges[0]
     completion = client.complete(judge, prompt)
@@ -1214,6 +1435,152 @@ def run_gate(
     )
 
 
+def run_plural_gate(
+    source: PluralSource,
+    language: str,
+    config: GateConfig,
+    client: ModelClient,
+    *,
+    options: GateOptions | None = None,
+) -> GateDecision:
+    """Run proposal, checks, blind judging and back-translation for a form set."""
+    options = options or GateOptions()
+    proposals = propose_plural(
+        source, language, config, client, context=options.context
+    )
+    proposal_records = [proposal.as_dict() for proposal in proposals]
+    calls = [
+        {**proposal.completion.as_dict(), "role": "proposer"} for proposal in proposals
+    ]
+    if not _independent_families(proposals):
+        return GateDecision(
+            approved=False,
+            reason="fewer than two independent model families proposed",
+            evidence={"proposals": proposal_records, "calls": calls},
+        )
+
+    checks = {
+        proposal.deployment: deterministic_plural_checks(source, proposal.forms)
+        for proposal in proposals
+    }
+    passing = [proposal for proposal in proposals if not checks[proposal.deployment]]
+    if not passing:
+        return GateDecision(
+            approved=False,
+            reason="every proposal failed a deterministic check",
+            evidence={
+                "proposals": proposal_records,
+                "checks": checks,
+                "calls": calls,
+            },
+        )
+
+    form_sets = {
+        tuple(
+            cast("dict[int, str]", proposal.forms)[index]
+            for index in range(source.nplurals)
+        )
+        for proposal in passing
+    }
+    families = {proposal.family for proposal in passing}
+    if len(form_sets) == 1 and len(families) >= MIN_PROPOSER_FAMILIES:
+        preferred = passing[0]
+        judge_evidence: dict[str, object] = {
+            "tie": True,
+            "verdict": "identical",
+            "families": sorted(families),
+        }
+    else:
+        index, verdict, judge_completion = blind_judge_plural(
+            source, language, passing, config, client
+        )
+        if judge_completion is not None:
+            calls.append({**judge_completion.as_dict(), "role": "judge"})
+        if index is None:
+            return GateDecision(
+                approved=False,
+                reason="judge abstained or returned no usable choice",
+                evidence={
+                    "proposals": proposal_records,
+                    "checks": checks,
+                    "verdict": verdict,
+                    "calls": calls,
+                },
+            )
+        preferred = passing[index]
+        judge_evidence = {
+            "deployment": config.judges[0].id,
+            "verdict": verdict,
+        }
+    forms = cast("dict[int, str]", preferred.forms)
+
+    backtranslation: dict[str, bool] = {}
+    for form_index, source_text in enumerate(source.source_forms()):
+        if len(source_text) < _SENTENCE_CHARS or " " not in source_text:
+            continue
+        preserved, back_completion = back_translation_preserves(
+            source_text, forms[form_index], language, config, client
+        )
+        calls.append({**back_completion.as_dict(), "role": "backtranslation"})
+        backtranslation[str(form_index)] = preserved
+        if not preserved:
+            return GateDecision(
+                approved=False,
+                reason="back-translation changed the meaning",
+                evidence={
+                    "proposals": proposal_records,
+                    "checks": checks,
+                    "judge": judge_evidence,
+                    "backtranslation": backtranslation,
+                    "calls": calls,
+                },
+            )
+
+    high_impact = any(
+        is_high_impact(text, options.occurrences) for text in source.source_forms()
+    )
+    evidence: dict[str, object] = {
+        "proposals": proposal_records,
+        "checks": checks,
+        "judge": judge_evidence,
+        "backtranslation": backtranslation,
+        "high_impact": high_impact,
+        "plural": True,
+        "plural_prompt_version": PLURAL_PROMPT_VERSION,
+        "prompt_hash": PLURAL_PROMPT_HASH,
+        "calls": calls,
+    }
+    evidence_summary = evidence
+    evidence_sha256: str | None = None
+    if options.evidence_path is not None:
+        evidence_sha256 = write_evidence(
+            evidence,
+            options.evidence_path,
+            kind="approval",
+            language=language,
+        )
+        evidence_summary = compact_evidence(evidence)
+    record = make_record(
+        language,
+        _entry_for_plural(source, forms),
+        "machine-strong",
+        context=ApprovalContext(
+            approval_date=_today(),
+            evidence=evidence_summary,
+            evidence_sha256=evidence_sha256,
+            model_release=preferred.release,
+            deployment=preferred.deployment,
+        ),
+    )
+    return GateDecision(
+        approved=True,
+        reason="every check and the judge agree",
+        forms={index: forms[index] for index in sorted(forms)},
+        record=record,
+        evidence=evidence,
+    )
+
+
 def record_gate_run(
     ledger: dict[str, object],
     decision: GateDecision,
@@ -1261,9 +1628,37 @@ def record_gate_run(
     return record
 
 
-def _entry_for(source: str, translation: str) -> polib.POEntry:
+def _entry_for(
+    source: str,
+    translation: str,
+    *,
+    msgid_plural: str | None = None,
+    forms: Mapping[int, str] | None = None,
+) -> polib.POEntry:
     """Build a throwaway catalog entry for record hashing."""
+    if msgid_plural is not None:
+        plural_forms = forms or {}
+        return polib.POEntry(
+            msgid=source,
+            msgid_plural=msgid_plural,
+            msgstr_plural={
+                index: plural_forms[index] for index in sorted(plural_forms)
+            },
+        )
     return polib.POEntry(msgid=source, msgstr=translation)
+
+
+def _entry_for_plural(
+    source: PluralSource,
+    forms: Mapping[int, str],
+) -> polib.POEntry:
+    """Build a throwaway plural catalog entry for record hashing."""
+    return _entry_for(
+        source.msgid,
+        "",
+        msgid_plural=source.msgid_plural,
+        forms=forms,
+    )
 
 
 def _qualified(
@@ -1294,7 +1689,9 @@ def qualify_release(
     if release not in config.releases or not deployments:
         msg = f"release {release!r} is not configured"
         raise GateError(msg)
-    tolerance = config.thresholds.get("qualification", 0.8)
+    tolerance = config.threshold(
+        "qualification", language=request.language, default=0.8
+    )
     ensure_budget(estimate_qualification(config, request), request.budget_usd)
     if not request.entries:
         record: dict[str, object] = {
@@ -1473,7 +1870,7 @@ def drift_probe(
         if _normalise(completion.text) == _normalise(item["msgstr"]):
             matches += 1
     score = matches / len(request.probe) if request.probe else 0.0
-    threshold = config.thresholds.get("drift", 0.75)
+    threshold = config.threshold("drift", language=request.language, default=0.75)
     dropped = score < threshold
     return {
         "release": request.release,
@@ -1814,12 +2211,12 @@ def _finish_estimate(
 def estimate_gate(
     config: GateConfig,
     language: str,
-    sources: Sequence[str],
+    sources: Sequence[str | PluralSource],
     *,
     context: str = "",
     chars_per_token: float | None = None,
 ) -> ActionEstimate:
-    """Estimate the cost of gating a set of strings."""
+    """Estimate the cost of gating a set of strings or plural form sets."""
     chars = chars_per_token or config.thresholds.get(
         "chars_per_token", DEFAULT_CHARS_PER_TOKEN
     )
@@ -1832,6 +2229,44 @@ def estimate_gate(
         )
 
     for source in sources:
+        if isinstance(source, PluralSource):
+            source_tokens = max(
+                1,
+                sum(estimate_tokens(text, chars) for text in source.source_forms()),
+            )
+            for deployment in config.proposers:
+                prompt = prompt_for_plural(language, source, context)
+                low, high = _output_range(source_tokens, deployment)
+                accumulator(deployment).add(
+                    deployment, estimate_tokens(prompt, chars), low, high
+                )
+            judge = config.judges[0]
+            placeholder = dict.fromkeys(range(source.nplurals), "proposal")
+            judge_prompt = (
+                f"Choose the best {language} plural translation of this "
+                f"source string.\nSource (singular): {source.msgid}\n"
+                f"Source (plural): {source.msgid_plural}\n"
+                f"A:\n{_plural_listing(placeholder)}\n"
+                f"B:\n{_plural_listing(placeholder)}"
+            )
+            high_output = _output_range(source_tokens, config.proposers[0])[1]
+            accumulator(judge).add(
+                judge,
+                estimate_tokens(judge_prompt, chars) + 2 * high_output,
+                1,
+                1,
+            )
+            for text in source.source_forms():
+                if len(text) >= _SENTENCE_CHARS and " " in text:
+                    back_prompt = prompt_for("backtranslate", language, text)
+                    low, high = _output_range(estimate_tokens(text, chars), judge)
+                    accumulator(judge).add(
+                        judge,
+                        estimate_tokens(back_prompt, chars) + high,
+                        low,
+                        high,
+                    )
+            continue
         source_tokens = estimate_tokens(source, chars)
         for deployment in config.proposers:
             prompt = prompt_for("translate", language, source, context)
@@ -2330,11 +2765,23 @@ def _apply_decision(
     if not decision.approved or decision.record is None:
         msg = "cannot approve an abstained decision"
         raise GateError(msg)
-    translation = decision.translation
-    if translation is None or not translation.strip():
-        msg = "approved decision has no translation"
-        raise GateError(msg)
-    entry.msgstr = translation
+    if entry.msgid_plural:
+        forms = decision.forms
+        if forms is None or not forms:
+            msg = "approved decision has no plural forms"
+            raise GateError(msg)
+        expected = {int(key) for key in (entry.msgstr_plural or {})}
+        if expected and set(forms) != expected:
+            msg = "approved plural forms do not match the entry"
+            raise GateError(msg)
+        entry.msgstr = ""
+        entry.msgstr_plural = {index: forms[index] for index in sorted(forms)}
+    else:
+        translation = decision.translation
+        if translation is None or not translation.strip():
+            msg = "approved decision has no translation"
+            raise GateError(msg)
+        entry.msgstr = translation
     entry.flags = [flag for flag in entry.flags if flag != "fuzzy"]
     _replace_section(
         ledger,
@@ -2354,8 +2801,13 @@ def approve_decision(
     if not decision.approved or decision.record is None:
         msg = "cannot approve an abstained decision"
         raise GateError(msg)
-    if decision.translation is None or not decision.translation.strip():
+    if decision.forms is None and (
+        decision.translation is None or not decision.translation.strip()
+    ):
         msg = "approved decision has no translation"
+        raise GateError(msg)
+    if decision.forms is not None and not decision.forms:
+        msg = "approved decision has no plural forms"
         raise GateError(msg)
     catalog = polib.pofile(str(catalog_path))
     entry = catalog.find(msgid)
@@ -2772,6 +3224,30 @@ class BatchReport:
         }
 
 
+def _plural_disposition(
+    entry: polib.POEntry,
+    nplurals: int | None,
+    *,
+    include_fuzzy: bool,
+) -> tuple[str, str]:
+    """Return one plural entry's disposition and unsupported reason."""
+    if nplurals is None:
+        return "unsupported", "catalog does not declare nplurals"
+    forms = {
+        int(key): (value or "") for key, value in (entry.msgstr_plural or {}).items()
+    }
+    if set(forms) != set(range(nplurals)):
+        return "unsupported", f"plural forms do not match nplurals={nplurals}"
+    translated = all(forms[index].strip() for index in range(nplurals))
+    if "fuzzy" in entry.flags:
+        if translated and not include_fuzzy:
+            return "skipped", ""
+        return "selected", ""
+    if not translated:
+        return "selected", ""
+    return "skipped", ""
+
+
 def _select_batch_entries(
     catalog: polib.POFile,
     *,
@@ -2782,6 +3258,7 @@ def _select_batch_entries(
     selected: list[polib.POEntry] = []
     unsupported: list[tuple[polib.POEntry, str]] = []
     skipped = 0
+    nplurals, _ = catalog_plural_info(catalog)
     ordered = sorted(
         (entry for entry in catalog if not entry.obsolete),
         key=lambda entry: (entry.msgctxt or "", entry.msgid),
@@ -2791,7 +3268,15 @@ def _select_batch_entries(
             unsupported.append((entry, "message context is not supported"))
             continue
         if entry.msgid_plural:
-            unsupported.append((entry, "plural forms are not supported"))
+            disposition, reason = _plural_disposition(
+                entry, nplurals, include_fuzzy=include_fuzzy
+            )
+            if disposition == "unsupported":
+                unsupported.append((entry, reason))
+            elif disposition == "selected":
+                selected.append(entry)
+            else:
+                skipped += 1
             continue
         if "fuzzy" in entry.flags:
             if (entry.msgstr or "").strip() and not include_fuzzy:
@@ -2844,11 +3329,36 @@ def _decision_cost(decision: GateDecision) -> float:
 
 def _remaining_missing(catalog: polib.POFile) -> int:
     """Return the number of non-obsolete entries without a translation."""
-    return sum(
-        1
-        for entry in catalog
-        if not entry.obsolete and not (entry.msgstr or "").strip()
-    )
+    missing = 0
+    for entry in catalog:
+        if entry.obsolete:
+            continue
+        if entry.msgid_plural:
+            forms = entry.msgstr_plural or {}
+            if not forms or any(not (value or "").strip() for value in forms.values()):
+                missing += 1
+            continue
+        if not (entry.msgstr or "").strip():
+            missing += 1
+    return missing
+
+
+def _batch_source(
+    entry: polib.POEntry,
+    nplurals: int | None,
+    plural_expression: str,
+) -> str | PluralSource | None:
+    """Return the gate source for one batch entry."""
+    if entry.msgid_plural:
+        if nplurals is None:
+            return None
+        return PluralSource(
+            entry.msgid,
+            entry.msgid_plural,
+            nplurals,
+            plural_expression,
+        )
+    return entry.msgid
 
 
 def _run_batch(
@@ -2859,23 +3369,44 @@ def _run_batch(
     abstained: list[dict[str, object]] = []
     spent = 0.0
     stopped: str | None = None
+    nplurals, plural_expression = catalog_plural_info(run.catalog)
     for entry in run.entries:
+        source = _batch_source(entry, nplurals, plural_expression)
+        if source is None:
+            abstained.append(
+                {
+                    "msgid": entry.msgid,
+                    "reason": "plural form count changed during the batch",
+                    "cost_usd": 0.0,
+                }
+            )
+            continue
         if run.max_cost is not None:
-            high = estimate_gate(run.config, run.language, [entry.msgid]).high_cost_usd
+            high = estimate_gate(run.config, run.language, [source]).high_cost_usd
             if high is not None and spent + high > run.max_cost:
                 stopped = "budget"
                 break
-        decision = run_gate(
-            entry.msgid,
-            run.language,
-            run.config,
-            run.client,
-            options=GateOptions(
-                occurrences=tuple(entry.occurrences),
-                tm_db=run.tm_db,
-                evidence_path=run.evidence_path,
-            ),
+        options = GateOptions(
+            occurrences=tuple(entry.occurrences),
+            tm_db=run.tm_db,
+            evidence_path=run.evidence_path,
         )
+        if isinstance(source, PluralSource):
+            decision = run_plural_gate(
+                source,
+                run.language,
+                run.config,
+                run.client,
+                options=options,
+            )
+        else:
+            decision = run_gate(
+                source,
+                run.language,
+                run.config,
+                run.client,
+                options=options,
+            )
         record_gate_run(
             run.ledger,
             decision,
@@ -2886,13 +3417,26 @@ def _run_batch(
         spent += cost
         if decision.approved:
             _apply_decision(run.ledger, entry, decision)
-            approved.append(
-                {
-                    "msgid": entry.msgid,
-                    "translation": decision.translation,
-                    "cost_usd": cost,
-                }
-            )
+            if decision.forms is not None:
+                approved.append(
+                    {
+                        "msgid": entry.msgid,
+                        "msgid_plural": entry.msgid_plural,
+                        "forms": {
+                            str(index): decision.forms[index]
+                            for index in sorted(decision.forms)
+                        },
+                        "cost_usd": cost,
+                    }
+                )
+            else:
+                approved.append(
+                    {
+                        "msgid": entry.msgid,
+                        "translation": decision.translation,
+                        "cost_usd": cost,
+                    }
+                )
         else:
             abstained.append(
                 {
@@ -3005,11 +3549,13 @@ def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
         )
         roles = load_roles(args.roles)
         validate_roles(config, roles)
-        estimate = estimate_gate(
-            config,
-            args.language,
-            [entry.msgid for entry in selection.selected],
-        )
+        nplurals, plural_expression = catalog_plural_info(catalog)
+        sources: list[str | PluralSource] = []
+        for entry in selection.selected:
+            source = _batch_source(entry, nplurals, plural_expression)
+            if source is not None:
+                sources.append(source)
+        estimate = estimate_gate(config, args.language, sources)
         blockers = _batch_blockers(config, ledger, roles, args.language)
         over_budget = (
             args.max_cost is not None

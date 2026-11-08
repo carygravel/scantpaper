@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gettext
 import importlib.util
 import json
 import sys
@@ -39,6 +40,19 @@ GATE = _load_gate()
 LEDGER = sys.modules["translation_ledger"]
 
 
+def _load_compile_mo() -> ModuleType:
+    """Import dev/compile_mo.py with its sibling modules."""
+    spec = importlib.util.spec_from_file_location(
+        "compile_mo", str(DEV_DIR / "compile_mo.py")
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["compile_mo"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 class FakeClient:
     """A deterministic stand-in for an OpenAI-compatible deployment."""
 
@@ -48,20 +62,35 @@ class FakeClient:
         *,
         judge: str = "A",
         backtranslation: str | None = None,
+        plural_answers: dict[str, str] | None = None,
+        backtranslations: list[str] | None = None,
         cost_usd: float | None = None,
     ) -> None:
         """Store the canned proposal, judge and back-translation answers."""
         self.answers = answers or {}
         self.judge = judge
         self.backtranslation = backtranslation
+        self.plural_answers = plural_answers
+        self.backtranslations = backtranslations
         self.cost_usd = cost_usd
+        self._back_index = 0
 
     def complete(self, deployment: object, prompt: str) -> object:
         """Answer a proposal, judge or back-translation prompt."""
         if prompt.startswith("Choose the best"):
             text = self.judge
         elif "back into English" in prompt:
-            text = self.backtranslation or ""
+            if self.backtranslations is not None:
+                text = self.backtranslations[
+                    self._back_index % len(self.backtranslations)
+                ]
+                self._back_index += 1
+            else:
+                text = self.backtranslation or ""
+        elif "plural forms" in prompt and "It has" in prompt:
+            deployment_id = str(vars(deployment)["id"])
+            answers = self.plural_answers or self.answers
+            text = answers.get(deployment_id, "translated")
         else:
             deployment_id = str(vars(deployment)["id"])
             text = self.answers.get(str(deployment_id), "translated")
@@ -614,6 +643,65 @@ def test_conformance_inherits_and_failed_probe_does_not(tmp_path: Path) -> None:
     assert other["qualified"] is False
 
 
+def test_language_threshold_overrides_qualification(tmp_path: Path) -> None:
+    """A per-language tolerance replaces the global qualification threshold."""
+    data = _config_data()
+    data["language_thresholds"] = {"de": {"qualification": 0.35}}
+    config = GATE.load_config(_write_config(tmp_path, data))
+    entries = [
+        polib.POEntry(msgid="Delete", msgstr="Löschen"),
+        polib.POEntry(msgid="Open", msgstr="Öffnen"),
+    ]
+    record = GATE.qualify_release(
+        _ledger(),
+        config,
+        GATE.QualificationRequest("r1", "de", entries),
+        FakeClient({"p1": "Löschen"}),
+    )
+    assert record["score"] == 0.5
+    assert record["tolerance"] == 0.35
+    assert record["qualified"] is True
+
+
+def test_language_threshold_overrides_drift(tmp_path: Path) -> None:
+    """A per-language drift threshold replaces the global one."""
+    data = _config_data()
+    data["language_thresholds"] = {"de": {"drift": 0.3}}
+    config = GATE.load_config(_write_config(tmp_path, data))
+    probe = [
+        {"msgid": "Delete", "msgstr": "Löschen"},
+        {"msgid": "Open", "msgstr": "Öffnen"},
+    ]
+    result = GATE.drift_probe(
+        config,
+        GATE.DriftRequest("r1", "p1", "de", probe),
+        FakeClient({"p1": "Löschen"}),
+    )
+    assert result["score"] == 0.5
+    assert result["threshold"] == 0.3
+    assert result["paused"] is False
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        [],
+        {"de": []},
+        {"de": {"qualification": "high"}},
+        {"de": {"qualification": 1.5}},
+        {"": {"drift": 0.3}},
+    ],
+)
+def test_invalid_language_thresholds_are_rejected(
+    tmp_path: Path, overrides: object
+) -> None:
+    """Malformed per-language thresholds fail validation."""
+    data = _config_data()
+    data["language_thresholds"] = overrides
+    with pytest.raises(GATE.GateError, match="language_thresholds"):
+        GATE.load_config(_write_config(tmp_path, data))
+
+
 def test_drift_probe_pauses_without_demoting(tmp_path: Path) -> None:
     """A score drop pauses approvals but leaves them intact."""
     config = GATE.load_config(_write_config(tmp_path, _config_data()))
@@ -1016,7 +1104,12 @@ def _completion(text: str) -> object:
     )
 
 
-def _write_catalog(path: Path, entries: tuple[polib.POEntry, ...]) -> Path:
+def _write_catalog(
+    path: Path,
+    entries: tuple[polib.POEntry, ...],
+    *,
+    plural_forms: str | None = None,
+) -> Path:
     """Write a catalog with the standard test metadata."""
     catalog = polib.POFile()
     catalog.metadata = {
@@ -1024,6 +1117,8 @@ def _write_catalog(path: Path, entries: tuple[polib.POEntry, ...]) -> Path:
         "Content-Type": "text/plain; charset=UTF-8",
         "Content-Transfer-Encoding": "8bit",
     }
+    if plural_forms is not None:
+        catalog.metadata["Plural-Forms"] = plural_forms
     for entry in entries:
         catalog.append(entry)
     catalog.save(str(path))
@@ -1036,6 +1131,8 @@ def _batch_entry(
     *,
     fuzzy: bool = False,
     plural: bool = False,
+    plural_msgid: str | None = None,
+    plural_forms: dict[int, str] | None = None,
     context: str | None = None,
 ) -> polib.POEntry:
     """Build one entry for a batch test."""
@@ -1043,8 +1140,10 @@ def _batch_entry(
     if fuzzy:
         entry.flags.append("fuzzy")
     if plural:
-        entry.msgid_plural = f"{msgid}s"
-        entry.msgstr_plural = {0: "", 1: ""}
+        entry.msgid_plural = plural_msgid or f"{msgid}s"
+        entry.msgstr_plural = (
+            dict(plural_forms) if plural_forms is not None else {0: "", 1: ""}
+        )
     if context is not None:
         entry.msgctxt = context
     return entry
@@ -1081,6 +1180,7 @@ def _batch_setup(
     qualified: bool = True,
     paused: bool = False,
     entries: tuple[polib.POEntry, ...] = (),
+    plural_forms: str | None = None,
 ) -> tuple[Path, Path, Path, Path]:
     """Write a config, roles, ledger and catalog for a batch test."""
     data = _config_data()
@@ -1125,7 +1225,9 @@ def _batch_setup(
             since="2026-01-01",
         )
     ledger_path = _write_ledger(tmp_path / "ledger.json", ledger)
-    catalog_path = _write_catalog(tmp_path / "de.po", entries)
+    catalog_path = _write_catalog(
+        tmp_path / "de.po", entries, plural_forms=plural_forms
+    )
     return config_path, ledger_path, catalog_path, roles_path
 
 
@@ -2413,6 +2515,404 @@ def test_translate_cli_include_fuzzy(
     assert saved.msgstr == "Löschen"
     assert "fuzzy" not in saved.flags
     assert len(LEDGER.approvals(LEDGER.load_ledger(ledger_path))) == 1
+
+
+def test_catalog_plural_info_reads_the_header() -> None:
+    """The declared count and rule are read from the catalog header."""
+    catalog = polib.POFile()
+    catalog.metadata = {"Plural-Forms": "nplurals=3; plural=(n > 1);"}
+    assert GATE.catalog_plural_info(catalog) == (3, "(n > 1)")
+    assert GATE.catalog_plural_info(polib.POFile()) == (None, "")
+
+
+def test_select_batch_entries_handles_plural_forms() -> None:
+    """Empty plural forms are selected, full ones skipped and mismatches rejected."""
+    catalog = polib.POFile()
+    catalog.metadata = {"Plural-Forms": "nplurals=2; plural=(n != 1);"}
+    catalog.append(_batch_entry("Empty", plural=True))
+    catalog.append(
+        _batch_entry(
+            "Full",
+            plural=True,
+            plural_forms={0: "Eins", 1: "Viele"},
+        )
+    )
+    catalog.append(
+        _batch_entry(
+            "FuzzyFull",
+            plural=True,
+            plural_forms={0: "Eins", 1: "Viele"},
+            fuzzy=True,
+        )
+    )
+    catalog.append(
+        _batch_entry(
+            "Wrong",
+            plural=True,
+            plural_forms={0: "", 1: "", 2: ""},
+        )
+    )
+    selection = GATE._select_batch_entries(catalog, include_fuzzy=False, limit=None)
+    assert [entry.msgid for entry in selection.selected] == ["Empty"]
+    assert {entry.msgid for entry, _ in selection.unsupported} == {"Wrong"}
+    assert selection.skipped == 2
+
+    included = GATE._select_batch_entries(catalog, include_fuzzy=True, limit=None)
+    assert [entry.msgid for entry in included.selected] == ["Empty", "FuzzyFull"]
+    assert included.skipped == 1
+
+
+def test_select_batch_entries_accepts_three_forms() -> None:
+    """A three-form catalog selects an entry with three forms."""
+    catalog = polib.POFile()
+    catalog.metadata = {"Plural-Forms": "nplurals=3; plural=(n > 1);"}
+    catalog.append(
+        _batch_entry(
+            "File",
+            plural=True,
+            plural_forms={0: "", 1: "", 2: ""},
+        )
+    )
+    selection = GATE._select_batch_entries(catalog, include_fuzzy=False, limit=None)
+    assert [entry.msgid for entry in selection.selected] == ["File"]
+    assert selection.unsupported == ()
+
+
+def test_select_batch_entries_reports_a_plural_without_a_header() -> None:
+    """A plural entry without nplurals is unsupported."""
+    catalog = polib.POFile()
+    catalog.append(_batch_entry("File", plural=True))
+    selection = GATE._select_batch_entries(catalog, include_fuzzy=False, limit=None)
+    assert selection.selected == ()
+    assert "does not declare nplurals" in selection.unsupported[0][1]
+
+
+def test_prompt_for_plural_has_both_sources_and_rule() -> None:
+    """The plural prompt carries the count, rule and both source forms."""
+    source = GATE.PluralSource("One", "Many", 2, "n != 1")
+    prompt = GATE.prompt_for_plural("de", source)
+    assert "2 plural forms" in prompt
+    assert "Plural rule: n != 1" in prompt
+    assert "Source (singular): One" in prompt
+    assert "Source (plural): Many" in prompt
+
+
+@pytest.mark.parametrize("nplurals", [2, 3])
+def test_parse_plural_response_accepts_a_complete_set(nplurals: int) -> None:
+    """A complete indexed response parses into every form."""
+    text = "\n".join(f"{index}: Form {index}" for index in range(nplurals))
+    assert GATE.parse_plural_response(text, nplurals) == {
+        index: f"Form {index}" for index in range(nplurals)
+    }
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "0: Eins",
+        "0: Eins\n2: Zwei",
+        "0: Eins\n0: Zwei",
+        "Here are the forms:\n0: Eins\n1: Zwei",
+        "0: \n1: Zwei",
+    ],
+)
+def test_parse_plural_response_rejects_bad_answers(text: str) -> None:
+    """A wrong count, missing index, duplicate or preamble is unusable."""
+    assert GATE.parse_plural_response(text, 2) is None
+
+
+def test_deterministic_plural_checks_cover_every_form() -> None:
+    """A defect in any form fails the whole set."""
+    source = GATE.PluralSource("One: %(name)s", "Many: %(name)s", 2, "n != 1")
+    assert (
+        GATE.deterministic_plural_checks(
+            source,
+            {0: "Eins: %(name)s", 1: "Viele: %(name)s"},
+        )
+        == []
+    )
+    assert "form 1: placeholders changed" in GATE.deterministic_plural_checks(
+        source, {0: "Eins: %(name)s", 1: "Viele: Text"}
+    )
+    assert "form 1: empty translation" in GATE.deterministic_plural_checks(
+        source, {0: "Eins", 1: ""}
+    )
+    assert GATE.deterministic_plural_checks(source, {0: "Eins"}) == [
+        "wrong number of forms"
+    ]
+    assert GATE.deterministic_plural_checks(source, None) == [
+        "wrong number of forms or unparseable response"
+    ]
+
+
+def test_estimate_gate_scales_for_plural_forms(tmp_path: Path) -> None:
+    """A plural form set estimates more output than the singular source."""
+    config_path, _ledger_path, _catalog_path, _roles_path = _batch_setup(
+        tmp_path, costed=True
+    )
+    config = GATE.load_config(config_path)
+    singular = GATE.estimate_gate(config, "de", ["One"]).high_cost_usd
+    plural = GATE.estimate_gate(
+        config,
+        "de",
+        [GATE.PluralSource("One", "Many", 2, "n != 1")],
+    ).high_cost_usd
+    assert singular is not None
+    assert plural is not None
+    assert plural > singular
+
+
+def test_run_plural_gate_judges_complete_sets(tmp_path: Path) -> None:
+    """The judge sees complete form sets and its chosen set is approved."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    source = GATE.PluralSource("One file", "Many files", 2, "n != 1")
+    client = Mock(
+        wraps=FakeClient(
+            plural_answers={
+                "p1": "0: Eine Datei\n1: Viele Dateien",
+                "p2": "0: Ein File\n1: Viele Files",
+            },
+            judge="B",
+        )
+    )
+    decision = GATE.run_plural_gate(source, "de", config, client)
+    assert decision.approved is True
+    assert decision.translation is None
+    assert decision.forms == {0: "Ein File", 1: "Viele Files"}
+    assert decision.record is not None
+    assert set(decision.record["msgstr_plural"]) == {"0", "1"}
+    assert client.complete.call_count == 3
+    judge_prompt = client.complete.call_args_list[-1].args[1]
+    assert "0: Eine Datei" in judge_prompt
+    assert "0: Ein File" in judge_prompt
+
+
+def test_run_plural_gate_identical_sets_are_a_tie(tmp_path: Path) -> None:
+    """Identical form tuples skip the judge."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    source = GATE.PluralSource("One file", "Many files", 2, "n != 1")
+    answer = "0: Eine Datei\n1: Viele Dateien"
+    client = Mock(wraps=FakeClient(plural_answers={"p1": answer, "p2": answer}))
+    decision = GATE.run_plural_gate(source, "de", config, client)
+    assert decision.approved is True
+    assert decision.evidence["judge"]["tie"] is True
+    assert client.complete.call_count == 2
+
+
+def test_run_plural_gate_backtranslates_each_sentence_form(
+    tmp_path: Path,
+) -> None:
+    """Every sentence form is back-translated and recorded."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    source = GATE.PluralSource(
+        "This is a long singular sentence for the test.",
+        "These are long plural sentences for the test.",
+        2,
+        "n != 1",
+    )
+    answer = "0: Dies ist ein langer Satz.\n1: Dies sind lange Sätze."
+    client = Mock(
+        wraps=FakeClient(
+            plural_answers={"p1": answer, "p2": answer},
+            backtranslations=[source.msgid, source.msgid_plural],
+        )
+    )
+    decision = GATE.run_plural_gate(source, "de", config, client)
+    assert decision.approved is True
+    assert decision.evidence["backtranslation"] == {"0": True, "1": True}
+    assert client.complete.call_count == 4
+
+
+def test_run_plural_gate_rejects_a_bad_second_form(tmp_path: Path) -> None:
+    """A meaning change in form 1 blocks the whole set."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    source = GATE.PluralSource(
+        "This is a long singular sentence for the test.",
+        "These are long plural sentences for the test.",
+        2,
+        "n != 1",
+    )
+    answer = "0: Dies ist ein langer Satz.\n1: Dies sind lange Sätze."
+    client = Mock(
+        wraps=FakeClient(
+            plural_answers={"p1": answer, "p2": answer},
+            backtranslations=[source.msgid, "Something unrelated."],
+        )
+    )
+    decision = GATE.run_plural_gate(source, "de", config, client)
+    assert decision.approved is False
+    assert "back-translation" in decision.reason
+    assert decision.evidence["backtranslation"]["1"] is False
+
+
+def test_run_plural_gate_rejects_a_wrong_form_count(tmp_path: Path) -> None:
+    """A proposal with the wrong number of forms cannot be approved."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    source = GATE.PluralSource("One file", "Many files", 2, "n != 1")
+    client = Mock(wraps=FakeClient(plural_answers={"p1": "0: only", "p2": "0: only"}))
+    decision = GATE.run_plural_gate(source, "de", config, client)
+    assert decision.approved is False
+    assert "deterministic check" in decision.reason
+
+
+def test_apply_plural_decision_writes_every_form() -> None:
+    """Applying a plural decision fills msgstr_plural and clears fuzzy."""
+    entry = _batch_entry("File", plural=True, fuzzy=True)
+    ledger = _ledger()
+    source = GATE.PluralSource("File", "Files", 2, "n != 1")
+    forms = {0: "Datei", 1: "Dateien"}
+    record = LEDGER.make_record(
+        "de",
+        GATE._entry_for_plural(source, forms),
+        "machine-strong",
+        context=LEDGER.ApprovalContext(
+            approval_date="2026-01-01",
+            model_release="r1",
+            deployment="p1",
+        ),
+    )
+    decision = GATE.GateDecision(
+        approved=True,
+        reason="every check and the judge agree",
+        forms=forms,
+        record=record,
+    )
+    GATE._apply_decision(ledger, entry, decision)
+    assert entry.msgstr == ""
+    assert entry.msgstr_plural == {0: "Datei", 1: "Dateien"}
+    assert "fuzzy" not in entry.flags
+    assert len(LEDGER.approvals(ledger)) == 1
+
+    with pytest.raises(GATE.GateError, match="do not match"):
+        GATE._apply_decision(
+            _ledger(),
+            _batch_entry("File", plural=True),
+            GATE.GateDecision(
+                approved=True,
+                reason="every check and the judge agree",
+                forms={0: "Datei"},
+                record=record,
+            ),
+        )
+
+
+def test_plural_apply_compiles_every_form(tmp_path: Path) -> None:
+    """A catalog round trip through compile_mo renders both forms."""
+    compile_module = _load_compile_mo()
+    catalog_path = tmp_path / "de.po"
+    catalog = polib.POFile()
+    catalog.metadata = {
+        "MIME-Version": "1.0",
+        "Content-Type": "text/plain; charset=UTF-8",
+        "Plural-Forms": "nplurals=2; plural=(n != 1);",
+    }
+    entry = _batch_entry("File", plural=True)
+    catalog.append(entry)
+    catalog.save(str(catalog_path))
+    source = GATE.PluralSource("File", "Files", 2, "n != 1")
+    forms = {0: "Datei", 1: "Dateien"}
+    record = LEDGER.make_record(
+        "de",
+        GATE._entry_for_plural(source, forms),
+        "machine-strong",
+        context=LEDGER.ApprovalContext(
+            approval_date="2026-01-01",
+            model_release="r1",
+            deployment="p1",
+        ),
+    )
+    GATE._apply_decision(
+        _ledger(),
+        entry,
+        GATE.GateDecision(
+            approved=True,
+            reason="every check and the judge agree",
+            forms=forms,
+            record=record,
+        ),
+    )
+    catalog.save(str(catalog_path))
+    out = tmp_path / "out"
+    lang, stats = compile_module.compile_catalog(
+        catalog_path, None, set(), out, "scantpaper"
+    )
+    assert lang == "de"
+    assert stats is None
+    translation = gettext.translation(
+        "scantpaper", localedir=str(out), languages=["de"]
+    )
+    assert translation.ngettext("File", "Files", 1) == "Datei"
+    assert translation.ngettext("File", "Files", 2) == "Dateien"
+
+
+@pytest.mark.parametrize("nplurals", [2, 3])
+def test_translate_cli_applies_plural_forms(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    nplurals: int,
+) -> None:
+    """A two-form and a three-form entry are selected, gated and applied."""
+    rule = (
+        "nplurals=2; plural=(n != 1);"
+        if nplurals == 2
+        else "nplurals=3; plural=(n > 1);"
+    )
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        plural_forms=rule,
+        entries=(
+            _batch_entry(
+                "File",
+                plural=True,
+                plural_forms=dict.fromkeys(range(nplurals), ""),
+            ),
+        ),
+    )
+    answer = "\n".join(f"{index}: Form {index}" for index in range(nplurals))
+    client = Mock(wraps=FakeClient(plural_answers={"p1": answer, "p2": answer}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(
+        _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["approved"][0]["forms"] == {
+        str(index): f"Form {index}" for index in range(nplurals)
+    }
+    saved = polib.pofile(str(catalog_path)).find("File")
+    assert saved is not None
+    assert saved.msgstr == ""
+    assert saved.msgstr_plural == {index: f"Form {index}" for index in range(nplurals)}
+    assert payload["remaining"] == 0
+
+
+def test_translate_cli_plural_abstention(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A wrong form count abstains and leaves the plural forms empty."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        plural_forms="nplurals=2; plural=(n != 1);",
+        entries=(_batch_entry("File", plural=True),),
+    )
+    client = Mock(wraps=FakeClient(plural_answers={"p1": "0: only", "p2": "0: only"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    status = GATE.main(
+        _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["approved"] == []
+    assert payload["abstained"][0]["reason"] == (
+        "every proposal failed a deterministic check"
+    )
+    assert payload["remaining"] == 1
+    saved = polib.pofile(str(catalog_path)).find("File")
+    assert saved is not None
+    assert saved.msgstr_plural == {0: "", 1: ""}
 
 
 def _split_ledger(tmp_path: Path, languages: tuple[str, ...] = ("de", "en_GB")) -> Path:

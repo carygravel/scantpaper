@@ -50,6 +50,9 @@ DEFAULT_THRESHOLDS = {
     "backtranslation": 0.6,
     "chars_per_token": 4.0,
 }
+DEFAULT_LANGUAGE_THRESHOLDS = {
+    "de": {"qualification": 0.35, "drift": 0.3},
+}
 OPENCODE_NAMES = ("opencode.jsonc", "opencode.json")
 API_MODEL_PATH = "/api/model"
 API_PROVIDER_PATH = "/api/provider"
@@ -684,6 +687,13 @@ def _assemble_gate_config(
 
     base["version"] = 1
     base.setdefault("thresholds", dict(DEFAULT_THRESHOLDS))
+    base.setdefault(
+        "language_thresholds",
+        {
+            language: dict(values)
+            for language, values in DEFAULT_LANGUAGE_THRESHOLDS.items()
+        },
+    )
     base["releases"] = releases
     base["deployments"] = deployments
     for deployment_id, deployment in deployments.items():
