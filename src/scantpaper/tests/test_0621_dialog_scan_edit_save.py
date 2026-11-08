@@ -14,8 +14,10 @@ from scantpaper.dialog.scan import (
     _edit_profile_callback,
     _save_profile_callback,
 )
+from scantpaper.i18n import _
 from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
+from scantpaper.tests.widget_helpers import ProfileDialogResponder
 
 
 class Sane:
@@ -97,59 +99,53 @@ def test_edit_profile_dialog(
     )
 
 
-def test_save_profile_overwrite_dialog(mocker: pytest.MockerFixture) -> None:
-    """Tests that the save profile overwrite dialog is created with the correct buttons.
-
-    This covers changes from commit 1bd730e.
-    """
-    parent = MagicMock(spec=Gtk.Window)
-    parent.profiles = {"MyProfile": {}}
-    parent.save_current_profile = MagicMock()
-
-    entry_mock = MagicMock(spec=Gtk.Entry)
-    entry_mock.get_text.return_value = "MyProfile"
-    mocker.patch("scantpaper.dialog.scan.Gtk.Entry", return_value=entry_mock)
-    mocker.patch("scantpaper.dialog.scan.Gtk.Box", return_value=MagicMock(spec=Gtk.Box))
-    mocker.patch(
-        "scantpaper.dialog.scan.Gtk.Label", return_value=MagicMock(spec=Gtk.Label)
+def test_save_profile_overwrite_dialog(
+    mocker: pytest.MockerFixture, available_scan_options: Options
+) -> None:
+    """Confirming an overwrite replaces the stored profile."""
+    parent = TestScan(
+        document=MagicMock(),
+        device="test",
+        available_scan_options=available_scan_options,
     )
-    mock_pad = mocker.patch("scantpaper.dialog.scan.pad_content_area")
-    # i18n is not initialised, so we have to mock this
-    mocker.patch("scantpaper.dialog.scan._", side_effect=lambda s: s)
-
-    name_dialog_mock = MagicMock(spec=Gtk.Dialog)
-    overwrite_dialog_mock = MagicMock(spec=Gtk.Dialog)
-
-    # The name dialog returns OK, then the overwrite dialog returns OK to save.
-    mocker.patch("scantpaper.dialog.scan.run_dialog", return_value=Gtk.ResponseType.OK)
-
-    def dialog_side_effect(*_args: object, **kwargs: object) -> object:
-        if "exists. Overwrite?" in cast("str", kwargs.get("title", "")):
-            return overwrite_dialog_mock
-        return name_dialog_mock
-
-    dialog_mock = mocker.patch(
-        "scantpaper.dialog.scan.Gtk.Dialog", side_effect=dialog_side_effect
-    )
+    original = Profile(backend=[("resolution", 300)])
+    parent.profiles = {"MyProfile": original}
+    responder = ProfileDialogResponder("MyProfile")
+    mocker.patch("scantpaper.dialog.scan.run_dialog", side_effect=responder)
 
     _save_profile_callback(None, parent)
 
-    assert dialog_mock.call_count == 2
-    assert "Name of scan profile" in dialog_mock.call_args_list[0][0]
-    assert (
-        "Profile 'MyProfile' exists. Overwrite?"
-        in dialog_mock.call_args_list[1][1]["title"]
-    )
-    assert mock_pad.call_count == 2
+    assert responder.titles == [
+        _("Name of scan profile"),
+        _("Profile '%s' exists. Overwrite?") % "MyProfile",
+    ]
+    assert parent.profiles["MyProfile"] == parent.current_scan_options
+    assert parent.profiles["MyProfile"] != original
+    assert parent.combobsp.get_num_rows() == 1
 
-    overwrite_dialog_mock.add_buttons.assert_called_once_with(
-        "OK",
-        Gtk.ResponseType.OK,
-        "Cancel",
-        Gtk.ResponseType.CANCEL,
-    )
 
-    parent.save_current_profile.assert_called_once_with("MyProfile")
+def test_save_profile_overwrite_cancel(
+    mocker: pytest.MockerFixture, available_scan_options: Options
+) -> None:
+    """Cancelling an overwrite keeps the stored profile."""
+    parent = TestScan(
+        document=MagicMock(),
+        device="test",
+        available_scan_options=available_scan_options,
+    )
+    original = Profile(backend=[("resolution", 300)])
+    parent.profiles = {"MyProfile": original}
+    responder = ProfileDialogResponder(
+        "MyProfile",
+        name_responses=[Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL],
+        overwrite_response=Gtk.ResponseType.CANCEL,
+    )
+    mocker.patch("scantpaper.dialog.scan.run_dialog", side_effect=responder)
+
+    _save_profile_callback(None, parent)
+
+    assert parent.profiles["MyProfile"] is original
+    assert parent.combobsp.get_num_rows() == 0
 
 
 def test_edit_paper_cancel(mocker: pytest.MockerFixture) -> None:

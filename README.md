@@ -156,6 +156,18 @@ against the label shown in the list and the device's backend name, so patterns
 such as `Camera` or `v4l:.*` work. If a pattern hides every device, scantpaper
 reports that no devices were found rather than offering an empty list.
 
+#### Saving and reusing scan profiles
+
+The **Scan profiles** frame in the scan dialog stores the current scan options
+under a name. Set the device and options as you want them, click the save
+button, and enter a name; the profile then appears in the list above the
+buttons. Choosing a profile from the list applies its saved options. **Edit**
+opens the profile's option list, where individual backend and frontend options
+can be changed or removed, and **Delete** removes the selected profile.
+
+Profiles are stored in `~/.config/scantpaperrc` and are available again the
+next time scantpaper starts.
+
 ### Main Features
 
 - **Scan:** Options for device, page count, source document, side to scan, and

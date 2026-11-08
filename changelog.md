@@ -1,5 +1,9 @@
 ## 4.0.4 (unreleased)
 
+* Saving a scan profile works again. The GTK4 port built the profile naming
+  dialog with a positional title, which GTK4 rejects, so the save button in the
+  **Scan profiles** frame did nothing. Profiles can now be named, listed and
+  reused across sessions.
 * Text fields now keep their standard editing shortcuts. When the text-layer
   editor has focus, `Ctrl+X`, `Ctrl+C`, `Ctrl+V`, `Ctrl+A`, `Ctrl+Z`,
   `Ctrl+Shift+Z`, `+` and `-` edit the text instead of acting on pages or

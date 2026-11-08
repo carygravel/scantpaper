@@ -1699,7 +1699,7 @@ def _option_value_message(opt: Option, curval: object, val: object) -> str:
 
 def _save_profile_callback(_widget: Gtk.Button, parent: Scan) -> None:
     dialog = Gtk.Dialog(
-        _("Name of scan profile"),
+        title=_("Name of scan profile"),
         transient_for=parent,
         destroy_with_parent=True,
     )

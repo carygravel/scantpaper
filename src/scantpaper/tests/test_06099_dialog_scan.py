@@ -25,8 +25,10 @@ from scantpaper.dialog.scan import (
 )
 from scantpaper.docthread import INSERT_AT_START
 from scantpaper.frontend import enums
+from scantpaper.i18n import _
 from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
+from scantpaper.tests.widget_helpers import ProfileDialogResponder
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -663,52 +665,60 @@ class TestScanDialog:
         assert x == 600
         assert y == 1200
 
-    def test_save_profile_callback(self) -> None:
-        """Test _save_profile_callback."""
+    def test_save_profile_callback(self, mocker: pytest.MockerFixture) -> None:
+        """Test _save_profile_callback builds a real naming dialog."""
         parent = MockScan()
         parent.profiles = {}
+        responder = ProfileDialogResponder("New Profile")
+        mocker.patch("scantpaper.dialog.scan.run_dialog", side_effect=responder)
 
-        with (
-            unittest.mock.patch("scantpaper.dialog.scan.Gtk.Dialog") as mockdialogclass,
-            unittest.mock.patch("scantpaper.dialog.scan.Gtk.Entry") as mockentryclass,
-            unittest.mock.patch("scantpaper.dialog.scan.Gtk.Box"),
-            unittest.mock.patch("scantpaper.dialog.scan.Gtk.Label"),
-            unittest.mock.patch(
-                "scantpaper.dialog.scan.run_dialog",
-                side_effect=[Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL],
-            ),
-        ):
-            mock_dialog = mockdialogclass.return_value
-            mock_dialog.get_content_area.return_value = unittest.mock.Mock()
+        _save_profile_callback(None, parent)
 
-            mock_entry = mockentryclass.return_value
-            mock_entry.get_text.return_value = "New Profile"
+        assert responder.titles == [_("Name of scan profile")]
+        assert "New Profile" in parent.profiles
 
-            _save_profile_callback(None, parent)
-            assert "New Profile" in parent.profiles
-
-    def test_save_profile_callback_cancel(self) -> None:
-        """Test cancelling _save_profile_callback."""
+    def test_save_profile_callback_cancel(self, mocker: pytest.MockerFixture) -> None:
+        """Test cancelling _save_profile_callback creates no profile."""
         parent = MockScan()
         parent.profiles = {}
+        responder = ProfileDialogResponder(
+            "New Profile", name_responses=[Gtk.ResponseType.CANCEL]
+        )
+        mocker.patch("scantpaper.dialog.scan.run_dialog", side_effect=responder)
 
-        with (
-            unittest.mock.patch("scantpaper.dialog.scan.Gtk.Dialog") as mockdialogclass,
-            unittest.mock.patch("scantpaper.dialog.scan.Gtk.Entry") as mockentryclass,
-            unittest.mock.patch("scantpaper.dialog.scan.Gtk.Box"),
-            unittest.mock.patch("scantpaper.dialog.scan.Gtk.Label"),
-            unittest.mock.patch(
-                "scantpaper.dialog.scan.run_dialog",
-                return_value=Gtk.ResponseType.CANCEL,
-            ),
-        ):
-            mock_dialog = mockdialogclass.return_value
-            mock_dialog.get_content_area.return_value = unittest.mock.Mock()
+        _save_profile_callback(None, parent)
 
-            mock_entry = mockentryclass.return_value
-            mock_entry.get_text.return_value = "New Profile"
+        assert parent.profiles == {}
 
-            _save_profile_callback(None, parent)
+    def test_save_profile_callback_empty_name_retries(
+        self, mocker: pytest.MockerFixture
+    ) -> None:
+        """Test an empty name keeps the dialog open for another attempt."""
+        parent = MockScan()
+        parent.profiles = {}
+        responder = ProfileDialogResponder(
+            "",
+            name_responses=[Gtk.ResponseType.OK, Gtk.ResponseType.CANCEL],
+        )
+        mocker.patch("scantpaper.dialog.scan.run_dialog", side_effect=responder)
+
+        _save_profile_callback(None, parent)
+
+        assert parent.profiles == {}
+        assert responder.titles == [_("Name of scan profile")] * 2
+
+    def test_save_profile_adds_one_selector_row(
+        self, sane_scan_dialog: SaneScanDialog, mocker: pytest.MockerFixture
+    ) -> None:
+        """Test a saved profile appears exactly once in the selector."""
+        responder = ProfileDialogResponder("New Profile")
+        mocker.patch("scantpaper.dialog.scan.run_dialog", side_effect=responder)
+
+        _save_profile_callback(None, sane_scan_dialog)
+
+        assert sane_scan_dialog.combobsp.get_num_rows() == 1
+        assert sane_scan_dialog.combobsp.get_active_text() == "New Profile"
+        assert list(sane_scan_dialog.profiles) == ["New Profile"]
 
     def test_edit_profile_callback(self) -> None:
         """Test _edit_profile_callback."""
