@@ -52,6 +52,7 @@ DEFAULT_THRESHOLDS = {
 }
 DEFAULT_LANGUAGE_THRESHOLDS = {
     "de": {"qualification": 0.35, "drift": 0.3},
+    "es": {"qualification": 0.4, "drift": 0.28},
 }
 OPENCODE_NAMES = ("opencode.jsonc", "opencode.json")
 API_MODEL_PATH = "/api/model"

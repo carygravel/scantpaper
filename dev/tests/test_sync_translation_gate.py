@@ -216,16 +216,20 @@ def test_reimport_preserves_manual_fields_and_force_replaces(
 def test_import_seeds_and_preserves_language_thresholds(
     tmp_path: Path,
 ) -> None:
-    """A fresh import seeds the German calibration and keeps a later edit."""
+    """A fresh import seeds the calibrations and keeps a later edit."""
     roles = SYNC.load_roles(_roles(tmp_path / "roles.json"))
     first = SYNC.build_gate_config(_opencode(), roles)
-    assert first["language_thresholds"] == {"de": {"qualification": 0.35, "drift": 0.3}}
+    assert first["language_thresholds"] == {
+        "de": {"qualification": 0.35, "drift": 0.3},
+        "es": {"qualification": 0.4, "drift": 0.28},
+    }
 
     thresholds = cast_dict(first["language_thresholds"])
     thresholds["de"] = {"qualification": 0.4, "drift": 0.35}
     second = SYNC.build_gate_config(_opencode(), roles, first)
     assert second["language_thresholds"] == {
-        "de": {"qualification": 0.4, "drift": 0.35}
+        "de": {"qualification": 0.4, "drift": 0.35},
+        "es": {"qualification": 0.4, "drift": 0.28},
     }
 
 
