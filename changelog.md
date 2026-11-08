@@ -84,6 +84,8 @@
 * The Fedora RPM now requires `gtk4` and `gobject-introspection`. The Python
   metadata pulled the GObject bindings but not the Gtk and cairo typelibs, so
   a fresh install could fail to start with `Namespace Gtk not available`.
+* The German translation now covers every shipped string, including counted
+  forms.
 
 
 ## 4.0.3 (2026-11-07)

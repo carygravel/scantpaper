@@ -19,63 +19,63 @@ msgstr ""
 "X-Generator: Launchpad (build 619f92fce32b9c4e9124c2dcf63f8ea9f3342386)\n"
 "X-Launchpad-Export-Date: 2022-02-15 12:01+0000\n"
 
-#: app_window.py:681
+#: app_window.py:735
 msgid "Warning: missing packages"
 msgstr "Achtung: Fehlende Pakete"
 
-#: app_window.py:757
+#: app_window.py:811
 msgid "Image"
 msgstr "Bild"
 
-#: app_window.py:758 layer.py:197
+#: app_window.py:812 layer.py:197
 msgid "Text layer"
 msgstr "Textebene"
 
-#: app_window.py:760
+#: app_window.py:814
 msgid "Annotations"
 msgstr "Anmerkungen"
 
-#: app_window.py:1177
+#: app_window.py:1234
 #, python-format
 msgid "%(mb)dMb free in %(name)s."
 msgid_plural "%(mb)dMb free in %(name)s."
 msgstr[0] "%(mb)d Mb frei in %(name)s."
 msgstr[1] "%(mb)d Mb frei in %(name)s."
 
-#: app_window.py:1205 helpers.py:477
+#: app_window.py:1262 helpers.py:477
 msgid "Messages"
 msgstr "Meldungen"
 
-#: app_window.py:1288
+#: app_window.py:1345
 msgid "Error opening the last device used."
 msgstr "Fehler beim Öffnen des zuletzt verwendeten Geräts."
 
-#: app_window.py:1290
+#: app_window.py:1347
 msgid "There was an error opening the last device used."
 msgstr "Es gab einen Fehler beim Öffnen des zuletzt verwendeten Geräts."
 
-#: app_window.py:1293
+#: app_window.py:1350
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr ""
 "Hoppla! Ich habe vergessen, es einzuschalten. Versuche es jetzt noch einmal."
 
-#: app_window.py:1299 dialog/scan.py:538
+#: app_window.py:1356 dialog/scan.py:538
 msgid "Rescan for devices"
 msgstr "Erneut nach Geräten suchen"
 
-#: app_window.py:1302
+#: app_window.py:1359
 msgid "Restart scantpaper."
 msgstr "scantpaper neu starten."
 
-#: app_window.py:1306
+#: app_window.py:1363
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Ignoriere den Fehler einfach. Ich brauche den Scanner noch nicht."
 
-#: app_window.py:1310 dialog/preferences.py:188
+#: app_window.py:1367 dialog/preferences.py:188
 msgid "Cache device list"
 msgstr "Geräteliste im Cache"
 
-#: app_window.py:1313 dialog/__init__.py:214 session_mixins.py:518
+#: app_window.py:1370 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr "Diese Meldung nicht mehr anzeigen"
 
@@ -139,7 +139,7 @@ msgstr ""
 " alle Einstellungen auf ihre Standardwerte zurückgesetzt. Eine "
 "Sicherungskopie der Originaldatei wurde als %(backup)s gespeichert."
 
-#: dependencies.py:124 tests/test_app_window.py:832
+#: dependencies.py:124 tests/test_app_window.py:861
 msgid "Save image and Save as PDF both require imagemagick"
 msgstr "Zum Speichern als Bild und als PDF wird ImageMagick benötigt"
 
@@ -147,7 +147,7 @@ msgstr "Zum Speichern als Bild und als PDF wird ImageMagick benötigt"
 msgid "Save image requires libtiff"
 msgstr "Zum Speichern als Bild wird libtiff benötigt"
 
-#: dependencies.py:136 tests/test_app_window.py:833
+#: dependencies.py:136 tests/test_app_window.py:862
 msgid "Save as DjVu requires djvulibre-bin"
 msgstr "Zum Speichern als DjVu wird djvulibre-bin benötigt"
 
@@ -155,19 +155,19 @@ msgstr "Zum Speichern als DjVu wird djvulibre-bin benötigt"
 msgid "Email as PDF requires xdg-email"
 msgstr "Zum E-Mail-Versand als PDF wird xdg-email benötigt"
 
-#: dependencies.py:147 tests/test_app_window.py:834
+#: dependencies.py:147 tests/test_app_window.py:863
 msgid "unpaper missing"
 msgstr "unpaper fehlt"
 
-#: dependencies.py:149 tests/test_app_window.py:835
+#: dependencies.py:149 tests/test_app_window.py:864
 msgid "OCR requires tesseract"
 msgstr "Für OCR wird tesseract benötigt"
 
-#: dependencies.py:154 tests/test_app_window.py:836
+#: dependencies.py:154 tests/test_app_window.py:865
 msgid "PDF encryption requires qpdf"
 msgstr "Für PDF-Verschlüsselung wird qpdf benötigt"
 
-#: dependencies.py:160 tests/test_app_window.py:837
+#: dependencies.py:160 tests/test_app_window.py:866
 msgid "JBIG2 PDF compression requires jbig2"
 msgstr "JBIG2-PDF-Komprimierung erfordert jbig2"
 
@@ -2120,42 +2120,44 @@ msgid "Restore file"
 msgstr "Datei wiederherstellen"
 
 #: session_mixins.py:258
-#, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
-msgstr[1] ""
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] "%(count)d abgestürzte Sitzung verwerfen?"
+msgstr[1] "%(count)d abgestürzte Sitzungen verwerfen?"
 
-#: session_mixins.py:282
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
-msgstr ""
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] "Konnte %(count)d abgestürzte Sitzung nicht entfernen."
+msgstr[1] "Konnte %(count)d abgestürzte Sitzungen nicht entfernen."
 
-#: session_mixins.py:295
+#: session_mixins.py:301
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
 msgstr "GraphicsMagick wird im ImageMagick Kompatibilitätsmodus genutzt."
 
-#: session_mixins.py:297
+#: session_mixins.py:303
 msgid "Whilst this might work, it is not currently supported."
 msgstr "Dies mag zwar funktionieren, wird aber derzeit nicht unterstützt."
 
-#: session_mixins.py:299
+#: session_mixins.py:305
 msgid "Please switch to ImageMagick in case of problems."
 msgstr "Bitte wechseln Sie im Problemfall zu ImageMagick."
 
-#: session_mixins.py:312
+#: session_mixins.py:318
 msgid "Tesseract"
 msgstr "Tesseract"
 
-#: session_mixins.py:312
+#: session_mixins.py:318
 msgid "Process image with Tesseract."
 msgstr "Bild mit Tesseract verarbeiten"
 
-#: session_mixins.py:324
+#: session_mixins.py:330
 msgid "Finished scanning facing pages. Scan reverse pages?"
 msgstr "Scan der Vorderseiten ist abgeschlossen. Rückseiten scannen?"
 
-#: session_mixins.py:327
+#: session_mixins.py:333
 msgid "Finished scanning reverse pages. Scan facing pages?"
 msgstr "Scan der Rückseiten ist abgeschlossen. Vorderseiten scannen?"
 

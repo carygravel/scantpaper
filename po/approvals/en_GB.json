@@ -12983,6 +12983,66 @@
       "deployment": null,
       "approval_date": "2026-11-07",
       "msgstr": "Use the combined select and pan tool"
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Discard %(count)d crashed session?",
+      "msgid_plural": "Discard %(count)d crashed sessions?",
+      "translation_sha256": "6832411618f25ff1c0ff0de41162107bc15ae28cf553025801cfeadbf3dd7587",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-08",
+      "msgstr_plural": {
+        "0": "Discard %(count)d crashed session?",
+        "1": "Discard %(count)d crashed sessions?"
+      }
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "Could not remove %(count)d crashed session.",
+      "msgid_plural": "Could not remove %(count)d crashed sessions.",
+      "translation_sha256": "4449b200f9d3260ecc39c7df8d29336bf3ad4a4e941efc7e12aab071f0691ee2",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-08",
+      "msgstr_plural": {
+        "0": "Could not remove %(count)d crashed session.",
+        "1": "Could not remove %(count)d crashed sessions."
+      }
+    },
+    {
+      "language": "en_GB",
+      "msgctxt": null,
+      "msgid": "%(mb)dMb free in %(name)s.",
+      "msgid_plural": "%(mb)dMb free in %(name)s.",
+      "translation_sha256": "184be073a5f5a96577008df51bb534f428fe17ed741a49cb4213eaa9d920247b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-08",
+      "msgstr_plural": {
+        "0": "%(mb)dMb free in %(name)s.",
+        "1": "%(mb)dMb free in %(name)s."
+      }
     }
   ],
   "qualifications": [

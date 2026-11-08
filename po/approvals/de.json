@@ -12894,6 +12894,72 @@
       "deployment": null,
       "approval_date": "2026-11-08",
       "msgstr": "Bilder öffnen"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Discard %(count)d crashed session?",
+      "msgid_plural": "Discard %(count)d crashed sessions?",
+      "translation_sha256": "4af13ee925a3361f81e5a0f563a25d0bb3809eeedcff80e572b81720ab48d374",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax"
+          }
+        ],
+        "judge": {
+          "tie": true,
+          "verdict": "identical",
+          "families": [
+            "deepseek-flash",
+            "minimax"
+          ]
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": {
+          "0": true,
+          "1": true
+        },
+        "high_impact": true,
+        "prompt_hash": "sha256:50f4b0df2b7bae35"
+      },
+      "evidence_sha256": "d972e30d499246ea333d4162bf070abdc9a7f3b43c2b5356491a9d278c0489d6",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-08",
+      "msgstr_plural": {
+        "0": "%(count)d abgestürzte Sitzung verwerfen?",
+        "1": "%(count)d abgestürzte Sitzungen verwerfen?"
+      }
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Could not remove %(count)d crashed session.",
+      "msgid_plural": "Could not remove %(count)d crashed sessions.",
+      "translation_sha256": "15539e6333b9fee5740b301cfba2334730277797ba50959f110f4661a7ee6e85",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "batch_proposal": true
+      },
+      "evidence_sha256": "a704dde9dd7c98ddbffc1b4bab668aa5906f6bcdb0da38062361a095255ca5e9",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-08",
+      "msgstr_plural": {
+        "0": "Konnte %(count)d abgestürzte Sitzung nicht entfernen.",
+        "1": "Konnte %(count)d abgestürzte Sitzungen nicht entfernen."
+      }
     }
   ],
   "qualifications": [
@@ -15295,6 +15361,57 @@
       "total_cost_usd": 0.000267,
       "latency_ms": 3311.925,
       "evidence_sha256": "59f4da456f3df952387f621e4595391c70fad3a6e8a38206a28f519f73f3dace"
+    },
+    {
+      "action": "gate",
+      "language": "de",
+      "outcome": "abstained",
+      "reason": "back-translation changed the meaning",
+      "timestamp": "2026-11-08T08:30:13+00:00",
+      "winning_deployment": null,
+      "winning_release": null,
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 3,
+      "total_cost_usd": 0.002616,
+      "latency_ms": 11818.555,
+      "evidence_sha256": "0031ea520d60c5e1e5f29b89d94cc22936331929ee5d8106ae4875754a24bd57"
+    },
+    {
+      "action": "gate",
+      "language": "de",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-08T08:30:26+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.004043,
+      "latency_ms": 12168.725,
+      "evidence_sha256": "e03c0ffc1db55f60bfd4283e47d85e8caf407cc0bbc64aa16d64854f9c76d827"
+    },
+    {
+      "action": "gate",
+      "language": "de",
+      "outcome": "abstained",
+      "reason": "back-translation changed the meaning",
+      "timestamp": "2026-11-08T08:31:14+00:00",
+      "winning_deployment": null,
+      "winning_release": null,
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.008241,
+      "latency_ms": 23717.913,
+      "evidence_sha256": "13be0a30cbfee4cc5740d19afa84d6b5b97daf4735c35fe8036b8e7bfdad45b7"
     }
   ]
 }

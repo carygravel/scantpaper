@@ -709,7 +709,7 @@ def test_discard_crashed_sessions(
     )
 
     mock_ask.assert_called_once()
-    assert "2 crashed sessions" in mock_ask.call_args.kwargs["text"]
+    assert mock_ask.call_args.kwargs["text"] == "Discard 2 crashed sessions?"
     assert mock_remove.call_count == 2
 
 
@@ -717,20 +717,21 @@ def test_discard_crashed_sessions_cancelled(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
     """Cancelling the confirmation leaves every snapshot alone."""
-    mocker.patch.object(
+    mock_ask = mocker.patch.object(
         mock_session_window, "_ask_question", return_value=Gtk.ResponseType.CANCEL
     )
     mock_remove = mocker.patch("scantpaper.session_mixins.remove_session_snapshot")
 
     mock_session_window._discard_crashed_sessions(["/tmp/scantpaper-crashedx.sdb"])
 
+    assert mock_ask.call_args.kwargs["text"] == "Discard 1 crashed session?"
     mock_remove.assert_not_called()
 
 
 def test_discard_crashed_sessions_failure(
     mocker: pytest.MockerFixture, mock_session_window: object
 ) -> None:
-    """A deletion failure is reported to the user."""
+    """A deletion failure reports the failed count."""
     mocker.patch.object(
         mock_session_window, "_ask_question", return_value=Gtk.ResponseType.OK
     )
@@ -742,6 +743,33 @@ def test_discard_crashed_sessions_failure(
     mock_session_window._discard_crashed_sessions(["/tmp/scantpaper-crashedx.sdb"])
 
     mock_session_window._show_message_dialog.assert_called_once()
+    assert (
+        mock_session_window._show_message_dialog.call_args.kwargs["text"]
+        == "Could not remove 1 crashed session."
+    )
+
+
+def test_discard_crashed_sessions_reports_a_plural_failure(
+    mocker: pytest.MockerFixture, mock_session_window: object
+) -> None:
+    """Several failed removals use the plural error form."""
+    mocker.patch.object(
+        mock_session_window, "_ask_question", return_value=Gtk.ResponseType.OK
+    )
+    mocker.patch(
+        "scantpaper.session_mixins.remove_session_snapshot",
+        side_effect=PermissionError("denied"),
+    )
+
+    mock_session_window._discard_crashed_sessions(
+        ["/tmp/scantpaper-crashedx.sdb", "/tmp/scantpaper-orphanxx.sdb"]
+    )
+
+    mock_session_window._show_message_dialog.assert_called_once()
+    assert (
+        mock_session_window._show_message_dialog.call_args.kwargs["text"]
+        == "Could not remove 2 crashed sessions."
+    )
 
 
 def test_finished_process_callback(

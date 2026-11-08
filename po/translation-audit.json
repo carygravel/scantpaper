@@ -3,12 +3,12 @@
   "snapshot": "1a3037183eadc10004f7f4d6228bd7f9192aa2ec",
   "snapshot_date": "2026-02-28",
   "totals": {
-    "shipped": 14489,
+    "shipped": 14497,
     "unchanged": 9880,
     "model-changed": 1467,
-    "model-added": 3142,
+    "model-added": 3150,
     "approved": 9894,
-    "pending": 4595,
+    "pending": 4603,
     "restored": 0
   },
   "languages": {
@@ -63,12 +63,12 @@
       "has_snapshot": 1
     },
     "de": {
-      "shipped": 663,
+      "shipped": 665,
       "unchanged": 462,
       "model-changed": 0,
-      "model-added": 201,
+      "model-added": 203,
       "approved": 462,
-      "pending": 201,
+      "pending": 203,
       "restored": 0,
       "has_snapshot": 1
     },
@@ -83,22 +83,22 @@
       "has_snapshot": 1
     },
     "en_GB": {
-      "shipped": 655,
+      "shipped": 658,
       "unchanged": 405,
       "model-changed": 0,
-      "model-added": 250,
+      "model-added": 253,
       "approved": 405,
-      "pending": 250,
+      "pending": 253,
       "restored": 0,
       "has_snapshot": 1
     },
     "en_US": {
-      "shipped": 655,
+      "shipped": 658,
       "unchanged": 0,
       "model-changed": 0,
-      "model-added": 655,
+      "model-added": 658,
       "approved": 0,
-      "pending": 655,
+      "pending": 658,
       "restored": 0,
       "has_snapshot": 0
     },
@@ -29915,6 +29915,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "%(mb)dMb free in %(name)s.",
+      "msgid_plural": "%(mb)dMb free in %(name)s."
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Error opening the last device used.",
       "msgid_plural": null
     },
@@ -31275,6 +31283,22 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Discard %(count)d crashed session?",
+      "msgid_plural": "Discard %(count)d crashed sessions?"
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Could not remove %(count)d crashed session.",
+      "msgid_plural": "Could not remove %(count)d crashed sessions."
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Fully automatic page segmentation.",
       "msgid_plural": null
     },
@@ -31925,6 +31949,14 @@
       "msgctxt": null,
       "msgid": "Annotations",
       "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "%(mb)dMb free in %(name)s.",
+      "msgid_plural": "%(mb)dMb free in %(name)s."
     },
     {
       "language": "en_US",
@@ -35403,6 +35435,22 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Discard %(count)d crashed session?",
+      "msgid_plural": "Discard %(count)d crashed sessions?"
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Could not remove %(count)d crashed session.",
+      "msgid_plural": "Could not remove %(count)d crashed sessions."
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "GraphicsMagick is being used in ImageMagick compatibility mode.",
       "msgid_plural": null
     },
@@ -37137,6 +37185,6 @@
   ],
   "parked": [],
   "notes": [
-    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 13834 with 3142 model-added and 1467 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 655 entries in en_US, which has no snapshot, so the grand total is 14489."
+    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 13839 with 3150 model-added and 1467 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 658 entries in en_US, which has no snapshot, so the grand total is 14497."
   ]
 }

@@ -255,8 +255,8 @@ class SessionMixins:
         """Remove selected snapshots after confirmation."""
         count = len(dbs)
         message = ngettext(
-            "Discard this %(count)d crashed session?",
-            "Discard these %(count)d crashed sessions?",
+            "Discard %(count)d crashed session?",
+            "Discard %(count)d crashed sessions?",
             count,
         ) % {"count": count}
         response = self._ask_question(
@@ -275,11 +275,17 @@ class SessionMixins:
             if (failure := self._remove_crashed_snapshot(db)) is not None
         ]
         if failures:
+            failed = len(failures)
+            text = ngettext(
+                "Could not remove %(count)d crashed session.",
+                "Could not remove %(count)d crashed sessions.",
+                failed,
+            ) % {"count": failed}
             self._show_message_dialog(
                 parent=self,
                 message_type="error",
                 buttons=Gtk.ButtonsType.CLOSE,
-                text=_("Unable to discard some crashed sessions."),
+                text=text,
                 store_response=True,
             )
 
