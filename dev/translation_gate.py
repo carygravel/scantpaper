@@ -1060,6 +1060,11 @@ def _format_fields(text: str) -> list[str] | None:
     return cast("list[str]", re.findall(r"(?<!\{)\{([^{}]*)\}(?!\})", text))
 
 
+def _edge_newlines(text: str) -> tuple[int, int]:
+    """Return the number of leading and trailing newlines."""
+    return len(text) - len(text.lstrip("\n")), len(text) - len(text.rstrip("\n"))
+
+
 def deterministic_checks(source: str, translation: str) -> list[str]:
     """Return every deterministic defect in a proposed translation."""
     defects: list[str] = []
@@ -1073,6 +1078,12 @@ def deterministic_checks(source: str, translation: str) -> list[str]:
         defects.append("str.format fields changed")
     if expected is not None and got is None:
         defects.append("malformed braces")
+    source_leading, source_trailing = _edge_newlines(source)
+    translation_leading, translation_trailing = _edge_newlines(translation)
+    if source_leading != translation_leading:
+        defects.append("leading newline changed")
+    if source_trailing != translation_trailing:
+        defects.append("trailing newline changed")
     if not translation.strip():
         defects.append("empty translation")
     return defects

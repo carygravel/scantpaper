@@ -2637,6 +2637,9 @@ def test_deterministic_plural_checks_cover_every_form() -> None:
     assert "form 1: empty translation" in GATE.deterministic_plural_checks(
         source, {0: "Eins", 1: ""}
     )
+    assert GATE.deterministic_plural_checks(
+        source, {0: "Eins: %(name)s\n", 1: "Viele: %(name)s"}
+    ) == ["form 0: trailing newline changed"]
     assert GATE.deterministic_plural_checks(source, {0: "Eins"}) == [
         "wrong number of forms"
     ]
@@ -3236,6 +3239,35 @@ def test_deterministic_checks_reject_a_placeholder_change() -> None:
     """A placeholder change blocks a proposal before judging."""
     defects = GATE.deterministic_checks("Open file: %s", "Apri file: %d")
     assert "placeholders changed" in defects
+
+
+def test_deterministic_checks_preserve_line_structure() -> None:
+    """Leading and trailing newlines must survive translation."""
+    assert GATE.deterministic_checks("Line\n", "Zeile\n") == []
+    assert "trailing newline changed" in GATE.deterministic_checks("Line\n", "Zeile")
+    assert "trailing newline changed" in GATE.deterministic_checks(
+        "Line\n\n", "Zeile\n"
+    )
+    assert "leading newline changed" in GATE.deterministic_checks("Line", "\nZeile")
+
+
+def test_gate_abstains_when_a_newline_is_dropped(tmp_path: Path) -> None:
+    """A proposal that would fail msgfmt on a newline cannot be approved."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    client = FakeClient(
+        {
+            "p1": "Die folgenden Werkzeuge wurden nicht gefunden:",
+            "p2": "Die folgenden Werkzeuge wurden nicht gefunden:",
+        }
+    )
+    decision = GATE.run_gate(
+        "The following tools were not found:\n", "de", config, client
+    )
+    assert decision.approved is False
+    assert decision.reason == "every proposal failed a deterministic check"
+    checks = cast("dict[str, object]", decision.evidence["checks"])
+    assert checks["p1"] == ["trailing newline changed"]
+    assert checks["p2"] == ["trailing newline changed"]
 
 
 def test_gate_abstains_when_backtranslation_changes_meaning(

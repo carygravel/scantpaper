@@ -258,10 +258,15 @@ parked for review. Entries with no human text stay pending for the gate.
 ```sh
 python3 dev/audit_human_core.py            # dry run
 python3 dev/audit_human_core.py --apply    # write ledger and report
+python3 dev/audit_human_core.py --apply --language es
 ```
 
 `po/translation-audit.json` lists every shipped entry that is approved or
-pending.
+pending. A scoped run with `--language` (repeatable) merges the selected
+languages' blocks, pending entries and parked entries into the existing
+report, recomputes the totals and notes, and rewrites only the selected
+languages' ledger files. Every other language stays exactly as it was, so a
+per-language run can be committed on its own.
 
 ## Translation memory
 

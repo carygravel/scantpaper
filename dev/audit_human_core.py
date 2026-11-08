@@ -49,12 +49,13 @@ from translation_ledger import (
     load_ledger,
     make_record,
     record_key,
+    write_language_ledger,
     write_ledger,
 )
 from translation_policy import fixes_placeholder_defect, is_mechanical_rebase
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Iterable, Mapping, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SNAPSHOT = "1a3037183eadc10004f7f4d6228bd7f9192aa2ec"
@@ -500,25 +501,136 @@ def build_report(result: AuditResult) -> dict[str, object]:
             }
         )
 
+    ordered = dict(sorted(languages.items()))
+    totals = _totals_from_languages(ordered)
     return {
         "version": 1,
         "snapshot": result.snapshot,
         "snapshot_date": result.snapshot_date,
-        "totals": _totals(result),
-        "languages": dict(sorted(languages.items())),
+        "totals": totals,
+        "languages": ordered,
         "pending": pending,
         "parked": parked,
-        "notes": [
-            (
-                "The planning estimate of 13,615 shipped, 2,240 model-added and "
-                "1,467 model-changed covered the catalogs with a pre-2026 "
-                "snapshot. The measured snapshot-covered total is 13,614 with "
-                "2,239 model-added and 1,467 model-changed; the one-entry "
-                "difference is a boundary in the estimate, not an unaccounted "
-                "entry. The report also measures 549 entries in en_US, which "
-                "has no snapshot, so the grand total is 14,163."
-            )
-        ],
+        "notes": _report_notes(totals, ordered),
+    }
+
+
+TOTAL_FIELDS = (
+    "shipped",
+    UNCHANGED,
+    MODEL_CHANGED,
+    MODEL_ADDED,
+    "approved",
+    "pending",
+    "restored",
+)
+
+
+def _totals_from_languages(
+    languages: Mapping[str, Mapping[str, int]],
+) -> dict[str, int]:
+    """Return the aggregate counts over language blocks."""
+    return {
+        field: sum(bucket.get(field, 0) for bucket in languages.values())
+        for field in TOTAL_FIELDS
+    }
+
+
+def _report_notes(
+    totals: Mapping[str, int],
+    languages: Mapping[str, Mapping[str, int]],
+) -> list[str]:
+    """Return the report notes for the given totals."""
+    en_us = languages.get("en_US", {}).get("shipped", 0)
+    snapshot_total = totals["shipped"] - en_us
+    return [
+        (
+            "The planning estimate of 13,615 shipped, 2,240 model-added and "
+            "1,467 model-changed covered the catalogs with a pre-2026 "
+            "snapshot. The measured snapshot-covered total is "
+            f"{snapshot_total} with {totals['model-added']} model-added and "
+            f"{totals['model-changed']} model-changed; the remaining "
+            "difference is a boundary in the estimate, not an unaccounted "
+            f"entry. The report also measures {en_us} entries in en_US, "
+            "which has no snapshot, so the grand total is "
+            f"{totals['shipped']}."
+        )
+    ]
+
+
+def _report_group(value: object) -> list[dict[str, object]]:
+    """Return a report's per-language group as a list of records."""
+    if not isinstance(value, list):
+        return []
+    return [dict(item) for item in value if isinstance(item, dict)]
+
+
+def _merge_group(
+    existing: Sequence[Mapping[str, object]],
+    fresh: Sequence[Mapping[str, object]],
+    selected: set[str],
+) -> list[dict[str, object]]:
+    """Merge one per-language group, replacing selected languages in place."""
+    order: list[str] = []
+    for item in (*existing, *fresh):
+        language = str(item.get("language"))
+        if language not in order:
+            order.append(language)
+    existing_by: dict[str, list[dict[str, object]]] = {}
+    for item in existing:
+        existing_by.setdefault(str(item.get("language")), []).append(dict(item))
+    fresh_by: dict[str, list[dict[str, object]]] = {}
+    for item in fresh:
+        fresh_by.setdefault(str(item.get("language")), []).append(dict(item))
+    merged: list[dict[str, object]] = []
+    for language in order:
+        source = fresh_by if language in selected else existing_by
+        merged.extend(source.get(language, []))
+    return merged
+
+
+def merge_report(
+    existing: Mapping[str, object],
+    result: AuditResult,
+) -> dict[str, object]:
+    """Merge a scoped audit into an existing report."""
+    fresh = build_report(result)
+    if existing.get("snapshot") != fresh["snapshot"]:
+        return fresh
+    languages: dict[str, dict[str, int]] = {}
+    raw_languages = existing.get("languages")
+    if isinstance(raw_languages, dict):
+        for language, block in raw_languages.items():
+            if isinstance(language, str) and isinstance(block, dict):
+                languages[language] = {
+                    str(key): value
+                    for key, value in block.items()
+                    if isinstance(value, int) and not isinstance(value, bool)
+                }
+    fresh_languages = fresh["languages"]
+    selected: set[str] = set()
+    if isinstance(fresh_languages, dict):
+        for language, block in fresh_languages.items():
+            languages[str(language)] = dict(block)
+            selected.add(str(language))
+    totals = _totals_from_languages(languages)
+    return {
+        "version": fresh["version"],
+        "snapshot": fresh["snapshot"],
+        "snapshot_date": fresh["snapshot_date"],
+        "totals": totals,
+        "languages": dict(sorted(languages.items())),
+        "pending": _merge_group(
+            _report_group(existing.get("pending")),
+            _report_group(fresh["pending"]),
+            selected,
+        ),
+        "parked": _merge_group(
+            _report_group(existing.get("parked")),
+            _report_group(fresh["parked"]),
+            selected,
+        ),
+        "notes": _report_notes(totals, languages),
     }
 
 
@@ -610,10 +722,22 @@ def main(argv: Iterable[str] | None = None) -> int:
     report_path = Path(args.report)
     try:
         ledger = _merge_ledger(result, ledger_path)
-        write_ledger(ledger, ledger_path)
+        if ledger_path.is_dir() or ledger_path.suffix != ".json":
+            for language in sorted(result.catalogs):
+                write_language_ledger(ledger, ledger_path, language)
+        else:
+            write_ledger(ledger, ledger_path)
         _write_catalogs(result, repo / args.src)
+        report = (
+            merge_report(
+                json.loads(report_path.read_text(encoding="utf-8")),
+                result,
+            )
+            if args.language and report_path.exists()
+            else build_report(result)
+        )
         report_path.write_text(
-            json.dumps(build_report(result), ensure_ascii=False, indent=2) + "\n",
+            json.dumps(report, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
     except (AuditError, LedgerError, OSError) as error:

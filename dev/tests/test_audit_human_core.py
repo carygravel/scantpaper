@@ -82,6 +82,28 @@ def _repository(
     return snapshot_id
 
 
+def _multilingual_repository(
+    tmp_path: Path,
+    snapshot: dict[str, list[tuple[str, str]]],
+    current: dict[str, list[tuple[str, str]]],
+) -> str:
+    """Create a repository whose snapshot and current tree hold many catalogs."""
+    _git(tmp_path, "init")
+    _git(tmp_path, "config", "user.email", "test@example.invalid")
+    _git(tmp_path, "config", "user.name", "Test")
+    for language, entries in snapshot.items():
+        _write_po(tmp_path / "po" / f"scantpaper-{language}.po", entries)
+    _git(tmp_path, "add", ".")
+    _git(tmp_path, "commit", "-m", "snapshot")
+    snapshot_id = _git(tmp_path, "rev-parse", "HEAD").strip()
+
+    for language, entries in current.items():
+        _write_po(tmp_path / "po" / "scantpaper" / f"{language}.po", entries)
+    _git(tmp_path, "add", ".")
+    _git(tmp_path, "commit", "-m", "current")
+    return snapshot_id
+
+
 def test_audit_classifies_unchanged_changed_and_added(tmp_path: Path) -> None:
     """Every shipped entry lands in exactly one of the three classes."""
     snapshot_id = _repository(
@@ -219,6 +241,99 @@ def test_apply_writes_a_valid_ledger_and_report(tmp_path: Path) -> None:
     assert loaded["snapshot"] == snapshot_id
     assert len(data["approvals"]) == 1
     assert json.loads(report.read_text(encoding="utf-8"))["totals"]["shipped"] == 1
+
+
+def test_scoped_report_merge_keeps_other_languages(tmp_path: Path) -> None:
+    """A scoped audit replaces one block and leaves the rest intact."""
+    snapshot_id = _multilingual_repository(
+        tmp_path,
+        {"de": [("Keep", "Behalten")], "fr": [("Garde", "Garder"), ("Old", "Vieux")]},
+        {
+            "de": [("Keep", "Behalten")],
+            "fr": [("Garde", "Garder"), ("Old", "Nouveau"), ("New", "Neuf")],
+        },
+    )
+    full = AUDIT.build_report(AUDIT.audit_catalogs(tmp_path, snapshot=snapshot_id))
+    full_totals = cast("dict[str, int]", full["totals"])
+    assert (
+        f"grand total is {full_totals['shipped']}."
+        in cast("list[str]", full["notes"])[0]
+    )
+
+    _write_po(
+        tmp_path / "po" / "scantpaper" / "de.po",
+        [("Keep", "Behalten"), ("Brand", "Neu")],
+    )
+    scoped = AUDIT.audit_catalogs(tmp_path, snapshot=snapshot_id, languages=["de"])
+    merged = AUDIT.merge_report(full, scoped)
+
+    assert merged["languages"]["fr"] == full["languages"]["fr"]
+    assert merged["languages"]["de"]["shipped"] == 2
+    totals = cast("dict[str, int]", merged["totals"])
+    assert totals["shipped"] == 5
+    assert totals["approved"] + totals["pending"] == totals["shipped"]
+    assert (
+        f"grand total is {totals['shipped']}." in cast("list[str]", merged["notes"])[0]
+    )
+
+    fr_pending = [item for item in full["pending"] if item["language"] == "fr"]
+    merged_fr = [item for item in merged["pending"] if item["language"] == "fr"]
+    assert merged_fr == fr_pending
+    de_pending = [item for item in merged["pending"] if item["language"] == "de"]
+    assert [item["msgid"] for item in de_pending] == ["Brand"]
+
+
+def test_scoped_report_merge_rebuilds_on_a_new_snapshot(tmp_path: Path) -> None:
+    """Blocks from two snapshots are never merged."""
+    snapshot_id = _repository(tmp_path, [("Keep", "Behalten")], [("Keep", "Behalten")])
+    result = AUDIT.audit_catalogs(tmp_path, snapshot=snapshot_id)
+    existing = {
+        "version": 1,
+        "snapshot": "b" * 40,
+        "snapshot_date": "2020-01-01",
+        "totals": {"shipped": 1},
+        "languages": {"fr": {"shipped": 1}},
+        "pending": [],
+        "parked": [],
+        "notes": [],
+    }
+    merged = AUDIT.merge_report(existing, result)
+    assert merged == AUDIT.build_report(result)
+    assert "fr" not in merged["languages"]
+
+
+def test_scoped_apply_leaves_other_ledgers_untouched(tmp_path: Path) -> None:
+    """Only the audited language's ledger file is rewritten."""
+    snapshot_id = _multilingual_repository(
+        tmp_path,
+        {"de": [("Delete", "Löschen")], "fr": [("Delete", "Supprimer")]},
+        {"de": [("Delete", "Löschen")], "fr": [("Delete", "Supprimer")]},
+    )
+    ledger = tmp_path / "approvals"
+    report = tmp_path / "translation-audit.json"
+    base = [
+        "--repo",
+        str(tmp_path),
+        "--snapshot",
+        snapshot_id,
+        "--ledger",
+        str(ledger),
+        "--report",
+        str(report),
+        "--apply",
+    ]
+    assert AUDIT.main([*base, "--language", "fr"]) == 0
+    fr_before = (ledger / "fr.json").read_bytes()
+    first_report = json.loads(report.read_text(encoding="utf-8"))
+
+    assert AUDIT.main([*base, "--language", "de"]) == 0
+
+    assert (ledger / "fr.json").read_bytes() == fr_before
+    de_data = json.loads((ledger / "de.json").read_text(encoding="utf-8"))
+    assert len(de_data["approvals"]) == 1
+    merged_report = json.loads(report.read_text(encoding="utf-8"))
+    assert set(merged_report["languages"]) == {"de", "fr"}
+    assert merged_report["languages"]["fr"] == first_report["languages"]["fr"]
 
 
 def test_committed_report_accounts_for_every_shipped_entry() -> None:
