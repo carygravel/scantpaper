@@ -48,8 +48,6 @@ from gi.repository import Gio, GLib, Gtk  # noqa: E402
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from scantpaper.loop_helpers import _MainLoopWrapper
-
 _LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
 
 
@@ -584,8 +582,13 @@ def test_show_message_dialog_real_dialog_size(mocker: pytest.MockerFixture) -> N
         helpers.SETTING = original_setting
 
 
+def _current_folder(chooser: Gtk.FileChooser) -> str:
+    """Return the chooser's current folder path."""
+    return cast("str", cast("Gio.File", chooser.get_current_folder()).get_path())
+
+
 def test_chooser_path_helpers_with_real_chooser(
-    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    wait_until: Callable[[Callable[[], bool]], None],
 ) -> None:
     """chooser_path/chooser_paths read a real Gtk4 chooser's Gio.File.
 
@@ -595,24 +598,16 @@ def test_chooser_path_helpers_with_real_chooser(
     chooser = Gtk.FileChooserDialog(action=Gtk.FileChooserAction.SAVE)
     chooser.add_buttons("Cancel", Gtk.ResponseType.CANCEL, "Save", Gtk.ResponseType.OK)
     chooser.present()
-    loop = mainloop_with_timeout()
 
-    def set_folder() -> bool:
-        if not chooser.get_mapped():
-            return True
-        chooser.set_current_folder(Gio.File.new_for_path("/tmp"))
-        return True
+    # Wait for the dialog to map and for the asynchronous folder change to
+    # land before pressing Save. Fixed delays raced the change on slow CI
+    # runners and saved into the previous folder instead.
+    wait_until(chooser.get_mapped)
+    chooser.set_current_folder(Gio.File.new_for_path("/tmp"))
+    wait_until(lambda: _current_folder(chooser) == "/tmp")
 
-    def accept() -> bool:
-        chooser.set_current_name("round-trip.txt")
-        chooser.get_widget_for_response(Gtk.ResponseType.OK).emit("clicked")
-        loop.quit()
-        return False
-
-    # let the dialog map, then change folder, then press Save
-    GLib.timeout_add(50, set_folder)
-    GLib.timeout_add(300, accept)
-    loop.run()
+    chooser.set_current_name("round-trip.txt")
+    chooser.get_widget_for_response(Gtk.ResponseType.OK).emit("clicked")
 
     assert chooser_path(chooser) == "/tmp/round-trip.txt"
     assert chooser_paths(chooser) == ["/tmp/round-trip.txt"]
