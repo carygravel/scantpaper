@@ -3,7 +3,6 @@
 # Roadmap and wishlist:
 # improve translations, including those in org.scantpaper.desktop.metainfo.xml
 # look again at translating docs
-# + scan profile viewer/editor
 # + mutmut
 # remaining FIXMEs and TODOs
 

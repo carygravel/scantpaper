@@ -18,60 +18,6 @@ jobs:
             echo "accessible=false" >> $GITHUB_OUTPUT
           fi
 
-  latest_w_ppa:
-    runs-on: ubuntu-latest
-    needs: check-launchpad
-    if: needs.check-launchpad.outputs.launchpad_accessible == 'true'
-    steps:
-      - uses: actions/checkout@v7
-      - name: Install dependencies
-        run: |
-          sudo add-apt-repository ppa:jeffreyratcliffe/ppa
-          sudo apt-get update
-          # Runtime dependencies such as ocrmypdf, pikepdf, qpdf and polib
-          # come from apt/PPA, matching what users of the PPA get. Only the
-          # test runner is installed from pip rather than from Debian
-          # packages, because the system python3-coverage (7.4.4 on noble)
-          # predates the coverage.py releases that aligned statement and
-          # branch accounting with newer Python: 7.5.2 stopped counting
-          # module docstrings as executable statements, 7.6.2 stopped
-          # reporting lambdas/comprehensions that do not complete as missing
-          # branches, and 7.7.0 stopped counting constant if tests as
-          # branches. Measured with the system packages, the coverage gate
-          # below reports ~1% less than the identical test run measured
-          # with a modern coverage.py. Switch back to the system packages
-          # once the base image ships python3-coverage >= 7.7.0 (Resolute/
-          # 26.04 ships 7.13.5).
-          sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
-            gettext \
-            gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf \
-            jbig2 libtiff-tools ocrmypdf poppler-utils python3-gi python3-gi-cairo \
-            python3-iso639 python3-polib python3-sane python3-tesserocr \
-            python3-tomli qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper \
-            xauth xvfb
-          python3 -m pip install --upgrade pip
-          pip install pytest pytest-cov pytest-mock pytest-timeout pytest-xvfb \
-            ruff==0.16.7 ty==0.0.85
-
-          # add locale, needed for a couple of tests
-          sudo locale-gen de_DE.UTF-8
-      - name: Display Python version
-        run: python3 -c "import sys; print(sys.version)"
-      - name: Ruff check
-        run: ruff check .
-      - name: Ruff format check
-        run: ruff format --check .
-      # No ty check here: this job validates the PPA's system runtime packages,
-      # where the older system python3-pil (10.2.0 on noble) has no type hints.
-      # Type checking is already covered by the `latest` and `oldest` jobs using
-      # the modern pip Pillow.
-      # TODO: re-enable the ty check step once this job's base image ships
-      # python3-pil >= 11.0.0 (the first release with the `rotate` return
-      # annotation; resolute/26.04 ships 12.1.1). ubuntu-latest is switching to
-      # resolute soon, which will satisfy this.
-      - name: Test
-        run: pytest
-
   latest:
     runs-on: ubuntu-latest
 
@@ -127,8 +73,195 @@ jobs:
       - name: Audit test-code coverage
         run: python3 dev/check_test_coverage.py
 
-  oldest:
+  stonking:
+    # GitHub has no 26.10 runner image, so run the stonking series in the
+    # official 26.10 container on the 26.04 runner. Stonking ships ocrmypdf
+    # 16.13 and Ghostscript 10.07, so the bilevel codec tests may fail here
+    # as they do on resolute.
+    runs-on: ubuntu-26.04
+    container: ubuntu:26.10
+    needs: check-launchpad
+    if: needs.check-launchpad.outputs.launchpad_accessible == 'true'
+
+    steps:
+      - name: Prepare container
+        # actions/checkout needs git inside the container.
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates git software-properties-common
+
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          add-apt-repository -y ppa:jeffreyratcliffe/ppa
+          apt-get update
+          # Runtime dependencies come from apt/PPA so this job sees what a
+          # stonking user gets. Test tools and linters come from pip.
+          apt-get install -y --no-install-recommends \
+            appstream djvulibre-bin file fonts-dejavu-core gettext \
+            gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf jbig2 \
+            libtiff-tools locales nodejs npm ocrmypdf poppler-utils \
+            python3-gi python3-gi-cairo python3-iso639 python3-pip \
+            python3-polib python3-sane python3-tesserocr python3-tomli qpdf \
+            tesseract-ocr-eng tesseract-ocr-deu unpaper xauth xvfb
+          locale-gen de_DE.UTF-8
+          python3 -m pip install --break-system-packages --upgrade pip
+          python3 -m pip install --break-system-packages \
+            pytest pytest-cov pytest-mock pytest-timeout pytest-xvfb \
+            ruff==0.16.7 ty==0.0.85
+
+      - name: Install OpenSpec
+        run: |
+          # Pinned so a new upstream rule cannot turn CI red without a
+          # deliberate upgrade. The pin is the one-line dev/openspec-version,
+          # shared with the scheduled openspec-check workflow; bump it there
+          # and install the same release locally.
+          npm install -g "@fission-ai/openspec@$(cat dev/openspec-version)"
+      - name: Validate OpenSpec specs
+        run: openspec validate --specs --strict --no-interactive
+      - name: Validate archived changes are complete
+        # --archived cannot be combined with --specs, so it is a separate
+        # step. Every task in openspec/changes/archive must be ticked; a
+        # deferred task is de-tracked as prose naming its tracking issue.
+        run: openspec validate --archived --no-interactive
+
+      - name: Display Python version
+        run: python3 -c "import sys; print(sys.version)"
+      - name: Ruff check
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+      - name: ty check
+        run: ty check .
+      - name: Test
+        run: pytest
+      - name: Audit test-code coverage
+        run: python3 dev/check_test_coverage.py
+
+  resolute:
+    runs-on: ubuntu-26.04
+    needs: check-launchpad
+    if: needs.check-launchpad.outputs.launchpad_accessible == 'true'
+
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install dependencies
+        run: |
+          sudo add-apt-repository ppa:jeffreyratcliffe/ppa
+          sudo apt-get update
+          # Runtime dependencies come from apt/PPA so this job sees what a
+          # resolute user gets. Test tools and linters come from pip.
+          sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
+            gettext \
+            gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf \
+            jbig2 libtiff-tools ocrmypdf poppler-utils python3-gi python3-gi-cairo \
+            python3-iso639 python3-polib python3-sane python3-tesserocr \
+            python3-tomli qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper \
+            xauth xvfb
+          python3 -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-mock pytest-timeout pytest-xvfb \
+            ruff==0.16.7 ty==0.0.85
+
+          # add locale, needed for a couple of tests
+          sudo locale-gen de_DE.UTF-8
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install OpenSpec
+        run: |
+          # Pinned so a new upstream rule cannot turn CI red without a
+          # deliberate upgrade. The pin is the one-line dev/openspec-version,
+          # shared with the scheduled openspec-check workflow; bump it there
+          # and install the same release locally.
+          npm install -g "@fission-ai/openspec@$(cat dev/openspec-version)"
+      - name: Validate OpenSpec specs
+        run: openspec validate --specs --strict --no-interactive
+      - name: Validate archived changes are complete
+        # --archived cannot be combined with --specs, so it is a separate
+        # step. Every task in openspec/changes/archive must be ticked; a
+        # deferred task is de-tracked as prose naming its tracking issue.
+        run: openspec validate --archived --no-interactive
+
+      - name: Display Python version
+        run: python3 -c "import sys; print(sys.version)"
+      - name: Ruff check
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+      - name: ty check
+        # The runner's non-root pip install puts packages in the user site
+        # (~/.local), which ty does not scan by default. Add it to the module
+        # search path so ty can resolve the pip-installed test dependencies.
+        run: ty check --extra-search-path "$(python3 -m site --user-site)" .
+      - name: Test
+        run: pytest
+      - name: Audit test-code coverage
+        run: python3 dev/check_test_coverage.py
+
+  noble:
+    # Pin to noble: this job validates the PPA's system runtime packages, and
+    # the PPA does not package Ghostscript. Resolute (Ubuntu 26.04, which
+    # ubuntu-latest is migrating to) ships Ghostscript 10.06 with ocrmypdf
+    # 16.13, which writes bilevel images as Flate rather than CCITT Group 4;
+    # the noble stack this job is meant to test has Ghostscript 10.02.
+    runs-on: ubuntu-24.04
+    needs: check-launchpad
+    if: needs.check-launchpad.outputs.launchpad_accessible == 'true'
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install dependencies
+        run: |
+          sudo add-apt-repository ppa:jeffreyratcliffe/ppa
+          sudo apt-get update
+          # Runtime dependencies such as ocrmypdf, pikepdf, qpdf and polib
+          # come from apt/PPA, matching what users of the PPA get. Only the
+          # test runner is installed from pip rather than from Debian
+          # packages, because the system python3-coverage (7.4.4 on noble)
+          # predates the coverage.py releases that aligned statement and
+          # branch accounting with newer Python: 7.5.2 stopped counting
+          # module docstrings as executable statements, 7.6.2 stopped
+          # reporting lambdas/comprehensions that do not complete as missing
+          # branches, and 7.7.0 stopped counting constant if tests as
+          # branches. Measured with the system packages, the coverage gate
+          # below reports ~1% less than the identical test run measured
+          # with a modern coverage.py. Switch back to the system packages
+          # once the base image ships python3-coverage >= 7.7.0 (Resolute/
+          # 26.04 ships 7.13.5).
+          sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
+            gettext \
+            gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf \
+            jbig2 libtiff-tools ocrmypdf poppler-utils python3-gi python3-gi-cairo \
+            python3-iso639 python3-polib python3-sane python3-tesserocr \
+            python3-tomli qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper \
+            xauth xvfb
+          python3 -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-mock pytest-timeout pytest-xvfb \
+            ruff==0.16.7 ty==0.0.85
+
+          # add locale, needed for a couple of tests
+          sudo locale-gen de_DE.UTF-8
+      - name: Display Python version
+        run: python3 -c "import sys; print(sys.version)"
+      - name: Ruff check
+        run: ruff check .
+      - name: Ruff format check
+        run: ruff format --check .
+      # No ty check here: this job validates the PPA's noble runtime packages,
+      # where system python3-pil (10.2.0) has no type hints. Type checking runs
+      # in the pip job and the resolute job, which use newer Pillow.
+      - name: Test
+        run: pytest
+
+  jammy:
+    # The PPA's jammy packages are tested on jammy. Unlike noble and resolute,
+    # jammy has no jbig2 encoder, so the encoder-absent fallback is covered
+    # here.
     runs-on: ubuntu-22.04
+    needs: check-launchpad
+    if: needs.check-launchpad.outputs.launchpad_accessible == 'true'
 
     steps:
       - uses: actions/checkout@v7
@@ -141,31 +274,36 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo add-apt-repository ppa:jeffreyratcliffe/ppa
           sudo apt-get update
+          # Runtime dependencies come from apt/PPA, matching what jammy users
+          # get. Only the test runner, linters and build tools come from pip.
+          # jbig2 is not packaged for jammy; this job covers the encoder-absent
+          # fallback.
           sudo apt-get install -y appstream djvulibre-bin fonts-dejavu-core \
             gettext \
-            gir1.2-gtk-4.0 gobject-introspection imagemagick libtiff-tools \
-            poppler-utils python3-gi python3-gi-cairo python3-sane \
-            python3-tesserocr qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper
-          python -m pip install --upgrade pip
-          pip install --upgrade pip setuptools wheel packaging build
-          pip install .[test]
-          pip install ruff==0.16.5 ty==0.0.85
+            gir1.2-gtk-4.0 gobject-introspection imagemagick img2pdf \
+            libtiff-tools ocrmypdf poppler-utils python3-gi python3-gi-cairo \
+            python3-iso639 python3-polib python3-sane python3-tesserocr \
+            python3-tomli qpdf tesseract-ocr-eng tesseract-ocr-deu unpaper \
+            xauth xvfb
+          python3 -m pip install --upgrade pip
+          pip install --upgrade setuptools wheel packaging build
+          pip install pytest pytest-cov pytest-mock pytest-timeout pytest-xvfb \
+            ruff==0.16.5 ty==0.0.85
 
           # add locale, needed for a couple of tests
           sudo locale-gen de_DE.UTF-8
 
       - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
+        run: python3 -c "import sys; print(sys.version)"
       - name: Ruff check
         run: ruff check .
       - name: Ruff format check
         run: ruff format --check .
-      - name: ty check
-        # The runner's non-root `pip install` puts packages in the user site
-        # (~/.local), which ty does not scan by default. Add it to the module
-        # search path so ty can resolve the pip-installed runtime/test deps.
-        run: ty check --extra-search-path "$(python3 -m site --user-site)" .
+      # No ty check here: this job validates the PPA's jammy runtime packages,
+      # where system python3-pil (9.0.1) has no type hints. Type checking runs
+      # in the pip job and the resolute job, which use newer Pillow.
       - name: Build wheel
         run: python3 -m build --wheel
       - uses: actions/upload-artifact@v7

@@ -142,7 +142,7 @@
 Until jammy is dropped in 2027-06, the compatibility floor is GTK 4.6 and
 PyGObject 3.42 (the versions in Ubuntu 22.04). Code and tests must use only
 APIs available there; a newer toolkit API may be used only when it is
-detected at runtime and has a working fallback. The `oldest` CI job runs on
+detected at runtime and has a working fallback. The `jammy` CI job runs on
 Ubuntu 22.04 and enforces this floor.
 
 The GTK3→GTK4 port deliberately kept the already-deprecated GTK4 widgets so
@@ -152,7 +152,7 @@ and lets us clear the deprecations. Each item below becomes available only
 after the floor moves; they are independent and can be done one per release.
 
 - Raise the minimum supported distro to noble and drop jammy from the PPA
-  build list (and the `oldest` CI job if it is the jammy one).
+  build list (and the `jammy` CI job).
 - Bump `requires-python` / `target-version` and drop every Python 3.10
   compatibility path: the `;python_version<'3.11'` tomli conditional, the
   `tomllib`/`tomli` branches in `src/scantpaper/const.py` and the `dev/`
