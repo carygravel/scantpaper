@@ -107,8 +107,8 @@ jobs:
             python3-polib python3-sane python3-tesserocr python3-tomli qpdf \
             tesseract-ocr-eng tesseract-ocr-deu unpaper xauth xvfb
           locale-gen de_DE.UTF-8
-          python3 -m pip install --break-system-packages --upgrade pip
-          python3 -m pip install --break-system-packages \
+          python3 -m pip install --break-system-packages --ignore-installed \
+            --no-cache-dir --root-user-action=ignore \
             pytest pytest-cov pytest-mock pytest-timeout pytest-xvfb \
             ruff==0.16.7 ty==0.0.85
 
