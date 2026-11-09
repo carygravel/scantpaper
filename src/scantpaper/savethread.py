@@ -47,7 +47,7 @@ from scantpaper.page import (
 
 if TYPE_CHECKING:
     import uuid
-    from collections.abc import Callable, Generator
+    from collections.abc import Callable, Generator, Sequence
     from typing import Self
 
 logger = logging.getLogger(__name__)
@@ -1118,7 +1118,7 @@ def _group4_filter_and_parms(
 
 
 def _is_unconverted_bilevel_image(
-    bits_per_component: int, colorspace: object, filters: list[object]
+    bits_per_component: int, colorspace: object, filters: Sequence[object]
 ) -> bool:
     """Return True when an image is 1-bit gray but not yet Group 4 or JBIG2."""
     return (
