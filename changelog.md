@@ -1,5 +1,11 @@
 ## 4.0.4 (unreleased)
 
+* Bilevel pages saved as Group 4 now keep that encoding on every supported
+  distribution. Ghostscript 10.06, shipped by Ubuntu 26.04, rewrote 1-bit
+  images as Flate during the PDF/A conversion even though scantpaper asked
+  for lossless handling. The saved PDF is re-encoded as CCITT Group 4 after
+  the text layer is embedded, including images that the converter inlined,
+  so the encoding selected by **Automatic** or **G4** is preserved.
 * Text fields now keep their standard editing shortcuts. When the text-layer
   editor has focus, `Ctrl+X`, `Ctrl+C`, `Ctrl+V`, `Ctrl+A`, `Ctrl+Z`,
   `Ctrl+Shift+Z`, `+` and `-` edit the text instead of acting on pages or

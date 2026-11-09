@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import datetime
 import hashlib
+import io
 import json
 import logging
 import os
@@ -309,6 +310,17 @@ class SaveThread(Importhread):
             embed_ok = self._embed_text_layer(
                 outdir, filename, request, has_lossless=self._saw_lossless_image
             )
+
+            if embed_ok:
+                # The pass is best-effort: Ghostscript 10.06 may have rewritten
+                # bilevel images as Flate, but a failure to restore Group 4
+                # must not fail the whole save.
+                try:
+                    _restore_bilevel_g4(filename, outdir)
+                except Exception as err:  # noqa: BLE001
+                    logger.warning(
+                        "Could not restore bilevel Group 4 encoding: %s", err
+                    )
 
             self._maybe_convert_to_jbig2(options, outdir, filename, request)
 
@@ -1018,6 +1030,153 @@ def _convert_bilevel_images_to_jbig2(path: pathlib.Path, root: pathlib.Path) -> 
             return
         optimize.convert_to_jbig2(pdf, images, root, _JBIG2_OPTIONS, SerialExecutor())
         pdf.save(path)
+
+
+def _group4_stream(image: Image.Image, root: pathlib.Path) -> bytes:
+    """Return the CCITT Group 4 bytes img2pdf writes for a 1-bit image."""
+    with tempfile.NamedTemporaryFile(dir=root, suffix=".pbm", delete=False) as tmp:
+        image.save(tmp.name, format="PPM")
+        filename = pathlib.Path(tmp.name)
+    try:
+        pdf_bytes = img2pdf.convert([str(filename)])
+    finally:
+        filename.unlink()
+    with pikepdf.open(io.BytesIO(pdf_bytes)) as pdf:
+        page = pdf.pages[0]
+        stream = page.images[next(iter(page.images))]
+        return bytes(stream.read_raw_bytes())
+
+
+def _group4_filter_and_parms(
+    width: int, height: int
+) -> tuple[pikepdf.Array, pikepdf.Array]:
+    """Return the filter and decode parameters for a CCITT Group 4 image."""
+    filter_ = pikepdf.Array([pikepdf.Name("/CCITTFaxDecode")])
+    parms = pikepdf.Array(
+        [
+            pikepdf.Dictionary(
+                BlackIs1=True,
+                Columns=width,
+                K=-1,
+                Rows=height,
+            )
+        ]
+    )
+    return filter_, parms
+
+
+def _is_unconverted_bilevel_image(
+    bits_per_component: int, colorspace: object, filters: list[object]
+) -> bool:
+    """Return True when an image is 1-bit gray but not yet Group 4 or JBIG2."""
+    return (
+        bits_per_component == 1
+        and str(colorspace) == "/DeviceGray"
+        and not (
+            {str(codec) for codec in filters} & {"/CCITTFaxDecode", "/JBIG2Decode"}
+        )
+    )
+
+
+def _page_xobjects(page: pikepdf.Page) -> pikepdf.Dictionary:
+    """Return the page's XObject dictionary, creating it when absent."""
+    resources = page.obj.get("/Resources")
+    if resources is None:
+        resources = pikepdf.Dictionary()
+        page.obj.Resources = resources
+    xobjects = resources.get("/XObject")
+    if xobjects is None:
+        xobjects = pikepdf.Dictionary()
+        resources.XObject = xobjects
+    return cast("pikepdf.Dictionary", xobjects)
+
+
+def _restore_inline_bilevel_g4(
+    pdf: pikepdf.Pdf, page: pikepdf.Page, root: pathlib.Path
+) -> bool:
+    """Replace Flate-encoded inline bilevel images with Group 4 XObjects.
+
+    Ghostscript inlines very small images instead of keeping them as XObjects,
+    so the same rewrite has to cover the page content stream.
+    """
+    instructions = pikepdf.parse_content_stream(page)
+    xobjects = _page_xobjects(page)
+
+    rewritten = []
+    changed = False
+    index = 0
+    for instruction in instructions:
+        if not isinstance(instruction, pikepdf.ContentStreamInlineImage):
+            rewritten.append(instruction)
+            continue
+        inline = instruction.iimage
+        if not _is_unconverted_bilevel_image(
+            inline.bits_per_component, inline.colorspace, inline.filters
+        ):
+            rewritten.append(instruction)
+            continue
+        while pikepdf.Name(f"/ScantpaperIm{index}") in xobjects:
+            index += 1
+        name = pikepdf.Name(f"/ScantpaperIm{index}")
+        index += 1
+        width = int(inline.width)
+        height = int(inline.height)
+        data = _group4_stream(inline.as_pil_image(), root)
+        filter_, parms = _group4_filter_and_parms(width, height)
+        image = pdf.make_stream(data)
+        image.Type = pikepdf.Name.XObject
+        image.Subtype = pikepdf.Name.Image
+        image.Width = width
+        image.Height = height
+        image.BitsPerComponent = 1
+        image.ColorSpace = pikepdf.Name.DeviceGray
+        image.Filter = filter_
+        image.DecodeParms = parms
+        xobjects[name] = image
+        rewritten.append(
+            pikepdf.ContentStreamInstruction([name], pikepdf.Operator("Do"))
+        )
+        changed = True
+    if changed:
+        page.obj.Contents = pdf.make_stream(pikepdf.unparse_content_stream(rewritten))
+    return changed
+
+
+def _restore_bilevel_g4(path: str | pathlib.Path, root: pathlib.Path) -> None:
+    """Re-encode 1-bit page images as CCITT Group 4.
+
+    Ghostscript 10.06 (Ubuntu 26.04) rewrites a bilevel page image as Flate
+    during PDF/A conversion, even when lossless image handling is requested.
+    Re-encode any remaining 1-bit Flate image so the saved PDF keeps the
+    CCITT Group 4 encoding its compression option selected.
+    """
+    with pikepdf.open(path, allow_overwriting_input=True) as pdf:
+        changed = False
+        for page in pdf.pages:
+            changed = _restore_inline_bilevel_g4(pdf, page, root) or changed
+            for key in list(page.images):
+                stream = cast("pikepdf.Stream", page.images[key])
+                pdf_image = pikepdf.PdfImage(stream)
+                if not _is_unconverted_bilevel_image(
+                    int(stream.BitsPerComponent),
+                    stream.ColorSpace,
+                    pdf_image.filters,
+                ):
+                    continue
+                width = int(pdf_image.width)
+                height = int(pdf_image.height)
+                data = _group4_stream(pdf_image.as_pil_image(), root)
+                filter_, parms = _group4_filter_and_parms(width, height)
+                stream.write(data)
+                stream["/Filter"] = filter_
+                stream["/DecodeParms"] = parms
+                stream["/BitsPerComponent"] = 1
+                stream["/ColorSpace"] = pikepdf.Name("/DeviceGray")
+                with contextlib.suppress(KeyError):
+                    del stream["/Decode"]
+                changed = True
+        if changed:
+            pdf.save(path)
 
 
 def _fix_pdf_metadata(path: str, *, remove_title: bool) -> None:

@@ -229,8 +229,10 @@ next time scantpaper starts.
   quality, so lowering **Quality** shrinks the PDF. A lossless encoding
   (Automatic's Group 4 or Flate handling, or the explicit **Flate** option) is
   preserved through the PDF/A conversion, so the page image is not silently
-  transcoded to JPEG, on every supported OCRmyPDF version. Saving to a file
-  that already exists
+  transcoded to JPEG, on every supported OCRmyPDF version. Group 4 is also
+  restored if the PDF/A converter rewrites a bilevel image with another
+  lossless codec, so the selected encoding survives every supported
+  Ghostscript version. Saving to a file that already exists
   asks for confirmation first: declining leaves the existing file untouched
   and keeps the save dialog open, and a save that fails reports the error
   instead of silently doing nothing. When saving as PDF, pages are processed

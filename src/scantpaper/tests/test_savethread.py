@@ -8,6 +8,7 @@ import pathlib
 import subprocess
 import tempfile
 import weakref
+import zlib
 from typing import cast
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -36,11 +37,14 @@ from scantpaper.savethread import (
     _encrypt_pdf,
     _estimate_page_pdf_size,
     _fix_pdf_metadata,
+    _is_unconverted_bilevel_image,
     _jbig2_requested,
     _lossless_pdfa_always,
+    _page_xobjects,
     _parse_ocrmypdf_version,
     _pdfa_image_compression,
     _post_save_hook,
+    _restore_bilevel_g4,
     _set_timestamp,
     get_progressbar_class,
     prepare_output_metadata,
@@ -133,6 +137,7 @@ def test_save_pdf(
             "scantpaper.savethread.ocrmypdf.api._hocr_to_ocr_pdf"
         ) as mock_hocr_to_ocr_pdf,
         patch("scantpaper.savethread._fix_pdf_metadata") as mock_fix_metadata,
+        patch("scantpaper.savethread._restore_bilevel_g4") as mock_restore,
         patch("scantpaper.savethread.os.remove"),
         patch("scantpaper.savethread._set_timestamp"),
         patch("scantpaper.savethread._post_save_hook") as mock_post_save_hook,
@@ -148,6 +153,8 @@ def test_save_pdf(
         assert mock_page_instance.write_image_for_pdf.called
         assert mock_post_save_hook.called
         mock_fix_metadata.assert_called_once_with("/tmp/output.pdf", remove_title=True)
+        mock_restore.assert_called_once()
+        assert mock_restore.call_args.args[0] == "/tmp/output.pdf"
 
 
 def test_save_pdf_with_hocr(
@@ -306,6 +313,7 @@ def test_save_pdf_metadata_fixup_failure_is_non_fatal(
             side_effect=RuntimeError("no branding"),
         ),
         patch("scantpaper.savethread._post_save_hook") as mock_post_save,
+        patch("scantpaper.savethread._restore_bilevel_g4"),
         patch("scantpaper.savethread.pathlib.Path"),
         patch("scantpaper.savethread.logger.warning") as mock_warning,
     ):
@@ -1771,6 +1779,218 @@ def test_convert_bilevel_images_to_jbig2_noop_without_images(
         _convert_bilevel_images_to_jbig2(
             pathlib.Path(temp_pdf.name), pathlib.Path(tempdir)
         )
+
+    with pikepdf.open(temp_pdf.name) as pdf:
+        assert len(pdf.pages) == 1, "blank page still present"
+
+
+def _write_flate_image_pdf(
+    path: pathlib.Path,
+    *,
+    bits: int = 1,
+    colorspace: str = "/DeviceGray",
+    codec: str = "/FlateDecode",
+) -> None:
+    """Write a one-page PDF whose image uses the given stream settings."""
+    with pikepdf.Pdf.new() as pdf:
+        page = pdf.add_blank_page(page_size=(8, 8))
+        row_bytes = (8 * bits + 7) // 8
+        stream = pdf.make_stream(zlib.compress(bytes(row_bytes * 8)))
+        stream.Type = pikepdf.Name.XObject
+        stream.Subtype = pikepdf.Name.Image
+        stream.Width = 8
+        stream.Height = 8
+        stream.BitsPerComponent = bits
+        stream.ColorSpace = pikepdf.Name(colorspace)
+        stream.Filter = pikepdf.Name(codec)
+        page.obj.Resources = pikepdf.Dictionary(XObject=pikepdf.Dictionary(Im0=stream))
+        page.obj.Contents = pdf.make_stream(b"q 8 0 0 8 0 0 cm /Im0 Do Q")
+        pdf.save(path)
+
+
+def _inline_image_content(
+    *, bits: int = 1, colorspace: str = "/DeviceGray", codec: str = "/Fl"
+) -> bytes:
+    """Return a content stream that paints a single inline image."""
+    row_bytes = (8 * bits + 7) // 8
+    data = zlib.compress(bytes(row_bytes * 8))
+    return (
+        b"q 8 0 0 8 0 0 cm\nBI\n"
+        + f"/CS{colorspace}\n/W 8\n/H 8\n/BPC {bits}\n/F{codec}\n\nID ".encode()
+        + data
+        + b"\nEI\nQ\n"
+    )
+
+
+def _write_inline_image_pdf(
+    path: pathlib.Path,
+    *,
+    bits: int = 1,
+    colorspace: str = "/DeviceGray",
+    codec: str = "/Fl",
+    existing_xobject: bool = False,
+    resources: bool = True,
+) -> None:
+    """Write a one-page PDF with an inline image and optional resources."""
+    with pikepdf.Pdf.new() as pdf:
+        page = pdf.add_blank_page(page_size=(8, 8))
+        page.obj.Contents = pdf.make_stream(
+            _inline_image_content(bits=bits, colorspace=colorspace, codec=codec)
+        )
+        if not resources:
+            del page.obj.Resources
+        elif existing_xobject:
+            existing = pdf.make_stream(zlib.compress(bytes(8)))
+            existing.Type = pikepdf.Name.XObject
+            existing.Subtype = pikepdf.Name.Image
+            existing.Width = 8
+            existing.Height = 8
+            existing.BitsPerComponent = 8
+            existing.ColorSpace = pikepdf.Name.DeviceGray
+            existing.Filter = pikepdf.Name.FlateDecode
+            page.obj.Resources = pikepdf.Dictionary(
+                XObject=pikepdf.Dictionary(ScantpaperIm0=existing)
+            )
+        pdf.save(path)
+
+
+def test_page_xobjects_creates_missing_resources() -> None:
+    """A page with no resources gets a fresh XObject dictionary."""
+    page = MagicMock()
+    page.obj.get.return_value = None
+
+    xobjects = _page_xobjects(page)
+
+    assert isinstance(xobjects, pikepdf.Dictionary)
+    assert isinstance(page.obj.Resources, pikepdf.Dictionary)
+    assert "/XObject" in page.obj.Resources
+
+
+@pytest.mark.parametrize(
+    ("bits", "colorspace", "filters", "expected"),
+    [
+        (1, "/DeviceGray", ["/FlateDecode"], True),
+        (8, "/DeviceGray", ["/FlateDecode"], False),
+        (1, "/DeviceRGB", ["/FlateDecode"], False),
+        (1, "/DeviceGray", ["/CCITTFaxDecode"], False),
+        (1, "/DeviceGray", ["/JBIG2Decode"], False),
+    ],
+)
+def test_is_unconverted_bilevel_image(
+    bits: int, colorspace: str, filters: list[object], *, expected: bool
+) -> None:
+    """Only unconverted 1-bit DeviceGray images need the Group 4 rewrite."""
+    assert _is_unconverted_bilevel_image(bits, colorspace, filters) is expected
+
+
+def test_restore_bilevel_g4_reencodes_flate_image(tmp_path: pathlib.Path) -> None:
+    """A 1-bit Flate image is replaced with CCITT Group 4."""
+    path = tmp_path / "flate.pdf"
+    _write_flate_image_pdf(path)
+
+    _restore_bilevel_g4(path, tmp_path)
+
+    with pikepdf.open(path) as pdf:
+        stream = cast("pikepdf.Stream", pdf.pages[0].images["/Im0"])
+        image = pikepdf.PdfImage(stream)
+        assert "/CCITTFaxDecode" in {str(codec) for codec in image.filters}
+        assert image.bits_per_component == 1
+        assert image.as_pil_image().mode == "1"
+        parms = cast("pikepdf.Array", stream.get("/DecodeParms"))[0]
+        assert int(parms.K) == -1, "CCITT Group 4, not Group 3"
+        assert "/Decode" not in stream
+
+
+@pytest.mark.parametrize(
+    ("bits", "colorspace", "codec", "expected_codec"),
+    [
+        (8, "/DeviceGray", "/FlateDecode", "/FlateDecode"),
+        (1, "/DeviceRGB", "/FlateDecode", "/FlateDecode"),
+        (1, "/DeviceGray", "/CCITTFaxDecode", "/CCITTFaxDecode"),
+        (1, "/DeviceGray", "/JBIG2Decode", "/JBIG2Decode"),
+    ],
+)
+def test_restore_bilevel_g4_leaves_other_images_alone(
+    tmp_path: pathlib.Path,
+    bits: int,
+    colorspace: str,
+    codec: str,
+    expected_codec: str,
+) -> None:
+    """Only unconverted 1-bit DeviceGray images are re-encoded."""
+    path = tmp_path / "other.pdf"
+    _write_flate_image_pdf(path, bits=bits, colorspace=colorspace, codec=codec)
+
+    _restore_bilevel_g4(path, tmp_path)
+
+    with pikepdf.open(path) as pdf:
+        stream = cast("pikepdf.Stream", pdf.pages[0].images["/Im0"])
+        assert str(stream.get("/Filter")) == expected_codec
+
+
+def test_restore_bilevel_g4_converts_inline_flate_image(
+    tmp_path: pathlib.Path,
+) -> None:
+    """An inline 1-bit Flate image is promoted to a Group 4 XObject."""
+    path = tmp_path / "inline.pdf"
+    _write_inline_image_pdf(path, resources=False)
+
+    _restore_bilevel_g4(path, tmp_path)
+
+    with pikepdf.open(path) as pdf:
+        page = pdf.pages[0]
+        instructions = pikepdf.parse_content_stream(page)
+        assert not any(
+            isinstance(item, pikepdf.ContentStreamInlineImage) for item in instructions
+        )
+        assert any(str(item.operator) == "Do" for item in instructions)
+        stream = cast("pikepdf.Stream", page.images["/ScantpaperIm0"])
+        assert "/CCITTFaxDecode" in {
+            str(codec) for codec in pikepdf.PdfImage(stream).filters
+        }
+
+
+@pytest.mark.parametrize(
+    ("bits", "colorspace", "codec"),
+    [(8, "/DeviceGray", "/Fl"), (1, "/DeviceRGB", "/Fl"), (1, "/DeviceGray", "/CCF")],
+)
+def test_restore_bilevel_g4_leaves_other_inline_images_alone(
+    tmp_path: pathlib.Path, bits: int, colorspace: str, codec: str
+) -> None:
+    """An inline image that is not unconverted bilevel stays inline."""
+    path = tmp_path / "inline.pdf"
+    _write_inline_image_pdf(path, bits=bits, colorspace=colorspace, codec=codec)
+
+    _restore_bilevel_g4(path, tmp_path)
+
+    with pikepdf.open(path) as pdf:
+        instructions = pikepdf.parse_content_stream(pdf.pages[0])
+        assert any(
+            isinstance(item, pikepdf.ContentStreamInlineImage) for item in instructions
+        )
+
+
+def test_restore_bilevel_g4_uses_unique_inline_name(tmp_path: pathlib.Path) -> None:
+    """A converted inline image does not overwrite an existing XObject name."""
+    path = tmp_path / "inline.pdf"
+    _write_inline_image_pdf(path, existing_xobject=True)
+
+    _restore_bilevel_g4(path, tmp_path)
+
+    with pikepdf.open(path) as pdf:
+        page = pdf.pages[0]
+        assert "/ScantpaperIm1" in page.obj.Resources.XObject
+        assert b"/ScantpaperIm1 Do" in bytes(page.obj.Contents.read_bytes())
+
+
+def test_restore_bilevel_g4_noop_without_images(temp_pdf: object) -> None:
+    """A PDF with no images is left untouched."""
+    with pikepdf.Pdf.new() as pdf:
+        pdf.add_blank_page(page_size=(200, 200))
+        pdf.save(temp_pdf.name)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        _restore_bilevel_g4(temp_pdf.name, pathlib.Path(tempdir))
 
     with pikepdf.open(temp_pdf.name) as pdf:
         assert len(pdf.pages) == 1, "blank page still present"
