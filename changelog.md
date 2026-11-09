@@ -1,5 +1,11 @@
 ## 4.0.4 (unreleased)
 
+* Words containing a typographic ligature, such as `ff`, stay searchable on
+  every supported distribution. Ghostscript 10.06, shipped by Ubuntu 26.04,
+  dropped the multi-character `ToUnicode` mapping of a shaped ligature during
+  the PDF/A conversion, so extracting the text lost the whole word. The
+  invisible text layer is now rendered without ligature substitutions, so
+  every character keeps its own mapping.
 * Bilevel pages saved as Group 4 now keep that encoding on every supported
   distribution. Ghostscript 10.06, shipped by Ubuntu 26.04, rewrote 1-bit
   images as Flate during the PDF/A conversion even though scantpaper asked

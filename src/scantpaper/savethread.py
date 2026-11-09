@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import datetime
 import hashlib
+import importlib
 import io
 import json
 import logging
@@ -15,7 +16,7 @@ import shutil
 import subprocess
 import tempfile
 from collections import defaultdict
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, TextIO, cast
 
 import img2pdf
@@ -46,7 +47,7 @@ from scantpaper.page import (
 
 if TYPE_CHECKING:
     import uuid
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
     from typing import Self
 
 logger = logging.getLogger(__name__)
@@ -99,6 +100,56 @@ def _pdfa_image_compression(*, has_lossless: bool) -> str | None:
     if _lossless_pdfa_always() or has_lossless:
         return "lossless"
     return None
+
+
+def _load_fpdf() -> ModuleType | None:
+    """Return the fpdf2 module OCRmyPDF renders with, or None if absent.
+
+    Imported eagerly at module load so fpdf2 computes its font directory
+    before any test replaces ``pathlib.Path``. A later first import would
+    derive that path from the patched class and leave it unusable.
+    """
+    try:
+        return importlib.import_module("fpdf")
+    except ImportError:
+        return None
+
+
+_fpdf = _load_fpdf()
+
+
+@contextlib.contextmanager
+def _without_ligature_shaping() -> Generator[None, None, None]:
+    """Render the OCR text layer without ligatures while OCRmyPDF grafts it.
+
+    Ghostscript 10.06, shipped by Ubuntu 26.04, drops multi-character
+    ToUnicode entries when it produces PDF/A. A shaped ligature such as ``ff``
+    then has no mapping, so text extraction loses the word and the saved PDF
+    is not searchable for it. The text layer is invisible, so drawing the
+    individual letters instead of a ligature has no visual effect and keeps
+    every character searchable.
+
+    The fpdf2 renderer is only present on newer OCRmyPDF releases; when it is
+    absent this is a no-op.
+    """
+    if _fpdf is None:
+        yield
+        return
+
+    original = _fpdf.FPDF.set_text_shaping
+    original_call = cast("Callable[..., None]", original)
+
+    def set_text_shaping(self: object, *args: object, **kwargs: object) -> None:
+        enabled = args[0] if args else True
+        if enabled and not (args[1:] or "features" in kwargs):
+            kwargs["features"] = {"liga": False}
+        original_call(self, *args, **kwargs)
+
+    _fpdf.FPDF.set_text_shaping = set_text_shaping
+    try:
+        yield
+    finally:
+        _fpdf.FPDF.set_text_shaping = original
 
 
 # Options for OCRmyPDF's JBIG2 helpers: lossless single-image encoding with
@@ -246,13 +297,14 @@ class SaveThread(Importhread):
         # Call ocrmypdf with our custom progress plugin
         # The savethread module provides get_progressbar_class hook
         try:
-            ocrmypdf.api._hocr_to_ocr_pdf(  # noqa: SLF001 - no public API for the hOCR->PDF step alone
-                outdir,
-                pathlib.Path(filename),
-                optimize=0,
-                plugins=["scantpaper.savethread"],
-                **call_kwargs,
-            )
+            with _without_ligature_shaping():
+                ocrmypdf.api._hocr_to_ocr_pdf(  # noqa: SLF001 - no public API for the hOCR->PDF step alone
+                    outdir,
+                    pathlib.Path(filename),
+                    optimize=0,
+                    plugins=["scantpaper.savethread"],
+                    **call_kwargs,
+                )
         except Exception as err:  # noqa: BLE001
             # BLE001 — ocrmypdf may fail for many reasons beyond "pikepdf
             # cannot parse the PDF produced by img2pdf" (bare exceptions with

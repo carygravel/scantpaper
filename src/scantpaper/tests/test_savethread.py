@@ -39,6 +39,7 @@ from scantpaper.savethread import (
     _fix_pdf_metadata,
     _is_unconverted_bilevel_image,
     _jbig2_requested,
+    _load_fpdf,
     _lossless_pdfa_always,
     _page_xobjects,
     _parse_ocrmypdf_version,
@@ -46,6 +47,7 @@ from scantpaper.savethread import (
     _post_save_hook,
     _restore_bilevel_g4,
     _set_timestamp,
+    _without_ligature_shaping,
     get_progressbar_class,
     prepare_output_metadata,
 )
@@ -2101,6 +2103,67 @@ class TestOcrmypdfVersionGate:
             "scantpaper.savethread._lossless_pdfa_always", lambda: False
         )
         assert _pdfa_image_compression(has_lossless=False) is None
+
+
+class TestWithoutLigatureShaping:
+    """Disable fpdf2 ligatures so Ghostscript cannot drop their text mapping."""
+
+    def test_disables_ligatures(self) -> None:
+        """The default shaping request is told to keep ligatures off."""
+        fpdf = pytest.importorskip("fpdf")
+        pytest.importorskip("uharfbuzz")
+        original = fpdf.FPDF.set_text_shaping
+
+        with _without_ligature_shaping():
+            pdf = fpdf.FPDF()
+            pdf.set_text_shaping()
+            assert pdf.text_shaping is not None
+            assert pdf.text_shaping["features"] == {"liga": False}
+
+        assert fpdf.FPDF.set_text_shaping is original
+
+    def test_keeps_explicit_features(self) -> None:
+        """A caller that already chose shaping features keeps them."""
+        fpdf = pytest.importorskip("fpdf")
+        pytest.importorskip("uharfbuzz")
+
+        with _without_ligature_shaping():
+            pdf = fpdf.FPDF()
+            enabled = True
+            pdf.set_text_shaping(enabled, {"kern": False})
+            assert pdf.text_shaping is not None
+            assert pdf.text_shaping["features"] == {"kern": False}
+
+            pdf.set_text_shaping(True, features={"kern": True})
+            assert pdf.text_shaping is not None
+            assert pdf.text_shaping["features"] == {"kern": True}
+
+    def test_ignores_disabled_shaping(self) -> None:
+        """A request that disables shaping is passed through unchanged."""
+        fpdf = pytest.importorskip("fpdf")
+
+        with _without_ligature_shaping():
+            pdf = fpdf.FPDF()
+            pdf.set_text_shaping(False)
+            assert pdf.text_shaping is None
+
+    def test_noop_without_fpdf(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """An OCRmyPDF without the fpdf2 renderer is left alone."""
+        monkeypatch.setattr("scantpaper.savethread._fpdf", None)
+
+        with _without_ligature_shaping():
+            pass
+
+    def test_load_fpdf_returns_none_when_missing(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A missing fpdf2 package is reported as absent rather than raising."""
+
+        def missing(*_args: object, **_kwargs: object) -> None:
+            raise ImportError
+
+        monkeypatch.setattr("scantpaper.savethread.importlib.import_module", missing)
+        assert _load_fpdf() is None
 
 
 @pytest.mark.parametrize(
