@@ -1914,3 +1914,68 @@ def test_new_scan_enforce_depth(
     )
     assert (notice in messages) is expected, "non-blocking notice"
     assert ("1-bit output was requested" in caplog.text) is expected, "warning logged"
+
+
+@pytest.mark.parametrize(
+    "sane_scan_mocks",
+    [
+        {"handle": {"mode": "Lineart"}},
+        {"handle": {"depth": 1}},
+    ],
+    indirect=True,
+)
+def test_new_scan_enforce_depth_backend_default(
+    mocker: pytest.MockerFixture,
+    sane_scan_dialog: SaneScanDialog,
+    sane_scan_mocks: SimpleNamespace,
+    set_device_wait_reload: Callable[[SaneScanDialog, str], None],
+    mainloop_with_timeout: Callable[[], _MainLoopWrapper],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A backend whose default mode/depth is bilevel converts without user edits."""
+    sane_scan_mocks.patch_all(mocker)
+    mocker.patch(
+        "scantpaper.dialog.sane.SaneThread.do_scan_page",
+        return_value=Image.new("L", (100, 100)),
+    )
+    dialog = sane_scan_dialog
+    set_device_wait_reload(dialog, "mock_name")
+
+    flags = []
+    messages = []
+
+    def new_scan_cb(
+        _widget: Gtk.Widget,
+        _image_ob: object,
+        _insert_after: object,
+        _side: str,
+        _xres: object,
+        _yres: object,
+        enforce_depth: object,
+    ) -> None:
+        flags.append(enforce_depth)
+
+    def finished_process_cb(_widget: Gtk.Widget, _process: str) -> None:
+        loop.quit()
+
+    def changed_progress_cb(
+        _widget: Gtk.Widget, _progress: object, message: str | None
+    ) -> None:
+        if message is not None:
+            messages.append(message)
+
+    loop = mainloop_with_timeout()
+    dialog.connect("new-scan", new_scan_cb)
+    dialog.connect("changed-progress", changed_progress_cb)
+    dialog.connect("finished-process", finished_process_cb)
+    dialog.num_pages = 1
+    with caplog.at_level(logging.WARNING):
+        dialog.scan()
+        loop.run()
+    assert flags == [True], "default bilevel mode/depth enforces depth"
+    notice = _(
+        "Scanner did not deliver the requested 1-bit output;"
+        " the page has been converted to black-and-white"
+    )
+    assert notice in messages, "non-blocking notice"
+    assert "1-bit output was requested" in caplog.text, "warning logged"

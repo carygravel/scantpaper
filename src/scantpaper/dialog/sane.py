@@ -591,6 +591,11 @@ class SaneScanDialog(Scan):
             self.emit("process-error", "scan", _("Must scan facing pages first"))
 
         xresolution, yresolution = self._get_xy_resolution()
+        # Capture the effective scan mode and depth once at batch start: they
+        # cannot change mid-batch, and reading them here (like resolution)
+        # avoids a blocking read from the worker while a page is transferring.
+        effective_depth = self._effective_option_value("depth")
+        effective_mode = self._effective_option_value("mode")
         i = 1
         self._depth_notice_emitted = False
 
@@ -601,7 +606,9 @@ class SaneScanDialog(Scan):
         def new_page_callback(image_ob: object) -> None:
             nonlocal i
             insert_after, side = self._insert_target(i)
-            enforce_depth = self._depth_mismatch(image_ob)
+            enforce_depth = self._depth_mismatch(
+                image_ob, effective_depth, effective_mode
+            )
             if enforce_depth:
                 logger.warning(
                     "Device delivered %s data although 1-bit output was "
@@ -667,21 +674,38 @@ class SaneScanDialog(Scan):
             signal = self.connect("reloaded-scan-options", reloaded_scan_options_cb)
             self.scan_options(self.device)
 
-    def _depth_mismatch(self, image_ob: object) -> bool:
+    def _effective_option_value(self, name: str) -> object | None:
+        """Return the backend's current value of a scan option, or None.
+
+        A missing or unreadable option (a backend without that option, or an
+        inactive one) yields None, which callers treat as "not requested".
+        """
+        try:
+            return self.thread.get_option_value(name)
+        except AttributeError:
+            return None
+
+    def _depth_mismatch(
+        self,
+        image_ob: object,
+        effective_depth: object | None,
+        effective_mode: object | None,
+    ) -> bool:
         """Return True when 1-bit output was requested but the frame is deeper.
 
         Some backends deliver 8-bit frames despite a 1-bit request, for
         example when a hardware compression option is active. The request
-        is a depth of 1 bit, or a bilevel scan mode such as Lineart.
+        is an effective depth of 1 bit, or an effective bilevel scan mode
+        such as Lineart - whether chosen explicitly or the backend default.
         """
         delivered = getattr(image_ob, "mode", None)
         if delivered == "1":
             return False
-        if self.current_scan_options.get_option_by_name("depth") == 1:
+        if effective_depth == 1:
             return True
-        mode_value = self.current_scan_options.get_option_by_name("mode")
         return bool(
-            isinstance(mode_value, str) and _BILEVEL_MODE_RE.fullmatch(mode_value)
+            isinstance(effective_mode, str)
+            and _BILEVEL_MODE_RE.fullmatch(effective_mode)
         )
 
     def _scan_error_callback(self, response: Response) -> None:

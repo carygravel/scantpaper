@@ -158,8 +158,10 @@ def sane_scan_dialog() -> Generator[SaneScanDialog, None, None]:
 
 
 @pytest.fixture
-def sane_scan_mocks() -> SimpleNamespace:
+def sane_scan_mocks(request: pytest.FixtureRequest) -> SimpleNamespace:
     """raw_options and mocked SaneThread do_* methods for scan-dialog tests."""
+    extra_options = getattr(request, "param", None) or {}
+    extra_handle = extra_options.get("handle", {})
     raw_options = build_scan_options(
         [
             "brightness-100-100-1",
@@ -197,6 +199,7 @@ def sane_scan_mocks() -> SimpleNamespace:
             br_x=215.899993896484,
             br_y=297.179992675781,
             source="Flatbed",
+            **extra_handle,
         )
         return raw_options
 
