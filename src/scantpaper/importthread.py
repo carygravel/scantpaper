@@ -13,7 +13,11 @@ from typing import TYPE_CHECKING, Any, TextIO, cast
 from PIL import Image
 from typing_extensions import override
 
-from scantpaper.basethread import BaseThread, Request
+from scantpaper.basethread import (
+    BaseThread,
+    CancelledError,
+    Request,
+)
 from scantpaper.helpers import exec_command, exec_command_run
 from scantpaper.i18n import _
 from scantpaper.page import Page
@@ -33,15 +37,11 @@ image_format = {
 PDFIMAGES_LIST_COLUMNS = 14
 
 
-class CancelledError(RuntimeError):
-    """Raised when a job is cancelled."""
-
-
 class Importhread(BaseThread):
     """subclass basethread for document."""
 
     def __init__(self) -> None:
-        """Initialise CancelledError."""
+        """Initialise the import worker."""
         BaseThread.__init__(self)
         self.lock = threading.Lock()
         self.running_pids = {}

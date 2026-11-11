@@ -12,7 +12,13 @@ import pytest
 from gi.repository import GLib
 from typing_extensions import override
 
-from scantpaper.basethread import BaseThread, Request, Response, ResponseType
+from scantpaper.basethread import (
+    BaseThread,
+    CancelledError,
+    Request,
+    Response,
+    ResponseType,
+)
 from scantpaper.loop_helpers import safe_mainloop
 
 if TYPE_CHECKING:
@@ -451,6 +457,37 @@ def test_cancelled_response_dispatches_cancelled_callback(
     finished_cb.assert_not_called()
     assert request.uuid not in thread.callbacks, "cancelled job removed from registry"
     assert thread.num_completed_jobs == 1, "cancelled job counted as complete"
+
+
+def test_handler_wrapper_cancelled_error_reports_cancelled() -> None:
+    """A handler interrupted by CancelledError reports CANCELLED, not ERROR."""
+    thread = MyThread()
+    request = Request("run", (), thread.responses)
+
+    def interrupted(_request: Request) -> None:
+        raise CancelledError
+
+    assert thread.handler_wrapper(request, interrupted) is True
+
+    responses = [thread.responses.get_nowait()]
+    assert thread.responses.empty(), "exactly one terminal response"
+    assert responses[0].type is ResponseType.CANCELLED
+
+
+def test_handler_wrapper_cancelled_error_runs_completion_cleanup(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """Interrupted handlers still run request-completion cleanup."""
+    thread = MyThread()
+    mock_completed = mocker.patch.object(thread, "_request_completed")
+    request = Request("run", (), thread.responses)
+
+    def interrupted(_request: Request) -> None:
+        raise CancelledError
+
+    thread.handler_wrapper(request, interrupted)
+
+    mock_completed.assert_called_once()
 
 
 def test_drain_cancelled_requests_notifies_queued_jobs(
