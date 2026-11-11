@@ -238,7 +238,15 @@ next time scantpaper starts.
   instead of silently doing nothing. When saving as PDF, pages are processed
   one at a time and page images are decoded on demand, so saving a document
   with many high-resolution pages no longer keeps every decoded page in
-  memory and no longer exhausts the memory of the process.
+  memory and no longer exhausts the memory of the process. Pressing
+  **Cancel** during a PDF save stops the save promptly even after its pages
+  have been written - including while the searchable text layer is being
+  embedded - and reports the save as cancelled rather than as an error or a
+  completed export, so no spurious error is shown and the document stays
+  usable for a later save.
+- **Cancel:** Pressing **Cancel** on the progress bar stops the running work.
+  Cancelling a multi-page or multi-file import no longer shows an empty error
+  dialog and keeps the pages imported before the cancel in the document.
 - **Import hOCR:** Apply a saved hOCR file to the selected pages or all pages.
   Pages are matched in order, the page box must match the target page's pixel
   size, and only the text layer is replaced; images and annotations are left

@@ -1,5 +1,15 @@
 ## 4.0.4 (unreleased)
 
+* Cancelling a PDF save now stops the save even when the pages have already
+  been assembled: a cancel issued while the text layer is being embedded, the
+  pages are being JBIG2-converted, or the PDF finalized no longer lets the
+  save finish. The interrupted save is reported as cancelled rather than as an
+  error, so the progress bar disappears without a spurious error dialog, and
+  the document stays usable (a later save works normally).
+* Cancelling a multi-page or multi-file import no longer shows an empty error
+  dialog. An interrupted background job is now reported as cancelled rather
+  than as an error, so cancelling an import leaves the pages imported before
+  the cancel in the document.
 * Words containing a typographic ligature, such as `ff`, stay searchable on
   every supported distribution. Ghostscript 10.06, shipped by Ubuntu 26.04,
   dropped the multi-character `ToUnicode` mapping of a shaped ligature during
