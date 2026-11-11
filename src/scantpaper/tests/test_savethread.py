@@ -188,6 +188,73 @@ def test_save_pdf_with_hocr(
         mock_hocr_to_ocr_pdf.assert_called()
 
 
+def test_save_pdf_cancelled_during_text_embed_raises(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """A cancel landing during the OCR embed stops the PDF save.
+
+    The save must stop at the phase boundary after the text-layer embed
+    instead of completing and reporting the export as finished.
+    """
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    def cancel_during_embed(*_args: object, **_kwargs: object) -> bool:
+        """Simulate a cancel landing while the text layer is embedded."""
+        mock_thread_instance.cancel = True
+        return True
+
+    with (
+        patch.object(mock_thread_instance, "_assemble_pdf", return_value=[]),
+        patch.object(
+            mock_thread_instance, "_embed_text_layer", side_effect=cancel_during_embed
+        ),
+        patch.object(mock_thread_instance, "_maybe_convert_to_jbig2"),
+        patch.object(mock_thread_instance, "_finalize_pdf"),
+        pytest.raises(CancelledError),
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+
+def test_save_pdf_cancelled_during_finalize_raises(
+    mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
+) -> None:
+    """A cancel landing during finalization stops the PDF save."""
+    mock_thread_instance.mock_pages[1] = mock_page_instance
+
+    options = {
+        "dir": "/tmp",
+        "path": "/tmp/output.pdf",
+        "list_of_pages": [1],
+        "metadata": {"datetime": datetime.datetime.now(_LOCAL_TZ)},
+        "options": {},
+    }
+    request = Request("save_pdf", (options,), mock_thread_instance.responses)
+
+    def cancel_during_finalize(*_args: object, **_kwargs: object) -> None:
+        """Simulate a cancel landing while the PDF is finalized."""
+        mock_thread_instance.cancel = True
+
+    with (
+        patch.object(mock_thread_instance, "_assemble_pdf", return_value=[]),
+        patch.object(mock_thread_instance, "_embed_text_layer", return_value=True),
+        patch.object(mock_thread_instance, "_maybe_convert_to_jbig2"),
+        patch.object(
+            mock_thread_instance, "_finalize_pdf", side_effect=cancel_during_finalize
+        ),
+        pytest.raises(CancelledError),
+    ):
+        mock_thread_instance.do_save_pdf(request)
+
+
 def test_save_pdf_with_title_keeps_title(
     mock_thread_instance: MockSaveThread, mock_page_instance: MagicMock
 ) -> None:

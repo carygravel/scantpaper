@@ -304,17 +304,29 @@ class SaveThread(Importhread):
 
             self._assemble_pdf(outdir, options, request, metadata)
 
+            # A cancel landing after page assembly is honoured at each phase
+            # boundary below; the in-process ocrmypdf embed and the JBIG2 pass
+            # run without sampling the flag, so stop before and after them.
+            self.check_cancelled()
+
             # Embed text layer using ocrmypdf (also applies PDF/A metadata such
             # as the title), so it runs even when no page has a text layer.
             embed_ok = self._embed_text_layer(
                 outdir, filename, request, has_lossless=self._saw_lossless_image
             )
 
+            self.check_cancelled()
+
             self._maybe_convert_to_jbig2(options, outdir, filename, request)
+
+            self.check_cancelled()
 
             self._finalize_pdf(
                 filename, options, request, embed_ok=embed_ok, metadata=metadata
             )
+
+            # Do not mark the pages as saved once the user cancelled.
+            self.check_cancelled()
 
             self.do_set_saved(
                 Request("set_saved", (options["list_of_pages"], True), self.responses)

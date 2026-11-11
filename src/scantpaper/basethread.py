@@ -23,6 +23,10 @@ logger = logging.getLogger(__name__)
 _RUNNING_TICK_MS = 200
 
 
+class CancelledError(RuntimeError):
+    """Raised when a job is interrupted by a cancel request."""
+
+
 class Response(NamedTuple):
     """Communication tuple sent from a background thread to the main thread."""
 
@@ -316,6 +320,13 @@ class BaseThread(threading.Thread):
             # terminal callback runs.
             self._request_completed(request)
             request.finished(result)
+        except CancelledError:
+            # An interrupted job is an expected outcome, not a failure: report
+            # it as CANCELLED so the requester is notified without a spurious
+            # error dialog and the request is never presented as finished.
+            logger.info("Interrupted running process '%s'", request.process)
+            self._request_completed(request)
+            request.cancelled()
         except Exception as err:
             # BLE001 — the handler is a do_<process> method that may raise
             # arbitrary exceptions from external code (SANE, file I/O, ...),
