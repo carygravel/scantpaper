@@ -64,7 +64,7 @@ and have installed the necessary dependencies.
     ```bash
     python3 -m venv .venv
     source .venv/bin/activate
-    pip install -e .
+    pip install -e '.[test]'
     ```
     You will also need to install the system-level dependencies mentioned in
     the `README.md` file.
