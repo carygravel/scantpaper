@@ -7747,40 +7747,6 @@
     {
       "language": "en_US",
       "msgctxt": null,
-      "msgid": "Caching device list with libusb devices included is not recommended as they can change between reboots.",
-      "msgid_plural": null,
-      "translation_sha256": "2c4e8bff0a49941c29cd67c2610aecc6985f171d00684e354578c7baf00a29e5",
-      "provenance_class": "human-review",
-      "evidence": {
-        "maintainer_approved": true,
-        "legacy_translation": true
-      },
-      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-11-07",
-      "msgstr": "Caching device list with libusb devices included is not recommended as they can change between reboots."
-    },
-    {
-      "language": "en_US",
-      "msgctxt": null,
-      "msgid": "Are you sure you want to do this?",
-      "msgid_plural": null,
-      "translation_sha256": "e6cb86ee696976ce850ce2c84f0073513ee15321c8d94053eab03c09557b5117",
-      "provenance_class": "human-review",
-      "evidence": {
-        "maintainer_approved": true,
-        "legacy_translation": true
-      },
-      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-11-07",
-      "msgstr": "Are you sure you want to do this?"
-    },
-    {
-      "language": "en_US",
-      "msgctxt": null,
       "msgid": "Scan Document",
       "msgid_plural": null,
       "translation_sha256": "114a49d08b8223bc37e1b2c312533ecbb1ad63c1eb1125ff69089fa24ae6ed51",
@@ -11067,6 +11033,227 @@
         "0": "%(mb)dMb free in %(name)s.",
         "1": "%(mb)dMb free in %(name)s."
       }
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Add a paper size",
+      "msgid_plural": null,
+      "translation_sha256": "50ef7bdfa03eb5d93af36a99fad739fe8497ef75d3291a6543eb6bf7ef197136",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Add a paper size"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Add a user-defined tool",
+      "msgid_plural": null,
+      "translation_sha256": "3d3d2c0492a70b6f18a925445fb066925be68f1a882c4b9b1565ed26a16a6290",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Add a user-defined tool"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?",
+      "msgid_plural": null,
+      "translation_sha256": "afce7989502ef95328c6a72afb867b8cc39dc0b01b6894f7cd3664bf477d9fe4",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Crashed sessions",
+      "msgid_plural": null,
+      "translation_sha256": "f9db86f3b07345d1e9c70ca39a63f459b5e2fe614632debe6a392887241781e6",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Crashed sessions"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Don't ask again",
+      "msgid_plural": null,
+      "translation_sha256": "04a5cfa3602229a38b147611df564836b619d5f816e03715d749c30028035079",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Don't ask again"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "No crashed sessions found.",
+      "msgid_plural": null,
+      "translation_sha256": "693698185f3429022cb3a1be4bf32d8a5e24a1faa86604f0050ad079c86e1772",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "No crashed sessions found."
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Remove %(option)s from the profile",
+      "msgid_plural": null,
+      "translation_sha256": "17e6dc3d9210867dc161b6c8d5aaffcbb2c13c04a3132c8b45cf840aa1eec812",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Remove %(option)s from the profile"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Remove the selected paper size",
+      "msgid_plural": null,
+      "translation_sha256": "fbf3482746c5a7636887173a80c75987ce4ff160ea6b27f8e825c742eb0ee13e",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Remove the selected paper size"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Restore file",
+      "msgid_plural": null,
+      "translation_sha256": "70c9b101fb294323bf2ccb42b1b9694eedeb3dd0207e7091bd8ceeed591d7c17",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Restore file"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Restore or discard a crashed session",
+      "msgid_plural": null,
+      "translation_sha256": "2dd7a1f7fa9f87eb88b251cc63d1d739fc727ef040bb42065dd73c3d70e91cf9",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Restore or discard a crashed session"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "Some pages have not been saved.\nDo you really want to restore a crashed session?",
+      "msgid_plural": null,
+      "translation_sha256": "a6350541e47076a5e229aacea73212ece6791c17518658f3598afa4a8f8a13cb",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Some pages have not been saved.\nDo you really want to restore a crashed session?"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "_Discard",
+      "msgid_plural": null,
+      "translation_sha256": "d4e4e39187884a424c9aa6f22679966cf8526e310cbf803e9dbf98e9a3eb238c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "_Discard"
+    },
+    {
+      "language": "en_US",
+      "msgctxt": null,
+      "msgid": "_Restore",
+      "msgid_plural": null,
+      "translation_sha256": "4ccc98cda46a2984cb0d5810085cf8576b2d3b6314477e3a50f240b99115494b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "english_source_copy": true
+      },
+      "evidence_sha256": "4fc09e2fb3f2192b1e8f40e683a06f6cfb3f95bd74480bde1a7f54e1ae14b4b1",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "_Restore"
     }
   ],
   "qualifications": [],

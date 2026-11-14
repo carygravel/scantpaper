@@ -42,7 +42,7 @@ msgid_plural "%(mb)dMb free in %(name)s."
 msgstr[0] "%(mb)dMb free in %(name)s."
 msgstr[1] "%(mb)dMb free in %(name)s."
 
-#: app_window.py:1262 helpers.py:477
+#: app_window.py:1262 helpers.py:497
 msgid "Messages"
 msgstr "Messages"
 
@@ -58,7 +58,7 @@ msgstr "There was an error opening the last device used."
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Whoops! I forgot to turn it on. Try again now."
 
-#: app_window.py:1356 dialog/scan.py:538
+#: app_window.py:1356 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr "Rescan for devices"
 
@@ -70,7 +70,7 @@ msgstr "Restart scantpaper."
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Just ignore the error. I don't need the scanner yet."
 
-#: app_window.py:1367 dialog/preferences.py:188
+#: app_window.py:1367 dialog/preferences.py:189
 msgid "Cache device list"
 msgstr "Cache device list"
 
@@ -90,23 +90,23 @@ msgstr "No pages to process"
 msgid "No pages selected"
 msgstr "No pages selected"
 
-#: config.py:111
+#: config.py:112
 msgid "A3"
 msgstr "A3"
 
-#: config.py:117
+#: config.py:118
 msgid "A4"
 msgstr "A4"
 
-#: config.py:123
+#: config.py:124
 msgid "US Letter"
 msgstr "US Letter"
 
-#: config.py:129
+#: config.py:130
 msgid "US Legal"
 msgstr "US Legal"
 
-#: config.py:267
+#: config.py:268
 #, python-format
 msgid ""
 "The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
@@ -115,7 +115,7 @@ msgstr ""
 "The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
 "been left unchanged."
 
-#: config.py:303
+#: config.py:304
 #, python-format
 msgid ""
 "The settings file %(filename)s could not be read in full. These settings "
@@ -126,7 +126,7 @@ msgstr ""
 "were restored: %(settings)s. The rest were reset to their defaults. A backup"
 " has been saved as %(backup)s."
 
-#: config.py:314
+#: config.py:315
 #, python-format
 msgid ""
 "The settings file %(filename)s could not be read, so all settings have been "
@@ -205,7 +205,7 @@ msgstr "Message"
 msgid "Hide"
 msgstr "Hide"
 
-#: dialog/__init__.py:223 dialog/scan.py:507 dialog/tesseractparams.py:96
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
 msgid "_Close"
 msgstr "_Close"
 
@@ -280,7 +280,7 @@ msgstr "pixels"
 msgid "hOCR file"
 msgstr "hOCR file"
 
-#: dialog/importhocr.py:50 dialog/preferences.py:271
+#: dialog/importhocr.py:50 dialog/preferences.py:272
 #: postprocess_controls.py:692
 msgid "Browse"
 msgstr "Browse"
@@ -289,16 +289,16 @@ msgstr "Browse"
 msgid "Pages are matched to the hOCR pages in order."
 msgstr "Pages are matched to the hOCR pages in order."
 
-#: dialog/importhocr.py:62 dialog/preferences.py:83 dialog/save.py:876
-#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:438
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:875
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
 #: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
 #: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:991
 msgid "_OK"
 msgstr "_OK"
 
-#: dialog/importhocr.py:62 dialog/preferences.py:83 dialog/save.py:877
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:876
 #: edit_menu_mixins.py:123 file_menu_mixins.py:411 layer.py:259 progress.py:43
-#: scan_menu_item_mixins.py:439 session_mixins.py:173
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
 #: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
 #: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
 #: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
@@ -310,8 +310,8 @@ msgstr "_Cancel"
 msgid "Open hOCR file"
 msgstr "Open hOCR file"
 
-#: dialog/importhocr.py:74 dialog/preferences.py:283 dialog/scan.py:1203
-#: dialog/scan.py:1707 dialog/scan.py:1734 dialog/scan.py:1775
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
 #: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:505
 #: file_menu_mixins.py:827 postprocess_controls.py:715
 msgid "Cancel"
@@ -433,23 +433,23 @@ msgstr "Units"
 msgid "Cannot delete all paper sizes"
 msgstr "Cannot delete all paper sizes"
 
-#: dialog/preferences.py:52
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr "Preferences"
 
-#: dialog/preferences.py:71
+#: dialog/preferences.py:72
 msgid "Scan options"
 msgstr "Scan options"
 
-#: dialog/preferences.py:79
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr "General options"
 
-#: dialog/preferences.py:87
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
 msgstr "Open scanner at program start"
 
-#: dialog/preferences.py:90
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
@@ -459,15 +459,15 @@ msgstr ""
 "This saves time clicking the scan button and waiting for the program to find"
 " the list of scanners"
 
-#: dialog/preferences.py:103
+#: dialog/preferences.py:104
 msgid "Device blacklist"
 msgstr "Device blacklist"
 
-#: dialog/preferences.py:106
+#: dialog/preferences.py:107
 msgid "e.g. Camera or v4l:.*"
 msgstr "e.g. Camera or v4l:.*"
 
-#: dialog/preferences.py:109
+#: dialog/preferences.py:110
 msgid ""
 "Regular expression matched case-insensitively against the device label and "
 "backend name, e.g. Camera or v4l:.*"
@@ -475,19 +475,19 @@ msgstr ""
 "Regular expression matched case-insensitively against the device label and "
 "backend name, e.g. Camera or v4l:.*"
 
-#: dialog/preferences.py:121
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
 msgstr "Cycle SANE handle after scan"
 
-#: dialog/preferences.py:123
+#: dialog/preferences.py:124
 msgid "Some ADFs do not feed out the last page if this is not enabled"
 msgstr "Some ADFs do not feed out the last page if this is not enabled"
 
-#: dialog/preferences.py:131
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
 msgstr "Allow batch scanning from flatbed"
 
-#: dialog/preferences.py:135
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
@@ -495,11 +495,11 @@ msgstr ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 
-#: dialog/preferences.py:144
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Ignore duplex capabilities of scanner"
 
-#: dialog/preferences.py:148
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
@@ -507,11 +507,11 @@ msgstr ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
 
-#: dialog/preferences.py:157
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
 msgstr "Force new scan job between pages"
 
-#: dialog/preferences.py:161
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
@@ -519,11 +519,11 @@ msgstr ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
 
-#: dialog/preferences.py:177
+#: dialog/preferences.py:178
 msgid "Select # pages = all on selecting ADF"
 msgstr "Select # pages = all on selecting ADF"
 
-#: dialog/preferences.py:181
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
@@ -531,7 +531,7 @@ msgstr ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
 
-#: dialog/preferences.py:191
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
@@ -539,25 +539,25 @@ msgstr ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
 
-#: dialog/preferences.py:195
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
 "This is only effective if the device names do not change between sessions."
 
-#: dialog/preferences.py:204
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
 msgstr "Restore window settings on startup"
 
-#: dialog/preferences.py:209
+#: dialog/preferences.py:210
 msgid "View files on saving"
 msgstr "View files on saving"
 
-#: dialog/preferences.py:216
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
 msgstr "Default PDF & DjVu filename"
 
-#: dialog/preferences.py:220
+#: dialog/preferences.py:221
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -589,41 +589,41 @@ msgstr ""
 "%Dm\tdocument month\n"
 "%Dd\tdocument day\n"
 
-#: dialog/preferences.py:241
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
 msgstr "Replace whitespace in filenames with underscores"
 
-#: dialog/preferences.py:247
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
 msgstr "Use timezone from locale"
 
-#: dialog/preferences.py:252
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
 msgstr "Specify time as well as date"
 
-#: dialog/preferences.py:258
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
 msgstr "Set access and modification times to metadata date"
 
-#: dialog/preferences.py:266
+#: dialog/preferences.py:267
 msgid "Temporary directory"
 msgstr "Temporary directory"
 
-#: dialog/preferences.py:278
+#: dialog/preferences.py:279
 msgid "Select temporary directory"
 msgstr "Select temporary directory"
 
-#: dialog/preferences.py:285 dialog/scan.py:1707 dialog/scan.py:1732
-#: dialog/scan.py:1775 file_menu_mixins.py:170 file_menu_mixins.py:507
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:507
 #: postprocess_controls.py:717
 msgid "OK"
 msgstr "OK"
 
-#: dialog/preferences.py:303
+#: dialog/preferences.py:304
 msgid "Warn if available space less than (Mb)"
 msgstr "Warn if available space less than (Mb)"
 
-#: dialog/preferences.py:309
+#: dialog/preferences.py:310
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
@@ -631,54 +631,59 @@ msgstr ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
 
-#: dialog/preferences.py:317
+#: dialog/preferences.py:318
 msgid "Blank threshold"
 msgstr "Blank threshold"
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:323
 msgid "Threshold used for selecting blank pages"
 msgstr "Threshold used for selecting blank pages"
 
-#: dialog/preferences.py:330
+#: dialog/preferences.py:331
 msgid "Dark threshold"
 msgstr "Dark threshold"
 
-#: dialog/preferences.py:334
+#: dialog/preferences.py:335
 msgid "Threshold used for selecting dark pages"
 msgstr "Threshold used for selecting dark pages"
 
-#: dialog/preferences.py:341
+#: dialog/preferences.py:342
 msgid "OCR output"
 msgstr "OCR output"
 
-#: dialog/preferences.py:346
+#: dialog/preferences.py:347
 msgid "Replace"
 msgstr "Replace"
 
-#: dialog/preferences.py:348
+#: dialog/preferences.py:349
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr ""
 "Replace the contents of the text buffer with that from the OCR output."
 
-#: dialog/preferences.py:351
+#: dialog/preferences.py:352
 msgid "Prepend"
 msgstr "Prepend"
 
-#: dialog/preferences.py:351
+#: dialog/preferences.py:352
 msgid "Prepend the OCR output to the text buffer."
 msgstr "Prepend the OCR output to the text buffer."
 
-#: dialog/preferences.py:352
+#: dialog/preferences.py:353
 msgid "Append"
 msgstr "Append"
 
-#: dialog/preferences.py:352
+#: dialog/preferences.py:353
 msgid "Append the OCR output to the text buffer."
 msgstr "Append the OCR output to the text buffer."
 
-#: dialog/preferences.py:361
+#: dialog/preferences.py:362
 msgid "Manage user-defined tools"
 msgstr "Manage user-defined tools"
+
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:179
+#: tests/test_icon_buttons.py:180
+msgid "Add a user-defined tool"
+msgstr "Add a user-defined tool"
 
 #: dialog/preferences.py:378
 msgid "Bilevel compression"
@@ -781,7 +786,8 @@ msgstr "Error setting option: "
 msgid "Must scan facing pages first"
 msgstr "Must scan facing pages first"
 
-#: dialog/sane.py:632 tests/test_0610_dialog_scan_sane.py:1912
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
 msgid ""
 "Scanner did not deliver the requested 1-bit output; the page has been "
 "converted to black-and-white"
@@ -789,7 +795,7 @@ msgstr ""
 "Scanner did not deliver the requested 1-bit output; the page has been "
 "converted to black-and-white"
 
-#: dialog/sane.py:728
+#: dialog/sane.py:752
 msgid ""
 "The scanner did not respond to cancel. Reconnect the scanner or choose "
 "another device."
@@ -1017,11 +1023,11 @@ msgstr "Document Metadata"
 msgid "Date/Time"
 msgstr "Date/Time"
 
-#: dialog/save.py:401 dialog/save.py:598
+#: dialog/save.py:401 dialog/save.py:597
 msgid "Now"
 msgstr "Now"
 
-#: dialog/save.py:402 dialog/save.py:599
+#: dialog/save.py:402 dialog/save.py:598
 msgid "Use current date and time"
 msgstr "Use current date and time"
 
@@ -1037,137 +1043,148 @@ msgstr "Specify date and time"
 msgid "Year-Month-Day"
 msgstr "Year-Month-Day"
 
-#: dialog/save.py:429
+#: dialog/save.py:426 tests/test_icon_buttons.py:195
+#: tests/test_icon_buttons.py:196
 msgid "Select date with calendar"
 msgstr "Select date with calendar"
 
-#: dialog/save.py:472
+#: dialog/save.py:471
 msgid "Select Date"
 msgstr "Select Date"
 
-#: dialog/save.py:514 dialog/save.py:605
+#: dialog/save.py:513 dialog/save.py:604
 msgid "Today"
 msgstr "Today"
 
-#: dialog/save.py:572
+#: dialog/save.py:571
 msgid "Title"
 msgstr "Title"
 
-#: dialog/save.py:573
+#: dialog/save.py:572
 msgid "Author"
 msgstr "Author"
 
-#: dialog/save.py:574
+#: dialog/save.py:573
 msgid "Subject"
 msgstr "Subject"
 
-#: dialog/save.py:575
+#: dialog/save.py:574
 msgid "Keywords"
 msgstr "Keywords"
 
-#: dialog/save.py:606
+#: dialog/save.py:605
 msgid "Use today's date"
 msgstr "Use today's date"
 
-#: dialog/save.py:616
+#: dialog/save.py:615
 msgid "Document type"
 msgstr "Document type"
 
-#: dialog/save.py:625
+#: dialog/save.py:624
 msgid "Postscript backend"
 msgstr "Postscript backend"
 
-#: dialog/save.py:642 dialog/save.py:783
+#: dialog/save.py:641 dialog/save.py:782
 msgid "Compression"
 msgstr "Compression"
 
-#: dialog/save.py:761
+#: dialog/save.py:760
 msgid "Quality"
 msgstr "Quality"
 
-#: dialog/save.py:798
+#: dialog/save.py:797
 msgid "Encrypt PDF"
 msgstr "Encrypt PDF"
 
-#: dialog/save.py:815
+#: dialog/save.py:814
 msgid "Downsample to"
 msgstr "Downsample to"
 
-#: dialog/save.py:819 dialog/scan.py:774
+#: dialog/save.py:818 dialog/scan.py:770
 msgid "ppi"
 msgstr "ppi"
 
-#: dialog/save.py:848
+#: dialog/save.py:847
 msgid "Set password"
 msgstr "Set password"
 
-#: dialog/save.py:857
+#: dialog/save.py:856
 msgid "User password"
 msgstr "User password"
 
-#: dialog/scan.py:244 dialog/scan.py:677 dialog/scan.py:803 dialog/scan.py:823
-#: dialog/scan.py:1051
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
 msgid "Manual"
 msgstr "Manual"
 
-#: dialog/scan.py:455
+#: dialog/scan.py:457 tests/test_icon_buttons.py:98
 msgid "Scan profiles"
 msgstr "Scan profiles"
 
-#: dialog/scan.py:507
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:829
+#: tests/test_icon_buttons.py:103
+msgid "Save"
+msgstr "Save"
+
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:104
+msgid "Edit"
+msgstr "Edit"
+
+#: dialog/scan.py:495 tests/test_icon_buttons.py:105
+msgid "Delete"
+msgstr "Delete"
+
+#: dialog/scan.py:503
 msgid "Scan"
 msgstr "Scan"
 
-#: dialog/scan.py:535
+#: dialog/scan.py:531
 msgid "Device"
 msgstr "Device"
 
-#: dialog/scan.py:563
+#: dialog/scan.py:559
 msgid "Sets the device to be used for the scan"
 msgstr "Sets the device to be used for the scan"
 
-#: dialog/scan.py:566
+#: dialog/scan.py:562
 msgid "Blacklist this device"
 msgstr "Blacklist this device"
 
-#: dialog/scan.py:568
+#: dialog/scan.py:564
 msgid "Hide the selected device from the device list"
 msgstr "Hide the selected device from the device list"
 
-#: dialog/scan.py:709
+#: dialog/scan.py:705
 #, python-format
 msgid "Error: unknown device: %s"
 msgstr "Error: unknown device: %s"
 
-#: dialog/scan.py:771
+#: dialog/scan.py:767
 msgid "pel"
 msgstr "pel"
 
-#: dialog/scan.py:772
+#: dialog/scan.py:768
 msgid "bit"
 msgstr "bit"
 
-#: dialog/scan.py:773
+#: dialog/scan.py:769
 msgid "mm"
 msgstr "mm"
 
-#: dialog/scan.py:776
+#: dialog/scan.py:772
 msgid "μs"
 msgstr "μs"
 
-#: dialog/scan.py:800
+#: dialog/scan.py:796
 msgid "Paper size"
 msgstr "Paper size"
 
-#: dialog/scan.py:804 dialog/scan.py:821
-msgid "Edit"
-msgstr "Edit"
-
-#: dialog/scan.py:805
+#: dialog/scan.py:801
 msgid "Selects or edits the paper size"
 msgstr "Selects or edits the paper size"
 
-#: dialog/scan.py:884
+#: dialog/scan.py:880
 #, python-format
 msgid ""
 "Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
@@ -1178,52 +1195,68 @@ msgstr ""
 "%(options)d scan options. Please file a bug, attaching a log file "
 "reproducing the problem."
 
-#: dialog/scan.py:1142
+#: dialog/scan.py:1138
 msgid "Edit paper size"
 msgstr "Edit paper size"
 
-#: dialog/scan.py:1173
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:127
+msgid "Add a paper size"
+msgstr "Add a paper size"
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:127
+msgid "Remove the selected paper size"
+msgstr "Remove the selected paper size"
+
+#: dialog/scan.py:1167
 msgid "Apply"
 msgstr "Apply"
 
-#: dialog/scan.py:1191
+#: dialog/scan.py:1185
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr ""
 "The following paper sizes are too big to be scanned by the selected device:"
 
-#: dialog/scan.py:1702 dialog/scan.py:1712
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
 msgid "Name of scan profile"
 msgstr "Name of scan profile"
 
-#: dialog/scan.py:1725
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
 #, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "Profile '%s' exists. Overwrite?"
 
-#: dialog/scan.py:1762
+#: dialog/scan.py:1756
 msgid "Editing current scan options"
 msgstr "Editing current scan options"
 
-#: dialog/scan.py:1766
+#: dialog/scan.py:1760
 #, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "Editing scan profile \"%s\""
 
-#: dialog/scan.py:1828
+#: dialog/scan.py:1822
 msgid "Backend options"
 msgstr "Backend options"
 
-#: dialog/scan.py:1829
+#: dialog/scan.py:1823
 msgid "Frontend options"
 msgstr "Frontend options"
 
-#: dialog/scan.py:1894
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:155
+#: tests/test_icon_buttons.py:156
+#, python-format
+msgid "Remove %(option)s from the profile"
+msgstr "Remove %(option)s from the profile"
+
+#: dialog/scan.py:1890
 #, python-format
 msgid "Scanning page %(current)d of %(total)d"
 msgstr "Scanning page %(current)d of %(total)d"
 
-#: dialog/scan.py:1898
+#: dialog/scan.py:1894
 #, python-format
 msgid "Scanning page %(current)d"
 msgstr "Scanning page %(current)d"
@@ -1397,10 +1430,6 @@ msgstr "Enter user password for PDF %s"
 #: file_menu_mixins.py:268
 msgid "Import hOCR"
 msgstr "Import hOCR"
-
-#: file_menu_mixins.py:344 file_menu_mixins.py:829
-msgid "Save"
-msgstr "Save"
 
 #: file_menu_mixins.py:375
 msgid "Post-save hook"
@@ -1872,66 +1901,66 @@ msgstr "Process %(current)i of %(total)i (%(process)s)"
 msgid "Process %(current)i of %(total)i"
 msgstr "Process %(current)i of %(total)i"
 
-#: savethread.py:158
+#: savethread.py:210
 msgid "Processing PDF"
 msgstr "Processing PDF"
 
-#: savethread.py:231
+#: savethread.py:283
 msgid "Embedding text layer"
 msgstr "Embedding text layer"
 
-#: savethread.py:288
+#: savethread.py:341
 msgid "Setting up PDF"
 msgstr "Setting up PDF"
 
-#: savethread.py:333 tests/test_savethread.py:1737
+#: savethread.py:409 tests/test_savethread.py:1822
 msgid "Converting to JBIG2"
 msgstr "Converting to JBIG2"
 
-#: savethread.py:371 savethread.py:539
+#: savethread.py:447 savethread.py:615
 #, python-format
 msgid "Writing page %(current)i of %(total)i"
 msgstr "Writing page %(current)i of %(total)i"
 
-#: savethread.py:422
+#: savethread.py:498
 #, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 
-#: savethread.py:445 tests/test_savethread.py:1514
+#: savethread.py:521 tests/test_savethread.py:1599
 msgid "Writing PDF"
 msgstr "Writing PDF"
 
-#: savethread.py:495
+#: savethread.py:571
 msgid "Converting to PS"
 msgstr "Converting to PS"
 
-#: savethread.py:508
+#: savethread.py:584
 #, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "Error converting PDF to PS: %s"
 
-#: savethread.py:552
+#: savethread.py:628
 msgid "Merging DjVu"
 msgstr "Merging DjVu"
 
-#: savethread.py:559
+#: savethread.py:635
 #, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Error merging DjVu: %s"
 
-#: savethread.py:653
+#: savethread.py:729
 #, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "Error converting TIFF to PS: %s"
 
-#: savethread.py:801
+#: savethread.py:877
 msgid "Error copying page"
 msgstr "Error copying page"
 
-#: savethread.py:872 tools_menu_mixins.py:840
+#: savethread.py:948 tools_menu_mixins.py:840
 #, python-format
 msgid ""
 "Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
@@ -1940,7 +1969,7 @@ msgstr ""
 "Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
 "it one page at a time instead."
 
-#: savethread.py:933
+#: savethread.py:1009
 msgid ""
 "No pages were modified. If the tool was already running (for example GIMP), "
 "it may have opened the images in the existing instance."
@@ -1948,64 +1977,65 @@ msgstr ""
 "No pages were modified. If the tool was already running (for example GIMP), "
 "it may have opened the images in the existing instance."
 
-#: savethread.py:942
+#: savethread.py:1018
 #, python-format
 msgid "'%(tool)s' failed with status %(status)s."
 msgstr "'%(tool)s' failed with status %(status)s."
 
-#: savethread.py:948
+#: savethread.py:1024
 #, python-format
 msgid "Error running '%(tool)s': %(error)s."
 msgstr "Error running '%(tool)s': %(error)s."
 
-#: savethread.py:1071
+#: savethread.py:1294
 #, python-format
 msgid "Error prepending PDF: %s"
 msgstr "Error prepending PDF: %s"
 
-#: savethread.py:1079
+#: savethread.py:1302
 #, python-format
 msgid "Error appending PDF: %s"
 msgstr "Error appending PDF: %s"
 
-#: savethread.py:1088
+#: savethread.py:1311
 msgid "Error creating backup of PDF"
 msgstr "Error creating backup of PDF"
 
-#: savethread.py:1162
+#: savethread.py:1385
 #, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "Error encrypting PDF: %s"
 
-#: scan_menu_item_mixins.py:116
+#: scan_menu_item_mixins.py:118
 msgid "Really cache libusb device names?"
 msgstr "Really cache libusb device names?"
 
-#: scan_menu_item_mixins.py:120
-msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
-msgstr ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
-
 #: scan_menu_item_mixins.py:122
-msgid "Are you sure you want to do this?"
-msgstr "Are you sure you want to do this?"
+#| msgid "Are you sure you want to do this?"
+msgid ""
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
+msgstr ""
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
 
-#: scan_menu_item_mixins.py:159
+#: scan_menu_item_mixins.py:127
+msgid "Don't ask again"
+msgstr "Don't ask again"
+
+#: scan_menu_item_mixins.py:176
 msgid "Scan Document"
 msgstr "Scan Document"
 
-#: scan_menu_item_mixins.py:274
+#: scan_menu_item_mixins.py:291
 msgid "Postprocessing"
 msgstr "Postprocessing"
 
-#: scan_menu_item_mixins.py:383
+#: scan_menu_item_mixins.py:400
 msgid "Alternate rotation every 2nd page"
 msgstr "Alternate rotation every 2nd page"
 
-#: scan_menu_item_mixins.py:386
+#: scan_menu_item_mixins.py:403
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
@@ -2017,31 +2047,31 @@ msgstr ""
 "edge, so the back of each sheet is rotated 180 degrees relative to its "
 "front."
 
-#: scan_menu_item_mixins.py:408
+#: scan_menu_item_mixins.py:425
 msgid "Clean up images"
 msgstr "Clean up images"
 
-#: scan_menu_item_mixins.py:409
+#: scan_menu_item_mixins.py:426
 msgid "Clean up scanned images with unpaper"
 msgstr "Clean up scanned images with unpaper"
 
-#: scan_menu_item_mixins.py:418
+#: scan_menu_item_mixins.py:435
 msgid "Options"
 msgstr "Options"
 
-#: scan_menu_item_mixins.py:419
+#: scan_menu_item_mixins.py:436
 msgid "Set unpaper options"
 msgstr "Set unpaper options"
 
-#: scan_menu_item_mixins.py:428
+#: scan_menu_item_mixins.py:445
 msgid "unpaper options"
 msgstr "unpaper options"
 
-#: scan_menu_item_mixins.py:451
+#: scan_menu_item_mixins.py:468
 msgid "Process with user-defined tool"
 msgstr "Process with user-defined tool"
 
-#: scan_menu_item_mixins.py:452
+#: scan_menu_item_mixins.py:469
 msgid "Process scanned images with user-defined tool"
 msgstr "Process scanned images with user-defined tool"
 
@@ -2055,32 +2085,26 @@ msgstr ""
 "%(default)s instead."
 
 #: session_mixins.py:163
-#, fuzzy
 msgid "No crashed sessions found."
 msgstr "No crashed sessions found."
 
 #: session_mixins.py:169
-#, fuzzy
 msgid "Crashed sessions"
 msgstr "Crashed sessions"
 
 #: session_mixins.py:174
-#, fuzzy
 msgid "_Discard"
 msgstr "_Discard"
 
 #: session_mixins.py:175
-#, fuzzy
 msgid "_Restore"
 msgstr "_Restore"
 
 #: session_mixins.py:178
-#, fuzzy
 msgid "Restore or discard a crashed session"
 msgstr "Restore or discard a crashed session"
 
 #: session_mixins.py:207
-#, fuzzy
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to restore a crashed session?"
@@ -2089,7 +2113,6 @@ msgstr ""
 "Do you really want to restore a crashed session?"
 
 #: session_mixins.py:242
-#, fuzzy
 msgid "Restore file"
 msgstr "Restore file"
 
@@ -2306,7 +2329,7 @@ msgstr "There is no tesseract package for %s"
 msgid "If this is in error, please contact the scantpaper developers."
 msgstr "If this is in error, please contact the scantpaper developers."
 
-#: tests/test_savethread.py:1504
+#: tests/test_savethread.py:1589
 msgid "Writing page"
 msgstr "Writing page"
 
@@ -2727,10 +2750,6 @@ msgstr "Copy"
 msgid "Paste"
 msgstr "Paste"
 
-#: app.ui:99 app.ui:202
-msgid "Delete"
-msgstr "Delete"
-
 #: app.ui:130 app.ui:560
 msgid "Print"
 msgstr "Print"
@@ -3030,15 +3049,3 @@ msgstr "Crop selection"
 #: app.ui:787
 msgid "Quit"
 msgstr "Quit"
-
-#: scan_menu_item_mixins.py:122
-#, fuzzy
-msgid ""
-"Caching the device list with libusb devices is not recommended, as they can "
-"change between reboots. Cache them anyway?"
-msgstr ""
-
-#: scan_menu_item_mixins.py:127
-#, fuzzy
-msgid "Don't ask again"
-msgstr ""
