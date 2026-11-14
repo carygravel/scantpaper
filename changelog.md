@@ -12,6 +12,14 @@
   for lossless handling. The saved PDF is re-encoded as CCITT Group 4 after
   the text layer is embedded, including images that the converter inlined,
   so the encoding selected by **Automatic** or **G4** is preserved.
+* Saving with **Downsample** now completes on every supported distribution.
+  The Ubuntu builds of Pillow 12.1 and 12.3, shipped by 26.04 and 26.10,
+  carry a bad backport of an upstream Pillow commit which makes
+  nearest-neighbour resampling fail, so bilevel and palette pages stopped
+  the save with an error. The unpatched PyPI builds of the same versions are
+  unaffected. Bilevel pages are now averaged and thresholded back to one
+  bit, and palette pages are resampled in their true colours, so the save
+  finishes and the output is the same on every series.
 * Text fields now keep their standard editing shortcuts. When the text-layer
   editor has focus, `Ctrl+X`, `Ctrl+C`, `Ctrl+V`, `Ctrl+A`, `Ctrl+Z`,
   `Ctrl+Shift+Z`, `+` and `-` edit the text instead of acting on pages or

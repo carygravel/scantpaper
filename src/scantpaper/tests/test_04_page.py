@@ -981,6 +981,52 @@ def test_write_image_for_pdf_reenocodes_with_options() -> None:
         assert Image.open(io.BytesIO(output)).mode == "1", "thresholded to bilevel"
 
 
+def test_write_image_for_pdf_downsample_bilevel() -> None:
+    """A downsampled bilevel page stays bilevel at the target size."""
+    image = Image.new("1", (300, 150), 1)
+    image.paste(0, (100, 50, 200, 100))
+    page = Page(image_object=image)
+    page.get_size()
+    page.resolution = (300, 300, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as filename:
+        page.write_image_for_pdf(
+            filename.name,
+            {"options": {"downsample": True, "downsample dpi": 150}},
+        )
+        with Image.open(filename.name) as loaded:
+            assert loaded.mode == "1", "resampled page stays bilevel"
+            assert loaded.size == (150, 75), "resampled to the target resolution"
+
+
+@pytest.mark.parametrize(
+    ("transparency", "expected_mode"), [(None, "RGB"), (0, "RGBA")]
+)
+def test_write_image_for_pdf_downsample_palette(
+    transparency: int | None, expected_mode: str
+) -> None:
+    """A downsampled palette page is resampled in its true colours."""
+    image = Image.new("RGB", (300, 150), (10, 20, 30)).convert("P")
+    if transparency is not None:
+        image.info["transparency"] = transparency
+    page = Page(image_object=image)
+    page.get_size()
+    page.resolution = (300, 300, "PixelsPerInch")
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as filename:
+        page.write_image_for_pdf(
+            filename.name,
+            {
+                "options": {
+                    "compression": "none",
+                    "downsample": True,
+                    "downsample dpi": 150,
+                }
+            },
+        )
+        with Image.open(filename.name) as loaded:
+            assert loaded.mode == expected_mode, "palette resampled in true colour"
+            assert loaded.size == (150, 75), "resampled to the target resolution"
+
+
 def test_write_image_for_pdf_jp2_writes_jpeg2000() -> None:
     """An explicit ``jp2`` save writes a JPEG 2000 (JP2) stream."""
     image = Image.effect_noise((A4_WIDTH_MM, A4_HEIGHT_MM), 128).convert("RGB")

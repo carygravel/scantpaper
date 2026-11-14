@@ -157,6 +157,39 @@ def _to_bilevel(image: Image.Image) -> Image.Image:
     return image.convert("1")
 
 
+def _resize_image(
+    image: Image.Image,
+    size: tuple[int, int],
+    resample: Image.Resampling = Image.Resampling.BICUBIC,
+) -> Image.Image:
+    """Resize an image, working around modes the C resampler cannot handle.
+
+    Pillow resamples bilevel and palette images with nearest-neighbour
+    whatever filter is requested. The Ubuntu builds of Pillow 12.1 (26.04)
+    and 12.3 (26.10) raise a bare SystemError from that path. They carry a
+    bad backport of an upstream commit written for Pillow 13: it tests the
+    return value of ``ImagingTransform()`` as if 0 meant success, but in
+    the 12.x trees that function returns the output image, so a successful
+    transform is reported as a failure. The unpatched PyPI builds of the
+    same versions, and Pillow 10.2 on 24.04, resample those modes
+    correctly. Resample a converted copy instead: bilevel pages are
+    averaged and thresholded back to one bit, and palette pages are
+    resampled in their true colours.
+
+    Switch back to a plain ``image.resize()`` once 26.04 and 26.10, the only
+    affected series, reach end of life, or sooner if Ubuntu corrects the
+    backport.
+    """
+    if image.mode == "1":
+        return _to_bilevel(
+            image.convert("L").resize(size, resample=Image.Resampling.BOX)
+        )
+    if image.mode == "P":
+        mode = "RGBA" if "transparency" in image.info else "RGB"
+        return image.convert(mode).resize(size, resample=resample)
+    return image.resize(size, resample=resample)
+
+
 class Page:
     """Class of data and methods for handling page objects."""
 
@@ -533,8 +566,10 @@ class Page:
             width = cast("float", width) * resolution / xresolution
             height = cast("float", height) * resolution / yresolution
             logger.info("Upsampling to %sx%s %s", resolution, resolution, units)
-            return resolution, self.image_object.resize(
-                (int(width), int(height)), resample=Image.BOX
+            return resolution, _resize_image(
+                cast("Image.Image", self.image_object),
+                (int(width), int(height)),
+                resample=Image.Resampling.BOX,
             )
         return xresolution, cast("Image.Image", self.image_object)
 
@@ -580,7 +615,7 @@ class Page:
         ):
             width = int(self.width * opts["downsample dpi"] // resolution[0])
             height = int(self.height * opts["downsample dpi"] // resolution[1])
-            image = image.resize((width, height))
+            image = _resize_image(image, (width, height))
 
         if codec == PDF_CODEC_G4:
             _to_bilevel(image).save(filename, format="PPM")
