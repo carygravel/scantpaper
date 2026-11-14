@@ -1,4 +1,4 @@
-## 4.0.4 (unreleased)
+## 4.0.4 (2026-11-14)
 
 * Cancelling a PDF save now stops the save even when the pages have already
   been assembled: a cancel issued while the text layer is being embedded, the
