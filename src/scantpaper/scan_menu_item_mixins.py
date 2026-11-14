@@ -101,30 +101,36 @@ def _confirm_libusb_caching(
 ) -> bool:
     """Return whether the cached device list should be stored.
 
-    Warn when libusb devices are present and let the user choose; a decline
-    disables caching.
+    Warn when libusb devices are present and warnings are enabled; a decline
+    disables caching. An affirmative answer can suppress later warnings.
     """
-    if not any("libusb" in d.name for d in device_list):
+    if not settings["warn-libusb-cache"] or not any(
+        "libusb" in d.name for d in device_list
+    ):
         return True
     dialog = Gtk.MessageDialog(
         transient_for=parent,
         destroy_with_parent=True,
         modal=True,
         message_type="question",
-        buttons=Gtk.ButtonsType.OK,
+        buttons=Gtk.ButtonsType.OK_CANCEL,
     )
     dialog.set_title(_("Really cache libusb device names?"))
     area = dialog.get_message_area()
     label = Gtk.Label(
         label=_(
-            "Caching device list with libusb devices included is not recommended as they can change between reboots."
+            "Caching the device list with libusb devices is not recommended, "
+            "as they can change between reboots. Cache them anyway?"
         )
-        + _("Are you sure you want to do this?")
     )
     area.append(label)
+    cb = Gtk.CheckButton.new_with_label(_("Don't ask again"))
+    area.append(cb)
     response = run_dialog(dialog)
     dialog.destroy()
     if response == Gtk.ResponseType.OK:
+        if cb.get_active():
+            settings["warn-libusb-cache"] = False
         return True
     settings["cache-device-list"] = False
     return False
@@ -134,6 +140,17 @@ class ScanMenuItemMixins:
     """provide methods called from scan menu item."""
 
     _scan_progress_cancel_signal: int | None = None
+    _device_list_from_cache: bool = False
+
+    def _set_cached_device_list(
+        self, widget: SaneScanDialog, device_list: list[SimpleNamespace]
+    ) -> None:
+        """Assign a stored device list, marking it as a cache load."""
+        self._device_list_from_cache = True
+        try:
+            widget.device_list = device_list
+        finally:
+            self._device_list_from_cache = False
 
     def scan_dialog(
         self,
@@ -196,7 +213,7 @@ class ScanMenuItemMixins:
             cached = cast("list[SimpleNamespace]", self.settings["device list"])
             device_list = _filter_blacklisted_devices(list(cached), self.settings)
             if device_list:
-                self._windows.device_list = device_list
+                self._set_cached_device_list(self._windows, device_list)
             else:
                 _report_no_devices(self._windows)
                 self._windows = None
@@ -502,8 +519,9 @@ class ScanMenuItemMixins:
                 self._windows = None
                 return
 
-            if self.settings["cache-device-list"] and _confirm_libusb_caching(
-                self, device_list, self.settings
+            if self.settings["cache-device-list"] and (
+                self._device_list_from_cache
+                or _confirm_libusb_caching(self, device_list, self.settings)
             ):
                 self.settings["device list"] = device_list
 

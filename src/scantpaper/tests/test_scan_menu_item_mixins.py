@@ -85,6 +85,7 @@ def mock_scan_window(mocker: pytest.MockerFixture) -> object:
         "scan_window_width": 100,
         "scan_window_height": 100,
         "cache-device-list": False,
+        "warn-libusb-cache": True,
         "device list": [],
         "rotate facing": 0,
         "rotate reverse": 0,
@@ -333,6 +334,49 @@ def test_scan_dialog_cached_device(
     mock_scan_window.scan_dialog(None, None, scan=False)
 
     assert mock_scan_window._windows.device_list[0].name == "cached"
+
+
+def test_set_cached_device_list_marks_and_clears_origin(
+    mock_scan_window: object,
+) -> None:
+    """Assigning a cached list marks its origin only for that assignment."""
+    seen: list[bool] = []
+
+    class RecordingDialog:
+        """Record the origin flag while the list is assigned."""
+
+        @property
+        def device_list(self) -> list[SimpleNamespace]:
+            """Return an empty list; only assignment is observed."""
+            return []
+
+        @device_list.setter
+        def device_list(self, _value: list[SimpleNamespace]) -> None:
+            seen.append(mock_scan_window._device_list_from_cache)
+
+    dialog = RecordingDialog()
+    mock_scan_window._set_cached_device_list(dialog, [])
+    assert seen == [True], "the assignment is marked as a cache load"
+    assert dialog.device_list == [], "the fixture exposes an empty list"
+    assert mock_scan_window._device_list_from_cache is False, "the mark is cleared"
+
+
+def test_scan_dialog_cached_device_uses_marked_assignment(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """scan_dialog assigns a stored list through the cache-marking helper."""
+    mocker.patch("scantpaper.scan_menu_item_mixins.SaneScanDialog")
+    mocker.patch("scantpaper.scan_menu_item_mixins.OCRControls")
+    mocker.patch("scantpaper.scan_menu_item_mixins.RotateControls")
+    marked = mocker.patch.object(mock_scan_window, "_set_cached_device_list")
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_scan_window.settings["device list"] = [
+        SimpleNamespace(name="cached", label="cached")
+    ]
+
+    mock_scan_window.scan_dialog(None, None, scan=False)
+
+    marked.assert_called_once()
 
 
 def test_scan_dialog_cached_device_blacklisted(
@@ -1346,6 +1390,12 @@ def test_changed_device_list_callback_cache_libusb_ok(
     device1 = mocker.Mock()
     device1.name = "libusb:001:002"
     device_list = [device1]
+    mock_cb = mocker.Mock()
+    mock_cb.get_active.return_value = False
+    mocker.patch(
+        "scantpaper.scan_menu_item_mixins.Gtk.CheckButton.new_with_label",
+        return_value=mock_cb,
+    )
 
     mock_dialog_cls = mocker.patch("scantpaper.scan_menu_item_mixins.Gtk.MessageDialog")
     mock_run = mocker.patch(
@@ -1359,6 +1409,85 @@ def test_changed_device_list_callback_cache_libusb_ok(
     mock_run.assert_called_once()
     assert mock_scan_window.settings["device list"] == device_list
     assert mock_scan_window.settings["cache-device-list"] is True
+    assert mock_scan_window.settings["warn-libusb-cache"] is True
+
+
+def test_changed_device_list_callback_cache_libusb_suppressed(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """A suppressed warning caches a fresh libusb list without a dialog."""
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_scan_window.settings["warn-libusb-cache"] = False
+    mock_widget = mocker.Mock()
+    device1 = mocker.Mock()
+    device1.name = "libusb:001:002"
+    device_list = [device1]
+    mock_dialog_cls = mocker.patch("scantpaper.scan_menu_item_mixins.Gtk.MessageDialog")
+
+    mock_scan_window._changed_device_list_callback(mock_widget, device_list)
+
+    mock_dialog_cls.assert_not_called()
+    assert mock_scan_window.settings["device list"] == device_list
+
+
+def test_changed_device_list_callback_cached_libusb_skips_question(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """A cache-loaded libusb list is stored without asking; a fresh one asks."""
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_scan_window.settings["warn-libusb-cache"] = True
+    mock_widget = mocker.Mock()
+    device = SimpleNamespace(
+        name="net:scanner.lan:plustek:libusb:003:007", label="Scanner"
+    )
+    mock_dialog_cls = mocker.patch("scantpaper.scan_menu_item_mixins.Gtk.MessageDialog")
+
+    mock_scan_window._device_list_from_cache = True
+    mock_scan_window._changed_device_list_callback(mock_widget, [device])
+
+    mock_dialog_cls.assert_not_called()
+    assert mock_scan_window.settings["device list"] == [device]
+
+    mock_scan_window._device_list_from_cache = False
+    mock_cb = mocker.Mock()
+    mock_cb.get_active.return_value = False
+    mocker.patch(
+        "scantpaper.scan_menu_item_mixins.Gtk.CheckButton.new_with_label",
+        return_value=mock_cb,
+    )
+    mocker.patch(
+        "scantpaper.scan_menu_item_mixins.run_dialog",
+        return_value=scan_menu_item_mixins.Gtk.ResponseType.OK,
+    )
+    mock_scan_window._changed_device_list_callback(mock_widget, [device])
+
+    mock_dialog_cls.assert_called_once()
+
+
+def test_changed_device_list_callback_cache_libusb_dont_ask_again(
+    mocker: pytest.MockerFixture, mock_scan_window: object
+) -> None:
+    """OK with "Don't ask again" suppresses later warnings."""
+    mock_scan_window.settings["cache-device-list"] = True
+    mock_scan_window.settings["warn-libusb-cache"] = True
+    mock_widget = mocker.Mock()
+    device1 = mocker.Mock()
+    device1.name = "libusb:001:002"
+    mock_cb = mocker.Mock()
+    mock_cb.get_active.return_value = True
+    mocker.patch(
+        "scantpaper.scan_menu_item_mixins.Gtk.CheckButton.new_with_label",
+        return_value=mock_cb,
+    )
+    mocker.patch("scantpaper.scan_menu_item_mixins.Gtk.MessageDialog")
+    mocker.patch(
+        "scantpaper.scan_menu_item_mixins.run_dialog",
+        return_value=scan_menu_item_mixins.Gtk.ResponseType.OK,
+    )
+
+    mock_scan_window._changed_device_list_callback(mock_widget, [device1])
+
+    assert mock_scan_window.settings["warn-libusb-cache"] is False
 
 
 def test_changed_device_list_callback_cache_libusb_cancel(
@@ -1366,12 +1495,19 @@ def test_changed_device_list_callback_cache_libusb_cancel(
 ) -> None:
     """Test _changed_device_list_callback with libusb device and user cancels."""
     mock_scan_window.settings["cache-device-list"] = True
+    mock_scan_window.settings["warn-libusb-cache"] = True
     mock_scan_window.settings["device list"] = []
 
     mock_widget = mocker.Mock()
     device1 = mocker.Mock()
     device1.name = "libusb:001:002"
     device_list = [device1]
+    mock_cb = mocker.Mock()
+    mock_cb.get_active.return_value = True
+    mocker.patch(
+        "scantpaper.scan_menu_item_mixins.Gtk.CheckButton.new_with_label",
+        return_value=mock_cb,
+    )
 
     mock_dialog_cls = mocker.patch("scantpaper.scan_menu_item_mixins.Gtk.MessageDialog")
     mock_run = mocker.patch(
@@ -1385,6 +1521,9 @@ def test_changed_device_list_callback_cache_libusb_cancel(
     mock_run.assert_called_once()
     assert mock_scan_window.settings["device list"] == []
     assert mock_scan_window.settings["cache-device-list"] is False
+    assert mock_scan_window.settings["warn-libusb-cache"] is True, (
+        "cancelling does not suppress the warning"
+    )
 
 
 def test_changed_device_list_callback_cache_no_libusb(

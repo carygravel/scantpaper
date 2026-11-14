@@ -828,6 +828,29 @@ def test_null_image_type_migration_logged_at_info(
         ), "no warning is logged for the migrated image type"
 
 
+def test_libusb_cache_warning_defaults_on_and_round_trips() -> None:
+    """The libusb caching warning defaults on and persists when suppressed."""
+    assert DEFAULTS["warn-libusb-cache"] is True, "defaults to warning"
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        rc = pathlib.Path(tmpdirname) / "scantpaperrc"
+        rc.write_text("{}", encoding="utf-8")
+
+        output = read_config(str(rc))
+        assert "warn-libusb-cache" not in output, (
+            "the raw config does not invent the key"
+        )
+        add_defaults(output)
+        assert output["warn-libusb-cache"] is True, "add_defaults fills the default"
+
+        output["warn-libusb-cache"] = False
+        write_config(str(rc), cast("dict[str, object]", cast("object", output)))
+        persisted = json.loads(slurp(rc))
+        assert persisted["warn-libusb-cache"] is False, (
+            "the suppressed warning is written back"
+        )
+
+
 def test_alternate_rotation_defaults_off_and_round_trips() -> None:
     """The alternate rotation setting defaults to off and persists on write."""
     config = dict(DEFAULTS)

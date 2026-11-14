@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-11-14
+goal: "Stop asking the libusb caching question on every start: ask only when a
+  freshly scanned list is about to be cached, and let the user suppress the
+  question."

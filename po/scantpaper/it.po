@@ -2502,6 +2502,18 @@ msgstr[1] ""
 msgid "Unable to discard some crashed sessions."
 msgstr ""
 
+#: scan_menu_item_mixins.py:122
+#, fuzzy
+msgid ""
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
+msgstr ""
+
+#: scan_menu_item_mixins.py:127
+#, fuzzy
+msgid "Don't ask again"
+msgstr ""
+
 #~ msgid "PPI"
 #~ msgstr "PPI"
 

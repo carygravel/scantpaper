@@ -63,6 +63,7 @@ DEFAULTS = {
     "image type": "pdf",
     "device": None,
     "cache-device-list": True,
+    "warn-libusb-cache": True,
     "device list": [],
     "device blacklist": None,
     "unpaper on scan": False,

@@ -156,6 +156,25 @@ against the label shown in the list and the device's backend name, so patterns
 such as `Camera` or `v4l:.*` work. If a pattern hides every device, scantpaper
 reports that no devices were found rather than offering an empty list.
 
+#### Caching the device list
+
+When **Cache device list** is enabled in **Edit → Preferences**, scantpaper
+reuses the device list from the previous session instead of querying SANE, so
+the scan dialog opens faster. This works best when device names do not change
+between sessions.
+
+SANE names for USB-connected scanners can include a libusb address (for
+example `net:scanner.example.com:plustek:libusb:003:007`), and that address
+can change after a reboot or when the scanner is reconnected. Before
+scantpaper caches a newly scanned list that contains such a name, it asks for
+confirmation. Opening the scan dialog from an existing cache never asks. When
+you confirm, select **Don't ask again** to cache later lists silently;
+declining the question disables **Cache device list**.
+
+If a cached name no longer exists, opening the device fails and the error
+dialog offers **Rescan for devices**. To ask again after suppressing the
+confirmation, set `"warn-libusb-cache": true` in `~/.config/scantpaperrc`.
+
 #### Saving and reusing scan profiles
 
 The **Scan profiles** frame in the scan dialog stores the current scan options

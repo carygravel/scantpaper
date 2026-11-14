@@ -1,3 +1,15 @@
+## 4.0.5 (unreleased)
+
+* The "Really cache libusb device names?" question now appears only when a
+  freshly scanned device list that contains a libusb name is about to be
+  cached. Reusing an existing cache starts without the question, so a network
+  scanner whose libusb address changes only occasionally no longer asks on
+  every start. Confirming can also select **Don't ask again** to cache later
+  lists silently; declining still disables **Cache device list**. The
+  suppressed warning can be re-enabled with `warn-libusb-cache` in
+  `~/.config/scantpaperrc`.
+
+
 ## 4.0.4 (2026-11-14)
 
 * Cancelling a PDF save now stops the save even when the pages have already
