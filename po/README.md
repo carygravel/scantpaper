@@ -77,13 +77,27 @@ Regenerate the template and merge every catalog in one deterministic step:
 PYTHONPATH=src python3 dev/merge_po.py
 ```
 
+To refresh only the catalogs being worked on, repeat `--language`:
+
+```sh
+PYTHONPATH=src python3 dev/merge_po.py --language de --language en_GB
+```
+
+A scoped run still regenerates and writes the template, because the gate,
+import and checks read it; the template is gitignored, so no unrelated diff
+appears. Catalogs not named stay at their previous template version. The
+release procedure keeps the unscoped command, so a release refreshes every
+catalog.
+
 The merge uses `msgmerge --previous --no-fuzzy-matching`. It keeps existing
 fuzzy flags, records a changed msgid's predecessor as `#| msgid`, does not
 adopt a fuzzy match, and preserves header dates. A second run on unchanged
 inputs produces no diff. The pre-2026 snapshot is git commit `1a303718`; the
 merge never rewrites it or the approval ledger.
 
-New strings are seeded as `#, fuzzy` proposals and fall back to English.
+A new or changed msgid is added untranslated: `msgmerge` writes an empty
+`msgstr` and does not set a fuzzy flag. Until a human or the machine gate
+supplies an approved translation, the message falls back to English.
 
 ## Measure coverage
 
@@ -459,11 +473,11 @@ python3 dev/translation_gate.py sample --language de --size 20 --seed 7
 The first targets are the English and German catalogs: `en_GB`, `en_US` and
 `de`. There is no `en.po`.
 
-Refresh the catalogs, qualify each role release, run a drift probe, then
+Refresh the target catalog, qualify each role release, run a drift probe, then
 translate a small batch:
 
 ```sh
-PYTHONPATH=src python3 dev/merge_po.py
+PYTHONPATH=src python3 dev/merge_po.py --language de
 python3 dev/translation_gate.py qualify \
     --release qwen/3.8@2026-09 --language de --count 100
 python3 dev/translation_gate.py drift \

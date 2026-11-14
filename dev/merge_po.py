@@ -145,9 +145,18 @@ def _record_predecessors(original: polib.POFile, merged: polib.POFile) -> None:
     vanished entry to a new untranslated entry at the same source location and
     records the predecessor itself. The old translation is deliberately not
     adopted; it remains an untranslated proposal.
+
+    ``msgmerge`` drops ``#|`` from a non-fuzzy entry on a later run, so an
+    unchanged entry's predecessor is first restored from the original catalog.
+    Without that, a second merge would rewrite the catalog.
     """
     merged_keys = {
         entry_key(entry) for entry in merged if not entry.obsolete and entry.msgid
+    }
+    original_keys = {
+        entry_key(entry): entry
+        for entry in original
+        if not entry.obsolete and entry.msgid
     }
     by_location: dict[tuple[str, str], list[polib.POEntry]] = {}
     for entry in original:
@@ -161,6 +170,12 @@ def _record_predecessors(original: polib.POFile, merged: polib.POFile) -> None:
             continue
         if entry.msgstr or entry.msgstr_plural:
             continue
+        previous = original_keys.get(entry_key(entry))
+        if previous is not None and previous.previous_msgid is not None:
+            entry.previous_msgid = previous.previous_msgid
+            entry.previous_msgctxt = previous.previous_msgctxt
+            entry.previous_msgid_plural = previous.previous_msgid_plural
+            continue
         old = _predecessor_for(entry, by_location, merged_keys)
         if old is None:
             continue
@@ -169,8 +184,13 @@ def _record_predecessors(original: polib.POFile, merged: polib.POFile) -> None:
         entry.previous_msgid_plural = old.msgid_plural or None
 
 
-def _save_if_changed(path: Path, merged: polib.POFile) -> bool:
-    """Save a catalog only when its serialized text differs."""
+def _save_if_changed(path: Path, merged: polib.POFile, previous: str) -> bool:
+    """Save a catalog only when its text differs from ``previous``.
+
+    The comparison is against the text at the start of the run, not the file
+    ``msgmerge`` rewrites in place, so restoring a dropped ``#|`` comment does
+    not count as a change on a repeated merge.
+    """
     with tempfile.NamedTemporaryFile(
         "w", suffix=".po", encoding="utf-8", delete=False
     ) as handle:
@@ -178,8 +198,11 @@ def _save_if_changed(path: Path, merged: polib.POFile) -> bool:
     try:
         merged.save(name)
         proposed = Path(name).read_text(encoding="utf-8")
-        current = path.read_text(encoding="utf-8") if path.exists() else ""
-        if proposed == current:
+        if proposed == previous:
+            # msgmerge rewrites the file in place, so undo any text it dropped
+            # (such as a restored #| comment) before reporting no change.
+            if path.read_text(encoding="utf-8") != previous:
+                path.write_text(previous, encoding="utf-8")
             return False
         path.write_text(proposed, encoding="utf-8")
         return True
@@ -190,16 +213,32 @@ def _save_if_changed(path: Path, merged: polib.POFile) -> bool:
 def merge_catalog(catalog: Path, pot: Path) -> bool:
     """Merge one catalog and return whether its text changed."""
     original = polib.pofile(str(catalog))
+    previous = catalog.read_text(encoding="utf-8")
     _run_msgmerge(catalog, pot)
     merged = polib.pofile(str(catalog))
     _restore_review_state(original, merged)
     _record_predecessors(original, merged)
-    return _save_if_changed(catalog, merged)
+    return _save_if_changed(catalog, merged, previous)
 
 
-def merge_catalogs(src: Path, pot: Path) -> list[str]:
-    """Merge every catalog in ``src``; return the languages that changed."""
-    return [path.stem for path in sorted(src.glob("*.po")) if merge_catalog(path, pot)]
+def select_catalogs(src: Path, languages: Iterable[str] = ()) -> list[Path]:
+    """Return the catalogs to merge, rejecting unknown language names."""
+    catalogs = {path.stem: path for path in sorted(src.glob("*.po"))}
+    requested = set(languages)
+    if not requested:
+        return list(catalogs.values())
+    unknown = sorted(requested - catalogs.keys())
+    if unknown:
+        available = ", ".join(sorted(catalogs)) or "none"
+        msg = f"unknown language(s): {', '.join(unknown)} (available: {available})"
+        raise MergeError(msg)
+    return [catalogs[language] for language in sorted(requested)]
+
+
+def merge_catalogs(src: Path, pot: Path, languages: Iterable[str] = ()) -> list[str]:
+    """Merge the selected catalogs in ``src``; return the changed languages."""
+    selected = select_catalogs(src, languages)
+    return [path.stem for path in selected if merge_catalog(path, pot)]
 
 
 def main(argv: Iterable[str] | None = None) -> int:
@@ -211,6 +250,12 @@ def main(argv: Iterable[str] | None = None) -> int:
         type=Path,
         help="Use this template instead of regenerating scantpaper.pot",
     )
+    parser.add_argument(
+        "--language",
+        action="append",
+        default=[],
+        help="Merge only this language catalog; repeat for several",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     if not args.src.is_dir():
@@ -218,17 +263,21 @@ def main(argv: Iterable[str] | None = None) -> int:
         return 1
 
     try:
+        selected = select_catalogs(args.src, args.language)
         if args.pot is not None:
             pot = args.pot
         else:
             pot = DEFAULT_POT
             write_template(pot, generate_template())
-        changed = merge_catalogs(args.src, pot)
+        changed = [path.stem for path in selected if merge_catalog(path, pot)]
     except MergeError as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
 
-    print(f"{len(changed)} catalog(s) changed: {', '.join(changed) or 'none'}")
+    print(
+        f"{len(changed)} of {len(selected)} selected catalog(s) changed: "
+        f"{', '.join(changed) or 'none'}"
+    )
     return 0
 
 
