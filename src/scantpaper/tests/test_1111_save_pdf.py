@@ -606,7 +606,6 @@ def test_save_pdf_with_hocr(
         finished_callback=lambda _response: mlp.quit(),
     )
     mlp.run()
-    subprocess.run(["cp", temp_pdf.name, "fox.pdf"], check=True)
 
     capture = subprocess.check_output(["pdftotext", temp_pdf.name, "-"], text=True)
     assert re.search(  # some tesseract installations find an extra "r"
