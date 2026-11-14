@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pathlib
 import subprocess
 import tempfile
 from typing import TYPE_CHECKING, cast
@@ -16,6 +15,7 @@ from scantpaper.loop_helpers import safe_mainloop
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from types import SimpleNamespace
 
     from scantpaper.basethread import Response
 
@@ -100,6 +100,7 @@ def test_save_tiff_with_error(
     rose_pnm: str,
     temp_tif: object,
     import_in_mainloop: Callable[[object, list[str]], None],
+    read_only_session: SimpleNamespace,
 ) -> None:
     """Test writing TIFF and triggering an error."""
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
@@ -108,8 +109,7 @@ def test_save_tiff_with_error(
 
         import_in_mainloop(slist, [rose_pnm])
 
-        # inject error before save_djvu
-        pathlib.Path(dirname).chmod(0o500)  # no write access
+        read_only_session.read_only = True
 
         def error_callback1(response: Response) -> None:
             """No write access."""
@@ -128,7 +128,6 @@ def test_save_tiff_with_error(
 
         def error_callback2(_response: Response) -> None:
             assert True, "save_tiff caught error injected in queue"
-            pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
             asserts += 1
             mlp.quit()

@@ -20,6 +20,7 @@ from scantpaper.page import Page
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from types import SimpleNamespace
 
 
 @pytest.mark.skipif(
@@ -151,7 +152,9 @@ CreationDate	"2018-12-31 13:00:00+01:00"
 @pytest.mark.skipif(
     shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
 )
-def test_import_djvu_with_error(rose_jpg: str, temp_djvu: object) -> None:
+def test_import_djvu_with_error(
+    rose_jpg: str, temp_djvu: object, read_only_session: SimpleNamespace
+) -> None:
     """Test importing DjVu."""
     subprocess.run(["c44", rose_jpg, temp_djvu.name], check=True)
 
@@ -166,18 +169,14 @@ def test_import_djvu_with_error(rose_jpg: str, temp_djvu: object) -> None:
             nonlocal asserts
             if asserts == 0:
                 asserts += 1
-
-                # inject error during import file
-                pathlib.Path(dirname).chmod(0o500)  # no write access
+                read_only_session.read_only = True
 
         def error_cb(*args: object) -> None:
             nonlocal asserts
             message = args[-1] if len(args) > 1 else args[0].status
             assert re.search(r"Error|Errno", str(message)), "error_cb"
             asserts += 1
-
-            # inject error during import file
-            pathlib.Path(dirname).chmod(0o700)  # no write access
+            read_only_session.read_only = False
 
         slist.import_files(
             paths=[temp_djvu.name],

@@ -461,15 +461,14 @@ def test_validate_tessdata_dir_rejects_file(tmp_path: pathlib.Path) -> None:
     assert "not a directory" in error
 
 
-def test_validate_tessdata_dir_rejects_unreadable(tmp_path: pathlib.Path) -> None:
+def test_validate_tessdata_dir_rejects_unreadable(
+    tmp_path: pathlib.Path, mocker: pytest.MockerFixture
+) -> None:
     """An unreadable directory is reported."""
     path = tmp_path / "unreadable"
     path.mkdir()
-    path.chmod(0)
-    try:
-        error = validate_tessdata_dir(str(path))
-    finally:
-        path.chmod(0o755)
+    mocker.patch("scantpaper.tesseract.os.access", return_value=False)
+    error = validate_tessdata_dir(str(path))
     assert error is not None
     assert "cannot be read" in error
 

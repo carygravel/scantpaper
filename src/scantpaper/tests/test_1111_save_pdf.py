@@ -30,6 +30,7 @@ from scantpaper.page import Page
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
+    from types import SimpleNamespace
 
 
 def has_locale(name: str) -> bool:
@@ -434,6 +435,7 @@ def test_save_pdf_with_error(
     rose_pnm: str,
     temp_pdf: object,
     import_in_mainloop: Callable[[object, list[str]], None],
+    read_only_session: SimpleNamespace,
 ) -> None:
     """Test saving a PDF and triggering an error."""
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as dirname:
@@ -442,8 +444,7 @@ def test_save_pdf_with_error(
 
         import_in_mainloop(slist, [rose_pnm])
 
-        # inject error before save_pdf
-        pathlib.Path(dirname).chmod(0o500)  # no write access
+        read_only_session.read_only = True
 
         def error_callback1(response: Response) -> None:
             """No write access."""
@@ -462,7 +463,6 @@ def test_save_pdf_with_error(
 
         def error_callback2(_response: Response) -> None:
             assert True, "save_pdf caught error injected in queue"
-            pathlib.Path(dirname).chmod(0o700)  # allow write access
             nonlocal asserts
             asserts += 1
             mlp.quit()

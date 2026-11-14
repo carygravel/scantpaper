@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import errno
 import locale
 import logging
 import os
@@ -141,6 +142,27 @@ def dot_locale(monkeypatch: pytest.MonkeyPatch) -> Generator[str, None, None]:
     yield decimal_separator()
     decimal_separator.cache_clear()
     grouping_separator.cache_clear()
+
+
+@pytest.fixture
+def read_only_session(mocker: pytest.MockerFixture) -> SimpleNamespace:
+    """Toggle a simulated read-only session directory.
+
+    Root ignores directory permission bits, so tests flip this switch to make
+    PID-file creation fail deterministically instead of calling chmod.
+    """
+    state = SimpleNamespace(read_only=False)
+    # Cast to Any: the wrapper forwards arbitrary arguments, which no single
+    # TemporaryFile overload signature accepts.
+    real_temporary_file = cast("Any", tempfile.TemporaryFile)
+
+    def temporary_file(*args: object, **kwargs: object) -> object:
+        if state.read_only:
+            raise PermissionError(errno.EACCES, os.strerror(errno.EACCES))
+        return real_temporary_file(*args, **kwargs)
+
+    mocker.patch("tempfile.TemporaryFile", side_effect=temporary_file)
+    return state
 
 
 @pytest.fixture

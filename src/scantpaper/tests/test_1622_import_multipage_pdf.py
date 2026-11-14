@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime
-import pathlib
 import re
 import shutil
 import subprocess
@@ -19,6 +18,7 @@ from scantpaper.loop_helpers import safe_mainloop
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from types import SimpleNamespace
 
 
 def test_import_multipage_pdf(rose_png: str, temp_pdf: object, temp_db: object) -> None:
@@ -195,7 +195,9 @@ def test_import_pdf_bw(
     )
 
 
-def test_import_pdf_with_error(rose_png: str, temp_pdf: object) -> None:
+def test_import_pdf_with_error(
+    rose_png: str, temp_pdf: object, read_only_session: SimpleNamespace
+) -> None:
     """Test importing PDF."""
     temp_pdf.write(img2pdf.convert(rose_png))
     temp_pdf.flush()
@@ -211,18 +213,14 @@ def test_import_pdf_with_error(rose_png: str, temp_pdf: object) -> None:
             nonlocal asserts
             if asserts == 0:
                 asserts += 1
-
-                # inject error during import file
-                pathlib.Path(dirname).chmod(0o500)  # no write access
+                read_only_session.read_only = True
 
         def error_cb(*args: object) -> None:
             nonlocal asserts
             message = args[-1] if len(args) > 1 else args[0].status
             assert message, "error_cb"
             asserts += 1
-
-            # inject error during import file
-            pathlib.Path(dirname).chmod(0o700)  # allow write access
+            read_only_session.read_only = False
 
         slist.import_files(
             paths=[temp_pdf.name],
