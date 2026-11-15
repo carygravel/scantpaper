@@ -149,12 +149,13 @@ python3 -m pip wheel \
     --wheel-dir dist/build \
     .
 
-# Generate gettext message catalogs.
+# Generate the template and gettext message catalogs.
+PYTHONPATH=src python3 dev/generate_pot.py
 python3 dev/compile_mo.py \
     --src po \
     --out locale \
     --domain scantpaper \
-    --approvals po/translation-approvals.json \
+    --approvals po/approvals \
     --pot po/scantpaper/scantpaper.pot \
     --report translation-report.json
 

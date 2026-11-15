@@ -8,11 +8,12 @@ include /usr/share/dpkg/pkg-info.mk
 	dh $@ --with python3 --buildsystem=pybuild
 
 execute_after_dh_auto_build:
+	PYTHONPATH=src python3 dev/generate_pot.py
 	python3 dev/compile_mo.py \
 		--src po \
 		--out debian/locale \
 		--domain scantpaper \
-		--approvals po/translation-approvals.json \
+		--approvals po/approvals \
 		--pot po/scantpaper/scantpaper.pot \
 		--report debian/translation-report.json
 

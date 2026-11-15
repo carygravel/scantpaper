@@ -18,14 +18,20 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import polib
 from summarise_po import template_keys
 from translation_ledger import (
+    ApprovalRecord,
     LedgerError,
     approval_for_entry,
+    approval_index,
     load_ledger,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 def guess_lang_and_domain(
@@ -54,6 +60,7 @@ def filter_unapproved(
     po: polib.POFile,
     ledger: dict[str, object],
     language: str,
+    index: Mapping[tuple[str, str, str, str], ApprovalRecord],
 ) -> int:
     """Blank every non-fuzzy entry without a valid approval; return the count.
 
@@ -67,7 +74,7 @@ def filter_unapproved(
             continue
         if not has_translation(entry):
             continue
-        if approval_for_entry(ledger, language, entry) is not None:
+        if approval_for_entry(ledger, language, entry, index=index) is not None:
             continue
         entry.msgstr = ""
         entry.msgstr_plural = {}
@@ -80,6 +87,7 @@ def report_language(
     ledger: dict[str, object],
     language: str,
     keys: set[tuple[str, str, str]],
+    index: Mapping[tuple[str, str, str, str], ApprovalRecord],
 ) -> dict[str, int]:
     """Return approval, fallback and coverage counts for one catalog."""
     approved = fallback = fuzzy = untranslated = 0
@@ -92,7 +100,7 @@ def report_language(
             fuzzy += 1
         elif not has_translation(entry):
             untranslated += 1
-        elif approval_for_entry(ledger, language, entry) is not None:
+        elif approval_for_entry(ledger, language, entry, index=index) is not None:
             approved += 1
         else:
             fallback += 1
@@ -149,8 +157,9 @@ def compile_catalog(
 
     stats: dict[str, int] | None = None
     if ledger is not None:
-        stats = report_language(po, ledger, lang, keys)
-        dropped = filter_unapproved(po, ledger, lang)
+        index = approval_index(ledger)
+        stats = report_language(po, ledger, lang, keys, index)
+        dropped = filter_unapproved(po, ledger, lang, index)
         print(
             f"{lang}: {stats['approved']} approved, "
             f"{stats['fallback']} unapproved entries fall back to English, "

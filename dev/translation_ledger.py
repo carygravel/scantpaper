@@ -983,14 +983,21 @@ def approval_for_entry(
     data: Mapping[str, object],
     language: str,
     entry: polib.POEntry,
+    *,
+    index: Mapping[tuple[str, str, str, str], ApprovalRecord] | None = None,
 ) -> ApprovalRecord | None:
     """Return the valid approval for ``entry``, or None.
 
     A record approves an entry only when the language, context, msgid and
     plural msgid match and the recorded digest equals the entry's current
     translation digest.
+
+    Pass ``index`` from :func:`approval_index` when checking many entries, so
+    the ledger is indexed once instead of once per entry.
     """
-    record = approval_index(data).get(entry_key(language, entry))
+    record = (index if index is not None else approval_index(data)).get(
+        entry_key(language, entry)
+    )
     if record is None:
         return None
     digest = record.get("translation_sha256")
