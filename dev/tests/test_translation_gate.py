@@ -1380,7 +1380,7 @@ def test_qualify_cli_records_a_passing_release(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen"}),
     )
     status = GATE.main(
         [
@@ -1421,7 +1421,7 @@ def test_qualify_cli_reports_json(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen"}),
     )
     status = GATE.main(
         [
@@ -1459,7 +1459,7 @@ def test_qualify_cli_records_a_miss(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Falsch"}),
+        lambda **_: FakeClient({"p1": "Falsch"}),
     )
     status = GATE.main(
         [
@@ -1496,7 +1496,7 @@ def test_qualify_cli_records_no_baseline_without_a_model_call(
     _write_ledger(ledger_path, _ledger())
     client = Mock()
     client.complete.side_effect = AssertionError("no request expected")
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(
         [
             "--config",
@@ -1645,7 +1645,7 @@ def test_qualify_cli_stops_before_a_request_when_over_budget(
     config_path, ledger_path, catalog_path = _qualification_setup(tmp_path, costed=True)
     client = Mock()
     client.complete.side_effect = AssertionError("no request expected")
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(
         [
             "--config",
@@ -1677,7 +1677,7 @@ def test_qualify_cli_replaces_an_earlier_record(
     """A second run updates the one record for the release and language."""
     config_path, ledger_path, catalog_path = _qualification_setup(tmp_path)
     clients = [FakeClient({"p1": "Löschen"}), FakeClient({"p1": "Falsch"})]
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: clients.pop(0))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: clients.pop(0))
     args = [
         "--config",
         str(config_path),
@@ -1709,7 +1709,7 @@ def test_drift_cli_reports_a_pass(
     """A probe above the threshold reports and writes no pause."""
     config_path, ledger_path, probe_path = _drift_setup(tmp_path)
     client = Mock(wraps=FakeClient({"p1": "Löschen"}))
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(
         [
             "--config",
@@ -1746,7 +1746,7 @@ def test_drift_cli_makes_one_call_per_item(
     config_path, ledger_path, probe_path = _drift_setup(tmp_path, items=items)
     client = Mock()
     client.complete.side_effect = [_completion("Löschen"), _completion("Öffnen")]
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(
         [
             "--config",
@@ -1778,7 +1778,7 @@ def test_drift_cli_records_a_pause_without_demoting(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Falsch"}),
+        lambda **_: FakeClient({"p1": "Falsch"}),
     )
     status = GATE.main(
         [
@@ -1818,7 +1818,7 @@ def test_drift_cli_defaults_since_to_today(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Falsch"}),
+        lambda **_: FakeClient({"p1": "Falsch"}),
     )
     status = GATE.main(
         [
@@ -1849,7 +1849,7 @@ def test_drift_cli_uses_the_default_probe(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen"}),
     )
     status = GATE.main(
         [
@@ -1878,7 +1878,7 @@ def test_drift_cli_dry_run_does_not_record(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Falsch"}),
+        lambda **_: FakeClient({"p1": "Falsch"}),
     )
     status = GATE.main(
         [
@@ -2019,7 +2019,7 @@ def test_drift_cli_stops_before_a_request_when_over_budget(
     config_path, ledger_path, probe_path = _drift_setup(tmp_path, costed=True)
     client = Mock()
     client.complete.side_effect = AssertionError("no request expected")
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(
         [
             "--config",
@@ -2053,7 +2053,7 @@ def test_drift_cli_reports_json(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen"}),
     )
     status = GATE.main(
         [
@@ -2090,7 +2090,7 @@ def test_drift_cli_repeated_failure_keeps_the_pause(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Falsch"}),
+        lambda **_: FakeClient({"p1": "Falsch"}),
     )
     args = [
         "--config",
@@ -2200,7 +2200,7 @@ def test_translate_cli_approves_and_reports(
         ),
     )
     client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Entfernen"}))
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
     assert status == 0
     assert client.complete.call_count == 6
@@ -2237,7 +2237,7 @@ def test_translate_cli_backtranslates_a_sentence(
             backtranslation=source,
         )
     )
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
     assert status == 0
     assert client.complete.call_count == 4
@@ -2259,7 +2259,7 @@ def test_translate_cli_abstains(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="ABSTAIN"),
+        lambda **_: FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="ABSTAIN"),
     )
     status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
     assert status == 0
@@ -2286,7 +2286,7 @@ def test_translate_cli_reports_json(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
     )
     status = GATE.main(
         _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
@@ -2314,7 +2314,7 @@ def test_translate_cli_requires_qualification(
         entries=(_batch_entry("Delete"),),
     )
     client = Mock()
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     before_catalog = catalog_path.read_text(encoding="utf-8")
     before_ledger = ledger_path.read_text(encoding="utf-8")
     status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
@@ -2353,7 +2353,7 @@ def test_translate_cli_requires_unpaused(
         entries=(_batch_entry("Delete"),),
     )
     client = Mock()
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     before_catalog = catalog_path.read_text(encoding="utf-8")
     before_ledger = ledger_path.read_text(encoding="utf-8")
     status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
@@ -2376,7 +2376,7 @@ def test_translate_cli_preflight_budget(
         entries=(_batch_entry("Delete"), _batch_entry("Open")),
     )
     client = Mock()
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     before_catalog = catalog_path.read_text(encoding="utf-8")
     before_ledger = ledger_path.read_text(encoding="utf-8")
     status = GATE.main(
@@ -2455,7 +2455,7 @@ def test_translate_cli_dry_run_lists_unsupported(
         ),
     )
     client = Mock()
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     before_catalog = catalog_path.read_text(encoding="utf-8")
     before_ledger = ledger_path.read_text(encoding="utf-8")
     status = GATE.main(
@@ -2492,7 +2492,7 @@ def test_translate_cli_include_fuzzy(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
     )
     status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
     assert status == 0
@@ -2874,7 +2874,7 @@ def test_translate_cli_applies_plural_forms(
     )
     answer = "\n".join(f"{index}: Form {index}" for index in range(nplurals))
     client = Mock(wraps=FakeClient(plural_answers={"p1": answer, "p2": answer}))
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(
         _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
     )
@@ -2902,7 +2902,7 @@ def test_translate_cli_plural_abstention(
         entries=(_batch_entry("File", plural=True),),
     )
     client = Mock(wraps=FakeClient(plural_answers={"p1": "0: only", "p2": "0: only"}))
-    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda: client)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
     status = GATE.main(
         _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
     )
@@ -2957,7 +2957,7 @@ def test_gate_with_split_ledger_writes_one_language(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
     )
     status = GATE.main(
         [
@@ -2996,7 +2996,7 @@ def test_costs_resolves_compact_gate_runs(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen", "p2": "Löschen"}),
     )
     assert (
         GATE.main(
@@ -3133,7 +3133,7 @@ def test_qualify_with_split_ledger_compacts_calls(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Löschen"}),
+        lambda **_: FakeClient({"p1": "Löschen"}),
     )
     status = GATE.main(
         [
@@ -3186,7 +3186,7 @@ def test_drift_with_split_ledger_compacts_calls(
     monkeypatch.setattr(
         GATE,
         "OpenAICompatibleClient",
-        lambda: FakeClient({"p1": "Falsch"}),
+        lambda **_: FakeClient({"p1": "Falsch"}),
     )
     status = GATE.main(
         [

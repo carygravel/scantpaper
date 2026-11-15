@@ -3607,7 +3607,7 @@ def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
                     ledger_path=args.ledger,
                     language=args.language,
                     entries=selection.selected,
-                    client=OpenAICompatibleClient(),
+                    client=OpenAICompatibleClient(timeout=args.timeout),
                     max_cost=args.max_cost,
                     tm_db=args.tm,
                     evidence_path=args.evidence,
@@ -3807,6 +3807,12 @@ def _add_translate_parser(sub: _SubParser) -> None:
     translate_parser.add_argument("--limit", type=int)
     translate_parser.add_argument("--include-fuzzy", action="store_true")
     translate_parser.add_argument("--max-cost", type=float)
+    translate_parser.add_argument(
+        "--timeout",
+        type=float,
+        default=60.0,
+        help="Per-request model timeout in seconds (default: 60)",
+    )
     translate_parser.add_argument("--tm", type=Path)
     translate_parser.add_argument("--dry-run", action="store_true")
     translate_parser.add_argument("--json", action="store_true")

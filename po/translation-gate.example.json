@@ -16,6 +16,10 @@
     "es": {
       "qualification": 0.4,
       "drift": 0.28
+    },
+    "uk": {
+      "qualification": 0.25,
+      "drift": 0.22
     }
   },
   "releases": {

@@ -493,8 +493,8 @@ catalog, clears fuzzy and records the approval.
 and replaces them. `--language` defaults the catalog to
 `po/scantpaper/<language>.po`; `--catalog` overrides it. `--max-cost` caps the
 whole batch, `--limit` caps the number of entries, `--tm` adds translation-
-memory evidence, and `--dry-run` reports the selection and estimate without
-writing.
+memory evidence, `--timeout` sets the per-request model timeout (default 60
+seconds), and `--dry-run` reports the selection and estimate without writing.
 
 The command refuses a language when a proposer or judge release is not
 qualified or when the language is paused for drift.

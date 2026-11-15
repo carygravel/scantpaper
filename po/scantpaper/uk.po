@@ -15,204 +15,215 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Launchpad (build bbfa2351d9d6a9ddfe262109428f7bf5516e65d1)\n"
 "X-Launchpad-Export-Date: 2024-06-28 17:52+0000\n"
 
-#: app_window.py:516
-msgid "Save image and Save as PDF both require imagemagick"
-msgstr "Для збереження зображення та у PDF потрібен ImageMagick"
-
-#: app_window.py:517
-msgid "Save image requires libtiff"
-msgstr "Для збереження зображення потрібен libtiff"
-
-#: app_window.py:518
-msgid "Save as DjVu requires djvulibre-bin"
-msgstr "Для збереження у DjVu потрібен djvulibre-bin"
-
-#: app_window.py:519
-msgid "Email as PDF requires xdg-email"
-msgstr "Для надсилання PDF електронною поштою потрібен xdg-email"
-
-#: app_window.py:520
-msgid "unpaper missing"
-msgstr "unpaper відсутній"
-
-#: app_window.py:528
-msgid "OCR requires tesseract"
-msgstr "Для OCR потрібен tesseract"
-
-#: app_window.py:543
-msgid "PDF encryption requires qpdf"
-msgstr "Для шифрування PDF потрібен qpdf"
-
-#: app_window.py:575
+#: app_window.py:747
 msgid "Warning: missing packages"
 msgstr "Застереження: деякі пакунки відсутні"
 
-#: app_window.py:593
+#: app_window.py:823
 msgid "Image"
 msgstr "Зображення"
 
-#: app_window.py:594 text_layer_control.py:57
+#: app_window.py:824 layer.py:197
 msgid "Text layer"
 msgstr "Текстовий шар"
 
-#: app_window.py:596 session_mixins.py:446
+#: app_window.py:826
 msgid "Annotations"
 msgstr "Анотації"
 
-#: app_window.py:837
+#: app_window.py:1246
 #, python-format
-msgid "%dMb free in %s."
-msgid_plural "%dMb free in %s."
-msgstr[0] "%dMb вільно в %s."
-msgstr[1] "%dMb вільно в %s."
-msgstr[2] "%dMb вільно в %s."
+msgid "%(mb)dMb free in %(name)s."
+msgid_plural "%(mb)dMb free in %(name)s."
+msgstr[0] "%(mb)d МБ вільно в %(name)s."
+msgstr[1] "%(mb)d МБ вільно в %(name)s."
+msgstr[2] "%(mb)d МБ вільно в %(name)s."
 
-#: app_window.py:864 helpers.py:372
+#: app_window.py:1274 helpers.py:533
 msgid "Messages"
 msgstr "Повідомлення"
 
-#: app_window.py:949
+#: app_window.py:1357
 msgid "Error opening the last device used."
 msgstr "Помилка під час спроби відкрити останній використаний пристрій."
 
-#: app_window.py:951
+#: app_window.py:1359
 msgid "There was an error opening the last device used."
 msgstr ""
 "Під час спроби відкрити останній використаний пристрій сталася помилка."
 
-#: app_window.py:954
+#: app_window.py:1362
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Оце тобі! Забула увімкнути. Спробуйте ще раз."
 
-#: app_window.py:959 dialog/scan.py:517
+#: app_window.py:1368 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr "Шукати обладнання ще раз"
 
-#: app_window.py:963
+#: app_window.py:1371
 msgid "Restart scantpaper."
 msgstr "Перезапустити scantpaper."
 
-#: app_window.py:968
+#: app_window.py:1375
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Просто ігноруйте  це повідомлення. Сканер ще не потрібен."
 
-#: app_window.py:971 dialog/preferences.py:162
+#: app_window.py:1379 dialog/preferences.py:189
 msgid "Cache device list"
 msgstr "Кешувати список пристроїв"
 
-#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:1382 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr "Більше не показувати це"
 
-#: basedocument.py:48
+#: basedocument.py:44
 msgid "Thumbnails"
 msgstr "Мініатюри"
 
-#: basedocument.py:711
+#: basedocument.py:854
 msgid "No pages to process"
 msgstr "Немає сторінок для опрацювання"
 
-#: basedocument.py:715
+#: basedocument.py:858
 msgid "No pages selected"
 msgstr "Не вибрано жодної сторінки"
 
-#: config.py:107
+#: config.py:113
 msgid "A3"
 msgstr "А3"
 
-#: config.py:113
+#: config.py:119
 msgid "A4"
 msgstr "A4"
 
-#: config.py:119
+#: config.py:125
 msgid "US Letter"
 msgstr "Формат US Letter"
 
-#: config.py:125
+#: config.py:131
 msgid "US Legal"
 msgstr "Формат US Legal"
 
-#: config.py:263
+#: config.py:276
 #, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
+"The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
+"been left unchanged."
 msgstr ""
-"Значення параметра %s дорівнює %r і не може використовуватися як %s, тому "
-"його залишено без змін."
+"Налаштування %(key)s має значення %(value)r і не може використовуватися як "
+"%(type)s, тому його залишено без змін."
 
-#: config.py:299
+#: config.py:312
 #, python-format
 msgid ""
-"The settings file %s could not be read in full. The following settings were "
-"restored: %s. The rest were reset to their defaults. A backup of the "
-"original file has been saved as %s."
+"The settings file %(filename)s could not be read in full. These settings "
+"were restored: %(settings)s. The rest were reset to their defaults. A backup"
+" has been saved as %(backup)s."
 msgstr ""
-"Файл налаштувань %s не вдалося прочитати повністю. Такі налаштування було "
-"відновлено: %s. Решту скинуто до значень за замовчуванням. Резервну копію "
-"оригінального файлу збережено як %s."
+"Файл налаштувань %(filename)s не вдалося прочитати повністю. Ці налаштування"
+" було відновлено: %(settings)s. Решту налаштувань скинуто до типових "
+"значень. Резервну копію збережено як %(backup)s."
 
-#: config.py:306
+#: config.py:323
 #, python-format
 msgid ""
-"The settings file %s could not be read, so all settings have been reset to "
-"their defaults. A backup of the original file has been saved as %s."
+"The settings file %(filename)s could not be read, so all settings have been "
+"reset to their defaults. A backup of the original file has been saved as "
+"%(backup)s."
 msgstr ""
-"Файл налаштувань %s не вдалося прочитати, тому всі налаштування скинуто до "
-"значень за замовчуванням. Резервну копію оригінального файлу збережено як %s."
+"Файл налаштувань %(filename)s не вдалося прочитати, тому всі налаштування "
+"скинуто до типових. Резервну копію оригінального файлу збережено як "
+"%(backup)s."
 
-#: dialog/__init__.py:67
+#: dependencies.py:124 tests/test_app_window.py:861
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr ""
+"Зберегти зображення та Зберегти як PDF — обидві дії потребують imagemagick"
+
+#: dependencies.py:130
+msgid "Save image requires libtiff"
+msgstr "Збереження зображення потребує libtiff"
+
+#: dependencies.py:136 tests/test_app_window.py:862
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "Збереження як DjVu потребує djvulibre-bin"
+
+#: dependencies.py:144
+msgid "Email as PDF requires xdg-email"
+msgstr "Надсилання електронною поштою у форматі PDF потребує xdg-email"
+
+#: dependencies.py:147 tests/test_app_window.py:863
+msgid "unpaper missing"
+msgstr "unpaper відсутній"
+
+#: dependencies.py:149 tests/test_app_window.py:864
+msgid "OCR requires tesseract"
+msgstr "OCR потребує tesseract"
+
+#: dependencies.py:154 tests/test_app_window.py:865
+msgid "PDF encryption requires qpdf"
+msgstr "Шифрування PDF потребує qpdf"
+
+#: dependencies.py:160 tests/test_app_window.py:866
+msgid "JBIG2 PDF compression requires jbig2"
+msgstr "Стиснення PDF за допомогою JBIG2 потребує jbig2"
+
+#: dialog/__init__.py:134
 msgid "Page Range"
 msgstr "Діапазон сторінок"
 
-#: dialog/__init__.py:106
+#: dialog/__init__.py:174
 msgid "Error"
 msgstr "Помилка"
 
-#: dialog/__init__.py:107
+#: dialog/__init__.py:175
 msgid "Warning"
 msgstr "Попередження"
 
-#: dialog/__init__.py:108
+#: dialog/__init__.py:176
 msgid "Info"
 msgstr "Інформація"
 
-#: dialog/__init__.py:125
+#: dialog/__init__.py:199
 msgid "Page"
 msgstr "Сторінка"
 
-#: dialog/__init__.py:126
+#: dialog/__init__.py:200
 msgid "Process"
 msgstr "Процес"
 
-#: dialog/__init__.py:127
+#: dialog/__init__.py:201
 msgid "Message type"
 msgstr "Тип повідомлення"
 
-#: dialog/__init__.py:129
+#: dialog/__init__.py:203
 msgid "Message"
 msgstr "Повідомлення"
 
-#: dialog/__init__.py:132
+#: dialog/__init__.py:206
 msgid "Hide"
 msgstr "Приховати"
 
-#: dialog/__init__.py:193
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
+msgid "_Close"
+msgstr "_Закрити"
+
+#: dialog/__init__.py:295
 msgid "Don't show these messages again"
 msgstr "Надалі не показувати це повідомлення"
 
-#: dialog/__init__.py:313
+#: dialog/__init__.py:409
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
-"Зазвичай, така помилка є наслідком того, що ImageMagick перевищено обмеження "
-"на ресурси."
+"Зазвичай, така помилка є наслідком того, що ImageMagick перевищено обмеження"
+" на ресурси."
 
-#: dialog/__init__.py:317
+#: dialog/__init__.py:413
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
@@ -220,146 +231,201 @@ msgstr ""
 "Обмеження можна послабити редагуванням файла правил, який може бути "
 "розташовано за адресою /etc/ImageMagick-6/policy.xml"
 
-#: dialog/__init__.py:322
+#: dialog/__init__.py:418
+#, python-format
 msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
+"Please see the ImageMagick resource documentation for more information: "
+"%(url)s"
 msgstr ""
-"Щоб дізнатися більше, будь ласка, ознайомтеся із https://imagemagick.org/"
-"script/resources.php"
+"Щоб отримати докладнішу інформацію, перегляньте документацію про ресурси "
+"ImageMagick: %(url)s"
 
-#: dialog/crop.py:14
+#: dialog/crop.py:15
 msgid "x"
 msgstr "x"
 
-#: dialog/crop.py:15
+#: dialog/crop.py:16
 msgid "The x-position of the left hand edge of the crop."
 msgstr "Координата X лівого краю ділянки виділення."
 
-#: dialog/crop.py:19
+#: dialog/crop.py:20
 msgid "y"
 msgstr "y"
 
-#: dialog/crop.py:20
+#: dialog/crop.py:21
 msgid "The y-position of the top edge of the crop."
 msgstr "Координата Y верхнього краю ділянки виділення."
 
-#: dialog/crop.py:24 dialog/paperlist.py:22
+#: dialog/crop.py:25 dialog/paperlist.py:22
 msgid "Width"
 msgstr "Ширина"
 
-#: dialog/crop.py:25
+#: dialog/crop.py:26
 msgid "The width of the crop."
 msgstr "Ширина рамки обрізки."
 
-#: dialog/crop.py:29 dialog/paperlist.py:23
+#: dialog/crop.py:30 dialog/paperlist.py:23
 msgid "Height"
 msgstr "Висота"
 
-#: dialog/crop.py:30
+#: dialog/crop.py:31
 msgid "The height of the crop."
 msgstr "Висота рамки обрізки."
 
-#: dialog/crop.py:116
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr "Обрізати"
 
-#: dialog/crop.py:154 tools_menu_mixins.py:277
+#: dialog/crop.py:161 tools_menu_mixins.py:286
 msgid "pixels"
 msgstr "пікселів"
 
-#: dialog/pagecontrols.py:188
+#: dialog/importhocr.py:45
+msgid "hOCR file"
+msgstr "файл hOCR"
+
+#: dialog/importhocr.py:50 dialog/preferences.py:272
+#: postprocess_controls.py:692
+msgid "Browse"
+msgstr "Огляд"
+
+#: dialog/importhocr.py:56
+msgid "Pages are matched to the hOCR pages in order."
+msgstr "Сторінки зіставляються зі сторінками hOCR у порядку."
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:875
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:991
+msgid "_OK"
+msgstr "_OK"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:876
+#: edit_menu_mixins.py:123 file_menu_mixins.py:411 layer.py:259 progress.py:43
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
+#: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
+#: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:991
+msgid "_Cancel"
+msgstr "_Скасувати"
+
+#: dialog/importhocr.py:69
+msgid "Open hOCR file"
+msgstr "Відкрити файл hOCR"
+
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:505
+#: file_menu_mixins.py:827 postprocess_controls.py:715
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: dialog/importhocr.py:76 file_menu_mixins.py:119
+msgid "Open"
+msgstr "Відкрити"
+
+#: dialog/importhocr.py:79 file_menu_mixins.py:489
+msgid "hOCR files"
+msgstr "Файли hOCR"
+
+#: dialog/pagecontrols.py:231
 msgid "Page Options"
 msgstr "Параметри сторінки"
 
-#: dialog/pagecontrols.py:199
+#: dialog/pagecontrols.py:245
 msgid "# Pages"
 msgstr "# Сторінок"
 
-#: dialog/pagecontrols.py:210 pagerange.py:47
+#: dialog/pagecontrols.py:256 pagerange.py:48
 msgid "All"
 msgstr "Усі"
 
-#: dialog/pagecontrols.py:211
+#: dialog/pagecontrols.py:257
 msgid "Scan all pages"
 msgstr "Відсканувати усі сторінки"
 
-#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+#: dialog/pagecontrols.py:268 dialog/pagecontrols.py:273
 msgid "Set number of pages to scan"
 msgstr "Вказати число сканованих сторінок"
 
-#: dialog/pagecontrols.py:247
+#: dialog/pagecontrols.py:277
+msgid "No page limit: scanning continues until you cancel."
+msgstr "Без обмеження сторінок: сканування триває, доки ви не скасуєте."
+
+#: dialog/pagecontrols.py:311
 msgid "Extended page numbering"
 msgstr "Розширена нумерація сторінок"
 
-#: dialog/pagecontrols.py:260
+#: dialog/pagecontrols.py:324
 msgid "Page number"
 msgstr "Номер сторінки"
 
-#: dialog/pagecontrols.py:271
+#: dialog/pagecontrols.py:334
 msgid "Insert before page N"
 msgstr "Вставити перед сторінкою N"
 
-#: dialog/pagecontrols.py:274
+#: dialog/pagecontrols.py:337
 msgid "Page number before which scans will be inserted"
 msgstr "Номер сторінки, перед якою буде вставлено скани"
 
-#: dialog/pagecontrols.py:285
+#: dialog/pagecontrols.py:348
 msgid "Position advance"
-msgstr "Зсув позиції"
+msgstr "Просування позиції"
 
-#: dialog/pagecontrols.py:289
+#: dialog/pagecontrols.py:352
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
 msgstr ""
-"Зсув позиції для кожного наступного скану (0 = продовжувати вставку перед "
-"тією самою сторінкою)"
+"Зсув позиції для кожного наступного сканування (0 = продовжувати вставляти "
+"перед тією самою сторінкою)"
 
-#: dialog/pagecontrols.py:305
+#: dialog/pagecontrols.py:368
 msgid "Source document"
 msgstr "Вихідний документ"
 
-#: dialog/pagecontrols.py:313
+#: dialog/pagecontrols.py:377
 msgid "Single sided"
 msgstr "Односторонній"
 
-#: dialog/pagecontrols.py:315
+#: dialog/pagecontrols.py:378
 msgid "Source document is single-sided"
 msgstr "У вихідному документі односторонній друк"
 
-#: dialog/pagecontrols.py:321
+#: dialog/pagecontrols.py:385
 msgid "Double sided"
 msgstr "Двосторонній"
 
-#: dialog/pagecontrols.py:323
+#: dialog/pagecontrols.py:387
 msgid "Source document is double-sided"
 msgstr "У вихідному документі двухсторонняя печать"
 
-#: dialog/pagecontrols.py:329
+#: dialog/pagecontrols.py:393
 msgid "Side to scan"
 msgstr "Яку сторону сканувати"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Facing"
 msgstr "Парні сторінки"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Reverse"
 msgstr "Зворотній порядок"
 
-#: dialog/pagecontrols.py:337
+#: dialog/pagecontrols.py:401
 msgid "Sets which side of a double-sided document is scanned"
 msgstr "Вказувати, яку сторону документа з двостороннім  друком сканувати"
 
-#: dialog/paperlist.py:21
+#: dialog/paperlist.py:21 dialog/tesseractparams.py:69
 msgid "Name"
 msgstr "Ім’я"
 
-#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+#: dialog/paperlist.py:24 unpaper.py:153 unpaper.py:181
 msgid "Left"
 msgstr "Лівий"
 
-#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+#: dialog/paperlist.py:25 unpaper.py:158 unpaper.py:186
 msgid "Top"
 msgstr "Верхній"
 
@@ -371,55 +437,63 @@ msgstr "Одиниці"
 msgid "Cannot delete all paper sizes"
 msgstr "Неможливо вилучити усі розміри паперу"
 
-#: dialog/preferences.py:42
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr "Налаштування"
 
-#: dialog/preferences.py:56
+#: dialog/preferences.py:72
 msgid "Scan options"
 msgstr "Параметри сканування"
 
-#: dialog/preferences.py:60
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr "Загальні параметри"
 
-#: dialog/preferences.py:68
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
 msgstr "Відкривати вікно сканування під час запуску програми"
 
-#: dialog/preferences.py:71
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
 msgstr ""
-"Автоматично відкрити параметри сканування у режимі тла при запуску проґрами. "
-"Ця можливість дозволяє скоротити час на натискання кнопки сканування та часу "
-"очікування під час пошуку доступних сканерів."
+"Автоматично відкрити параметри сканування у режимі тла при запуску проґрами."
+" Ця можливість дозволяє скоротити час на натискання кнопки сканування та "
+"часу очікування під час пошуку доступних сканерів."
 
-#: dialog/preferences.py:83
+#: dialog/preferences.py:104
 msgid "Device blacklist"
 msgstr "Чорний перелік пристроїв"
 
-#: dialog/preferences.py:87
-msgid "Device blacklist (regular expression)"
-msgstr "Чорний перелік пристроїв (регулярний вираз)"
+#: dialog/preferences.py:107
+msgid "e.g. Camera or v4l:.*"
+msgstr "напр. Камера або v4l:.*"
 
-#: dialog/preferences.py:95
+#: dialog/preferences.py:110
+msgid ""
+"Regular expression matched case-insensitively against the device label and "
+"backend name, e.g. Camera or v4l:.*"
+msgstr ""
+"Регулярний вираз, що зіставляється без урахування регістру з міткою пристрою"
+" та назвою бекенду, напр. Camera або v4l:.*"
+
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
 msgstr "Зациклювати елемент керування SANE після сканування"
 
-#: dialog/preferences.py:97
+#: dialog/preferences.py:124
 msgid "Some ADFs do not feed out the last page if this is not enabled"
 msgstr ""
 "Деякі пристрої автоматичного подавання не подають останню сторінку, якщо не "
 "позначити цей пункт"
 
-#: dialog/preferences.py:105
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
 msgstr "Дозволити пакетне сканування із планшетного сканера"
 
-#: dialog/preferences.py:109
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
@@ -427,11 +501,11 @@ msgstr ""
 "Якщо не встановлено, перемикання на планшетний сканер примусово встановить "
 "кількість сторінок 1 і однобічний режим сканування."
 
-#: dialog/preferences.py:118
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
 msgstr "Ігнорувати двобічні можливості сканера"
 
-#: dialog/preferences.py:122
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
@@ -440,11 +514,11 @@ msgstr ""
 "Буде показано віджети сканування основного і зворотного боку сторінки для "
 "уможливлення перевертання сторінок вручну."
 
-#: dialog/preferences.py:131
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
 msgstr "Примусове нове завдання зі сканування між сторінками"
 
-#: dialog/preferences.py:135
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
@@ -452,11 +526,11 @@ msgstr ""
 "Якщо не позначити, деякі сканери Brother повідомлятимуть про те, що немає "
 "документа, хоча виконуватиметься планшетне сканування."
 
-#: dialog/preferences.py:151
+#: dialog/preferences.py:178
 msgid "Select # pages = all on selecting ADF"
 msgstr "Вибирати к-ть сторінок = усі при виборі автоподавання"
 
-#: dialog/preferences.py:155
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
@@ -464,7 +538,7 @@ msgstr ""
 "Якщо позначено цей пункт, при перемиканні джерела на автоматичний пристрій "
 "подавання автоматично вибиратиметься кількість сторінко «усі»."
 
-#: dialog/preferences.py:165
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
@@ -472,25 +546,25 @@ msgstr ""
 "Якщо позначено цей пункт, програма відкриватиме сканер швидше, оскільки "
 "scantpaper не доведеться виконувати початкового пошуку доступних пристроїв."
 
-#: dialog/preferences.py:169
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
 "Працюватиме, лише якщо назви пристроїв не змінюються при зміні сеансів."
 
-#: dialog/preferences.py:178
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
 msgstr "Відновити налаштування вікна при запуску"
 
-#: dialog/preferences.py:183
+#: dialog/preferences.py:210
 msgid "View files on saving"
 msgstr "Перегляд файлу після збереження"
 
-#: dialog/preferences.py:190
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
 msgstr "Типова назва файлів PDF і DjVu"
 
-#: dialog/preferences.py:194
+#: dialog/preferences.py:221
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -517,45 +591,46 @@ msgstr ""
 "%Ds\tтема\n"
 "%Dt\tзаголовок\n"
 "\n"
-"В усіх кодах дат документів використовуються коди strftime із початковим D. "
-"Приклади:\n"
+"В усіх кодах дат документів використовуються коди strftime із початковим D. Приклади:\n"
 "%DY\tрік документа\n"
 "%Dm\tмісяць документа\n"
 "%Dd\tдень документа\n"
 
-#: dialog/preferences.py:215
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
 msgstr "Замінювати пробіл у назвах файлів на підкреслювання"
 
-#: dialog/preferences.py:221
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
 msgstr "Використовувати часовий пояс локалі"
 
-#: dialog/preferences.py:226
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
 msgstr "Вказати час і дату"
 
-#: dialog/preferences.py:232
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
 msgstr "Встановити дати доступу і внесення змін за датою у метаданих"
 
-#: dialog/preferences.py:240
+#: dialog/preferences.py:267
 msgid "Temporary directory"
 msgstr "Тимчасова тека"
 
-#: dialog/preferences.py:245
-msgid "Browse"
-msgstr "Огляд"
-
-#: dialog/preferences.py:251
+#: dialog/preferences.py:279
 msgid "Select temporary directory"
 msgstr "Вибрати тимчасову теку"
 
-#: dialog/preferences.py:273
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:507
+#: postprocess_controls.py:717
+msgid "OK"
+msgstr "ОК"
+
+#: dialog/preferences.py:304
 msgid "Warn if available space less than (Mb)"
 msgstr "Попереджувати, якщо вільного місця менше, ніж (Мб)"
 
-#: dialog/preferences.py:279
+#: dialog/preferences.py:310
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
@@ -563,564 +638,743 @@ msgstr ""
 "Попереджувати, якщо доступний простір у тимчасовому каталозі менший цього "
 "значення"
 
-#: dialog/preferences.py:287
+#: dialog/preferences.py:318
 msgid "Blank threshold"
 msgstr "Поріг чорного"
 
-#: dialog/preferences.py:292
+#: dialog/preferences.py:323
 msgid "Threshold used for selecting blank pages"
 msgstr ""
 "Порогове значення, яке використовується для виявлення порожніх сторінок"
 
-#: dialog/preferences.py:300
+#: dialog/preferences.py:331
 msgid "Dark threshold"
 msgstr "Поріг темного"
 
-#: dialog/preferences.py:304
+#: dialog/preferences.py:335
 msgid "Threshold used for selecting dark pages"
 msgstr "Обмеження для вибору темних сторінок"
 
-#: dialog/preferences.py:311
+#: dialog/preferences.py:342
 msgid "OCR output"
 msgstr "Вивід OCR"
 
-#: dialog/preferences.py:316
+#: dialog/preferences.py:347
 msgid "Replace"
 msgstr "Замінити"
 
-#: dialog/preferences.py:318
+#: dialog/preferences.py:349
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr "Замінити вміст текстового буфера з виводу OCR."
 
-#: dialog/preferences.py:321
+#: dialog/preferences.py:352
 msgid "Prepend"
 msgstr "Додавати на початок"
 
-#: dialog/preferences.py:321
+#: dialog/preferences.py:352
 msgid "Prepend the OCR output to the text buffer."
 msgstr "Поміщувати вивід OCR на початок текстового буферу"
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append"
 msgstr "Додавати на кінець"
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append the OCR output to the text buffer."
 msgstr "Поміщувати вивід OCR на кінець текстового буферу"
 
-#: dialog/preferences.py:329
+#: dialog/preferences.py:362
 msgid "Manage user-defined tools"
 msgstr "Керування визначеними користувачем інструментами"
 
-#: dialog/preferences.py:352
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
+msgid "Add a user-defined tool"
+msgstr "Додати визначений користувачем інструмент"
+
+#: dialog/preferences.py:378
+msgid "Bilevel compression"
+msgstr "Дворівневе стиснення"
+
+#: dialog/preferences.py:383
+msgid "Group 4"
+msgstr "Група 4"
+
+#: dialog/preferences.py:384
+msgid "Compress bilevel images with CCITT Group 4 encoding."
+msgstr "Стиснути двоколірні зображення за допомогою кодування CCITT Group 4."
+
+#: dialog/preferences.py:391 dialog/save.py:71
+msgid "JBIG2"
+msgstr "JBIG2"
+
+#: dialog/preferences.py:392
+msgid "Compress bilevel images with JBIG2 encoding."
+msgstr "Стискайте дворівневі зображення за допомогою кодування JBIG2."
+
+#: dialog/preferences.py:414
 #, python-format
 msgid ""
-"Use %i and %o for the input and output filenames respectively,\n"
-"or a single %i if the image is to be modified in-place.\n"
+"Use %%i and %%o for the input and output filenames respectively,\n"
+"or a single %%i if the image is to be modified in-place.\n"
 "\n"
 "The other variable available is:\n"
-"%r resolution"
+"%%r resolution"
 msgstr ""
-"Використовуйте %i та %o для імен вхідного та вихідного файлів відповідно,\n"
-"або один %i, якщо зображення має змінюватися на місці.\n"
+"Використовуйте %%i та %%o для імен вхідного та вихідного файлів відповідно,\n"
+"або один %%i, якщо зображення потрібно змінити на місці.\n"
 "\n"
-"Доступна ще одна змінна:\n"
-"%r роздільна здатність"
+"Інша доступна змінна:\n"
+"%%r роздільна здатність"
 
-#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
 msgid "_Delete"
 msgstr "В_илучити"
 
-#: dialog/preferences.py:397
+#: dialog/preferences.py:462
+#, fuzzy
 msgid "The following user-defined tools could not be found:\n"
 msgstr "Не вдалося знайти такі визначені користувачем інструменти:\n"
 
-#: dialog/preferences.py:400
+#: dialog/preferences.py:465
 msgid "Please check that the command is installed and in your PATH."
-msgstr "Перевірте, що команду встановлено та вона є в PATH."
+msgstr ""
+"Будь ласка, перевірте, чи команда встановлена і чи є вона у вашому PATH."
 
-#: dialog/preferences.py:402
+#: dialog/preferences.py:467
 msgid "User-defined tool not found"
 msgstr "Визначений користувачем інструмент не знайдено"
 
-#: dialog/sane.py:71
+#: dialog/sane.py:89
 msgid "Fetching list of devices"
 msgstr "Отримується список пристроїв"
 
-#: dialog/sane.py:89
+#: dialog/sane.py:108 scan_menu_item_mixins.py:93
 msgid "No devices found"
 msgstr "Не знайдено відповідного пристрою"
 
-#: dialog/sane.py:129
+#: dialog/sane.py:152
 msgid "Opening device"
 msgstr "Відкриття пристрою"
 
-#: dialog/sane.py:142
+#: dialog/sane.py:166
 msgid "Error opening device: "
 msgstr "Помилка при відкритті пристрою: "
 
-#: dialog/sane.py:148 dialog/sane.py:494
+#: dialog/sane.py:175 dialog/sane.py:539
 msgid "Retrieving options"
 msgstr "Отримання параметрів"
 
-#: dialog/sane.py:165 dialog/sane.py:507
+#: dialog/sane.py:195 dialog/sane.py:553
 msgid "Error retrieving scanner options: "
 msgstr "Помилка при отриманні параметрів сканера: "
 
-#: dialog/sane.py:207
+#: dialog/sane.py:245
 msgid "Scan Options"
 msgstr "Параметри сканування"
 
-#: dialog/sane.py:290
+#: dialog/sane.py:329
 #, python-format
-msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+msgid ""
+"Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum "
+"(%(maximum)s)"
 msgstr ""
-"Параметр сканування «%s» ігнорується, мінімальний діапазон (%s) > "
-"максимальний (%s)"
+"Ігнорування параметра сканування '%(name)s', мінімальний діапазон "
+"(%(minimum)s) > максимальний (%(maximum)s)"
 
-#: dialog/sane.py:450
+#: dialog/sane.py:493
 #, python-format
 msgid "Setting option %s"
 msgstr "Встановлення параметра %s"
 
-#: dialog/sane.py:469
+#: dialog/sane.py:512
 msgid "Error setting option: "
-msgstr "Помилка встановлення параметра: "
+msgstr "Помилка встановлення параметра:"
 
-#: dialog/sane.py:531
+#: dialog/sane.py:591
 msgid "Must scan facing pages first"
 msgstr "Спочатку необхідно відсканувати парні сторінки"
 
-#: dialog/save.py:31
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
+msgid ""
+"Scanner did not deliver the requested 1-bit output; the page has been "
+"converted to black-and-white"
+msgstr ""
+"Сканер не надав запитаний 1-бітний вивід; сторінку перетворено на чорно-білу"
+
+#: dialog/sane.py:752
+msgid ""
+"The scanner did not respond to cancel. Reconnect the scanner or choose "
+"another device."
+msgstr ""
+"Сканер не відповів на скасування. Підключіть сканер повторно або виберіть "
+"інший пристрій."
+
+#: dialog/save.py:32
 msgid "PDF"
 msgstr "PDF"
 
-#: dialog/save.py:31
+#: dialog/save.py:32
 msgid "Portable Document Format"
 msgstr "Формат Портативного Документу (PDF)"
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "GIF"
 msgstr "GIF"
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "CompuServe graphics interchange format"
 msgstr "Графічний формат обміну даними CompuServe"
 
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+#: dialog/save.py:34 dialog/save.py:54 dialog/save.py:100
 msgid "JPEG"
 msgstr "JPEG"
 
-#: dialog/save.py:33
+#: dialog/save.py:34
 msgid "Joint Photographic Experts Group JFIF format"
 msgstr "JFIF-формат від Joint Photographic Experts Group JFIF"
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "PNG"
 msgstr "PNG"
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "Portable Network Graphics"
 msgstr "Переносима мережева графіка (PNG)"
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "PNM"
 msgstr "PNM"
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "Portable anymap"
 msgstr "Портативне відображення"
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "PS"
 msgstr "PS"
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "Postscript"
 msgstr "Postscript"
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "TIFF"
 msgstr "TIFF"
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "Tagged Image File Format"
 msgstr "Розмічений формат файлів зображень (TIFF)"
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Text"
 msgstr "Текст"
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Plain text"
 msgstr "Простий текст"
 
-#: dialog/save.py:39
+#: dialog/save.py:40
 msgid "hOCR"
 msgstr "hOCR"
 
-#: dialog/save.py:39
+#: dialog/save.py:40
 msgid "hOCR markup language"
 msgstr "мова розмітки hOCR"
 
-#: dialog/save.py:40 session_mixins.py:126
+#: dialog/save.py:41 session_mixins.py:182
 msgid "Session"
 msgstr "Сеанс"
 
-#: dialog/save.py:40
-msgid "scantpaper session database"
-msgstr "База даних сеансу scantpaper"
-
 #: dialog/save.py:41
+msgid "scantpaper session database"
+msgstr "база даних сеансів scantpaper"
+
+#: dialog/save.py:42
 msgid "Prepend to PDF"
 msgstr "Дописати на початку PDF"
 
-#: dialog/save.py:41
+#: dialog/save.py:42
 msgid "Prepend to an existing PDF"
 msgstr "Дописати на початку наявного PDF"
 
-#: dialog/save.py:42
+#: dialog/save.py:43
 msgid "Append to PDF"
 msgstr "Додати до PDF"
 
-#: dialog/save.py:42
+#: dialog/save.py:43
 msgid "Append to an existing PDF"
 msgstr "Додати до наявного PDF"
 
-#: dialog/save.py:43
+#: dialog/save.py:44
 msgid "DjVu"
 msgstr "DjVu"
 
-#: dialog/save.py:43
+#: dialog/save.py:44
 msgid "Deja Vu"
 msgstr "Deja Vu"
 
-#: dialog/save.py:48
+#: dialog/save.py:49 tesseract.py:197
 msgid "Automatic"
 msgstr "Автоматично"
 
-#: dialog/save.py:49
+#: dialog/save.py:50
 msgid "Let scantpaper which type of compression to use."
 msgstr "Нехай програма сама вибере відповідний алгоритм стиснення."
 
-#: dialog/save.py:51 dialog/save.py:76
-msgid "LZW"
-msgstr "LZW"
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "Стиснення виведення алгоритмом Лемпеля-Зіва-Велча (LZW)"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "G3"
-msgstr "G3"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr "Стиснення виведення алгоритмом CCITT Group 3"
-
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "G4"
 msgstr "G4"
 
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "Compress output with CCITT Group 4 encoding."
 msgstr "Стиснення виводу алгоритмом CCITT Group 4"
 
-#: dialog/save.py:54
+#: dialog/save.py:53
 msgid "Flate"
 msgstr "Flate"
 
-#: dialog/save.py:54
+#: dialog/save.py:53
 msgid "Compress output with flate encoding."
 msgstr "Стиснути виведені дані з використанням кодування flate."
 
-#: dialog/save.py:55
+#: dialog/save.py:54
 msgid "Compress output with JPEG (DCT) encoding."
 msgstr "Стиснути виведені дані за допомогою кодування JPEG (DCT)."
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "None"
-msgstr "Жодного"
+#: dialog/save.py:55
+msgid "JPEG 2000"
+msgstr "JPEG 2000"
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "Use no compression algorithm on output."
-msgstr "Не використовувати алгоритм стиснення при виводі"
+#: dialog/save.py:55
+msgid "Compress output with JPEG 2000 encoding."
+msgstr "Стиснути вихідні дані за допомогою кодування JPEG 2000."
 
-#: dialog/save.py:61
+#: dialog/save.py:71
+msgid "Compress output with JBIG2 encoding."
+msgstr "Стискати вихідні дані за допомогою кодування JBIG2."
+
+#: dialog/save.py:79
 msgid "LibTIFF"
 msgstr "LibTIFF"
 
-#: dialog/save.py:62
+#: dialog/save.py:80
 msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
-msgstr "Скористатися LibTIFF (tiff2ps) для створення файлів Postscript з TIFF."
+msgstr ""
+"Скористатися LibTIFF (tiff2ps) для створення файлів Postscript з TIFF."
 
-#: dialog/save.py:66
+#: dialog/save.py:84
 msgid "Ghostscript"
 msgstr "Ghostscript"
 
-#: dialog/save.py:67
+#: dialog/save.py:85
 msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
 msgstr ""
 "Скористатися Ghostscript (pdf2ps) для створення файлів Postscript з PDF."
 
-#: dialog/save.py:71
+#: dialog/save.py:89
 msgid "Poppler"
 msgstr "Poppler"
 
-#: dialog/save.py:72
+#: dialog/save.py:90
 msgid "Use Poppler (pdftops) to create Postscript files from PDF."
 msgstr "Скористатися Poppler (pdftops) для створення файлів Postscript з PDF."
 
-#: dialog/save.py:79
+#: dialog/save.py:94
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:94
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "Стиснення виведення алгоритмом Лемпеля-Зіва-Велча (LZW)"
+
+#: dialog/save.py:97
 msgid "Zip"
 msgstr "Zip"
 
-#: dialog/save.py:80
+#: dialog/save.py:98
 msgid "Compress output with deflate encoding."
 msgstr "Стиснення виведення алгоритмом пониження порядку (deflate)"
 
-#: dialog/save.py:82
+#: dialog/save.py:100
 msgid "Compress output with JPEG encoding."
 msgstr "Стиснення виводу алгоритмом JPEG"
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Packbits"
 msgstr "Packbits"
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Compress output with Packbits encoding."
 msgstr "Стиснення виведення алгоритмом Packbits"
 
-#: dialog/save.py:360
+#: dialog/save.py:102
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:102
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "Стиснення виведення алгоритмом CCITT Group 3"
+
+#: dialog/save.py:104 postprocess_controls.py:644 postprocess_controls.py:906
+msgid "None"
+msgstr "Жодного"
+
+#: dialog/save.py:104
+msgid "Use no compression algorithm on output."
+msgstr "Не використовувати алгоритм стиснення при виводі"
+
+#: dialog/save.py:378
 msgid "Document Metadata"
 msgstr "Метадані документу"
 
-#: dialog/save.py:374
+#: dialog/save.py:389
 msgid "Date/Time"
 msgstr "Дата і час"
 
-#: dialog/save.py:387 dialog/save.py:572
+#: dialog/save.py:401 dialog/save.py:597
 msgid "Now"
 msgstr "Зараз"
 
-#: dialog/save.py:388 dialog/save.py:573
+#: dialog/save.py:402 dialog/save.py:598
 msgid "Use current date and time"
 msgstr "Використовувати поточну дату і час"
 
-#: dialog/save.py:393
+#: dialog/save.py:409
 msgid "Specify"
 msgstr "Вказати"
 
-#: dialog/save.py:395
+#: dialog/save.py:411
 msgid "Specify date and time"
 msgstr "Вказати дату і час"
 
-#: dialog/save.py:403
+#: dialog/save.py:419
 msgid "Year-Month-Day"
 msgstr "Рік-Місяць-День"
 
-#: dialog/save.py:413
+#: dialog/save.py:426 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
 msgid "Select date with calendar"
 msgstr "Вибрати дату з календаря"
 
-#: dialog/save.py:459
+#: dialog/save.py:471
 msgid "Select Date"
 msgstr "Виберіть дату"
 
-#: dialog/save.py:489 dialog/save.py:579
+#: dialog/save.py:513 dialog/save.py:604
 msgid "Today"
 msgstr "Сьогодні"
 
-#: dialog/save.py:545
+#: dialog/save.py:571
 msgid "Title"
 msgstr "Заголовок"
 
-#: dialog/save.py:546
+#: dialog/save.py:572
 msgid "Author"
 msgstr "Автор"
 
-#: dialog/save.py:547
+#: dialog/save.py:573
 msgid "Subject"
 msgstr "Тема"
 
-#: dialog/save.py:548
+#: dialog/save.py:574
 msgid "Keywords"
 msgstr "Ключові слова"
 
-#: dialog/save.py:580
+#: dialog/save.py:605
 msgid "Use today's date"
 msgstr "Використовувати сьогоднішню дату"
 
-#: dialog/save.py:590
+#: dialog/save.py:615
 msgid "Document type"
 msgstr "Тип документа"
 
-#: dialog/save.py:598
+#: dialog/save.py:624
 msgid "Postscript backend"
 msgstr "Модуль Postscript"
 
-#: dialog/save.py:614 dialog/save.py:754
+#: dialog/save.py:641 dialog/save.py:782
 msgid "Compression"
 msgstr "Компресія"
 
-#: dialog/save.py:735
-msgid "JPEG Quality"
-msgstr "Якість JPEG"
+#: dialog/save.py:760
+msgid "Quality"
+msgstr "Якість"
 
-#: dialog/save.py:769
+#: dialog/save.py:797
 msgid "Encrypt PDF"
 msgstr "Зашифрувати PDF"
 
-#: dialog/save.py:785
+#: dialog/save.py:814
 msgid "Downsample to"
 msgstr "Понизити розподілне число до"
 
-#: dialog/save.py:789 dialog/scan.py:660
+#: dialog/save.py:818 dialog/scan.py:770
 msgid "ppi"
 msgstr "пікселів/дюйм"
 
-#: dialog/save.py:819
+#: dialog/save.py:847
 msgid "Set password"
 msgstr "Встановити пароль"
 
-#: dialog/save.py:827
+#: dialog/save.py:856
 msgid "User password"
 msgstr "Пароль користувача"
 
-#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
-#: dialog/scan.py:933
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
 msgid "Manual"
 msgstr "Керівництво"
 
-#: dialog/scan.py:446
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
 msgid "Scan profiles"
 msgstr "Профілі сканування"
 
-#: dialog/scan.py:500
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:829
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
+msgid "Save"
+msgstr "Зберегти"
+
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:118
+msgid "Edit"
+msgstr "Редагування"
+
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
+msgid "Delete"
+msgstr "Видалити"
+
+#: dialog/scan.py:503
 msgid "Scan"
 msgstr "Відсканувати"
 
-#: dialog/scan.py:514
+#: dialog/scan.py:531
 msgid "Device"
 msgstr "Пристрій"
 
-#: dialog/scan.py:552
+#: dialog/scan.py:559
 msgid "Sets the device to be used for the scan"
 msgstr "Вказати пристрій для сканування"
 
-#: dialog/scan.py:599
+#: dialog/scan.py:562
+msgid "Blacklist this device"
+msgstr "Додати цей пристрій до чорного списку"
+
+#: dialog/scan.py:564
+msgid "Hide the selected device from the device list"
+msgstr "Приховати вибраний пристрій зі списку пристроїв"
+
+#: dialog/scan.py:705
 #, python-format
 msgid "Error: unknown device: %s"
 msgstr "Помилка: невідомий пристрій: %s"
 
-#: dialog/scan.py:657
+#: dialog/scan.py:767
 msgid "pel"
 msgstr "пікселів"
 
-#: dialog/scan.py:658
+#: dialog/scan.py:768
 msgid "bit"
 msgstr "бітів"
 
-#: dialog/scan.py:659
+#: dialog/scan.py:769
 msgid "mm"
 msgstr "мм"
 
-#: dialog/scan.py:662
+#: dialog/scan.py:772
 msgid "μs"
 msgstr "мкс"
 
-#: dialog/scan.py:686
+#: dialog/scan.py:796
 msgid "Paper size"
 msgstr "Формат паперу"
 
-#: dialog/scan.py:690 dialog/scan.py:707
-msgid "Edit"
-msgstr "Редагування"
-
-#: dialog/scan.py:691
+#: dialog/scan.py:801
 msgid "Selects or edits the paper size"
 msgstr "Встановлення або зміна розміру сторінки"
 
-#: dialog/scan.py:770
+#: dialog/scan.py:880
 #, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
-"file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
+"%(options)d scan options. Please file a bug, attaching a log file "
+"reproducing the problem."
 msgstr ""
-"Перевищено межу рекурсії перезавантаження (%d): %d перезавантажень для %d "
-"параметрів сканування. Будь ласка, повідомте про помилку, додавши файл "
-"журналу, що відтворює проблему."
+"Перевищено ліміт рекурсії перезавантаження (%(limit)d): %(reloads)d "
+"перезавантажень для %(options)d параметрів сканування. Будь ласка, повідомте"
+" про помилку, додавши файл журналу, що відтворює проблему."
 
-#: dialog/scan.py:1024
+#: dialog/scan.py:1138
 msgid "Edit paper size"
 msgstr "Змінити формат сторінки"
 
-#: dialog/scan.py:1051
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
+msgid "Add a paper size"
+msgstr "Додати розмір паперу"
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
+msgid "Remove the selected paper size"
+msgstr "Видалити вибраний розмір паперу"
+
+#: dialog/scan.py:1167
 msgid "Apply"
 msgstr "Застосувати"
 
-#: dialog/scan.py:1069
+#: dialog/scan.py:1185
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr "Обраний сканер не може сканути сторінки такого розміру"
 
-#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-msgid "Cancel"
-msgstr "Скасувати"
-
-#: dialog/scan.py:1563 dialog/scan.py:1571
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
 msgid "Name of scan profile"
 msgstr "Найменування профілю сканування"
 
-#: dialog/scan.py:1585
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
 #, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "Профіль «%s» вже існує. Перезаписати?"
 
-#: dialog/scan.py:1592 dialog/scan.py:1634
-msgid "OK"
-msgstr "OK"
-
-#: dialog/scan.py:1621
+#: dialog/scan.py:1756
 msgid "Editing current scan options"
 msgstr "Редагування поточних параметрів сканування"
 
-#: dialog/scan.py:1625
+#: dialog/scan.py:1760
 #, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "Редагування профілю сканування «%s»"
 
-#: dialog/scan.py:1686
+#: dialog/scan.py:1822
 msgid "Backend options"
 msgstr "Параметри модуля обробки"
 
-#: dialog/scan.py:1687
+#: dialog/scan.py:1823
 msgid "Frontend options"
 msgstr "Параметри обгортки"
 
-#: dialog/scan.py:1752
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
 #, python-format
-msgid "Scanning page %d of %d"
-msgstr "Сканування сторінки %d із %d"
+msgid "Remove %(option)s from the profile"
+msgstr "Видалити %(option)s з профілю"
 
-#: dialog/scan.py:1753
+#: dialog/scan.py:1890
 #, python-format
-msgid "Scanning page %d"
-msgstr "Сканування сторінки %d"
+msgid "Scanning page %(current)d of %(total)d"
+msgstr "Сканування сторінки %(current)d з %(total)d"
 
-#: docthread.py:1167
+#: dialog/scan.py:1894
 #, python-format
-msgid "Analysing page %i of %i"
-msgstr "Аналізуємо сторінку %i з %i"
+msgid "Scanning page %(current)d"
+msgstr "Сканування сторінки %(current)d"
 
-#: docthread.py:1461
+#: dialog/tesseractparams.py:45
+msgid "Tesseract parameters"
+msgstr "Параметри Tesseract"
+
+#: dialog/tesseractparams.py:56
+msgid "Filter parameters"
+msgstr "Параметри фільтра"
+
+#: dialog/tesseractparams.py:70 postprocess_controls.py:697 tesseract.py:213
+msgid "Default"
+msgstr "За замовчуванням"
+
+#: dialog/tesseractparams.py:71
+msgid "Description"
+msgstr "Опис"
+
+#: dialog/tesseractparams.py:96
+msgid "_Insert"
+msgstr "_Вставити"
+
+#: dialog/tesseractparams.py:110
+msgid ""
+"The Tesseract parameter list is unavailable. OCR can still run with the "
+"parameters already entered."
+msgstr ""
+"Список параметрів Tesseract недоступний. OCR усе ще може працювати з уже "
+"введеними параметрами."
+
+#: dialog/tesseractparams.py:127
+#, python-format
+msgid "Set by the %(control)s control"
+msgstr "Задається елементом керування %(control)s"
+
+#: dialog/tesseractparams.py:147
+msgid "No parameters match"
+msgstr "Немає відповідних параметрів"
+
+#: docthread.py:1285
+#, python-format
+msgid "Error reading hOCR file %(path)s: %(error)s"
+msgstr "Помилка читання файлу hOCR %(path)s: %(error)s"
+
+#: docthread.py:1293
+#, python-format
+msgid "Error parsing hOCR file %(path)s: %(error)s"
+msgstr "Помилка розбору hOCR-файлу %(path)s: %(error)s"
+
+#: docthread.py:1299
+msgid "The file contains no hOCR pages."
+msgstr "Файл не містить жодних hOCR-сторінок."
+
+#: docthread.py:1312
+#, python-format
+msgid ""
+"The hOCR file contains %(found)i pages, but %(expected)i pages are selected."
+msgstr ""
+"Файл hOCR містить %(found)i сторінок, але вибрано %(expected)i сторінок."
+
+#: docthread.py:1322
+#, python-format
+msgid "Checking hOCR page %(current)i of %(total)i"
+msgstr "Перевірка сторінки hOCR %(current)i з %(total)i"
+
+#: docthread.py:1330
+#, python-format
+msgid "The hOCR page for page %(page)i has no page box."
+msgstr "Сторінка hOCR для сторінки %(page)i не має рамки сторінки."
+
+#: docthread.py:1342
+#, python-format
+msgid ""
+"The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the"
+" page is %(width)ix%(height)i."
+msgstr ""
+"hOCR-сторінка для сторінки %(page)i має розмір "
+"%(found_width)ix%(found_height)i, але сторінка має розмір "
+"%(width)ix%(height)i."
+
+#: docthread.py:1366
+msgid "No pages selected for hOCR import."
+msgstr "Не вибрано жодної сторінки для імпорту hOCR."
+
+#: docthread.py:1385
+#, python-format
+msgid "Importing hOCR page %(current)i of %(total)i"
+msgstr "Імпортування сторінки hOCR %(current)i з %(total)i"
+
+#: docthread.py:1526
+#, python-format
+msgid "Analysing page %(current)i of %(total)i"
+msgstr "Аналізується сторінка %(current)i з %(total)i"
+
+#: docthread.py:1800
 msgid "No tesseract language specified"
 msgstr "Не вказано мову tesseract"
 
-#: docthread.py:1470
-msgid "tessdata directory not found"
-msgstr "Каталог tessdata не знайдено"
+#: docthread.py:1832
+#, python-format
+msgid "Failed to initialise OCR with the %(mode)s engine mode: %(error)s"
+msgstr "Не вдалося ініціалізувати OCR з режимом рушія %(mode)s: %(error)s"
+
+#: docthread.py:1844 postprocess_controls.py:605
+#, python-format
+msgid "Unknown Tesseract option: %(variable)s"
+msgstr "Невідома опція Tesseract: %(variable)s"
 
 #: document.py:111
 msgid "Error: cannot open a session file at the same time as another file."
@@ -1131,29 +1385,29 @@ msgid "Error: importing a multipage file at the same time as another file."
 msgstr ""
 "Помилка: одночасне імпортування багатосторінкового файла із іншим файлом."
 
-#: edit_menu_mixins.py:60
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
 msgstr "Властивості"
 
-#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
+#: edit_menu_mixins.py:72 edit_menu_mixins.py:82
 msgid "dpi"
 msgstr "тнд"
 
-#: edit_menu_mixins.py:362
+#: edit_menu_mixins.py:377
 msgid "Invalid regex. Try without special characters such as '*'"
 msgstr ""
 "Некоректний формальний вираз. Спробуйте без спеціальних символів, зокрема "
 "«*»."
 
-#: edit_menu_mixins.py:394
+#: edit_menu_mixins.py:409
 msgid "Changes will only take effect after restarting scantpaper."
 msgstr "Зміни набудуть чинності лише після перезапуску scantpaper."
 
-#: edit_menu_mixins.py:396
+#: edit_menu_mixins.py:411
 msgid "Restart scantpaper now?"
 msgstr "Перезапустити scantpaper зараз?"
 
-#: file_menu_mixins.py:104
+#: file_menu_mixins.py:87
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
@@ -1161,44 +1415,40 @@ msgstr ""
 "Деякі сторінки ще не були збережені. \n"
 "Ви дійсно хочете вилучити усі сторінки?"
 
-#: file_menu_mixins.py:129
+#: file_menu_mixins.py:112
 msgid "Open image"
 msgstr "Відкрити зображення"
 
-#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
+#: file_menu_mixins.py:128 file_menu_mixins.py:481 file_menu_mixins.py:837
 msgid "Image files"
 msgstr "Файли зображень"
 
-#: file_menu_mixins.py:180
+#: file_menu_mixins.py:164
 msgid "Pages to extract"
 msgstr "Витягувані сторінки"
 
-#: file_menu_mixins.py:194
+#: file_menu_mixins.py:181
 msgid "First page to extract"
 msgstr "Перша витягувана сторінка"
 
-#: file_menu_mixins.py:200
+#: file_menu_mixins.py:188
 msgid "Last page to extract"
 msgstr "Остання витягнена сторінка"
 
-#: file_menu_mixins.py:214
+#: file_menu_mixins.py:201
 #, python-format
 msgid "Enter user password for PDF %s"
 msgstr "Вкажіть пароль користувача для PDF %s"
 
-#: file_menu_mixins.py:281
-msgid "Open crashed session"
-msgstr "Відкрити аварійний сеанс"
+#: file_menu_mixins.py:268
+msgid "Import hOCR"
+msgstr "Імпортувати hOCR"
 
-#: file_menu_mixins.py:336
-msgid "Save"
-msgstr "Зберегти"
-
-#: file_menu_mixins.py:367
+#: file_menu_mixins.py:375
 msgid "Post-save hook"
 msgstr "Скрипт обробки після збереження"
 
-#: file_menu_mixins.py:370
+#: file_menu_mixins.py:378
 #, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
@@ -1207,82 +1457,87 @@ msgstr ""
 "Виконати команду обробки збереженого файла. Доступними є команди визначених "
 "користувачем інструментів, у яких не вказано %o"
 
-#: file_menu_mixins.py:392 file_menu_mixins.py:393
+#: file_menu_mixins.py:400 file_menu_mixins.py:401
 msgid "Close dialog on save"
 msgstr "Закрити вікно після збереження"
 
-#: file_menu_mixins.py:465
+#: file_menu_mixins.py:408 menu.ui:24
+msgid "_Save"
+msgstr "_Зберегти"
+
+#: file_menu_mixins.py:472
 msgid "PDF filename"
 msgstr "Ім’я файлу PDF"
 
-#: file_menu_mixins.py:466
+#: file_menu_mixins.py:473
 msgid "PDF files"
 msgstr "Файли PDF"
 
-#: file_menu_mixins.py:469
+#: file_menu_mixins.py:476
 msgid "DjVu filename"
 msgstr "Ім’я файлу DjVu"
 
-#: file_menu_mixins.py:470
+#: file_menu_mixins.py:477
 msgid "DjVu files"
 msgstr "Файли DjVu"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:480
 msgid "TIFF filename"
 msgstr "Ім'я файлу TIFF"
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:484
 msgid "Text filename"
 msgstr "Ім’я текстового файлу"
 
-#: file_menu_mixins.py:478
+#: file_menu_mixins.py:485
 msgid "Text files"
 msgstr "Текстові файли"
 
-#: file_menu_mixins.py:481
+#: file_menu_mixins.py:488
 msgid "hOCR filename"
 msgstr "Ім’я файлу hOCR"
 
-#: file_menu_mixins.py:482
-msgid "hOCR files"
-msgstr "Файли hOCR"
-
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:492
 msgid "PS filename"
 msgstr "Ім’я файлу PS"
 
-#: file_menu_mixins.py:486
+#: file_menu_mixins.py:493
 msgid "Postscript files"
 msgstr "Файли Postscript"
 
-#: file_menu_mixins.py:489
+#: file_menu_mixins.py:496
 msgid "scantpaper session filename"
 msgstr "Ім’я файлу сеанса scantpaper"
 
-#: file_menu_mixins.py:490
+#: file_menu_mixins.py:497
 msgid "scantpaper session files"
 msgstr "файли сесій scantpaper"
 
-#: file_menu_mixins.py:601
+#: file_menu_mixins.py:605
+#, python-format
+msgid "Error saving %(filename)s: %(error)s"
+msgstr "Помилка збереження %(filename)s: %(error)s"
+
+#: file_menu_mixins.py:620
 #, python-format
 msgid "Directory %s is read-only"
 msgstr "Каталог %s призначено лише для читання"
 
-#: file_menu_mixins.py:611
+#: file_menu_mixins.py:630
 #, python-format
 msgid "File %s is read-only"
 msgstr "Файл %s доступний у режимі «лише читання»"
 
-#: file_menu_mixins.py:802
+#: file_menu_mixins.py:822
 msgid "Image filename"
 msgstr "Ім’я файлу зображення"
 
-#: file_menu_mixins.py:862
+#: file_menu_mixins.py:882
 #, python-format
 msgid "This operation would overwrite %s"
 msgstr "Ця дія має перезаписати %s"
 
-#: file_menu_mixins.py:945
+#: file_menu_mixins.py:965
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
@@ -1290,45 +1545,46 @@ msgstr ""
 "Деякі сторінки ще не збережено.\n"
 "Впевнені, що бажаєте закрити програму?"
 
-#: importthread.py:86
+#: importthread.py:100
 #, python-format
 msgid "File %s not found"
 msgstr "Файл '%s' не знайдено"
 
-#: importthread.py:92
+#: importthread.py:106
 #, python-format
-msgid "Error getting file info for %s: %s"
-msgstr "Помилка отримання інформації про файл %s: %s"
+msgid "Error getting file info for %(path)s: %(error)s"
+msgstr "Помилка отримання інформації про файл %(path)s: %(error)s"
 
-#: importthread.py:97
+#: importthread.py:112
 #, python-format
 msgid "Error importing zero-length file %s."
 msgstr "Помилка: імпортування файла нульової довжини, %s."
 
-#: importthread.py:135 importthread.py:178
+#: importthread.py:150 importthread.py:193
 #, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
-msgstr "Встановіть djvulibre-bin, щоб відкривати файли DjVu: %s"
+msgstr "Будь ласка, встановіть djvulibre-bin, щоб відкривати файли DjVu: %s"
 
-#: importthread.py:166
+#: importthread.py:181
 msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Невідома структура файлу DjVu. Зконтактуйтеся з автором."
 
-#: importthread.py:266
+#: importthread.py:281
 #, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
-msgstr "Встановіть libtiff-tools, щоб відкривати файли TIFF: %s"
+msgstr "Будь ласка, встановіть libtiff-tools, щоб відкривати файли TIFF: %s"
 
-#: importthread.py:328 importthread.py:388
+#: importthread.py:343 importthread.py:403
 #, python-format
-msgid "Importing page %i of %i"
-msgstr "Імпортування сторінки %i із %i"
+msgid "Importing page %(current)i of %(total)i"
+msgstr "Імпортується сторінка %(current)i з %(total)i"
 
-#: importthread.py:509
+#: importthread.py:524
 msgid "Error extracting images from PDF"
 msgstr "Помилка при видобуванні зображення із PDF"
 
-#: importthread.py:521
+#: importthread.py:536
+#, fuzzy
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
@@ -1340,95 +1596,196 @@ msgstr ""
 "скани до наявного PDF, скористайтеся параметрами «Додати на початок "
 "PDF»/«Додати в кінець PDF» у діалозі збереження."
 
-#: importthread.py:560
+#: importthread.py:575
 msgid "Error importing PDF"
 msgstr "Помилка під час імпортування PDF"
 
-#: importthread.py:587
+#: importthread.py:602
 msgid "Error extracting text layer from PDF"
 msgstr "Помилка під час спроби видобути текстовий шар із PDF"
 
-#: pagerange.py:46
+#: layer.py:45
+msgid "Sort by confidence"
+msgstr "Упорядкувати за вірогідністю"
+
+#: layer.py:46
+msgid "Sort OCR text boxes by confidence."
+msgstr "Упорядкувати розпізнані текстові поля за вірогідністю."
+
+#: layer.py:48
+msgid "Sort by position"
+msgstr "Упорядкувати за розташуванням"
+
+#: layer.py:48
+msgid "Sort OCR text boxes by position."
+msgstr "Упорядкувати розпізнані текстові поля за розташуванням."
+
+#: layer.py:62
+msgid "my-new-word"
+msgstr "моє-нове-слово"
+
+#: layer.py:63
+msgid "my-new-annotation"
+msgstr "нова-анотація"
+
+#: layer.py:207
+msgid "Go to least confident text"
+msgstr "Перейти до найменш певно розпізнаного"
+
+#: layer.py:212
+msgid "Go to previous text"
+msgstr "Перейти до попереднього тексту"
+
+#: layer.py:217
+msgid "Select sort method for OCR boxes"
+msgstr "Вибір способу упорядкування розпізнаних полів"
+
+#: layer.py:228
+msgid "Go to next text"
+msgstr "Перейти до наступного тексту"
+
+#: layer.py:232
+msgid "Go to most confident text"
+msgstr "Перейти до найбільш певно розпізнаного"
+
+#: layer.py:238 layer.py:396
+msgid "Add text"
+msgstr "Додати текст"
+
+#: layer.py:246
+msgid "Rotate text clockwise"
+msgstr "Обертати текст за годинниковою стрілкою"
+
+#: layer.py:251
+msgid "Rotate text anticlockwise"
+msgstr "Обернути текст проти годинникової стрілки"
+
+#: layer.py:256
+msgid "Accept corrections"
+msgstr "Прийняти виправлення"
+
+#: layer.py:259
+msgid "Cancel corrections"
+msgstr "Скасувати виправлення"
+
+#: layer.py:264 app.ui:287 menu.ui:61
+msgid "_Copy"
+msgstr "_Копіювати"
+
+#: layer.py:264
+msgid "Duplicate text"
+msgstr "Дублювати текст"
+
+#: layer.py:267
+msgid "Delete text"
+msgstr "Вилучити текст"
+
+#: layer.py:317
+msgid "Focus zoom"
+msgstr "Зум фокусу"
+
+#: layer.py:335
+msgid "Reset"
+msgstr "Скинути"
+
+#: layer.py:362
+#, python-format
+msgid "Focus zoom: %(percent)d%%"
+msgstr "Масштаб фокусування: %(percent)d%%"
+
+#: layer.py:399
+msgid "Draw or select a rectangle before adding"
+msgstr "Намалюйте або виберіть прямокутник перед додаванням"
+
+#: pagerange.py:47
 msgid "Selected"
 msgstr "Вибрані"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides"
 msgstr "На обох сторонах"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides."
 msgstr "На обох сторонах."
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side"
 msgstr "Лицьова сторона"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side."
 msgstr "Лицьова сторона."
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side"
 msgstr "Зворотня сторона"
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side."
 msgstr "Зворотня сторона."
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:48
 msgid "90°"
 msgstr "90°"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:48
 msgid "Rotate image 90 degrees clockwise."
 msgstr "Повернуть на 90 градусів за годинниковою стрілкою"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:49
 msgid "180°"
 msgstr "180°"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:49
 msgid "Rotate image 180 degrees clockwise."
 msgstr "Повернути на 180° градусів за годинниковою стрілкою"
 
-#: postprocess_controls.py:29
+#: postprocess_controls.py:50
 msgid "270°"
 msgstr "270°"
 
-#: postprocess_controls.py:29
+#: postprocess_controls.py:50
 msgid "Rotate image 90 degrees anticlockwise."
 msgstr "Повернути на 90° градусів проти годинникової стрілки"
 
-#: postprocess_controls.py:39
+#: postprocess_controls.py:55 postprocess_controls.py:738
+msgid "Page segmentation mode"
+msgstr "Режим сегментації сторінки"
+
+#: postprocess_controls.py:56 postprocess_controls.py:747
+msgid "OCR engine mode"
+msgstr "Режим механізму OCR"
+
+#: postprocess_controls.py:67
 msgid "Rotate"
 msgstr "Повернути"
 
-#: postprocess_controls.py:40
+#: postprocess_controls.py:68
 msgid "Rotate image after scanning"
 msgstr "Повернути зображення після сканування"
 
-#: postprocess_controls.py:43
+#: postprocess_controls.py:72
 msgid "Select side to rotate"
 msgstr "Виберіть сторону яку потрібно повернути"
 
-#: postprocess_controls.py:46
+#: postprocess_controls.py:76
 msgid "Select angle of rotation"
-msgstr "Вибір кута повороту"
+msgstr "Виберіть кут повороту"
 
-#: postprocess_controls.py:49
+#: postprocess_controls.py:79
 msgid "Anticlockwise"
 msgstr "Проти годинникової стрілки"
 
-#: postprocess_controls.py:350 postprocess_controls.py:351
+#: postprocess_controls.py:478 postprocess_controls.py:479
 msgid "OCR scanned pages"
 msgstr "Розпізнати відскановані сторінки"
 
-#: postprocess_controls.py:378
+#: postprocess_controls.py:507
 msgid "Threshold before OCR"
 msgstr "Порогова обробка до розпізнавання"
 
-#: postprocess_controls.py:381
+#: postprocess_controls.py:510
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
@@ -1437,466 +1794,710 @@ msgstr ""
 "Стосується лише зображень, які передаються рушієві розпізнавання тексту, а "
 "не зображень, які зберігаються на диску."
 
-#: postprocess_controls.py:392 tools_menu_mixins.py:114
+#: postprocess_controls.py:520 tools_menu_mixins.py:122
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
 msgstr ""
-"Пікселі, що відрізняються від кольору паперу більш ніж на цей відсоток, "
-"відображаються чорним. Вищі значення зберігають лише сильніші позначки."
+"Пікселі, які відрізняються від кольору паперу більше ніж на цей відсоток, "
+"відображаються чорними. Вищі значення зберігають лише сильніші позначки."
 
-#: postprocess_controls.py:428
+#: postprocess_controls.py:585
+msgid "No OCR language selected."
+msgstr "Не вибрано мову OCR."
+
+#: postprocess_controls.py:588
+#, python-format
+msgid "The following OCR languages are not installed: %(languages)s"
+msgstr "Наступні мови OCR не встановлено: %(languages)s"
+
+#: postprocess_controls.py:598
+#, python-format
+msgid ""
+"'%(variable)s' is set by the %(control)s control; remove it from this field."
+msgstr ""
+"'%(variable)s' встановлюється елементом керування %(control)s; видаліть його"
+" з цього поля."
+
+#: postprocess_controls.py:609
+#, python-format
+msgid "Unknown Tesseract options: %(variables)s"
+msgstr "Невідомі параметри Tesseract: %(variables)s"
+
+#: postprocess_controls.py:624
 msgid "Language to recognise"
 msgstr "Які мови розпізнавати"
 
-#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-msgid "_Cancel"
-msgstr "_Скасувати"
+#: postprocess_controls.py:632
+msgid "Additional languages"
+msgstr "Додаткові мови"
 
-#: progress.py:76 progress.py:110
+#: postprocess_controls.py:674
+msgid "Tessdata directory"
+msgstr "Каталог Tessdata"
+
+#: postprocess_controls.py:677
+msgid "Default (system tessdata)"
+msgstr "За замовчуванням (системні tessdata)"
+
+#: postprocess_controls.py:680
+msgid ""
+"Directory that directly contains the Tesseract .traineddata language files. "
+"Leave empty for the system default."
+msgstr ""
+"Каталог, який безпосередньо містить мовні файли Tesseract .traineddata. "
+"Залиште порожнім, щоб використовувати системне значення за замовчуванням."
+
+#: postprocess_controls.py:693
+msgid "Choose the tessdata directory"
+msgstr "Виберіть каталог tessdata"
+
+#: postprocess_controls.py:698
+msgid "Use the system tessdata directory"
+msgstr "Використовувати системний каталог tessdata"
+
+#: postprocess_controls.py:710
+msgid "Select tessdata directory"
+msgstr "Виберіть каталог tessdata"
+
+#: postprocess_controls.py:741
+msgid "How tesseract should segment the page. Automatic suits most pages."
+msgstr ""
+"Як tesseract має сегментувати сторінку. Автоматичний режим підходить для "
+"більшості сторінок."
+
+#: postprocess_controls.py:750
+msgid "Which tesseract engine to use. Default uses the engine's own choice."
+msgstr ""
+"Який рушій tesseract використовувати. За замовчуванням використовується "
+"власний вибір рушія."
+
+#: postprocess_controls.py:758
+msgid "Advanced Tesseract engine parameters"
+msgstr "Розширені параметри двигуна Tesseract"
+
+#: postprocess_controls.py:761
+msgid ""
+"Tesseract engine parameters - the values of tesseract's -c option - not "
+"command-line flags. Use absolute paths."
+msgstr ""
+"Параметри рушія Tesseract - значення опції -c Tesseract - а не прапорці "
+"командного рядка. Використовуйте абсолютні шляхи."
+
+#: postprocess_controls.py:769
+msgid ""
+"One name=value engine parameter per line, e.g. "
+"user_words_file=/path/to/words.txt. Write engine parameters, not command-"
+"line options such as --user-words."
+msgstr ""
+"Один параметр двигуна у форматі name=value на рядок, напр. "
+"user_words_file=/path/to/words.txt. Вказуйте параметри двигуна, а не "
+"параметри командного рядка, як-от --user-words."
+
+#: postprocess_controls.py:791
+msgid "_Available parameters"
+msgstr "_Доступні параметри"
+
+#: postprocess_controls.py:794
+msgid "Browse the parameters the installed Tesseract reports"
+msgstr "Переглянути параметри, які повідомляє встановлений Tesseract"
+
+#: postprocess_controls.py:907
+msgid "No additional languages"
+msgstr "Немає додаткових мов"
+
+#: postprocess_controls.py:922
 #, python-format
-msgid "Process %i of %i (%s)"
-msgstr "Обробка %i з %i (%s)"
+msgid "%(language)s (not installed)"
+msgstr "%(language)s (не встановлено)"
 
-#: progress.py:119
+#: progress.py:79 progress.py:118
 #, python-format
-msgid "Process %i of %i"
-msgstr "Обробка %i з %i"
+msgid "Process %(current)i of %(total)i (%(process)s)"
+msgstr "Процес %(current)i з %(total)i (%(process)s)"
 
-#: savethread.py:83
+#: progress.py:127
+#, python-format
+msgid "Process %(current)i of %(total)i"
+msgstr "Процес %(current)i з %(total)i"
+
+#: savethread.py:210
 msgid "Processing PDF"
 msgstr "Обробка PDF"
 
-#: savethread.py:148
+#: savethread.py:283
 msgid "Embedding text layer"
 msgstr "Вбудовування текстового шару"
 
-#: savethread.py:195
+#: savethread.py:341
 msgid "Setting up PDF"
 msgstr "Налаштування PDF"
 
-#: savethread.py:264 savethread.py:405
-#, python-format
-msgid "Writing page %i of %i"
-msgstr "Запис сторінки %i із %i"
+#: savethread.py:409 tests/test_savethread.py:1822
+msgid "Converting to JBIG2"
+msgstr "Перетворення на JBIG2"
 
-#: savethread.py:291
+#: savethread.py:447 savethread.py:615
+#, python-format
+msgid "Writing page %(current)i of %(total)i"
+msgstr "Запис сторінки %(current)i з %(total)i"
+
+#: savethread.py:498
 #, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
-"Оцінюваний розмір PDF (%.1f ГБ) перевищує 2 ГБ. Будь ласка, збережіть менше "
-"сторінок."
+"Орієнтовний розмір PDF (%.1f ГіБ) перевищує 2 ГіБ.  Будь ласка, збережіть "
+"менше сторінок."
 
-#: savethread.py:314 tests/test_savethread.py:1240
+#: savethread.py:521 tests/test_savethread.py:1599
 msgid "Writing PDF"
 msgstr "Запис PDF"
 
-#: savethread.py:363
+#: savethread.py:571
 msgid "Converting to PS"
 msgstr "Перетворення на PS"
 
-#: savethread.py:374
+#: savethread.py:584
 #, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "Помилка під час спроби перетворити PDF на PS: %s"
 
-#: savethread.py:418
+#: savethread.py:628
 msgid "Merging DjVu"
 msgstr "Злиття DjVu"
 
-#: savethread.py:425
+#: savethread.py:635
 #, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Помилка об'єднання DjVu: %s"
 
-#: savethread.py:519
+#: savethread.py:729
 #, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "Помилка під час спроби перетворити TIFF на PS: %s"
 
-#: savethread.py:664
+#: savethread.py:877
 msgid "Error copying page"
 msgstr "При копіюванні сторінки виникла помилка"
 
-#: savethread.py:814
+#: savethread.py:948 tools_menu_mixins.py:840
+#, python-format
+msgid ""
+"Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
+"it one page at a time instead."
+msgstr ""
+"Пакетний режим не можна використовувати з '%(tool)s', оскільки він "
+"використовує %(variable)s. Натомість запускайте його по одній сторінці за "
+"раз."
+
+#: savethread.py:1009
+msgid ""
+"No pages were modified. If the tool was already running (for example GIMP), "
+"it may have opened the images in the existing instance."
+msgstr ""
+"Жодну сторінку не було змінено. Якщо інструмент уже працював (наприклад, "
+"GIMP), він міг відкрити зображення в наявному екземплярі."
+
+#: savethread.py:1018
+#, python-format
+msgid "'%(tool)s' failed with status %(status)s."
+msgstr "'%(tool)s' завершився з помилкою, статус %(status)s."
+
+#: savethread.py:1024
+#, python-format
+msgid "Error running '%(tool)s': %(error)s."
+msgstr "Помилка під час запуску '%(tool)s': %(error)s."
+
+#: savethread.py:1294
 #, python-format
 msgid "Error prepending PDF: %s"
 msgstr "Помилка під час спроби дописати дані на початку PDF: %s"
 
-#: savethread.py:822
+#: savethread.py:1302
 #, python-format
 msgid "Error appending PDF: %s"
 msgstr "Помилка під час спроби дописати дані наприкінці PDF: %s"
 
-#: savethread.py:831
+#: savethread.py:1311
 msgid "Error creating backup of PDF"
 msgstr "Помилка під час спроби створити резервну копію PDF"
 
-#: savethread.py:905
+#: savethread.py:1385
 #, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "Помилка під час спроби зашифрувати PDF: %s"
 
-#: scan_menu_item_mixins.py:72
+#: scan_menu_item_mixins.py:118
 msgid "Really cache libusb device names?"
 msgstr "Дійсно кешувати назви пристроїв libusb?"
 
-#: scan_menu_item_mixins.py:76
+#: scan_menu_item_mixins.py:122
 msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
 msgstr ""
-"Кешування списку пристроїв із включенням пристроїв libusb не рекомендується, "
-"оскільки вони можуть змінюватися між перезавантаженнями."
+"Кешування списку пристроїв із пристроями libusb не рекомендується, оскільки "
+"вони можуть змінюватися між перезавантаженнями. Усе одно кешувати їх?"
 
-#: scan_menu_item_mixins.py:78
-msgid "Are you sure you want to do this?"
-msgstr "Ви впевнені, що хочете це зробити?"
+#: scan_menu_item_mixins.py:127
+msgid "Don't ask again"
+msgstr "Більше не запитувати"
 
-#: scan_menu_item_mixins.py:114
+#: scan_menu_item_mixins.py:176
 msgid "Scan Document"
 msgstr "Відсканувати документ"
 
-#: scan_menu_item_mixins.py:216
+#: scan_menu_item_mixins.py:291
 msgid "Postprocessing"
 msgstr "Остаточна обробка"
 
-#: scan_menu_item_mixins.py:230
+#: scan_menu_item_mixins.py:400
 msgid "Alternate rotation every 2nd page"
-msgstr "Чергувати поворот на кожній другій сторінці"
+msgstr "Чергувати поворот через кожну 2-гу сторінку"
 
-#: scan_menu_item_mixins.py:233
+#: scan_menu_item_mixins.py:403
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
 msgstr ""
-"Повертайте непарні сторінки на вибраний кут, а парні — на цей кут плюс 180 "
+"Обертайте непарні сторінки на вибраний кут, а парні — на цей кут плюс 180 "
 "градусів. Використовуйте під час сканування книги, де кожен аркуш вирівняно "
-"за одним краєм, тому зворотний бік кожного аркуша повернуто на 180 градусів "
-"відносно лицьового."
+"за одним і тим самим краєм, тому зворотний бік кожного аркуша повернуто на "
+"180 градусів відносно його лицьового боку."
 
-#: scan_menu_item_mixins.py:298
+#: scan_menu_item_mixins.py:425
 msgid "Clean up images"
 msgstr "Очищення зображення"
 
-#: scan_menu_item_mixins.py:299
+#: scan_menu_item_mixins.py:426
 msgid "Clean up scanned images with unpaper"
 msgstr "Очиститискановазі сторінки за допомогою unpaper"
 
-#: scan_menu_item_mixins.py:307
+#: scan_menu_item_mixins.py:435
 msgid "Options"
 msgstr "Параметри"
 
-#: scan_menu_item_mixins.py:308
+#: scan_menu_item_mixins.py:436
 msgid "Set unpaper options"
 msgstr "Вказати параметри unpaper"
 
-#: scan_menu_item_mixins.py:316
+#: scan_menu_item_mixins.py:445
 msgid "unpaper options"
 msgstr "Параметри unpaper"
 
-#: scan_menu_item_mixins.py:339
+#: scan_menu_item_mixins.py:468
 msgid "Process with user-defined tool"
 msgstr "Обробити визначеним користувачем інструментом"
 
-#: scan_menu_item_mixins.py:340
+#: scan_menu_item_mixins.py:469
 msgid "Process scanned images with user-defined tool"
 msgstr "Обробити скановані зображення визначеним користувачем інструментом"
 
-#: session_mixins.py:74
+#: session_mixins.py:84
 #, python-format
 msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+"Warning: unable to use %(configured)s for temporary storage. Defaulting to "
+"%(default)s instead."
 msgstr ""
-"Попередження: не вдалося використати %s для тимчасового зберігання. За "
-"умовчанням використовується %s натомість."
+"Попередження: не вдалося використати %(configured)s для тимчасового "
+"зберігання. Натомість використовується %(default)s."
 
-#: session_mixins.py:118 session_mixins.py:123
-msgid "Pick crashed session to restore"
-msgstr "Виберіть пошкоджену сесію для відновлення"
+#: session_mixins.py:163
+msgid "No crashed sessions found."
+msgstr "Не знайдено аварійно завершених сеансів."
 
-#: session_mixins.py:191
+#: session_mixins.py:169
+msgid "Crashed sessions"
+msgstr "Аварійно завершені сеанси"
+
+#: session_mixins.py:174
+msgid "_Discard"
+msgstr "_Відхилити"
+
+#: session_mixins.py:175
+msgid "_Restore"
+msgstr "_Відновити"
+
+#: session_mixins.py:178
+msgid "Restore or discard a crashed session"
+msgstr "Відновити або відкинути аварійний сеанс"
+
+#: session_mixins.py:207
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to restore a crashed session?"
+msgstr ""
+"Деякі сторінки не збережено.\n"
+"Ви справді хочете відновити сеанс після збою?"
+
+#: session_mixins.py:242
+msgid "Restore file"
+msgstr "Відновити файл"
+
+#: session_mixins.py:258
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] "Відкинути %(count)d аварійний сеанс?"
+msgstr[1] "Відкинути %(count)d аварійні сеанси?"
+msgstr[2] "Відкинути %(count)d аварійних сеансів?"
+
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] "Не вдалося видалити %(count)d аварійний сеанс."
+msgstr[1] "Не вдалося видалити %(count)d аварійні сеанси."
+msgstr[2] "Не вдалося видалити %(count)d аварійних сеансів."
+
+#: session_mixins.py:301
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
 msgstr "GraphicsMagick використовується у режимі сумісності із ImageMagick."
 
-#: session_mixins.py:193
+#: session_mixins.py:303
 msgid "Whilst this might work, it is not currently supported."
 msgstr ""
 "Хоча це може працювати, у поточній версії не передбачено підтримки цього."
 
-#: session_mixins.py:195
+#: session_mixins.py:305
 msgid "Please switch to ImageMagick in case of problems."
 msgstr "Якщо виникатимуть проблеми, будь ласка, перемкніться на ImageMagick."
 
-#: session_mixins.py:212
+#: session_mixins.py:318
 msgid "Tesseract"
 msgstr "Tesseract"
 
-#: session_mixins.py:212
+#: session_mixins.py:318
 msgid "Process image with Tesseract."
 msgstr "Опрацювати зображення з допомогою Tesseract"
 
-#: session_mixins.py:229
+#: session_mixins.py:330
 msgid "Finished scanning facing pages. Scan reverse pages?"
 msgstr ""
 "Сканування лицевих частин сторінок завершено. Сканувати звороти сторінок?"
 
-#: session_mixins.py:232
+#: session_mixins.py:333
 msgid "Finished scanning reverse pages. Scan facing pages?"
 msgstr "Сканування зворотів сторінок завершено. Сканувати лицеві частини?"
 
-#: session_mixins.py:448 text_layer_control.py:80
-msgid "_OK"
-msgstr "_OK"
+#: tesseract.py:197
+msgid "Fully automatic page segmentation."
+msgstr "Повністю автоматична сегментація сторінки."
 
-#: session_mixins.py:449 text_layer_control.py:80
-msgid "Accept corrections"
-msgstr "Прийняти виправлення"
+#: tesseract.py:198
+msgid "Single column"
+msgstr "Один стовпець"
 
-#: session_mixins.py:452 text_layer_control.py:83
-msgid "Cancel corrections"
-msgstr "Скасувати виправлення"
+#: tesseract.py:198
+msgid "A single column of text of variable sizes."
+msgstr "Один стовпець тексту різних розмірів."
 
-#: session_mixins.py:458
-msgid "Add annotation"
-msgstr "Додати анотацію"
+#: tesseract.py:199
+msgid "Single block"
+msgstr "Один блок"
 
-#: session_mixins.py:461
-msgid "Delete annotation"
-msgstr "Вилучити анотацію"
+#: tesseract.py:199
+msgid "A single uniform block of text."
+msgstr "Один однорідний блок тексту."
 
-#: session_mixins.py:505
-msgid "my-new-word"
-msgstr "моє-нове-слово"
+#: tesseract.py:200
+msgid "Single line"
+msgstr "Один рядок"
 
-#: session_mixins.py:560
-msgid "my-new-annotation"
-msgstr "нова-анотація"
+#: tesseract.py:200
+msgid "The image is a single text line."
+msgstr "Зображення — це один рядок тексту."
 
-#: tesseract.py:232 tesseract.py:246 tesseract.py:258
+#: tesseract.py:201
+msgid "Single word"
+msgstr "Одне слово"
+
+#: tesseract.py:201
+msgid "The image is a single word."
+msgstr "Зображення — це одне слово."
+
+#: tesseract.py:202
+msgid "Single character"
+msgstr "Один символ"
+
+#: tesseract.py:202
+msgid "The image is a single character."
+msgstr "Зображення — це один символ."
+
+#: tesseract.py:203
+msgid "Sparse text"
+msgstr "Розріджений текст"
+
+#: tesseract.py:203
+msgid "Find as much text as possible, in no order."
+msgstr "Знайдіть якомога більше тексту, у будь-якому порядку."
+
+#: tesseract.py:204
+msgid "Raw line"
+msgstr "Необроблений рядок"
+
+#: tesseract.py:204
+msgid "A single line, without tesseract-specific hacks."
+msgstr "Один рядок, без специфічних для tesseract хаків."
+
+#: tesseract.py:214
+msgid "LSTM only"
+msgstr "Тільки LSTM"
+
+#: tesseract.py:215
+msgid "Legacy"
+msgstr "Застаріле"
+
+#: tesseract.py:216
+msgid "Combined"
+msgstr "Комбінований"
+
+#: tesseract.py:260
+#, python-format
+msgid "The tessdata directory does not exist: %(path)s"
+msgstr "Каталог tessdata не існує: %(path)s"
+
+#: tesseract.py:262
+#, python-format
+msgid "The tessdata path is not a directory: %(path)s"
+msgstr "Шлях до tessdata не є каталогом: %(path)s"
+
+#: tesseract.py:264
+#, python-format
+msgid "The tessdata directory cannot be read: %(path)s"
+msgstr "Не вдається прочитати каталог tessdata: %(path)s"
+
+#: tesseract.py:268
+#, python-format
+msgid ""
+"No Tesseract language data was found in the tessdata directory: %(path)s"
+msgstr "Не знайдено мовних даних Tesseract у каталозі tessdata: %(path)s"
+
+#: tesseract.py:272
+#, python-format
+msgid "Did you mean %(path)s?"
+msgstr "Ви мали на увазі %(path)s?"
+
+#: tesseract.py:322
+msgid "tessdata directory not found"
+msgstr "Каталог tessdata не знайдено"
+
+#: tesseract.py:388
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; this field accepts engine "
+"parameters in name=value form only."
+msgstr ""
+"'%(flag)s' — це опція командного рядка Tesseract; це поле приймає параметри "
+"рушія лише у формі name=value."
+
+#: tesseract.py:393
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' "
+"instead."
+msgstr ""
+"'%(flag)s' — це опція командного рядка Tesseract; натомість використовуйте "
+"'%(variable)s=%(value)s'."
+
+#: tesseract.py:413 tesseract.py:420
+#, python-format
+msgid "Invalid Tesseract option on line %(line)s: %(text)s"
+msgstr "Недійсний параметр Tesseract у рядку %(line)s: %(text)s"
+
+#: tesseract.py:435
+#, python-format
+msgid "%(variable)s names a file that does not exist: %(path)s"
+msgstr "%(variable)s посилається на файл, який не існує: %(path)s"
+
+#: tesseract.py:440
+#, python-format
+msgid "%(variable)s names a file that cannot be read: %(path)s"
+msgstr "%(variable)s називає файл, який неможливо прочитати: %(path)s"
+
+#: tesseract.py:567 tesseract.py:581 tesseract.py:594
 #, python-format
 msgid "You are using locale '%s'."
 msgstr "Ви використовуєте локаль «%s»."
 
-#: tesseract.py:235
+#: tesseract.py:570
 msgid ""
-"scantpaper does not currently know which tesseract language package would be "
-"necessary for that locale."
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
 msgstr ""
 "Поточна версія scantpaper не може визначити, який мовний пакунок tesseract "
 "слід використати для цієї локалі."
 
-#: tesseract.py:239
+#: tesseract.py:574
 msgid "Please contact the developers to add support for that locale."
 msgstr ""
 "Будь ласка, зв'яжіться із розробниками, щоб додати підтримку цієї локалі."
 
-#: tesseract.py:250
+#: tesseract.py:585
 #, python-format
 msgid ""
-"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
-"for OCR for %s with tesseract."
+"Please install tesseract package 'tesseract-ocr-%(package)s' and restart "
+"scantpaper for OCR for %(language)s with tesseract."
 msgstr ""
-"Будь ласка, встановіть пакунок tesseract «tesseract-ocr-%s» і перезапустіть "
-"scantpaper, щоб виконати оптичне розпізнавання тексту для %s за допомогою "
+"Будь ласка, встановіть пакет tesseract 'tesseract-ocr-%(package)s' і "
+"перезапустіть scantpaper, щоб виконувати OCR для %(language)s за допомогою "
 "tesseract."
 
-#: tesseract.py:260
+#: tesseract.py:596
 #, python-format
 msgid "There is no tesseract package for %s"
 msgstr "Пакунка tesseract для %s не існує"
 
-#: tesseract.py:262
+#: tesseract.py:598
 msgid "If this is in error, please contact the scantpaper developers."
 msgstr ""
 "Якщо ви вважаєте це помилкою, будь ласка, повідомте про неї розробників "
 "scantpaper."
 
-#: tests/test_savethread.py:1230
+#: tests/test_savethread.py:1589
 msgid "Writing page"
-msgstr "Запис сторінки"
+msgstr "Сторінка написання"
 
-#: text_layer_control.py:27
-msgid "Sort by confidence"
-msgstr "Упорядкувати за вірогідністю"
-
-#: text_layer_control.py:28
-msgid "Sort OCR text boxes by confidence."
-msgstr "Упорядкувати розпізнані текстові поля за вірогідністю."
-
-#: text_layer_control.py:30
-msgid "Sort by position"
-msgstr "Упорядкувати за розташуванням"
-
-#: text_layer_control.py:30
-msgid "Sort OCR text boxes by position."
-msgstr "Упорядкувати розпізнані текстові поля за розташуванням."
-
-#: text_layer_control.py:61
-msgid "Go to least confident text"
-msgstr "Перейти до найменш певно розпізнаного"
-
-#: text_layer_control.py:64
-msgid "Go to previous text"
-msgstr "Перейти до попереднього тексту"
-
-#: text_layer_control.py:67
-msgid "Select sort method for OCR boxes"
-msgstr "Вибір способу упорядкування розпізнаних полів"
-
-#: text_layer_control.py:73
-msgid "Go to next text"
-msgstr "Перейти до наступного тексту"
-
-#: text_layer_control.py:75
-msgid "Go to most confident text"
-msgstr "Перейти до найбільш певно розпізнаного"
-
-#: text_layer_control.py:77
-msgid "Add text"
-msgstr "Додати текст"
-
-#: text_layer_control.py:86
-msgid "_Copy"
-msgstr "_Копіювати"
-
-#: text_layer_control.py:86
-msgid "Duplicate text"
-msgstr "Дублювати текст"
-
-#: text_layer_control.py:89
-msgid "Delete text"
-msgstr "Вилучити текст"
-
-#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
+#: tools_menu_mixins.py:105 tools_menu_mixins.py:298
 msgid "Threshold"
 msgstr "Постеризація"
 
-#: tools_menu_mixins.py:106
+#: tools_menu_mixins.py:115
 msgid "Ink strength"
-msgstr "Сила чорнила"
+msgstr "Насиченість чорнила"
 
-#: tools_menu_mixins.py:159
+#: tools_menu_mixins.py:156 tools_menu_mixins.py:226 tools_menu_mixins.py:265
+#: tools_menu_mixins.py:368 tools_menu_mixins.py:410 tools_menu_mixins.py:533
+msgid "_Apply"
+msgstr "_Застосувати"
+
+#: tools_menu_mixins.py:168
 msgid "Brightness / Contrast"
 msgstr "Яскравість і контрастність"
 
-#: tools_menu_mixins.py:170
+#: tools_menu_mixins.py:179
 msgid "Brightness"
 msgstr "Яскравість"
 
-#: tools_menu_mixins.py:181
+#: tools_menu_mixins.py:190
 msgid "Contrast"
 msgstr "Контрастність"
 
-#: tools_menu_mixins.py:227
+#: tools_menu_mixins.py:236
 msgid "Negate"
 msgstr "Перетворити в негатив"
 
-#: tools_menu_mixins.py:264
+#: tools_menu_mixins.py:273
 msgid "Unsharp mask"
 msgstr "Нечітка маска"
 
-#: tools_menu_mixins.py:275
+#: tools_menu_mixins.py:284
 msgid "Radius"
 msgstr "Радіус"
 
-#: tools_menu_mixins.py:279
+#: tools_menu_mixins.py:288
 msgid "Blur Radius."
 msgstr "Радіус розмиття."
 
-#: tools_menu_mixins.py:282
+#: tools_menu_mixins.py:291
 msgid "Percentage"
 msgstr "Відсоток"
 
-#: tools_menu_mixins.py:286
+#: tools_menu_mixins.py:295
 msgid "Unsharp strength, in percent."
-msgstr "Сила різкості, у відсотках."
+msgstr "Сила нерізкого маскування, у відсотках."
 
-#: tools_menu_mixins.py:294
+#: tools_menu_mixins.py:303
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
 msgstr ""
-"Поріг керує мінімальною зміною яскравості, яку буде підсилено різкістю."
+"Поріг визначає мінімальну зміну яскравості, для якої застосовуватиметься "
+"підвищення різкості."
 
-#: tools_menu_mixins.py:444
+#: tools_menu_mixins.py:459
 msgid "Split"
 msgstr "Розділити"
 
-#: tools_menu_mixins.py:453
+#: tools_menu_mixins.py:468
 msgid "Direction"
 msgstr "Напрямок"
 
-#: tools_menu_mixins.py:458
+#: tools_menu_mixins.py:473
 msgid "Vertically"
 msgstr "Вертикально"
 
-#: tools_menu_mixins.py:459
+#: tools_menu_mixins.py:474
 msgid "Split the page vertically into left and right pages."
 msgstr "Розділити сторінку вертикально на ліву і праву сторінки."
 
-#: tools_menu_mixins.py:463
+#: tools_menu_mixins.py:478
 msgid "Horizontally"
 msgstr "Горизонтально"
 
-#: tools_menu_mixins.py:464
+#: tools_menu_mixins.py:479
 msgid "Split the page horizontally into top and bottom pages."
 msgstr "Розділити сторінку горизонтально на верхню і нижню сторінки."
 
-#: tools_menu_mixins.py:487
+#: tools_menu_mixins.py:502
 msgid "Position"
 msgstr "Розташування"
 
-#: tools_menu_mixins.py:590
+#: tools_menu_mixins.py:605
 msgid "unpaper"
 msgstr "unpaper"
 
-#: tools_menu_mixins.py:649
+#: tools_menu_mixins.py:664
 msgid "OCR"
 msgstr "OCR"
 
-#: tools_menu_mixins.py:730
+#: tools_menu_mixins.py:777
 msgid "User-defined tools"
 msgstr "Інструменти, визначені користувачем"
 
-#: tools_menu_mixins.py:739
+#: tools_menu_mixins.py:786
 msgid "Selected tool"
 msgstr "Вибраний інструмент"
 
-#: tools_menu_mixins.py:782
+#: tools_menu_mixins.py:790
+msgid "Process selected pages at once"
+msgstr "Обробити вибрані сторінки за один раз"
+
+#: tools_menu_mixins.py:891 app.ui:125
 msgid "Email as PDF"
 msgstr "Відправка по пошті як PDF"
 
-#: tools_menu_mixins.py:861
+#: tools_menu_mixins.py:971
 msgid "Error creating email"
 msgstr "Помилка при створенні Email"
 
-#: tools_menu_mixins.py:917
+#: tools_menu_mixins.py:1027
 msgid "To aid the scan-to-PDF process"
 msgstr "Спрощення процесу сканування в PDF"
 
-#: tools_menu_mixins.py:918
+#: tools_menu_mixins.py:1028
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
-msgstr "Copyright 2006--2026 Jeffrey Ratcliffe"
+msgstr "Авторське право 2006--2026 Jeffrey Ratcliffe"
 
-#: unpaper.py:38
+#: unpaper.py:40
 msgid "Layout"
 msgstr "Макет"
 
-#: unpaper.py:41
+#: unpaper.py:43
 msgid "Single"
 msgstr "Одинарна"
 
-#: unpaper.py:43
+#: unpaper.py:45
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Одна сторінка на аркуші, книжкова орієнтація, без обертання"
 
-#: unpaper.py:47
+#: unpaper.py:49
 msgid "Double"
 msgstr "Подвійна"
 
-#: unpaper.py:49
+#: unpaper.py:51
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -1904,626 +2505,582 @@ msgstr ""
 "Дві сторінки на аркуші, альбомна орієнтація (одна сторінка на одній "
 "половині, друга - на інший)."
 
-#: unpaper.py:58
+#: unpaper.py:60
 msgid "# Output pages"
 msgstr "Виводимих сторінок: #"
 
-#: unpaper.py:59
+#: unpaper.py:61
 msgid "Number of pages to output."
 msgstr "Кількість виводимих сторінок."
 
-#: unpaper.py:67
+#: unpaper.py:69
 msgid "Writing system"
 msgstr "Система писемності"
 
-#: unpaper.py:70
+#: unpaper.py:72
 msgid "Left-to-right"
 msgstr "Зліва праворуч"
 
-#: unpaper.py:72
+#: unpaper.py:74
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
-msgstr "Більшість систем запису тексту, зокрема латиниця, грецька та кирилиця."
+msgstr ""
+"Більшість систем запису тексту, зокрема латиниця, грецька та кирилиця."
 
-#: unpaper.py:76
+#: unpaper.py:78
 msgid "Right-to-left"
 msgstr "Справа ліворуч"
 
-#: unpaper.py:77
+#: unpaper.py:79
 msgid "Scripts like Arabic or Hebrew."
 msgstr "Писемності, подібні до арабської та єврейської."
 
-#: unpaper.py:85
+#: unpaper.py:87
 msgid "No deskew"
 msgstr "Без вирівнювання"
 
-#: unpaper.py:86
+#: unpaper.py:88
 msgid "Disable deskewing."
 msgstr "Не використовувати функцію вирівнювання листка"
 
-#: unpaper.py:91
+#: unpaper.py:93
 msgid "No mask scan"
 msgstr "Не шукати маску"
 
-#: unpaper.py:92
+#: unpaper.py:94
 msgid "Disable mask detection."
 msgstr "Відключити пошук маски"
 
-#: unpaper.py:97
+#: unpaper.py:99
 msgid "No mask centering"
 msgstr "Без центрування маски"
 
-#: unpaper.py:98
+#: unpaper.py:100
 msgid "Disable mask centering."
 msgstr "Вимкнути центрування маски"
 
-#: unpaper.py:103
+#: unpaper.py:105
 msgid "No black filter"
 msgstr "Без фільтру чорного кольору"
 
-#: unpaper.py:104
+#: unpaper.py:106
 msgid "Disable black area scan."
 msgstr "Відключити пошук чорних областей"
 
-#: unpaper.py:109
+#: unpaper.py:111
 msgid "No gray filter"
 msgstr "Без фільтру сірого кольору"
 
-#: unpaper.py:110
+#: unpaper.py:112
 msgid "Disable gray area scan."
 msgstr "Відключити пошук сірих областей"
 
-#: unpaper.py:115
+#: unpaper.py:117
 msgid "No noise filter"
 msgstr "Без фільтру шуму"
 
-#: unpaper.py:116
+#: unpaper.py:118
 msgid "Disable noise filter."
 msgstr "Відключити фільтр шуму"
 
-#: unpaper.py:121
+#: unpaper.py:123
 msgid "No blur filter"
 msgstr "Без фільтру розмивання"
 
-#: unpaper.py:122
+#: unpaper.py:124
 msgid "Disable blur filter."
 msgstr "Відключити фільтр розмивання"
 
-#: unpaper.py:127
+#: unpaper.py:129
 msgid "No border scan"
 msgstr "Без пошуку країв"
 
-#: unpaper.py:128
+#: unpaper.py:130
 msgid "Disable border scanning."
 msgstr "Відключити пошук країв"
 
-#: unpaper.py:133
+#: unpaper.py:135
 msgid "No border align"
 msgstr "Не вирівнювати краї"
 
-#: unpaper.py:135
+#: unpaper.py:137
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "Відключити вирівнювання області, виявленої при пошуку країв."
 
-#: unpaper.py:141
+#: unpaper.py:143
 msgid "Deskew to edge"
 msgstr "Краї маски"
 
-#: unpaper.py:143
+#: unpaper.py:145
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
 "value will be used, unless the statistical deviation exceeds --deskew-scan-"
 "deviation."
 msgstr ""
-"Краї, від яких шукати обертання. Кожен край маски може бути використаний для "
-"визначення обертання маски. Якщо вказано кілька країв, буде використано "
+"Краї, від яких шукати обертання. Кожен край маски може бути використаний для"
+" визначення обертання маски. Якщо вказано кілька країв, буде використано "
 "середнє значення, якщо статистичне відхилення не перевищує --deskew-scan-"
 "deviation."
 
-#: unpaper.py:152
+#: unpaper.py:154
 msgid "Use 'left' for scanning from the left edge."
 msgstr "Для сканування від лівого краю"
 
-#: unpaper.py:157
+#: unpaper.py:159
 msgid "Use 'top' for scanning from the top edge."
 msgstr "Для сканування від верхнього краю"
 
-#: unpaper.py:161 unpaper.py:189
+#: unpaper.py:163 unpaper.py:191
 msgid "Right"
 msgstr "Правий"
 
-#: unpaper.py:162
+#: unpaper.py:164
 msgid "Use 'right' for scanning from the right edge."
 msgstr "Для сканування від правого краю"
 
-#: unpaper.py:166 unpaper.py:194
+#: unpaper.py:168 unpaper.py:196
 msgid "Bottom"
 msgstr "Нижній"
 
-#: unpaper.py:167
+#: unpaper.py:169
 msgid "Use 'bottom' for scanning from the bottom."
 msgstr "Для сканування від нижнього краю"
 
-#: unpaper.py:174
+#: unpaper.py:176
 msgid "Align to edge"
 msgstr "Вирівнювання по краю"
 
-#: unpaper.py:175
+#: unpaper.py:177
 msgid "Edge to which to align the page."
 msgstr "По якому краю вирівнювати сторінку"
 
-#: unpaper.py:180
+#: unpaper.py:182
 msgid "Use 'left' to align to the left edge."
 msgstr "Використовуйте «Лівий» для вирівнювання по лівому краю"
 
-#: unpaper.py:185
+#: unpaper.py:187
 msgid "Use 'top' to align to the top edge."
 msgstr "Використовуйте «Верхній» для вирівнювання по верхньому краю"
 
-#: unpaper.py:190
+#: unpaper.py:192
 msgid "Use 'right' to align to the right edge."
 msgstr "Використовуйте «Правий» для вирівнювання по правому краю"
 
-#: unpaper.py:195
+#: unpaper.py:197
 msgid "Use 'bottom' to align to the bottom."
 msgstr "Використовуйте «Нижній» для вирівнювання по нижньому краю"
 
-#: unpaper.py:201
+#: unpaper.py:203
 msgid "Border margin"
 msgstr "Полоси країв"
 
-#: unpaper.py:205
+#: unpaper.py:207
 msgid "Vertical margin"
 msgstr "Вертикальне поле"
 
-#: unpaper.py:207
+#: unpaper.py:209
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Відстань по вертикалі, яку слід відступити від краю листа при вирівнюванні "
 "крайової області."
 
-#: unpaper.py:217
+#: unpaper.py:219
 msgid "Horizontal margin"
 msgstr "Горизонтальне поле"
 
-#: unpaper.py:219
+#: unpaper.py:221
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
-"Відстань по горизонталі, яку слід відступити від краю листа при вирівнюванні "
-"крайової області."
+"Відстань по горизонталі, яку слід відступити від краю листа при вирівнюванні"
+" крайової області."
 
-#: unpaper.py:231
+#: unpaper.py:233
 msgid "White threshold"
 msgstr "Поріг білого"
 
-#: unpaper.py:233
+#: unpaper.py:235
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "Співвідношення яскравості, вище якого піксель вважається білим"
 
-#: unpaper.py:243
+#: unpaper.py:245
 msgid "Black threshold"
 msgstr "Поріг чорного"
 
-#: unpaper.py:245
+#: unpaper.py:247
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
 msgstr ""
 "Значення насиченості кольору, при котрому точка зображення вважатиметься "
-"чорною, а не сірою. Використовується для \"відсіювання\" сірих елементів, чи "
-"переведенні зображення з відтінків сірого в чорно-біле."
+"чорною, а не сірою. Використовується для \"відсіювання\" сірих елементів, чи"
+" переведенні зображення з відтінків сірого в чорно-біле."
 
-#: unpaper.py:355
+#: unpaper.py:370
 msgid "Deskew"
 msgstr "Вирівнювання"
 
-#: unpaper.py:359
+#: unpaper.py:374
 msgid "Border"
 msgstr "Краї"
 
-#: unpaper.py:364
+#: unpaper.py:385
 msgid "Filters"
 msgstr "Фільтри"
 
-#: app.ui:5 menu.ui:6
-msgid "_File"
-msgstr "_Файл"
-
-#: app.ui:9 menu.ui:9
-msgid "_New"
-msgstr "_Створити"
-
-#: app.ui:14 menu.ui:14
-msgid "_Open"
-msgstr "_Відкрити сеанс"
-
-#: app.ui:19
-msgid "Open c_rashed session"
-msgstr "Відкрити _аварійний сеанс"
-
-#: app.ui:23 menu.ui:19
-msgid "S_can"
-msgstr "С_канувати"
-
-#: app.ui:33 menu.ui:29
-msgid "_Email as PDF"
-msgstr "Надіслати по _e-mail як PDF файл"
-
-#: app.ui:38 menu.ui:34
-msgid "_Print"
-msgstr "_Друк"
-
-#: app.ui:45 menu.ui:39
-msgid "_Quit"
-msgstr "_Вийти"
-
-#: app.ui:51 menu.ui:46
-msgid "_Edit"
-msgstr "_Редагувати"
-
-#: app.ui:55 menu.ui:49
-msgid "_Undo"
-msgstr "_Відмінити дію"
-
-#: app.ui:60 menu.ui:53
-msgid "_Redo"
-msgstr "Повт_орити дію"
-
-#: app.ui:67 menu.ui:57
-msgid "Cu_t"
-msgstr "_Вирізати"
-
-#: app.ui:77 menu.ui:65
-msgid "_Paste"
-msgstr "В_ставити"
-
-#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
-msgid "_Select"
-msgstr "По_значити"
-
-#: app.ui:89 menu.ui:76
-msgid "_All"
-msgstr "Усе"
-
-#: app.ui:94 menu.ui:80
-msgid "_Odd"
-msgstr "_Непарні"
-
-#: app.ui:99 menu.ui:84
-msgid "_Even"
-msgstr "Вирівняти"
-
-#: app.ui:104 menu.ui:88
-msgid "_Invert"
-msgstr "_Інвертувати"
-
-#: app.ui:109 menu.ui:92
-msgid "_Blank"
-msgstr "Очистити"
-
-#: app.ui:114 menu.ui:96
-msgid "_Dark"
-msgstr "Затемнити"
-
-#: app.ui:119 menu.ui:100
-msgid "_Modified"
-msgstr "_Змінено"
-
-#: app.ui:124 menu.ui:104
-msgid "_No OCR"
-msgstr "_Без OCR"
-
-#: app.ui:130 menu.ui:108
-msgid "_Clear OCR"
-msgstr "_Очистити OCR"
-
-#: app.ui:136 menu.ui:114
-msgid "Propert_ies"
-msgstr "_Властивості"
-
-#: app.ui:142 menu.ui:118
-msgid "Prefere_nces"
-msgstr "_Налаштування"
-
-#: app.ui:147 menu.ui:124
-msgid "_View"
-msgstr "_Вигляд"
-
-#: app.ui:150 app.ui:293
-msgid "_Pan"
-msgstr "_Панорамувати"
-
-#: app.ui:160 app.ui:310
-msgid "_Select & pan"
-msgstr "П_означити і панорамувати"
-
-#: app.ui:167
-msgid "_Tabbed"
-msgstr "Із _вкладками"
-
-#: app.ui:172
-msgid "_Split horizontally"
-msgstr "_Поділити горизонтально"
-
-#: app.ui:177
-msgid "_Split vertically"
-msgstr "Поділити _вертикально"
-
-#: app.ui:184
-msgid "Edit text layer"
-msgstr "Редагувати текстовий шар"
-
-#: app.ui:189
-msgid "Edit annotations"
-msgstr "Редагувати анотації"
-
-#: app.ui:197 app.ui:320 menu.ui:127
-msgid "Zoom _100%"
-msgstr "Збільшити до _100%"
-
-#: app.ui:201 app.ui:327 menu.ui:131
-msgid "Zoom to _fit"
-msgstr "Збільшити до розмірів вікна"
-
-#: app.ui:205 app.ui:334 menu.ui:135
-msgid "Zoom _in"
-msgstr "Збільшити"
-
-#: app.ui:210 app.ui:341 menu.ui:139
-msgid "Zoom _out"
-msgstr "Зменшити"
-
-#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
-msgid "Rotate 90° clockwise"
-msgstr "Обернути на 90° за год. стрілкою"
-
-#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
-msgid "Rotate 180°"
-msgstr "Обернути на 180°"
-
-#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
-msgid "Rotate 90° anticlockwise"
-msgstr "Обернути на 90° проти год. стрілки"
-
-#: app.ui:233 menu.ui:157
-msgid "_Tools"
-msgstr "_Інструменти"
-
-#: app.ui:237 menu.ui:160
-msgid "_Threshold"
-msgstr "_Поріг"
-
-#: app.ui:241 menu.ui:164
-msgid "_Brightness / Contrast"
-msgstr "_Яскравість/Контрастність"
-
-#: app.ui:245 menu.ui:168
-msgid "_Negate"
-msgstr "_Негатив"
-
-#: app.ui:249 menu.ui:172
-msgid "_Unsharp Mask"
-msgstr "_Нечітка маска"
-
-#: app.ui:253 menu.ui:176
-msgid "_Crop"
-msgstr "_Кадрувати"
-
-#: app.ui:259 menu.ui:180
-msgid "_Clean up"
-msgstr "Очистити"
-
-#: app.ui:263 menu.ui:184
-msgid "_Split"
-msgstr "Роз_ділений перегляд"
-
-#: app.ui:267 menu.ui:188
-msgid "_OCR"
-msgstr "Розпізнавання тексту"
-
-#: app.ui:273 menu.ui:192
-msgid "U_ser-defined"
-msgstr "Визначені _користувачем"
-
-#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
-msgid "_Help"
-msgstr "_Довідка"
-
-#: app.ui:286 menu.ui:205
-msgid "_About"
-msgstr "_Про програму"
-
-#: app.ui:375 app.ui:478
-msgid "Cut"
-msgstr "_Вирізати"
-
-#: app.ui:381 app.ui:484
-msgid "Copy"
-msgstr "_Копіювати"
-
-#: app.ui:387 app.ui:490
-msgid "Paste"
-msgstr "В_ставити"
-
-#: app.ui:393 app.ui:496
-msgid "Delete"
-msgstr "В_илучити"
-
-#: app.ui:420 app.ui:573
-msgid "Print"
-msgstr "Друк"
-
-#: app.ui:427
-#, fuzzy
-msgid "Select All"
-msgstr "Позначити все"
-
-#: app.ui:433
-#, fuzzy
-msgid "Select Odd"
-msgstr "Позначити непарні"
-
-#: app.ui:439
-#, fuzzy
-msgid "Select Even"
-msgstr "Позначити парні"
-
-#: app.ui:445
-msgid "Invert selection"
-msgstr "Інвертувати вибір"
-
-#: app.ui:503
-msgid "Clear OCR"
-msgstr "_Очистити OCR"
-
-#: app.ui:523
-msgid "Clears all pages"
-msgstr "Очистити всі сторінки"
-
-#: app.ui:533
-#, fuzzy
-msgid "Open images"
-msgstr "Відкрити зображення"
-
-#: app.ui:543
-msgid "Scan document"
-msgstr "Сканувати документ"
-
-#: app.ui:563
-msgid "Attach as PDF to a new email"
-msgstr "Додати як PDF до нового листа"
-
-#: app.ui:584
-msgid "Undo"
-msgstr "Відмінити"
-
-#: app.ui:594
-msgid "Redo"
-msgstr "Повторити"
-
-#: app.ui:605
-msgid "Cut selection"
-msgstr "Вирізати виділене"
-
-#: app.ui:615
-msgid "Copy selection"
-msgstr "Копіювати виділене"
-
-#: app.ui:625
-msgid "Paste selection"
-msgstr "Вставити виділене"
-
-#: app.ui:635
-msgid "Delete selected pages"
-msgstr "Вилучити обрані сторінки"
-
-#: app.ui:646
-msgid "Select all pages"
-msgstr "Позначити усі сторінки"
-
-#: app.ui:657
-msgid "Use the pan tool"
-msgstr "Використати інструмент панорамування"
-
-#: app.ui:668
-msgid "Use the rectangular selection tool"
-msgstr "Скористатися інструментом прямокутного позначення"
-
-#: app.ui:680
-msgid "Use the combined select and pan tool"
-msgstr "Використати комбінований інструмент позначення і панорамування"
-
-#: app.ui:693
-msgid "Zoom to 100%"
-msgstr "Збільшити до _100%"
-
-#: app.ui:703
+#: app.ui:11
+msgid "Pan"
+msgstr "Панорамування"
+
+#: app.ui:18
+msgid "Select"
+msgstr "Вибрати"
+
+#: app.ui:25
+msgid "Select & pan"
+msgstr "Виділити та панорамувати"
+
+#: app.ui:35
+msgid "Zoom 100%"
+msgstr "Масштаб 100%"
+
+#: app.ui:40 app.ui:708
 msgid "Zoom to fit"
 msgstr "Збільшити до розмірів вікна"
 
-#: app.ui:713
+#: app.ui:45 app.ui:718
 msgid "Zoom in"
 msgstr "Збільшити"
 
-#: app.ui:723
+#: app.ui:50 app.ui:728
 msgid "Zoom out"
 msgstr "Зменшити"
 
-#: app.ui:765
+#: app.ui:58 app.ui:161 app.ui:427 app.ui:761 menu.ui:143
+msgid "Rotate 90° clockwise"
+msgstr "Обернути на 90° за год. стрілкою"
+
+#: app.ui:63 app.ui:166 app.ui:431 app.ui:751 menu.ui:147
+msgid "Rotate 180°"
+msgstr "Обернути на 180°"
+
+#: app.ui:68 app.ui:171 app.ui:435 app.ui:741 menu.ui:151
+msgid "Rotate 90° anticlockwise"
+msgstr "Обернути на 90° проти год. стрілки"
+
+#: app.ui:84 app.ui:187
+msgid "Cut"
+msgstr "Вирізати"
+
+#: app.ui:89 app.ui:192
+msgid "Copy"
+msgstr "Копіювати"
+
+#: app.ui:94 app.ui:197
+msgid "Paste"
+msgstr "Вставити"
+
+#: app.ui:130 app.ui:560
+msgid "Print"
+msgstr "Друк"
+
+#: app.ui:138
+msgid "Select All"
+msgstr "Виділити все"
+
+#: app.ui:143
+msgid "Select Odd"
+msgstr "Вибрати непарні"
+
+#: app.ui:148
+msgid "Select Even"
+msgstr "Вибрати парні"
+
+#: app.ui:153
+msgid "Invert selection"
+msgstr "Інвертувати вибір"
+
+#: app.ui:210
+msgid "Clear OCR"
+msgstr "Очистити OCR"
+
+#: app.ui:226 menu.ui:6
+msgid "_File"
+msgstr "_Файл"
+
+#: app.ui:230 menu.ui:9
+msgid "_New"
+msgstr "_Створити"
+
+#: app.ui:234 menu.ui:14
+msgid "_Open"
+msgstr "_Відкрити сеанс"
+
+#: app.ui:238
+msgid "Open c_rashed session"
+msgstr "Відкрити _аварійний сеанс"
+
+#: app.ui:242
+msgid "Import _hOCR…"
+msgstr "Імпорт _hOCR…"
+
+#: app.ui:246 menu.ui:19
+msgid "S_can"
+msgstr "С_канувати"
+
+#: app.ui:254 menu.ui:29
+msgid "_Email as PDF"
+msgstr "Надіслати по _e-mail як PDF файл"
+
+#: app.ui:258 menu.ui:34
+msgid "_Print"
+msgstr "_Друк"
+
+#: app.ui:264 menu.ui:39
+msgid "_Quit"
+msgstr "_Вийти"
+
+#: app.ui:269 menu.ui:46
+msgid "_Edit"
+msgstr "_Редагувати"
+
+#: app.ui:273 menu.ui:49
+msgid "_Undo"
+msgstr "_Відмінити дію"
+
+#: app.ui:277 menu.ui:53
+msgid "_Redo"
+msgstr "Повт_орити дію"
+
+#: app.ui:283 menu.ui:57
+msgid "Cu_t"
+msgstr "_Вирізати"
+
+#: app.ui:291 menu.ui:65
+msgid "_Paste"
+msgstr "В_ставити"
+
+#: app.ui:299 app.ui:361 menu.ui:73
+msgid "_Select"
+msgstr "По_значити"
+
+#: app.ui:302 menu.ui:76
+msgid "_All"
+msgstr "Усе"
+
+#: app.ui:306 menu.ui:80
+msgid "_Odd"
+msgstr "_Непарні"
+
+#: app.ui:310 menu.ui:84
+msgid "_Even"
+msgstr "Вирівняти"
+
+#: app.ui:314 menu.ui:88
+msgid "_Invert"
+msgstr "_Інвертувати"
+
+#: app.ui:318 menu.ui:92
+msgid "_Blank"
+msgstr "Очистити"
+
+#: app.ui:322 menu.ui:96
+msgid "_Dark"
+msgstr "Затемнити"
+
+#: app.ui:326 menu.ui:100
+msgid "_Modified"
+msgstr "_Змінено"
+
+#: app.ui:330 menu.ui:104
+msgid "_No OCR"
+msgstr "_Без OCR"
+
+#: app.ui:336 menu.ui:108
+msgid "_Clear OCR"
+msgstr "_Очистити OCR"
+
+#: app.ui:342 menu.ui:114
+msgid "Propert_ies"
+msgstr "_Властивості"
+
+#: app.ui:348 menu.ui:118
+msgid "Prefere_nces"
+msgstr "_Налаштування"
+
+#: app.ui:353 menu.ui:124
+msgid "_View"
+msgstr "_Вигляд"
+
+#: app.ui:356
+msgid "_Pan"
+msgstr "_Панорамувати"
+
+#: app.ui:366
+msgid "_Select & pan"
+msgstr "П_означити і панорамувати"
+
+#: app.ui:374
+msgid "_Clear image selection"
+msgstr "_Очистити вибір зображення"
+
+#: app.ui:379
+msgid "_Tabbed"
+msgstr "Із _вкладками"
+
+#: app.ui:384
+msgid "_Split horizontally"
+msgstr "_Поділити горизонтально"
+
+#: app.ui:389
+msgid "_Split vertically"
+msgstr "Поділити _вертикально"
+
+#: app.ui:396
+msgid "Edit text layer"
+msgstr "Редагувати текстовий шар"
+
+#: app.ui:401
+msgid "Edit annotations"
+msgstr "Редагувати анотації"
+
+#: app.ui:409 menu.ui:127
+msgid "Zoom _100%"
+msgstr "Збільшити до _100%"
+
+#: app.ui:413 menu.ui:131
+msgid "Zoom to _fit"
+msgstr "Збільшити до розмірів вікна"
+
+#: app.ui:417 menu.ui:135
+msgid "Zoom _in"
+msgstr "Збільшити"
+
+#: app.ui:421 menu.ui:139
+msgid "Zoom _out"
+msgstr "Зменшити"
+
+#: app.ui:440 menu.ui:157
+msgid "_Tools"
+msgstr "_Інструменти"
+
+#: app.ui:444 menu.ui:160
+msgid "_Threshold"
+msgstr "_Поріг"
+
+#: app.ui:448 menu.ui:164
+msgid "_Brightness / Contrast"
+msgstr "_Яскравість/Контрастність"
+
+#: app.ui:452 menu.ui:168
+msgid "_Negate"
+msgstr "_Негатив"
+
+#: app.ui:456 menu.ui:172
+msgid "_Unsharp Mask"
+msgstr "_Нечітка маска"
+
+#: app.ui:460 menu.ui:176
+msgid "_Crop"
+msgstr "_Кадрувати"
+
+#: app.ui:466 menu.ui:180
+msgid "_Clean up"
+msgstr "Очистити"
+
+#: app.ui:470 menu.ui:184
+msgid "_Split"
+msgstr "Роз_ділений перегляд"
+
+#: app.ui:474 menu.ui:188
+msgid "_OCR"
+msgstr "Розпізнавання тексту"
+
+#: app.ui:480 menu.ui:192
+msgid "U_ser-defined"
+msgstr "Визначені _користувачем"
+
+#: app.ui:485 app.ui:488 menu.ui:198 menu.ui:201
+msgid "_Help"
+msgstr "_Довідка"
+
+#: app.ui:492 menu.ui:205
+msgid "_About"
+msgstr "_Про програму"
+
+#: app.ui:510
+msgid "Clears all pages"
+msgstr "Очистити всі сторінки"
+
+#: app.ui:520
+msgid "Open images"
+msgstr "Відкрити зображення"
+
+#: app.ui:530
+msgid "Scan document"
+msgstr "Сканувати документ"
+
+#: app.ui:550
+msgid "Attach as PDF to a new email"
+msgstr "Додати як PDF до нового листа"
+
+#: app.ui:573
+msgid "Undo"
+msgstr "Відмінити"
+
+#: app.ui:583
+msgid "Redo"
+msgstr "Повторити"
+
+#: app.ui:596
+msgid "Cut selection"
+msgstr "Вирізати виділене"
+
+#: app.ui:606
+msgid "Copy selection"
+msgstr "Копіювати виділене"
+
+#: app.ui:616
+msgid "Paste selection"
+msgstr "Вставити виділене"
+
+#: app.ui:626
+msgid "Delete selected pages"
+msgstr "Вилучити обрані сторінки"
+
+#: app.ui:639
+msgid "Select all pages"
+msgstr "Позначити усі сторінки"
+
+#: app.ui:652
+msgid "Use the pan tool"
+msgstr "Використати інструмент панорамування"
+
+#: app.ui:663
+msgid "Use the rectangular selection tool"
+msgstr "Скористатися інструментом прямокутного позначення"
+
+#: app.ui:674
+msgid "Use the combined select and pan tool"
+msgstr "Використати комбінований інструмент позначення і панорамування"
+
+#: app.ui:685
+msgid "Clear image selection"
+msgstr "Очистити вибір зображення"
+
+#: app.ui:698
+msgid "Zoom to 100%"
+msgstr "Збільшити до _100%"
+
+#: app.ui:774
 msgid "Crop selection"
 msgstr "Обрізати за позначеним"
 
-#: app.ui:776
+#: app.ui:787
 msgid "Quit"
 msgstr "Вихід"
-
-#: menu.ui:24
-#, fuzzy
-msgid "_Save"
-msgstr "_Зберегти"
-
-#: session_mixins.py:160
-#, fuzzy
-msgid "No crashed sessions found."
-msgstr ""
-
-#: session_mixins.py:166
-#, fuzzy
-msgid "Crashed sessions"
-msgstr ""
-
-#: session_mixins.py:171
-#, fuzzy
-msgid "_Discard"
-msgstr ""
-
-#: session_mixins.py:172
-#, fuzzy
-msgid "_Restore"
-msgstr ""
-
-#: session_mixins.py:175
-#, fuzzy
-msgid "Restore or discard a crashed session"
-msgstr ""
-
-#: session_mixins.py:204
-#, fuzzy
-msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
-msgstr ""
-
-#: session_mixins.py:239
-#, fuzzy
-msgid "Restore file"
-msgstr ""
-
-#: session_mixins.py:255
-#, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
-#: session_mixins.py:279
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
-msgstr ""
-
-#: scan_menu_item_mixins.py:122
-#, fuzzy
-msgid ""
-"Caching the device list with libusb devices is not recommended, as they can "
-"change between reboots. Cache them anyway?"
-msgstr ""
-
-#: scan_menu_item_mixins.py:127
-#, fuzzy
-msgid "Don't ask again"
-msgstr ""
 
 #~ msgid "PPI"
 #~ msgstr "т/дюйм"
@@ -2561,8 +3118,8 @@ msgstr ""
 
 #~ msgid "One reason for this might be that pdftk was installed via snap."
 #~ msgstr ""
-#~ "Однією з причин цього може бути те, що pdftk було встановлено за "
-#~ "допомогою пакунка snap."
+#~ "Однією з причин цього може бути те, що pdftk було встановлено за допомогою "
+#~ "пакунка snap."
 
 #~ msgid ""
 #~ "In this case, removing pdftk, and reinstalling without using snap would "
@@ -2573,8 +3130,8 @@ msgstr ""
 #~ "pdftk."
 
 #~ msgid ""
-#~ "Another workaround would be to select a temporary directory under your "
-#~ "home directory in Edit/Preferences."
+#~ "Another workaround would be to select a temporary directory under your home "
+#~ "directory in Edit/Preferences."
 #~ msgstr ""
 #~ "Іншим способом усування проблеми є вибір тимчасового каталогу у вашому "
 #~ "домашньому каталозі за допомогою пункту меню «Зміни -> Налаштування»."
@@ -2692,8 +3249,8 @@ msgstr ""
 #~ msgid ""
 #~ "The rotating, crop, unsharp, split and unpaper tools require perlmagick\n"
 #~ msgstr ""
-#~ "Для обертання, обрізання, зменшення різкості, поділу та розгортання "
-#~ "сторінок потрібен perlmagick\n"
+#~ "Для обертання, обрізання, зменшення різкості, поділу та розгортання сторінок"
+#~ " потрібен perlmagick\n"
 
 #~ msgid "unpaper missing\n"
 #~ msgstr "unpaper відсутній\n"
@@ -2715,8 +3272,7 @@ msgstr ""
 
 #, perl-format
 #~ msgid "%04d-%02d-%02d %02d:%02d:%02d is not a valid datetime: %s"
-#~ msgstr ""
-#~ "%04d-%02d-%02d %02d:%02d:%02d не є коректним записом дати і часу: %s"
+#~ msgstr "%04d-%02d-%02d %02d:%02d:%02d не є коректним записом дати і часу: %s"
 
 #~ msgid "90"
 #~ msgstr "90°"
@@ -2758,8 +3314,8 @@ msgstr ""
 #~ "оригінал."
 
 #~ msgid ""
-#~ "The threshold, as a fraction of QuantumRange, needed to apply the "
-#~ "difference amount."
+#~ "The threshold, as a fraction of QuantumRange, needed to apply the difference"
+#~ " amount."
 #~ msgstr ""
 #~ "Поріг, як частка QuantumRange, який потрібно додати до величини різниці."
 
@@ -2835,15 +3391,13 @@ msgstr ""
 #~ msgstr "Перетворити скановані зображення на PNG перед подальшою обробкою"
 
 #~ msgid ""
-#~ "Use %i and %o for the input and output filenames respectively, or a "
-#~ "single %i if the image is to be modified in-place.\n"
+#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
 #~ "\n"
 #~ "The other variable available is:\n"
 #~ "\n"
 #~ "%r resolution"
 #~ msgstr ""
-#~ "Використовуйте %i та %o для імен файлів відповідно на вході і виході, або "
-#~ "просто %i, якщо зображення буде редагуватися безпосередньо.\n"
+#~ "Використовуйте %i та %o для імен файлів відповідно на вході і виході, або просто %i, якщо зображення буде редагуватися безпосередньо.\n"
 #~ "\n"
 #~ "Інші параметри:\n"
 #~ "\n"
@@ -2862,8 +3416,8 @@ msgstr ""
 #~ msgstr "Крок"
 
 #~ msgid ""
-#~ "The current settings would result in duplicate page numbers. Please "
-#~ "select new start and increment values."
+#~ "The current settings would result in duplicate page numbers. Please select "
+#~ "new start and increment values."
 #~ msgstr ""
 #~ "Поточні налаштування призведуть до дублювання номерів сторінок. Виберіть "
 #~ "нове початкове значення та інкремент."
@@ -2894,23 +3448,22 @@ msgstr ""
 #~ "Reload recursion limit (%d) exceeded. Please file a bug, attaching a log "
 #~ "file reproducing the problem."
 #~ msgstr ""
-#~ "Перевищено обмеження на рекурсію (%d). Будь ласка, повідомте розробникам "
-#~ "про цю ваду, долучивши до повідомлення файл журналу із відтворенням "
-#~ "проблеми."
+#~ "Перевищено обмеження на рекурсію (%d). Будь ласка, повідомте розробникам про"
+#~ " цю ваду, долучивши до повідомлення файл журналу із відтворенням проблеми."
 
 #~ msgid ""
 #~ "Multiple unconstrained values are not currently supported. Please file a "
 #~ "bug."
 #~ msgstr ""
-#~ "У поточній версії не передбачено встановлення декількох необмежених "
-#~ "значень. Будь ласка, повідомте розробникам про цю ваду."
+#~ "У поточній версії не передбачено встановлення декількох необмежених значень."
+#~ " Будь ласка, повідомте розробникам про цю ваду."
 
 #~ msgid ""
 #~ "Multiple non-numerical values are not currently supported. Please file a "
 #~ "bug."
 #~ msgstr ""
-#~ "У поточній версії не передбачено встановлення декількох нечислових "
-#~ "значень. Будь ласка, повідомте розробникам про цю ваду."
+#~ "У поточній версії не передбачено встановлення декількох нечислових значень. "
+#~ "Будь ласка, повідомте розробникам про цю ваду."
 
 #~ msgid "Updating options"
 #~ msgstr "Параметри оновлюються"
@@ -2924,27 +3477,20 @@ msgstr ""
 
 #~ msgid "Please install djvulibre-bin in order to open DjVu files."
 #~ msgstr ""
-#~ "Щоб мати змогу відкривати файли DjVu, встановіть, будь ласка, djvulibre-"
-#~ "bin."
+#~ "Щоб мати змогу відкривати файли DjVu, встановіть, будь ласка, djvulibre-bin."
 
 #, perl-format
 #~ msgid "%s is not a recognised image type"
 #~ msgstr "%s не є типом зображення"
 
 #~ msgid ""
-#~ "Warning: scantpaper expects one image per page, but this was not "
-#~ "satisfied. It is probable that the PDF has not been correctly imported.\n"
+#~ "Warning: scantpaper expects one image per page, but this was not satisfied. It is probable that the PDF has not been correctly imported.\n"
 #~ "\n"
-#~ "If you wish to add scans to an existing PDF, use the prepend/append to "
-#~ "PDF options in the Save dialogue.\n"
+#~ "If you wish to add scans to an existing PDF, use the prepend/append to PDF options in the Save dialogue.\n"
 #~ msgstr ""
-#~ "Попередження: scantpaper мав отримати по одному зображенню на кожну "
-#~ "сторінку, але цю умову не було виконано. Ймовірно, PDF не було "
-#~ "імпортовано належним чином.\n"
+#~ "Попередження: scantpaper мав отримати по одному зображенню на кожну сторінку, але цю умову не було виконано. Ймовірно, PDF не було імпортовано належним чином.\n"
 #~ "\n"
-#~ "Якщо ви хочете додати скановані зображення до наявного файла PDF, "
-#~ "скористайтеся пунктами додадвання зображень на початку або наприкінці PDF "
-#~ "у діалоговому вікні збереження даних.\n"
+#~ "Якщо ви хочете додати скановані зображення до наявного файла PDF, скористайтеся пунктами додадвання зображень на початку або наприкінці PDF у діалоговому вікні збереження даних.\n"
 
 #, perl-format
 #~ msgid "Caught error creating PDF %s: %s"
@@ -2979,10 +3525,8 @@ msgstr ""
 #~ msgstr "Помилка при стисненні зображення: %s"
 
 #, perl-format
-#~ msgid ""
-#~ "Core font '%s' cannot encode character '%s', and no TTF font defined."
-#~ msgstr ""
-#~ "У базовому шрифті «%s» немає символу «%s», а шрифт TTF не визначено."
+#~ msgid "Core font '%s' cannot encode character '%s', and no TTF font defined."
+#~ msgstr "У базовому шрифті «%s» немає символу «%s», а шрифт TTF не визначено."
 
 #, perl-format
 #~ msgid "Neither '%s' nor '%s' can encode character '%s' in '%s'"
