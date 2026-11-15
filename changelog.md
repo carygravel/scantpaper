@@ -22,6 +22,7 @@
   window opens. A prior openSUSE upgrade can leave such a directory behind;
   remove it with the `find ... -empty -delete` command in the installation
   notes.
+* German translation updated thanks to Martin Butter
 
 
 ## 4.0.4 (2026-11-14)

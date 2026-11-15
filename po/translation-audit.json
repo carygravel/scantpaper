@@ -3,12 +3,12 @@
   "snapshot": "1a3037183eadc10004f7f4d6228bd7f9192aa2ec",
   "snapshot_date": "2026-02-28",
   "totals": {
-    "shipped": 14621,
-    "unchanged": 9866,
+    "shipped": 14647,
+    "unchanged": 9867,
     "model-changed": 1467,
-    "model-added": 3288,
-    "approved": 9880,
-    "pending": 4741,
+    "model-added": 3313,
+    "approved": 9881,
+    "pending": 4766,
     "restored": 0
   },
   "languages": {
@@ -63,12 +63,12 @@
       "has_snapshot": 1
     },
     "de": {
-      "shipped": 665,
+      "shipped": 669,
       "unchanged": 462,
       "model-changed": 0,
-      "model-added": 203,
+      "model-added": 207,
       "approved": 462,
-      "pending": 203,
+      "pending": 207,
       "restored": 0,
       "has_snapshot": 1
     },
@@ -83,22 +83,22 @@
       "has_snapshot": 1
     },
     "en_GB": {
-      "shipped": 658,
-      "unchanged": 405,
+      "shipped": 669,
+      "unchanged": 406,
       "model-changed": 0,
-      "model-added": 253,
-      "approved": 405,
-      "pending": 253,
+      "model-added": 263,
+      "approved": 406,
+      "pending": 263,
       "restored": 0,
       "has_snapshot": 1
     },
     "en_US": {
-      "shipped": 658,
+      "shipped": 669,
       "unchanged": 0,
       "model-changed": 0,
-      "model-added": 658,
+      "model-added": 669,
       "approved": 0,
-      "pending": 658,
+      "pending": 669,
       "restored": 0,
       "has_snapshot": 0
     },
@@ -5803,6 +5803,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Add a user-defined tool",
+      "msgid_plural": null
+    },
+    {
+      "language": "de",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Bilevel compression",
       "msgid_plural": null
     },
@@ -5955,6 +5963,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Delete",
+      "msgid_plural": null
+    },
+    {
+      "language": "de",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Blacklist this device",
       "msgid_plural": null
     },
@@ -5979,7 +5995,31 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Add a paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "de",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove the selected paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "de",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Apply",
+      "msgid_plural": null
+    },
+    {
+      "language": "de",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove %(option)s from the profile",
       "msgid_plural": null
     },
     {
@@ -6627,7 +6667,7 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Caching device list with libusb devices included is not recommended as they can change between reboots.",
+      "msgid": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?",
       "msgid_plural": null
     },
     {
@@ -6635,7 +6675,7 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Are you sure you want to do this?",
+      "msgid": "Don't ask again",
       "msgid_plural": null
     },
     {
@@ -6709,6 +6749,22 @@
       "msgctxt": null,
       "msgid": "Restore file",
       "msgid_plural": null
+    },
+    {
+      "language": "de",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Discard %(count)d crashed session?",
+      "msgid_plural": "Discard %(count)d crashed sessions?"
+    },
+    {
+      "language": "de",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Could not remove %(count)d crashed session.",
+      "msgid_plural": "Could not remove %(count)d crashed sessions."
     },
     {
       "language": "de",
@@ -7076,14 +7132,6 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Paste",
-      "msgid_plural": null
-    },
-    {
-      "language": "de",
-      "category": "model-added",
-      "reason": "model-added",
-      "msgctxt": null,
-      "msgid": "Delete",
       "msgid_plural": null
     },
     {
@@ -31347,6 +31395,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Add a user-defined tool",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Bilevel compression",
       "msgid_plural": null
     },
@@ -31523,6 +31579,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Delete",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Blacklist this device",
       "msgid_plural": null
     },
@@ -31547,7 +31611,31 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Add a paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove the selected paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Apply",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove %(option)s from the profile",
       "msgid_plural": null
     },
     {
@@ -32339,7 +32427,7 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Caching device list with libusb devices included is not recommended as they can change between reboots.",
+      "msgid": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?",
       "msgid_plural": null
     },
     {
@@ -32347,7 +32435,7 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Are you sure you want to do this?",
+      "msgid": "Don't ask again",
       "msgid_plural": null
     },
     {
@@ -32380,6 +32468,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Warning: unable to use %(configured)s for temporary storage. Defaulting to %(default)s instead.",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No crashed sessions found.",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Discard",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Restore",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Restore or discard a crashed session",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Some pages have not been saved.\nDo you really want to restore a crashed session?",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_GB",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Restore file",
       "msgid_plural": null
     },
     {
@@ -32860,14 +32996,6 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Paste",
-      "msgid_plural": null
-    },
-    {
-      "language": "en_GB",
-      "category": "model-added",
-      "reason": "model-added",
-      "msgctxt": null,
-      "msgid": "Delete",
       "msgid_plural": null
     },
     {
@@ -34115,6 +34243,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Add a user-defined tool",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Bilevel compression",
       "msgid_plural": null
     },
@@ -34931,6 +35067,30 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Save",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Edit",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Delete",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Scan",
       "msgid_plural": null
     },
@@ -35019,14 +35179,6 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Edit",
-      "msgid_plural": null
-    },
-    {
-      "language": "en_US",
-      "category": "model-added",
-      "reason": "model-added",
-      "msgctxt": null,
       "msgid": "Selects or edits the paper size",
       "msgid_plural": null
     },
@@ -35044,6 +35196,22 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Edit paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Add a paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove the selected paper size",
       "msgid_plural": null
     },
     {
@@ -35108,6 +35276,14 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Frontend options",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove %(option)s from the profile",
       "msgid_plural": null
     },
     {
@@ -35412,14 +35588,6 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Import hOCR",
-      "msgid_plural": null
-    },
-    {
-      "language": "en_US",
-      "category": "model-added",
-      "reason": "model-added",
-      "msgctxt": null,
-      "msgid": "Save",
       "msgid_plural": null
     },
     {
@@ -36427,7 +36595,7 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Caching device list with libusb devices included is not recommended as they can change between reboots.",
+      "msgid": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?",
       "msgid_plural": null
     },
     {
@@ -36435,7 +36603,7 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Are you sure you want to do this?",
+      "msgid": "Don't ask again",
       "msgid_plural": null
     },
     {
@@ -36532,6 +36700,62 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Warning: unable to use %(configured)s for temporary storage. Defaulting to %(default)s instead.",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No crashed sessions found.",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Crashed sessions",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Discard",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Restore",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Restore or discard a crashed session",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Some pages have not been saved.\nDo you really want to restore a crashed session?",
+      "msgid_plural": null
+    },
+    {
+      "language": "en_US",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Restore file",
       "msgid_plural": null
     },
     {
@@ -37683,14 +37907,6 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Delete",
-      "msgid_plural": null
-    },
-    {
-      "language": "en_US",
-      "category": "model-added",
-      "reason": "model-added",
-      "msgctxt": null,
       "msgid": "Print",
       "msgid_plural": null
     },
@@ -38289,6 +38505,6 @@
   ],
   "parked": [],
   "notes": [
-    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 13963 with 3288 model-added and 1467 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 658 entries in en_US, which has no snapshot, so the grand total is 14621."
+    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 13978 with 3313 model-added and 1467 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 14647."
   ]
 }

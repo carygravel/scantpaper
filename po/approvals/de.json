@@ -7694,84 +7694,6 @@
     {
       "language": "de",
       "msgctxt": null,
-      "msgid": "Draw or select a rectangle before adding",
-      "msgid_plural": null,
-      "translation_sha256": "590c3f045cd0e6802d2d7d446dd3b8f003ed4dfdc8d9ac1d543aba0aebc8e2be",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "B"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "1576687626030551a22e4fd60931bc2a696df786e7f8afef46e1670e95d0459e",
-      "model_release": "minimax/minimax-m3@2026-06-01",
-      "deployment": "opencode/minimax-m3",
-      "approval_date": "2026-11-07",
-      "msgstr": "Zeichnen oder wählen Sie ein Rechteck aus, bevor Sie es hinzufügen"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "Error getting file info for %(path)s: %(error)s",
-      "msgid_plural": null,
-      "translation_sha256": "251ab8529eeb627e80bd1d7c803141a14e8434c2e0fdd3c3893304ac5d23613d",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "tie": true,
-          "verdict": "identical",
-          "families": [
-            "deepseek-flash",
-            "minimax"
-          ]
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "79ff8a2ddb45eb3cc4a321568e20aab58fe2da6846d30bb1b3d1cbca9d47a8b4",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Fehler beim Abrufen der Dateiinformationen für %(path)s: %(error)s"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
       "msgid": "Error parsing hOCR file %(path)s: %(error)s",
       "msgid_plural": null,
       "translation_sha256": "4b3334e83d25e69a52bbc0eff60a5c65245b05cca949b5fd5c22c414dfe067fc",
@@ -8282,43 +8204,6 @@
     {
       "language": "de",
       "msgctxt": null,
-      "msgid": "Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum (%(maximum)s)",
-      "msgid_plural": null,
-      "translation_sha256": "7d21c4063a7f339cd66f4e4e3469d118e93029131d711c0dd18e246bef4ce33d",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "A"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "676ebdfa14d90ad9f3ba22d367c3ecbe21bfc7db558218b60a3ded8e9a6524c0",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Scanoption '%(name)s' wird ignoriert, Minimalbereich (%(minimum)s) > Maximalbereich (%(maximum)s)"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
       "msgid": "Import _hOCR…",
       "msgid_plural": null,
       "translation_sha256": "776730d9a98bc3e4d841050224423c815317c563bf26b17b1c66fc00b4a57422",
@@ -8424,47 +8309,6 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-07",
       "msgstr": "hOCR-Seite %(current)i von %(total)i wird importiert"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "Importing page %(current)i of %(total)i",
-      "msgid_plural": null,
-      "translation_sha256": "6db763b5765a8dad460b268c22ab73ce8ad27d208b2274ed9c720114de3acdc0",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "tie": true,
-          "verdict": "identical",
-          "families": [
-            "deepseek-flash",
-            "minimax"
-          ]
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "621ca94b19080d9b902279b812d85f61678355715cf272ad7b76895be2a76114",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Importiere Seite %(current)i von %(total)i"
     },
     {
       "language": "de",
@@ -9287,158 +9131,6 @@
     {
       "language": "de",
       "msgctxt": null,
-      "msgid": "Please install tesseract package 'tesseract-ocr-%(package)s' and restart scantpaper for OCR for %(language)s with tesseract.",
-      "msgid_plural": null,
-      "translation_sha256": "73f49868104492efea4f1f9af23410e6282bc4431d3d8eeee22cbb888f839351",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "A"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "82cd0b61430cb30c421c3af22749f773027677c44a22beac82141899aedff49e",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Bitte installieren Sie das Tesseract-Paket 'tesseract-ocr-%(package)s' und starten Sie scantpaper neu, damit OCR für %(language)s mit Tesseract funktioniert."
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "Please see the ImageMagick resource documentation for more information: %(url)s",
-      "msgid_plural": null,
-      "translation_sha256": "39f43263644e8c0619221b9d09028071bec4964830f456336ecbdc6d7e4a1191",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "B"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "8fa6cee2ba8fdb8dd0a812047403ff7625fdc9c93cdb682a6d1ca54b1dbbda70",
-      "model_release": "minimax/minimax-m3@2026-06-01",
-      "deployment": "opencode/minimax-m3",
-      "approval_date": "2026-11-07",
-      "msgstr": "Weitere Informationen finden Sie in der ImageMagick-Ressourcendokumentation: %(url)s"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "Process %(current)i of %(total)i",
-      "msgid_plural": null,
-      "translation_sha256": "de1e36ca2b71ec04fe686c09d4f466ce9b9c7cd9567897bdae6cb9e5be991755",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "B"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "5e9384d2cb4675e4c9249139c5161ade40018f415c40075f50952e3e3541f41f",
-      "model_release": "minimax/minimax-m3@2026-06-01",
-      "deployment": "opencode/minimax-m3",
-      "approval_date": "2026-11-07",
-      "msgstr": "Vorgang %(current)i von %(total)i"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "Process %(current)i of %(total)i (%(process)s)",
-      "msgid_plural": null,
-      "translation_sha256": "861e7e8f133afc6d935dbe27b58edd086f44c75b854b7ba20697f7eb786dc027",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "tie": true,
-          "verdict": "identical",
-          "families": [
-            "deepseek-flash",
-            "minimax"
-          ]
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "cb38acf74e180c41135895ea3fce6f2d03f63d62ded86de765d62d38d7c90592",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Prozess %(current)i von %(total)i (%(process)s)"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
       "msgid": "Process selected pages at once",
       "msgid_plural": null,
       "translation_sha256": "310c0c530c232b8df74aefba279e3d55a8022b9b69168c3b94f121872b426edc",
@@ -9589,43 +9281,6 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-07",
       "msgstr": "Regulärer Ausdruck, der ohne Berücksichtigung der Groß-/Kleinschreibung mit der Gerätebezeichnung und dem Backend-Namen abgeglichen wird, z. B. Camera oder v4l:.*"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for %(options)d scan options. Please file a bug, attaching a log file reproducing the problem.",
-      "msgid_plural": null,
-      "translation_sha256": "52d5b48a2bbe49cab4cfb716055b99b305becaa25df73201d900a5e4e8ffd277",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "A"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "6b64dca65ab2f08137618614f350e923c8af1be571e427e24ebc83621fba2476",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Das Rekursionslimit beim Neuladen (%(limit)d) wurde überschritten: %(reloads)d Neuladevorgänge für %(options)d Scanoptionen. Bitte melden Sie einen Fehler und fügen Sie eine Protokolldatei bei, die das Problem reproduziert."
     },
     {
       "language": "de",
@@ -10897,121 +10552,6 @@
     {
       "language": "de",
       "msgctxt": null,
-      "msgid": "The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has been left unchanged.",
-      "msgid_plural": null,
-      "translation_sha256": "6f70a99bd2dd92d5a28766f5add6866784668db9e9d549a8c0ac6e76e73b8e52",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "tie": true,
-          "verdict": "identical",
-          "families": [
-            "deepseek-flash",
-            "minimax"
-          ]
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "659f31d6dd2adf65fc66dda6fb5e8b780ed450b52c5ae7c2117afefe2bd2a575",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Die Einstellung %(key)s ist %(value)r und kann nicht als %(type)s verwendet werden, daher wurde sie unverändert gelassen."
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "The settings file %(filename)s could not be read in full. These settings were restored: %(settings)s. The rest were reset to their defaults. A backup has been saved as %(backup)s.",
-      "msgid_plural": null,
-      "translation_sha256": "abb3aab3442d868cbd09f57c4424340d313a805b36bb8913ece4980591856d5b",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "A"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "413217bf30a82bdc84dbb4bd3c6e6480933d073632cca243c89a4ff634c75061",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Die Einstellungsdatei %(filename)s konnte nicht vollständig gelesen werden. Diese Einstellungen wurden wiederhergestellt: %(settings)s. Die übrigen wurden auf ihre Standardwerte zurückgesetzt. Eine Sicherung wurde als %(backup)s gespeichert."
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "The settings file %(filename)s could not be read, so all settings have been reset to their defaults. A backup of the original file has been saved as %(backup)s.",
-      "msgid_plural": null,
-      "translation_sha256": "b6b80af1485bf25badb4f81f23d08a2f2d802bcb308bc985a3942f3aa35567fd",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "A"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "a943e65f8d41ab7b3d7add5ed1cebc1d56e8def37092ab94b7e36015b70199d9",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Die Einstellungsdatei %(filename)s konnte nicht gelesen werden, daher wurden alle Einstellungen auf ihre Standardwerte zurückgesetzt. Eine Sicherungskopie der Originaldatei wurde als %(backup)s gespeichert."
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
       "msgid": "The tessdata directory cannot be read: %(path)s",
       "msgid_plural": null,
       "translation_sha256": "e0b29e7ac00f8ddcf3acd3516d9fca43b864cdb7a00f3756e890ab9e89653a23",
@@ -11213,43 +10753,6 @@
     {
       "language": "de",
       "msgctxt": null,
-      "msgid": "Use %%i and %%o for the input and output filenames respectively,\nor a single %%i if the image is to be modified in-place.\n\nThe other variable available is:\n%%r resolution",
-      "msgid_plural": null,
-      "translation_sha256": "da917b900fd99b8a67c8e8d39dccece73ceca33e1890805fb53c8eb258b15fda",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "B"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "1c6abd536c176c8693460d8020ae1f35b5eccc69b1179af7c56733b06471fa94",
-      "model_release": "minimax/minimax-m3@2026-06-01",
-      "deployment": "opencode/minimax-m3",
-      "approval_date": "2026-11-07",
-      "msgstr": "Verwenden Sie %%i und %%o für die Eingabe- bzw. Ausgabedateinamen,\noder ein einzelnes %%i, wenn das Bild direkt geändert werden soll.\n\nDie andere verfügbare Variable ist:\n%%r Auflösung"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
       "msgid": "Use the system tessdata directory",
       "msgid_plural": null,
       "translation_sha256": "48569a533644bc480d17569a1119eab06ab42259d9412a9174d0ab39c027b953",
@@ -11283,43 +10786,6 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-07",
       "msgstr": "System-tessdata-Verzeichnis verwenden"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "Warning: unable to use %(configured)s for temporary storage. Defaulting to %(default)s instead.",
-      "msgid_plural": null,
-      "translation_sha256": "aa2bb7749787cf83692f8b0a3e8c571d3612443aa67b995f4ad18f9f4690ea45",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "A"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "15e1df55fa101437c2595cf267d4fb5e9133dcc141e0c44d2649430baafaf36c",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-07",
-      "msgstr": "Warnung: %(configured)s kann nicht als temporärer Speicher verwendet werden. Stattdessen wird standardmäßig %(default)s verwendet."
     },
     {
       "language": "de",
@@ -11786,26 +11252,6 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-07",
       "msgstr": "hOCR-Datei"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "%(mb)dMb free in %(name)s.",
-      "msgid_plural": "%(mb)dMb free in %(name)s.",
-      "translation_sha256": "f95562f81be09390d2e49e8eaaac3aa6b327e7a13852e2603bcaa06195b79f41",
-      "provenance_class": "human-review",
-      "evidence": {
-        "maintainer_directed": true,
-        "plural_forms": true
-      },
-      "evidence_sha256": "aadef57ae9a1aabe9c28af5862df2a35f4db44089bfe5774cba0343c0d2b4162",
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-11-08",
-      "msgstr_plural": {
-        "0": "%(mb)d Mb frei in %(name)s.",
-        "1": "%(mb)d Mb frei in %(name)s."
-      }
     },
     {
       "language": "de",
@@ -12507,40 +11953,6 @@
     {
       "language": "de",
       "msgctxt": null,
-      "msgid": "Caching device list with libusb devices included is not recommended as they can change between reboots.",
-      "msgid_plural": null,
-      "translation_sha256": "1590f4d9dd1731b0a53ea33fd86b3073ee38e07e1750325c83446dc21f4e3732",
-      "provenance_class": "human-review",
-      "evidence": {
-        "maintainer_approved": true,
-        "legacy_translation": true
-      },
-      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-11-08",
-      "msgstr": "Das Speichern der Geräteliste mit libusb-Geräten im Cache wird nicht empfohlen, da sich diese zwischen Neustarts ändern können."
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
-      "msgid": "Are you sure you want to do this?",
-      "msgid_plural": null,
-      "translation_sha256": "e9b6105a836f4ee7027a751190b7d3d59f6bcc8698b2c7deab40216401b3b698",
-      "provenance_class": "human-review",
-      "evidence": {
-        "maintainer_approved": true,
-        "legacy_translation": true
-      },
-      "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
-      "model_release": null,
-      "deployment": null,
-      "approval_date": "2026-11-08",
-      "msgstr": "Bist du sicher, dass du das tun möchtest?"
-    },
-    {
-      "language": "de",
-      "msgctxt": null,
       "msgid": "Alternate rotation every 2nd page",
       "msgid_plural": null,
       "translation_sha256": "db715f9e70d17201fd26ae22237c11b1bd936053744a02bc4808c13390591ff4",
@@ -12960,6 +12372,390 @@
         "0": "Konnte %(count)d abgestürzte Sitzung nicht entfernen.",
         "1": "Konnte %(count)d abgestürzte Sitzungen nicht entfernen."
       }
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Draw or select a rectangle before adding",
+      "msgid_plural": null,
+      "translation_sha256": "ce0a8fb98a0882778eeef7c22d2231e2a67b4898ccb8954c5aa1d56f11e05469",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Rechteck zeichnen oder auswählen vor dem Hinzufügen"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Error getting file info for %(path)s: %(error)s",
+      "msgid_plural": null,
+      "translation_sha256": "55c17609f1b45caf33b3144207ffd97f1d7379b76310183bd62f5bb7e00fc7b0",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Fehler beim Lesen der Dateiinformation für %(path)s: %(error)s"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum (%(maximum)s)",
+      "msgid_plural": null,
+      "translation_sha256": "cf85dddac0520531da023d68e12c2ec36ffcefaea199e0fd6ab95061a50b5731",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Die Scanooption '%(name)s' wird ignoriert, da der Minimalbereich (%(minimum)s) > Maximalbereich (%(maximum)s)"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Importing page %(current)i of %(total)i",
+      "msgid_plural": null,
+      "translation_sha256": "d69faec25a3ee1372b5ca876372ff64dc07514407a4ea040855fc737a8229f2f",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Seite %(current)i von %(total)i wird importiert"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Please install tesseract package 'tesseract-ocr-%(package)s' and restart scantpaper for OCR for %(language)s with tesseract.",
+      "msgid_plural": null,
+      "translation_sha256": "12e1e8106db6b03c62400843c98cf49e572c4218b36ad9cef52ab43d9032dc21",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Bitte das tesseract-Paket 'tesseract-ocr-%(package)s' installieren und scantpaper danach neu starten, um Texterkennung für %(language)s mit tesseract auszuführen."
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Please see the ImageMagick resource documentation for more information: %(url)s",
+      "msgid_plural": null,
+      "translation_sha256": "c67e6a19e52118d429a7c7fc16e62b87d76e660b7dfdc54825b733a4a4b68af5",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Bitte konsultiere die ImageMagick-Dokumentation für weitere Informationen: %(url)s"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Process %(current)i of %(total)i",
+      "msgid_plural": null,
+      "translation_sha256": "6977e8cb19d6f1e081a5a93f77894e08d3048708dd2056bab6f50021765b789a",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Verarbeite %(current)i von %(total)i"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Process %(current)i of %(total)i (%(process)s)",
+      "msgid_plural": null,
+      "translation_sha256": "92b3372b226ad353d5a4022daca5f67641887cf7531f718ffc5e968deed41bd7",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Verarbeite %(current)i von %(total)i (%(process)s)"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for %(options)d scan options. Please file a bug, attaching a log file reproducing the problem.",
+      "msgid_plural": null,
+      "translation_sha256": "e5c011011a9494a7670e85e6ed156db0b9a18f632a773b84c8de9ef3732b53c1",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Das Rekursionslimit (%(limit)d) beim Neuladen wurde überschritten: %(reloads)d Reloads für %(options)d Scan-Optionen. Bitte erstelle einen Bug-Report inklusive einer Log-Datei, damit das Problem nachvollzogen werden kann."
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has been left unchanged.",
+      "msgid_plural": null,
+      "translation_sha256": "ce868bfa64873aa4c06f40b630399c5e3b285ec0f619345bf184bc0995ceabaa",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Die Einstellung %(key)s ist %(value)r und kann nicht für %(type)s verwendet werden, daher wurde sie nicht geändert."
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "The settings file %(filename)s could not be read in full. These settings were restored: %(settings)s. The rest were reset to their defaults. A backup has been saved as %(backup)s.",
+      "msgid_plural": null,
+      "translation_sha256": "34abc7219fac80964bb5711e9dc10efa274622c19560223a86d42d11768e1831",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Die Konfigurationsdatei %(filename)s konnte nicht vollständig gelesen werden. Nur diese Einstellungen konnten verarbeitet werden: %(settings)s. Alle anderen Einstellungen wurden auf ihre Standardwerte zurückgesetzt. Ein Backup der ursprünglichen Datei wurde als %(backup)s gespeichert."
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "The settings file %(filename)s could not be read, so all settings have been reset to their defaults. A backup of the original file has been saved as %(backup)s.",
+      "msgid_plural": null,
+      "translation_sha256": "85ae5a5289709bde18188283851b8110f18134f2266a845a0c559bd909c5fe2b",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Die Konfigurationsdatei %(filename)s konnte nicht gelesen werden, daher wurden alle Einstellungen auf ihre Standardwerte zurückgesetzt. Ein Backup der ursprünglichen Datei wurde als %(backup)s gespeichert."
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Use %%i and %%o for the input and output filenames respectively,\nor a single %%i if the image is to be modified in-place.\n\nThe other variable available is:\n%%r resolution",
+      "msgid_plural": null,
+      "translation_sha256": "a15f7489c17f265836062ff0f6f2e605aea70ab6d69c2d562dda9e9308a36b53",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Verwende %%i und %%o für den Namen der Eingabe- bzw. Ausgabedatei\noder nur %%i, wenn das Bild bei gleichem Dateinamen geändert werden soll.\n\nDie andere Variable ist:\n%%r Auflösung"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Warning: unable to use %(configured)s for temporary storage. Defaulting to %(default)s instead.",
+      "msgid_plural": null,
+      "translation_sha256": "d0f322ef7fd9f6a6d418475e0cdc9861e85455efe2b09a3a51dc7b57e730e1de",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr": "Warnung: Es ist nicht möglich, %(configured)s als temporären Speicher zu verwenden. Daher Rückfall auf %(default)s."
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "%(mb)dMb free in %(name)s.",
+      "msgid_plural": "%(mb)dMb free in %(name)s.",
+      "translation_sha256": "4d424e3e9d1b3c449c09e99d69bcc50e9d5f4054899563574aeb2fcf6a20f0ec",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true,
+        "rosetta_translation": true,
+        "translator": "Martin Butter",
+        "translated_on": "2026-11-08"
+      },
+      "evidence_sha256": "96b3ca51c71727a8939341d13c1f7470dc56589360e7c7c93850a7d05031f2db",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-14",
+      "msgstr_plural": {
+        "0": "%(mb)dMb frei auf %(name)s.",
+        "1": "%(mb)dMb frei auf %(name)s."
+      }
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Add a paper size",
+      "msgid_plural": null,
+      "translation_sha256": "19aee2c83b71e7a4a7914d29e9cf7cc98c922da779df9f131b5e622db6ebd843",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true
+      },
+      "evidence_sha256": "c6587a04c34d08b1915c7673a1d015755438a4d92f465ea639f93a1e2bd38975",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-15",
+      "msgstr": "Papiergröße hinzufügen"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Add a user-defined tool",
+      "msgid_plural": null,
+      "translation_sha256": "61f51a3a52d041566845d059712dfa09fb2f990c5f56a2887f942ec4e499af10",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true
+      },
+      "evidence_sha256": "c6587a04c34d08b1915c7673a1d015755438a4d92f465ea639f93a1e2bd38975",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-15",
+      "msgstr": "Benutzerdefiniertes Programm hinzufügen"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?",
+      "msgid_plural": null,
+      "translation_sha256": "f8db3c49ef5670a7b676452e2f9e6811880ef0da9569898e904888c6f67d2cea",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true
+      },
+      "evidence_sha256": "c6587a04c34d08b1915c7673a1d015755438a4d92f465ea639f93a1e2bd38975",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-15",
+      "msgstr": "Das Zwischenspeichern der Geräteliste mit libusb-Geräten wird nicht empfohlen, da sie sich zwischen Neustarts ändern können. Trotzdem im Cache speichern?"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Don't ask again",
+      "msgid_plural": null,
+      "translation_sha256": "2f9abdd9e708a4f1fbd93dc42db481ca14f7e2591a2915e123203b4f7b8217c7",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true
+      },
+      "evidence_sha256": "c6587a04c34d08b1915c7673a1d015755438a4d92f465ea639f93a1e2bd38975",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-15",
+      "msgstr": "Nicht mehr fragen"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Remove %(option)s from the profile",
+      "msgid_plural": null,
+      "translation_sha256": "e88014027d3cccf63d699b33cdb6ebb160819cfe7a45b72f6d3284f17ddd5d58",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true
+      },
+      "evidence_sha256": "c6587a04c34d08b1915c7673a1d015755438a4d92f465ea639f93a1e2bd38975",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-15",
+      "msgstr": "%(option)s aus dem Profil entfernen"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "Remove the selected paper size",
+      "msgid_plural": null,
+      "translation_sha256": "a7ab8b03854ba671b8d2db82fd357094a4b31f7674c82d8898b56af20e43801d",
+      "provenance_class": "human-review",
+      "evidence": {
+        "maintainer_approved": true
+      },
+      "evidence_sha256": "c6587a04c34d08b1915c7673a1d015755438a4d92f465ea639f93a1e2bd38975",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-15",
+      "msgstr": "Ausgewählte Papiergröße entfernen"
     }
   ],
   "qualifications": [
