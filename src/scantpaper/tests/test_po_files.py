@@ -412,6 +412,37 @@ def test_generate_pot_needs_no_intltool(tmp_path: Path) -> None:
         assert msgid in msgids, f"{msgid!r} missing from the generated template"
 
 
+def _source_msgids(tmp_path: Path) -> set[str]:
+    """Return the msgids xgettext extracts from Python and the .ui files.
+
+    Extracted separately, the way ``dev/generate_pot.py`` does before it
+    merges them, so the union is what the merge must preserve.
+    """
+    src = REPO_ROOT / "src" / "scantpaper"
+    sources = (
+        ("py", ["--language=Python", "--keyword=_", "--keyword=N_"], "*.py"),
+        ("ui", [f"--its={_VENDORED_ITS}"], "*.ui"),
+    )
+    msgids: set[str] = set()
+    for name, extra, pattern in sources:
+        out = tmp_path / f"{name}-only.pot"
+        subprocess.run(
+            [
+                "xgettext",
+                *extra,
+                "--from-code=UTF-8",
+                "-o",
+                str(out),
+                *[str(p) for p in sorted(src.rglob(pattern))],
+            ],
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+        msgids |= {e.msgid for e in polib.pofile(str(out)) if e.msgid}
+    return msgids
+
+
 def test_a_shared_msgid_keeps_every_source_reference(tmp_path: Path) -> None:
     """Merging the per-language templates keeps both references of a msgid."""
     result = _run_generate_pot(tmp_path)
@@ -426,10 +457,7 @@ def test_a_shared_msgid_keeps_every_source_reference(tmp_path: Path) -> None:
     assert ".py" in suffixes, entry.occurrences
     assert ".ui" in suffixes, entry.occurrences
 
-    committed = polib.pofile(str(REPO_ROOT / "po" / "scantpaper" / "scantpaper.pot"))
-    assert {e.msgid for e in generated if e.msgid} == {
-        e.msgid for e in committed if e.msgid
-    }
+    assert {e.msgid for e in generated if e.msgid} == _source_msgids(tmp_path)
 
 
 def test_ui_msgids_are_extracted_from_the_ui_files(tmp_path: Path) -> None:
