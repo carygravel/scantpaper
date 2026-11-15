@@ -3275,7 +3275,7 @@ def _select_batch_entries(
         key=lambda entry: (entry.msgctxt or "", entry.msgid),
     )
     for entry in ordered:
-        if entry.msgctxt:
+        if bool(entry.msgctxt):
             unsupported.append((entry, "message context is not supported"))
             continue
         if entry.msgid_plural:
