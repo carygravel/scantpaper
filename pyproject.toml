@@ -80,6 +80,7 @@ show_missing = true
 [project.optional-dependencies]
 test = [
     "polib",
+    "types-polib",
     "pytest",
     "pytest-cov",
     "pytest-mock",
