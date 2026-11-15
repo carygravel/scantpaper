@@ -340,6 +340,26 @@ def test_script_entry_point() -> None:
         runpy.run_module("scantpaper.app", run_name="__main__")
 
 
+def test_parse_arguments_version(
+    capsys: pytest.CaptureFixture[str], mocker: pytest.MockerFixture
+) -> None:
+    """Print the resolved version and exit."""
+    mocker.patch.object(app_module, "VERSION", "4.0.4")
+    with patch("sys.argv", ["scantpaper", "--version"]), pytest.raises(SystemExit):
+        _parse_arguments()
+    assert capsys.readouterr().out.strip() == f"{PROG_NAME} 4.0.4"
+
+
+def test_parse_arguments_version_fallback(
+    capsys: pytest.CaptureFixture[str], mocker: pytest.MockerFixture
+) -> None:
+    """Print the unknown-version fallback without raising."""
+    mocker.patch.object(app_module, "VERSION", "unknown")
+    with patch("sys.argv", ["scantpaper", "--version"]), pytest.raises(SystemExit):
+        _parse_arguments()
+    assert capsys.readouterr().out.strip() == f"{PROG_NAME} unknown"
+
+
 def test_base_dir_frozen(mocker: pytest.MockerFixture) -> None:
     """BASE_DIR resolves to _MEIPASS when running as a frozen bundle."""
     original = app_module.BASE_DIR

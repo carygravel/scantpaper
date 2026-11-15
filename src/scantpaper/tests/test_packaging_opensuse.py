@@ -6,10 +6,15 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BUILD = REPO_ROOT / "packaging" / "opensuse" / "build.sh"
 SANE = REPO_ROOT / "packaging" / "opensuse" / "python313-sane.spec"
+SPECS = tuple(sorted((REPO_ROOT / "packaging" / "opensuse").glob("*.spec")))
 WORKFLOW = REPO_ROOT / ".github" / "workflows" / "opensuse-tumbleweed.yml"
+LEAP_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "opensuse.yml"
+RPM_WORKFLOWS = (LEAP_WORKFLOW, WORKFLOW)
 README = REPO_ROOT / "README.md"
 
 
@@ -75,6 +80,29 @@ def test_sane_spec_sorts_above_the_same_distro_version() -> None:
     text = SANE.read_text(encoding="utf-8")
     assert "%define pkg_version 2.9.2" in text
     assert "Version:        %{pkg_version}.0" in text
+
+
+def test_opensuse_specs_own_site_packages_directories() -> None:
+    """Own the version-named metadata directory so upgrades clean it up."""
+    assert len(SPECS) == 10
+    for spec in SPECS:
+        text = spec.read_text(encoding="utf-8")
+        assert "-type d" in text, spec
+        assert "%{python3_sitelib}/*" in text, spec
+        assert "%{python3_sitearch}/*" in text, spec
+        assert ">> %{_builddir}/%{name}-files.list" in text, spec
+
+
+@pytest.mark.parametrize("workflow", RPM_WORKFLOWS, ids=lambda path: path.name)
+def test_workflow_guards_stale_distribution_metadata(workflow: Path) -> None:
+    """Guard both openSUSE targets against unowned and stale metadata."""
+    text = workflow.read_text(encoding="utf-8")
+    assert "Assert RPMs own their distribution metadata" in text
+    assert "%{FILEMODES:perms}" in text
+    assert r"'^d.* /.*\.dist-info$'" in text
+    assert "Verify stale distribution metadata does not break startup" in text
+    assert "scantpaper-0.0.0.dist-info" in text
+    assert "stale=$(python3 -c" in text
 
 
 def test_tumbleweed_workflow_uses_the_standard_triggers() -> None:

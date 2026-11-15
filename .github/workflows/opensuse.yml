@@ -258,6 +258,25 @@ jobs:
             -name '*.rpm' \
             -print
 
+      # A version-named *.dist-info directory must be owned by the RPM,
+      # not just the files inside it. Otherwise an upgrade removes the old
+      # files but leaves the empty directory, and importlib.metadata can
+      # report the package's version as None.
+      - name: Assert RPMs own their distribution metadata
+        run: |
+          rc=0
+          for rpmfile in ~/rpmbuild/RPMS/*/*.rpm; do
+            listing=$(rpm -qp --qf \
+              '[%{FILEMODES:perms} %{FILENAMES}\n]' "$rpmfile")
+            if printf '%s\n' "$listing" | grep -q 'dist-info/' &&
+               ! printf '%s\n' "$listing" | grep -qE '^d.* /.*\.dist-info$'; then
+              echo "::error::$rpmfile installs a *.dist-info directory" \
+                "without owning it"
+              rc=1
+            fi
+          done
+          exit "$rc"
+
       # Only the runtime packages are published; the build-only helpers
       # (python313-hatch-vcs, python313-setuptools-scm) and the -debuginfo /
       # -debugsource packages are not useful on a target system.
@@ -425,6 +444,23 @@ jobs:
         run: |
           scantpaper --version
           python3 -c 'import sane, tesserocr, iso639, img2pdf, ocrmypdf; print("imports ok")'
+
+      # A stale, empty dist-info directory left by an earlier openSUSE
+      # upgrade can shadow the current distribution. The application must
+      # still report the version it reported before the directory existed.
+      - name: Verify stale distribution metadata does not break startup
+        run: |
+          expected=$(scantpaper --version)
+          stale=$(python3 -c \
+              'import sysconfig; print(sysconfig.get_path("purelib"))')
+          mkdir -p "$stale/scantpaper-0.0.0.dist-info"
+          actual=$(scantpaper --version)
+          rmdir "$stale/scantpaper-0.0.0.dist-info"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::scantpaper --version changed with stale metadata:" \
+              "expected '$expected', got '$actual'"
+            exit 1
+          fi
 
       # The step above would also pass for an artifact built from a stale
       # spec: it reports whatever version was compiled into it. On a tag

@@ -13,6 +13,15 @@
   buttons in the two view toolbars and the **Save**, **Edit** and **Delete**
   buttons in the scan-profile row, whose labels come from the catalogs; no
   translated text changes, only how its marker is rendered.
+* Upgrading an openSUSE RPM now leaves the new version's metadata
+  discoverable: the package owns its version-named `*.dist-info` directory,
+  so the previous release's empty directory is removed. The application also
+  recovers the real version when an empty stale directory is present, instead
+  of exiting with
+  `TypeError: can only concatenate str (not "NoneType") to str` before the
+  window opens. A prior openSUSE upgrade can leave such a directory behind;
+  remove it with the `find ... -empty -delete` command in the installation
+  notes.
 
 
 ## 4.0.4 (2026-11-14)

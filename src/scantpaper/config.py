@@ -9,6 +9,7 @@ import os
 import pathlib
 import re
 import shutil
+import sys
 from types import SimpleNamespace
 from typing import Any, cast
 
@@ -157,10 +158,17 @@ TIMEDELTA_FIELDS = 4
 
 
 def _version_tuple(version: str | None) -> tuple[int, ...]:
-    """Parse a version string into a comparable tuple of integers."""
+    """Parse a version string into a comparable tuple of integers.
+
+    A missing version means an old config and sorts below every release.
+    A present but unparseable version is unknown rather than old, so it
+    sorts above every release and does not re-run version-keyed
+    migrations.
+    """
     if version is None:
         return (0,)
-    return tuple(int(x) for x in re.findall(r"\d+", str(version))[:3])
+    parsed = tuple(int(x) for x in re.findall(r"\d+", str(version))[:3])
+    return parsed or (sys.maxsize,)
 
 
 class ConfigDict(dict[str, Any]):

@@ -19,16 +19,34 @@ AUTHOR_EMAIL = "jffry@posteo.net"
 URL = "https://github.com/carygravel/scantpaper"
 BUG_URL = URL + "/issues"
 LOCAL_DOCS_URI = f"/usr/share/doc/C/{PROG_NAME}/documentation.html"
+UNKNOWN_VERSION = "unknown"
 
 
 def get_version() -> str:
-    """Get version from pyproject.toml."""
+    """Get the version from pyproject.toml or the installed metadata."""
     tomlfile_path = Path(__file__).resolve().parents[2] / "pyproject.toml"
     if tomlfile_path.is_file():
         return cast(
             "str", (tomllib.loads(tomlfile_path.read_text())["project"]["version"])
         )
-    return importlib.metadata.version(PROG_NAME)
+    version: str | None
+    try:
+        version = importlib.metadata.version(PROG_NAME)
+    except importlib.metadata.PackageNotFoundError:
+        version = None
+    if version is None or version == "":
+        for distribution in importlib.metadata.distributions():
+            metadata = distribution.metadata
+            name = metadata.get("Name")
+            if not isinstance(name, str) or name.lower() != PROG_NAME:
+                continue
+            candidate = metadata.get("Version")
+            if isinstance(candidate, str) and candidate:
+                version = candidate
+                break
+    if isinstance(version, str) and version:
+        return version
+    return UNKNOWN_VERSION
 
 
 VERSION = get_version()

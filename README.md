@@ -964,6 +964,26 @@ until the fix is upstreamed. PostScript export has the same limitation as
 Leap: `tiff2ps` is not packaged on Tumbleweed (`tiff` 4.7.2), so the
 PostScript save type is not available.
 
+##### Upgrading from an affected release
+
+A package built before this fix does not own its version-named
+`*.dist-info` directory, so upgrading can leave the previous release's
+directory behind, empty. `importlib.metadata` then reports the version as
+`None`, and scantpaper exits with
+`TypeError: can only concatenate str (not "NoneType") to str` before the
+window opens. The application now tolerates the leftover directory, but you
+can remove it:
+
+```sh
+sudo find /usr/lib/python3.13/site-packages \
+  -maxdepth 1 -type d -name 'scantpaper-*.dist-info' -empty -delete
+```
+
+Check `python3 -c 'import sysconfig; print(sysconfig.get_path("purelib"))'`
+for the site-packages directory of the interpreter that runs scantpaper; on
+Leap 16 it is `/usr/lib/python3.13/site-packages`. The command deletes only
+empty directories, so the current release's metadata is left alone.
+
 #### From a wheel file
 
 Download `.whl` from [Github](https://github.com/carygravel/scantpaper/releases/).

@@ -207,11 +207,20 @@ sed -i \
 # icons, README and man page). The man page is excluded: rpm compresses it
 # to .gz during packaging, so it is declared explicitly with a wildcard.
 # The list is the single source for %files, and further explicit %files
-# entries would only duplicate paths.
+# entries would only duplicate paths. It also owns the package's
+# directories under site-packages, including the version-named *.dist-info
+# directory, so an upgrade removes the previous metadata directory; shared
+# system directories stay unowned.
 find %{buildroot} \( -type f -o -type l \) \
     -not -name 'scantpaper.1' \
     -printf '/%%P\n' \
     > %{_builddir}/%{name}-files.list
+
+find %{buildroot} -type d \
+    \( -path '%{buildroot}%{python3_sitelib}/*' \
+       -o -path '%{buildroot}%{python3_sitearch}/*' \) \
+    -printf '/%%P\n' \
+    >> %{_builddir}/%{name}-files.list
 
 %check
 # The upstream test suite needs a graphical environment, so don't run it

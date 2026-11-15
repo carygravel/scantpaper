@@ -406,6 +406,12 @@ def test_threshold_tool_migration() -> None:
         output = read_config(str(rc))
         assert output["threshold tool"] == 20, "current version not migrated"
 
+        # an unknown version is treated as current, not as legacy
+        with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
+            fh.write('{"version": "unknown", "threshold tool": 20}')
+        output = read_config(str(rc))
+        assert output["threshold tool"] == 20, "unknown version not migrated"
+
         # config without a version is treated as legacy
         with pathlib.Path(rc).open("w", encoding="utf-8") as fh:
             fh.write('{"threshold tool": 60}')

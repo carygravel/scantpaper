@@ -55,6 +55,15 @@ find %{buildroot} \( -type f -o -type l \) \
     -printf '/%%P\n' \
     > %{_builddir}/%{name}-files.list
 
+# Also own the package's directories under site-packages, including the
+# version-named *.dist-info directory, so an upgrade removes the previous
+# metadata directory. Shared system directories stay unowned.
+find %{buildroot} -type d \
+    \( -path '%{buildroot}%{python3_sitelib}/*' \
+       -o -path '%{buildroot}%{python3_sitearch}/*' \) \
+    -printf '/%%P\n' \
+    >> %{_builddir}/%{name}-files.list
+
 %check
 PYTHONPATH=%{buildroot}%{python3_sitelib} \
     python3 -c 'import importlib.metadata as m; print(m.version("hatch_vcs"))'

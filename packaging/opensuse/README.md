@@ -207,6 +207,17 @@ These are the openSUSE-specific decisions, each hard-won during bring-up.
   provides the `python3dist()` names and disables the requires generator, so
   its target depends on the distro packages directly and its sane package
   provides `python3dist(python-sane)` to replace the distro one.
+- **The generated `%files` list owns site-packages directories.** Each
+  spec appends a directory `find` for `%{python3_sitelib}` and
+  `%{python3_sitearch}` to the file list. A wheel installs a
+  version-named `<name>-<version>.dist-info/` directory; if RPM does not
+  own it, an upgrade removes the old files but leaves the empty directory
+  behind, and `importlib.metadata` can then report the package's version
+  as `None`. Owning the directories lets RPM remove them on upgrade. Only
+  the Python install tree is owned, so shared directories such as `/usr`,
+  `/usr/lib` and `/usr/bin` stay unowned. Fedora does not need this
+  because `%pyproject_save_files` already owns the directory, and dpkg
+  tracks directories for the `.deb`.
 - **A `.0` version suffix, deliberately and with no epoch.** Three packages -
   the sane package (`2.9.2.0`), `python313-img2pdf` (`0.6.3.0`) and
   `python313-pdfminer.six` (`20260107.0`) - are also offered by a repository at

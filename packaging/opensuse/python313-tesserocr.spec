@@ -60,6 +60,15 @@ find %{buildroot} \( -type f -o -type l \) \
     -printf '/%%P\n' \
     > %{_builddir}/%{name}-files.list
 
+# Also own the package's directories under site-packages, including the
+# version-named *.dist-info directory, so an upgrade removes the previous
+# metadata directory. Shared system directories stay unowned.
+find %{buildroot} -type d \
+    \( -path '%{buildroot}%{python3_sitelib}/*' \
+       -o -path '%{buildroot}%{python3_sitearch}/*' \) \
+    -printf '/%%P\n' \
+    >> %{_builddir}/%{name}-files.list
+
 %check
 # Run outside the source tree so the buildroot package shadows the source
 # directories (which lack the compiled extension modules).
