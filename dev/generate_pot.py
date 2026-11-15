@@ -75,7 +75,9 @@ def generate_template() -> str:
             )
             tmp_pots.append(ui_pot)
 
-        out = subprocess.check_output(["msgcat", "--use-first", *tmp_pots], text=True)
+        # No --use-first: both inputs are templates with empty msgstr, and the
+        # flag would discard the second entry's references for a shared msgid.
+        out = subprocess.check_output(["msgcat", *tmp_pots], text=True)
         for x in tmp_pots:
             Path(x).unlink(missing_ok=True)
     finally:

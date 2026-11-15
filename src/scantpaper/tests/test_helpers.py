@@ -612,3 +612,27 @@ def test_chooser_path_helpers_with_real_chooser(
     assert chooser_path(chooser) == "/tmp/round-trip.txt"
     assert chooser_paths(chooser) == ["/tmp/round-trip.txt"]
     chooser.destroy()
+
+
+@pytest.mark.parametrize(
+    ("label", "expected"),
+    [
+        ("_Löschen", "Löschen"),
+        ("Lö_schen", "Löschen"),
+        ("__Löschen", "_Löschen"),
+        ("Löschen", "Löschen"),
+        ("Text_", "Text_"),
+        ("A_B_C", "ABC"),
+    ],
+)
+def test_strip_mnemonic_markers(label: str, expected: str) -> None:
+    """The visible text drops the marker exactly as GTK draws it."""
+    assert helpers.strip_mnemonic_markers(label) == expected
+
+
+def test_strip_mnemonic_markers_matches_gtk() -> None:
+    """Stripping agrees with the text GTK renders for each input."""
+    for label in ("_Löschen", "Lö_schen", "__Löschen", "Löschen", "Text_"):
+        rendered = Gtk.Label.new_with_mnemonic(label).get_layout()
+        assert rendered is not None
+        assert helpers.strip_mnemonic_markers(label) == rendered.get_text()

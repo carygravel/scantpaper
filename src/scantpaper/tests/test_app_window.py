@@ -2495,6 +2495,33 @@ def test_startup_tabbed_hides_bar_on_image_page(
         app.quit()
 
 
+def test_labelled_buttons_honour_a_translated_mnemonic(
+    mocker: pytest.MockerFixture,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Every label app.ui puts on a button can carry a translated mnemonic.
+
+    GTK4 defaults a button's use-underline to false, so a mnemonic marker a
+    translation supplies was drawn as a literal underscore instead of being
+    turned into an accelerator.
+    """
+    app, win = _real_layout_window(mocker, tmp_path, "tabbed")
+    try:
+        labelled = [
+            obj
+            for obj in win.builder.get_objects()
+            if isinstance(obj, Gtk.Button) and obj.get_label()
+        ]
+        assert labelled, "app.ui should define labelled buttons"
+        ignored = [
+            obj.get_buildable_id() for obj in labelled if not obj.get_use_underline()
+        ]
+        assert not ignored, f"buttons draw their mnemonic marker: {ignored}"
+    finally:
+        win.destroy()
+        app.quit()
+
+
 def test_edit_bar_lays_out_without_a_window_resize(
     mocker: pytest.MockerFixture,
     tmp_path: pathlib.Path,

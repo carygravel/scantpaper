@@ -90,6 +90,20 @@ def test_labelled_icon_button_shows_text_and_accessible_name(
     _assert_accessible_names(update, ["Edit"])
 
 
+def test_labelled_icon_button_honours_a_translated_mnemonic(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """A mnemonic marker in the text is an accelerator, not a literal dash."""
+    update = _spy_accessible_names(mocker)
+    button = labelled_icon_button("edit-delete-symbolic", "_Löschen")
+
+    box = cast("Gtk.Box", button.get_child())
+    label = cast("Gtk.Label", box.get_last_child())
+    assert label.get_use_underline()
+    assert label.get_text() == "Löschen"
+    _assert_accessible_names(update, ["Löschen"])
+
+
 def test_scan_profile_buttons_are_labelled(sane_scan_dialog: SaneScanDialog) -> None:
     """Save, Edit and Delete show their words instead of only an icon."""
     frame = next(

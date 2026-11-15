@@ -98,6 +98,40 @@ def set_margins(widget: Gtk.Widget, value: int) -> None:
     widget.set_margin_end(value)
 
 
+def strip_mnemonic_markers(label: str) -> str:
+    """Return label as GTK draws it, with mnemonic markers removed.
+
+    GTK consumes a single ``_`` as the mnemonic marker and shows the
+    character after it underlined. A doubled ``__`` is one literal
+    underscore, and a trailing ``_`` cannot mark anything, so it is kept.
+    """
+    visible: list[str] = []
+    i = 0
+    while i < len(label):
+        char = label[i]
+        if char != "_" or i + 1 == len(label):
+            visible.append(char)
+            i += 1
+        elif label[i + 1] == "_":
+            visible.append("_")
+            i += 2
+        else:
+            visible.append(label[i + 1])
+            i += 2
+    return "".join(visible)
+
+
+def enable_mnemonics(builder: Gtk.Builder) -> None:
+    """Let every labelled button loaded by builder honour a mnemonic.
+
+    GTK4 defaults a button's use-underline to false, so a translated
+    marker would otherwise be drawn as a literal underscore.
+    """
+    for obj in builder.get_objects():
+        if isinstance(obj, Gtk.Button) and obj.get_label():
+            obj.set_use_underline(True)
+
+
 def icon_button(icon_name: str, tooltip: str) -> Gtk.Button:
     """Build an icon-only button with a tooltip and an accessible name."""
     button = Gtk.Button()
@@ -112,9 +146,11 @@ def labelled_icon_button(icon_name: str, label: str) -> Gtk.Button:
     button = Gtk.Button()
     content = Gtk.Box(spacing=DIALOG_ROW_SPACING)
     content.append(Gtk.Image.new_from_icon_name(icon_name))
-    content.append(Gtk.Label(label=label))
+    content.append(Gtk.Label.new_with_mnemonic(label))
     button.set_child(content)
-    button.update_property([Gtk.AccessibleProperty.LABEL], [label])
+    button.update_property(
+        [Gtk.AccessibleProperty.LABEL], [strip_mnemonic_markers(label)]
+    )
     return button
 
 

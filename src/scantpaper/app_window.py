@@ -35,7 +35,12 @@ from scantpaper.dialog import MultipleMessage
 from scantpaper.document import Document
 from scantpaper.edit_menu_mixins import EditMenuMixins
 from scantpaper.file_menu_mixins import FileMenuMixins
-from scantpaper.helpers import pack_box, recursive_slurp, run_dialog
+from scantpaper.helpers import (
+    enable_mnemonics,
+    pack_box,
+    recursive_slurp,
+    run_dialog,
+)
 from scantpaper.i18n import _, ngettext
 from scantpaper.imageview import Dragger, ImageView, Selector, SelectorDragger
 from scantpaper.progress import Progress
@@ -87,6 +92,17 @@ _ZOOM_ACTIONS: dict[int, str] = {
     Gdk.KEY_minus: "zoom-out",
     Gdk.KEY_KP_Subtract: "zoom-out",
 }
+
+
+def _load_builder() -> Gtk.Builder:
+    """Load app.ui, letting labelled buttons honour a translated mnemonic."""
+    base_path = pathlib.Path(pathlib.Path(__file__).parent).resolve()
+    builder = Gtk.Builder()
+    # Ensure Gtk.Builder uses the same gettext domain as the application
+    builder.set_translation_domain(PROG_NAME)
+    builder.add_from_file(str(base_path / "app.ui"))
+    enable_mnemonics(builder)
+    return builder
 
 
 def _is_text_input(widget: Gtk.Widget | None) -> bool:
@@ -332,11 +348,7 @@ class ApplicationWindow(
         super().__init__(*args, **kwargs)
 
         # https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/gtkbuilder.rnc
-        base_path = pathlib.Path(pathlib.Path(__file__).parent).resolve()
-        self.builder = Gtk.Builder()
-        # Ensure Gtk.Builder uses the same gettext domain as the application
-        self.builder.set_translation_domain(PROG_NAME)
-        self.builder.add_from_file(str(base_path / "app.ui"))
+        self.builder = _load_builder()
         # GTK4 removed Gtk.Builder.connect_signals; app.ui declares no
         # <signal> handlers, they are all wired in Python below.
         self.detail_popup = self.builder.get_object("detail_popup")

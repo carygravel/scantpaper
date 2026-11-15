@@ -8,6 +8,11 @@
   lists silently; declining still disables **Cache device list**. The
   suppressed warning can be re-enabled with `warn-libusb-cache` in
   `~/.config/scantpaperrc`.
+* A translation that marks a keyboard mnemonic with `_` now shows the marked
+  character underlined instead of a literal underscore. This affects the
+  buttons in the two view toolbars and the **Save**, **Edit** and **Delete**
+  buttons in the scan-profile row, whose labels come from the catalogs; no
+  translated text changes, only how its marker is rendered.
 
 
 ## 4.0.4 (2026-11-14)

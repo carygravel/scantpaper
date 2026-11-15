@@ -412,6 +412,26 @@ def test_generate_pot_needs_no_intltool(tmp_path: Path) -> None:
         assert msgid in msgids, f"{msgid!r} missing from the generated template"
 
 
+def test_a_shared_msgid_keeps_every_source_reference(tmp_path: Path) -> None:
+    """Merging the per-language templates keeps both references of a msgid."""
+    result = _run_generate_pot(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    generated = polib.pofile(str(tmp_path / "scantpaper.pot"))
+    entry = next(
+        (e for e in generated if e.msgid == "Delete"),
+        None,
+    )
+    assert entry is not None, "Delete missing from the generated template"
+    suffixes = {Path(name).suffix for name, _line in entry.occurrences}
+    assert ".py" in suffixes, entry.occurrences
+    assert ".ui" in suffixes, entry.occurrences
+
+    committed = polib.pofile(str(REPO_ROOT / "po" / "scantpaper" / "scantpaper.pot"))
+    assert {e.msgid for e in generated if e.msgid} == {
+        e.msgid for e in committed if e.msgid
+    }
+
+
 def test_ui_msgids_are_extracted_from_the_ui_files(tmp_path: Path) -> None:
     """The .ui contribution to the template is not silently empty."""
     result = _run_generate_pot(tmp_path)

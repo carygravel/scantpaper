@@ -1079,7 +1079,10 @@ is just as welcome.
 
 Missing strings are seeded as `#, fuzzy` (needs review) entries and fall
 back to English until a translator confirms them, so only confirmed
-translations reach users. The catalogs live in the `po/scantpaper/`
+translations reach users. In a button label, `_` marks the character after
+it as a keyboard mnemonic and is drawn as an underline, not a literal
+underscore; write `__` for a literal underscore. The catalogs live in the
+`po/scantpaper/`
 template directory, one `po/scantpaper/<language>.po` per language next to
 the generated `po/scantpaper/scantpaper.pot` — the layout Rosetta expects,
 so the directory can be tarballed and uploaded as-is.
