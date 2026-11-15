@@ -3099,7 +3099,7 @@ def _command_qualify(args: argparse.Namespace, config: GateConfig) -> int:
             ledger,
             config,
             request,
-            OpenAICompatibleClient(),
+            OpenAICompatibleClient(timeout=args.timeout),
         )
     except GateError as error:
         print(f"error: {error}", file=sys.stderr)
@@ -3146,7 +3146,9 @@ def _command_drift(args: argparse.Namespace, config: GateConfig) -> int:
         budget_usd=args.max_cost,
     )
     try:
-        result = drift_probe(config, request, OpenAICompatibleClient())
+        result = drift_probe(
+            config, request, OpenAICompatibleClient(timeout=args.timeout)
+        )
     except GateError as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
@@ -3694,7 +3696,7 @@ def _command_gate(args: argparse.Namespace, config: GateConfig) -> int:
         args.msgid,
         args.language,
         config,
-        OpenAICompatibleClient(),
+        OpenAICompatibleClient(timeout=args.timeout),
         options=GateOptions(
             context=args.context,
             evidence_path=args.evidence,
@@ -3786,12 +3788,24 @@ def _add_qualify_drift_parsers(sub: _SubParser) -> None:
     qualify_parser.add_argument("--catalog", type=Path)
     qualify_parser.add_argument("--count", type=int, default=20)
     qualify_parser.add_argument("--max-cost", type=float)
+    qualify_parser.add_argument(
+        "--timeout",
+        type=float,
+        default=60.0,
+        help="Per-request model timeout in seconds (default: 60)",
+    )
     qualify_parser.add_argument("--json", action="store_true")
     drift_parser = sub.add_parser("drift", help="Run the fixed drift probe")
     drift_parser.add_argument("--deployment", required=True)
     drift_parser.add_argument("--language", required=True)
     drift_parser.add_argument("--probe", type=Path)
     drift_parser.add_argument("--max-cost", type=float)
+    drift_parser.add_argument(
+        "--timeout",
+        type=float,
+        default=60.0,
+        help="Per-request model timeout in seconds (default: 60)",
+    )
     drift_parser.add_argument("--since")
     drift_parser.add_argument("--dry-run", action="store_true")
     drift_parser.add_argument("--json", action="store_true")
@@ -3855,6 +3869,12 @@ def _build_parser() -> argparse.ArgumentParser:
     gate_parser.add_argument("--context", default="")
     gate_parser.add_argument("--output", type=Path)
     gate_parser.add_argument("--max-cost", type=float)
+    gate_parser.add_argument(
+        "--timeout",
+        type=float,
+        default=60.0,
+        help="Per-request model timeout in seconds (default: 60)",
+    )
     approve_parser = sub.add_parser("approve", help="Apply an approved decision")
     approve_parser.add_argument("--catalog", type=Path, required=True)
     approve_parser.add_argument("--msgid", required=True)

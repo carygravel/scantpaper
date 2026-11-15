@@ -24,6 +24,10 @@
     "ru": {
       "qualification": 0.25,
       "drift": 0.22
+    },
+    "it": {
+      "qualification": 0.25,
+      "drift": 0.22
     }
   },
   "releases": {

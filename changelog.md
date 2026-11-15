@@ -25,7 +25,7 @@
 * Updated German translation thanks to Martin Butter
 * The German and Spanish translations now cover every shipped string, including
   counted forms.
-* Updated Ukrainian & Russian translations
+* Updated Italian, Russian & Ukrainian translations
 
 
 ## 4.0.4 (2026-11-14)

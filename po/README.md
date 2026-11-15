@@ -377,6 +377,8 @@ python3 dev/translation_gate.py qualify \
 records the score, tolerance, baseline size, deployment and cost in the
 ledger, and prints them. `--catalog` overrides the default
 `po/scantpaper/<language>.po`, and `--json` prints the whole record.
+`--timeout` sets the per-request model timeout (default 60 seconds); the same
+option is available on `drift`, `gate`, and `translate`.
 
 `thresholds` holds the global defaults. A language whose reviewed translations
 reproduce less exactly can record a calibrated override under
