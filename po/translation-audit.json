@@ -3,12 +3,12 @@
   "snapshot": "1a3037183eadc10004f7f4d6228bd7f9192aa2ec",
   "snapshot_date": "2026-02-28",
   "totals": {
-    "shipped": 14647,
+    "shipped": 14651,
     "unchanged": 9867,
     "model-changed": 1467,
-    "model-added": 3313,
+    "model-added": 3317,
     "approved": 9881,
-    "pending": 4766,
+    "pending": 4770,
     "restored": 0
   },
   "languages": {
@@ -103,12 +103,12 @@
       "has_snapshot": 0
     },
     "es": {
-      "shipped": 665,
+      "shipped": 669,
       "unchanged": 439,
       "model-changed": 23,
-      "model-added": 203,
+      "model-added": 207,
       "approved": 439,
-      "pending": 226,
+      "pending": 230,
       "restored": 0,
       "has_snapshot": 1
     },
@@ -7491,6 +7491,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Add a user-defined tool",
+      "msgid_plural": null
+    },
+    {
+      "language": "es",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Bilevel compression",
       "msgid_plural": null
     },
@@ -7667,6 +7675,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Delete",
+      "msgid_plural": null
+    },
+    {
+      "language": "es",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Blacklist this device",
       "msgid_plural": null
     },
@@ -7691,7 +7707,31 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "Add a paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "es",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove the selected paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "es",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Apply",
+      "msgid_plural": null
+    },
+    {
+      "language": "es",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove %(option)s from the profile",
       "msgid_plural": null
     },
     {
@@ -8395,7 +8435,7 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Caching device list with libusb devices included is not recommended as they can change between reboots.",
+      "msgid": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?",
       "msgid_plural": null
     },
     {
@@ -8403,7 +8443,7 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
-      "msgid": "Are you sure you want to do this?",
+      "msgid": "Don't ask again",
       "msgid_plural": null
     },
     {
@@ -8916,14 +8956,6 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Paste",
-      "msgid_plural": null
-    },
-    {
-      "language": "es",
-      "category": "model-added",
-      "reason": "model-added",
-      "msgctxt": null,
-      "msgid": "Delete",
       "msgid_plural": null
     },
     {
@@ -38505,6 +38537,6 @@
   ],
   "parked": [],
   "notes": [
-    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 13978 with 3313 model-added and 1467 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 14647."
+    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 13982 with 3317 model-added and 1467 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 14651."
   ]
 }

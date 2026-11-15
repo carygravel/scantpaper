@@ -12981,47 +12981,6 @@
     {
       "language": "es",
       "msgctxt": null,
-      "msgid": "Are you sure you want to do this?",
-      "msgid_plural": null,
-      "translation_sha256": "bf2a6c9917024bd5d14a3aea2643a78bb8d60d3dc91997fb08f029343259774e",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "tie": true,
-          "verdict": "identical",
-          "families": [
-            "deepseek-flash",
-            "minimax"
-          ]
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "8c49751136603cf050f3a811d38c02fc1abebdbbc7592ead028bb6cceca3be4b",
-      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
-      "deployment": "opencode/deepseek-v4.1-flash",
-      "approval_date": "2026-11-08",
-      "msgstr": "¿Estás seguro de que quieres hacer esto?"
-    },
-    {
-      "language": "es",
-      "msgctxt": null,
       "msgid": "Blur Radius.",
       "msgid_plural": null,
       "translation_sha256": "9cf0e4986b1e7d4bc9f9b8fd7300e365d15b6b5e51724d55cf583907b48a3332",
@@ -13090,43 +13049,6 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-08",
       "msgstr": "Lista de dispositivos de caché"
-    },
-    {
-      "language": "es",
-      "msgctxt": null,
-      "msgid": "Caching device list with libusb devices included is not recommended as they can change between reboots.",
-      "msgid_plural": null,
-      "translation_sha256": "1ef65adbff4f0afc535844e6d7a023b66473f459a87bf634335388391ced7a9b",
-      "provenance_class": "machine-strong",
-      "evidence": {
-        "proposals": [
-          {
-            "deployment": "opencode/deepseek-v4.1-flash",
-            "family": "deepseek-flash"
-          },
-          {
-            "deployment": "opencode/minimax-m3",
-            "family": "minimax"
-          }
-        ],
-        "judge": {
-          "deployment": "opencode/glm-5.3",
-          "verdict": "B"
-        },
-        "checks": {
-          "opencode/deepseek-v4.1-flash": [],
-          "opencode/minimax-m3": []
-        },
-        "backtranslation": true,
-        "high_impact": false,
-        "prompt_version": "2026-11-01",
-        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
-      },
-      "evidence_sha256": "21014e1679f0c6b98243ae461fc97a5c2c296c78d1a67d7035562eb7dc3e0acb",
-      "model_release": "minimax/minimax-m3@2026-06-01",
-      "deployment": "opencode/minimax-m3",
-      "approval_date": "2026-11-08",
-      "msgstr": "No se recomienda almacenar en caché la lista de dispositivos con dispositivos libusb incluidos, ya que pueden cambiar entre reinicios."
     },
     {
       "language": "es",
@@ -15844,6 +15766,245 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-08",
       "msgstr": "No se pudieron encontrar las siguientes herramientas definidas por el usuario:\n"
+    },
+    {
+      "language": "es",
+      "msgctxt": null,
+      "msgid": "Add a paper size",
+      "msgid_plural": null,
+      "translation_sha256": "28edab2ede547cd5176e74af5a17474457d61e6923679b077e733252297271c9",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax"
+          }
+        ],
+        "judge": {
+          "tie": true,
+          "verdict": "identical",
+          "families": [
+            "deepseek-flash",
+            "minimax"
+          ]
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "8ad3c4b6c701bcffbe35f866cae3876757ba60c776051dd456b3d590d9a0ad68",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-15",
+      "msgstr": "Añadir un tamaño de papel"
+    },
+    {
+      "language": "es",
+      "msgctxt": null,
+      "msgid": "Add a user-defined tool",
+      "msgid_plural": null,
+      "translation_sha256": "25b8920febd53b484a11ce95f2b6b3d8cf9dac9c6e8cc7d42bafc46a8e1db520",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax"
+          }
+        ],
+        "judge": {
+          "tie": true,
+          "verdict": "identical",
+          "families": [
+            "deepseek-flash",
+            "minimax"
+          ]
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "8d1738f8477c110d19b94db85d212fef0a83d52a52ab729b811fe924ffe06dae",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-15",
+      "msgstr": "Añadir una herramienta definida por el usuario"
+    },
+    {
+      "language": "es",
+      "msgctxt": null,
+      "msgid": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?",
+      "msgid_plural": null,
+      "translation_sha256": "8df934705bedf4087a8e5fb83351721ff04a0fc7161bebd5195b88c20b29fa23",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax"
+          }
+        ],
+        "judge": {
+          "tie": true,
+          "verdict": "identical",
+          "families": [
+            "deepseek-flash",
+            "minimax"
+          ]
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "8222c2268806a515abc6a02f3530248b47708772b46688db069290cfe5ff6249",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-15",
+      "msgstr": "No se recomienda almacenar en caché la lista de dispositivos con dispositivos libusb, ya que pueden cambiar entre reinicios. ¿Almacenarlos en caché de todos modos?"
+    },
+    {
+      "language": "es",
+      "msgctxt": null,
+      "msgid": "Don't ask again",
+      "msgid_plural": null,
+      "translation_sha256": "d510b4c54222610b5c3d262f682dffebe5bb567b07fc0f8211b67015143c2c8d",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax"
+          }
+        ],
+        "judge": {
+          "tie": true,
+          "verdict": "identical",
+          "families": [
+            "deepseek-flash",
+            "minimax"
+          ]
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "4a0c9978d4662e9d414dbf1d9f8861819aef021a4d204b1c49d22c8614bc6445",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-15",
+      "msgstr": "No volver a preguntar"
+    },
+    {
+      "language": "es",
+      "msgctxt": null,
+      "msgid": "Remove %(option)s from the profile",
+      "msgid_plural": null,
+      "translation_sha256": "8157fe894fce514939cf9a333017522b6bfdc618ed1ed214a5b8e662b86d614b",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax"
+          }
+        ],
+        "judge": {
+          "tie": true,
+          "verdict": "identical",
+          "families": [
+            "deepseek-flash",
+            "minimax"
+          ]
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": true,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "9bb6c6e70111bfcce3ad948f56828c6f5eb023c3e46f515981af844e496dfbc8",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-15",
+      "msgstr": "Eliminar %(option)s del perfil"
+    },
+    {
+      "language": "es",
+      "msgctxt": null,
+      "msgid": "Remove the selected paper size",
+      "msgid_plural": null,
+      "translation_sha256": "7f86c1763f7b059c41acc939948f99b6b5639aed25455fb6d54a9465ad30e2b1",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "B"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": true,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "37edefac301a5498999920ef9ef653324978ed6695b6e477dd1126c2f25efaf9",
+      "model_release": "minimax/minimax-m3@2026-06-01",
+      "deployment": "opencode/minimax-m3",
+      "approval_date": "2026-11-15",
+      "msgstr": "Eliminar el tamaño de papel seleccionado"
     }
   ],
   "qualifications": [
@@ -19860,6 +20021,108 @@
       "total_cost_usd": 0.007869,
       "latency_ms": 18244.383,
       "evidence_sha256": "c7e250a555832326a4d863c55efa0d083afae26f4d7375d317b1cc6fc69e7998"
+    },
+    {
+      "action": "gate",
+      "language": "es",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-15T10:11:38+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 2,
+      "total_cost_usd": 0.000262,
+      "latency_ms": 2458.49,
+      "evidence_sha256": "c1b66104f90a4409c8f71121d858f0e2413b5504ec678f7a1327d56e88bb34b8"
+    },
+    {
+      "action": "gate",
+      "language": "es",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-15T10:11:41+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 2,
+      "total_cost_usd": 0.000297,
+      "latency_ms": 2922.775,
+      "evidence_sha256": "c01c188283705b7e9f5e869ae862dadc33fa62250105308dcdca0471d31d392c"
+    },
+    {
+      "action": "gate",
+      "language": "es",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-15T10:11:54+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 3,
+      "total_cost_usd": 0.004479,
+      "latency_ms": 13148.13,
+      "evidence_sha256": "48cda403191ab3e3f9e325a38b07fcb4fd9e72386ac35a5da1907319c3586970"
+    },
+    {
+      "action": "gate",
+      "language": "es",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-15T10:11:57+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 2,
+      "total_cost_usd": 0.000298,
+      "latency_ms": 2467.962,
+      "evidence_sha256": "0108921c7c382628c77ebe2dbd9fdd13d5162cde06e9bf38d008f98c37a570b5"
+    },
+    {
+      "action": "gate",
+      "language": "es",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-15T10:12:01+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-09-10",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 3,
+      "total_cost_usd": 0.001272,
+      "latency_ms": 4499.249,
+      "evidence_sha256": "6b9eb160599ffda3f95dcde63366732856fcdd54778b7a0506b158d73bfe78a1"
+    },
+    {
+      "action": "gate",
+      "language": "es",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-15T10:12:16+00:00",
+      "winning_deployment": "opencode/minimax-m3",
+      "winning_release": "minimax/minimax-m3@2026-06-01",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.005492,
+      "latency_ms": 14255.726,
+      "evidence_sha256": "b37fb136768d527100e98779b4cb8d527cd17562023f09308acf85959a2869b4"
     }
   ]
 }
