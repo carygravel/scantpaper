@@ -257,6 +257,52 @@ def test_case_only_duplicate_msgids_are_advisory(tmp_path: Path) -> None:
     assert "differ only by case" in result.stdout
 
 
+def test_mnemonic_only_duplicate_msgids_are_advisory(tmp_path: Path) -> None:
+    """Two msgids differing only by a mnemonic marker are reported once."""
+    result = _run_check_po(tmp_path, "", pot_msgids=("Copy", "_Copy"))
+    assert result.returncode == 0, result.stdout
+    assert "differ only by a mnemonic marker: 'Copy', '_Copy'" in result.stdout
+
+
+def test_mnemonic_group_is_found_wherever_the_marker_sits(tmp_path: Path) -> None:
+    """A mid-word marker groups as reliably as a leading one."""
+    result = _run_check_po(
+        tmp_path,
+        "",
+        pot_msgids=("Cu_t", "Cut", "Zoom _in", "Zoom in"),
+    )
+    assert result.returncode == 0, result.stdout
+    lines = [
+        line
+        for line in result.stdout.splitlines()
+        if "differ only by a mnemonic marker" in line
+    ]
+    assert lines == [
+        "[advisory] source: msgids differ only by a mnemonic marker: 'Cu_t', 'Cut'",
+        (
+            "[advisory] source: msgids differ only by a mnemonic marker: "
+            "'Zoom _in', 'Zoom in'"
+        ),
+    ]
+
+
+def test_msgids_differing_by_more_than_a_marker_are_not_reported(
+    tmp_path: Path,
+) -> None:
+    """A pair that differs by wording is not a mnemonic-only duplicate."""
+    result = _run_check_po(tmp_path, "", pot_msgids=("Save", "Save as…"))
+    assert result.returncode == 0, result.stdout
+    assert "mnemonic marker" not in result.stdout
+
+
+def test_catalog_relocating_a_marker_is_not_reported(tmp_path: Path) -> None:
+    """Only source msgids are compared; a translation is never inspected."""
+    body = 'msgid "Copy"\nmsgstr "_Copy"\n'
+    result = _run_check_po(tmp_path, body, pot_msgids=("Copy",))
+    assert result.returncode == 0, result.stdout
+    assert "mnemonic marker" not in result.stdout
+
+
 def test_concatenation_fragment_is_advisory(tmp_path: Path) -> None:
     """A msgid ending in a colon with no value is reported as a fragment."""
     result = _run_check_po(tmp_path, "", pot_msgids=("Error opening device: ",))

@@ -19,8 +19,10 @@ and parses the message bodies with polib to catch defects `msgfmt` misses:
   and sibling controls such as `Select Odd`/`Select Even` given one
   translation;
 * source-side defects, reported once over the msgid set: untranslatable
-  plural hacks (a hard failure) plus case-only duplicates, concatenation
-  fragments, doubled spaces, GREEK SMALL LETTER MU, and over-long strings.
+  plural hacks (a hard failure) plus case-only duplicates, mnemonic-only
+  duplicates (msgids that collapse once marker underscores are removed),
+  concatenation fragments, doubled spaces, GREEK SMALL LETTER MU, and
+  over-long strings.
 
 Advisories never affect the exit status: a release is not blocked by one.
 
@@ -355,6 +357,19 @@ def _case_only_duplicate_groups(msgids: list[str]) -> list[list[str]]:
     return [sorted(group) for group in folded.values() if len(group) > 1]
 
 
+def _mnemonic_only_duplicate_groups(msgids: list[str]) -> list[list[str]]:
+    """Return groups of msgids that differ only by a mnemonic marker.
+
+    A marker may sit anywhere in the string, so every `_` is removed for
+    the comparison. Case is left alone: a pair that also differs by case
+    is the separate case-only report.
+    """
+    stripped: dict[str, set[str]] = defaultdict(set)
+    for msgid in msgids:
+        stripped[msgid.replace("_", "")].add(msgid)
+    return [sorted(group) for group in stripped.values() if len(group) > 1]
+
+
 def _first_difference(vendored: Path, installed: Path) -> int:
     """Return the 1-based number of the first line where two files differ."""
     vendored_lines = vendored.read_text(encoding="utf-8").splitlines()
@@ -413,6 +428,11 @@ def _source_advisories(msgids: list[str]) -> list[str]:
         + ", ".join(repr(m) for m in group)
         for group in _case_only_duplicate_groups(msgids)
     ]
+    lines.extend(
+        "[advisory] source: msgids differ only by a mnemonic marker: "
+        + ", ".join(repr(m) for m in group)
+        for group in _mnemonic_only_duplicate_groups(msgids)
+    )
     lines.extend(
         f"[advisory] source: {msgid!r} is a concatenation fragment; "
         "pass the value in the same translatable string so the "
