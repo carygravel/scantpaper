@@ -371,7 +371,7 @@ def test_committed_report_accounts_for_every_shipped_entry() -> None:
 
     totals = report["totals"]
     assert totals["shipped"] == shipped
-    assert totals["unchanged"] == 9823
-    assert totals["model-changed"] == 1465
+    assert totals["unchanged"] == 9810
+    assert totals["model-changed"] == 1468
     assert totals["approved"] + totals["pending"] == shipped
-    assert shipped == 15020
+    assert shipped == 15148
