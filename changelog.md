@@ -23,6 +23,8 @@
   remove it with the `find ... -empty -delete` command in the installation
   notes.
 * German translation updated thanks to Martin Butter
+* The German and Spanish translations now cover every shipped string, including
+  counted forms.
 
 
 ## 4.0.4 (2026-11-14)
@@ -85,8 +87,6 @@
 * The Fedora RPM now requires `gtk4` and `gobject-introspection`. The Python
   metadata pulled the GObject bindings but not the Gtk and cairo typelibs, so
   a fresh install could fail to start with `Namespace Gtk not available`.
-* The German and Spanish translations now cover every shipped string, including
-  counted forms.
 
 
 ## 4.0.3 (2026-11-07)
