@@ -22,10 +22,10 @@
   window opens. A prior openSUSE upgrade can leave such a directory behind;
   remove it with the `find ... -empty -delete` command in the installation
   notes.
-* German translation updated thanks to Martin Butter
+* Updated German translation thanks to Martin Butter
 * The German and Spanish translations now cover every shipped string, including
   counted forms.
-* Ukrainian translation updated
+* Updated Ukrainian & Russian translations
 
 
 ## 4.0.4 (2026-11-14)

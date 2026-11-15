@@ -20,6 +20,10 @@
     "uk": {
       "qualification": 0.25,
       "drift": 0.22
+    },
+    "ru": {
+      "qualification": 0.25,
+      "drift": 0.22
     }
   },
   "releases": {
