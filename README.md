@@ -280,6 +280,12 @@ next time scantpaper starts.
   GTK's interactive-search overlay, which showed nothing because no list
   configures a search column. It also removes the `gtk_css_node_insert_after`
   Gtk-CRITICAL that GTK 4.24 printed in its place on the first such keystroke.
+- **Reorder by drag:** Dragging a page up or down the thumbnail panel to
+  reorder it no longer crashes the application (a native GTK segfault in the
+  thumbnail list's drop-highlight drawing). The temporary drop-position line
+  that was drawn while dragging has been removed; the same drag still reorders
+  the pages, the moved pages stay selected, and **Edit → Undo** restores the
+  previous order in one step.
 - **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
 - **Print:** Print selected/all pages.
 - **Dialogs:** Every dialog insets its content and its action buttons from the

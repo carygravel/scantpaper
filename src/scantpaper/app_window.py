@@ -192,17 +192,19 @@ def _attach_selection_css() -> Gtk.CssProvider | None:
 
 
 def drag_motion_callback(
-    target: Gtk.DropTarget, x: float, y: float, tree: Gtk.TreeView
+    target: Gtk.DropTarget, _x: float, y: float, tree: Gtk.TreeView
 ) -> Gdk.DragAction:
-    """Handle drag motion over the thumbnail list."""
-    try:
-        path, how = tree.get_dest_row_at_pos(int(x), int(y))
-    except TypeError:  # for NoneType, which can't be unpacked
-        return Gdk.DragAction.MOVE
+    """Handle drag motion over the thumbnail list.
 
-    # Add the marker showing the drop in the tree
-    tree.set_drag_dest_row(path, how)
-
+    The native GtkTreeView drop-highlight is deliberately NOT armed here.
+    `set_drag_dest_row()` renders through a TreeViewDragInfo/cssnode that
+    GTK only creates in the deprecated enable_model_drag_source/dest()
+    helpers; a custom DnD setup that never calls them crashes on the
+    highlight repaint (gtk_tree_view_bin_snapshot, gtktreeview.c:4849). The
+    drop index is computed by _on_drop_rows at drop time, so only the
+    auto-scroll feedback (driven by the pointer's y position) is provided
+    during the drag.
+    """
     # Make move the default
     action = Gdk.DragAction.MOVE
     if target.get_actions() == Gdk.DragAction.COPY:

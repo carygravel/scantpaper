@@ -366,9 +366,6 @@ def test_drag_motion_callback() -> None:
     target = MagicMock()
     target.get_actions.return_value = Gdk.DragAction.MOVE
 
-    # Mock get_dest_row_at_pos
-    tree.get_dest_row_at_pos.return_value = (MagicMock(), MagicMock())
-
     # Mock scroll adjustment
     scroll = MagicMock()
     adj = MagicMock()
@@ -393,20 +390,40 @@ def test_drag_motion_callback() -> None:
     adj.set_value.assert_called()
 
 
-def test_drag_motion_callback_error() -> None:
-    """Test drag_motion_callback with TypeError."""
+def test_drag_motion_callback_does_not_arm_drop_highlight() -> None:
+    """Regression: drag motion must not arm the crashing tree-view highlight.
+
+    A custom DnD setup that calls GtkTreeView.set_drag_dest_row() without
+    the deprecated enable_model_drag_source/dest() helpers renders the drop
+    highlight through a NULL TreeViewDragInfo/cssnode and segfaults on the
+    repaint (gtk_tree_view_bin_snapshot, gtktreeview.c:4849). Drag motion
+    must therefore limit itself to auto-scroll feedback; the drop index is
+    computed by _on_drop_rows at drop time.
+    """
     tree = MagicMock()
-    # Mock get_dest_row_at_pos to raise TypeError (e.g. returns None)
-    tree.get_dest_row_at_pos.side_effect = TypeError
-    assert drag_motion_callback(MagicMock(), 0.0, 0.0, tree) == Gdk.DragAction.MOVE
-    # Should return early without crashing
+    tree.get_dest_row_at_pos.return_value = (MagicMock(), MagicMock())
+    target = MagicMock()
+    target.get_actions.return_value = Gdk.DragAction.MOVE
+    scroll = MagicMock()
+    adj = MagicMock()
+    scroll.get_vadjustment.return_value = adj
+    adj.get_page_size.return_value = 100
+    adj.get_step_increment.return_value = 10
+    adj.get_value.return_value = 50
+    adj.get_upper.return_value = 200
+    adj.get_lower.return_value = 0
+    tree.get_parent.return_value = scroll
+
+    assert drag_motion_callback(target, 0.0, 50.0, tree) == Gdk.DragAction.MOVE
+    tree.set_drag_dest_row.assert_not_called()
+    tree.get_dest_row_at_pos.assert_not_called()
+    adj.set_value.assert_not_called()
 
 
 def test_drag_motion_callback_copy() -> None:
     """Test drag_motion_callback with COPY action."""
     tree = MagicMock()
     target = MagicMock()
-    tree.get_dest_row_at_pos.return_value = (MagicMock(), MagicMock())
     target.get_actions.return_value = Gdk.DragAction.COPY
     tree.get_parent.return_value = None
     assert drag_motion_callback(target, 0.0, 50.0, tree) == Gdk.DragAction.COPY

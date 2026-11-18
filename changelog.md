@@ -1,5 +1,12 @@
 ## 4.0.5 (unreleased)
 
+* Dragging a page in the thumbnail panel to reorder it no longer crashes the
+  application. The crash was a native segfault in GTK's drop-highlight
+  drawing, triggered on every supported GTK version because the thumbnail
+  list arms the highlight with its own drag-and-drop; the temporary
+  drop-position line is therefore no longer drawn while dragging. Reordering
+  still works (pages reorder on drop, the moved pages stay selected) and
+  **Undo** restores the previous order in a single step.
 * The "Really cache libusb device names?" question now appears only when a
   freshly scanned device list that contains a libusb name is about to be
   cached. Reusing an existing cache starts without the question, so a network
