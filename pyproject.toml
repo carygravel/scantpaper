@@ -5,6 +5,7 @@ dependencies = [
   "img2pdf",
   "ocrmypdf>=16.10.0",
   "pikepdf",
+  "pillow",
   "pycairo",
   "PyGObject",
   "python-iso639",
