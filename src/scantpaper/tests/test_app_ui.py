@@ -28,7 +28,7 @@ def _pump_gtk(iterations: int = 80) -> None:
         context.iteration(may_block=False)
 
 
-def _pump_until(predicate: Callable[[], bool], iterations: int = 600) -> bool:
+def _pump_until(predicate: Callable[[], bool], iterations: int = 2000) -> bool:
     """Iterate the main context until predicate() holds (or the cap is hit).
 
     A fixed iteration budget is unreliable in a long test session, where
@@ -195,9 +195,7 @@ def test_context_menu_anchors_at_the_pointer(ui_builder: Gtk.Builder) -> None:
     clicks, instead of staying put at the corner.
     """
     if Gdk.Display.get_default() is None:
-        # No stubs for the current pytest; the installed one resolves skip
-        # with no arguments.
-        pytest.skip("requires a display")  # ty: ignore[too-many-positional-arguments]
+        pytest.skip("requires a display")
 
     view = ImageView()
     view.set_size_request(700, 500)
@@ -226,7 +224,6 @@ def test_context_menu_anchors_at_the_pointer(ui_builder: Gtk.Builder) -> None:
     # only appear on a realized, mapped parent window.
     assert _pump_until(
         lambda: window.get_surface() is not None and window.get_surface().get_mapped(),
-        iterations=600,
     ), "window is mapped before the first right-click"
 
     gesture = next(
@@ -239,10 +236,16 @@ def test_context_menu_anchors_at_the_pointer(ui_builder: Gtk.Builder) -> None:
     def offset_after_click(x: int, y: int) -> tuple[float, float]:
         gesture.emit("pressed", 1, float(x), float(y))
         assert stub.detail_popup is not None
-        assert _pump_until(lambda: _popover_offset(stub.detail_popup) is not None), (
-            "detail popover is shown and mapped"
-        )
-        offset = _popover_offset(stub.detail_popup)
+        captured: list[tuple[float, float] | None] = [None]
+
+        def mapped() -> bool:
+            captured[0] = _popover_offset(stub.detail_popup)
+            return captured[0] is not None
+
+        # Capture the position while polling so the value read back is the
+        # one that was observed mapped (no re-read can race an unmapping).
+        assert _pump_until(mapped), "detail popover is shown and mapped"
+        offset = captured[0]
         assert offset is not None
         stub.detail_popup.popdown()
         _pump_gtk()
