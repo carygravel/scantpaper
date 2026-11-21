@@ -46,6 +46,24 @@ def _pump_until(predicate: Callable[[], bool], iterations: int = 2000) -> bool:
     return result
 
 
+def test_pump_until_gives_up_when_the_predicate_never_holds() -> None:
+    """The wait helper pumps to the cap when the predicate stays false.
+
+    The smoke test's own waits succeed on an early check, so without this
+    test the loop-continue exit of ``_pump_until`` would only run when a
+    slow display makes them wait; pinning it here keeps the helper's
+    branches deterministic on every machine.
+    """
+    calls: list[int] = []
+
+    def never() -> bool:
+        calls.append(len(calls))
+        return False
+
+    assert not _pump_until(never, iterations=3)
+    assert calls == [0, 1, 2]
+
+
 @pytest.fixture
 def ui_builder() -> Gtk.Builder:
     """Return a Gtk.Builder loaded from the real app.ui."""
@@ -184,6 +202,63 @@ def _popover_offset(popover: Gtk.Widget) -> tuple[float, float] | None:
     return float(surface.get_position_x()), float(surface.get_position_y())
 
 
+def test_popover_offset_surface_states() -> None:
+    """The offset helper distinguishes absent, unmapped and mapped surfaces.
+
+    The smoke test only ever observes a mapped surface (it pumps until the
+    popover appears), so the "surface exists but is not yet mapped" arm of
+    the guard would otherwise be timing-dependent. Driving all three states
+    with plain stubs pins the branches deterministically.
+    """
+
+    class _Surface:
+        def __init__(self, *, mapped: bool) -> None:
+            self._mapped = mapped
+
+        def get_mapped(self) -> bool:
+            return self._mapped
+
+        def get_position_x(self) -> float:
+            return 3.0
+
+        def get_position_y(self) -> float:
+            return 4.0
+
+    class _Popover:
+        def __init__(self, surface: _Surface | None) -> None:
+            self._surface = surface
+
+        def get_surface(self) -> _Surface | None:
+            return self._surface
+
+    # cast() keeps the duck-typed stubs past the widget-typed parameter.
+    widget = cast("Gtk.Widget", _Popover(None))
+    assert _popover_offset(widget) is None
+    assert _popover_offset(cast("Gtk.Widget", _Popover(_Surface(mapped=False)))) is None
+    assert _popover_offset(cast("Gtk.Widget", _Popover(_Surface(mapped=True)))) == (
+        3.0,
+        4.0,
+    )
+
+
+def _require_display(display: Gdk.Display | None) -> None:
+    """Skip the current test when GTK has no display to show popovers on.
+
+    ``display`` is passed in so the no-display branch is reachable under
+    pytest-xvfb, where a display always exists; the smoke test below
+    supplies ``Gdk.Display.get_default()``, and this guard's own test
+    supplies ``None``.
+    """
+    if display is None:
+        pytest.skip("requires a display")
+
+
+def test_context_menu_skips_without_a_display() -> None:
+    """The GUI smoke test skips cleanly when GTK starts without a display."""
+    with pytest.raises(pytest.skip.Exception):
+        _require_display(None)
+
+
 def test_context_menu_anchors_at_the_pointer(ui_builder: Gtk.Builder) -> None:
     """The right-click popover opens at the pointer, not the window corner.
 
@@ -194,8 +269,7 @@ def test_context_menu_anchors_at_the_pointer(ui_builder: Gtk.Builder) -> None:
     land the menu at two different pointer positions, moving toward the
     clicks, instead of staying put at the corner.
     """
-    if Gdk.Display.get_default() is None:
-        pytest.skip("requires a display")
+    _require_display(Gdk.Display.get_default())
 
     view = ImageView()
     view.set_size_request(700, 500)
