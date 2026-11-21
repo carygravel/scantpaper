@@ -217,6 +217,19 @@ This document provides essential context for anyone working on this project. Adh
     archive to be ticked, so a task that is deliberately deferred is
     rewritten as a plain prose bullet naming the issue that tracks it, not
     left as an open checkbox. Run both before pushing.
+-   **Lint tools:** The ruff and ty versions CI installs are recorded once, in
+    `dev/lint-versions` (one `tool=version` line each); install exactly those
+    releases locally (the same `$()` substitution `test.yml` uses), never
+    whatever PyPI calls latest, so local linting and type checking match CI.
+    The scheduled `lint-check` workflow compares the pins with PyPI's latest
+    releases, installs the candidates in a throwaway venv, validates them with
+    `ruff check .`, `ruff format --check .` and `ty check .`, and keeps one
+    issue labelled `lint-update` naming each tool's state; it closes itself
+    once the pins match. Run the same check locally with
+    `python3 dev/check_linters.py` (`--json` for the machine report). Adopt
+    a reported release by editing `dev/lint-versions` and reinstalling as
+    above; a blocked candidate means the code or `pyproject.toml` needs
+    changes before the bump.
 -   **imports:** The project uses package-absolute imports for first-party
     modules: import statements always carry a leading `scantpaper` prefix,
     e.g. `from scantpaper.const import VERSION`.

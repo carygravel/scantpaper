@@ -1,0 +1,94 @@
+name: Check linter tool updates
+
+on:
+  schedule:
+    # Daily at 07:30 UTC, a few minutes after the OpenSpec and translations
+    # checks. Best-effort on GitHub: it can be delayed, and it is disabled
+    # after long repository inactivity. This is a reminder, not a gate.
+    - cron: '30 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # The pinned releases are already exercised by test.yml on every push,
+      # so this job installs PyPI's latest and asks whether *those* releases
+      # pass the same lint and type gates. The checker reads the pin itself
+      # and runs the candidate binaries from the venv placed first on PATH.
+      - name: Install the candidate releases in a throwaway venv
+        run: |
+          python3 -m venv /tmp/lint-candidates
+          /tmp/lint-candidates/bin/pip install --quiet '.[test]'
+          # Unpinned installs resolve to PyPI's latest; the venv's bin is
+          # placed first on PATH below so the checker validates the
+          # candidates, exactly as test.yml validates the pinned releases.
+          /tmp/lint-candidates/bin/pip install --quiet --upgrade ruff ty
+          printf '%s\n' "Installed candidate versions:"
+          /tmp/lint-candidates/bin/ruff --version
+          /tmp/lint-candidates/bin/ty --version || true
+          echo "PATH=/tmp/lint-candidates/bin:$PATH" >> "$GITHUB_ENV"
+      # A detected update, safe or blocked, exits 0 so the report can be
+      # filed. Only an unreadable pin, registry, or candidate version exits
+      # non-zero, which fails the job instead of silently reporting "current".
+      - name: Compare the pins with PyPI and validate the candidates
+        run: |
+          python3 dev/check_linters.py --json > report.json
+          # Every run leaves its conclusion on the summary page, so "no issue
+          # was filed" is distinguishable from "the check did not run".
+          python3 -c \
+            "import json; print(json.load(open('report.json'))['summary'])" \
+            >> "$GITHUB_STEP_SUMMARY"
+      - name: Report the state in a single issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          label="lint-update"
+          gh label create "$label" \
+            --description "A newer ruff or ty release is available" --force
+
+          read_report() {
+            python3 -c "import json; print(json.load(open('report.json'))['$1'])"
+          }
+
+          state=$(read_report state)
+          number=$(gh issue list --label "$label" --state open --json number \
+            --jq '.[0].number // empty')
+
+          if [ "$state" = "current" ]; then
+            # The pins caught up, so an open recommendation is now wrong.
+            if [ -n "$number" ]; then
+              gh issue comment "$number" \
+                --body "The pins in dev/lint-versions now match PyPI's latest releases."
+              gh issue close "$number"
+            fi
+            exit 0
+          fi
+
+          title=$(python3 - <<'PY'
+          import json
+          report = json.load(open("report.json"))
+          parts = []
+          for tool, status in sorted(report["tools"].items()):
+              if status["changed"]:
+                  verb = (
+                      "safe to upgrade"
+                      if status["state"] == "update-safe"
+                      else "blocked"
+                  )
+                  parts.append(f"{tool} {status['latest']} {verb}")
+          print("Lint update: " + "; ".join(parts))
+          PY
+          )
+
+          read_report markdown > body.md
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --title "$title" --body-file body.md
+          else
+            gh issue create --title "$title" --body-file body.md --label "$label"
+          fi

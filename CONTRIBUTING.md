@@ -116,6 +116,14 @@ matching the ruff discipline. Its rule blacklist is configured in
 `[tool.ty.rules]` in `pyproject.toml`. `ty check .` runs in CI alongside the
 ruff checks, so new or changed code should not add `ty` diagnostics.
 
+The ruff and ty versions CI installs are pinned in `dev/lint-versions` (one
+`tool=version` line each). Install the same releases locally before linting,
+and watch for the scheduled `lint-update` issue, which reports when PyPI has a
+newer release and whether this repository still passes the lint and type
+gates with it. Run `python3 dev/check_linters.py` to check for and validate
+updates yourself. Do not pin a different ruff or ty version in local tooling
+than the one the pins record.
+
 Scantpaper follows the PEP 8 style guide for Python code. Please ensure that
 your code adheres to these guidelines. Ruff is used to check your code; the
 configuration lives in `pyproject.toml`.

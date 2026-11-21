@@ -108,8 +108,10 @@ line-length = 88
 exclude = ["openspec/**"]
 
 [tool.ruff.lint]
-# Ruff is an editor-time linter (used by zed). It is not a CI or packaging
-# gate, so there is no build dependency on it. Enable every rule and suppress
+# Ruff is the project's linter and formatter: configured here, used by Zed at
+# edit time, and enforced in CI (`ruff check .` and `ruff format --check .`
+# run in every job of test.yml). It is not a packaging dependency, so there
+# is no build dependency on it. Enable every rule and suppress
 # the categories that are noise on this legacy codebase. The `ignore` list is
 # a blacklist to be ratcheted down as violations are fixed.
 select = ["ALL"]
@@ -179,9 +181,11 @@ task-tags = ["TODO", "FIXME"]
 "dev/**" = ["INP001", "S603", "S607", "T201"]
 
 [tool.ty]
-# ty is the type checker Zed uses for Python. It is an editor-time checker, not
-# a CI or packaging gate. Like ruff, the `rules` table below is a blacklist of
-# the categories that are noise on this legacy codebase; it should be ratcheted
+# ty is the project's type checker: configured here, used by Zed at edit
+# time, and enforced in CI (`ty check .` runs in the pip and resolute jobs of
+# test.yml). Like ruff, it is not a packaging dependency. The `rules` table
+# below is a blacklist of the categories that are noise on this legacy
+# codebase; it should be ratcheted
 # down as the underlying issues are fixed. The overwhelming majority of
 # diagnostics stem from GTK3 (`gi.repository`) having no type stubs, which
 # makes almost every GTK object resolve to `Unknown` and cascades into hundreds
