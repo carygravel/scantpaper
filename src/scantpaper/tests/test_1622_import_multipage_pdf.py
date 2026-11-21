@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import re
 import shutil
 import subprocess
@@ -301,9 +301,7 @@ def test_import_pdf_with_metadata(
             title="Title",
             subject="Sübject",
             keywords=["Keywörds"],
-            creationdate=datetime.datetime(
-                2018, 12, 31, 12, 0, tzinfo=datetime.timezone.utc
-            ),
+            creationdate=dt.datetime(2018, 12, 31, 12, 0, tzinfo=dt.timezone.utc),
         )
     )
     temp_pdf.flush()
@@ -315,8 +313,8 @@ def test_import_pdf_with_metadata(
     asserts = 0
 
     def metadata_cb(response: dict[str, Any]) -> None:
-        assert response["datetime"] == datetime.datetime(
-            2018, 12, 31, 12, 0, tzinfo=datetime.timezone.utc
+        assert response["datetime"] == dt.datetime(
+            2018, 12, 31, 12, 0, tzinfo=dt.timezone.utc
         ), "datetime"
         assert response["author"] == "Authör", "author"
         assert response["subject"] == "Sübject", "subject"

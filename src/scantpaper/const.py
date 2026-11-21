@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import importlib.metadata
 import sys
 from pathlib import Path
@@ -115,7 +115,7 @@ _180_DEGREES = 180
 _270_DEGREES = 270
 _100_PERCENT = 100
 
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+_LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
 
 HELP_WINDOW_WIDTH = 800
 HELP_WINDOW_HEIGHT = 600

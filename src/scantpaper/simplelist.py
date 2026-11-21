@@ -188,7 +188,7 @@ class SimpleList(Gtk.TreeView):
 
     def __iter__(self, *args: object, **kwargs: object) -> Iterator[object]:
         """Iterate over the rows of the list model."""
-        return cast("Iterator[object]", (iter(self.get_model(), *args, **kwargs)))
+        return iter(self.get_model(), *args, **kwargs)
 
     @property
     def data(self) -> TiedList:
@@ -412,7 +412,7 @@ class TiedList:
 
     def __iter__(self) -> Iterator[list[object]]:
         """Iterate over the rows."""
-        return cast("Iterator[list[object]]", (iter(self.model)))
+        return iter(self.model)
 
     def extend(self, values: Iterable[object]) -> None:
         """Extend."""

@@ -17,7 +17,7 @@ commands; it never commits, tags, signs or uploads.
 from __future__ import annotations
 
 import argparse
-import datetime
+import datetime as dt
 import os
 import re
 import shutil
@@ -193,26 +193,24 @@ def _packager(text: str) -> str:
     return str(match.group(1)).strip()
 
 
-def _entry_date(args: argparse.Namespace) -> datetime.date:
+def _entry_date(args: argparse.Namespace) -> dt.date:
     """Resolve the date for the drafted entry."""
     if args.date:
         if not _DATE_RE.match(args.date):
             _fail(f"--date must be YYYY-MM-DD: {args.date}")
-        return datetime.date.fromisoformat(args.date)
+        return dt.date.fromisoformat(args.date)
     epoch = os.environ.get("SOURCE_DATE_EPOCH")
     if epoch is not None:
         try:
-            moment = datetime.datetime.fromtimestamp(
-                int(epoch), tz=datetime.timezone.utc
-            )
+            moment = dt.datetime.fromtimestamp(int(epoch), tz=dt.timezone.utc)
         except (ValueError, OverflowError) as error:
             message = f"invalid SOURCE_DATE_EPOCH: {epoch}"
             raise SyncError(message) from error
         return moment.date()
-    return datetime.datetime.now(tz=datetime.timezone.utc).date()
+    return dt.datetime.now(tz=dt.timezone.utc).date()
 
 
-def _format_date(day: datetime.date) -> str:
+def _format_date(day: dt.date) -> str:
     """Format a date for a Debian changelog trailer."""
     return (
         f"{WEEKDAYS[day.weekday()]}, {day.day:02d} "
@@ -292,7 +290,7 @@ def _entry(
     headline: str,
     bullets: list[str],
     packager: str,
-    date: datetime.date,
+    date: dt.date,
 ) -> str:
     """Build the changelog entry."""
     lines = [

@@ -18,7 +18,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import datetime
+import datetime as dt
 import difflib
 import os
 import re
@@ -61,7 +61,7 @@ def resolve_version(changelog: str, override: str | None = None) -> str:
 def resolve_date(
     date_override: str | None,
     source_date_epoch: str | None,
-    now: datetime.datetime,
+    now: dt.datetime,
 ) -> str:
     """Resolve the single release date shared by every written file."""
     if date_override is not None:
@@ -75,7 +75,7 @@ def resolve_date(
         except ValueError as error:
             message = f"invalid SOURCE_DATE_EPOCH {source_date_epoch!r}"
             raise ReleaseError(message) from error
-        stamp = datetime.datetime.fromtimestamp(epoch, tz=datetime.timezone.utc)
+        stamp = dt.datetime.fromtimestamp(epoch, tz=dt.timezone.utc)
         return stamp.strftime("%Y-%m-%d")
     return now.astimezone().strftime("%Y-%m-%d")
 
@@ -128,7 +128,7 @@ def prepare(
     version: str | None,
     date: str | None,
     source_date_epoch: str | None,
-    now: datetime.datetime,
+    now: dt.datetime,
 ) -> tuple[str, str, dict[Path, tuple[str, str]]]:
     """Compute every change in memory; return (version, date, updates).
 
@@ -195,7 +195,7 @@ def main() -> int:
             version=args.version,
             date=args.date,
             source_date_epoch=os.environ.get("SOURCE_DATE_EPOCH"),
-            now=datetime.datetime.now(tz=datetime.timezone.utc).astimezone(),
+            now=dt.datetime.now(tz=dt.timezone.utc).astimezone(),
         )
     except ReleaseError as error:
         print(f"[FAIL] {error}")

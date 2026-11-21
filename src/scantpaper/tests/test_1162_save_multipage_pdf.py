@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import pathlib
 import re
 import subprocess
@@ -352,9 +352,7 @@ def test_append_pdf_with_timestamp(
         path=temp_pdf.name,
         list_of_pages=[1],
         metadata={
-            "datetime": datetime.datetime(
-                2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc
-            ),
+            "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
             "title": "metadata title",
         },
         options={
@@ -370,11 +368,9 @@ def test_append_pdf_with_timestamp(
         assert len(pdf.pages) == 2, "PDF appended"
     assert pathlib.Path(f"{temp_pdf.name}.bak").is_file(), "Backed up original"
     stb = pathlib.Path(temp_pdf.name).stat()
-    assert datetime.datetime.fromtimestamp(
-        stb.st_mtime, tz=datetime.timezone.utc
-    ) == datetime.datetime(2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc), (
-        "timestamp"
-    )
+    assert dt.datetime.fromtimestamp(stb.st_mtime, tz=dt.timezone.utc) == dt.datetime(
+        2016, 2, 10, 0, 0, 0, tzinfo=dt.timezone.utc
+    ), "timestamp"
 
     #########################
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import contextlib
-import datetime
+import datetime as dt
 import logging
 import re
 import sys
@@ -502,6 +502,6 @@ def _extract_metadata(info: dict[str, Any]) -> dict[str, Any]:
             ):
                 info["datetime"] = cast("str", info["datetime"]) + ":00"
         with contextlib.suppress(ValueError):
-            metadata["datetime"] = datetime.datetime.fromisoformat(info["datetime"])
+            metadata["datetime"] = dt.datetime.fromisoformat(info["datetime"])
 
     return metadata

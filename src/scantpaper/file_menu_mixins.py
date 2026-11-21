@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import fcntl
 import logging
 import os
@@ -345,8 +345,7 @@ class FileMenuMixins:
             hide_on_delete=True,
             page_range=self.settings["Page range"],
             include_time=self.settings["use_time"],
-            meta_datetime=datetime.datetime.now(_LOCAL_TZ)
-            + self.settings["datetime offset"],
+            meta_datetime=dt.datetime.now(_LOCAL_TZ) + self.settings["datetime offset"],
             select_datetime=bool(self.settings["datetime offset"]),
             meta_title=self.settings["title"],
             meta_title_suggestions=self.settings["title-suggestions"],
@@ -515,7 +514,7 @@ class FileMenuMixins:
                 author=self.settings["author"],
                 title=self.settings["title"],
                 docdate=self._windowi.meta_datetime,
-                today_and_now=datetime.datetime.now(_LOCAL_TZ),
+                today_and_now=dt.datetime.now(_LOCAL_TZ),
                 extension=self.settings["image type"],
                 subject=self.settings["subject"],
                 keywords=self.settings["keywords"],
@@ -685,7 +684,7 @@ class FileMenuMixins:
         self.slist.save_pdf(
             path=filename,
             list_of_pages=list_of_page_uuids,
-            metadata=collate_metadata(self.settings, datetime.datetime.now(_LOCAL_TZ)),
+            metadata=collate_metadata(self.settings, dt.datetime.now(_LOCAL_TZ)),
             options=options,
             queued_callback=self.post_process_progress.queued,
             started_callback=self.post_process_progress.update,
@@ -723,7 +722,7 @@ class FileMenuMixins:
             path=filename,
             list_of_pages=uuids,
             options=options,
-            metadata=collate_metadata(self.settings, datetime.datetime.now(_LOCAL_TZ)),
+            metadata=collate_metadata(self.settings, dt.datetime.now(_LOCAL_TZ)),
             queued_callback=self.post_process_progress.queued,
             started_callback=self.post_process_progress.update,
             running_callback=self.post_process_progress.update,

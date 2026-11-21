@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import contextlib
-import datetime
+import datetime as dt
 import hashlib
 import importlib
 import io
@@ -1331,9 +1331,9 @@ def _set_timestamp(options: dict[str, Any]) -> None:
 
     # Ensure adatetime is timezone-aware
     if adatetime.tzinfo is None:
-        adatetime = adatetime.replace(tzinfo=datetime.timezone.utc)
+        adatetime = adatetime.replace(tzinfo=dt.timezone.utc)
 
-    epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+    epoch = dt.datetime(1970, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc)
     adatetime = (adatetime - epoch).total_seconds()
     if adatetime < 0:
         msg = "Unable to set file timestamp for dates prior to 1970"

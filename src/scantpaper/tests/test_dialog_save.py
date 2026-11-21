@@ -83,8 +83,8 @@ def test_meta_datetime_property(mocker: pytest.MockerFixture) -> None:
     real_datetime = dt.datetime
     real_fromisoformat = dt.datetime.fromisoformat
 
-    # Patch datetime.datetime in dialog.save
-    mock_datetime_cls = mocker.patch("scantpaper.dialog.save.datetime.datetime")
+    # Patch dt.datetime in dialog.save
+    mock_datetime_cls = mocker.patch("scantpaper.dialog.save.dt.datetime")
     mock_datetime_cls.now.return_value = mock_now
     mock_datetime_cls.fromisoformat.side_effect = real_fromisoformat
 

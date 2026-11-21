@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import datetime
+import datetime as dt
 import os
 import subprocess
 from pathlib import Path
@@ -83,8 +83,8 @@ def generate_template() -> str:
     finally:
         os.chdir(previous_cwd)
 
-    local_tz = datetime.datetime.now().astimezone().tzinfo
-    year = datetime.datetime.now(local_tz).year
+    local_tz = dt.datetime.now().astimezone().tzinfo
+    year = dt.datetime.now(local_tz).year
     return (
         out.replace("SOME DESCRIPTIVE TITLE", f"messages.pot for {NAME}", 1)
         .replace("PACKAGE VERSION", f"{NAME}-{VERSION}", 1)

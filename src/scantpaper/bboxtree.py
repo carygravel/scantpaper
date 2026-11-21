@@ -618,7 +618,7 @@ class PDFTextParser(HTMLParser):
         super().__init__()
         self.boxes = []
         self.stack = []
-        self.data = {}
+        self.data: dict[str, object] = {}
         self.resolution = resolution
         self.image_size = image_size
         self.x_offset = 0

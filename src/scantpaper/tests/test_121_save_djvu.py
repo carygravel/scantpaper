@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import codecs
-import datetime
+import datetime as dt
 import pathlib
 import re
 import shutil
@@ -341,7 +341,7 @@ def test_save_djvu_with_metadata(
     import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
-        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
         "title": "metadata title",
     }
     slist.save_djvu(
@@ -361,11 +361,9 @@ def test_save_djvu_with_metadata(
     assert re.search(r"2016-02-10", info) is not None, "metadata ModDate in DjVu"
 
     stb = pathlib.Path(temp_djvu.name).stat()
-    assert datetime.datetime.fromtimestamp(
-        stb.st_mtime, tz=datetime.timezone.utc
-    ) == datetime.datetime(2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc), (
-        "timestamp"
-    )
+    assert dt.datetime.fromtimestamp(stb.st_mtime, tz=dt.timezone.utc) == dt.datetime(
+        2016, 2, 10, 0, 0, 0, tzinfo=dt.timezone.utc
+    ), "timestamp"
 
 
 @pytest.mark.skipif(
@@ -390,7 +388,7 @@ def test_save_djvu_with_old_metadata(
         mlp.quit()
 
     metadata = {
-        "datetime": datetime.datetime(1966, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(1966, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
         "title": "metadata title",
     }
     slist.save_djvu(

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import locale
 import pathlib
 import queue
@@ -1405,7 +1405,7 @@ def test_save_pdf_with_metadata(
     import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
-        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
         "title": "metadata title",
         "subject": "",
     }
@@ -1428,11 +1428,9 @@ def test_save_pdf_with_metadata(
         creationdate = str(cast("dict[str, object]", docinfo).get("/CreationDate", ""))
         assert "20160210" in creationdate, "metadata CreationDate in PDF"
     stb = pathlib.Path(temp_pdf.name).stat()
-    assert datetime.datetime.fromtimestamp(
-        stb.st_mtime, tz=datetime.timezone.utc
-    ) == datetime.datetime(2016, 2, 10, 0, 0, 0, tzinfo=datetime.timezone.utc), (
-        "timestamp"
-    )
+    assert dt.datetime.fromtimestamp(stb.st_mtime, tz=dt.timezone.utc) == dt.datetime(
+        2016, 2, 10, 0, 0, 0, tzinfo=dt.timezone.utc
+    ), "timestamp"
 
 
 def test_save_pdf_without_title_has_no_placeholder_title(
@@ -1447,7 +1445,7 @@ def test_save_pdf_without_title_has_no_placeholder_title(
     import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
-        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
     }
     mlp = safe_mainloop(5000)
     slist.save_pdf(
@@ -1481,7 +1479,7 @@ def test_save_pdf_with_title_retains_title_in_xmp(
     import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
-        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
         "title": "metadata title",
     }
     mlp = safe_mainloop(5000)
@@ -1512,7 +1510,7 @@ def test_save_pdf_creator_branded(
     import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
-        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
     }
     mlp = safe_mainloop(5000)
     slist.save_pdf(
@@ -1551,7 +1549,7 @@ def test_save_pdf_creator_branded_with_title(
     import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
-        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
         "title": "metadata title",
     }
     mlp = safe_mainloop(5000)
@@ -1587,7 +1585,7 @@ def test_save_import_without_title_roundtrip(
     import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
-        "datetime": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
     }
     mlp = safe_mainloop(5000)
     slist.save_pdf(
@@ -1631,7 +1629,7 @@ def test_save_pdf_with_old_metadata(
     import_in_mainloop(slist, [rose_pnm])
 
     metadata = {
-        "datetime": datetime.datetime(1966, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(1966, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
         "title": "metadata title",
     }
 

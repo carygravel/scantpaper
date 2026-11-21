@@ -202,12 +202,16 @@ allowed-unresolved-imports = ["gi.repository.**", "_sane", "tesserocr.**"]
 
 [tool.ty.rules]
 all = "error"
-# unresolved-attribute is disabled: ty infers `None | Unknown` for attributes
-# that are declared `= None` at class level and later assigned a GTK/GObject
-# widget, whose concrete type ty cannot resolve. It therefore flags essentially
-# every attribute access on those widgets (~3,000 diagnostics), nearly all of
-# them false positives where the widget is provably assigned before use. The
-# genuine NoneType-AttributeError sites it would catch are a small subset that
-# cannot be distinguished from the noise without annotating the GTK attribute
-# types.
-"unresolved-attribute" = "ignore"
+# missing-attribute (formerly unresolved-attribute) is disabled: ty infers
+# `None | Unknown` for attributes that are declared `= None` at class level
+# and later assigned a GTK/GObject widget, whose concrete type ty cannot
+# resolve. It therefore flags essentially every attribute access on those
+# widgets (~3,000 diagnostics), nearly all of them false positives where the
+# widget is provably assigned before use. The genuine NoneType-AttributeError
+# sites it would catch are a small subset that cannot be distinguished from
+# the noise without annotating the GTK attribute types. ty also splits out
+# `missing-union-attribute` for attribute access on a union where some (not
+# all) members lack the attribute — the same `None | Unknown` class — so that
+# code is ignored too under its new rule name.
+"missing-attribute" = "ignore"
+"missing-union-attribute" = "ignore"

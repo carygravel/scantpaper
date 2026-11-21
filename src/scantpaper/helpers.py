@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import locale
 import logging
 import pathlib
@@ -441,7 +441,7 @@ def _program_version(
 
 
 def collate_metadata(
-    settings: dict[str, object], today_and_now: datetime.datetime
+    settings: dict[str, object], today_and_now: dt.datetime
 ) -> dict[str, object]:
     """Collect metadata from settings dictionary."""
     metadata = {}
@@ -449,15 +449,13 @@ def collate_metadata(
         if key in settings:
             metadata[key] = settings[key]
     metadata["datetime"] = today_and_now + cast(
-        "datetime.timedelta", settings["datetime offset"]
+        "dt.timedelta", settings["datetime offset"]
     )
     if "use_time" not in settings:
         metadata["datetime"] = metadata["datetime"].replace(hour=0, minute=0, second=0)
 
     if "use_timezone" not in settings:
-        metadata["datetime"] = metadata["datetime"].replace(
-            tzinfo=datetime.timezone.utc
-        )
+        metadata["datetime"] = metadata["datetime"].replace(tzinfo=dt.timezone.utc)
     return metadata
 
 

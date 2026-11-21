@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import pathlib
 import re
 import shutil
@@ -86,8 +86,8 @@ CreationDate	"2018-12-31 13:00:00+01:00"
         asserts += 1
 
     def metadata_cb(response: dict[str, Any]) -> None:
-        assert response["datetime"] == datetime.datetime(
-            2018, 12, 31, 13, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+        assert response["datetime"] == dt.datetime(
+            2018, 12, 31, 13, 0, tzinfo=dt.timezone(dt.timedelta(hours=1))
         ), "datetime"
         assert response["author"] == "Authör", "author"
         assert response["subject"] == "Sübject", "subject"

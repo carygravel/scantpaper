@@ -328,7 +328,7 @@ def test_config2(mocker: pytest.MockerFixture) -> None:
 
     #########################
 
-    mocker.patch("scantpaper.config.datetime.datetime", MockedDateTime)
+    mocker.patch("scantpaper.config.dt.datetime", MockedDateTime)
     config = {"version": "1.7.3", "datetime offset": timedelta(seconds=0)}
     metadata = {
         "title": "title",

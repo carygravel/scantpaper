@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import pathlib
 import sqlite3
 import unittest.mock
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gio, GLib, Gtk  # noqa: E402
 
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+_LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
 
 
 class MockSlist:
@@ -267,7 +267,7 @@ class TestFileMenuMixins:
             "ps_backend": "pdf2ps",
             "Page range": "all",
             "use_time": True,
-            "datetime offset": datetime.timedelta(0),
+            "datetime offset": dt.timedelta(0),
             "title-suggestions": [],
             "author-suggestions": [],
             "subject-suggestions": [],
@@ -868,7 +868,7 @@ class TestFileMenuMixins:
             db="/some/path", error_callback=app._error_callback
         )
 
-    @unittest.mock.patch("scantpaper.file_menu_mixins.datetime")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.dt")
     @unittest.mock.patch("scantpaper.file_menu_mixins.SaveDialog")
     def test_save_dialog(
         self, mock_save_dialog: MagicMock, mock_datetime: MagicMock, app: MockApp
@@ -880,7 +880,7 @@ class TestFileMenuMixins:
         # ScrolledWindow (in the production code) works during tests.
         mock_dialog.comboboxpsh = ComboBoxText()
         mock_save_dialog.return_value = mock_dialog
-        mock_datetime.datetime.now.return_value = datetime.datetime(
+        mock_datetime.datetime.now.return_value = dt.datetime(
             2025, 1, 1, tzinfo=_LOCAL_TZ
         )
 
@@ -1193,7 +1193,7 @@ class TestFileMenuMixins:
         app._show_message_dialog.assert_called()
 
     @unittest.mock.patch("scantpaper.file_menu_mixins.collate_metadata")
-    @unittest.mock.patch("scantpaper.file_menu_mixins.datetime")
+    @unittest.mock.patch("scantpaper.file_menu_mixins.dt")
     def test_save_pdf(
         self, mock_datetime: MagicMock, mock_collate_metadata: MagicMock, app: MockApp
     ) -> None:

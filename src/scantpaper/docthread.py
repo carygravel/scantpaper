@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import json
 import logging
 import pathlib
@@ -1490,7 +1490,7 @@ class DocThread(SaveThread):
         page.image_object = page.image_object.rotate(options["angle"], expand=True)
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.dirty_time = dt.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         if options["angle"] in (-270, -90, 90, 270):
             page.width, page.height = page.height, page.width
@@ -1546,7 +1546,7 @@ class DocThread(SaveThread):
             #   blur or low-pass filter the image (so words look like ovals)
             #   look at few vertical narrow slices of the image and get the Standard Deviation
             #   if most of the Std Dev are high, then it might be portrait
-            page.analyse_time = datetime.datetime.now(_LOCAL_TZ)
+            page.analyse_time = dt.datetime.now(_LOCAL_TZ)
             request.data(
                 {
                     "type": "page",
@@ -1579,7 +1579,7 @@ class DocThread(SaveThread):
         ).convert("1")
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.dirty_time = dt.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1613,7 +1613,7 @@ class DocThread(SaveThread):
         page.image_object = ImageEnhance.Contrast(page.image_object).enhance(contrast)
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.dirty_time = dt.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1639,7 +1639,7 @@ class DocThread(SaveThread):
         page.image_object = ImageOps.invert(cast("Image.Image", page.image_object))
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.dirty_time = dt.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1674,7 +1674,7 @@ class DocThread(SaveThread):
         )
         self.check_cancelled()
 
-        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.dirty_time = dt.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1716,7 +1716,7 @@ class DocThread(SaveThread):
             bboxtree = Bboxtree(page.text_layer)
             page.text_layer = bboxtree.crop(left, top, width, height).json()
 
-        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.dirty_time = dt.datetime.now(_LOCAL_TZ)  # flag as dirty
         page.saved = False
         request.data(
             {
@@ -1754,7 +1754,7 @@ class DocThread(SaveThread):
         # Write them
         page.width = page.image_object.width
         page.height = page.image_object.height
-        page.dirty_time = datetime.datetime.now(_LOCAL_TZ)  # flag as dirty
+        page.dirty_time = dt.datetime.now(_LOCAL_TZ)  # flag as dirty
 
         # split doesn't change the resolution, so we can safely copy it
         new2 = Page(
@@ -1877,7 +1877,7 @@ class DocThread(SaveThread):
             )
             page.import_hocr(hocr)
             page.ocr_flag = True
-            page.ocr_time = datetime.datetime.now(_LOCAL_TZ)
+            page.ocr_time = dt.datetime.now(_LOCAL_TZ)
         self.check_cancelled()
 
         request.data(
@@ -1983,7 +1983,7 @@ class DocThread(SaveThread):
                     delete=True,
                     format="Portable anymap",
                     resolution=page.resolution,
-                    dirty_time=datetime.datetime.now(_LOCAL_TZ),
+                    dirty_time=dt.datetime.now(_LOCAL_TZ),
                 )
 
                 # have to send the 2nd page 1st, as the page_id for the 1st will
@@ -1995,7 +1995,7 @@ class DocThread(SaveThread):
                         delete=True,
                         format="Portable anymap",
                         resolution=page.resolution,
-                        dirty_time=datetime.datetime.now(_LOCAL_TZ),
+                        dirty_time=dt.datetime.now(_LOCAL_TZ),
                     )
                     request.data(
                         {

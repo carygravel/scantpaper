@@ -1828,7 +1828,7 @@ class TreeIter:
         if not isinstance(bbox, Bbox):
             msg = "bbox is not a Bbox object"
             raise TypeError(msg)
-        self._bbox = [bbox]
+        self._bbox: list[Bbox] = [bbox]
         self._iter = []
         while bbox.type != "page":
             parent = bbox.parent
@@ -1867,7 +1867,7 @@ class TreeIter:
             child = current.get_child(i)
             self._bbox.append(child)
             self._iter.append(i)
-            return cast("Bbox", (child))
+            return child
 
         while len(self._bbox) > 1:
             self._bbox.pop()
@@ -1879,7 +1879,7 @@ class TreeIter:
                 sibling = parent.get_child(i)
                 self._bbox.append(sibling)
                 self._iter.append(i)
-                return cast("Bbox", (sibling))
+                return sibling
 
         self._bbox = old_bbox
         self._iter = old_iter
@@ -1916,7 +1916,7 @@ class TreeIter:
             self._bbox.append(sibling)
             self._iter.append(i)
             return self.last_leaf()
-        return cast("Bbox", (parent))
+        return parent
 
     def previous_word(self) -> Bbox:
         """Return previous word."""
@@ -1960,10 +1960,10 @@ class TreeIter:
             self._iter.append(n)
             self._bbox.append(child)
             return self.last_leaf()
-        return cast("Bbox", (self._bbox[-1]))
+        return self._bbox[-1]
 
     def get_current_bbox(self) -> Bbox | None:
         """Return bbox currently being viewed, or None when exhausted."""
         if self._exhausted:
             return None
-        return cast("Bbox", (self._bbox[-1]))
+        return self._bbox[-1]

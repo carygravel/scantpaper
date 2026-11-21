@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
@@ -27,7 +27,7 @@ from gi.repository import (  # noqa: E402
     Gtk,
 )
 
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+_LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
 
 
 @pytest.fixture
@@ -1226,7 +1226,7 @@ def test_email_dialog(mocker: pytest.MockerFixture, mock_tool_window: object) ->
     mock_tool_window.settings = {
         "Page range": "all",
         "use_time": True,
-        "datetime offset": datetime.timedelta(0),
+        "datetime offset": dt.timedelta(0),
         "title": "Title",
         "title-suggestions": [],
         "author": "Author",
@@ -1276,7 +1276,7 @@ def test_email_execution_flow(
     """Test email execution including success and failure callback."""
     mock_save_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.SaveDialog")
     mock_save_dialog = mock_save_dialog_cls.return_value
-    mock_save_dialog.meta_datetime = datetime.datetime.now(_LOCAL_TZ)
+    mock_save_dialog.meta_datetime = dt.datetime.now(_LOCAL_TZ)
     # Mock attributes accessed in callback
     mock_save_dialog.downsample = False
     mock_save_dialog.downsample_dpi = 300
@@ -1297,7 +1297,7 @@ def test_email_execution_flow(
     mock_tool_window.settings = {
         "Page range": "all",
         "use_time": True,
-        "datetime offset": datetime.timedelta(0),
+        "datetime offset": dt.timedelta(0),
         "title": "",
         "title-suggestions": [],
         "author": "",
@@ -1350,7 +1350,7 @@ def test_email_default_filename(
     """Test email default filename fallback."""
     mock_save_dialog_cls = mocker.patch("scantpaper.tools_menu_mixins.SaveDialog")
     mock_save_dialog = mock_save_dialog_cls.return_value
-    mock_save_dialog.meta_datetime = datetime.datetime.now(_LOCAL_TZ)
+    mock_save_dialog.meta_datetime = dt.datetime.now(_LOCAL_TZ)
     mock_save_dialog.downsample = False
     mock_save_dialog.downsample_dpi = 300
     mock_save_dialog.pdf_compression = "auto"
@@ -1370,7 +1370,7 @@ def test_email_default_filename(
     mock_tool_window.settings = {
         "Page range": "all",
         "use_time": True,
-        "datetime offset": datetime.timedelta(0),
+        "datetime offset": dt.timedelta(0),
         "title": "",
         "title-suggestions": [],
         "author": "",

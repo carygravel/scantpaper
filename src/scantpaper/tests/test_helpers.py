@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import gc
 import locale
 import pathlib
@@ -48,7 +48,7 @@ from gi.repository import Gio, GLib, Gtk  # noqa: E402
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-_LOCAL_TZ = datetime.datetime.now().astimezone().tzinfo
+_LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
 
 
 def has_numeric_locale(name: str) -> bool:
@@ -376,25 +376,25 @@ def test_collate_metadata() -> None:
     settings: dict[str, object] = {
         "author": "me",
         "title": "work",
-        "datetime offset": datetime.timedelta(days=1),
+        "datetime offset": dt.timedelta(days=1),
         "use_time": True,
         "use_timezone": True,
     }
-    now = datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    now = dt.datetime(2023, 1, 1, 12, 0, 0, tzinfo=dt.timezone.utc)
     res = collate_metadata(settings, now)
     assert res["author"] == "me"
     assert res["title"] == "work"
-    assert res["datetime"] == now + datetime.timedelta(days=1)
+    assert res["datetime"] == now + dt.timedelta(days=1)
 
     # Test branches without use_time and use_timezone
     settings.pop("use_time")
     settings.pop("use_timezone")
     res = collate_metadata(settings, now)
     assert res["datetime"].hour == 0
-    assert res["datetime"].tzinfo == datetime.timezone.utc
+    assert res["datetime"].tzinfo == dt.timezone.utc
 
     # Test missing metadata keys
-    settings: dict[str, object] = {"datetime offset": datetime.timedelta(0)}
+    settings: dict[str, object] = {"datetime offset": dt.timedelta(0)}
     res = collate_metadata(settings, now)
     assert "author" not in res
 
@@ -408,8 +408,8 @@ def test_expand_metadata_pattern() -> None:
         "subject": "S",
         "keywords": "K",
         "extension": "E",
-        "docdate": datetime.datetime(2022, 1, 1, tzinfo=_LOCAL_TZ),
-        "today_and_now": datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ),
+        "docdate": dt.datetime(2022, 1, 1, tzinfo=_LOCAL_TZ),
+        "today_and_now": dt.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ),
         "convert_whitespace": True,
     }
 
@@ -430,8 +430,8 @@ def test_expand_metadata_pattern() -> None:
     # Test missing keys or None values
     kwargs = {
         "template": "%Da %Dt",
-        "docdate": datetime.datetime(2022, 1, 1, tzinfo=_LOCAL_TZ),
-        "today_and_now": datetime.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ),
+        "docdate": dt.datetime(2022, 1, 1, tzinfo=_LOCAL_TZ),
+        "today_and_now": dt.datetime(2023, 1, 1, tzinfo=_LOCAL_TZ),
     }
     res = expand_metadata_pattern(**kwargs)
     # regex = r"%D" + key[0] -> re.sub(regex, "", template)

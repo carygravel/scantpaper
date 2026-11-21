@@ -1043,7 +1043,7 @@ def test_feeder_empty_ends_batch_cleanly(
         if record.name == "scantpaper.frontend.image_sane"
     ]
     log_errors = [r for r in feeder_records if r.levelno >= logging.ERROR]
-    log_tracebacks = [r for r in feeder_records if r.exc_info]
+    log_tracebacks = [r for r in feeder_records if r.exc_info is not None]
     log_infos = [r for r in feeder_records if r.levelno == logging.INFO]
     assert not log_errors, "a feeder-empty batch end must not be logged as an error"
     assert not log_tracebacks, "a feeder-empty batch end must not log a traceback"

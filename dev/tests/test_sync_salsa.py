@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import os
 import shutil
 import subprocess
@@ -334,7 +334,7 @@ def test_pre_migration_release_with_leftovers_fails(tmp_path: Path) -> None:
 def test_source_date_epoch_sets_the_date(tmp_path: Path) -> None:
     """Use SOURCE_DATE_EPOCH when no date is given."""
     repo = _init_repo(tmp_path)
-    moment = datetime.datetime(2026, 12, 24, 12, tzinfo=datetime.timezone.utc)
+    moment = dt.datetime(2026, 12, 24, 12, tzinfo=dt.timezone.utc)
 
     result = _run(
         repo,

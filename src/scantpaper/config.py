@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import json
 import logging
 import os
@@ -56,7 +56,7 @@ DEFAULTS = {
     "set_timestamp": True,
     "use_time": False,
     "use_timezone": True,
-    "datetime offset": datetime.timedelta(seconds=0),
+    "datetime offset": dt.timedelta(seconds=0),
     "pdf compression": "auto",
     "bilevel compression": "g4",
     "tiff compression": None,
@@ -358,7 +358,7 @@ def _deserialise_and_migrate(config: ConfigDict) -> None:
         isinstance(config.get("datetime offset"), list)
         and len(config["datetime offset"]) == TIMEDELTA_FIELDS
     ):
-        config["datetime offset"] = datetime.timedelta(
+        config["datetime offset"] = dt.timedelta(
             days=config["datetime offset"][0],
             hours=config["datetime offset"][1],
             minutes=config["datetime offset"][2],
@@ -531,7 +531,7 @@ def write_config(rc: str, config: dict[str, object]) -> None:
         output["device list"] = dl
 
     # serialise timedelta
-    if isinstance(output.get("datetime offset"), datetime.timedelta):
+    if isinstance(output.get("datetime offset"), dt.timedelta):
         output["datetime offset"] = [
             output["datetime offset"].days,
             output["datetime offset"].seconds // 3600,
@@ -557,8 +557,8 @@ def update_config_from_imported_metadata(
     if "datetime" in metadata and metadata["datetime"] is not None:
         config["datetime offset"] = metadata["datetime"].replace(
             tzinfo=None
-        ) - datetime.datetime.now(_LOCAL_TZ).replace(tzinfo=None)
+        ) - dt.datetime.now(_LOCAL_TZ).replace(tzinfo=None)
         if "use_time" not in config or not config["use_time"]:
-            config["datetime offset"] = datetime.timedelta(
+            config["datetime offset"] = dt.timedelta(
                 days=config["datetime offset"].days
             )

@@ -37,7 +37,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import datetime
+import datetime as dt
 import hashlib
 import http.client
 import importlib.util
@@ -661,7 +661,7 @@ def _emit(result: CheckResult, baseline: dict[str, object], *, as_json: bool) ->
 def _build_baseline(
     template: TemplateState,
     languages: dict[str, LanguageState],
-    now: datetime.datetime,
+    now: dt.datetime,
 ) -> dict[str, object]:
     """Return the baseline document for the current Launchpad state."""
     return {
@@ -689,7 +689,7 @@ def _apply_update(
     path: Path,
     *,
     dry_run: bool,
-    now: datetime.datetime,
+    now: dt.datetime,
 ) -> int:
     """Advance the committed baseline, refusing an incomplete read."""
     if result.template is None or result.languages is None:
@@ -822,7 +822,7 @@ def main() -> int:
         pot_text=pot_text,
         pot_problem=pot_problem,
     )
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = dt.datetime.now(tz=dt.timezone.utc)
 
     if args.record_pot:
         return _apply_record_pot(

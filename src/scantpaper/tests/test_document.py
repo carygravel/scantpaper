@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import unittest.mock
 import weakref
 from functools import partial
@@ -524,7 +524,7 @@ def test_extract_metadata_isoformat() -> None:
     }
     meta = _extract_metadata(info)
     assert meta["author"] == "Me"
-    assert isinstance(meta["datetime"], datetime.datetime)
+    assert isinstance(meta["datetime"], dt.datetime)
 
     # test ValueError in fromisoformat
     info["format"] = "Portable Document Format"
@@ -535,7 +535,7 @@ def test_extract_metadata_isoformat() -> None:
     # test without minutes in timezone
     info["datetime"] = "2023-01-01T12:00:00+01"
     meta = _extract_metadata(info)
-    assert isinstance(meta["datetime"], datetime.datetime)
+    assert isinstance(meta["datetime"], dt.datetime)
 
     # test with NONE value
     info["title"] = "NONE"
@@ -553,18 +553,18 @@ def test_extract_metadata_isoformat() -> None:
         info["format"] = "Portable Document Format"
         info["datetime"] = "2023-01-01T12:00:00Z"
         meta = _extract_metadata(info)
-        assert isinstance(meta["datetime"], datetime.datetime)
+        assert isinstance(meta["datetime"], dt.datetime)
 
         # Append :00 to timezone without minutes
         info["datetime"] = "2023-01-01T12:00:00+01"
         meta = _extract_metadata(info)
-        assert isinstance(meta["datetime"], datetime.datetime)
+        assert isinstance(meta["datetime"], dt.datetime)
 
         # test DJVU format too
         info["format"] = "DJVU"
         info["datetime"] = "2023-01-01T12:00:00Z"
         meta = _extract_metadata(info)
-        assert isinstance(meta["datetime"], datetime.datetime)
+        assert isinstance(meta["datetime"], dt.datetime)
 
 
 def test_extract_metadata_placeholder_title() -> None:

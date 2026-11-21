@@ -33,7 +33,7 @@ class MockedDateTime(datetime):
 
 def test_basic(mocker: pytest.MockerFixture) -> None:
     """Basic tests."""
-    mocker.patch("scantpaper.dialog.save.datetime.datetime", MockedDateTime)
+    mocker.patch("scantpaper.dialog.save.dt.datetime", MockedDateTime)
     dialog = Save(
         title="title",
         transient_for=Gtk.Window(),
@@ -127,7 +127,7 @@ def test_datetime() -> None:
 def test_now(mocker: pytest.MockerFixture) -> None:
     """Test not setting datetime."""
     now = datetime(2018, 1, 1, 0, 0, 0, tzinfo=_LOCAL_TZ)
-    mocker.patch("scantpaper.dialog.save.datetime.datetime", MockedDateTime)
+    mocker.patch("scantpaper.dialog.save.dt.datetime", MockedDateTime)
     dialog = Save(
         transient_for=Gtk.Window(),
         include_time=True,

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import pathlib
 import shutil
 import sqlite3
@@ -163,24 +163,22 @@ def test_file_dates(temp_txt: object) -> None:
             "path": temp_txt.name,
             "options": {"set_timestamp": True},
             "metadata": {
-                "datetime": datetime.datetime(
+                "datetime": dt.datetime(
                     2016,
                     2,
                     10,
                     0,
                     0,
-                    tzinfo=datetime.timezone(datetime.timedelta(hours=14)),
+                    tzinfo=dt.timezone(dt.timedelta(hours=14)),
                 ),
             },
         },
     )
     _set_timestamp(options)
     stb = pathlib.Path(temp_txt.name).stat()
-    assert datetime.datetime.fromtimestamp(
-        stb.st_mtime, tz=datetime.timezone.utc
-    ) == datetime.datetime(2016, 2, 9, 10, 0, 0, tzinfo=datetime.timezone.utc), (
-        "timestamp with timezone"
-    )
+    assert dt.datetime.fromtimestamp(stb.st_mtime, tz=dt.timezone.utc) == dt.datetime(
+        2016, 2, 9, 10, 0, 0, tzinfo=dt.timezone.utc
+    ), "timestamp with timezone"
 
 
 def test_helpers() -> None:
@@ -199,20 +197,20 @@ def test_helpers() -> None:
             title="title",
             subject="subject",
             keywords="keywords",
-            docdate=datetime.datetime(
+            docdate=dt.datetime(
                 2016,
                 2,
                 1,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=dt.timezone.utc,
             ),
-            today_and_now=datetime.datetime(
+            today_and_now=dt.datetime(
                 1970,
                 1,
                 12,
                 14,
                 46,
                 39,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=dt.timezone.utc,
             ),
             extension="png",
         )
@@ -224,23 +222,23 @@ def test_helpers() -> None:
             template="%Da %Dt %DY %Y %Dm %m %Dd %d %H %M %S %DH %DM %DS.%De",
             author="a.n.other",
             title="title",
-            docdate=datetime.datetime(
+            docdate=dt.datetime(
                 2016,
                 2,
                 1,
                 10,
                 11,
                 12,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=dt.timezone.utc,
             ),
-            today_and_now=datetime.datetime(
+            today_and_now=dt.datetime(
                 1970,
                 1,
                 12,
                 14,
                 46,
                 39,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=dt.timezone.utc,
             ),
             extension="tif",
         )
@@ -252,20 +250,20 @@ def test_helpers() -> None:
             template="%Da %Dt %DY %Y %Dm %m %Dd %d %H %M %S.%De",
             author="a.n.other",
             title="title",
-            docdate=datetime.datetime(
+            docdate=dt.datetime(
                 1816,
                 2,
                 1,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=dt.timezone.utc,
             ),
-            today_and_now=datetime.datetime(
+            today_and_now=dt.datetime(
                 1970,
                 1,
                 12,
                 14,
                 46,
                 39,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=dt.timezone.utc,
             ),
             extension="djvu",
         )
@@ -278,20 +276,20 @@ def test_helpers() -> None:
             convert_whitespace=True,
             author="a.n.other",
             title="title",
-            docdate=datetime.datetime(
+            docdate=dt.datetime(
                 2016,
                 2,
                 1,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=dt.timezone.utc,
             ),
-            today_and_now=datetime.datetime(
+            today_and_now=dt.datetime(
                 1970,
                 1,
                 12,
                 14,
                 46,
                 39,
-                tzinfo=datetime.timezone.utc,
+                tzinfo=dt.timezone.utc,
             ),
             extension="pdf",
         )
@@ -303,31 +301,27 @@ def test_helpers() -> None:
     assert prepare_output_metadata(
         "PDF",
         {
-            "datetime": datetime.datetime(
-                2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc
-            ),
+            "datetime": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
             "author": "a.n.other",
             "title": "title",
             "subject": "subject",
             "keywords": "keywords",
         },
     ) == {
-        "moddate": datetime.datetime(2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc),
+        "moddate": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
         "creator": f"scantpaper v{VERSION}",
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
         "keywords": "keywords",
-        "creationdate": datetime.datetime(
-            2016, 2, 10, 0, 0, tzinfo=datetime.timezone.utc
-        ),
+        "creationdate": dt.datetime(2016, 2, 10, 0, 0, tzinfo=dt.timezone.utc),
     }, "prepare_output_metadata"
 
     assert prepare_output_metadata(
         "PDF",
         {
-            "datetime": datetime.datetime(
-                2016, 2, 10, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+            "datetime": dt.datetime(
+                2016, 2, 10, 0, 0, tzinfo=dt.timezone(dt.timedelta(hours=1))
             ),
             "author": "a.n.other",
             "title": "title",
@@ -335,30 +329,30 @@ def test_helpers() -> None:
             "keywords": "keywords",
         },
     ) == {
-        "moddate": datetime.datetime(
-            2016, 2, 10, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+        "moddate": dt.datetime(
+            2016, 2, 10, 0, 0, tzinfo=dt.timezone(dt.timedelta(hours=1))
         ),
         "creator": f"scantpaper v{VERSION}",
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
         "keywords": "keywords",
-        "creationdate": datetime.datetime(
-            2016, 2, 10, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+        "creationdate": dt.datetime(
+            2016, 2, 10, 0, 0, tzinfo=dt.timezone(dt.timedelta(hours=1))
         ),
     }, "prepare_output_metadata with tz"
 
     assert prepare_output_metadata(
         "PDF",
         {
-            "datetime": datetime.datetime(
+            "datetime": dt.datetime(
                 2016,
                 2,
                 10,
                 19,
                 59,
                 5,
-                tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
+                tzinfo=dt.timezone(dt.timedelta(hours=1)),
             ),
             "author": "a.n.other",
             "title": "title",
@@ -366,28 +360,28 @@ def test_helpers() -> None:
             "keywords": "keywords",
         },
     ) == {
-        "moddate": datetime.datetime(
+        "moddate": dt.datetime(
             2016,
             2,
             10,
             19,
             59,
             5,
-            tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
+            tzinfo=dt.timezone(dt.timedelta(hours=1)),
         ),
         "creator": f"scantpaper v{VERSION}",
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
         "keywords": "keywords",
-        "creationdate": datetime.datetime(
+        "creationdate": dt.datetime(
             2016,
             2,
             10,
             19,
             59,
             5,
-            tzinfo=datetime.timezone(datetime.timedelta(hours=1)),
+            tzinfo=dt.timezone(dt.timedelta(hours=1)),
         ),
     }, "prepare_output_metadata with time"
 
@@ -398,13 +392,13 @@ def test_helpers() -> None:
         "title": "title",
         "subject": "subject",
         "keywords": "keywords",
-        "datetime offset": datetime.timedelta(days=2, hours=0, minutes=59, seconds=59),
+        "datetime offset": dt.timedelta(days=2, hours=0, minutes=59, seconds=59),
     }
-    today_and_now = datetime.datetime(
-        2016, 2, 10, 1, 2, 3, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+    today_and_now = dt.datetime(
+        2016, 2, 10, 1, 2, 3, tzinfo=dt.timezone(dt.timedelta(hours=1))
     )
     assert collate_metadata(settings, today_and_now) == {
-        "datetime": datetime.datetime(2016, 2, 12, tzinfo=datetime.timezone.utc),
+        "datetime": dt.datetime(2016, 2, 12, tzinfo=dt.timezone.utc),
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
@@ -413,9 +407,7 @@ def test_helpers() -> None:
 
     settings["use_timezone"] = True
     assert collate_metadata(settings, today_and_now) == {
-        "datetime": datetime.datetime(
-            2016, 2, 12, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
-        ),
+        "datetime": dt.datetime(2016, 2, 12, tzinfo=dt.timezone(dt.timedelta(hours=1))),
         "author": "a.n.other",
         "title": "title",
         "subject": "subject",
@@ -424,8 +416,8 @@ def test_helpers() -> None:
 
     settings["use_time"] = True
     assert collate_metadata(settings, today_and_now) == {
-        "datetime": datetime.datetime(
-            2016, 2, 12, 2, 2, 2, tzinfo=datetime.timezone(datetime.timedelta(hours=1))
+        "datetime": dt.datetime(
+            2016, 2, 12, 2, 2, 2, tzinfo=dt.timezone(dt.timedelta(hours=1))
         ),
         "author": "a.n.other",
         "title": "title",
@@ -438,24 +430,24 @@ def test_helpers() -> None:
     assert _extract_metadata(
         {"format": "Portable Document Format", "datetime": "2016-08-06T02:00:00Z"}
     ) == {
-        "datetime": datetime.datetime(
-            2016, 8, 6, 2, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=0))
+        "datetime": dt.datetime(
+            2016, 8, 6, 2, 0, 0, tzinfo=dt.timezone(dt.timedelta(hours=0))
         ),
     }, "_extract_metadata UTC"
 
     assert _extract_metadata(
         {"format": "Portable Document Format", "datetime": "2016-08-06T02:00:00+02"}
     ) == {
-        "datetime": datetime.datetime(
-            2016, 8, 6, 2, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=2))
+        "datetime": dt.datetime(
+            2016, 8, 6, 2, 0, 0, tzinfo=dt.timezone(dt.timedelta(hours=2))
         ),
     }, "_extract_metadata UTC+2"
 
     assert _extract_metadata(
         {"format": "Portable Document Format", "datetime": "2019-01-01T02:00:00+14"}
     ) == {
-        "datetime": datetime.datetime(
-            2019, 1, 1, 2, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=14))
+        "datetime": dt.datetime(
+            2019, 1, 1, 2, 0, 0, tzinfo=dt.timezone(dt.timedelta(hours=14))
         ),
     }, "_extract_metadata GMT+14"
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 import re
 from functools import partial
@@ -892,8 +892,7 @@ class ToolsMenuMixins:
             hide_on_delete=True,
             page_range=self.settings["Page range"],
             include_time=self.settings["use_time"],
-            meta_datetime=datetime.datetime.now(_LOCAL_TZ)
-            + self.settings["datetime offset"],
+            meta_datetime=dt.datetime.now(_LOCAL_TZ) + self.settings["datetime offset"],
             select_datetime=bool(self.settings["datetime offset"]),
             meta_title=self.settings["title"],
             meta_title_suggestions=self.settings["title-suggestions"],
@@ -946,7 +945,7 @@ class ToolsMenuMixins:
                 author=self.settings["author"],
                 title=self.settings["title"],
                 docdate=self._windowe.meta_datetime,
-                today_and_now=datetime.datetime.now(_LOCAL_TZ),
+                today_and_now=dt.datetime.now(_LOCAL_TZ),
                 extension="pdf",
                 subject=self.settings["subject"],
                 keywords=self.settings["keywords"],
@@ -976,7 +975,7 @@ class ToolsMenuMixins:
                 list_of_pages=uuids,
                 metadata=collate_metadata(
                     self.settings,
-                    datetime.datetime.now(_LOCAL_TZ),
+                    dt.datetime.now(_LOCAL_TZ),
                 ),
                 options=options,
                 queued_callback=self.post_process_progress.queued,

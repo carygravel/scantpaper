@@ -10,7 +10,7 @@ import threading
 import uuid
 import weakref
 from enum import Enum
-from typing import TYPE_CHECKING, NamedTuple, cast
+from typing import TYPE_CHECKING, ClassVar, NamedTuple, cast
 
 from gi.repository import GLib
 from typing_extensions import override
@@ -116,7 +116,7 @@ class BaseThread(threading.Thread):
     """A thread backed by internal queues for simple messaging."""
 
     # Every live thread, so tests can quit any that are not explicitly stopped.
-    LiveThreads = weakref.WeakSet()
+    LiveThreads: ClassVar[weakref.WeakSet[BaseThread]] = weakref.WeakSet()
 
     def __init__(self) -> None:
         """Initialise the daemon thread with request/response queues and a notify pipe."""

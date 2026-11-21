@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import os
 import subprocess
 import sys
@@ -145,9 +145,7 @@ def test_source_date_epoch_is_honoured(tmp_path: Path) -> None:
     """Fall back to SOURCE_DATE_EPOCH when --date is absent."""
     root = _write(tmp_path)
     epoch = 1_700_000_000
-    expected = datetime.datetime.fromtimestamp(
-        epoch, tz=datetime.timezone.utc
-    ).strftime("%Y-%m-%d")
+    expected = dt.datetime.fromtimestamp(epoch, tz=dt.timezone.utc).strftime("%Y-%m-%d")
     env = {**os.environ, "SOURCE_DATE_EPOCH": str(epoch)}
     result = _run(root, env=env)
     assert result.returncode == 0, result.stdout + result.stderr

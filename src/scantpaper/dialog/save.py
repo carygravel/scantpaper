@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import re
 from typing import cast
 
@@ -27,7 +27,7 @@ from gi.repository import (  # noqa: E402
 ENTRY_WIDTH_DATE = 10
 DOUBLE_CLICK_PRESSES = 2
 ENTRY_WIDTH_DATETIME = 19
-_DATETIME = datetime.datetime
+_DATETIME = dt.datetime
 IMAGE_TYPES = [
     ("pdf", _("PDF"), _("Portable Document Format")),
     ("gif", _("GIF"), _("CompuServe graphics interchange format")),
@@ -112,10 +112,10 @@ class Save(Dialog):
     _meta_datetime_widget = None
 
     @property_(type=object)
-    def meta_datetime(self) -> datetime.datetime | datetime.date | None:
+    def meta_datetime(self) -> dt.datetime | dt.date | None:
         """Datetime object for document date."""
         if self.meta_now_widget.get_active():
-            return datetime.datetime.now(_LOCAL_TZ)
+            return dt.datetime.now(_LOCAL_TZ)
         if (
             self._meta_datetime_widget is not None
             and self._meta_specify_widget.get_active()
@@ -123,16 +123,12 @@ class Save(Dialog):
             text = self._meta_datetime_widget.get_text()
             if text:
                 try:
-                    return self._resolve_meta_datetime(
-                        datetime.datetime.fromisoformat(text)
-                    )
+                    return self._resolve_meta_datetime(dt.datetime.fromisoformat(text))
                 except (ValueError, TypeError):
                     pass
-        return cast("datetime.date | None", (self._meta_datetime))
+        return cast("dt.date | None", (self._meta_datetime))
 
-    def _resolve_meta_datetime(
-        self, parsed: datetime.datetime
-    ) -> datetime.datetime | datetime.date:
+    def _resolve_meta_datetime(self, parsed: dt.datetime) -> dt.datetime | dt.date:
         """Resolve parsed text against the existing metadata datetime."""
         existing = self._meta_datetime
         result = parsed if self.include_time else parsed.date()
@@ -147,10 +143,10 @@ class Save(Dialog):
                     result = parsed
                 elif hasattr(existing, "day"):
                     result = parsed.date()
-        return cast("datetime.date", (result))
+        return cast("dt.date", (result))
 
     @meta_datetime.setter
-    def meta_datetime(self, newval: datetime.datetime | datetime.date | None) -> None:
+    def meta_datetime(self, newval: dt.datetime | dt.date | None) -> None:
         if newval != self._meta_datetime:
             self._meta_datetime = newval
             if self._meta_datetime_widget is not None:
@@ -441,7 +437,7 @@ class Save(Dialog):
         if self.meta_datetime is not None and self.meta_datetime != "":
             self._meta_datetime_widget.get_buffer().set_text(
                 (
-                    cast("datetime.datetime", self.meta_datetime).isoformat(sep=" ")
+                    cast("dt.datetime", self.meta_datetime).isoformat(sep=" ")
                     if hasattr(self.meta_datetime, "hour")
                     else self.meta_datetime.isoformat()
                 ),
@@ -463,7 +459,7 @@ class Save(Dialog):
     ) -> None:
         text = self._meta_datetime_widget.get_text()
         if text not in [None, ""]:
-            self.meta_datetime = datetime.datetime.fromisoformat(text)
+            self.meta_datetime = dt.datetime.fromisoformat(text)
 
     def _clicked_edit_date_button(self, _widget: Gtk.Button) -> None:
         window_date = Dialog(
@@ -487,7 +483,7 @@ class Save(Dialog):
 
         def calendar_day_selected_callback(_widget: Gtk.Calendar) -> None:
             gdate = calendar.get_date()
-            self.meta_datetime = datetime.datetime(
+            self.meta_datetime = dt.datetime(
                 gdate.get_year(),
                 gdate.get_month(),
                 gdate.get_day_of_month(),
@@ -513,7 +509,7 @@ class Save(Dialog):
         today_b = Gtk.Button(label=_("Today"))
 
         def today_clicked_callback(_widget: Gtk.Button) -> None:
-            today = datetime.datetime.now(_LOCAL_TZ).date()
+            today = dt.datetime.now(_LOCAL_TZ).date()
 
             # block and unblock signal, and update entry manually
             # to remove possibility of race conditions
@@ -544,9 +540,7 @@ class Save(Dialog):
             day_offset = 1
             if string == "-":
                 day_offset = -day_offset
-            date = datetime.datetime.fromisoformat(text) + datetime.timedelta(
-                days=day_offset
-            )
+            date = dt.datetime.fromisoformat(text) + dt.timedelta(days=day_offset)
             widget.set_text(date.isoformat(sep=" "))
         elif (
             not self.include_time
@@ -892,9 +886,9 @@ class Save(Dialog):
         if self.meta_datetime is not None:
             # convert from date to datetime if necessary
             args = self.meta_datetime.timetuple()[:6]
-            doc_datetime = datetime.datetime(*args, tzinfo=_LOCAL_TZ)
+            doc_datetime = dt.datetime(*args, tzinfo=_LOCAL_TZ)
 
-            config["datetime offset"] = doc_datetime - datetime.datetime.now(_LOCAL_TZ)
+            config["datetime offset"] = doc_datetime - dt.datetime.now(_LOCAL_TZ)
 
     def update_from_import_metadata(self, metadata: dict[str, object]) -> None:
         """Update instance from imported metadata."""
