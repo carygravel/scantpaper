@@ -27,8 +27,12 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 gi.require_version("Gtk", "4.0")
+gi.require_version("Gdk", "4.0")
+gi.require_version("GdkPixbuf", "2.0")
 
 from gi.repository import (  # noqa: E402
+    Gdk,
+    GdkPixbuf,
     GLib,
     Gtk,
 )
@@ -808,6 +812,81 @@ def test_on_drag_prepare_starts_internal_drag() -> None:
     provider = slist._on_drag_prepare(MagicMock(), 0.0, 0.0)
     assert provider is not None
     assert slist._internal_drag is True
+
+
+def _test_pixbuf(width: int, height: int) -> GdkPixbuf.Pixbuf:
+    """Create a solid pixbuf of the given size."""
+    pixbuf = GdkPixbuf.Pixbuf.new(
+        GdkPixbuf.Colorspace.RGB,
+        has_alpha=True,
+        bits_per_sample=8,
+        width=width,
+        height=height,
+    )
+    pixbuf.fill(0x336699FF)
+    return pixbuf
+
+
+def _icon_args(source: MagicMock) -> tuple[Gdk.Texture, int, int]:
+    """Return the paintable and hotspot passed to set_icon."""
+    source.set_icon.assert_called_once()
+    icon, hot_x, hot_y = source.set_icon.call_args.args
+    assert isinstance(icon, Gdk.Texture)
+    return icon, hot_x, hot_y
+
+
+def test_on_drag_begin_uses_selected_thumbnail() -> None:
+    """Test the drag icon is the selected page's thumbnail."""
+    slist = Document()
+    slist.add_page(1, _test_pixbuf(4, 3), 101)
+    slist.select(0)
+    source = MagicMock()
+
+    slist._on_drag_begin(source, MagicMock())
+
+    icon, hot_x, hot_y = _icon_args(source)
+    assert (icon.get_width(), icon.get_height()) == (4, 3)
+    assert (hot_x, hot_y) == (0, 0)
+
+
+def test_on_drag_begin_without_selection_uses_blank_icon() -> None:
+    """Test the drag icon is blank when nothing is selected."""
+    slist = Document()
+    source = MagicMock()
+
+    slist._on_drag_begin(source, MagicMock())
+
+    icon, hot_x, hot_y = _icon_args(source)
+    assert (icon.get_width(), icon.get_height()) == (1, 1)
+    assert (hot_x, hot_y) == (0, 0)
+
+
+def test_on_drag_begin_without_thumbnail_uses_blank_icon() -> None:
+    """Test the drag icon is blank when the selected page has no thumbnail."""
+    slist = Document()
+    slist.add_page(1, None, 101)
+    slist.select(0)
+    source = MagicMock()
+
+    slist._on_drag_begin(source, MagicMock())
+
+    icon, hot_x, hot_y = _icon_args(source)
+    assert (icon.get_width(), icon.get_height()) == (1, 1)
+    assert (hot_x, hot_y) == (0, 0)
+
+
+def test_on_drag_begin_multi_selection_uses_first_page() -> None:
+    """Test a multi-page drag uses the first selected page's thumbnail."""
+    slist = Document()
+    slist.add_page(1, _test_pixbuf(4, 3), 101)
+    slist.add_page(2, _test_pixbuf(6, 5), 102)
+    slist.select([0, 1])
+    source = MagicMock()
+
+    slist._on_drag_begin(source, MagicMock())
+
+    icon, _hot_x, _hot_y = _icon_args(source)
+    assert (icon.get_width(), icon.get_height()) == (4, 3)
 
 
 def test_on_rows_accept_only_internal_drags() -> None:

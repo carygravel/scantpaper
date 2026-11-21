@@ -285,7 +285,8 @@ next time scantpaper starts.
   thumbnail list's drop-highlight drawing). The temporary drop-position line
   that was drawn while dragging has been removed; the same drag still reorders
   the pages, the moved pages stay selected, and **Edit → Undo** restores the
-  previous order in one step.
+  previous order in one step. While dragging, the pointer shows the page's
+  thumbnail instead of the internal `scantpaper-rows` payload text.
 - **Email as PDF:** Attach pages as PDF to a blank email (requires xdg-email).
 - **Print:** Print selected/all pages.
 - **Dialogs:** Every dialog insets its content and its action buttons from the

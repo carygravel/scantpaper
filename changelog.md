@@ -7,6 +7,10 @@
   drop-position line is therefore no longer drawn while dragging. Reordering
   still works (pages reorder on drop, the moved pages stay selected) and
   **Undo** restores the previous order in a single step.
+* Dragging a page now shows its thumbnail as the drag icon instead of the
+  literal internal payload text `scantpaper-rows`. The text was GTK 4's default
+  icon for the string payload; a transparent fallback is used when the page has
+  no thumbnail, so the payload is never shown.
 * The "Really cache libusb device names?" question now appears only when a
   freshly scanned device list that contains a libusb name is about to be
   cached. Reusing an existing cache starts without the question, so a network

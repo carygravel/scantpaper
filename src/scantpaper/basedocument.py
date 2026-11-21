@@ -24,8 +24,11 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 gi.require_version("Gtk", "4.0")
+gi.require_version("GdkPixbuf", "2.0")
 from gi.repository import (  # noqa: E402
     Gdk,
+    GdkPixbuf,
+    GLib,
     GObject,
     Gtk,
 )
@@ -72,6 +75,7 @@ class BaseDocument(SimpleList):
         drag_source = Gtk.DragSource()
         drag_source.set_actions(Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
         drag_source.connect("prepare", self._on_drag_prepare)
+        drag_source.connect("drag-begin", self._on_drag_begin)
         drag_source.connect("drag-end", self._on_drag_end)
         self.add_controller(drag_source)
 
@@ -598,6 +602,24 @@ class BaseDocument(SimpleList):
             return None
         self._internal_drag = True
         return Gdk.ContentProvider.new_for_value("scantpaper-rows")
+
+    def _on_drag_begin(self, source: Gtk.DragSource, _drag: Gdk.Drag) -> None:
+        """Show the dragged page's thumbnail instead of the payload text."""
+        rows = self.get_selected_indices()
+        pixbuf = self.data[rows[0]][1] if rows else None
+        if isinstance(pixbuf, GdkPixbuf.Pixbuf):
+            icon = Gdk.Texture.new_for_pixbuf(pixbuf)
+        else:
+            # 1x1 transparent RGBA fallback: the payload string must never be
+            # rendered as GTK's default drag label.
+            icon = Gdk.MemoryTexture.new(
+                1,
+                1,
+                Gdk.MemoryFormat.R8G8B8A8_PREMULTIPLIED,
+                GLib.Bytes.new(b"\0\0\0\0"),
+                4,
+            )
+        source.set_icon(icon, 0, 0)
 
     def _on_rows_accept(self, _target: Gtk.DropTarget, _drop: Gdk.Drop) -> bool:
         """Accept only our own row drags, not external text drops."""
