@@ -23,7 +23,20 @@ jobs:
       # and runs the candidate binaries from the venv placed first on PATH.
       - name: Install the candidate releases in a throwaway venv
         run: |
-          python3 -m venv /tmp/lint-candidates
+          # The candidates are validated with the commands CI runs, and ty
+          # resolves the app's imports, so the venv needs the native GTK,
+          # SANE and Tesseract modules the test.yml latest job gets from apt
+          # (pycairo and PyGObject publish no wheel for every runner Python,
+          # and pip cannot build pycairo without the Cairo dev headers).
+          # They satisfy the unbounded requirements already, so the venv is
+          # created with --system-site-packages and pip skips them, exactly
+          # as pip does for the latest job's system-python install.
+          sudo apt-get update
+          sudo apt-get install -y gobject-introspection gir1.2-gtk-4.0 \
+            python3-cysignals-bare python3-gi python3-gi-cairo python3-sane \
+            python3-tesserocr
+          python3 -m venv --system-site-packages /tmp/lint-candidates
+          /tmp/lint-candidates/bin/pip install --quiet --upgrade pip
           /tmp/lint-candidates/bin/pip install --quiet '.[test]'
           # Unpinned installs resolve to PyPI's latest; the venv's bin is
           # placed first on PATH below so the checker validates the
