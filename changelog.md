@@ -11,6 +11,12 @@
   literal internal payload text `scantpaper-rows`. The text was GTK 4's default
   icon for the string payload; a transparent fallback is used when the page has
   no thumbnail, so the payload is never shown.
+* Right-clicking the image view or the thumbnail panel opens its context
+  menu at the pointer again, as on GTK3. The GTK4 port had shown these menus
+  pinned to the window's top-left corner; they now anchor to the cursor (or
+  as close as the screen edge allows), and right-clicking again while a menu
+  is open moves it to the new pointer position instead of leaving it in
+  place.
 * The "Really cache libusb device names?" question now appears only when a
   freshly scanned device list that contains a libusb name is about to be
   cached. Reusing an existing cache starts without the question, so a network

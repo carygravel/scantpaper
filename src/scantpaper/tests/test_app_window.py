@@ -33,12 +33,14 @@ if TYPE_CHECKING:
     from scantpaper.loop_helpers import _MainLoopWrapper
 
 gi.require_version("Gtk", "4.0")
+gi.require_version("Graphene", "1.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     GdkPixbuf,
     Gio,
     GLib,
     GObject,
+    Graphene,
     Gtk,
 )
 
@@ -1075,24 +1077,135 @@ def test_maximized_notify(
     assert app_window.settings["window_maximize"] is False
 
 
-def test_handle_clicks(app_window: ApplicationWindow) -> None:
-    """Test _handle_clicks."""
-    gesture = MagicMock()
-    gesture.get_widget.return_value = MockImageView()
+def _point(x: float, y: float) -> Graphene.Point:
+    """Build a Graphene.Point for control of compute_point in tests."""
+    point = Graphene.Point()
+    point.x, point.y = x, y
+    return point
 
-    app_window.detail_popup = MagicMock()
-    app_window._handle_clicks(gesture, 1, 0.0, 0.0)
-    app_window.detail_popup.popup.assert_called_once()
+
+def test_handle_clicks(app_window: ApplicationWindow) -> None:
+    """Right-clicks point the menus at the click and claim the gesture."""
+    widget = MockImageView()
+    # Doubling simulates the widget -> parent translation.
+    widget.compute_point = lambda _target, point: (  # type: ignore[method-assign]
+        True,
+        _point(point.x * 2, point.y * 2),
+    )
+    gesture = MagicMock()
+    gesture.get_widget.return_value = widget
+    popup = MagicMock()
+    popup.get_visible.return_value = False
+    app_window.detail_popup = popup
+    app_window._handle_clicks(gesture, 1, 10.0, 20.0)
+
+    rect = popup.set_pointing_to.call_args.args[0]
+    assert (rect.x, rect.y, rect.width, rect.height) == (20, 40, 1, 1)
+    popup.popup.assert_called_once()
+    assert popup.popdown.call_count == 0
     assert gesture.set_state.call_count == 1
 
     # Mock other widget (e.g. Thumbnail list)
     gesture = MagicMock()
-    gesture.get_widget.return_value = MagicMock()
-    app_window._thumb_popup = MagicMock()
-    app_window._handle_clicks(gesture, 1, 0.0, 0.0)
+    thumb_widget = MagicMock()
+    thumb_widget.compute_point.return_value = (True, _point(77.0, 88.0))
+    gesture.get_widget.return_value = thumb_widget
+    thumb_popup = MagicMock()
+    thumb_popup.get_visible.return_value = False
+    app_window._thumb_popup = thumb_popup
+    app_window._handle_clicks(gesture, 1, 3.0, 4.0)
     assert app_window.settings["Page range"] == "selected"
-    app_window._thumb_popup.popup.assert_called_once()
+    rect = thumb_popup.set_pointing_to.call_args.args[0]
+    assert (rect.x, rect.y, rect.width, rect.height) == (77, 88, 1, 1)
+    thumb_popup.popup.assert_called_once()
     assert gesture.set_state.call_count == 1
+
+
+def test_handle_clicks_reanchors_a_visible_popover(
+    app_window: ApplicationWindow,
+) -> None:
+    """A second right-click while a menu is up re-anchors it (popdown first)."""
+    widget = MockImageView()
+    widget.compute_point = lambda _target, _pt: (  # type: ignore[method-assign]
+        True,
+        _point(33.0, 44.0),
+    )
+    gesture = MagicMock()
+    gesture.get_widget.return_value = widget
+    popup = MagicMock()
+    popup.get_visible.return_value = True  # already shown
+    app_window.detail_popup = popup
+    app_window._handle_clicks(gesture, 1, 5.0, 6.0)
+
+    popup.popdown.assert_called_once()
+    rect = popup.set_pointing_to.call_args.args[0]
+    assert (rect.x, rect.y) == (33, 44)
+    popup.popup.assert_called_once()
+
+
+def test_handle_clicks_anchors_at_origin_when_translation_raises(
+    app_window: ApplicationWindow,
+) -> None:
+    """A compute_point failure anchors at the window origin, never crashing."""
+    gesture = MagicMock()
+    widget = MagicMock()
+    widget.compute_point.side_effect = RuntimeError("translate failed")
+    gesture.get_widget.return_value = widget
+    popup = MagicMock()
+    popup.get_visible.return_value = False
+    app_window._thumb_popup = popup
+    with patch("scantpaper.app_window.logger.exception") as mock_exception:
+        app_window._handle_clicks(gesture, 1, 5.0, 6.0)  # must not raise
+    mock_exception.assert_called()
+
+    rect = popup.set_pointing_to.call_args.args[0]
+    assert (rect.x, rect.y, rect.width, rect.height) == (0, 0, 1, 1)
+    popup.popup.assert_called_once()
+
+
+def test_handle_clicks_anchors_at_origin_when_translation_reports_failure(
+    app_window: ApplicationWindow,
+) -> None:
+    """compute_point returning ok=False anchors at the window origin."""
+    gesture = MagicMock()
+    widget = MagicMock()
+    widget.compute_point.return_value = (False, _point(5.0, 6.0))
+    gesture.get_widget.return_value = widget
+    popup = MagicMock()
+    popup.get_visible.return_value = False
+    app_window._thumb_popup = popup
+    app_window._handle_clicks(gesture, 1, 5.0, 6.0)
+
+    rect = popup.set_pointing_to.call_args.args[0]
+    assert (rect.x, rect.y, rect.width, rect.height) == (0, 0, 1, 1)
+    popup.popup.assert_called_once()
+
+
+def test_handle_clicks_without_widget_falls_back_to_popup(
+    app_window: ApplicationWindow,
+) -> None:
+    """A gesture with no widget falls back to a plain popup, no crash."""
+    gesture = MagicMock()
+    gesture.get_widget.return_value = None
+    popup = MagicMock()
+    app_window._thumb_popup = popup
+    app_window._handle_clicks(gesture, 1, 2.0, 3.0)
+    popup.popup.assert_called_once()
+    assert gesture.set_state.call_count == 1
+
+
+def test_show_popover_at_pointer_without_parent_uses_origin(
+    app_window: ApplicationWindow,
+) -> None:
+    """A popover without an anchor parent pops anchored at the origin."""
+    popup = MagicMock()
+    popup.get_visible.return_value = False
+    popup.get_parent.return_value = None
+    widget = MagicMock()
+    app_window._show_popover_at_pointer(popup, widget, 5.0, 6.0)
+    rect = popup.set_pointing_to.call_args.args[0]
+    assert (rect.x, rect.y, rect.width, rect.height) == (0, 0, 1, 1)
+    popup.popup.assert_called_once()
 
 
 def test_view_selection_changed_callback(app_window: ApplicationWindow) -> None:

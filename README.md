@@ -275,6 +275,12 @@ next time scantpaper starts.
   downscale for a sharp preview in the thumbnail panel without slowing down
   bulk imports, and bilevel or palette pages (common in scanned/OCR PDFs) are
   anti-aliased so their previews stay legible.
+- **Right-click context menus:** The menus shown by right-clicking the image
+  view or the thumbnail panel open at the pointer again, as they did on GTK3.
+  The GTK4 port had shown them pinned to the window's top-left corner; they
+  now anchor to the cursor (or as close as the screen edge allows), and
+  right-clicking again while a menu is open moves it to the new pointer
+  position instead of leaving it in place.
 - **Lists:** Typing with a list widget focused (the thumbnail panel, or a
   picker such as the **File → Open crashed session** dialog) no longer opens
   GTK's interactive-search overlay, which showed nothing because no list

@@ -55,11 +55,13 @@ from scantpaper.tools_menu_mixins import ToolsMenuMixins
 from scantpaper.unpaper import Unpaper
 
 gi.require_version("Gtk", "4.0")
+gi.require_version("Graphene", "1.0")
 from gi.repository import (  # noqa: E402
     Gdk,
     Gio,
     GLib,
     GObject,
+    Graphene,
     Gtk,
 )
 
@@ -909,18 +911,62 @@ class ApplicationWindow(
         self,
         gesture: Gtk.GestureClick,
         _n_press: int,
-        _x: float,
-        _y: float,
+        x: float,
+        y: float,
     ) -> None:
         widget = gesture.get_widget()
         if isinstance(widget, ImageView):  # main image
-            self.detail_popup.popup()
+            popup = self.detail_popup
         else:  # Thumbnail SimpleList
             self.settings["Page range"] = "selected"
-            self._thumb_popup.popup()
+            popup = self._thumb_popup
+
+        if widget is None:
+            popup.popup()
+        else:
+            self._show_popover_at_pointer(popup, widget, x, y)
 
         # block event propagation
         gesture.set_state(Gtk.EventSequenceState.CLAIMED)
+
+    def _show_popover_at_pointer(
+        self, popup: Gtk.Popover, widget: Gtk.Widget, x: float, y: float
+    ) -> None:
+        """Show popup anchored at the pointer position of the right-click.
+
+        GTK3's GtkMenu.popup_at_pointer() has no GTK4 equivalent: a bare
+        GtkPopover.popup() anchors to its parent's whole allocation (the
+        top-left of the window) rather than the pointer. Translate the
+        press point from the clicked widget into the popover's parent (the
+        window) and point the popover at that spot before showing it.
+        """
+        if popup.get_visible():
+            # A right-click while the menu is already up re-anchors it to
+            # the new pointer position instead of leaving it in place.
+            popup.popdown()
+        rect = Gdk.Rectangle()
+        rect.width, rect.height = 1, 1
+        parent = popup.get_parent()
+        if parent is None:
+            # No anchor parent: keep GTK's fallback placement at the
+            # window origin rather than crash on a translation with no
+            # target widget.
+            rect.x, rect.y = 0, 0
+        else:
+            point = Graphene.Point()
+            point.x, point.y = x, y
+            out_point = None
+            try:
+                ok, out_point = widget.compute_point(parent, point)
+            except Exception:
+                logger.exception("Could not anchor the context menu to the pointer")
+                ok = False
+            if ok and out_point is not None:
+                rect.x, rect.y = int(out_point.x), int(out_point.y)
+            else:
+                rect.x, rect.y = 0, 0
+        popup.set_pointing_to(rect)
+        popup.popup()
 
     def _view_selection_changed_callback(
         self, _view: ImageView, sel: Gdk.Rectangle | None
