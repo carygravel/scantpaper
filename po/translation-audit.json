@@ -3,13 +3,13 @@
   "snapshot": "1a3037183eadc10004f7f4d6228bd7f9192aa2ec",
   "snapshot_date": "2026-02-28",
   "totals": {
-    "shipped": 15739,
-    "unchanged": 9765,
-    "model-changed": 1504,
-    "model-added": 4470,
-    "approved": 9782,
-    "pending": 5957,
-    "restored": 6
+    "shipped": 15984,
+    "unchanged": 9752,
+    "model-changed": 1540,
+    "model-added": 4692,
+    "approved": 9770,
+    "pending": 6214,
+    "restored": 7
   },
   "languages": {
     "be": {
@@ -333,13 +333,13 @@
       "has_snapshot": 1
     },
     "tr": {
-      "shipped": 418,
-      "unchanged": 418,
-      "model-changed": 0,
-      "model-added": 0,
-      "approved": 418,
-      "pending": 0,
-      "restored": 0,
+      "shipped": 663,
+      "unchanged": 405,
+      "model-changed": 36,
+      "model-added": 222,
+      "approved": 406,
+      "pending": 257,
+      "restored": 1,
       "has_snapshot": 1
     },
     "uk": {
@@ -48029,6 +48029,2062 @@
       "msgctxt": null,
       "msgid": "Clear image selection",
       "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Text layer",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Annotations",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "%(mb)dMb free in %(name)s.",
+      "msgid_plural": "%(mb)dMb free in %(name)s."
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has been left unchanged.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The settings file %(filename)s could not be read in full. These settings were restored: %(settings)s. The rest were reset to their defaults. A backup has been saved as %(backup)s.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The settings file %(filename)s could not be read, so all settings have been reset to their defaults. A backup of the original file has been saved as %(backup)s.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Save image and Save as PDF both require imagemagick",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Save image requires libtiff",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Email as PDF requires xdg-email",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "unpaper missing",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR requires tesseract",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "PDF encryption requires qpdf",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "JBIG2 PDF compression requires jbig2",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Info",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Process",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Close",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "The x-position of the left hand edge of the crop.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "The y-position of the top edge of the crop.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "hOCR file",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Pages are matched to the hOCR pages in order.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_OK",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Cancel",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Open hOCR file",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Cancel",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Open",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No page limit: scanning continues until you cancel.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Insert before page N",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Page number before which scans will be inserted",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Position advance",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Position advance for each subsequent scan (0 = keep inserting before the same page)",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Units",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "e.g. Camera or v4l:.*",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Regular expression matched case-insensitively against the device label and backend name, e.g. Camera or v4l:.*",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Some ADFs do not feed out the last page if this is not enabled",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Ignore duplex capabilities of scanner",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "If set, any duplex capabilities are ignored, and facing/reverse widgets are displayed to allow manual interleaving of pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Select # pages = all on selecting ADF",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "If this option is enabled, when switching to source=ADF, # pages = all is selected",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Specify time as well as date",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Set access and modification times to metadata date",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OK",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Add a user-defined tool",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Bilevel compression",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Group 4",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Compress bilevel images with CCITT Group 4 encoding.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "JBIG2",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Compress bilevel images with JBIG2 encoding.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Use %%i and %%o for the input and output filenames respectively,\nor a single %%i if the image is to be modified in-place.\n\nThe other variable available is:\n%%r resolution",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Please check that the command is installed and in your PATH.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "User-defined tool not found",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Retrieving options",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum (%(maximum)s)",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Setting option %s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Error setting option: ",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Scanner did not deliver the requested 1-bit output; the page has been converted to black-and-white",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The scanner did not respond to cancel. Reconnect the scanner or choose another device.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper session database",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Flate",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Compress output with flate encoding.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Compress output with JPEG (DCT) encoding.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "JPEG 2000",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Compress output with JPEG 2000 encoding.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Compress output with JBIG2 encoding.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Quality",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Delete",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Blacklist this device",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Hide the selected device from the device list",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for %(options)d scan options. Please file a bug, attaching a log file reproducing the problem.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Add a paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove the selected paper size",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Apply",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Remove %(option)s from the profile",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Scanning page %(current)d of %(total)d",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Scanning page %(current)d",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Tesseract parameters",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Filter parameters",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Default",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Description",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Insert",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The Tesseract parameter list is unavailable. OCR can still run with the parameters already entered.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Set by the %(control)s control",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No parameters match",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Error reading hOCR file %(path)s: %(error)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Error parsing hOCR file %(path)s: %(error)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The file contains no hOCR pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The hOCR file contains %(found)i pages, but %(expected)i pages are selected.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Checking hOCR page %(current)i of %(total)i",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The hOCR page for page %(page)i has no page box.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the page is %(width)ix%(height)i.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No pages selected for hOCR import.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Importing hOCR page %(current)i of %(total)i",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Analysing page %(current)i of %(total)i",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No tesseract language specified",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Failed to initialise OCR with the %(mode)s engine mode: %(error)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Unknown Tesseract option: %(variable)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Error: cannot open a session file at the same time as another file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Error: importing a multipage file at the same time as another file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Import hOCR",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Post-save hook",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Run command on saved file. The available commands are those user-defined tools that do not specify %o",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Save",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Error saving %(filename)s: %(error)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "This operation would overwrite %s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Error getting file info for %(path)s: %(error)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Please install djvulibre-bin in order to open DjVu files: %s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Please install libtiff-tools in order to open TIFF files: %s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Importing page %(current)i of %(total)i",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Sort by confidence",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Sort OCR text boxes by confidence.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Sort by position",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Sort OCR text boxes by position.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "my-new-word",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "my-new-annotation",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Select sort method for OCR boxes",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Rotate text clockwise",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Rotate text anticlockwise",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Duplicate text",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Focus zoom",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Reset",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Focus zoom: %(percent)d%%",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Draw or select a rectangle before adding",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "90°",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "180°",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "270°",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Page segmentation mode",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR engine mode",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Select angle of rotation",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Anticlockwise",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Threshold before OCR",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Threshold the image before performing OCR. This only affects the image passed to the OCR engine, and not the image stored.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Pixels that differ from the paper colour by more than this percentage are rendered black. Higher values only keep stronger marks.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No OCR language selected.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The following OCR languages are not installed: %(languages)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "'%(variable)s' is set by the %(control)s control; remove it from this field.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Unknown Tesseract options: %(variables)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Additional languages",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Tessdata directory",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Default (system tessdata)",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Directory that directly contains the Tesseract .traineddata language files. Leave empty for the system default.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Choose the tessdata directory",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Use the system tessdata directory",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Select tessdata directory",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "How tesseract should segment the page. Automatic suits most pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Which tesseract engine to use. Default uses the engine's own choice.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Advanced Tesseract engine parameters",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Tesseract engine parameters - the values of tesseract's -c option - not command-line flags. Use absolute paths.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "One name=value engine parameter per line, e.g. user_words_file=/path/to/words.txt. Write engine parameters, not command-line options such as --user-words.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Available parameters",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Browse the parameters the installed Tesseract reports",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No additional languages",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "%(language)s (not installed)",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Process %(current)i of %(total)i (%(process)s)",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Process %(current)i of %(total)i",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Processing PDF",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Embedding text layer",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Converting to JBIG2",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Writing page %(current)i of %(total)i",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Writing PDF",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Merging DjVu",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Error merging DjVu: %s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run it one page at a time instead.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No pages were modified. If the tool was already running (for example GIMP), it may have opened the images in the existing instance.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "'%(tool)s' failed with status %(status)s.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Error running '%(tool)s': %(error)s.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Caching the device list with libusb devices is not recommended, as they can change between reboots. Cache them anyway?",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Don't ask again",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Postprocessing",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Alternate rotation every 2nd page",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Rotate odd pages by the chosen angle and even pages by that angle plus 180 degrees. Use when scanning a book where every sheet is aligned to the same edge, so the back of each sheet is rotated 180 degrees relative to its front.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Warning: unable to use %(configured)s for temporary storage. Defaulting to %(default)s instead.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No crashed sessions found.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Discard",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Restore",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Restore or discard a crashed session",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Some pages have not been saved.\nDo you really want to restore a crashed session?",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Restore file",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Discard %(count)d crashed session?",
+      "msgid_plural": "Discard %(count)d crashed sessions?"
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Could not remove %(count)d crashed session.",
+      "msgid_plural": "Could not remove %(count)d crashed sessions."
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Fully automatic page segmentation.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Single column",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A single column of text of variable sizes.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Single block",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A single uniform block of text.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Single line",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The image is a single text line.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Single word",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The image is a single word.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Single character",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The image is a single character.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Sparse text",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Find as much text as possible, in no order.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Raw line",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A single line, without tesseract-specific hacks.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "LSTM only",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Legacy",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Combined",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The tessdata directory does not exist: %(path)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The tessdata path is not a directory: %(path)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The tessdata directory cannot be read: %(path)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "No Tesseract language data was found in the tessdata directory: %(path)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Did you mean %(path)s?",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "tessdata directory not found",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "'%(flag)s' is a Tesseract command-line option; this field accepts engine parameters in name=value form only.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' instead.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Invalid Tesseract option on line %(line)s: %(text)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "%(variable)s names a file that does not exist: %(path)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "%(variable)s names a file that cannot be read: %(path)s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "You are using locale '%s'.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "scantpaper does not currently know which tesseract language package would be necessary for that locale.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Please contact the developers to add support for that locale.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Please install tesseract package 'tesseract-ocr-%(package)s' and restart scantpaper for OCR for %(language)s with tesseract.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "There is no tesseract package for %s",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "If this is in error, please contact the scantpaper developers.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Writing page",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Ink strength",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Apply",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Blur Radius.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Percentage",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Unsharp strength, in percent.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Threshold controls the minimum brightness change that will be sharpened.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Split",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Direction",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Vertically",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Split the page vertically into left and right pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Horizontally",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Split the page horizontally into top and bottom pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Position",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Process selected pages at once",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Copyright 2006--2026 Jeffrey Ratcliffe",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "No mask centering",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-changed",
+      "reason": "model-changed with no human text",
+      "msgctxt": null,
+      "msgid": "Disable mask centering.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Pan",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Select",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Select & pan",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Zoom 100%",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Cut",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Copy",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Paste",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Select All",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Select Odd",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Select Even",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Invert selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Clear OCR",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Import _hOCR…",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Invert",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Pan",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Select & pan",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Split horizontally",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "_Split vertically",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Edit text layer",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Edit annotations",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Open images",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Use the pan tool",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Use the combined select and pan tool",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Clear image selection",
+      "msgid_plural": null
     }
   ],
   "parked": [
@@ -48091,9 +50147,19 @@
         "msgstr": "Kaatuneet istunnot",
         "msgstr_plural": {}
       }
+    },
+    {
+      "language": "tr",
+      "msgctxt": null,
+      "msgid": "Crashed sessions",
+      "msgid_plural": null,
+      "model_variant": {
+        "msgstr": "Çökmüş oturumlar",
+        "msgstr_plural": {}
+      }
     }
   ],
   "notes": [
-    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 15070 with 4470 model-added and 1504 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 15739."
+    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 15315 with 4692 model-added and 1540 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 15984."
   ]
 }
