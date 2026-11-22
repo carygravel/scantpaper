@@ -42,7 +42,7 @@
 * Updated German translation thanks to Martin Butter
 * The German and Spanish translations now cover every shipped string, including
   counted forms.
-* Updated Czech, Hungarian, Italian, Russian & Ukrainian translations
+* Updated Czech, Finnish, Hungarian, Italian, Russian & Ukrainian translations
 
 
 ## 4.0.4 (2026-11-14)

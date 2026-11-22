@@ -36,6 +36,10 @@
     "hu": {
       "qualification": 0.25,
       "drift": 0.22
+    },
+    "fi": {
+      "qualification": 0.25,
+      "drift": 0.22
     }
   },
   "releases": {
