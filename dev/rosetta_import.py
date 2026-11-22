@@ -77,10 +77,10 @@ def merge_entry(
         target = polib.POEntry(
             msgid=exported.msgid,
             msgstr=exported.msgstr,
-            msgctxt=exported.msgctxt,
             msgid_plural=exported.msgid_plural,
             occurrences=exported.occurrences,
         )
+        target.msgctxt = exported.msgctxt
         catalog.append(target)
         created = True
     else:

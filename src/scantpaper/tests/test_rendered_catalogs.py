@@ -208,7 +208,7 @@ def test_render_check_handles_plural_forms(tmp_path: Path) -> None:
         polib.POEntry(
             msgid="%d file",
             msgid_plural="%d files",
-            msgstr_plural={"0": "%d Datei", "1": "%d Dateien"},
+            msgstr_plural={0: "%d Datei", 1: "%d Dateien"},
         )
     )
     po.save(str(path))
