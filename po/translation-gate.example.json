@@ -32,6 +32,10 @@
     "cs": {
       "qualification": 0.25,
       "drift": 0.22
+    },
+    "hu": {
+      "qualification": 0.25,
+      "drift": 0.22
     }
   },
   "releases": {
