@@ -850,6 +850,36 @@ instructions.
 - python3-pytest-timeout
 - python3-pytest-xvfb
 
+### Testing
+
+From a source checkout, run the suite with:
+
+```sh
+PYTHONPATH=src pytest
+```
+
+The save-PDF codec path has two layers. Its fast layer covers the codec and
+compression decision logic and the conversion bodies; deselect the
+real-toolchain canary with:
+
+```sh
+PYTHONPATH=src pytest -m "not slow"
+```
+
+The real-toolchain canary saves a bilevel page end to end and is marked
+`slow`:
+
+```sh
+PYTHONPATH=src pytest -m slow
+```
+
+The canary selects its assertions from the installed toolchain (the OCRmyPDF
+version, whether a JBIG2 encoder is installed, and the Ghostscript version),
+so the same tests pass with or without a JBIG2 encoder and with either
+Ghostscript bilevel behaviour. Other end-to-end tests, such as user-defined
+tools and post-save hooks, still run external programs because that is what
+they verify.
+
 ---
 
 ## Download, Installation & Removal

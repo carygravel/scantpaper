@@ -10,7 +10,7 @@ import tempfile
 import weakref
 import zlib
 from typing import cast
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import ANY, MagicMock, mock_open, patch
 
 import img2pdf
 import ocrmypdf.api
@@ -1859,6 +1859,27 @@ def test_convert_bilevel_images_to_jbig2_noop_without_images(
 
     with pikepdf.open(temp_pdf.name) as pdf:
         assert len(pdf.pages) == 1, "blank page still present"
+
+
+def test_convert_bilevel_images_to_jbig2_converts_images(
+    tmp_path: pathlib.Path,
+) -> None:
+    """A PDF with bilevel images runs the encoder and saves the result."""
+    pdf = MagicMock()
+    pdf.__enter__.return_value = pdf
+    pdf.__exit__.return_value = False
+    with (
+        patch("scantpaper.savethread.pikepdf.open", return_value=pdf),
+        patch(
+            "scantpaper.savethread.optimize.extract_images_jbig2",
+            return_value=["image"],
+        ) as mock_extract,
+        patch("scantpaper.savethread.optimize.convert_to_jbig2") as mock_convert,
+    ):
+        _convert_bilevel_images_to_jbig2(pathlib.Path("/tmp/in.pdf"), tmp_path)
+    mock_extract.assert_called_once_with(pdf, tmp_path, _JBIG2_OPTIONS)
+    mock_convert.assert_called_once_with(pdf, ["image"], tmp_path, _JBIG2_OPTIONS, ANY)
+    pdf.save.assert_called_once_with(pathlib.Path("/tmp/in.pdf"))
 
 
 def _write_flate_image_pdf(

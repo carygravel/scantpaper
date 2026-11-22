@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 import locale
+import os
 import pathlib
 import queue
 import re
@@ -11,18 +12,23 @@ import shutil
 import subprocess
 import tempfile
 import threading
+import zlib
 from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
 
 import img2pdf
 import pikepdf
 import pytest
-from PIL import Image, features
+from PIL import Image, ImageDraw, ImageFont, features
 
 from scantpaper import config
 from scantpaper.basethread import Request, Response
 from scantpaper.const import POINTS_PER_INCH
-from scantpaper.dependencies import jbig2_available
+from scantpaper.dependencies import (
+    _ghostscript_rewrites_bilevel_to_flate,
+    ghostscript_version,
+    jbig2_available,
+)
 from scantpaper.docthread import DocThread
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
@@ -103,33 +109,201 @@ def _has_rotated_text(content: bytes) -> bool:
     return False
 
 
-def _write_large_bilevel(path: str) -> None:
-    """Write a page-sized bilevel image with a substantial CCITT stream.
+_FONT_PATHS = (
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+)
 
-    OCRmyPDF's PDF/A step (Ghostscript) inlines very small images, which would
-    leave the post-embed JBIG2 pass nothing to convert, so the JBIG2 tests must
-    use a realistically sized page.
+
+def _try_font(path: str, size: int) -> ImageFont.FreeTypeFont | None:
+    """Return the font at ``path``, or None when it cannot be loaded."""
+    try:
+        return ImageFont.truetype(path, size)
+    except OSError:
+        return None
+
+
+def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Return a font at ``size``, falling back to Pillow's built-in font."""
+    for path in _FONT_PATHS:
+        font = _try_font(path, size)
+        if font is not None:
+            return font
+    result = subprocess.run(
+        ["fc-match", "--format=%{file}", "sans:style=Regular"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+        check=False,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        return ImageFont.truetype(result.stdout.strip(), size)
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:
+        return ImageFont.load_default()
+
+
+def _create_large_bilevel_image() -> Image.Image:
+    """Create a page-sized bilevel image with enough content for JBIG2.
+
+    OCRmyPDF's PDF/A step inlines very small images, which would leave the
+    post-embed JBIG2 pass nothing to convert, so the codec tests use a
+    realistically sized page.
     """
-    subprocess.run(
-        [
-            config.CONVERT_COMMAND,
-            "-size",
-            "2480x3508",
-            "xc:white",
-            "-fill",
-            "black",
-            "-pointsize",
-            "120",
-            "-annotate",
-            "+100+300",
+    image = Image.new("1", (2480, 3508), 1)
+    draw = ImageDraw.Draw(image)
+    font = _load_font(120)
+    for line in range(10):
+        draw.text(
+            (120, 200 + line * 300),
             "scantpaper JBIG2 test page",
-            "-threshold",
-            "50%",
-            "-type",
-            "bilevel",
-            path,
-        ],
-        check=True,
+            fill=0,
+            font=font,
+        )
+    return image
+
+
+@pytest.fixture(scope="session")
+def large_bilevel_pbm() -> Iterator[str]:
+    """Return a session-scoped page-sized bilevel PBM."""
+    fd, path = tempfile.mkstemp(suffix=".pbm")
+    os.close(fd)
+    _create_large_bilevel_image().save(path, "PPM")
+    yield path
+    pathlib.Path(path).unlink()
+
+
+def _bilevel_canary_expectation(
+    *, jbig2: bool, ghostscript_rewrites: bool
+) -> tuple[dict[str, object], frozenset[str], bool]:
+    """Return the canary's save options, acceptable codecs, and restore flag.
+
+    The expectation is selected from the runtime capabilities rather than a
+    per-distribution table: an installed JBIG2 encoder lets the canary ask for
+    JBIG2 and accept either bilevel codec, while a Ghostscript that rewrites
+    bilevel images to Flate makes the Group 4 restore path mandatory. The
+    universal invariant is the same in every case: the saved image is Group 4
+    or JBIG2, never Flate.
+    """
+    acceptable = {"/CCITTFaxDecode"}
+    if jbig2:
+        acceptable.add("/JBIG2Decode")
+        return (
+            {"bilevel compression": "jb2"},
+            frozenset(acceptable),
+            (ghostscript_rewrites),
+        )
+    return {}, frozenset(acceptable), ghostscript_rewrites
+
+
+def _save_bilevel_pages(
+    slist: Document, output: str, options: dict[str, object]
+) -> None:
+    """Save the imported pages of ``slist`` to ``output``."""
+    mlp = safe_mainloop(5000)
+    slist.save_pdf(
+        path=output,
+        list_of_pages=[slist.data[0][2]],
+        options=options,
+        finished_callback=lambda _response: mlp.quit(),
+    )
+    mlp.run()
+
+
+def _save_bilevel_page(
+    source: str,
+    *,
+    db_name: str,
+    output: str,
+    options: dict[str, object],
+    import_in_mainloop: Callable[[object, list[str]], None],
+) -> None:
+    """Import ``source`` and save it to ``output`` through the real pipeline."""
+    slist = Document(db=db_name)
+    import_in_mainloop(slist, [source])
+    _save_bilevel_pages(slist, output, options)
+
+
+def test_create_large_bilevel_image_is_page_sized() -> None:
+    """The canary's synthetic page is a page-sized bilevel image."""
+    image = _create_large_bilevel_image()
+    assert image.mode == "1"
+    assert image.size == (2480, 3508)
+    assert image.getextrema() == (0, 1), "page has text and paper"
+
+
+def test_load_font_falls_back_to_fontconfig(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A missing font path falls back to fontconfig."""
+    real_truetype = ImageFont.truetype
+
+    def fake_truetype(path: str, size: int) -> object:
+        if path in _FONT_PATHS:
+            raise OSError
+        return real_truetype(_FONT_PATHS[0], size)
+
+    monkeypatch.setattr(ImageFont, "truetype", fake_truetype)
+    result = MagicMock(returncode=0, stdout="/usr/share/fonts/x.ttf")
+    monkeypatch.setattr(subprocess, "run", lambda *_a, **_k: result)
+    assert _load_font(12) is not None
+
+
+def test_load_font_falls_back_to_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No font path and no fontconfig match fall back to Pillow's default."""
+    monkeypatch.setattr(
+        "scantpaper.tests.test_1111_save_pdf._try_font", lambda *_a, **_k: None
+    )
+    result = MagicMock(returncode=1, stdout="")
+    monkeypatch.setattr(subprocess, "run", lambda *_a, **_k: result)
+    assert _load_font(12) is not None
+
+
+def test_load_font_falls_back_to_bitmap_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A Pillow without load_default(size=...) uses the bitmap font."""
+    real_load_default = ImageFont.load_default
+
+    def fake_default(**kwargs: object) -> object:
+        if kwargs:
+            raise TypeError
+        return real_load_default()
+
+    monkeypatch.setattr(
+        "scantpaper.tests.test_1111_save_pdf._try_font", lambda *_a, **_k: None
+    )
+    result = MagicMock(returncode=1, stdout="")
+    monkeypatch.setattr(subprocess, "run", lambda *_a, **_k: result)
+    monkeypatch.setattr(ImageFont, "load_default", fake_default)
+    assert _load_font(12) is not None
+
+
+def test_bilevel_canary_expectation_follows_capabilities() -> None:
+    """The canary selects its request and codecs from the runtime probes."""
+    group4 = frozenset({"/CCITTFaxDecode"})
+    either = frozenset({"/CCITTFaxDecode", "/JBIG2Decode"})
+    assert _bilevel_canary_expectation(jbig2=True, ghostscript_rewrites=True) == (
+        {"bilevel compression": "jb2"},
+        either,
+        True,
+    )
+    assert _bilevel_canary_expectation(jbig2=True, ghostscript_rewrites=False) == (
+        {"bilevel compression": "jb2"},
+        either,
+        False,
+    )
+    assert _bilevel_canary_expectation(jbig2=False, ghostscript_rewrites=True) == (
+        {},
+        group4,
+        True,
+    )
+    assert _bilevel_canary_expectation(jbig2=False, ghostscript_rewrites=False) == (
+        {},
+        group4,
+        False,
     )
 
 
@@ -308,6 +482,48 @@ def test_get_pdf_image_codecs_inline_ccitt(
     path = tmp_path / f"ccitt-inline-{group}.pdf"
     pdf.save(str(path))
     assert get_pdf_image_codecs(str(path)) == ["/CCITTFaxDecode", group]
+
+
+@pytest.mark.parametrize("codec", ["/FlateDecode", "/JBIG2Decode", "/DCTDecode"])
+def test_get_pdf_image_codecs_other_filters(tmp_path: pathlib.Path, codec: str) -> None:
+    """A non-CCITT image reports its filter without a group marker."""
+    pdf = pikepdf.new()
+    page = pdf.add_blank_page(page_size=(72, 72))
+    page.obj["/Contents"] = pdf.make_stream(b"")
+    image = pdf.make_stream(b"\x00")
+    image["/Type"] = pikepdf.Name("/XObject")
+    image["/Subtype"] = pikepdf.Name("/Image")
+    image["/Width"] = 1
+    image["/Height"] = 1
+    image["/BitsPerComponent"] = 1
+    image["/ColorSpace"] = pikepdf.Name("/DeviceGray")
+    image["/Filter"] = pikepdf.Name(codec)
+    page.obj["/Resources"] = pikepdf.Dictionary(XObject=pikepdf.Dictionary(Im0=image))
+    path = tmp_path / "other.pdf"
+    pdf.save(str(path))
+    assert get_pdf_image_codecs(str(path)) == [codec]
+
+
+def test_get_raw_image_streams_returns_xobject_bytes(tmp_path: pathlib.Path) -> None:
+    """Only image XObjects are reported, by their raw stream bytes."""
+    pdf = pikepdf.new()
+    page = pdf.add_blank_page(page_size=(72, 72))
+    page.obj["/Contents"] = pdf.make_stream(b"")
+    raw = zlib.compress(b"raw-image-bytes")
+    image = pdf.make_stream(raw)
+    image["/Type"] = pikepdf.Name("/XObject")
+    image["/Subtype"] = pikepdf.Name("/Image")
+    image["/Width"] = 1
+    image["/Height"] = 1
+    image["/Filter"] = pikepdf.Name("/FlateDecode")
+    form = pdf.make_stream(b"form-bytes")
+    form["/Subtype"] = pikepdf.Name("/Form")
+    page.obj["/Resources"] = pikepdf.Dictionary(
+        XObject=pikepdf.Dictionary(Im0=image, Fm0=form)
+    )
+    path = tmp_path / "streams.pdf"
+    pdf.save(str(path))
+    assert get_raw_image_streams(str(path)) == [raw]
 
 
 def test_do_save_pdf(rose_pnm: str, temp_db: object, temp_pdf: object) -> None:
@@ -1190,60 +1406,70 @@ def test_save_pdf_jpeg_stays_jpeg_through_pdfa(
     assert "/FlateDecode" not in codecs, "JPEG page not re-encoded losslessly"
 
 
-@pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
-def test_save_pdf_jb2(
-    temp_pbm: object,
+@pytest.mark.slow
+def test_bilevel_page_keeps_a_bilevel_codec(
+    large_bilevel_pbm: str,
     temp_db: object,
     temp_pdf: object,
     import_in_mainloop: Callable[[object, list[str]], None],
 ) -> None:
-    """An explicit jb2 save embeds a bilevel page as lossless JBIG2."""
-    _write_large_bilevel(temp_pbm.name)
-    slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [temp_pbm.name])
-    mlp = safe_mainloop(5000)
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[slist.data[0][2]],
-        options={"compression": "jb2"},
-        finished_callback=lambda _response: mlp.quit(),
+    """A bilevel page is saved as Group 4 or JBIG2, never Flate.
+
+    The expectation is selected from the installed toolchain, so the same
+    invariant proves both a Ghostscript that rewrites bilevel images to Flate
+    (the restore path) and one that keeps Group 4 natively.
+    """
+    jbig2 = jbig2_available()
+    ghostscript_rewrites = _ghostscript_rewrites_bilevel_to_flate(ghostscript_version())
+    options, acceptable_codecs, restore_expected = _bilevel_canary_expectation(
+        jbig2=jbig2, ghostscript_rewrites=ghostscript_rewrites
     )
-    mlp.run()
+    _save_bilevel_page(
+        large_bilevel_pbm,
+        db_name=temp_db.name,
+        output=temp_pdf.name,
+        options=options,
+        import_in_mainloop=import_in_mainloop,
+    )
 
     codecs = get_pdf_image_codecs(temp_pdf.name)
-    assert "/JBIG2Decode" in codecs, "bilevel page embedded with JBIG2"
-    assert "/CCITTFaxDecode" not in codecs, "not Group 4"
+    assert set(codecs) & acceptable_codecs, (
+        f"expected one of {sorted(acceptable_codecs)} with jbig2={jbig2} and "
+        f"ghostscript_rewrites={restore_expected}"
+    )
+    assert "/FlateDecode" not in codecs, "bilevel page never left as Flate"
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
-def test_save_pdf_jb2_smaller_than_g4(
-    temp_pbm: object,
+def test_bilevel_page_saved_as_jbig2_is_smaller_than_g4(
+    large_bilevel_pbm: str,
     temp_db: object,
+    tmp_path: pathlib.Path,
     import_in_mainloop: Callable[[object, list[str]], None],
 ) -> None:
-    """A bilevel page saved as JBIG2 is smaller than the same page as Group 4."""
-    _write_large_bilevel(temp_pbm.name)
+    """Explicit JBIG2 embeds the page as JBIG2 and shrinks it versus Group 4."""
     slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [temp_pbm.name])
-    sizes = {}
+    import_in_mainloop(slist, [large_bilevel_pbm])
+    sizes: dict[str, int] = {}
+    codecs: dict[str, list[str]] = {}
     for compression in ("g4", "jb2"):
-        with tempfile.NamedTemporaryFile(suffix=".pdf") as out:
-            mlp = safe_mainloop(5000)
-            slist.save_pdf(
-                path=out.name,
-                list_of_pages=[slist.data[0][2]],
-                options={"compression": compression},
-                finished_callback=lambda _response, mlp=mlp: mlp.quit(),
-            )
-            mlp.run()
-            streams = get_raw_image_streams(out.name)
-            assert streams, "PDF contains an image"
-            sizes[compression] = sum(len(stream) for stream in streams)
+        output = str(tmp_path / f"bilevel-{compression}.pdf")
+        _save_bilevel_pages(slist, output, {"compression": compression})
+        streams = get_raw_image_streams(output)
+        assert streams, "PDF contains an image"
+        sizes[compression] = sum(len(stream) for stream in streams)
+        codecs[compression] = get_pdf_image_codecs(output)
+
+    assert "/JBIG2Decode" in codecs["jb2"], "explicit jb2 embedded as JBIG2"
+    assert "/CCITTFaxDecode" not in codecs["jb2"], "jb2 save is not Group 4"
+    assert "/CCITTFaxDecode" in codecs["g4"], "g4 save is Group 4"
     assert sizes["jb2"] < sizes["g4"], "JBIG2 stream smaller than Group 4"
 
 
-def test_save_pdf_jb2_without_encoder_falls_back_to_g4(
-    temp_pbm: object,
+@pytest.mark.slow
+def test_bilevel_page_jb2_without_encoder_falls_back_to_g4(
+    large_bilevel_pbm: str,
     temp_db: object,
     temp_pdf: object,
     import_in_mainloop: Callable[[object, list[str]], None],
@@ -1251,95 +1477,16 @@ def test_save_pdf_jb2_without_encoder_falls_back_to_g4(
 ) -> None:
     """A jb2 request without the encoder degrades to Group 4, not an error."""
     monkeypatch.setattr("scantpaper.savethread.jbig2_available", lambda: False)
-    _write_large_bilevel(temp_pbm.name)
-    slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [temp_pbm.name])
-    mlp = safe_mainloop(5000)
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[slist.data[0][2]],
+    _save_bilevel_page(
+        large_bilevel_pbm,
+        db_name=temp_db.name,
+        output=temp_pdf.name,
         options={"compression": "jb2"},
-        finished_callback=lambda _response: mlp.quit(),
+        import_in_mainloop=import_in_mainloop,
     )
-    mlp.run()
 
     codecs = get_pdf_image_codecs(temp_pdf.name)
     assert "/CCITTFaxDecode" in codecs, "fell back to Group 4"
-    assert "Group4" in codecs, "CCITT Group 4, not G3"
-    assert "/JBIG2Decode" not in codecs, "no JBIG2 without the encoder"
-
-
-def test_save_pdf_auto_bilevel_prefers_g4_by_default(
-    temp_pbm: object,
-    temp_db: object,
-    temp_pdf: object,
-    import_in_mainloop: Callable[[object, list[str]], None],
-) -> None:
-    """Under auto, the default bilevel preference keeps Group 4."""
-    _write_large_bilevel(temp_pbm.name)
-    slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [temp_pbm.name])
-    mlp = safe_mainloop(5000)
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[slist.data[0][2]],
-        options={"bilevel compression": "g4"},
-        finished_callback=lambda _response: mlp.quit(),
-    )
-    mlp.run()
-
-    codecs = get_pdf_image_codecs(temp_pdf.name)
-    assert "/CCITTFaxDecode" in codecs, "Group 4 under auto with g4 preference"
-    assert "/JBIG2Decode" not in codecs, "no JBIG2 under auto with g4 preference"
-
-
-@pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
-def test_save_pdf_auto_bilevel_jbig2_preference(
-    temp_pbm: object,
-    temp_db: object,
-    temp_pdf: object,
-    import_in_mainloop: Callable[[object, list[str]], None],
-) -> None:
-    """Under auto, a jb2 preference embeds bilevel pages as JBIG2."""
-    _write_large_bilevel(temp_pbm.name)
-    slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [temp_pbm.name])
-    mlp = safe_mainloop(5000)
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[slist.data[0][2]],
-        options={"bilevel compression": "jb2"},
-        finished_callback=lambda _response: mlp.quit(),
-    )
-    mlp.run()
-
-    codecs = get_pdf_image_codecs(temp_pdf.name)
-    assert "/JBIG2Decode" in codecs, "JBIG2 under auto with jb2 preference"
-
-
-def test_save_pdf_auto_bilevel_jbig2_preference_without_encoder(
-    temp_pbm: object,
-    temp_db: object,
-    temp_pdf: object,
-    import_in_mainloop: Callable[[object, list[str]], None],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Under auto, a jb2 preference without the encoder falls back to Group 4."""
-    monkeypatch.setattr("scantpaper.savethread.jbig2_available", lambda: False)
-    _write_large_bilevel(temp_pbm.name)
-    slist = Document(db=temp_db.name)
-    import_in_mainloop(slist, [temp_pbm.name])
-    mlp = safe_mainloop(5000)
-    slist.save_pdf(
-        path=temp_pdf.name,
-        list_of_pages=[slist.data[0][2]],
-        options={"bilevel compression": "jb2"},
-        finished_callback=lambda _response: mlp.quit(),
-    )
-    mlp.run()
-
-    codecs = get_pdf_image_codecs(temp_pdf.name)
-    assert "/CCITTFaxDecode" in codecs, "fell back to Group 4 without the encoder"
     assert "Group4" in codecs, "CCITT Group 4, not G3"
     assert "/JBIG2Decode" not in codecs, "no JBIG2 without the encoder"
 

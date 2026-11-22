@@ -76,10 +76,18 @@ This document provides essential context for anyone working on this project. Adh
     application is run with `PYTHONPATH=src python3 -m scantpaper.app`.
 -   **Testing:** Tests are written using the `pytest` framework. Run `pytest`
     from the repository root; tests run directly against the source tree via
-    `pythonpath = ["src"]`. The coverage gate measures only the shipped
-    `scantpaper` package and fails below 99%, so its result does not depend
-    on which optional test tooling is installed. Developer-tooling tests
-    live under `dev/tests/` next to the scripts they exercise. After a
+    `pythonpath = ["src"]`. The save-PDF codec path has two layers: a fast
+    layer covering the codec and compression decision logic and the conversion
+    bodies, and a real-toolchain canary marked `slow`. Deselect the canary
+    with `pytest -m "not slow"` and select it with `pytest -m slow`. The
+    canary chooses its assertions from runtime probes (the OCRmyPDF version,
+    whether a JBIG2 encoder is installed, and the Ghostscript version) rather
+    than a hardcoded per-distribution table. Other end-to-end tests, such as
+    user-defined tools and post-save hooks, still run external programs
+    because that is what they verify. The coverage gate measures only the
+    shipped `scantpaper` package and fails below 99%, so its result does not
+    depend on which optional test tooling is installed. Developer-tooling
+    tests live under `dev/tests/` next to the scripts they exercise. After a
     complete run, audit test code for unexecuted statements with
     `python3 dev/check_test_coverage.py`; it runs in GitHub's `latest` job
     and ratchets partial branches at the recorded baseline.

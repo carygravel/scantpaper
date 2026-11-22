@@ -9,6 +9,7 @@ both derived from this registry so detection and messaging cannot drift.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -103,6 +104,47 @@ def probe_jbig2() -> ProbeResult:
 def jbig2_available() -> bool:
     """Return True when the JBIG2 encoder (``jbig2``) is installed."""
     return _jbig2_version() is not None
+
+
+@lru_cache
+def _ghostscript_version() -> str | None:
+    """Return the Ghostscript version, probing it at most once."""
+    return program_version("stdout", r"([\d.]+)", ["gs", "--version"])
+
+
+def ghostscript_version() -> str | None:
+    """Return the installed Ghostscript version, or ``None`` when absent."""
+    return _ghostscript_version()
+
+
+def probe_ghostscript() -> ProbeResult:
+    """Probe Ghostscript."""
+    return ProbeResult(_ghostscript_version())
+
+
+def _parse_major_minor(version: str) -> tuple[int, int]:
+    """Return the leading (major, minor) of a dotted version string.
+
+    An unparseable string yields ``(0, 0)``, which sorts below every real
+    release.
+    """
+    match = re.match(r"(\d+)\.(\d+)", version)
+    if match is None:
+        return (0, 0)
+    return (int(match.group(1)), int(match.group(2)))
+
+
+# Ghostscript 10.06 (Ubuntu 26.04) rewrites a bilevel page image as Flate
+# during PDF/A conversion, even when lossless image handling is requested.
+# Earlier releases keep the image's Group 4 encoding.
+_GHOSTSCRIPT_FLATE_REWRITE_VERSION = (10, 6)
+
+
+def _ghostscript_rewrites_bilevel_to_flate(version: str | None) -> bool:
+    """Return True when Ghostscript's PDF/A step rewrites bilevel as Flate."""
+    if version is None:
+        return False
+    return _parse_major_minor(version) >= _GHOSTSCRIPT_FLATE_REWRITE_VERSION
 
 
 def probe_tesseract() -> ProbeResult:

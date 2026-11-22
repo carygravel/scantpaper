@@ -56,6 +56,13 @@ cast("Any", Image).MAX_IMAGE_PIXELS = None
 
 WHITE = 255
 
+# Fonts tried before asking fontconfig, in preference order.
+_FONT_PATHS = (
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -762,11 +769,7 @@ def _create_qbfox_image() -> Image.Image:
     font_size = 72
     font = None
     font_source = None
-    for path in [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
-    ]:
+    for path in _FONT_PATHS:
         try:
             font = ImageFont.truetype(path, font_size)
             font_source = path

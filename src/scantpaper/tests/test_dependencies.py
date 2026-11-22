@@ -7,7 +7,11 @@ from typing import TYPE_CHECKING
 from scantpaper.dependencies import (
     DEPS,
     ProbeResult,
+    _ghostscript_rewrites_bilevel_to_flate,
+    _ghostscript_version,
+    ghostscript_version,
     jbig2_available,
+    probe_ghostscript,
     program_version_probe,
 )
 
@@ -119,6 +123,44 @@ def test_jbig2_available_delegates_to_probe(
     assert jbig2_available() is True
     mocker.patch("scantpaper.dependencies._jbig2_version", return_value=None)
     assert jbig2_available() is False
+
+
+def test_probe_ghostscript(mocker: pytest.MockerFixture) -> None:
+    """Ghostscript reports the version parsed from its output."""
+    mocker.patch("scantpaper.dependencies._ghostscript_version", return_value="10.06.0")
+    assert probe_ghostscript() == ProbeResult("10.06.0")
+
+
+def test_ghostscript_version_reads_program_version(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """The cached probe parses the installed Ghostscript version."""
+    mocker.patch("scantpaper.dependencies.program_version", return_value="10.06.0")
+    _ghostscript_version.cache_clear()
+    try:
+        assert ghostscript_version() == "10.06.0"
+    finally:
+        _ghostscript_version.cache_clear()
+
+
+def test_ghostscript_version_delegates_to_probe(
+    mocker: pytest.MockerFixture,
+) -> None:
+    """ghostscript_version returns the cached probe's result."""
+    mocker.patch("scantpaper.dependencies._ghostscript_version", return_value="9.55.0")
+    assert ghostscript_version() == "9.55.0"
+    mocker.patch("scantpaper.dependencies._ghostscript_version", return_value=None)
+    assert ghostscript_version() is None
+
+
+def test_ghostscript_rewrites_bilevel_to_flate() -> None:
+    """Only Ghostscript 10.06 and later rewrite bilevel images as Flate."""
+    assert _ghostscript_rewrites_bilevel_to_flate("10.06.0") is True
+    assert _ghostscript_rewrites_bilevel_to_flate("10.07.1") is True
+    assert _ghostscript_rewrites_bilevel_to_flate("10.02.1") is False
+    assert _ghostscript_rewrites_bilevel_to_flate("9.55.0") is False
+    assert _ghostscript_rewrites_bilevel_to_flate(None) is False
+    assert _ghostscript_rewrites_bilevel_to_flate("garbage") is False
 
 
 def test_deps_names_are_unique() -> None:
