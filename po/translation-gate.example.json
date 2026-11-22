@@ -40,6 +40,10 @@
     "fi": {
       "qualification": 0.25,
       "drift": 0.22
+    },
+    "sk": {
+      "qualification": 0.25,
+      "drift": 0.22
     }
   },
   "releases": {
