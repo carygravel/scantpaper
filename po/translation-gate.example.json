@@ -52,6 +52,10 @@
     "fr": {
       "qualification": 0.35,
       "drift": 0.3
+    },
+    "da": {
+      "qualification": 0.35,
+      "drift": 0.25
     }
   },
   "releases": {
