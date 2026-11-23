@@ -4,9 +4,14 @@ from __future__ import annotations
 
 import gettext
 import importlib.util
+import io
 import json
+import os
+import socket
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from threading import Event, Lock
 from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock
 
@@ -14,6 +19,7 @@ import polib
 import pytest
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
     from types import ModuleType
 
     from translation_gate import GateConfig, GateDecision
@@ -38,6 +44,14 @@ def _load_gate() -> ModuleType:
 
 GATE = _load_gate()
 LEDGER = sys.modules["translation_ledger"]
+
+
+@pytest.fixture(autouse=True)
+def _isolated_state_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Give every test a private batch-state directory."""
+    state_dir = tmp_path / "state"
+    monkeypatch.setattr(GATE, "STATE_DIR", state_dir)
+    return state_dir
 
 
 def _load_compile_mo() -> ModuleType:
@@ -75,8 +89,15 @@ class FakeClient:
         self.cost_usd = cost_usd
         self._back_index = 0
 
-    def complete(self, deployment: object, prompt: str) -> object:
+    def complete(
+        self,
+        deployment: object,
+        prompt: str,
+        *,
+        timeout: float | None = None,
+    ) -> object:
         """Answer a proposal, judge or back-translation prompt."""
+        del timeout  # the transport deadline is exercised by the real client
         if prompt.startswith("Choose the best"):
             text = self.judge
         elif "back into English" in prompt:
@@ -2409,7 +2430,7 @@ def test_run_batch_stops_at_budget(tmp_path: Path) -> None:
     high = GATE.estimate_gate(config, "de", ["Delete"]).high_cost_usd
     assert high is not None
     client = FakeClient({"p1": "Löschen", "p2": "Entfernen"}, cost_usd=0.001)
-    approved, abstained, stopped, spent = GATE._run_batch(
+    approved, abstained, stopped, spent, judge_abstained = GATE._run_batch(
         GATE.BatchRun(
             config=config,
             catalog=catalog,
@@ -2427,6 +2448,7 @@ def test_run_batch_stops_at_budget(tmp_path: Path) -> None:
     assert len(approved) == 1
     assert approved[0]["msgid"] == "Delete"
     assert abstained == []
+    assert judge_abstained == 0
     assert spent == pytest.approx(0.003)
     saved = polib.pofile(str(catalog_path))
     delete = saved.find("Delete")
@@ -3535,3 +3557,1493 @@ def test_high_impact_string_cannot_be_approved_from_one_weak_proposal(
     assert GATE.is_high_impact("Delete")
     decision = GATE.run_gate("Delete", "de", only_one, FakeClient({"p1": "Löschen"}))
     assert decision.approved is False
+
+
+class FakeClock:
+    """Deterministic clock advancing UTC wall time and monotonic together."""
+
+    def __init__(
+        self,
+        start_utc: datetime,
+        *,
+        local_tz: timezone | None = None,
+        start_mono: float = 0.0,
+    ) -> None:
+        """Freeze the clock at start_utc with an optional local zone."""
+        self._now = start_utc
+        self._mono = start_mono
+        self._local_tz = (
+            local_tz if local_tz is not None else timezone(timedelta(hours=1))
+        )
+        self._lock = Lock()
+
+    def advance(self, seconds: float) -> None:
+        """Advance both wall and monotonic clocks."""
+        with self._lock:
+            self._now += timedelta(seconds=seconds)
+            self._mono += seconds
+
+    def now(self) -> datetime:
+        """Return the current frozen UTC time."""
+        return self._now
+
+    def monotonic(self) -> float:
+        """Return the current frozen monotonic seconds."""
+        return self._mono
+
+    def local_tz(self) -> timezone:
+        """Return the fixed local time zone."""
+        return self._local_tz
+
+
+def _write_state_record(path: Path, record: dict[str, object]) -> None:
+    """Write a batch state file through the module's atomic writer."""
+    GATE._write_state(path, record)
+
+
+def _bilingual_setup(
+    tmp_path: Path,
+    language: str,
+    entries: tuple[polib.POEntry, ...],
+) -> tuple[Path, Path, Path, Path]:
+    """Write a config, roles, qualified ledger and catalog for one language."""
+    config_path = _write_config(tmp_path, _config_data())
+    roles_path = tmp_path / f"{language}-roles.json"
+    roles_path.write_text(
+        json.dumps({"proposers": ["p1", "p2"], "judge": "j"}),
+        encoding="utf-8",
+    )
+    ledger = _ledger()
+    for release in ("r1", "r2", "r3"):
+        GATE._replace_section(
+            ledger,
+            "qualifications",
+            {"release": release, "language": language, "qualified": True},
+            key_fields=("release", "language"),
+        )
+    ledger_path = _write_ledger(tmp_path / f"{language}-ledger.json", ledger)
+    catalog_path = _write_catalog(tmp_path / f"{language}.po", entries)
+    return config_path, ledger_path, catalog_path, roles_path
+
+
+def test_format_duration_human() -> None:
+    """Durations read as compact hours and minutes."""
+    assert GATE._format_duration(0) == "<1m"
+    assert GATE._format_duration(25) == "<1m"
+    assert GATE._format_duration(59) == "1m"
+    assert GATE._format_duration(120) == "2m"
+    assert GATE._format_duration(3600) == "1h 00m"
+    assert GATE._format_duration(5400) == "1h 30m"
+
+
+def test_round_band_five_minute_bounds() -> None:
+    """The band rounds inwards and outwards to five minutes."""
+    assert GATE._round_band(5220) == (5100, 5400)
+    assert GATE._round_band(0) == (0, 0)
+    assert GATE._round_band(600) == (600, 600)
+
+
+def test_percentile_interpolates() -> None:
+    """The percentile helper interpolates between sorted neighbours."""
+    assert GATE._percentile([1, 2, 3, 4], 0.1) == pytest.approx(1.3)
+    assert GATE._percentile([1, 2, 3, 4], 0.9) == pytest.approx(3.7)
+    assert GATE._percentile([], 0.5) == 0.0
+    assert GATE._percentile([7], 0.5) == 7
+
+
+def test_eta_display_converts_utc_to_local() -> None:
+    """The estimate displays as a five-minute band in local time."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    zone = timezone(timedelta(hours=2))
+    assert GATE._eta_display(5100, 5700, now, zone) == "1h 25m-1h 35m (15:25-15:35)"
+    assert (
+        GATE._eta_display(5100, 5700, now, timezone.utc)
+        == "1h 25m-1h 35m (13:25-13:35)"
+    )
+
+
+def test_duration_prior_prefers_language_history() -> None:
+    """The prior uses the language's own gate-run latencies first."""
+    ledger = _ledger()
+    for latency in (10.0, 20.0, 30.0):
+        LEDGER.add_section_record(
+            ledger,
+            "gate_runs",
+            {"language": "de", "latency_ms": latency * 1000.0},
+        )
+    LEDGER.add_section_record(
+        ledger,
+        "gate_runs",
+        {"language": "fr", "latency_ms": 5000.0},
+    )
+    seconds, basis = GATE._duration_prior(ledger, "de")
+    assert seconds == pytest.approx(20.0 + GATE.LOCAL_OVERHEAD_SECONDS, abs=1e-9)
+    assert basis == "language history"
+
+
+def test_duration_prior_falls_back_to_cross_language() -> None:
+    """Without a language's own runs, the cross-language median is used."""
+    ledger = _ledger()
+    for _ in range(3):
+        LEDGER.add_section_record(
+            ledger,
+            "gate_runs",
+            {"language": "fr", "latency_ms": 8000.0},
+        )
+    seconds, basis = GATE._duration_prior(ledger, "de")
+    assert seconds == pytest.approx(8.0 + GATE.LOCAL_OVERHEAD_SECONDS, abs=1e-9)
+    assert basis == "cross-language history"
+
+
+def test_duration_prior_defaults_without_history() -> None:
+    """With no history at all, the documented constant is the prior."""
+    seconds, basis = GATE._duration_prior(_ledger(), "de")
+    assert seconds == GATE.DEFAULT_SECONDS_PER_ENTRY
+    assert basis == "default"
+
+
+def test_reporter_banner_names_selection_estimate_and_prior(
+    tmp_path: Path,
+) -> None:
+    """The banner names counts, spend estimate, ETA band and its prior."""
+    config = _costed_config(tmp_path)
+    estimate = GATE.estimate_gate(config, "de", ["Delete", "Open"])
+    stream = io.StringIO()
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+    reporter = GATE.ProgressReporter(
+        info=GATE.ProgressInfo(
+            language="de",
+            catalog_path=tmp_path / "de.po",
+            state_path=tmp_path / "state" / "de.json",
+            selection=2,
+            skipped=1,
+            unsupported=2,
+            weights=(1.0, 1.0),
+            estimate=estimate,
+            prior=(1080.0, "language history"),
+            pid=99,
+            host="neptune",
+        ),
+        mode="line",
+        stream=stream,
+        clock=clock,
+    )
+    reporter.banner()
+    line = stream.getvalue().strip()
+    assert "start translate de:" in line
+    assert "selected 2" in line
+    assert "skipped 1" in line
+    assert "unsupported 2" in line
+    assert "estimate" in line
+    assert "estimate -" not in line
+    assert "eta 25m-45m (13:25-13:45)" in line
+    assert "prior language history" in line
+    state = json.loads((tmp_path / "state" / "de.json").read_text(encoding="utf-8"))
+    assert state["selection"] == 2
+    assert state["done"] == 0
+
+
+def test_translate_cli_empty_selection_makes_no_request(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An empty selection prints the banner and exits without a call."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path, entries=()
+    )
+    client = Mock()
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    status = GATE.main(
+        _batch_args(
+            config_path, ledger_path, catalog_path, roles_path, "--progress", "line"
+        )
+    )
+    assert status == 0
+    client.complete.assert_not_called()
+    captured = capsys.readouterr()
+    assert "start translate de:" in captured.err
+    assert "selected 0" in captured.err
+    assert "approved 0" in captured.out
+
+
+def test_translate_cli_progress_emits_one_line_per_entry(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--progress line writes one stderr line per entry, in order."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(
+            _batch_entry("Delete"),
+            _batch_entry("Open"),
+            _batch_entry("Save"),
+        ),
+    )
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Entfernen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    status = GATE.main(
+        _batch_args(
+            config_path, ledger_path, catalog_path, roles_path, "--progress", "line"
+        )
+    )
+    assert status == 0
+    captured = capsys.readouterr()
+    entry_lines = [
+        line for line in captured.err.splitlines() if line.startswith("entry ")
+    ]
+    assert [line.split()[1] for line in entry_lines] == ["1/3", "2/3", "3/3"]
+    assert "approved" in entry_lines[0]
+    assert "spent" in entry_lines[0]
+    assert "rate" in entry_lines[0]
+    assert "eta" in entry_lines[0]
+    assert "start translate de:" in captured.err
+    json.loads(captured.out) if captured.out.strip().startswith("{") else None
+
+
+def test_translate_cli_json_stdout_stays_one_document(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--json leaves stdout as exactly one document despite progress lines."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path, entries=(_batch_entry("Delete"),)
+    )
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--json",
+            "--progress",
+            "line",
+        )
+    )
+    assert status == 0
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert payload["selected"] == 1
+    assert payload["approved"][0]["msgid"] == "Delete"
+    assert "start translate de:" in captured.err
+    assert any(line.startswith("entry ") for line in captured.err.splitlines())
+
+
+def test_translate_cli_progress_auto_is_silent_without_a_tty(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The default auto mode prints nothing when stderr is not a terminal."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path, entries=(_batch_entry("Delete"),)
+    )
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert "approved 1" in captured.out
+
+
+def test_translate_cli_progress_none_prints_nothing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--progress none writes no banner or entry lines."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path, entries=(_batch_entry("Delete"),)
+    )
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    status = GATE.main(
+        _batch_args(
+            config_path, ledger_path, catalog_path, roles_path, "--progress", "none"
+        )
+    )
+    assert status == 0
+    captured = capsys.readouterr()
+    assert captured.err == ""
+
+
+def test_reporter_eta_band_widens_with_an_outlier() -> None:
+    """A windowed median absorbs a slow outlier while the band widens."""
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+    reporter = GATE.ProgressReporter(
+        info=GATE.ProgressInfo(
+            selection=10,
+            weights=(1.0,) * 10,
+            prior=(18.0, "default"),
+        ),
+        mode="none",
+        clock=clock,
+    )
+    for _ in range(4):
+        reporter.entry_done(weight=1.0, approved=True, cost=0.0, elapsed=600.0)
+    reporter.entry_done(weight=1.0, approved=True, cost=0.0, elapsed=3600.0)
+    state = reporter.as_dict()
+    assert state["done"] == 5
+    assert state["eta_seconds"] == pytest.approx(5 * 600.0, abs=1)
+    assert state["eta_high_seconds"] > 5 * 600.0
+    assert state["rate_seconds_per_entry"] < 3600.0
+    assert state["eta_seconds"] < 3600.0
+
+
+def test_entries_per_hour_helper() -> None:
+    """Throughput is entries per hour, or None before any elapsed time."""
+    assert GATE._entries_per_hour(0, 0) is None
+    assert GATE._entries_per_hour(0, 10) == 0.0
+    assert GATE._entries_per_hour(3, 60) == pytest.approx(180.0)
+
+
+def test_translate_cli_json_report_has_elapsed_and_rate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The JSON report carries elapsed time and entries-per-hour."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path, entries=(_batch_entry("Delete"),)
+    )
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+    monkeypatch.setattr(GATE, "_batch_clock", clock)
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    status = GATE.main(
+        _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert "elapsed_seconds" in payload
+    assert "entries_per_hour" in payload
+    assert payload["entries_per_hour"] is None
+
+
+def test_translate_cli_writes_atomic_state_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A completed batch leaves a complete state file per language."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete"), _batch_entry("Open")),
+    )
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    state_path = GATE.STATE_DIR / "de.json"
+    assert state_path.exists()
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    assert state["selection"] == 2
+    assert state["done"] == 2
+    assert state["approved"] == 2
+    assert state["stopped"] == "complete"
+    assert state["language"] == "de"
+
+
+def test_state_paths_are_per_language(tmp_path: Path) -> None:
+    """Each language writes only its own state file."""
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+    for language in ("de", "fr"):
+        reporter = GATE.ProgressReporter(
+            info=GATE.ProgressInfo(
+                language=language,
+                catalog_path=tmp_path / f"{language}.po",
+                state_path=tmp_path / "state" / f"{language}.json",
+                selection=1,
+                weights=(1.0,),
+            ),
+            mode="none",
+            clock=clock,
+        )
+        reporter.banner()
+    assert (tmp_path / "state" / "de.json").exists()
+    assert (tmp_path / "state" / "fr.json").exists()
+
+
+def test_reporter_waiting_field_marks_and_clears_a_call(tmp_path: Path) -> None:
+    """The in-flight marker names the role and clears on return."""
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+    reporter = GATE.ProgressReporter(
+        info=GATE.ProgressInfo(
+            selection=1,
+            weights=(1.0,),
+            state_path=tmp_path / "state" / "de.json",
+        ),
+        mode="none",
+        clock=clock,
+    )
+    reporter.begin_call("judge", "j")
+    state = json.loads((tmp_path / "state" / "de.json").read_text(encoding="utf-8"))
+    assert state["waiting"] == {
+        "role": "judge",
+        "deployment": "j",
+        "since": started.isoformat(timespec="seconds"),
+    }
+    reporter.end_call()
+    state = json.loads((tmp_path / "state" / "de.json").read_text(encoding="utf-8"))
+    assert state["waiting"] is None
+
+
+def test_state_write_failure_does_not_fail_batch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A batch still records approvals when the cache is unwritable."""
+    blocker = tmp_path / "blocker"
+    blocker.write_text("not a directory", encoding="utf-8")
+    monkeypatch.setattr(GATE, "STATE_DIR", blocker / "translate")
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path, entries=(_batch_entry("Delete"),)
+    )
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    saved = polib.pofile(str(catalog_path)).find("Delete")
+    assert saved is not None
+    assert saved.msgstr == "Löschen"
+
+
+def test_status_reports_a_live_batch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Status reads a live state file first and marks it live."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    _write_state_record(
+        GATE.STATE_DIR / "de.json",
+        {
+            "pid": os.getpid(),
+            "host": socket.gethostname(),
+            "started_at": (now - timedelta(seconds=200)).isoformat(timespec="seconds"),
+            "updated_at": now.isoformat(timespec="seconds"),
+            "language": "de",
+            "catalog": str(tmp_path / "de.po"),
+            "selection": 12,
+            "done": 3,
+            "approved": 2,
+            "abstained": 1,
+            "spent_usd": 0.003,
+            "rate_seconds_per_entry": 17.5,
+            "weight_total": 12.0,
+            "weight_done": 3.0,
+            "eta_seconds": 1500.0,
+            "eta_low_seconds": 1200.0,
+            "eta_high_seconds": 1800.0,
+            "waiting": None,
+            "stopped": None,
+        },
+    )
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert len(payload) == 1
+    record = payload[0]
+    assert record["language"] == "de"
+    assert record["source"] == "live"
+    assert record["state"] == "running"
+    assert record["done"] == 3
+    assert record["eta_seconds"] == 1500.0
+
+
+def test_status_infers_from_recent_gate_runs(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Without a state file, recent ledger runs are inferred."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    monkeypatch.setattr(GATE, "CATALOGS_DIR", tmp_path)
+    _write_catalog(tmp_path / "fr.po", (_batch_entry("Delete"),))
+    ledger = _ledger()
+    for seconds in (30.0, 60.0, 90.0):
+        LEDGER.add_section_record(
+            ledger,
+            "gate_runs",
+            {
+                "language": "fr",
+                "timestamp": (now - timedelta(seconds=seconds)).isoformat(
+                    timespec="seconds"
+                ),
+                "latency_ms": 10000.0,
+                "total_cost_usd": 0.001,
+            },
+        )
+    ledger_path = _write_ledger(tmp_path / "ledger.json", ledger)
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    fr = next(record for record in payload if record["language"] == "fr")
+    assert fr["source"] == "inferred"
+    assert fr["state"] == "idle"
+    assert fr["done"] == 3
+    assert fr["selection"] == 1
+    assert fr["spent_usd"] == pytest.approx(0.003)
+    assert fr["rate_seconds_per_entry"] == pytest.approx(10.0)
+    assert fr["updated_age_seconds"] is not None
+
+
+def test_status_filters_by_language(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--language narrows the report to one batch."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    _write_state_record(
+        GATE.STATE_DIR / "de.json",
+        {
+            "pid": os.getpid(),
+            "host": socket.gethostname(),
+            "started_at": now.isoformat(timespec="seconds"),
+            "updated_at": now.isoformat(timespec="seconds"),
+            "language": "de",
+            "catalog": None,
+            "selection": 1,
+            "done": 1,
+            "approved": 1,
+            "abstained": 0,
+            "spent_usd": 0.001,
+            "rate_seconds_per_entry": 10.0,
+            "weight_total": 1.0,
+            "weight_done": 1.0,
+            "eta_seconds": None,
+            "eta_low_seconds": None,
+            "eta_high_seconds": None,
+            "waiting": None,
+            "stopped": "complete",
+        },
+    )
+    status = GATE.main(
+        ["--ledger", str(ledger_path), "status", "--language", "de", "--json"]
+    )
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert [record["language"] for record in payload] == ["de"]
+    assert payload[0]["state"] == "done"
+
+
+def test_status_flags_a_stalled_call(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A waiting call past the threshold is named a stall."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    _write_state_record(
+        GATE.STATE_DIR / "de.json",
+        {
+            "pid": os.getpid(),
+            "host": socket.gethostname(),
+            "started_at": now.isoformat(timespec="seconds"),
+            "updated_at": now.isoformat(timespec="seconds"),
+            "language": "de",
+            "catalog": None,
+            "selection": 5,
+            "done": 2,
+            "approved": 1,
+            "abstained": 1,
+            "spent_usd": 0.002,
+            "rate_seconds_per_entry": 10.0,
+            "weight_total": 5.0,
+            "weight_done": 2.0,
+            "eta_seconds": 1800.0,
+            "eta_low_seconds": 1500.0,
+            "eta_high_seconds": 2100.0,
+            "waiting": {
+                "role": "judge",
+                "deployment": "j",
+                "since": (now - timedelta(seconds=120)).isoformat(timespec="seconds"),
+            },
+            "stopped": None,
+        },
+    )
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    record = json.loads(capsys.readouterr().out)[0]
+    assert record["state"] == "stalled"
+    assert record["stall_reason"] == "waiting 120s on judge"
+
+
+def test_status_abandons_a_dead_batch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A dead process with an old state file is abandoned, without an ETA."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    _write_state_record(
+        GATE.STATE_DIR / "de.json",
+        {
+            "pid": 999999999,
+            "host": socket.gethostname(),
+            "started_at": (now - timedelta(seconds=3600)).isoformat(timespec="seconds"),
+            "updated_at": (now - timedelta(seconds=3600)).isoformat(timespec="seconds"),
+            "language": "de",
+            "catalog": None,
+            "selection": 10,
+            "done": 4,
+            "approved": 3,
+            "abstained": 1,
+            "spent_usd": 0.007,
+            "rate_seconds_per_entry": 17.5,
+            "weight_total": 10.0,
+            "weight_done": 4.0,
+            "eta_seconds": 3600.0,
+            "eta_low_seconds": 3000.0,
+            "eta_high_seconds": 4200.0,
+            "waiting": None,
+            "stopped": None,
+        },
+    )
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    record = json.loads(capsys.readouterr().out)[0]
+    assert record["state"] == "abandoned"
+    assert record["eta_seconds"] is None
+
+
+def test_status_falls_back_when_state_is_unreadable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A malformed state file falls back to ledger inference."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    GATE.STATE_DIR.mkdir(parents=True, exist_ok=True)
+    (GATE.STATE_DIR / "de.json").write_text("{broken", encoding="utf-8")
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    de = next(record for record in payload if record["language"] == "de")
+    assert de["source"] == "inferred"
+
+
+def test_status_needs_no_model_credential(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Status works with no key and no config loaded."""
+    monkeypatch.delenv("SCANTPAPER_TEST_KEY", raising=False)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert payload == []
+    assert "SCANTPAPER_TEST_KEY" not in captured.out
+    assert "SCANTPAPER_TEST_KEY" not in captured.err
+
+
+def test_translate_cli_stops_at_time_budget(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--max-time stops between entries and reports completed and remaining."""
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+
+    class SteppingClient:
+        """A fake client that advances the clock on every call."""
+
+        def __init__(self) -> None:
+            self.inner = FakeClient({"p1": "Löschen", "p2": "Löschen"})
+
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout  # the deadline is captured by the clock advance
+            clock.advance(30.0)
+            return self.inner.complete(deployment, prompt)
+
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(
+            _batch_entry("Delete"),
+            _batch_entry("Open"),
+            _batch_entry("Save"),
+        ),
+    )
+    monkeypatch.setattr(GATE, "_batch_clock", clock)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: SteppingClient())
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--progress",
+            "line",
+            "--max-time",
+            "90",
+        )
+    )
+    assert status == 0
+    captured = capsys.readouterr()
+    assert "stopped: time: completed 2 of 3" in captured.out
+    ledger = LEDGER.load_ledger(ledger_path)
+    assert len(LEDGER.section(ledger, "gate_runs")) == 2
+    catalog = polib.pofile(str(catalog_path))
+    assert catalog.find("Delete").msgstr == "Löschen"
+    assert catalog.find("Open").msgstr == "Löschen"
+    assert catalog.find("Save").msgstr == ""
+    entry_lines = [
+        line for line in captured.err.splitlines() if line.startswith("entry ")
+    ]
+    assert len(entry_lines) == 2
+
+
+def test_translate_cli_time_budget_beats_unreached_cost_budget(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """With both budgets set, the first deadline reached wins."""
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+
+    class SteppingClient:
+        def __init__(self) -> None:
+            self.inner = FakeClient({"p1": "Löschen", "p2": "Löschen"})
+
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout  # the deadline is captured by the clock advance
+            clock.advance(30.0)
+            return self.inner.complete(deployment, prompt)
+
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        costed=True,
+        entries=(
+            _batch_entry("Delete"),
+            _batch_entry("Open"),
+            _batch_entry("Save"),
+        ),
+    )
+    monkeypatch.setattr(GATE, "_batch_clock", clock)
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: SteppingClient())
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--max-time",
+            "90",
+            "--max-cost",
+            "1000",
+        )
+    )
+    assert status == 0
+    assert "stopped: time: completed 2 of 3" in capsys.readouterr().out
+
+
+def test_translate_cli_interrupt_reports_resume_command(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Ctrl-C reports counts and the exact resume command, approvals kept."""
+
+    class InterruptClient:
+        def __init__(self) -> None:
+            self.count = 0
+            self.inner = FakeClient({"p1": "Löschen", "p2": "Entfernen"})
+
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout  # the deadline is irrelevant to the interrupt count
+            self.count += 1
+            if self.count >= 5:
+                raise KeyboardInterrupt
+            return self.inner.complete(deployment, prompt)
+
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(
+            _batch_entry("Delete"),
+            _batch_entry("Open"),
+            _batch_entry("Save"),
+        ),
+    )
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: InterruptClient())
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 130
+    captured = capsys.readouterr()
+    assert "interrupted translate de: completed 1 remaining 2" in captured.err
+    assert "resume: python3 dev/translation_gate.py" in captured.err
+    ledger = LEDGER.load_ledger(ledger_path)
+    assert len(LEDGER.section(ledger, "gate_runs")) == 1
+    catalog = polib.pofile(str(catalog_path))
+    assert catalog.find("Delete") is not None
+    assert catalog.find("Delete").msgstr == "Löschen"
+    assert catalog.find("Open").msgstr == ""
+
+
+def test_translate_cli_abstention_note_and_separate_counts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The report shows batch and catalog progress separately and notes retries."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Open", fuzzy=True),),
+    )
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda **_: FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="ABSTAIN"),
+    )
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    captured = capsys.readouterr()
+    assert "abstained 1" in captured.out
+    assert "processed 1/1" in captured.out
+    assert "remaining 1" in captured.out
+    assert "retried by a later batch" in captured.out
+
+
+def test_blind_judge_model_error_is_an_abstention(tmp_path: Path) -> None:
+    """A judge transport failure abstains with the TIMEOUT verdict."""
+
+    class FailingJudge:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del deployment, prompt, timeout  # always fail on the judge call
+            msg = "judge down"
+            raise GATE.ModelError(msg)
+
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    proposals = GATE.propose("Delete", "de", config, FakeClient({"p1": "Löschen"}))
+    index, verdict, completion = GATE.blind_judge(
+        "Delete", "de", proposals, config, FailingJudge()
+    )
+    assert index is None
+    assert verdict == "TIMEOUT"
+    assert completion is None
+
+
+def test_blind_judge_plural_model_error_is_an_abstention(tmp_path: Path) -> None:
+    """A plural judge transport failure abstains with the TIMEOUT verdict."""
+
+    class FailingJudge:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del deployment, prompt, timeout  # always fail on the judge call
+            msg = "judge down"
+            raise GATE.ModelError(msg)
+
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    client = FakeClient(
+        plural_answers={"p1": "0: Löschen\n1: Löschen", "p2": "0: Löschen\n1: Löschen"}
+    )
+    source = GATE.PluralSource("Delete", "Deletes", 2, "n != 1")
+    proposals = GATE.propose_plural(source, "de", config, client)
+    index, verdict, completion = GATE.blind_judge_plural(
+        source, "de", proposals, config, FailingJudge()
+    )
+    assert index is None
+    assert verdict == "TIMEOUT"
+    assert completion is None
+
+
+def test_gate_run_judge_timeout_reason(tmp_path: Path) -> None:
+    """A judge ModelError produces an unapproved run naming the deadline."""
+
+    class TimingOutJudge:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout  # the deadline is simulated by the ModelError below
+            if prompt.startswith("Choose the best"):
+                msg = "judge timed out"
+                raise GATE.ModelError(msg)
+            return FakeClient({"p1": "Löschen", "p2": "Entfernen"}).complete(
+                deployment, prompt
+            )
+
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    decision = GATE.run_gate(
+        "Delete",
+        "de",
+        config,
+        TimingOutJudge(),
+        options=GATE.GateOptions(),
+    )
+    assert decision.approved is False
+    assert decision.reason == "judge timed out"
+
+
+def test_missing_credential_never_becomes_an_abstention(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A judge missing its key is a hard CredentialError, not an abstention."""
+    data = _config_data(key_env="SCANTPAPER_MISSING_KEY")
+    config = GATE.load_config(_write_config(tmp_path, data))
+    monkeypatch.delenv("SCANTPAPER_MISSING_KEY", raising=False)
+    proposals = GATE.propose("Delete", "de", config, FakeClient({"p1": "Löschen"}))
+    with pytest.raises(GATE.CredentialError, match="SCANTPAPER_MISSING_KEY"):
+        GATE.blind_judge(
+            "Delete", "de", proposals, config, GATE.OpenAICompatibleClient()
+        )
+
+
+def test_judge_within_budget_decides_as_without_deadline(tmp_path: Path) -> None:
+    """A judge answering fast gives the same decision with and without the cap."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    reporter = GATE.ProgressReporter(info=GATE.ProgressInfo(), mode="none")
+    bounded = GATE.ObservedClient(
+        FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="B"),
+        reporter,
+        judge_timeout=20.0,
+    )
+    plain = GATE.ObservedClient(
+        FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="B"), reporter
+    )
+    bounded_decision = GATE.run_gate(
+        "Delete", "de", config, bounded, options=GATE.GateOptions()
+    )
+    plain_decision = GATE.run_gate(
+        "Delete", "de", config, plain, options=GATE.GateOptions()
+    )
+    assert bounded_decision.approved == plain_decision.approved
+    assert bounded_decision.translation == plain_decision.translation
+    assert bounded_decision.reason == plain_decision.reason
+
+
+def test_translate_cli_judge_timeout_is_an_abstention(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A timed-out judge defers the entry and the batch reports the count."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(
+            _batch_entry("Delete"),
+            _batch_entry("Open"),
+            _batch_entry("Save"),
+        ),
+    )
+
+    class TimingOutJudge:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout  # the deadline is simulated by the ModelError below
+            if prompt.startswith("Choose the best"):
+                msg = "judge timed out"
+                raise GATE.ModelError(msg)
+            return FakeClient({"p1": "Löschen", "p2": "Entfernen"}).complete(
+                deployment, prompt
+            )
+
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: TimingOutJudge())
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    captured = capsys.readouterr()
+    assert "abstained 3" in captured.out
+    assert "judge timeout abstained 3" in captured.out
+    catalog = polib.pofile(str(catalog_path))
+    assert catalog.find("Delete").msgstr == ""
+    assert catalog.find("Open").msgstr == ""
+    assert catalog.find("Save").msgstr == ""
+
+
+def test_translate_cli_judge_timeout_json_report(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The JSON report names judge-timeout abstentions and none when bounded."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete"),),
+    )
+
+    class TimingOutJudge:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout  # the deadline is simulated by the ModelError below
+            if prompt.startswith("Choose the best"):
+                msg = "judge timed out"
+                raise GATE.ModelError(msg)
+            return FakeClient({"p1": "Löschen", "p2": "Entfernen"}).complete(
+                deployment, prompt
+            )
+
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: TimingOutJudge())
+    status = GATE.main(
+        _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
+    )
+    assert status == 0
+    out = capsys.readouterr().out
+    report = json.loads(out)
+    assert report["judge_abstained"] == 1
+    assert report["abstained"][0]["reason"] == "judge timed out"
+
+
+def test_translate_cli_judge_timeout_zero_no_abstention_count(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """With the timeout disabled as a judge aborts, the report is not blamed."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete"),),
+    )
+    monkeypatch.setattr(
+        GATE,
+        "OpenAICompatibleClient",
+        lambda **_: FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="A"),
+    )
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--judge-timeout",
+            "0",
+            "--json",
+        )
+    )
+    assert status == 0
+    out = capsys.readouterr().out
+    report = json.loads(out)
+    assert report["judge_abstained"] == 0
+
+
+def test_status_lists_parallel_languages(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Status lists two languages even when both have state or runs."""
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+    monkeypatch.setattr(GATE, "_batch_clock", clock)
+    client = Mock(wraps=FakeClient({"p1": "Löschen", "p2": "Löschen"}))
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: client)
+    ledgers = []
+    for language in ("de", "fr"):
+        config_path, ledger_path, catalog_path, roles_path = _bilingual_setup(
+            tmp_path, language, (_batch_entry("Delete"),)
+        )
+        ledgers.append(ledger_path)
+        args = [
+            "--config",
+            str(config_path),
+            "--roles",
+            str(roles_path),
+            "--ledger",
+            str(ledger_path),
+            "translate",
+            "--language",
+            language,
+            "--catalog",
+            str(catalog_path),
+            "--progress",
+            "none",
+        ]
+        assert GATE.main(args) == 0
+    capsys.readouterr()
+    status = GATE.main(["--ledger", str(ledgers[0]), "status", "--json"])
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    languages = sorted(record["language"] for record in payload)
+    assert languages == ["de", "fr"]
+    for record in payload:
+        assert record["state"] == "done"
+        assert record["done"] == 1
+
+
+def test_status_human_one_line_per_language(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The human status form prints one compact line per language."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    _write_state_record(
+        GATE.STATE_DIR / "de.json",
+        {
+            "pid": os.getpid(),
+            "host": socket.gethostname(),
+            "started_at": now.isoformat(timespec="seconds"),
+            "updated_at": now.isoformat(timespec="seconds"),
+            "language": "de",
+            "catalog": None,
+            "selection": 12,
+            "done": 3,
+            "approved": 2,
+            "abstained": 1,
+            "spent_usd": 0.003,
+            "rate_seconds_per_entry": 17.5,
+            "weight_total": 12.0,
+            "weight_done": 3.0,
+            "eta_seconds": 1500.0,
+            "eta_low_seconds": 1500.0,
+            "eta_high_seconds": 1800.0,
+            "waiting": None,
+            "stopped": None,
+        },
+    )
+    status = GATE.main(["--ledger", str(ledger_path), "status"])
+    assert status == 0
+    out = capsys.readouterr().out.strip()
+    assert out.startswith("de: running live")
+    assert "done 3/12" in out
+    assert "spent $0.0030" in out
+    assert "rate 17.5s/entry" in out
+    assert "eta" in out
+    assert "age" in out
+
+
+def _serial_proposal_map(
+    worker: Callable[[object], object],
+    items: Sequence[object],
+    *,
+    max_workers: int,
+) -> list[object]:
+    """Run a proposal worker serially, for comparing concurrent results."""
+    del max_workers  # serial ground truth ignores the pool size
+    return [worker(item) for item in items]
+
+
+def test_client_complete_honors_per_call_timeout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A timeout override applies to that call; the default keeps transport."""
+    data = _config_data()
+    config = GATE.load_config(_write_config(tmp_path, data))
+    deployment = config.deployments["p1"]
+    monkeypatch.setenv(deployment.key_env, "test-key")
+    seen: list[float | None] = []
+
+    class FakeResponse:
+        def read(self) -> bytes:
+            return json.dumps(
+                {
+                    "choices": [{"message": {"content": "Löschen"}}],
+                    "usage": {
+                        "prompt_tokens": 1,
+                        "completion_tokens": 1,
+                        "total_tokens": 2,
+                    },
+                }
+            ).encode()
+
+    class FakeConnection:
+        def __init__(self, *_args: object, **kwargs: object) -> None:
+            seen.append(cast("float | None", kwargs.get("timeout")))
+
+        def request(self, *_args: object, **_kwargs: object) -> None:
+            pass
+
+        def getresponse(self) -> FakeResponse:
+            return FakeResponse()
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(GATE.http.client, "HTTPSConnection", FakeConnection)
+    client = GATE.OpenAICompatibleClient(timeout=60.0)
+    client.complete(deployment, "hello")
+    client.complete(deployment, "hello", timeout=20.0)
+    assert seen == [60.0, 20.0]
+
+
+def test_observed_client_applies_judge_timeout_only_to_judge(
+    tmp_path: Path,
+) -> None:
+    """The judge deadline reaches the judge; other roles keep the default."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    seen: list[tuple[str, float | None]] = []
+
+    class RecordingClient:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            seen.append((prompt, timeout))
+            return FakeClient({"p1": "x"}).complete(deployment, prompt)
+
+    reporter = GATE.ProgressReporter(info=GATE.ProgressInfo(), mode="none")
+    client = GATE.ObservedClient(RecordingClient(), reporter, judge_timeout=20.0)
+    client.complete(config.deployments["j"], "Choose the best de translation")
+    client.complete(
+        config.deployments["p1"], "Translate the following UI string into de."
+    )
+    client.complete(config.deployments["p1"], "Translate back into English: x")
+    assert [(timeout) for _, timeout in seen] == [20.0, None, None]
+
+
+def test_translate_cli_judge_timeout_default_bounds_judge(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The documented default deadline is forwarded to the judge."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete"),),
+    )
+    seen: list[float | None] = []
+
+    class RecordingClient:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            seen.append(timeout)
+            return FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="A").complete(
+                deployment, prompt
+            )
+
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: RecordingClient())
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    assert GATE.DEFAULT_JUDGE_TIMEOUT_SECONDS in seen
+
+
+def test_translate_cli_judge_timeout_zero_disables_bounds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """--judge-timeout 0 disables the deadline; the judge still decides."""
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete"),),
+    )
+    seen: list[float | None] = []
+
+    class RecordingClient:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            seen.append(timeout)
+            return FakeClient({"p1": "Löschen", "p2": "Entfernen"}, judge="A").complete(
+                deployment, prompt
+            )
+
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: RecordingClient())
+    status = GATE.main(
+        _batch_args(
+            config_path,
+            ledger_path,
+            catalog_path,
+            roles_path,
+            "--judge-timeout",
+            "0",
+        )
+    )
+    assert status == 0
+    assert GATE.DEFAULT_JUDGE_TIMEOUT_SECONDS not in seen
+
+
+def test_concurrent_map_proves_workers_overlap() -> None:
+    """Two workers must be inside the pool before either returns."""
+    first = Lock()
+    first_inside = Event()
+    release = Event()
+
+    def worker(_item: object) -> object:
+        with first:
+            first_run = not first_inside.is_set()
+            first_inside.set()
+        if first_run:
+            release.wait()
+        else:
+            release.set()
+        return "ok"
+
+    assert GATE._concurrent_map(worker, [1, 2], max_workers=2) == [
+        "ok",
+        "ok",
+    ]
+    assert first_inside.is_set()
+    assert release.is_set()
+
+
+def test_concurrent_map_single_item_runs_inline() -> None:
+    """A single item makes exactly one call and never builds a pool."""
+    calls: list[int] = []
+
+    def worker(item: int) -> int:
+        calls.append(item)
+        return item
+
+    assert GATE._concurrent_map(worker, [7], max_workers=1) == [7]
+    assert calls == [7]
+
+
+def test_propose_parallel_agrees_with_serial(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Concurrent proposals match a serial run in order and evidence."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    client = FakeClient({"p1": "Löschen", "p2": "Entfernen"})
+    parallel = GATE.propose("Delete", "de", config, client)
+    assert [proposal.deployment for proposal in parallel] == ["p1", "p2"]
+    assert [proposal.text for proposal in parallel] == ["Löschen", "Entfernen"]
+
+    monkeypatch.setattr(GATE, "_concurrent_map", _serial_proposal_map)
+    serial = GATE.propose("Delete", "de", config, client)
+    assert [proposal.as_dict() for proposal in parallel] == [
+        proposal.as_dict() for proposal in serial
+    ]
+
+
+def test_propose_failing_proposer_still_raises(tmp_path: Path) -> None:
+    """A proposer transport failure aborts the run, as a serial one does."""
+
+    class FailingClient:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del deployment, prompt, timeout  # any proposer failure aborts
+            msg = "p1 down"
+            raise GATE.ModelError(msg)
+
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    with pytest.raises(GATE.ModelError, match="p1 down"):
+        GATE.propose("Delete", "de", config, FailingClient())
+
+
+def test_translate_cli_proposer_failure_aborts_batch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A failing proposer aborts the whole batch, as before concurrency."""
+
+    class FailingClient:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del deployment, prompt, timeout  # any proposer failure aborts
+            msg = "p1 down"
+            raise GATE.ModelError(msg)
+
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete"), _batch_entry("Open")),
+    )
+    monkeypatch.setattr(GATE, "OpenAICompatibleClient", lambda **_: FailingClient())
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 1
+    assert "p1 down" in capsys.readouterr().err
+    assert LEDGER.section(LEDGER.load_ledger(ledger_path), "gate_runs") == []
+    catalog = polib.pofile(str(catalog_path))
+    assert catalog.find("Delete").msgstr == ""
+
+
+def test_propose_plural_parallel_matches_serial(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Plural proposals keep order and evidence under concurrency."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    client = FakeClient(
+        plural_answers={"p1": "0: Löschen\n1: Löschen", "p2": "0: X\n1: Y"}
+    )
+    source = GATE.PluralSource("Delete", "Deletes", 2, "n != 1")
+    parallel = GATE.propose_plural(source, "de", config, client)
+    assert [proposal.deployment for proposal in parallel] == ["p1", "p2"]
+
+    monkeypatch.setattr(GATE, "_concurrent_map", _serial_proposal_map)
+    serial = GATE.propose_plural(source, "de", config, client)
+    assert [proposal.as_dict() for proposal in parallel] == [
+        proposal.as_dict() for proposal in serial
+    ]

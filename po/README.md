@@ -512,6 +512,90 @@ entries; both are left unchanged.
 `machine-strong` is accepted for high-impact menu and destructive strings;
 the batch does not add a separate human-review gate.
 
+### Watching a batch and bounding a run
+
+`translate` prints progress to stderr and a summary to stdout. The summary
+names approved, abstained, skipped and unsupported counts, spend, remaining,
+processed-over-selected, the elapsed duration and the entries-per-hour rate.
+A `stopped:` line gives the reason (`time`, `budget` or `interrupt`) with the
+completed count when a run stops early, and a note explains that abstained
+entries are retried by a later batch. `--json` prints the summary as a single
+JSON document on stdout; per-entry progress never pollutes stdout, so the
+document stays machine-readable.
+
+Per-entry progress is one line on stderr only when a terminal is attached.
+`--progress line` forces those lines for a pipeline, and `--progress none`
+silences them:
+
+```sh
+python3 dev/translation_gate.py translate --language de --limit 10 \
+    --max-cost 0.05 --progress line
+```
+
+Each entry line reports the position, approved and abstained counts, spend,
+the current seconds-per-entry rate and a completion estimate. Before the first
+request a banner names the selection, the spend estimate, the completion band
+and its basis (language history, cross-language history or the default
+constant).
+
+`--max-time` caps the batch by wall-clock seconds and is checked between
+entries, so a run exceeds it by at most one entry. Whichever of `--max-cost`
+and `--max-time` binds first stops the batch:
+
+```sh
+python3 dev/translation_gate.py translate --language de --limit 10 \
+    --max-time 1800
+```
+
+The two proposer calls for one entry run concurrently, so a batch finishes
+sooner without changing any proposal, decision or evidence; a single-proposer
+configuration still makes one call. A judge gets its own deadline,
+`--judge-timeout` (default 20 s; `0` disables it), applied only to the judge
+call:
+
+```sh
+python3 dev/translation_gate.py translate --language de --limit 10 \
+    --judge-timeout 0
+```
+
+A judge that exceeds the deadline, or whose request fails at the transport
+layer, is recorded as an abstention: the entry stays fuzzy and is retried by a
+later batch, and the batch continues. The summary names those entries
+separately (`judge timeout abstained N`) and the JSON report carries the same
+count as `judge_abstained`. A missing credential is still a hard error.
+
+Interrupting a run (Ctrl-C) is safe: the batch stops, prints the completed and
+remaining counts and spend, prints the exact command that resumes the same
+batch, and exits 130 without a traceback. Re-running that command continues
+from the entries that still lack a translation, because catalogs are the
+single source of truth.
+
+`status` reports every language with a live batch or recent gate activity from
+the per-language state files and the ledger, and never needs a model
+credential:
+
+```sh
+python3 dev/translation_gate.py status
+python3 dev/translation_gate.py status --language de
+python3 dev/translation_gate.py status --json
+```
+
+Each line names the language, its state (`running`, `stalled`, `abandoned`,
+`done` or `idle`), the source (`live` or `inferred`), and processed and
+selected. Approved and abstained counts, spend, the seconds-per-entry rate and
+a completion band appear when the batch records them; an inferred line shows
+what recent activity allows. A stalled run adds the role and wait of the call
+that is stuck. `--json` prints the same fields as one record per language.
+
+An agent running a long queue can start one language with `--max-time`, poll
+`status`, and resume from the printed command after an interrupt:
+
+```sh
+python3 dev/translation_gate.py status
+python3 dev/translation_gate.py translate --language de --max-time 1800
+python3 dev/translation_gate.py status --language de
+```
+
 ### High-impact strings
 
 Menu actions, destructive verbs and data-loss error messages need human-origin

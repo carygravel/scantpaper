@@ -19,16 +19,22 @@ reads a model credential until a request is made, and never prints one.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import http.client
 import json
 import math
 import os
 import re
+import shlex
+import socket
+import statistics
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, cast
@@ -67,7 +73,9 @@ from translation_policy import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Callable, Iterable, Mapping, Sequence
+    from datetime import tzinfo
+    from typing import TextIO
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = REPO_ROOT / "po" / "translation-gate.json"
@@ -83,6 +91,56 @@ _SENTENCE_CHARS = 25
 PROMPT_VERSION = "2026-11-01"
 PLURAL_PROMPT_VERSION = "2026-11-08"
 DEFAULT_CHARS_PER_TOKEN = 4.0
+DEFAULT_SECONDS_PER_ENTRY = 18.0
+LOCAL_OVERHEAD_SECONDS = 0.1
+ETA_WINDOW = 20
+ETA_ROUND_SECONDS = 300.0
+ETA_PRIOR_SPREAD = 0.25
+MINUTE_SECONDS = 60.0
+STALL_FACTOR = 2.0
+STALL_FLOOR_SECONDS = 60.0
+STATUS_RECENT_SECONDS = 24 * 60 * 60
+STATUS_SESSION_GAP_SECONDS = 120.0
+STATUS_ABANDONED_AFTER_SECONDS = 600.0
+DEFAULT_JUDGE_TIMEOUT_SECONDS = 20.0
+PROGRESS_MODES = ("auto", "line", "none")
+PRIOR_MIN_SAMPLES = 3
+_PROC_STAT_MIN_FIELDS = 3
+STATE_DIR = REPO_ROOT / ".cache" / "translate"
+CATALOGS_DIR = REPO_ROOT / "po" / "scantpaper"
+
+
+class Clock(Protocol):
+    """Wall-clock and monotonic time sources, injectable for tests."""
+
+    def now(self) -> datetime:
+        """Return the current UTC wall time."""
+
+    def monotonic(self) -> float:
+        """Return a monotonically increasing seconds counter."""
+
+    def local_tz(self) -> tzinfo:
+        """Return the operator's local time zone."""
+
+
+class SystemClock:
+    """The production clock: UTC wall time, monotonic seconds, local tz."""
+
+    def now(self) -> datetime:
+        """Return the current UTC wall time."""
+        return datetime.now(timezone.utc)
+
+    def monotonic(self) -> float:
+        """Return a monotonic second counter."""
+        return time.monotonic()
+
+    def local_tz(self) -> tzinfo:
+        """Return the operator's local time zone."""
+        return datetime.now().astimezone().tzinfo or timezone.utc
+
+
+_status_clock: Clock = SystemClock()
+_batch_clock: Clock = SystemClock()
 
 
 def _prompt_hash(version: str = PROMPT_VERSION) -> str:
@@ -861,8 +919,18 @@ def compute_cost(
 class ModelClient(Protocol):
     """The model interface the gate needs."""
 
-    def complete(self, deployment: Deployment, prompt: str) -> Completion:
-        """Return one completion for a deployment."""
+    def complete(
+        self,
+        deployment: Deployment,
+        prompt: str,
+        *,
+        timeout: float | None = None,
+    ) -> Completion:
+        """Return one completion for a deployment.
+
+        ``timeout`` overrides the client's transport timeout for this call
+        only; ``None`` keeps the transport default.
+        """
 
 
 class OpenAICompatibleClient:
@@ -876,8 +944,17 @@ class OpenAICompatibleClient:
         """Store the request timeout without reading any credential."""
         self.timeout = timeout
 
-    def complete(self, deployment: Deployment, prompt: str) -> Completion:
-        """Send one chat completion and return its text, usage and cost."""
+    def complete(
+        self,
+        deployment: Deployment,
+        prompt: str,
+        *,
+        timeout: float | None = None,
+    ) -> Completion:
+        """Send one chat completion and return its text, usage and cost.
+
+        ``timeout`` overrides ``self.timeout`` for this call only.
+        """
         key = os.environ.get(deployment.key_env)
         if key is None or key == "":
             msg = f"missing environment variable {deployment.key_env}"
@@ -905,7 +982,9 @@ class OpenAICompatibleClient:
             else http.client.HTTPConnection
         )
         connection = connection_class(
-            parsed.hostname, parsed.port, timeout=self.timeout
+            parsed.hostname,
+            parsed.port,
+            timeout=self.timeout if timeout is None else timeout,
         )
         request_headers = dict(deployment.headers or {})
         request_headers["Content-Type"] = "application/json"
@@ -1107,6 +1186,73 @@ def deterministic_plural_checks(
     return defects
 
 
+def _classify_role(prompt: str) -> str:
+    """Return the gate role a prompt belongs to."""
+    if "back into English" in prompt:
+        return "backtranslation"
+    if prompt.startswith("Choose the best"):
+        return "judge"
+    return "proposer"
+
+
+def _concurrent_map(
+    worker: Callable[[Deployment], Completion],
+    items: Sequence[Deployment],
+    *,
+    max_workers: int,
+) -> list[Completion]:
+    """Run ``worker`` over ``items`` concurrently, preserving input order.
+
+    A single item runs inline so a one-deployment configuration never pays
+    for a pool; a pool is only built when there is real parallelism to win.
+    Raising workers propagate the first exception, matching serial semantics,
+    and the pool waits for every started worker on exit.
+    """
+    if len(items) <= 1:
+        return [worker(item) for item in items]
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        return list(pool.map(worker, items))
+
+
+class ObservedClient:
+    """Wrap a model client, reporting each call in flight to a reporter."""
+
+    def __init__(
+        self,
+        client: ModelClient,
+        reporter: ProgressReporter,
+        *,
+        judge_timeout: float | None = None,
+    ) -> None:
+        """Keep the wrapped client, the reporter and the judge deadline."""
+        self._client = client
+        self._reporter = reporter
+        self._judge_timeout = judge_timeout
+
+    def complete(
+        self,
+        deployment: Deployment,
+        prompt: str,
+        *,
+        timeout: float | None = None,
+    ) -> Completion:
+        """Run one completion, reporting the call around it.
+
+        A judge prompt is sent with the configured judge deadline when one is
+        set (a ``judge_timeout`` of ``0`` leaves the transport default); every
+        other role keeps the given ``timeout`` or its transport default.
+        """
+        role = _classify_role(prompt)
+        self._reporter.begin_call(role, deployment.id)
+        try:
+            deadline: float | None = timeout
+            if role == "judge" and self._judge_timeout not in (None, 0):
+                deadline = self._judge_timeout
+            return self._client.complete(deployment, prompt, timeout=deadline)
+        finally:
+            self._reporter.end_call()
+
+
 def propose(
     source: str,
     language: str,
@@ -1116,21 +1262,23 @@ def propose(
     context: str = "",
 ) -> list[Proposal]:
     """Return one proposal from every proposer deployment."""
-    proposals: list[Proposal] = []
-    for deployment in config.proposers:
-        completion = client.complete(
+    completions = _concurrent_map(
+        lambda deployment: client.complete(
             deployment, prompt_for("translate", language, source, context)
+        ),
+        config.proposers,
+        max_workers=len(config.proposers),
+    )
+    return [
+        Proposal(
+            deployment=deployment.id,
+            release=deployment.release,
+            family=config.release_for(deployment).family,
+            text=completion.text,
+            completion=completion,
         )
-        proposals.append(
-            Proposal(
-                deployment=deployment.id,
-                release=deployment.release,
-                family=config.release_for(deployment).family,
-                text=completion.text,
-                completion=completion,
-            )
-        )
-    return proposals
+        for deployment, completion in zip(config.proposers, completions, strict=True)
+    ]
 
 
 def propose_plural(
@@ -1142,22 +1290,24 @@ def propose_plural(
     context: str = "",
 ) -> list[Proposal]:
     """Return one complete plural proposal from every proposer deployment."""
-    proposals: list[Proposal] = []
-    for deployment in config.proposers:
-        completion = client.complete(
+    completions = _concurrent_map(
+        lambda deployment: client.complete(
             deployment, prompt_for_plural(language, source, context)
+        ),
+        config.proposers,
+        max_workers=len(config.proposers),
+    )
+    return [
+        Proposal(
+            deployment=deployment.id,
+            release=deployment.release,
+            family=config.release_for(deployment).family,
+            text=completion.text,
+            completion=completion,
+            forms=parse_plural_response(completion.text, source.nplurals),
         )
-        proposals.append(
-            Proposal(
-                deployment=deployment.id,
-                release=deployment.release,
-                family=config.release_for(deployment).family,
-                text=completion.text,
-                completion=completion,
-                forms=parse_plural_response(completion.text, source.nplurals),
-            )
-        )
-    return proposals
+        for deployment, completion in zip(config.proposers, completions, strict=True)
+    ]
 
 
 def blind_judge(
@@ -1181,7 +1331,10 @@ def blind_judge(
         f"Source: {source}\n{listing}"
     )
     judge = config.judges[0]
-    completion = client.complete(judge, prompt)
+    try:
+        completion = client.complete(judge, prompt)
+    except ModelError:
+        return None, "TIMEOUT", None
     answer = completion.text.strip().upper()
     if answer.startswith("ABSTAIN"):
         return None, answer, completion
@@ -1214,7 +1367,10 @@ def blind_judge_plural(
         f"Source (plural): {source.msgid_plural}\n{listing}"
     )
     judge = config.judges[0]
-    completion = client.complete(judge, prompt)
+    try:
+        completion = client.complete(judge, prompt)
+    except ModelError:
+        return None, "TIMEOUT", None
     answer = completion.text.strip().upper()
     if answer.startswith("ABSTAIN"):
         return None, answer, completion
@@ -1311,7 +1467,13 @@ def run_gate(
 ) -> GateDecision:
     """Run proposal, checks, blind judging and back-translation."""
     options = options or GateOptions()
-    proposals = propose(source, language, config, client, context=options.context)
+    proposals = propose(
+        source,
+        language,
+        config,
+        client,
+        context=options.context,
+    )
     proposal_records = [proposal.as_dict() for proposal in proposals]
     calls = [
         {**proposal.completion.as_dict(), "role": "proposer"} for proposal in proposals
@@ -1350,14 +1512,22 @@ def run_gate(
         }
     else:
         index, verdict, judge_completion = blind_judge(
-            source, language, passing, config, client
+            source,
+            language,
+            passing,
+            config,
+            client,
         )
         if judge_completion is not None:
             calls.append({**judge_completion.as_dict(), "role": "judge"})
         if index is None:
             return GateDecision(
                 approved=False,
-                reason="judge abstained or returned no usable choice",
+                reason=(
+                    "judge timed out"
+                    if verdict == "TIMEOUT"
+                    else "judge abstained or returned no usable choice"
+                ),
                 evidence={
                     "proposals": proposal_records,
                     "checks": checks,
@@ -1457,7 +1627,11 @@ def run_plural_gate(
     """Run proposal, checks, blind judging and back-translation for a form set."""
     options = options or GateOptions()
     proposals = propose_plural(
-        source, language, config, client, context=options.context
+        source,
+        language,
+        config,
+        client,
+        context=options.context,
     )
     proposal_records = [proposal.as_dict() for proposal in proposals]
     calls = [
@@ -1503,14 +1677,22 @@ def run_plural_gate(
         }
     else:
         index, verdict, judge_completion = blind_judge_plural(
-            source, language, passing, config, client
+            source,
+            language,
+            passing,
+            config,
+            client,
         )
         if judge_completion is not None:
             calls.append({**judge_completion.as_dict(), "role": "judge"})
         if index is None:
             return GateDecision(
                 approved=False,
-                reason="judge abstained or returned no usable choice",
+                reason=(
+                    "judge timed out"
+                    if verdict == "TIMEOUT"
+                    else "judge abstained or returned no usable choice"
+                ),
                 evidence={
                     "proposals": proposal_records,
                     "checks": checks,
@@ -1530,7 +1712,11 @@ def run_plural_gate(
         if len(source_text) < _SENTENCE_CHARS or " " not in source_text:
             continue
         preserved, back_completion = back_translation_preserves(
-            source_text, forms[form_index], language, config, client
+            source_text,
+            forms[form_index],
+            language,
+            config,
+            client,
         )
         calls.append({**back_completion.as_dict(), "role": "backtranslation"})
         backtranslation[str(form_index)] = preserved
@@ -3195,6 +3381,10 @@ class BatchRun:
     max_cost: float | None
     tm_db: Path | None
     evidence_path: Path | None = None
+    max_time: float | None = None
+    weights: tuple[float, ...] = ()
+    reporter: ProgressReporter | None = None
+    judge_timeout: float | None = None
 
 
 @dataclass(frozen=True)
@@ -3215,6 +3405,9 @@ class BatchReport:
     blockers: tuple[str, ...]
     estimate: ActionEstimate
     over_budget: bool
+    elapsed_seconds: float = 0.0
+    entries_per_hour: float | None = None
+    judge_abstained: int = 0
 
     def as_dict(self) -> dict[str, object]:
         """Return a JSON-ready report."""
@@ -3233,8 +3426,396 @@ class BatchReport:
             "blockers": list(self.blockers),
             "estimate": self.estimate.as_dict(),
             "over_budget": self.over_budget,
+            "elapsed_seconds": round(self.elapsed_seconds, 1),
+            "entries_per_hour": self.entries_per_hour,
+            "judge_abstained": self.judge_abstained,
             "ready": not self.blockers and not self.over_budget,
         }
+
+
+def _percentile(values: Sequence[float], fraction: float) -> float:
+    """Return the interpolated percentile of a sequence, for fraction in [0,1]."""
+    ordered = sorted(values)
+    if not ordered:
+        return 0.0
+    if len(ordered) == 1:
+        return ordered[0]
+    position = fraction * (len(ordered) - 1)
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    if lower == upper:
+        return ordered[lower]
+    weight = position - lower
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * weight
+
+
+def _format_duration(seconds: float) -> str:
+    """Format a duration compactly as hours and minutes."""
+    total = max(0, round(seconds))
+    hours, rest = divmod(total, 3600)
+    minutes = round(rest / MINUTE_SECONDS)
+    if minutes == MINUTE_SECONDS:
+        hours += 1
+        minutes = 0
+    if hours:
+        return f"{hours}h {minutes:02d}m"
+    if minutes:
+        return f"{minutes}m"
+    return "<1m"
+
+
+def _round_band(seconds: float) -> tuple[float, float]:
+    """Round a seconds estimate inwards and outwards to five minutes."""
+    low = math.floor(seconds / ETA_ROUND_SECONDS) * ETA_ROUND_SECONDS
+    high = math.ceil(seconds / ETA_ROUND_SECONDS) * ETA_ROUND_SECONDS
+    return max(0, low), max(low, high)
+
+
+def _money(value: float | None) -> str:
+    """Format a dollar value, or a dash when it is unknown."""
+    if value is None:
+        return "-"
+    return f"${value:.4f}"
+
+
+def _money_range(low: float | None, high: float | None) -> str:
+    """Format a dollar range, or a dash when both bounds are unknown."""
+    if low is None and high is None:
+        return "-"
+    return f"{_money(low)}-{_money(high)}"
+
+
+def _eta_display(
+    low: float,
+    high: float,
+    now: datetime,
+    local_tz: tzinfo,
+) -> str:
+    """Describe a completion estimate as a rounded band in local time."""
+    low_rounded, _ = _round_band(low)
+    _, high_rounded = _round_band(high)
+    high_rounded = max(high_rounded, low_rounded)
+    low_time = (now + timedelta(seconds=low_rounded)).astimezone(local_tz)
+    high_time = (now + timedelta(seconds=high_rounded)).astimezone(local_tz)
+    return (
+        f"{_format_duration(low_rounded)}-{_format_duration(high_rounded)} "
+        f"({low_time:%H:%M}-{high_time:%H:%M})"
+    )
+
+
+def _entry_weight(high_cost_usd: float | None) -> float:
+    """Return a per-entry progress weight, falling back to one per entry."""
+    if high_cost_usd is None or high_cost_usd <= 0:
+        return 1.0
+    return high_cost_usd
+
+
+def _selection_weights(
+    config: GateConfig,
+    entries: Sequence[polib.POEntry],
+    language: str,
+    nplurals: int | None,
+    plural_expression: str,
+) -> list[float]:
+    """Return one progress weight per entry, zero for unusable sources."""
+    weights: list[float] = []
+    for entry in entries:
+        source = _batch_source(entry, nplurals, plural_expression)
+        if source is None:
+            weights.append(0.0)
+        else:
+            weights.append(
+                _entry_weight(estimate_gate(config, language, [source]).high_cost_usd)
+            )
+    return weights
+
+
+def _entry_durations(
+    ledger: Mapping[str, object],
+    language: str | None,
+    limit: int = 200,
+) -> list[float]:
+    """Return recent per-entry wall durations from the ledger, in seconds."""
+    runs = [
+        run
+        for run in section(ledger, "gate_runs")
+        if language is None or run.get("language") == language
+    ]
+    durations: list[float] = []
+    for run in runs[-limit:]:
+        latency = run.get("latency_ms")
+        if isinstance(latency, int | float) and not isinstance(latency, bool):
+            durations.append(float(latency) / 1000.0)
+    return durations
+
+
+def _duration_prior(
+    ledger: Mapping[str, object],
+    language: str,
+) -> tuple[float, str]:
+    """Return seconds-per-entry for a batch and the prior's basis name."""
+    own = _entry_durations(ledger, language)
+    if len(own) >= PRIOR_MIN_SAMPLES:
+        return statistics.median(own) + LOCAL_OVERHEAD_SECONDS, "language history"
+    cross = _entry_durations(ledger, None)
+    if len(cross) >= PRIOR_MIN_SAMPLES:
+        return statistics.median(
+            cross
+        ) + LOCAL_OVERHEAD_SECONDS, "cross-language history"
+    return DEFAULT_SECONDS_PER_ENTRY, "default"
+
+
+@dataclass(frozen=True)
+class ProgressInfo:
+    """The static facts of one batch, fixed before its first call."""
+
+    language: str = ""
+    catalog_path: Path | None = None
+    state_path: Path | None = None
+    selection: int = 0
+    skipped: int = 0
+    unsupported: int = 0
+    weights: tuple[float, ...] = ()
+    estimate: ActionEstimate | None = None
+    prior: tuple[float, str] = (DEFAULT_SECONDS_PER_ENTRY, "default")
+    max_cost: float | None = None
+    pid: int | None = None
+    host: str | None = None
+
+
+class ProgressReporter:
+    """Report a batch run to stderr lines and a per-language state file.
+
+    The report is purely visual; missing or unwritable state never changes a
+    batch's outcome (see the design's ``advisory`` property). The clock is
+    injected so tests assert exact strings without sleeping.
+    """
+
+    def __init__(
+        self,
+        *,
+        info: ProgressInfo,
+        mode: str = "none",
+        stream: TextIO | None = None,
+        clock: Clock | None = None,
+        started_at: datetime | None = None,
+    ) -> None:
+        """Record the batch facts and the optional runtime seams."""
+        self._info = info
+        self._weights = list(info.weights)
+        self._weight_total = float(sum(info.weights))
+        self._mode = mode
+        self._stream = stream if stream is not None else sys.stderr
+        self._clock = clock if clock is not None else SystemClock()
+        self._pid = info.pid if info.pid is not None else os.getpid()
+        self._host = info.host if info.host is not None else socket.gethostname()
+        self._start_wall = started_at if started_at is not None else self._clock.now()
+        self._start_mono = self._clock.monotonic()
+        self._done = 0
+        self._approved = 0
+        self._abstained = 0
+        self._spent = 0.0
+        self._weight_done = 0.0
+        self._samples: list[tuple[float, float]] = []
+        self._waiting: dict[str, object] | None = None
+        self._waiting_lock = threading.Lock()
+        self._stopped: str | None = None
+
+    @property
+    def done(self) -> int:
+        """Return the number of entries completed so far."""
+        return self._done
+
+    @property
+    def spent(self) -> float:
+        """Return the spend recorded so far."""
+        return self._spent
+
+    @property
+    def started(self) -> datetime:
+        """Return the UTC wall time the batch started."""
+        return self._start_wall
+
+    @property
+    def stopped(self) -> str | None:
+        """Return the recorded stop reason, if any."""
+        return self._stopped
+
+    def now(self) -> datetime:
+        """Return the current UTC wall time from the injected clock."""
+        return self._clock.now()
+
+    def monotonic(self) -> float:
+        """Return the current monotonic seconds from the injected clock."""
+        return self._clock.monotonic()
+
+    def elapsed(self) -> float:
+        """Return the seconds elapsed since the batch started."""
+        return self._clock.monotonic() - self._start_mono
+
+    def deadline_reached(self, budget: float) -> bool:
+        """Return whether a wall-clock budget has been exhausted."""
+        return self._clock.monotonic() - self._start_mono >= budget
+
+    def rate_seconds_per_entry(self) -> float:
+        """Return the median observed seconds per completed entry."""
+        if not self._samples:
+            return 0.0
+        return statistics.median(seconds for _, seconds in self._samples)
+
+    def _remaining(self) -> tuple[float, int]:
+        """Return remaining weight and remaining entry count."""
+        remaining_weight = self._weight_total - self._weight_done
+        remaining_count = self._info.selection - self._done
+        return remaining_weight, remaining_count
+
+    def _estimate_eta(self) -> tuple[float, float, float]:
+        """Return the (point, low, high) completion estimate in seconds."""
+        remaining_weight, remaining_count = self._remaining()
+        if self._samples:
+            ratios = [
+                (elapsed / weight) if weight else elapsed
+                for weight, elapsed in self._samples
+            ]
+            point = remaining_weight * statistics.median(ratios)
+            low = remaining_weight * _percentile(ratios, 0.1)
+            high = remaining_weight * _percentile(ratios, 0.9)
+        else:
+            point = remaining_count * self._info.prior[0]
+            low = point * (1 - ETA_PRIOR_SPREAD)
+            high = point * (1 + ETA_PRIOR_SPREAD)
+        return point, max(0.0, low), max(0.0, high)
+
+    def banner(self) -> None:
+        """Emit the start banner and persist the initial state."""
+        self._persist()
+        if self._mode != "line":
+            return
+        _, low, high = self._estimate_eta()
+        estimate_text = (
+            _money_range(
+                self._info.estimate.low_cost_usd,
+                self._info.estimate.high_cost_usd,
+            )
+            if self._info.estimate is not None
+            else "-"
+        )
+        self._write(
+            f"start translate {self._info.language}: "
+            f"selected {self._info.selection} "
+            f"skipped {self._info.skipped} unsupported {self._info.unsupported} "
+            f"estimate {estimate_text} "
+            f"eta {_eta_display(low, high, self._clock.now(), self._clock.local_tz())} "
+            f"prior {self._info.prior[1]}"
+        )
+
+    def begin_call(self, role: str, deployment: str) -> None:
+        """Record the model call now in flight."""
+        with self._waiting_lock:
+            self._waiting = {
+                "role": role,
+                "deployment": deployment,
+                "since": self._clock.now().isoformat(timespec="seconds"),
+            }
+            self._persist()
+
+    def end_call(self) -> None:
+        """Clear the in-flight call marker."""
+        with self._waiting_lock:
+            self._waiting = None
+            self._persist()
+
+    def entry_done(
+        self,
+        *,
+        weight: float,
+        approved: bool,
+        cost: float,
+        elapsed: float,
+    ) -> None:
+        """Record one completed entry, persist and report the line."""
+        self._done += 1
+        self._weight_done += weight
+        if approved:
+            self._approved += 1
+        else:
+            self._abstained += 1
+        self._spent += cost
+        self._samples.append((weight, elapsed))
+        if len(self._samples) > ETA_WINDOW:
+            del self._samples[0]
+        self._persist()
+        if self._mode != "line":
+            return
+        _, low, high = self._estimate_eta()
+        self._write(
+            f"entry {self._done}/{self._info.selection} approved {self._approved} "
+            f"abstained {self._abstained} spent {_money(self._spent)} "
+            f"rate {self.rate_seconds_per_entry():.1f}s/entry "
+            f"eta {_eta_display(low, high, self._clock.now(), self._clock.local_tz())}"
+        )
+
+    def stop(self, reason: str) -> None:
+        """Record the batch's stop reason once."""
+        if self._stopped is None:
+            self._stopped = reason
+            self._persist()
+
+    def as_dict(self) -> dict[str, object]:
+        """Return the JSON-ready batch state."""
+        point, low, high = self._estimate_eta()
+        _, remaining_count = self._remaining()
+        if remaining_count <= 0:
+            point = low = high = 0.0
+        eta = round(point, 1) if remaining_count else None
+        eta_low = round(low, 1) if remaining_count else None
+        eta_high = round(high, 1) if remaining_count else None
+        return {
+            "pid": self._pid,
+            "host": self._host,
+            "started_at": self._start_wall.isoformat(timespec="seconds"),
+            "updated_at": self._clock.now().isoformat(timespec="seconds"),
+            "language": self._info.language,
+            "catalog": (
+                str(self._info.catalog_path)
+                if self._info.catalog_path is not None
+                else None
+            ),
+            "selection": self._info.selection,
+            "done": self._done,
+            "approved": self._approved,
+            "abstained": self._abstained,
+            "spent_usd": round(self._spent, 6),
+            "rate_seconds_per_entry": (
+                round(self.rate_seconds_per_entry(), 3) if self._samples else None
+            ),
+            "weight_total": round(self._weight_total, 6),
+            "weight_done": round(self._weight_done, 6),
+            "eta_seconds": eta,
+            "eta_low_seconds": eta_low,
+            "eta_high_seconds": eta_high,
+            "waiting": self._waiting,
+            "stopped": self._stopped,
+        }
+
+    def _persist(self) -> None:
+        """Write the state file, ignoring an unwritable cache."""
+        if self._info.state_path is None:
+            return
+        with contextlib.suppress(OSError):
+            _write_state(self._info.state_path, self.as_dict())
+
+    def _write(self, line: str) -> None:
+        """Write one progress line to the report stream."""
+        print(line, file=self._stream)
+
+
+def _write_state(path: Path, data: Mapping[str, object]) -> None:
+    """Atomically replace a JSON state file at path."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(path)
 
 
 def _plural_disposition(
@@ -3376,14 +3957,27 @@ def _batch_source(
 
 def _run_batch(
     run: BatchRun,
-) -> tuple[list[dict[str, object]], list[dict[str, object]], str | None, float]:
+) -> tuple[
+    list[dict[str, object]],
+    list[dict[str, object]],
+    str | None,
+    float,
+    int,
+]:
     """Run the gate over one batch and persist each outcome."""
+    reporter = run.reporter or ProgressReporter(info=ProgressInfo(), mode="none")
+    client = ObservedClient(run.client, reporter, judge_timeout=run.judge_timeout)
     approved: list[dict[str, object]] = []
     abstained: list[dict[str, object]] = []
     spent = 0.0
     stopped: str | None = None
     nplurals, plural_expression = catalog_plural_info(run.catalog)
-    for entry in run.entries:
+    for position, entry in enumerate(run.entries, start=1):
+        weight = run.weights[position - 1] if position <= len(run.weights) else 1.0
+        if run.max_time is not None and reporter.deadline_reached(run.max_time):
+            stopped = "time"
+            reporter.stop("time")
+            break
         source = _batch_source(entry, nplurals, plural_expression)
         if source is None:
             abstained.append(
@@ -3393,23 +3987,31 @@ def _run_batch(
                     "cost_usd": 0.0,
                 }
             )
+            reporter.entry_done(
+                weight=weight,
+                approved=False,
+                cost=0.0,
+                elapsed=0.0,
+            )
             continue
         if run.max_cost is not None:
             high = estimate_gate(run.config, run.language, [source]).high_cost_usd
             if high is not None and spent + high > run.max_cost:
                 stopped = "budget"
+                reporter.stop("budget")
                 break
         options = GateOptions(
             occurrences=tuple(entry.occurrences),
             tm_db=run.tm_db,
             evidence_path=run.evidence_path,
         )
+        entry_started = reporter.monotonic()
         if isinstance(source, PluralSource):
             decision = run_plural_gate(
                 source,
                 run.language,
                 run.config,
-                run.client,
+                client,
                 options=options,
             )
         else:
@@ -3417,9 +4019,10 @@ def _run_batch(
                 source,
                 run.language,
                 run.config,
-                run.client,
+                client,
                 options=options,
             )
+        entry_seconds = reporter.monotonic() - entry_started
         record_gate_run(
             run.ledger,
             decision,
@@ -3461,7 +4064,17 @@ def _run_batch(
         _write_ledger_for(run.ledger, run.ledger_path, run.language)
         if decision.approved:
             run.catalog.save(str(run.catalog_path))
-    return approved, abstained, stopped, spent
+        reporter.entry_done(
+            weight=weight,
+            approved=decision.approved,
+            cost=cost,
+            elapsed=entry_seconds,
+        )
+    reporter.stop("complete")
+    judge_abstained = sum(
+        1 for record in abstained if record["reason"] == "judge timed out"
+    )
+    return approved, abstained, stopped, spent, judge_abstained
 
 
 def _ledger_is_dir(path: Path) -> bool:
@@ -3502,15 +4115,30 @@ def _print_batch(report: BatchReport) -> None:
             f"estimate {estimate.low_cost_usd}-{estimate.high_cost_usd}"
         )
     else:
+        processed = len(report.approved) + len(report.abstained)
         print(
             f"translate {report.language}: approved {len(report.approved)} "
             f"abstained {len(report.abstained)} skipped {report.skipped} "
             f"unsupported {len(report.unsupported)} "
             f"spent {round(report.spent_usd, 6)} "
-            f"remaining {report.remaining}"
+            f"remaining {report.remaining} "
+            f"processed {processed}/{report.selected} "
+            f"elapsed {_format_duration(report.elapsed_seconds)}"
         )
+        if report.entries_per_hour is not None:
+            print(f"  rate {report.entries_per_hour:.1f} entries/hour")
         if report.stopped is not None:
-            print(f"  stopped: {report.stopped}")
+            print(
+                f"  stopped: {report.stopped}: completed {processed} of "
+                f"{report.selected}"
+            )
+        if len(report.abstained):
+            print("  note: abstained entries are retried by a later batch")
+    if report.judge_abstained:
+        print(
+            f"judge timeout abstained {report.judge_abstained} "
+            "(retried by a later batch)"
+        )
     for blocker in report.blockers:
         print(f"  blocker: {blocker}")
     if report.over_budget:
@@ -3539,6 +4167,316 @@ def _require_batch_ready(blockers: Sequence[str]) -> None:
     if blockers:
         msg = "\n".join(blockers)
         raise GateError(msg)
+
+
+def _parse_iso(value: object) -> datetime | None:
+    """Parse an ISO timestamp, treating naive values as UTC."""
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _load_state(path: Path) -> dict[str, object] | None:
+    """Load a batch state file, tolerating a missing or malformed one."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    return cast("dict[str, object]", data)
+
+
+def _pid_alive(pid: object, host: object) -> bool:
+    """Return whether a recorded process is alive on this host."""
+    if not isinstance(pid, int) or pid <= 0:
+        return False
+    if isinstance(host, str) and host and host != socket.gethostname():
+        return False
+    try:
+        contents = Path(f"/proc/{pid}/stat").read_text(encoding="ascii")
+    except OSError:
+        return False
+    fields = contents.split()
+    if len(fields) < _PROC_STAT_MIN_FIELDS:
+        return False
+    return fields[2] not in ("Z", "X")
+
+
+def _is_recent_run(run: Mapping[str, object], now: datetime) -> bool:
+    """Return whether a gate run's timestamp is within the status window."""
+    timestamp = _parse_iso(run.get("timestamp"))
+    if timestamp is None:
+        return False
+    return (now - timestamp).total_seconds() <= STATUS_RECENT_SECONDS
+
+
+def _status_languages(
+    ledger: Mapping[str, object],
+    now: datetime,
+    language: str | None,
+) -> list[str]:
+    """Return the languages to report, from state files or recent runs."""
+    if language is not None:
+        return [language]
+    found: set[str] = set()
+    for path in STATE_DIR.glob("*.json"):
+        language = path.stem
+        state = _load_state(path)
+        if state is not None:
+            parsed = state.get("language")
+            if isinstance(parsed, str) and parsed:
+                language = parsed
+        found.add(language)
+    for run in section(ledger, "gate_runs"):
+        lang = run.get("language")
+        if isinstance(lang, str) and lang and _is_recent_run(run, now):
+            found.add(lang)
+    return sorted(found)
+
+
+def _waiting_seconds(waiting: Mapping[str, object], now: datetime) -> float:
+    """Return how long the recorded in-flight call has waited."""
+    since = _parse_iso(waiting.get("since"))
+    if since is None:
+        return 0.0
+    return (now - since).total_seconds()
+
+
+def _stall_threshold(rate: object) -> float:
+    """Return the seconds a waiting call needs to count as a stall."""
+    if isinstance(rate, int | float) and not isinstance(rate, bool) and rate > 0:
+        return max(STALL_FACTOR * float(rate), STALL_FLOOR_SECONDS)
+    return STALL_FLOOR_SECONDS
+
+
+def _stall_reason(waiting: Mapping[str, object], now: datetime) -> str:
+    """Describe a stalled call by its role and wait."""
+    seconds = _waiting_seconds(waiting, now)
+    role = str(waiting.get("role") or "model")
+    return f"waiting {int(seconds)}s on {role}"
+
+
+def _stalled(waiting: Mapping[str, object], rate: object, now: datetime) -> bool:
+    """Return whether a waiting call exceeds the stall threshold."""
+    return _waiting_seconds(waiting, now) > _stall_threshold(rate)
+
+
+def _live_record(
+    language: str,
+    state: Mapping[str, object],
+    now: datetime,
+) -> dict[str, object]:
+    """Build a status record from a live batch state file."""
+    updated = _parse_iso(state.get("updated_at"))
+    age = (now - updated).total_seconds() if updated is not None else None
+    waiting = state.get("waiting")
+    waiting_map = waiting if isinstance(waiting, dict) else None
+    live = _pid_alive(state.get("pid"), state.get("host"))
+    if not live and age is not None:
+        live = age <= STATUS_SESSION_GAP_SECONDS
+    rate = state.get("rate_seconds_per_entry")
+    stopped_text = state.get("stopped")
+    if stopped_text == "complete":
+        state_name = "done"
+    elif live and waiting_map is not None and _stalled(waiting_map, rate, now):
+        state_name = "stalled"
+    elif live:
+        state_name = "running"
+    elif age is not None and age > STATUS_ABANDONED_AFTER_SECONDS:
+        state_name = "abandoned"
+    else:
+        state_name = "idle"
+    abandoned = state_name == "abandoned"
+    return {
+        "language": language,
+        "source": "live",
+        "state": state_name,
+        "catalog": state.get("catalog"),
+        "selection": state.get("selection"),
+        "done": state.get("done"),
+        "approved": state.get("approved"),
+        "abstained": state.get("abstained"),
+        "spent_usd": state.get("spent_usd"),
+        "rate_seconds_per_entry": rate,
+        "eta_seconds": None if abandoned else state.get("eta_seconds"),
+        "eta_low_seconds": None if abandoned else state.get("eta_low_seconds"),
+        "eta_high_seconds": None if abandoned else state.get("eta_high_seconds"),
+        "updated_age_seconds": round(age, 1) if age is not None else None,
+        "waiting": waiting_map,
+        "stall_reason": (
+            _stall_reason(waiting_map, now)
+            if state_name == "stalled" and waiting_map is not None
+            else None
+        ),
+    }
+
+
+def _inferred_record(
+    language: str,
+    ledger: Mapping[str, object],
+    now: datetime,
+) -> dict[str, object]:
+    """Build a status record from recent ledger gate runs."""
+    runs = [
+        run
+        for run in section(ledger, "gate_runs")
+        if run.get("language") == language and _is_recent_run(run, now)
+    ]
+    selection: int | None = None
+    catalog_text: str | None = None
+    catalog_path = CATALOGS_DIR / f"{language}.po"
+    if catalog_path.exists():
+        try:
+            catalog = polib.pofile(str(catalog_path))
+        except OSError:
+            catalog = None
+        if catalog is not None:
+            selection = len(
+                _select_batch_entries(catalog, include_fuzzy=False, limit=None).selected
+            )
+            catalog_text = str(catalog_path)
+    if not runs:
+        return {
+            "language": language,
+            "source": "inferred",
+            "state": "idle",
+            "catalog": catalog_text,
+            "selection": selection,
+            "done": 0,
+            "approved": None,
+            "abstained": None,
+            "spent_usd": 0.0,
+            "rate_seconds_per_entry": None,
+            "eta_seconds": None,
+            "eta_low_seconds": None,
+            "eta_high_seconds": None,
+            "updated_age_seconds": None,
+            "waiting": None,
+            "stall_reason": None,
+        }
+    durations: list[float] = []
+    spent = 0.0
+    for run in runs:
+        latency = run.get("latency_ms")
+        if isinstance(latency, int | float) and not isinstance(latency, bool):
+            durations.append(float(latency) / 1000.0)
+        cost = run.get("total_cost_usd")
+        if isinstance(cost, int | float) and not isinstance(cost, bool):
+            spent += float(cost)
+    rate = statistics.median(durations) if durations else None
+    last_ts = _parse_iso(runs[-1].get("timestamp"))
+    return {
+        "language": language,
+        "source": "inferred",
+        "state": "idle",
+        "catalog": catalog_text,
+        "selection": selection,
+        "done": len(runs),
+        "approved": None,
+        "abstained": None,
+        "spent_usd": round(spent, 6),
+        "rate_seconds_per_entry": (round(rate, 3) if rate is not None else None),
+        "eta_seconds": None,
+        "eta_low_seconds": None,
+        "eta_high_seconds": None,
+        "updated_age_seconds": (
+            round((now - last_ts).total_seconds(), 1) if last_ts is not None else None
+        ),
+        "waiting": None,
+        "stall_reason": None,
+    }
+
+
+def _print_status(records: Sequence[Mapping[str, object]]) -> None:
+    """Print one compact line per status record."""
+    now = _status_clock.now()
+    local_tz = _status_clock.local_tz()
+    for record in records:
+        language = str(record["language"])
+        state = str(record["state"])
+        source = str(record["source"])
+        line = f"{language}: {state} {source}"
+        done = record.get("done")
+        selection = record.get("selection")
+        done_text = (
+            f"{done or 0}/{selection}" if selection is not None else f"{done or 0}"
+        )
+        line += f"  done {done_text}"
+        approved = record.get("approved")
+        if approved is not None:
+            line += f"  approved {approved}  abstained {record.get('abstained')}"
+        spent = record.get("spent_usd")
+        if isinstance(spent, int | float) and not isinstance(spent, bool):
+            line += f"  spent {_money(float(spent))}"
+        rate = record.get("rate_seconds_per_entry")
+        if isinstance(rate, int | float) and not isinstance(rate, bool):
+            line += f"  rate {float(rate):.1f}s/entry"
+        low = record.get("eta_low_seconds")
+        high = record.get("eta_high_seconds")
+        if (
+            isinstance(low, int | float)
+            and not isinstance(low, bool)
+            and isinstance(high, int | float)
+            and not isinstance(high, bool)
+        ):
+            line += f"  eta {_eta_display(float(low), float(high), now, local_tz)}"
+        age = record.get("updated_age_seconds")
+        if isinstance(age, int | float) and not isinstance(age, bool):
+            line += f"  age {int(age)}s"
+        reason = record.get("stall_reason")
+        if reason:
+            line += f"  ({reason})"
+        print(line)
+
+
+def _command_status(args: argparse.Namespace) -> int:
+    """Report every language with a live batch or recent gate activity."""
+    now = _status_clock.now()
+    try:
+        ledger = load_ledger(args.ledger)
+    except (GateError, LedgerError, OSError):
+        ledger = {}
+    records: list[dict[str, object]] = []
+    for language in _status_languages(ledger, now, getattr(args, "language", None)):
+        state = _load_state(STATE_DIR / f"{language}.json")
+        if state is not None:
+            records.append(_live_record(language, state, now))
+        else:
+            records.append(_inferred_record(language, ledger, now))
+    if args.json:
+        print(json.dumps(records, ensure_ascii=False, indent=2))
+    else:
+        _print_status(records)
+    return 0
+
+
+def _entries_per_hour(entries: int, seconds: float) -> float | None:
+    """Return processed entries per hour, or None before any elapsed time."""
+    if seconds <= 0:
+        return None
+    return entries * 3600.0 / seconds
+
+
+def _resolve_progress_mode(mode: str, *, stderr_isatty: bool) -> str:
+    """Resolve --progress auto against whether stderr is a terminal."""
+    if mode == "auto":
+        return "line" if stderr_isatty else "none"
+    return mode
+
+
+def _resume_command(args: argparse.Namespace) -> str:
+    """Return the exact command line that resumes the batch."""
+    raw = cast("list[str]", getattr(args, "argv", []))
+    return " ".join(
+        shlex.quote(word) for word in ("python3", "dev/translation_gate.py", *raw)
+    )
 
 
 def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
@@ -3600,21 +4538,64 @@ def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
         else:
             _require_batch_ready(blockers)
             ensure_budget(estimate, args.max_cost)
-            approved, abstained, stopped, spent = _run_batch(
-                BatchRun(
-                    config=config,
-                    catalog=catalog,
-                    ledger=ledger,
-                    catalog_path=catalog_path,
-                    ledger_path=args.ledger,
-                    language=args.language,
-                    entries=selection.selected,
-                    client=OpenAICompatibleClient(timeout=args.timeout),
-                    max_cost=args.max_cost,
-                    tm_db=args.tm,
-                    evidence_path=args.evidence,
-                )
+            weights = _selection_weights(
+                config,
+                selection.selected,
+                args.language,
+                nplurals,
+                plural_expression,
             )
+            progress_mode = _resolve_progress_mode(
+                args.progress, stderr_isatty=sys.stderr.isatty()
+            )
+            reporter = ProgressReporter(
+                info=ProgressInfo(
+                    language=args.language,
+                    catalog_path=catalog_path,
+                    state_path=STATE_DIR / f"{args.language}.json",
+                    selection=len(selection.selected),
+                    skipped=selection.skipped,
+                    unsupported=len(selection.unsupported),
+                    weights=tuple(weights),
+                    estimate=estimate,
+                    prior=_duration_prior(ledger, args.language),
+                    max_cost=args.max_cost,
+                ),
+                mode=progress_mode,
+                clock=_batch_clock,
+            )
+            reporter.banner()
+            try:
+                approved, abstained, stopped, spent, judge_abstained = _run_batch(
+                    BatchRun(
+                        config=config,
+                        catalog=catalog,
+                        ledger=ledger,
+                        catalog_path=catalog_path,
+                        ledger_path=args.ledger,
+                        language=args.language,
+                        entries=selection.selected,
+                        client=OpenAICompatibleClient(timeout=args.timeout),
+                        max_cost=args.max_cost,
+                        max_time=args.max_time,
+                        judge_timeout=args.judge_timeout,
+                        tm_db=args.tm,
+                        evidence_path=args.evidence,
+                        weights=tuple(weights),
+                        reporter=reporter,
+                    )
+                )
+            except KeyboardInterrupt:
+                reporter.stop("interrupt")
+                remaining = len(selection.selected) - reporter.done
+                print(
+                    f"interrupted translate {args.language}: "
+                    f"completed {reporter.done} remaining {remaining} "
+                    f"spent {round(reporter.spent, 6)}",
+                    file=sys.stderr,
+                )
+                print(f"resume: {_resume_command(args)}", file=sys.stderr)
+                return 130
             report = BatchReport(
                 language=args.language,
                 catalog=str(catalog_path),
@@ -3630,6 +4611,9 @@ def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
                 blockers=(),
                 estimate=estimate,
                 over_budget=False,
+                elapsed_seconds=reporter.elapsed(),
+                entries_per_hour=_entries_per_hour(reporter.done, reporter.elapsed()),
+                judge_abstained=judge_abstained,
             )
             _print_batch_json(report, as_json=args.json)
     except (GateError, LedgerError, OSError) as error:
@@ -3756,6 +4740,7 @@ def _dispatch(args: argparse.Namespace, config: GateConfig) -> int:
         "qualify": lambda: _command_qualify(args, config),
         "drift": lambda: _command_drift(args, config),
         "translate": lambda: _command_translate(args, config),
+        "status": lambda: _command_status(args),
         "revoke": lambda: _command_revoke(args, config),
         "sample": lambda: _command_sample(args, config),
         "build-probes": lambda: _command_build_probes(args, config),
@@ -3821,6 +4806,22 @@ def _add_translate_parser(sub: _SubParser) -> None:
     translate_parser.add_argument("--limit", type=int)
     translate_parser.add_argument("--include-fuzzy", action="store_true")
     translate_parser.add_argument("--max-cost", type=float)
+    translate_parser.add_argument("--max-time", type=float)
+    translate_parser.add_argument(
+        "--judge-timeout",
+        type=float,
+        default=DEFAULT_JUDGE_TIMEOUT_SECONDS,
+        help=(
+            "Judge call deadline in seconds; 0 disables it "
+            f"(default: {DEFAULT_JUDGE_TIMEOUT_SECONDS})"
+        ),
+    )
+    translate_parser.add_argument(
+        "--progress",
+        choices=PROGRESS_MODES,
+        default="auto",
+        help="Per-entry lines: auto (tty only), line, or none (default: auto)",
+    )
     translate_parser.add_argument(
         "--timeout",
         type=float,
@@ -3863,6 +4864,11 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_qualify_drift_parsers(cast("_SubParser", sub))
     _add_translate_parser(cast("_SubParser", sub))
     sub.add_parser("build-probes", help="Regenerate the drift-probe files")
+    status_parser = sub.add_parser(
+        "status", help="Report live or recent translation batches"
+    )
+    status_parser.add_argument("--language")
+    status_parser.add_argument("--json", action="store_true")
     gate_parser = sub.add_parser("gate", help="Gate one string")
     gate_parser.add_argument("--language", required=True)
     gate_parser.add_argument("--msgid", required=True)
@@ -3891,9 +4897,13 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Iterable[str] | None = None) -> int:
     """Run the gate command."""
-    args = _build_parser().parse_args(list(argv) if argv is not None else None)
+    raw = list(argv) if argv is not None else sys.argv[1:]
+    args = _build_parser().parse_args(raw)
+    args.argv = raw
     if args.evidence is None and _ledger_is_dir(args.ledger):
         args.evidence = EVIDENCE_PATH
+    if args.command == "status":
+        return _command_status(args)
     try:
         config = load_config(args.config)
         return _dispatch(args, config)
