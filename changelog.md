@@ -43,7 +43,7 @@
 * The German and Spanish translations now cover every shipped string, including
   counted forms.
 * Updated Brazilian Portuguese, Czech, Danish, Finnish, French, Hungarian,
-  Italian, Russian, Slovak, Turkish & Ukrainian translations
+  Italian, Polish, Russian, Slovak, Turkish & Ukrainian translations
 
 
 ## 4.0.4 (2026-11-14)
