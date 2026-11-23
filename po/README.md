@@ -560,9 +560,14 @@ python3 dev/translation_gate.py translate --language de --limit 10 \
 
 A judge that exceeds the deadline, or whose request fails at the transport
 layer, is recorded as an abstention: the entry stays fuzzy and is retried by a
-later batch, and the batch continues. The summary names those entries
-separately (`judge timeout abstained N`) and the JSON report carries the same
-count as `judge_abstained`. A missing credential is still a hard error.
+later batch, and the batch continues. The same holds for the back-translation
+judge call on a sentence: if it cannot be completed, the entry is abstained as
+`back-translation unavailable`, distinct from a genuine meaning change, and the
+batch continues. The summary names the deadline entries separately
+(`judge timeout abstained N`) and the unavailable ones as
+`back-translation unavailable abstained N`; the JSON report carries the same
+counts as `judge_abstained` and `backtranslation_unavailable`. A missing
+credential is still a hard error.
 
 Interrupting a run (Ctrl-C) is safe: the batch stops, prints the completed and
 remaining counts and spend, prints the exact command that resumes the same
@@ -570,9 +575,9 @@ batch, and exits 130 without a traceback. Re-running that command continues
 from the entries that still lack a translation, because catalogs are the
 single source of truth.
 
-`status` reports every language with a live batch or recent gate activity from
-the per-language state files and the ledger, and never needs a model
-credential:
+`status` reports every language with a live `translate` batch, a live
+`qualify` or `drift` run, or recent gate activity, from the per-action state
+files and the ledger, and never needs a model credential:
 
 ```sh
 python3 dev/translation_gate.py status
@@ -585,7 +590,15 @@ Each line names the language, its state (`running`, `stalled`, `abandoned`,
 selected. Approved and abstained counts, spend, the seconds-per-entry rate and
 a completion band appear when the batch records them; an inferred line shows
 what recent activity allows. A stalled run adds the role and wait of the call
-that is stuck. `--json` prints the same fields as one record per language.
+that is stuck. `--json` prints the same fields as one record per language or
+per live action.
+
+A live `qualify` or `drift` line is prefixed with the action and its key (the
+release or deployment), and reports the completed/selected count, the number of
+matches, the bare score against the configured tolerance or threshold, and the
+same rate, completion band and stall detail as a batch. Each `qualify` or
+`drift` run writes its own state file keyed by release or deployment, so
+parallel runs on one language never overwrite each other.
 
 An agent running a long queue can start one language with `--max-time`, poll
 `status`, and resume from the printed command after an interrupt:

@@ -1214,13 +1214,23 @@ def _concurrent_map(
         return list(pool.map(worker, items))
 
 
+class CallObserver(Protocol):
+    """The seam a client reports each in-flight model call to."""
+
+    def begin_call(self, role: str, deployment: str) -> None:
+        """Record the model call now in flight."""
+
+    def end_call(self) -> None:
+        """Clear the in-flight call marker."""
+
+
 class ObservedClient:
     """Wrap a model client, reporting each call in flight to a reporter."""
 
     def __init__(
         self,
         client: ModelClient,
-        reporter: ProgressReporter,
+        reporter: CallObserver,
         *,
         judge_timeout: float | None = None,
     ) -> None:
@@ -1386,12 +1396,20 @@ def back_translation_preserves(
     language: str,
     config: GateConfig,
     client: ModelClient,
-) -> tuple[bool, Completion]:
-    """Return whether a back-translation keeps the source meaning."""
+) -> tuple[bool | None, Completion | None]:
+    """Return whether a back-translation keeps the source meaning.
+
+    A judge call that fails at the transport layer returns ``(None, None)``:
+    the check is unavailable rather than failed, so the caller abstains the
+    entry instead of aborting the batch.
+    """
     judge = config.judges[0]
-    completion = client.complete(
-        judge, prompt_for("backtranslate", language, translation)
-    )
+    try:
+        completion = client.complete(
+            judge, prompt_for("backtranslate", language, translation)
+        )
+    except ModelError:
+        return None, None
     back = completion.text
     if _normalise(back) == _normalise(source):
         return True, completion
@@ -1455,6 +1473,90 @@ def classify_evidence(
     ):
         return "tm-consensus"
     return None
+
+
+@dataclass(frozen=True)
+class _BacktranslationContext:
+    """The static inputs and collected evidence for a back-translation check."""
+
+    language: str
+    config: GateConfig
+    client: ModelClient
+    proposal_records: Sequence[Mapping[str, object]]
+    checks: Mapping[str, object]
+    judge_evidence: Mapping[str, object]
+    calls: list[dict[str, object]]
+
+    def abstention(self, reason: str, backtranslation: object) -> GateDecision:
+        """Build an abstention decision carrying the collected evidence."""
+        return GateDecision(
+            approved=False,
+            reason=reason,
+            evidence={
+                "proposals": self.proposal_records,
+                "checks": self.checks,
+                "judge": self.judge_evidence,
+                "backtranslation": backtranslation,
+                "calls": self.calls,
+            },
+        )
+
+
+def _backtranslation_abstention(
+    source: str,
+    preferred_text: str,
+    context: _BacktranslationContext,
+) -> tuple[GateDecision | None, bool | None]:
+    """Back-translate a sentence, returning an abstention or its verdict.
+
+    An unavailable back-translation (the judge call failed at the transport
+    layer) and a genuine meaning change both abstain, each with its own reason.
+    """
+    backtranslation, back_completion = back_translation_preserves(
+        source, preferred_text, context.language, context.config, context.client
+    )
+    if back_completion is not None:
+        context.calls.append({**back_completion.as_dict(), "role": "backtranslation"})
+    if backtranslation is not True:
+        reason = (
+            "back-translation unavailable"
+            if backtranslation is None
+            else "back-translation changed the meaning"
+        )
+        return context.abstention(reason, backtranslation), backtranslation
+    return None, backtranslation
+
+
+def _backtranslation_forms_abstention(
+    source: PluralSource,
+    forms: Mapping[int, str],
+    context: _BacktranslationContext,
+) -> tuple[GateDecision | None, dict[str, bool | None]]:
+    """Back-translate each sentence form, returning an abstention or verdicts."""
+    backtranslation: dict[str, bool | None] = {}
+    for form_index, source_text in enumerate(source.source_forms()):
+        if len(source_text) < _SENTENCE_CHARS or " " not in source_text:
+            continue
+        preserved, back_completion = back_translation_preserves(
+            source_text,
+            forms[form_index],
+            context.language,
+            context.config,
+            context.client,
+        )
+        if back_completion is not None:
+            context.calls.append(
+                {**back_completion.as_dict(), "role": "backtranslation"}
+            )
+        backtranslation[str(form_index)] = preserved
+        if preserved is not True:
+            reason = (
+                "back-translation unavailable"
+                if preserved is None
+                else "back-translation changed the meaning"
+            )
+            return context.abstention(reason, backtranslation), backtranslation
+    return None, backtranslation
 
 
 def run_gate(
@@ -1544,26 +1646,21 @@ def run_gate(
 
     backtranslation: bool | None = None
     if len(source) >= _SENTENCE_CHARS and " " in source:
-        backtranslation, back_completion = back_translation_preserves(
+        abstention, backtranslation = _backtranslation_abstention(
             source,
             preferred_text,
-            language,
-            config,
-            client,
+            _BacktranslationContext(
+                language=language,
+                config=config,
+                client=client,
+                proposal_records=proposal_records,
+                checks=checks,
+                judge_evidence=judge_evidence,
+                calls=calls,
+            ),
         )
-        calls.append({**back_completion.as_dict(), "role": "backtranslation"})
-        if not backtranslation:
-            return GateDecision(
-                approved=False,
-                reason="back-translation changed the meaning",
-                evidence={
-                    "proposals": proposal_records,
-                    "checks": checks,
-                    "judge": judge_evidence,
-                    "backtranslation": False,
-                    "calls": calls,
-                },
-            )
+        if abstention is not None:
+            return abstention
 
     high_impact = is_high_impact(source, options.occurrences)
     evidence: dict[str, object] = {
@@ -1707,32 +1804,21 @@ def run_plural_gate(
         }
     forms = cast("dict[int, str]", preferred.forms)
 
-    backtranslation: dict[str, bool] = {}
-    for form_index, source_text in enumerate(source.source_forms()):
-        if len(source_text) < _SENTENCE_CHARS or " " not in source_text:
-            continue
-        preserved, back_completion = back_translation_preserves(
-            source_text,
-            forms[form_index],
-            language,
-            config,
-            client,
-        )
-        calls.append({**back_completion.as_dict(), "role": "backtranslation"})
-        backtranslation[str(form_index)] = preserved
-        if not preserved:
-            return GateDecision(
-                approved=False,
-                reason="back-translation changed the meaning",
-                evidence={
-                    "proposals": proposal_records,
-                    "checks": checks,
-                    "judge": judge_evidence,
-                    "backtranslation": backtranslation,
-                    "calls": calls,
-                },
-            )
-
+    abstention, backtranslation = _backtranslation_forms_abstention(
+        source,
+        forms,
+        _BacktranslationContext(
+            language=language,
+            config=config,
+            client=client,
+            proposal_records=proposal_records,
+            checks=checks,
+            judge_evidence=judge_evidence,
+            calls=calls,
+        ),
+    )
+    if abstention is not None:
+        return abstention
     high_impact = any(
         is_high_impact(text, options.occurrences) for text in source.source_forms()
     )
@@ -1879,6 +1965,8 @@ def qualify_release(
     config: GateConfig,
     request: QualificationRequest,
     client: ModelClient,
+    *,
+    reporter: ActionReporter | None = None,
 ) -> dict[str, object]:
     """Qualify a release for a language against held-out human entries."""
     release = request.release
@@ -1909,15 +1997,21 @@ def qualify_release(
         }
     else:
         deployment = deployments[0]
+        observed = ObservedClient(client, reporter) if reporter is not None else client
         matches = 0
         calls: list[dict[str, object]] = []
         for entry in request.entries:
-            completion = client.complete(
+            completion = observed.complete(
                 deployment, prompt_for("translate", request.language, entry.msgid)
             )
             calls.append({**completion.as_dict(), "role": "qualification"})
-            if _normalise(completion.text) == _normalise(entry.msgstr):
+            matched = _normalise(completion.text) == _normalise(entry.msgstr)
+            if matched:
                 matches += 1
+            if reporter is not None:
+                reporter.item_done(matched=matched, cost=completion.cost_usd or 0.0)
+        if reporter is not None:
+            reporter.stop("complete")
         score = matches / len(request.entries)
         summary = summarize_calls(calls)
         record = {
@@ -2050,6 +2144,8 @@ def drift_probe(
     config: GateConfig,
     request: DriftRequest,
     client: ModelClient,
+    *,
+    reporter: ActionReporter | None = None,
 ) -> dict[str, object]:
     """Run the fixed drift probe and report a score drop."""
     deployment = config.deployments.get(request.deployment_id)
@@ -2057,15 +2153,21 @@ def drift_probe(
         msg = f"deployment {request.deployment_id!r} is not configured"
         raise GateError(msg)
     ensure_budget(estimate_drift(config, request), request.budget_usd)
+    observed = ObservedClient(client, reporter) if reporter is not None else client
     matches = 0
     calls: list[dict[str, object]] = []
     for item in request.probe:
-        completion = client.complete(
+        completion = observed.complete(
             deployment, prompt_for("translate", request.language, item["msgid"])
         )
         calls.append({**completion.as_dict(), "role": "drift"})
-        if _normalise(completion.text) == _normalise(item["msgstr"]):
+        matched = _normalise(completion.text) == _normalise(item["msgstr"])
+        if matched:
             matches += 1
+        if reporter is not None:
+            reporter.item_done(matched=matched, cost=completion.cost_usd or 0.0)
+    if reporter is not None:
+        reporter.stop("complete")
     score = matches / len(request.probe) if request.probe else 0.0
     threshold = config.threshold("drift", language=request.language, default=0.75)
     dropped = score < threshold
@@ -3280,12 +3382,25 @@ def _command_qualify(args: argparse.Namespace, config: GateConfig) -> int:
         budget_usd=args.max_cost,
         evidence_path=args.evidence,
     )
+    tolerance = config.threshold("qualification", language=args.language, default=0.8)
+    reporter = ActionReporter(
+        info=ActionProgressInfo(
+            action="qualify",
+            key=args.release,
+            language=args.language,
+            total=len(entries),
+            threshold=tolerance,
+            state_path=_action_state_path("qualify", args.release, args.language),
+        ),
+        clock=_batch_clock,
+    )
     try:
         record = qualify_release(
             ledger,
             config,
             request,
             OpenAICompatibleClient(timeout=args.timeout),
+            reporter=reporter,
         )
     except GateError as error:
         print(f"error: {error}", file=sys.stderr)
@@ -3331,9 +3446,28 @@ def _command_drift(args: argparse.Namespace, config: GateConfig) -> int:
         probe,
         budget_usd=args.max_cost,
     )
+    threshold = config.threshold("drift", language=args.language, default=0.75)
+    reporter = (
+        None
+        if args.dry_run
+        else ActionReporter(
+            info=ActionProgressInfo(
+                action="drift",
+                key=args.deployment,
+                language=args.language,
+                total=len(probe),
+                threshold=threshold,
+                state_path=_action_state_path("drift", args.deployment, args.language),
+            ),
+            clock=_batch_clock,
+        )
+    )
     try:
         result = drift_probe(
-            config, request, OpenAICompatibleClient(timeout=args.timeout)
+            config,
+            request,
+            OpenAICompatibleClient(timeout=args.timeout),
+            reporter=reporter,
         )
     except GateError as error:
         print(f"error: {error}", file=sys.stderr)
@@ -3408,6 +3542,7 @@ class BatchReport:
     elapsed_seconds: float = 0.0
     entries_per_hour: float | None = None
     judge_abstained: int = 0
+    backtranslation_unavailable: int = 0
 
     def as_dict(self) -> dict[str, object]:
         """Return a JSON-ready report."""
@@ -3429,6 +3564,7 @@ class BatchReport:
             "elapsed_seconds": round(self.elapsed_seconds, 1),
             "entries_per_hour": self.entries_per_hour,
             "judge_abstained": self.judge_abstained,
+            "backtranslation_unavailable": self.backtranslation_unavailable,
             "ready": not self.blockers and not self.over_budget,
         }
 
@@ -3818,6 +3954,165 @@ def _write_state(path: Path, data: Mapping[str, object]) -> None:
     tmp.replace(path)
 
 
+def _action_state_dir(action: str) -> Path:
+    """Return the state directory for a non-batch action, beside the batch one."""
+    return STATE_DIR.parent / action
+
+
+def _slug(value: str) -> str:
+    """Return a filename-safe form of a release or deployment identifier."""
+    return "".join(
+        character if character.isalnum() or character in "-._" else "_"
+        for character in value
+    )
+
+
+def _action_state_path(action: str, key: str, language: str) -> Path:
+    """Return a per-(action, key, language) state file that never collides."""
+    return _action_state_dir(action) / f"{language}.{_slug(key)}.json"
+
+
+@dataclass(frozen=True)
+class ActionProgressInfo:
+    """The static facts of one qualification or drift run."""
+
+    action: str
+    key: str
+    language: str
+    total: int
+    threshold: float
+    state_path: Path | None = None
+    pid: int | None = None
+    host: str | None = None
+
+
+class ActionReporter:
+    """Persist progress for a uniform qualify or drift loop.
+
+    Each item makes exactly one model call, so the observed per-call duration
+    is the per-item duration. The state file is advisory: a write failure never
+    changes the run's outcome.
+    """
+
+    def __init__(
+        self,
+        *,
+        info: ActionProgressInfo,
+        clock: Clock | None = None,
+        started_at: datetime | None = None,
+    ) -> None:
+        """Record the run facts and the optional runtime seams."""
+        self._info = info
+        self._clock = clock if clock is not None else SystemClock()
+        self._pid = info.pid if info.pid is not None else os.getpid()
+        self._host = info.host if info.host is not None else socket.gethostname()
+        self._start_wall = started_at if started_at is not None else self._clock.now()
+        self._done = 0
+        self._matches = 0
+        self._spent = 0.0
+        self._samples: list[float] = []
+        self._call_started: float | None = None
+        self._waiting: dict[str, object] | None = None
+        self._lock = threading.Lock()
+        self._stopped: str | None = None
+
+    @property
+    def done(self) -> int:
+        """Return the number of items completed so far."""
+        return self._done
+
+    @property
+    def spent(self) -> float:
+        """Return the spend recorded so far."""
+        return self._spent
+
+    def begin_call(self, role: str, deployment: str) -> None:
+        """Record the model call now in flight."""
+        with self._lock:
+            self._waiting = {
+                "role": role,
+                "deployment": deployment,
+                "since": self._clock.now().isoformat(timespec="seconds"),
+            }
+            self._call_started = self._clock.monotonic()
+        self._persist()
+
+    def end_call(self) -> None:
+        """Record the call duration and clear the in-flight marker."""
+        with self._lock:
+            if self._call_started is not None:
+                self._samples.append(self._clock.monotonic() - self._call_started)
+                if len(self._samples) > ETA_WINDOW:
+                    del self._samples[0]
+                self._call_started = None
+            self._waiting = None
+        self._persist()
+
+    def item_done(self, *, matched: bool, cost: float) -> None:
+        """Record one evaluated item and persist the state."""
+        with self._lock:
+            self._done += 1
+            if matched:
+                self._matches += 1
+            self._spent += cost
+        self._persist()
+
+    def stop(self, reason: str) -> None:
+        """Record the run's stop reason once."""
+        if self._stopped is None:
+            self._stopped = reason
+            self._persist()
+
+    def _rate(self) -> float | None:
+        """Return the median observed seconds per item."""
+        if not self._samples:
+            return None
+        return statistics.median(self._samples)
+
+    def _estimate_eta(self) -> tuple[float | None, float | None, float | None]:
+        """Return the (point, low, high) completion estimate or Nones."""
+        remaining = max(0, self._info.total - self._done)
+        if not remaining or not self._samples:
+            return None, None, None
+        point = remaining * statistics.median(self._samples)
+        low = remaining * _percentile(self._samples, 0.1)
+        high = remaining * _percentile(self._samples, 0.9)
+        return point, low, high
+
+    def as_dict(self) -> dict[str, object]:
+        """Return the JSON-ready run state."""
+        point, low, high = self._estimate_eta()
+        rate = self._rate()
+        return {
+            "pid": self._pid,
+            "host": self._host,
+            "started_at": self._start_wall.isoformat(timespec="seconds"),
+            "updated_at": self._clock.now().isoformat(timespec="seconds"),
+            "action": self._info.action,
+            "key": self._info.key,
+            "language": self._info.language,
+            "selection": self._info.total,
+            "done": self._done,
+            "matches": self._matches,
+            "score": round(self._matches / self._done, 6) if self._done else None,
+            "threshold": self._info.threshold,
+            "spent_usd": round(self._spent, 6),
+            "rate_seconds_per_entry": (round(rate, 3) if rate is not None else None),
+            "eta_seconds": round(point, 1) if point is not None else None,
+            "eta_low_seconds": round(low, 1) if low is not None else None,
+            "eta_high_seconds": round(high, 1) if high is not None else None,
+            "waiting": self._waiting,
+            "stopped": self._stopped,
+        }
+
+    def _persist(self) -> None:
+        """Write the state file, ignoring an unwritable cache."""
+        if self._info.state_path is None:
+            return
+        with contextlib.suppress(OSError):
+            _write_state(self._info.state_path, self.as_dict())
+
+
 def _plural_disposition(
     entry: polib.POEntry,
     nplurals: int | None,
@@ -3963,6 +4258,7 @@ def _run_batch(
     str | None,
     float,
     int,
+    int,
 ]:
     """Run the gate over one batch and persist each outcome."""
     reporter = run.reporter or ProgressReporter(info=ProgressInfo(), mode="none")
@@ -4074,7 +4370,17 @@ def _run_batch(
     judge_abstained = sum(
         1 for record in abstained if record["reason"] == "judge timed out"
     )
-    return approved, abstained, stopped, spent, judge_abstained
+    backtranslation_unavailable = sum(
+        1 for record in abstained if record["reason"] == "back-translation unavailable"
+    )
+    return (
+        approved,
+        abstained,
+        stopped,
+        spent,
+        judge_abstained,
+        backtranslation_unavailable,
+    )
 
 
 def _ledger_is_dir(path: Path) -> bool:
@@ -4138,6 +4444,11 @@ def _print_batch(report: BatchReport) -> None:
         print(
             f"judge timeout abstained {report.judge_abstained} "
             "(retried by a later batch)"
+        )
+    if report.backtranslation_unavailable:
+        print(
+            f"back-translation unavailable abstained "
+            f"{report.backtranslation_unavailable} (retried by a later batch)"
         )
     for blocker in report.blockers:
         print(f"  blocker: {blocker}")
@@ -4268,12 +4579,11 @@ def _stalled(waiting: Mapping[str, object], rate: object, now: datetime) -> bool
     return _waiting_seconds(waiting, now) > _stall_threshold(rate)
 
 
-def _live_record(
-    language: str,
+def _classify_state(
     state: Mapping[str, object],
     now: datetime,
-) -> dict[str, object]:
-    """Build a status record from a live batch state file."""
+) -> tuple[str, float | None, dict[str, object] | None]:
+    """Return the (state name, age seconds, waiting) for a state file."""
     updated = _parse_iso(state.get("updated_at"))
     age = (now - updated).total_seconds() if updated is not None else None
     waiting = state.get("waiting")
@@ -4293,6 +4603,16 @@ def _live_record(
         state_name = "abandoned"
     else:
         state_name = "idle"
+    return state_name, age, cast("dict[str, object] | None", waiting_map)
+
+
+def _live_record(
+    language: str,
+    state: Mapping[str, object],
+    now: datetime,
+) -> dict[str, object]:
+    """Build a status record from a live batch state file."""
+    state_name, age, waiting_map = _classify_state(state, now)
     abandoned = state_name == "abandoned"
     return {
         "language": language,
@@ -4304,7 +4624,42 @@ def _live_record(
         "approved": state.get("approved"),
         "abstained": state.get("abstained"),
         "spent_usd": state.get("spent_usd"),
-        "rate_seconds_per_entry": rate,
+        "rate_seconds_per_entry": state.get("rate_seconds_per_entry"),
+        "eta_seconds": None if abandoned else state.get("eta_seconds"),
+        "eta_low_seconds": None if abandoned else state.get("eta_low_seconds"),
+        "eta_high_seconds": None if abandoned else state.get("eta_high_seconds"),
+        "updated_age_seconds": round(age, 1) if age is not None else None,
+        "waiting": waiting_map,
+        "stall_reason": (
+            _stall_reason(waiting_map, now)
+            if state_name == "stalled" and waiting_map is not None
+            else None
+        ),
+    }
+
+
+def _action_live_record(
+    action: str,
+    language: str,
+    state: Mapping[str, object],
+    now: datetime,
+) -> dict[str, object]:
+    """Build a status record from a live qualification or drift state file."""
+    state_name, age, waiting_map = _classify_state(state, now)
+    abandoned = state_name == "abandoned"
+    return {
+        "language": language,
+        "source": "live",
+        "state": state_name,
+        "action": action,
+        "key": state.get("key"),
+        "selection": state.get("selection"),
+        "done": state.get("done"),
+        "matches": state.get("matches"),
+        "score": state.get("score"),
+        "threshold": state.get("threshold"),
+        "spent_usd": state.get("spent_usd"),
+        "rate_seconds_per_entry": state.get("rate_seconds_per_entry"),
         "eta_seconds": None if abandoned else state.get("eta_seconds"),
         "eta_low_seconds": None if abandoned else state.get("eta_low_seconds"),
         "eta_high_seconds": None if abandoned else state.get("eta_high_seconds"),
@@ -4394,15 +4749,39 @@ def _inferred_record(
     }
 
 
+def _status_heading(record: Mapping[str, object]) -> str:
+    """Return the leading `language action key: state source` text."""
+    language = str(record["language"])
+    state = str(record["state"])
+    source = str(record["source"])
+    action = record.get("action")
+    if action:
+        return f"{language} {action} {record.get('key')}: {state} {source}"
+    return f"{language}: {state} {source}"
+
+
+def _status_score_fragment(record: Mapping[str, object]) -> str:
+    """Return the matches/score/threshold fragment, or an empty string."""
+    parts: list[str] = []
+    matches = record.get("matches")
+    if isinstance(matches, int) and not isinstance(matches, bool):
+        parts.append(f"matches {matches}")
+    score = record.get("score")
+    threshold = record.get("threshold")
+    if isinstance(score, int | float) and not isinstance(score, bool):
+        text = f"score {float(score):.2f}"
+        if isinstance(threshold, int | float) and not isinstance(threshold, bool):
+            text += f" (threshold {float(threshold):.2f})"
+        parts.append(text)
+    return "  " + "  ".join(parts) if parts else ""
+
+
 def _print_status(records: Sequence[Mapping[str, object]]) -> None:
     """Print one compact line per status record."""
     now = _status_clock.now()
     local_tz = _status_clock.local_tz()
     for record in records:
-        language = str(record["language"])
-        state = str(record["state"])
-        source = str(record["source"])
-        line = f"{language}: {state} {source}"
+        line = _status_heading(record)
         done = record.get("done")
         selection = record.get("selection")
         done_text = (
@@ -4412,6 +4791,7 @@ def _print_status(records: Sequence[Mapping[str, object]]) -> None:
         approved = record.get("approved")
         if approved is not None:
             line += f"  approved {approved}  abstained {record.get('abstained')}"
+        line += _status_score_fragment(record)
         spent = record.get("spent_usd")
         if isinstance(spent, int | float) and not isinstance(spent, bool):
             line += f"  spent {_money(float(spent))}"
@@ -4436,6 +4816,38 @@ def _print_status(records: Sequence[Mapping[str, object]]) -> None:
         print(line)
 
 
+def _has_recent_gate_run(
+    language: str, now: datetime, ledger: Mapping[str, object]
+) -> bool:
+    """Return whether a language has a recent gate run worth inferring."""
+    return any(
+        record.get("language") == language and _is_recent_run(record, now)
+        for record in section(ledger, "gate_runs")
+    )
+
+
+def _collect_action_records(
+    now: datetime,
+    language_filter: str | None,
+) -> tuple[list[dict[str, object]], set[str]]:
+    """Return live qualification and drift records and their languages."""
+    records: list[dict[str, object]] = []
+    languages: set[str] = set()
+    for action in ("qualify", "drift"):
+        for path in sorted(_action_state_dir(action).glob("*.json")):
+            state = _load_state(path)
+            if state is None:
+                continue
+            language = state.get("language")
+            if not isinstance(language, str) or not language:
+                continue
+            if language_filter is not None and language != language_filter:
+                continue
+            records.append(_action_live_record(action, language, state, now))
+            languages.add(language)
+    return records, languages
+
+
 def _command_status(args: argparse.Namespace) -> int:
     """Report every language with a live batch or recent gate activity."""
     now = _status_clock.now()
@@ -4443,13 +4855,19 @@ def _command_status(args: argparse.Namespace) -> int:
         ledger = load_ledger(args.ledger)
     except (GateError, LedgerError, OSError):
         ledger = {}
-    records: list[dict[str, object]] = []
-    for language in _status_languages(ledger, now, getattr(args, "language", None)):
+    language_filter = getattr(args, "language", None)
+    action_records, action_languages = _collect_action_records(now, language_filter)
+    records: list[dict[str, object]] = list(action_records)
+    for language in _status_languages(ledger, now, language_filter):
         state = _load_state(STATE_DIR / f"{language}.json")
         if state is not None:
             records.append(_live_record(language, state, now))
-        else:
-            records.append(_inferred_record(language, ledger, now))
+            continue
+        if language in action_languages and not _has_recent_gate_run(
+            language, now, ledger
+        ):
+            continue
+        records.append(_inferred_record(language, ledger, now))
     if args.json:
         print(json.dumps(records, ensure_ascii=False, indent=2))
     else:
@@ -4566,7 +4984,14 @@ def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
             )
             reporter.banner()
             try:
-                approved, abstained, stopped, spent, judge_abstained = _run_batch(
+                (
+                    approved,
+                    abstained,
+                    stopped,
+                    spent,
+                    judge_abstained,
+                    backtranslation_unavailable,
+                ) = _run_batch(
                     BatchRun(
                         config=config,
                         catalog=catalog,
@@ -4614,6 +5039,7 @@ def _command_translate(args: argparse.Namespace, config: GateConfig) -> int:
                 elapsed_seconds=reporter.elapsed(),
                 entries_per_hour=_entries_per_hour(reporter.done, reporter.elapsed()),
                 judge_abstained=judge_abstained,
+                backtranslation_unavailable=backtranslation_unavailable,
             )
             _print_batch_json(report, as_json=args.json)
     except (GateError, LedgerError, OSError) as error:

@@ -2430,7 +2430,14 @@ def test_run_batch_stops_at_budget(tmp_path: Path) -> None:
     high = GATE.estimate_gate(config, "de", ["Delete"]).high_cost_usd
     assert high is not None
     client = FakeClient({"p1": "Löschen", "p2": "Entfernen"}, cost_usd=0.001)
-    approved, abstained, stopped, spent, judge_abstained = GATE._run_batch(
+    (
+        approved,
+        abstained,
+        stopped,
+        spent,
+        judge_abstained,
+        backtranslation_unavailable,
+    ) = GATE._run_batch(
         GATE.BatchRun(
             config=config,
             catalog=catalog,
@@ -2449,6 +2456,7 @@ def test_run_batch_stops_at_budget(tmp_path: Path) -> None:
     assert approved[0]["msgid"] == "Delete"
     assert abstained == []
     assert judge_abstained == 0
+    assert backtranslation_unavailable == 0
     assert spent == pytest.approx(0.003)
     saved = polib.pofile(str(catalog_path))
     delete = saved.find("Delete")
@@ -2778,6 +2786,43 @@ def test_run_plural_gate_rejects_a_wrong_form_count(tmp_path: Path) -> None:
     decision = GATE.run_plural_gate(source, "de", config, client)
     assert decision.approved is False
     assert "deterministic check" in decision.reason
+
+
+def test_run_plural_gate_abstains_when_backtranslation_is_unavailable(
+    tmp_path: Path,
+) -> None:
+    """A form whose back-translation call fails abstains the whole entry."""
+
+    class FailingBacktranslation:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout
+            if "back into English" in prompt:
+                msg = "judge down"
+                raise GATE.ModelError(msg)
+            answer = "0: Dies ist ein langer Satz.\n1: Dies sind lange Sätze."
+            return FakeClient(plural_answers={"p1": answer, "p2": answer}).complete(
+                deployment, prompt
+            )
+
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    source = GATE.PluralSource(
+        "This is a long singular sentence for the test.",
+        "These are long plural sentences for the test.",
+        2,
+        "n != 1",
+    )
+    decision = GATE.run_plural_gate(source, "de", config, FailingBacktranslation())
+    assert decision.approved is False
+    assert decision.reason == "back-translation unavailable"
+    assert decision.forms is None
+    backtranslation = cast("dict[str, object]", decision.evidence["backtranslation"])
+    assert backtranslation["0"] is None
 
 
 def test_apply_plural_decision_writes_every_form() -> None:
@@ -3329,6 +3374,147 @@ def test_gate_accepts_an_unchanged_backtranslation(tmp_path: Path) -> None:
         ),
     )
     assert decision.approved is True
+
+
+def test_back_translation_unavailable_returns_no_completion(tmp_path: Path) -> None:
+    """A failing back-translation judge returns the unavailable tri-state."""
+
+    class FailingJudge:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del deployment, prompt, timeout  # always fail on the judge call
+            msg = "judge down"
+            raise GATE.ModelError(msg)
+
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    preserved, completion = GATE.back_translation_preserves(
+        "This is a sufficiently long sentence.",
+        "Dies ist ein ausreichend langer Satz.",
+        "de",
+        config,
+        FailingJudge(),
+    )
+    assert preserved is None
+    assert completion is None
+
+
+def test_gate_abstains_when_backtranslation_is_unavailable(tmp_path: Path) -> None:
+    """A back-translation transport failure abstains with the distinct reason."""
+
+    class FailingBacktranslation:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout
+            if "back into English" in prompt:
+                msg = "judge down"
+                raise GATE.ModelError(msg)
+            return FakeClient(
+                {"p1": "Ein langer Satz.", "p2": "Ein langer Satz."}
+            ).complete(deployment, prompt)
+
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    source = "This is a sufficiently long sentence for a back translation."
+    decision = GATE.run_gate(
+        source, "de", config, FailingBacktranslation(), options=GATE.GateOptions()
+    )
+    assert decision.approved is False
+    assert decision.reason == "back-translation unavailable"
+    assert decision.evidence["backtranslation"] is None
+    calls = cast("list[dict[str, object]]", decision.evidence["calls"])
+    assert "backtranslation" not in {call.get("role") for call in calls}
+
+
+def test_translate_cli_backtranslation_unavailable_is_an_abstention(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A back-translation failure abstains one entry and the batch continues."""
+    sentence = "This is a sufficiently long sentence for a back translation."
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry("Delete"), _batch_entry(sentence)),
+    )
+
+    class FailingBacktranslation:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout
+            if "back into English" in prompt:
+                msg = "judge down"
+                raise GATE.ModelError(msg)
+            return FakeClient({"p1": "Löschen", "p2": "Löschen"}).complete(
+                deployment, prompt
+            )
+
+    monkeypatch.setattr(
+        GATE, "OpenAICompatibleClient", lambda **_: FailingBacktranslation()
+    )
+    status = GATE.main(_batch_args(config_path, ledger_path, catalog_path, roles_path))
+    assert status == 0
+    captured = capsys.readouterr()
+    assert "approved 1" in captured.out
+    assert "abstained 1" in captured.out
+    assert "back-translation unavailable abstained 1" in captured.out
+    catalog = polib.pofile(str(catalog_path))
+    assert catalog.find("Delete").msgstr == "Löschen"
+    assert catalog.find(sentence).msgstr == ""
+
+
+def test_translate_cli_backtranslation_unavailable_json_report(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The JSON report counts back-translation-unavailable abstentions apart."""
+    sentence = "This is a sufficiently long sentence for a back translation."
+    config_path, ledger_path, catalog_path, roles_path = _batch_setup(
+        tmp_path,
+        entries=(_batch_entry(sentence),),
+    )
+
+    class FailingBacktranslation:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout
+            if "back into English" in prompt:
+                msg = "judge down"
+                raise GATE.ModelError(msg)
+            return FakeClient({"p1": "Löschen", "p2": "Löschen"}).complete(
+                deployment, prompt
+            )
+
+    monkeypatch.setattr(
+        GATE, "OpenAICompatibleClient", lambda **_: FailingBacktranslation()
+    )
+    status = GATE.main(
+        _batch_args(config_path, ledger_path, catalog_path, roles_path, "--json")
+    )
+    assert status == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["backtranslation_unavailable"] == 1
+    assert report["judge_abstained"] == 0
+    assert report["abstained"][0]["reason"] == "back-translation unavailable"
 
 
 def test_approve_clears_fuzzy_and_records_the_approval(tmp_path: Path) -> None:
@@ -5047,3 +5233,353 @@ def test_propose_plural_parallel_matches_serial(
     assert [proposal.as_dict() for proposal in parallel] == [
         proposal.as_dict() for proposal in serial
     ]
+
+
+def _action_info(
+    action: str,
+    key: str,
+    language: str,
+    total: int,
+    threshold: float,
+    state_path: Path,
+) -> object:
+    """Build an action progress info for a qualification or drift test."""
+    return GATE.ActionProgressInfo(
+        action=action,
+        key=key,
+        language=language,
+        total=total,
+        threshold=threshold,
+        state_path=state_path,
+    )
+
+
+def test_qualification_state_paths_are_per_release() -> None:
+    """Two releases qualifying one language write distinct, non-clobbering files."""
+    path_a = GATE._action_state_path("qualify", "r1", "de")
+    path_b = GATE._action_state_path("qualify", "r2", "de")
+    assert path_a != path_b
+    assert path_a.parent == GATE.STATE_DIR.parent / "qualify"
+    for key, path in (("r1", path_a), ("r2", path_b)):
+        reporter = GATE.ActionReporter(
+            info=_action_info("qualify", key, "de", 2, 0.8, path)
+        )
+        reporter.begin_call("proposer", "p1")
+        reporter.item_done(matched=True, cost=0.0)
+    assert json.loads(path_a.read_text(encoding="utf-8"))["selection"] == 2
+    assert json.loads(path_b.read_text(encoding="utf-8"))["selection"] == 2
+
+
+def test_action_reporter_tracks_done_matches_and_score(tmp_path: Path) -> None:
+    """The reporter exposes done, matches and the bare score as it runs."""
+    started = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(started)
+    path = tmp_path / "qualify" / "da.r1.json"
+    reporter = GATE.ActionReporter(
+        info=_action_info("qualify", "r1", "da", 4, 0.35, path), clock=clock
+    )
+    for matched in (True, True, False):
+        reporter.begin_call("proposer", "p1")
+        clock.advance(2.0)
+        reporter.end_call()
+        reporter.item_done(matched=matched, cost=0.001)
+    state = json.loads(path.read_text(encoding="utf-8"))
+    assert state["done"] == 3
+    assert state["matches"] == 2
+    assert state["score"] == pytest.approx(2 / 3, abs=1e-6)
+    assert state["selection"] == 4
+    assert state["threshold"] == 0.35
+    assert state["eta_seconds"] is not None
+
+
+def test_qualify_release_reports_the_waiting_call(tmp_path: Path) -> None:
+    """The qualification state file names the model call in flight."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    path = tmp_path / "qualify" / "de.r1.json"
+    seen: dict[str, object] = {}
+
+    class ReadingClient:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout
+            seen["waiting"] = json.loads(path.read_text(encoding="utf-8"))["waiting"]
+            return FakeClient({"p1": "Löschen"}).complete(deployment, prompt)
+
+    reporter = GATE.ActionReporter(
+        info=_action_info("qualify", "r1", "de", 1, 0.8, path)
+    )
+    ledger: dict[str, object] = _ledger()
+    GATE.qualify_release(
+        ledger,
+        config,
+        GATE.QualificationRequest(
+            "r1", "de", [polib.POEntry(msgid="Delete", msgstr="Löschen")]
+        ),
+        ReadingClient(),
+        reporter=reporter,
+    )
+    waiting = cast("dict[str, object]", seen["waiting"])
+    assert waiting["role"] == "proposer"
+    assert waiting["deployment"] == "p1"
+
+
+def test_qualify_state_write_failure_keeps_the_record(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An unwritable cache does not change the qualification result."""
+    blocker = tmp_path / "blocker"
+    blocker.write_text("not a directory", encoding="utf-8")
+    monkeypatch.setattr(GATE, "STATE_DIR", blocker / "state")
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    path = blocker / "qualify" / "de.r1.json"
+    reporter = GATE.ActionReporter(
+        info=_action_info("qualify", "r1", "de", 1, 0.8, path)
+    )
+    ledger: dict[str, object] = _ledger()
+    record = GATE.qualify_release(
+        ledger,
+        config,
+        GATE.QualificationRequest(
+            "r1", "de", [polib.POEntry(msgid="Delete", msgstr="Löschen")]
+        ),
+        FakeClient({"p1": "Löschen"}),
+        reporter=reporter,
+    )
+    assert record["qualified"] is True
+
+
+def test_drift_state_paths_are_per_deployment() -> None:
+    """Two deployments probing one language write distinct state files."""
+    path_a = GATE._action_state_path("drift", "p1", "de")
+    path_b = GATE._action_state_path("drift", "p2", "de")
+    assert path_a != path_b
+    assert path_a.parent == GATE.STATE_DIR.parent / "drift"
+
+
+def test_drift_reports_progress_and_score(tmp_path: Path) -> None:
+    """A drift probe records done, matches and the bare score."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    items = [
+        {"msgid": "Delete", "msgstr": "Löschen"},
+        {"msgid": "Open", "msgstr": "Löschen"},
+    ]
+    path = tmp_path / "drift" / "de.p1.json"
+    clock = FakeClock(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
+    reporter = GATE.ActionReporter(
+        info=_action_info("drift", "p1", "de", 2, 0.75, path), clock=clock
+    )
+
+    class SteppingClient:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout
+            clock.advance(3.0)
+            return FakeClient({"p1": "Löschen"}).complete(deployment, prompt)
+
+    result = GATE.drift_probe(
+        config,
+        GATE.DriftRequest("r1", "p1", "de", items),
+        SteppingClient(),
+        reporter=reporter,
+    )
+    state = json.loads(path.read_text(encoding="utf-8"))
+    assert state["done"] == 2
+    assert state["matches"] == 2
+    assert state["score"] == 1.0
+    assert state["stopped"] == "complete"
+    assert result["score"] == 1.0
+
+
+def test_drift_reports_the_waiting_call(tmp_path: Path) -> None:
+    """The drift state file names the model call in flight."""
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    path = tmp_path / "drift" / "de.p1.json"
+    seen: dict[str, object] = {}
+
+    class ReadingClient:
+        def complete(
+            self,
+            deployment: object,
+            prompt: str,
+            *,
+            timeout: float | None = None,
+        ) -> object:
+            del timeout
+            seen["waiting"] = json.loads(path.read_text(encoding="utf-8"))["waiting"]
+            return FakeClient({"p1": "Löschen"}).complete(deployment, prompt)
+
+    reporter = GATE.ActionReporter(
+        info=_action_info("drift", "p1", "de", 1, 0.75, path)
+    )
+    GATE.drift_probe(
+        config,
+        GATE.DriftRequest("r1", "p1", "de", [{"msgid": "Delete", "msgstr": "Löschen"}]),
+        ReadingClient(),
+        reporter=reporter,
+    )
+    waiting = cast("dict[str, object]", seen["waiting"])
+    assert waiting["role"] == "proposer"
+    assert waiting["deployment"] == "p1"
+
+
+def test_drift_state_write_failure_keeps_the_verdict(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An unwritable cache does not change the drift verdict."""
+    blocker = tmp_path / "blocker"
+    blocker.write_text("not a directory", encoding="utf-8")
+    monkeypatch.setattr(GATE, "STATE_DIR", blocker / "state")
+    config = GATE.load_config(_write_config(tmp_path, _config_data()))
+    path = blocker / "drift" / "de.p1.json"
+    reporter = GATE.ActionReporter(
+        info=_action_info("drift", "p1", "de", 1, 0.75, path)
+    )
+    result = GATE.drift_probe(
+        config,
+        GATE.DriftRequest("r1", "p1", "de", [{"msgid": "Delete", "msgstr": "Löschen"}]),
+        FakeClient({"p1": "Löschen"}),
+        reporter=reporter,
+    )
+    assert result["score"] == 1.0
+
+
+def _qualify_state(now: datetime, **overrides: object) -> dict[str, object]:
+    """Build a qualification state record for a status test."""
+    record: dict[str, object] = {
+        "pid": os.getpid(),
+        "host": socket.gethostname(),
+        "started_at": (now - timedelta(seconds=60)).isoformat(timespec="seconds"),
+        "updated_at": now.isoformat(timespec="seconds"),
+        "action": "qualify",
+        "key": "r1",
+        "language": "de",
+        "selection": 100,
+        "done": 40,
+        "matches": 21,
+        "score": 0.525,
+        "threshold": 0.35,
+        "spent_usd": 0.01,
+        "rate_seconds_per_entry": 4.0,
+        "eta_seconds": 240.0,
+        "eta_low_seconds": 200.0,
+        "eta_high_seconds": 280.0,
+        "waiting": None,
+        "stopped": None,
+    }
+    record.update(overrides)
+    return record
+
+
+def test_status_reports_a_live_qualification(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Status reports a live qualification with its bare score."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    path = GATE._action_state_path("qualify", "r1", "de")
+    _write_state_record(path, _qualify_state(now))
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    record = next(entry for entry in payload if entry.get("action") == "qualify")
+    assert record["language"] == "de"
+    assert record["source"] == "live"
+    assert record["done"] == 40
+    assert record["matches"] == 21
+    assert record["score"] == 0.525
+    assert record["threshold"] == 0.35
+
+
+def test_status_human_reports_a_stalled_qualification(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The human line names the score and a stalled in-flight call."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    path = GATE._action_state_path("qualify", "r1", "de")
+    _write_state_record(
+        path,
+        _qualify_state(
+            now,
+            waiting={
+                "role": "proposer",
+                "deployment": "p1",
+                "since": (now - timedelta(seconds=120)).isoformat(timespec="seconds"),
+            },
+        ),
+    )
+    status = GATE.main(["--ledger", str(ledger_path), "status"])
+    assert status == 0
+    out = capsys.readouterr().out.strip()
+    assert out.startswith("de qualify r1: stalled live")
+    assert "done 40/100" in out
+    assert "matches 21" in out
+    assert "score 0.53 (threshold 0.35)" in out
+    assert "waiting 120s on proposer" in out
+
+
+def test_status_abandons_a_dead_qualification(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A dead qualification with an old file is abandoned without an ETA."""
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    path = GATE._action_state_path("qualify", "r1", "de")
+    _write_state_record(
+        path,
+        _qualify_state(
+            now,
+            pid=999999999,
+            updated_at=(now - timedelta(seconds=3600)).isoformat(timespec="seconds"),
+        ),
+    )
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    payload = json.loads(capsys.readouterr().out)
+    record = next(entry for entry in payload if entry.get("action") == "qualify")
+    assert record["state"] == "abandoned"
+    assert record["eta_seconds"] is None
+
+
+def test_status_action_records_need_no_credential(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Status reports a live action with no model key configured."""
+    monkeypatch.delenv("SCANTPAPER_TEST_KEY", raising=False)
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    clock = FakeClock(now)
+    monkeypatch.setattr(GATE, "_status_clock", clock)
+    ledger_path = _write_ledger(tmp_path / "ledger.json", _ledger())
+    _write_state_record(
+        GATE._action_state_path("drift", "p1", "de"), _qualify_state(now)
+    )
+    status = GATE.main(["--ledger", str(ledger_path), "status", "--json"])
+    assert status == 0
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert any(entry.get("action") == "drift" for entry in payload)
+    assert "SCANTPAPER_TEST_KEY" not in captured.err
