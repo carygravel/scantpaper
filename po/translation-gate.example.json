@@ -48,6 +48,10 @@
     "tr": {
       "qualification": 0.35,
       "drift": 0.3
+    },
+    "fr": {
+      "qualification": 0.35,
+      "drift": 0.3
     }
   },
   "releases": {
