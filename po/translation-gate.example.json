@@ -56,6 +56,10 @@
     "da": {
       "qualification": 0.35,
       "drift": 0.25
+    },
+    "pt_BR": {
+      "qualification": 0.35,
+      "drift": 0.3
     }
   },
   "releases": {
