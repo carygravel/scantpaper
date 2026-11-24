@@ -64,6 +64,10 @@
     "pl": {
       "qualification": 0.35,
       "drift": 0.25
+    },
+    "sv": {
+      "qualification": 0.35,
+      "drift": 0.3
     }
   },
   "releases": {
