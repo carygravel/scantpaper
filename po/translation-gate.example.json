@@ -76,6 +76,10 @@
     "nb": {
       "qualification": 0.4,
       "drift": 0.3
+    },
+    "pt": {
+      "qualification": 0.35,
+      "drift": 0.22
     }
   },
   "releases": {

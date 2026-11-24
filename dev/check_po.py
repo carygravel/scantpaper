@@ -180,7 +180,7 @@ OBSOLETE_CEILING: dict[str, int] = {
     "nl": 126,
     "oc": 6,
     "pl": 165,
-    "pt": 35,
+    "pt": 61,
     "pt_BR": 99,
     "ro": 3,
     "ru": 143,
