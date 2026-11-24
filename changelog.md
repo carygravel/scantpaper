@@ -43,9 +43,9 @@
 * The German and Spanish translations now cover every shipped string, including
   counted forms.
 * Updated Basque, Brazilian Portuguese, Czech, Danish, Dutch, Finnish,
-  French, Galician, Greek, Hungarian, Italian, Norwegian Bokmål, Polish,
-  Portuguese, Russian, Simplified Chinese, Slovak, Swedish, Turkish &
-  Ukrainian translations
+  French, Galician, Greek, Hungarian, Italian, Japanese, Norwegian Bokmål,
+  Polish, Portuguese, Russian, Simplified Chinese, Slovak, Swedish,
+  Turkish & Ukrainian translations
 
 
 ## 4.0.4 (2026-11-14)

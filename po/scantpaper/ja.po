@@ -19,340 +19,404 @@ msgstr ""
 "X-Generator: Launchpad (build 17908)\n"
 "X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
-#: app_window.py:516
-msgid "Save image and Save as PDF both require imagemagick"
-msgstr "画像の保存とPDFとしての保存にはimagemagickが必要です"
-
-#: app_window.py:517
-msgid "Save image requires libtiff"
-msgstr "画像の保存にはlibtiffが必要です"
-
-#: app_window.py:518
-msgid "Save as DjVu requires djvulibre-bin"
-msgstr "DjVuとして保存するにはdjvulibre-binが必要です"
-
-#: app_window.py:519
-msgid "Email as PDF requires xdg-email"
-msgstr "PDFとしてメール送信するにはxdg-emailが必要です"
-
-#: app_window.py:520
-msgid "unpaper missing"
-msgstr "unpaperが見つかりません"
-
-#: app_window.py:528
-msgid "OCR requires tesseract"
-msgstr "OCRにはtesseractが必要です"
-
-#: app_window.py:543
-msgid "PDF encryption requires qpdf"
-msgstr "PDFの暗号化にはqpdfが必要です"
-
-#: app_window.py:575
+#: app_window.py:751
 msgid "Warning: missing packages"
 msgstr "警告: パッケージが見つかりません"
 
-#: app_window.py:593
+#: app_window.py:827
 msgid "Image"
 msgstr "画像"
 
-#: app_window.py:594 text_layer_control.py:57
+#: app_window.py:828 layer.py:197
 msgid "Text layer"
 msgstr "テキストレイヤー"
 
-#: app_window.py:596 session_mixins.py:446
+#: app_window.py:830
 msgid "Annotations"
 msgstr "注釈"
 
-#: app_window.py:837
-#, fuzzy, python-format
-msgid "%dMb free in %s."
-msgid_plural "%dMb free in %s."
-msgstr[0] "空き容量 %dMB（%s）。"
+#: app_window.py:1294
+#, python-format
+msgid "%(mb)dMb free in %(name)s."
+msgid_plural "%(mb)dMb free in %(name)s."
+msgstr[0] ""
 
-#: app_window.py:864 helpers.py:372
+#: app_window.py:1322 helpers.py:531
 msgid "Messages"
 msgstr "メッセージ"
 
-#: app_window.py:949
+#: app_window.py:1405
 msgid "Error opening the last device used."
 msgstr "最後に使用したデバイスを開く際にエラーが発生しました。"
 
-#: app_window.py:951
+#: app_window.py:1407
 msgid "There was an error opening the last device used."
 msgstr "最後に使用したデバイスを開く際にエラーが発生しました。"
 
-#: app_window.py:954
+#: app_window.py:1410
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "おっと！電源を入れるのを忘れていました。今すぐもう一度お試しください。"
 
-#: app_window.py:959 dialog/scan.py:517
+#: app_window.py:1416 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr "デバイスの再検索"
 
-#: app_window.py:963
+#: app_window.py:1419
 msgid "Restart scantpaper."
-msgstr "scantpaperを再起動してください。"
+msgstr "scantpaper を再起動してください。"
 
-#: app_window.py:968
+#: app_window.py:1423
 msgid "Just ignore the error. I don't need the scanner yet."
-msgstr "エラーは無視してください。まだスキャナーは必要ありません。"
+msgstr "エラーを無視してください。スキャナーはまだ必要ありません。"
 
-#: app_window.py:971 dialog/preferences.py:162
+#: app_window.py:1427 dialog/preferences.py:189
 msgid "Cache device list"
-msgstr "デバイス一覧をキャッシュする"
+msgstr "デバイス一覧をキャッシュ"
 
-#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr "次回からこのメッセージを表示しない"
 
-#: basedocument.py:48
+#: basedocument.py:47
 msgid "Thumbnails"
 msgstr "サムネイル"
 
-#: basedocument.py:711
+#: basedocument.py:876
 msgid "No pages to process"
 msgstr "処理するページがありません"
 
-#: basedocument.py:715
+#: basedocument.py:880
 msgid "No pages selected"
 msgstr "ページが選択されていません"
 
-#: config.py:107
+#: config.py:113
 msgid "A3"
 msgstr "A3"
 
-#: config.py:113
+#: config.py:119
 msgid "A4"
 msgstr "A4"
 
-#: config.py:119
+#: config.py:125
 msgid "US Letter"
 msgstr "US レター"
 
-#: config.py:125
+#: config.py:131
 msgid "US Legal"
 msgstr "US リーガル"
 
-#: config.py:263
+#: config.py:276
 #, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
-msgstr ""
-"設定%sは%rであり、%sとして使用できないため、変更されずに残されています。"
+"The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
+"been left unchanged."
+msgstr "設定 %(key)s は %(value)r であり、%(type)s として使用できないため、変更されずに残されています。"
 
-#: config.py:299
+#: config.py:312
 #, python-format
 msgid ""
-"The settings file %s could not be read in full. The following settings were "
-"restored: %s. The rest were reset to their defaults. A backup of the "
-"original file has been saved as %s."
+"The settings file %(filename)s could not be read in full. These settings "
+"were restored: %(settings)s. The rest were reset to their defaults. A backup"
+" has been saved as %(backup)s."
 msgstr ""
-"設定ファイル%sを完全に読み取ることができませんでした。次の設定が復元されまし"
-"た: %s。残りは既定値にリセットされました。元のファイルのバックアップが%sとし"
-"て保存されました。"
+"設定ファイル %(filename)s を完全に読み込めませんでした。次の設定が復元されました: "
+"%(settings)s。残りの設定はデフォルトにリセットされました。バックアップは %(backup)s として保存されました。"
 
-#: config.py:306
+#: config.py:323
 #, python-format
 msgid ""
-"The settings file %s could not be read, so all settings have been reset to "
-"their defaults. A backup of the original file has been saved as %s."
+"The settings file %(filename)s could not be read, so all settings have been "
+"reset to their defaults. A backup of the original file has been saved as "
+"%(backup)s."
 msgstr ""
-"設定ファイル%sを読み取ることができなかったため、すべての設定が既定値にリセッ"
-"トされました。元のファイルのバックアップが%sとして保存されました。"
+"設定ファイル %(filename)s を読み込めなかったため、すべての設定がデフォルトにリセットされました。元のファイルのバックアップが "
+"%(backup)s として保存されました。"
 
-#: dialog/__init__.py:67
+#: dependencies.py:166 tests/test_app_window.py:880
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr "「画像を保存」と「PDFとして保存」にはどちらも imagemagick が必要です。"
+
+#: dependencies.py:172
+#, fuzzy
+msgid "Save image requires libtiff"
+msgstr "画像の保存にはlibtiffが必要です"
+
+#: dependencies.py:178 tests/test_app_window.py:881
+#, fuzzy
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "DjVuとして保存するにはdjvulibre-binが必要です"
+
+#: dependencies.py:186
+#, fuzzy
+msgid "Email as PDF requires xdg-email"
+msgstr "PDFとしてメール送信するにはxdg-emailが必要です"
+
+#: dependencies.py:189 tests/test_app_window.py:882
+msgid "unpaper missing"
+msgstr "unpaper が見つかりません"
+
+#: dependencies.py:191 tests/test_app_window.py:883
+msgid "OCR requires tesseract"
+msgstr "OCRにはtesseractが必要です"
+
+#: dependencies.py:196 tests/test_app_window.py:884
+msgid "PDF encryption requires qpdf"
+msgstr "PDFの暗号化にはqpdfが必要です"
+
+#: dependencies.py:202 tests/test_app_window.py:885
+msgid "JBIG2 PDF compression requires jbig2"
+msgstr "JBIG2 PDF圧縮にはjbig2が必要です"
+
+#: dialog/__init__.py:134
 msgid "Page Range"
 msgstr "ページ範囲"
 
-#: dialog/__init__.py:106
+#: dialog/__init__.py:174
 msgid "Error"
 msgstr "エラー"
 
-#: dialog/__init__.py:107
+#: dialog/__init__.py:175
 msgid "Warning"
 msgstr "警告"
 
-#: dialog/__init__.py:108
+#: dialog/__init__.py:176
 msgid "Info"
 msgstr "情報"
 
-#: dialog/__init__.py:125
+#: dialog/__init__.py:199
 msgid "Page"
 msgstr "ページ"
 
-#: dialog/__init__.py:126
+#: dialog/__init__.py:200
 msgid "Process"
 msgstr "プロセス"
 
-#: dialog/__init__.py:127
+#: dialog/__init__.py:201
 msgid "Message type"
-msgstr "メッセージの種類"
+msgstr "メッセージタイプ"
 
-#: dialog/__init__.py:129
+#: dialog/__init__.py:203
 msgid "Message"
 msgstr "メッセージ"
 
-#: dialog/__init__.py:132
+#: dialog/__init__.py:206
 msgid "Hide"
 msgstr "非表示"
 
-#: dialog/__init__.py:193
-msgid "Don't show these messages again"
-msgstr "このメッセージを再度表示しない"
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
+msgid "_Close"
+msgstr "閉じる(_C)"
 
-#: dialog/__init__.py:313
+#: dialog/__init__.py:295
+msgid "Don't show these messages again"
+msgstr "今後このメッセージを表示しない"
+
+#: dialog/__init__.py:409
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
-msgstr "このエラーは通常、ImageMagickがリソース制限を超えたために発生します。"
+msgstr "このエラーは通常、ImageMagick がリソース制限を超えていることが原因です。"
 
-#: dialog/__init__.py:317
+#: dialog/__init__.py:413
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
 msgstr ""
-"これはポリシーファイルを編集することで拡張できます。私のシステムでは /etc/"
-"ImageMagick-6/policy.xml にあります"
+"これらは、ポリシーファイルを編集することで拡張できます。私のシステムでは、そのファイルは /etc/ImageMagick-6/policy.xml "
+"にあります。"
 
-#: dialog/__init__.py:322
+#: dialog/__init__.py:418
+#, python-format
 msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
-msgstr ""
-"詳細については https://imagemagick.org/script/resources.php を参照してくださ"
-"い"
+"Please see the ImageMagick resource documentation for more information: "
+"%(url)s"
+msgstr "詳しくは ImageMagick のリソースドキュメントを参照してください: %(url)s"
 
-#: dialog/crop.py:14
+#: dialog/crop.py:15
 msgid "x"
 msgstr "x"
 
-#: dialog/crop.py:15
+#: dialog/crop.py:16
 msgid "The x-position of the left hand edge of the crop."
-msgstr "切り抜きの左端のx座標。"
+msgstr "切り抜き領域の左端の X 位置。"
 
-#: dialog/crop.py:19
+#: dialog/crop.py:20
 msgid "y"
 msgstr "y"
 
-#: dialog/crop.py:20
+#: dialog/crop.py:21
 msgid "The y-position of the top edge of the crop."
-msgstr "切り抜きの上端のy座標。"
+msgstr "切り抜きの上端の y 位置。"
 
-#: dialog/crop.py:24 dialog/paperlist.py:22
+#: dialog/crop.py:25 dialog/paperlist.py:22
 msgid "Width"
 msgstr "幅"
 
-#: dialog/crop.py:25
+#: dialog/crop.py:26
 msgid "The width of the crop."
 msgstr "切り抜きの幅。"
 
-#: dialog/crop.py:29 dialog/paperlist.py:23
+#: dialog/crop.py:30 dialog/paperlist.py:23
 msgid "Height"
 msgstr "高さ"
 
-#: dialog/crop.py:30
+#: dialog/crop.py:31
 msgid "The height of the crop."
 msgstr "切り抜きの高さ。"
 
-#: dialog/crop.py:116
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr "切り取り"
 
-#: dialog/crop.py:154 tools_menu_mixins.py:277
+#: dialog/crop.py:161 tools_menu_mixins.py:286
 msgid "pixels"
 msgstr "ピクセル"
 
-#: dialog/pagecontrols.py:188
+#: dialog/importhocr.py:45
+msgid "hOCR file"
+msgstr "hOCR ファイル"
+
+#: dialog/importhocr.py:50 dialog/preferences.py:272
+#: postprocess_controls.py:692
+msgid "Browse"
+msgstr "参照"
+
+#: dialog/importhocr.py:56
+msgid "Pages are matched to the hOCR pages in order."
+msgstr "ページはhOCRページと順番に照合されます。"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_OK"
+msgstr "_OK"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
+#: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
+#: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_Cancel"
+msgstr "_キャンセル"
+
+#: dialog/importhocr.py:69
+msgid "Open hOCR file"
+msgstr "hOCR ファイルを開く"
+
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: dialog/importhocr.py:76 file_menu_mixins.py:119
+msgid "Open"
+msgstr "開く"
+
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
+msgid "hOCR files"
+msgstr "hOCR ファイル"
+
+#: dialog/pagecontrols.py:231
 msgid "Page Options"
 msgstr "ページオプション"
 
-#: dialog/pagecontrols.py:199
+#: dialog/pagecontrols.py:245
 msgid "# Pages"
 msgstr "ページ数"
 
-#: dialog/pagecontrols.py:210 pagerange.py:47
+#: dialog/pagecontrols.py:256 pagerange.py:48
 msgid "All"
 msgstr "すべて"
 
-#: dialog/pagecontrols.py:211
+#: dialog/pagecontrols.py:257
 msgid "Scan all pages"
 msgstr "すべてのページをスキャン"
 
-#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+#: dialog/pagecontrols.py:268 dialog/pagecontrols.py:273
 msgid "Set number of pages to scan"
 msgstr "スキャンするページ番号を設定"
 
-#: dialog/pagecontrols.py:247
+#: dialog/pagecontrols.py:277
+msgid "No page limit: scanning continues until you cancel."
+msgstr "ページ数制限なし：キャンセルするまでスキャンが続きます。"
+
+#: dialog/pagecontrols.py:311
 msgid "Extended page numbering"
 msgstr "拡張ページ番号付け"
 
-#: dialog/pagecontrols.py:260
+#: dialog/pagecontrols.py:324
 msgid "Page number"
 msgstr "ページ番号"
 
-#: dialog/pagecontrols.py:271
+#: dialog/pagecontrols.py:334
 msgid "Insert before page N"
-msgstr "ページNの前に挿入"
+msgstr "ページ N の前に挿入"
 
-#: dialog/pagecontrols.py:274
+#: dialog/pagecontrols.py:337
 msgid "Page number before which scans will be inserted"
-msgstr "スキャンを挿入する前のページ番号"
+msgstr "スキャンを挿入する位置のページ番号"
 
-#: dialog/pagecontrols.py:285
+#: dialog/pagecontrols.py:348
 msgid "Position advance"
-msgstr "位置の進行"
+msgstr "位置を進める"
 
-#: dialog/pagecontrols.py:289
+#: dialog/pagecontrols.py:352
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
-msgstr "以降のスキャンごとの位置の進行（0 = 同じページの前に挿入し続ける）"
+msgstr "後続の各スキャンでの位置の進み (0 = 同じページの前に挿入し続ける)"
 
-#: dialog/pagecontrols.py:305
+#: dialog/pagecontrols.py:368
 msgid "Source document"
 msgstr "ソースドキュメント"
 
-#: dialog/pagecontrols.py:313
+#: dialog/pagecontrols.py:377
 msgid "Single sided"
 msgstr "片面"
 
-#: dialog/pagecontrols.py:315
+#: dialog/pagecontrols.py:378
 msgid "Source document is single-sided"
 msgstr "ソースドキュメントは片面です"
 
-#: dialog/pagecontrols.py:321
+#: dialog/pagecontrols.py:385
 msgid "Double sided"
 msgstr "両面"
 
-#: dialog/pagecontrols.py:323
+#: dialog/pagecontrols.py:387
 msgid "Source document is double-sided"
 msgstr "ソースドキュメントは両面です"
 
-#: dialog/pagecontrols.py:329
+#: dialog/pagecontrols.py:393
 msgid "Side to scan"
 msgstr "スキャン面"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Facing"
 msgstr "表面"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Reverse"
 msgstr "裏面"
 
-#: dialog/pagecontrols.py:337
+#: dialog/pagecontrols.py:401
 msgid "Sets which side of a double-sided document is scanned"
-msgstr "両面文書のどの面をスキャンするかを設定します"
+msgstr "両面原稿のどちら側をスキャンするかを設定します"
 
-#: dialog/paperlist.py:21
+#: dialog/paperlist.py:21 dialog/tesseractparams.py:69
 msgid "Name"
 msgstr "名前"
 
-#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+#: dialog/paperlist.py:24 unpaper.py:153 unpaper.py:181
 msgid "Left"
 msgstr "左"
 
-#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+#: dialog/paperlist.py:25 unpaper.py:158 unpaper.py:186
 msgid "Top"
-msgstr "上"
+msgstr "トップ"
 
 #: dialog/paperlist.py:26
 msgid "Units"
@@ -362,122 +426,117 @@ msgstr "単位"
 msgid "Cannot delete all paper sizes"
 msgstr "すべての用紙サイズは削除できません"
 
-#: dialog/preferences.py:42
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr "設定"
 
-#: dialog/preferences.py:56
+#: dialog/preferences.py:72
 msgid "Scan options"
 msgstr "スキャンオプション"
 
-#: dialog/preferences.py:60
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr "一般オプション"
 
-#: dialog/preferences.py:68
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
 msgstr "プログラム起動時にスキャナーを開く"
 
-#: dialog/preferences.py:71
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
 msgstr ""
-"プログラム起動時にスキャンダイアログをバックグラウンドで自動的に開きます。こ"
-"れにより、スキャンボタンをクリックしてプログラムがスキャナーの一覧を見つける"
-"のを待つ手間が省けます"
+"プログラム起動時にスキャンダイアログをバックグラウンドで自動的に開きます。これにより、スキャンボタンをクリックして、プログラムがスキャナーの一覧を検出するのを待つ時間を節約できます。"
 
-#: dialog/preferences.py:83
+#: dialog/preferences.py:104
 msgid "Device blacklist"
 msgstr "デバイスのブラックリスト"
 
-#: dialog/preferences.py:87
-msgid "Device blacklist (regular expression)"
-msgstr "デバイスのブラックリスト（正規表現）"
+#: dialog/preferences.py:107
+msgid "e.g. Camera or v4l:.*"
+msgstr "例: カメラまたは v4l:.*"
 
-#: dialog/preferences.py:95
+#: dialog/preferences.py:110
+msgid ""
+"Regular expression matched case-insensitively against the device label and "
+"backend name, e.g. Camera or v4l:.*"
+msgstr "デバイスラベルとバックエンド名に対して大文字小文字を区別せずにマッチする正規表現（例: Camera または v4l:.*）"
+
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
-msgstr "スキャン後にSANEハンドルを再取得する"
+msgstr "スキャン後にSANEハンドルを入れ替える"
 
-#: dialog/preferences.py:97
+#: dialog/preferences.py:124
 msgid "Some ADFs do not feed out the last page if this is not enabled"
-msgstr "一部のADFでは、これを有効にしないと最後のページを排出しません"
+msgstr "この機能を有効にしないと、最後のページが送り出されない ADF もあります"
 
-#: dialog/preferences.py:105
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
-msgstr "フラットベッドからの連続スキャンを許可する"
+msgstr "フラットベッドからのバッチスキャンを許可する"
 
-#: dialog/preferences.py:109
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
-msgstr ""
-"設定しない場合、フラットベッドスキャナーに切り替えると#ページが1に、片面モー"
-"ドになります。"
+msgstr "未設定の場合、フラットベッドスキャナーに切り替えると、# ページが強制的に 1 に設定され、片面モードになります。"
 
-#: dialog/preferences.py:118
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
-msgstr "スキャナーの両面対応を無視する"
+msgstr "スキャナーの両面機能を無視する"
 
-#: dialog/preferences.py:122
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
-msgstr ""
-"設定すると、両面対応はすべて無視され、ページを手動で交互に配置できるように表"
-"面/裏面ウィジェットが表示されます。"
+msgstr "設定すると、両面印刷機能はすべて無視され、ページを手動で交互に配置できるように、表/裏ウィジェットが表示されます。"
 
-#: dialog/preferences.py:131
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
 msgstr "ページ間で新しいスキャンジョブを強制する"
 
-#: dialog/preferences.py:135
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
-msgstr ""
-"設定しない場合、フラットベッドからスキャンしているにもかかわらず、一部の"
-"Brotherスキャナーが原稿切れを報告します。"
+msgstr "それ以外の場合、一部の Brother スキャナーでは、フラットベッドからスキャンしているにもかかわらず、原稿切れが報告されます。"
 
-#: dialog/preferences.py:151
+#: dialog/preferences.py:178
 msgid "Select # pages = all on selecting ADF"
-msgstr "ADF選択時に#ページ = すべてを選択"
+msgstr "ADF 選択時に # ページ = すべてを選択"
 
-#: dialog/preferences.py:155
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
-msgstr ""
-"このオプションを有効にすると、source=ADFに切り替えたときに#ページ = すべてが"
-"選択されます"
+msgstr "このオプションを有効にすると、source=ADF に切り替えたときに、# pages = all が選択されます"
 
-#: dialog/preferences.py:165
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
-msgstr ""
-"このオプションを有効にすると、scantpaperが利用可能なデバイスを最初に検索しな"
-"いため、スキャナーをより速く開けます。"
+msgstr "このオプションを有効にすると、scantpaper が最初に利用可能なデバイスを検索しないため、スキャナーを開くのが速くなります。"
 
-#: dialog/preferences.py:169
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
-msgstr "これはデバイス名がセッション間で変わらない場合にのみ有効です。"
+msgstr "これは、セッション間でデバイス名が変更されない場合にのみ有効です。"
 
-#: dialog/preferences.py:178
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
 msgstr "起動時にウィンドウ設定を復元する"
 
-#: dialog/preferences.py:183
+#: dialog/preferences.py:210
 msgid "View files on saving"
 msgstr "保存中にファイルを表示"
 
-#: dialog/preferences.py:190
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
 msgstr "PDFのデフォルトファイル名"
 
-#: dialog/preferences.py:194
+#: dialog/preferences.py:221
+#, fuzzy
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -509,598 +568,770 @@ msgstr ""
 "%Dm\t文書の月\n"
 "%Dd\t文書の日\n"
 
-#: dialog/preferences.py:215
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
 msgstr "ファイル名の空白をアンダースコアに置き換える"
 
-#: dialog/preferences.py:221
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
-msgstr "ロケールのタイムゾーンを使用する"
+msgstr "ロケールのタイムゾーンを使用"
 
-#: dialog/preferences.py:226
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
-msgstr "日付に加えて時刻も指定する"
+msgstr "日付だけでなく時刻も指定してください"
 
-#: dialog/preferences.py:232
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
-msgstr "アクセス時刻と変更時刻をメタデータの日付に設定する"
+msgstr "アクセス日時と変更日時をメタデータの日付に設定する"
 
-#: dialog/preferences.py:240
+#: dialog/preferences.py:267
 msgid "Temporary directory"
 msgstr "一時ディレクトリ"
 
-#: dialog/preferences.py:245
-msgid "Browse"
-msgstr "参照"
-
-#: dialog/preferences.py:251
+#: dialog/preferences.py:279
 msgid "Select temporary directory"
 msgstr "一時ディレクトリを選択してください"
 
-#: dialog/preferences.py:273
-msgid "Warn if available space less than (Mb)"
-msgstr "利用可能な空き容量が(Mb)未満の場合に警告する"
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
+#: postprocess_controls.py:717
+msgid "OK"
+msgstr "OK"
 
-#: dialog/preferences.py:279
+#: dialog/preferences.py:304
+msgid "Warn if available space less than (Mb)"
+msgstr "空き容量が (Mb) 未満の場合に警告"
+
+#: dialog/preferences.py:310
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
-msgstr "一時ディレクトリの利用可能な空き容量がこの値未満の場合に警告する"
+msgstr "一時ディレクトリの空き容量がこの値を下回ると警告する"
 
-#: dialog/preferences.py:287
+#: dialog/preferences.py:318
 msgid "Blank threshold"
 msgstr "空白のしきい値"
 
-#: dialog/preferences.py:292
+#: dialog/preferences.py:323
 msgid "Threshold used for selecting blank pages"
 msgstr "空白ページを選択する際に使用するしきい値"
 
-#: dialog/preferences.py:300
+#: dialog/preferences.py:331
 msgid "Dark threshold"
 msgstr "黒のしきい値"
 
-#: dialog/preferences.py:304
+#: dialog/preferences.py:335
 msgid "Threshold used for selecting dark pages"
 msgstr "黒ページを選択する際に使用するしきい値"
 
-#: dialog/preferences.py:311
+#: dialog/preferences.py:342
 msgid "OCR output"
 msgstr "OCR出力"
 
-#: dialog/preferences.py:316
+#: dialog/preferences.py:347
 msgid "Replace"
 msgstr "置き換え"
 
-#: dialog/preferences.py:318
+#: dialog/preferences.py:349
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr "OCR出力でテキストバッファーの内容を置き換えます。"
 
-#: dialog/preferences.py:321
+#: dialog/preferences.py:352
 msgid "Prepend"
 msgstr "先頭に追加"
 
-#: dialog/preferences.py:321
+#: dialog/preferences.py:352
 msgid "Prepend the OCR output to the text buffer."
 msgstr "OCR出力をテキストバッファーの先頭に追加します。"
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append"
 msgstr "末尾に追加"
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append the OCR output to the text buffer."
 msgstr "OCR出力をテキストバッファーの末尾に追加します。"
 
-#: dialog/preferences.py:329
+#: dialog/preferences.py:362
 msgid "Manage user-defined tools"
-msgstr "ユーザー定義ツールを管理"
+msgstr "ユーザー定義ツールの管理"
 
-#: dialog/preferences.py:352
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
+msgid "Add a user-defined tool"
+msgstr "ユーザー定義ツールを追加"
+
+#: dialog/preferences.py:378
+msgid "Bilevel compression"
+msgstr "二値圧縮"
+
+#: dialog/preferences.py:383
+msgid "Group 4"
+msgstr "グループ 4"
+
+#: dialog/preferences.py:384
+msgid "Compress bilevel images with CCITT Group 4 encoding."
+msgstr "CCITT Group 4 符号化で2値画像を圧縮します。"
+
+#: dialog/preferences.py:391 dialog/save.py:71
+msgid "JBIG2"
+msgstr "JBIG2"
+
+#: dialog/preferences.py:392
+msgid "Compress bilevel images with JBIG2 encoding."
+msgstr "JBIG2エンコーディングで二値画像を圧縮する。"
+
+#: dialog/preferences.py:414
 #, python-format
 msgid ""
-"Use %i and %o for the input and output filenames respectively,\n"
-"or a single %i if the image is to be modified in-place.\n"
+"Use %%i and %%o for the input and output filenames respectively,\n"
+"or a single %%i if the image is to be modified in-place.\n"
 "\n"
 "The other variable available is:\n"
-"%r resolution"
+"%%r resolution"
 msgstr ""
-"入力ファイル名と出力ファイル名にはそれぞれ%iと%oを使用してください。\n"
-"画像をその場で変更する場合は%iのみを使用してください。\n"
+"入力ファイル名と出力ファイル名にはそれぞれ %%i と %%o を使用してください。\n"
+"画像をその場で変更する場合は、%%i のみを使用してください。\n"
 "\n"
-"利用可能なもう1つの変数:\n"
-"%r 解像度"
+"使用可能なその他の変数は次のとおりです:\n"
+"%%r 解像度"
 
-#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
 msgid "_Delete"
 msgstr "削除(_D)"
 
-#: dialog/preferences.py:397
+#: dialog/preferences.py:462
+#, fuzzy
 msgid "The following user-defined tools could not be found:\n"
 msgstr "次のユーザー定義ツールが見つかりませんでした:\n"
 
-#: dialog/preferences.py:400
+#: dialog/preferences.py:465
 msgid "Please check that the command is installed and in your PATH."
-msgstr "コマンドがインストールされ、PATHに含まれていることを確認してください。"
+msgstr "コマンドがインストールされ、PATH に含まれていることを確認してください。"
 
-#: dialog/preferences.py:402
+#: dialog/preferences.py:467
 msgid "User-defined tool not found"
 msgstr "ユーザー定義ツールが見つかりません"
 
-#: dialog/sane.py:71
+#: dialog/sane.py:89
 msgid "Fetching list of devices"
 msgstr "デバイスのリストを取得中"
 
-#: dialog/sane.py:89
+#: dialog/sane.py:108 scan_menu_item_mixins.py:93
 msgid "No devices found"
 msgstr "デバイスが見つかりません"
 
-#: dialog/sane.py:129
+#: dialog/sane.py:152
 msgid "Opening device"
 msgstr "デバイスを開いています"
 
-#: dialog/sane.py:142
+#: dialog/sane.py:166
 msgid "Error opening device: "
-msgstr "デバイスを開く際のエラー: "
+msgstr "デバイスを開けませんでした:"
 
-#: dialog/sane.py:148 dialog/sane.py:494
+#: dialog/sane.py:175 dialog/sane.py:539
 msgid "Retrieving options"
 msgstr "オプションを取得中"
 
-#: dialog/sane.py:165 dialog/sane.py:507
+#: dialog/sane.py:195 dialog/sane.py:553
 msgid "Error retrieving scanner options: "
-msgstr "スキャナーオプションの取得中にエラー: "
+msgstr "スキャナーオプションの取得中にエラーが発生しました:"
 
-#: dialog/sane.py:207
+#: dialog/sane.py:245
 msgid "Scan Options"
 msgstr "スキャンオプション"
 
-#: dialog/sane.py:290
+#: dialog/sane.py:329
 #, python-format
-msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
-msgstr "スキャンオプション'%s'を無視します。最小範囲(%s) > 最大(%s)"
+msgid ""
+"Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum "
+"(%(maximum)s)"
+msgstr "スキャン オプション '%(name)s' を無視しています。最小範囲 (%(minimum)s) > 最大 (%(maximum)s)"
 
-#: dialog/sane.py:450
+#: dialog/sane.py:493
 #, python-format
 msgid "Setting option %s"
-msgstr "オプション%sを設定中"
+msgstr "設定オプション %s"
 
-#: dialog/sane.py:469
+#: dialog/sane.py:512
 msgid "Error setting option: "
-msgstr "オプションの設定中にエラー: "
+msgstr "オプション設定エラー:"
 
-#: dialog/sane.py:531
+#: dialog/sane.py:591
 msgid "Must scan facing pages first"
 msgstr "表面を最初にスキャンする必要あり"
 
-#: dialog/save.py:31
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
+msgid ""
+"Scanner did not deliver the requested 1-bit output; the page has been "
+"converted to black-and-white"
+msgstr "スキャナーから要求された 1 ビット出力が得られませんでした。ページは白黒に変換されました。"
+
+#: dialog/sane.py:752
+msgid ""
+"The scanner did not respond to cancel. Reconnect the scanner or choose "
+"another device."
+msgstr "スキャナーがキャンセルに応答しませんでした。スキャナーを再接続するか、別のデバイスを選択してください。"
+
+#: dialog/save.py:32
 msgid "PDF"
 msgstr "PDF"
 
-#: dialog/save.py:31
+#: dialog/save.py:32
 msgid "Portable Document Format"
 msgstr "Portable Document Format(PDF)"
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "GIF"
 msgstr "GIF"
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe graphics interchange (GIF)フォーマット"
 
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+#: dialog/save.py:34 dialog/save.py:54 dialog/save.py:100
 msgid "JPEG"
 msgstr "JPEG"
 
-#: dialog/save.py:33
+#: dialog/save.py:34
 msgid "Joint Photographic Experts Group JFIF format"
 msgstr "Joint Photographic Experts Group JFIF (JPEG)フォーマット"
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "PNG"
 msgstr "PNG"
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "Portable Network Graphics"
 msgstr "Portable Network Graphics(PNG)"
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "PNM"
 msgstr "PNM"
 
-#: dialog/save.py:35
-msgid "Portable anymap"
-msgstr "Portable anymap"
-
 #: dialog/save.py:36
+msgid "Portable anymap"
+msgstr "ポータブル・エニーマップ"
+
+#: dialog/save.py:37
 msgid "PS"
 msgstr "PS"
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "Postscript"
 msgstr "Postscript"
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "TIFF"
 msgstr "TIFF"
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "Tagged Image File Format"
 msgstr "Tagged Image File Format(TIFF)"
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Text"
 msgstr "テキスト"
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Plain text"
 msgstr "プレーンテキスト"
 
-#: dialog/save.py:39
+#: dialog/save.py:40
 msgid "hOCR"
 msgstr "hOCR"
 
-#: dialog/save.py:39
+#: dialog/save.py:40
 msgid "hOCR markup language"
 msgstr "hOCRマークアップ言語"
 
-#: dialog/save.py:40 session_mixins.py:126
+#: dialog/save.py:41 session_mixins.py:182
 msgid "Session"
 msgstr "セッション"
 
-#: dialog/save.py:40
+#: dialog/save.py:41
 msgid "scantpaper session database"
-msgstr "scantpaperセッションデータベース"
+msgstr "scantpaper セッションデータベース"
 
-#: dialog/save.py:41
+#: dialog/save.py:42
 msgid "Prepend to PDF"
-msgstr "PDFの先頭に追加"
+msgstr "PDF の先頭に追加"
 
-#: dialog/save.py:41
+#: dialog/save.py:42
 msgid "Prepend to an existing PDF"
-msgstr "既存のPDFの先頭に追加"
-
-#: dialog/save.py:42
-msgid "Append to PDF"
-msgstr "PDFの末尾に追加"
-
-#: dialog/save.py:42
-msgid "Append to an existing PDF"
-msgstr "既存のPDFの末尾に追加"
+msgstr "既存の PDF の先頭に追加"
 
 #: dialog/save.py:43
+msgid "Append to PDF"
+msgstr "PDFに追加"
+
+#: dialog/save.py:43
+msgid "Append to an existing PDF"
+msgstr "既存の PDF に追加"
+
+#: dialog/save.py:44
 msgid "DjVu"
 msgstr "DjVu"
 
-#: dialog/save.py:43
+#: dialog/save.py:44
 msgid "Deja Vu"
 msgstr "Deja Vu"
 
-#: dialog/save.py:48
+#: dialog/save.py:49 tesseract.py:197
 msgid "Automatic"
 msgstr "自動"
 
-#: dialog/save.py:49
+#: dialog/save.py:50
 msgid "Let scantpaper which type of compression to use."
-msgstr "使用する圧縮方式をscantpaperに選択させます。"
+msgstr "scantpaper に使用する圧縮の種類を選択させます。"
 
-#: dialog/save.py:51 dialog/save.py:76
-msgid "LZW"
-msgstr "LZW"
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "Lempel-Ziv & Welch (LZW)エンコーディングで出力を圧縮します。"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "G3"
-msgstr "G3"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr "CCITT Group 3 (G3)エンコーディングで出力を圧縮します。"
-
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "G4"
 msgstr "G4"
 
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "Compress output with CCITT Group 4 encoding."
 msgstr "CCITT Group 4 (G4)エンコーディングで出力を圧縮します。"
 
-#: dialog/save.py:54
+#: dialog/save.py:53
 msgid "Flate"
 msgstr "Flate"
 
-#: dialog/save.py:54
+#: dialog/save.py:53
 msgid "Compress output with flate encoding."
-msgstr "flateエンコーディングで出力を圧縮します。"
+msgstr "flate エンコーディングで出力を圧縮します。"
+
+#: dialog/save.py:54
+msgid "Compress output with JPEG (DCT) encoding."
+msgstr "JPEG (DCT) エンコーディングで出力を圧縮します。"
 
 #: dialog/save.py:55
-msgid "Compress output with JPEG (DCT) encoding."
-msgstr "JPEG（DCT）エンコーディングで出力を圧縮します。"
+msgid "JPEG 2000"
+msgstr "JPEG 2000"
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "None"
-msgstr "なし"
+#: dialog/save.py:55
+msgid "Compress output with JPEG 2000 encoding."
+msgstr "JPEG 2000 エンコーディングで出力を圧縮します。"
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "Use no compression algorithm on output."
-msgstr "出力する際に圧縮アルゴリズムを使用しません。"
+#: dialog/save.py:71
+msgid "Compress output with JBIG2 encoding."
+msgstr "JBIG2 エンコードで出力を圧縮します。"
 
-#: dialog/save.py:61
+#: dialog/save.py:79
 msgid "LibTIFF"
 msgstr "LibTIFF"
 
-#: dialog/save.py:62
+#: dialog/save.py:80
 msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
-msgstr "LibTIFF（tiff2ps）を使用してTIFFからPostscriptファイルを作成します。"
+msgstr "LibTIFF (tiff2ps) を使用して、TIFF から Postscript ファイルを作成します。"
 
-#: dialog/save.py:66
+#: dialog/save.py:84
 msgid "Ghostscript"
 msgstr "Ghostscript"
 
-#: dialog/save.py:67
+#: dialog/save.py:85
 msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
-msgstr "Ghostscript（pdf2ps）を使用してPDFからPostscriptファイルを作成します。"
+msgstr "Ghostscript (pdf2ps) を使用して、PDF から Postscript ファイルを作成します。"
 
-#: dialog/save.py:71
+#: dialog/save.py:89
 msgid "Poppler"
 msgstr "Poppler"
 
-#: dialog/save.py:72
+#: dialog/save.py:90
+#, fuzzy
 msgid "Use Poppler (pdftops) to create Postscript files from PDF."
 msgstr "Poppler（pdftops）を使用してPDFからPostscriptファイルを作成します。"
 
-#: dialog/save.py:79
+#: dialog/save.py:94
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:94
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "Lempel-Ziv & Welch (LZW)エンコーディングで出力を圧縮します。"
+
+#: dialog/save.py:97
 msgid "Zip"
 msgstr "Zip"
 
-#: dialog/save.py:80
+#: dialog/save.py:98
 msgid "Compress output with deflate encoding."
 msgstr "deflateエンコーディングで出力を圧縮します。"
 
-#: dialog/save.py:82
+#: dialog/save.py:100
 msgid "Compress output with JPEG encoding."
 msgstr "JPEGエンコーディングで出力を圧縮します。"
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Packbits"
 msgstr "Packbits"
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Compress output with Packbits encoding."
 msgstr "Packbitsエンコーディングで出力を圧縮します。"
 
-#: dialog/save.py:360
-msgid "Document Metadata"
-msgstr "文書メタデータ"
+#: dialog/save.py:102
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:102
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "CCITT Group 3 (G3)エンコーディングで出力を圧縮します。"
+
+#: dialog/save.py:104 postprocess_controls.py:644 postprocess_controls.py:906
+msgid "None"
+msgstr "なし"
+
+#: dialog/save.py:104
+msgid "Use no compression algorithm on output."
+msgstr "出力する際に圧縮アルゴリズムを使用しません。"
 
 #: dialog/save.py:374
+msgid "Document Metadata"
+msgstr "ドキュメントのメタデータ"
+
+#: dialog/save.py:385
 msgid "Date/Time"
 msgstr "日付/時刻"
 
-#: dialog/save.py:387 dialog/save.py:572
+#: dialog/save.py:397 dialog/save.py:591
 msgid "Now"
-msgstr "現在"
+msgstr "今"
 
-#: dialog/save.py:388 dialog/save.py:573
+#: dialog/save.py:398 dialog/save.py:592
 msgid "Use current date and time"
 msgstr "現在の日付と時刻を使用"
 
-#: dialog/save.py:393
+#: dialog/save.py:405
 msgid "Specify"
 msgstr "指定"
 
-#: dialog/save.py:395
+#: dialog/save.py:407
 msgid "Specify date and time"
-msgstr "日付と時刻を指定"
+msgstr "日付と時刻を指定してください"
 
-#: dialog/save.py:403
+#: dialog/save.py:415
 msgid "Year-Month-Day"
 msgstr "年-月-日"
 
-#: dialog/save.py:413
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
 msgid "Select date with calendar"
 msgstr "カレンダーで日付を選択"
 
-#: dialog/save.py:459
+#: dialog/save.py:467
 msgid "Select Date"
 msgstr "日付の選択"
 
-#: dialog/save.py:489 dialog/save.py:579
+#: dialog/save.py:509 dialog/save.py:598
 msgid "Today"
 msgstr "今日"
 
-#: dialog/save.py:545
+#: dialog/save.py:565
 msgid "Title"
 msgstr "タイトル"
 
-#: dialog/save.py:546
+#: dialog/save.py:566
 msgid "Author"
 msgstr "著者"
 
-#: dialog/save.py:547
+#: dialog/save.py:567
 msgid "Subject"
 msgstr "件名"
 
-#: dialog/save.py:548
+#: dialog/save.py:568
 msgid "Keywords"
 msgstr "キーワード"
 
-#: dialog/save.py:580
+#: dialog/save.py:599
 msgid "Use today's date"
 msgstr "今日の日付を使用"
 
-#: dialog/save.py:590
+#: dialog/save.py:609
 msgid "Document type"
-msgstr "文書の種類"
+msgstr "ドキュメントの種類"
 
-#: dialog/save.py:598
+#: dialog/save.py:618
 msgid "Postscript backend"
-msgstr "Postscriptバックエンド"
+msgstr "PostScript バックエンド"
 
-#: dialog/save.py:614 dialog/save.py:754
+#: dialog/save.py:635 dialog/save.py:776
 msgid "Compression"
 msgstr "圧縮"
 
-#: dialog/save.py:735
-msgid "JPEG Quality"
-msgstr "JPEG 画質"
+#: dialog/save.py:754
+msgid "Quality"
+msgstr "品質"
 
-#: dialog/save.py:769
+#: dialog/save.py:791
 msgid "Encrypt PDF"
 msgstr "PDFを暗号化"
 
-#: dialog/save.py:785
+#: dialog/save.py:808
 msgid "Downsample to"
-msgstr "解像度を下げる"
+msgstr "ダウンサンプル先"
 
-#: dialog/save.py:789 dialog/scan.py:660
+#: dialog/save.py:812 dialog/scan.py:770
 msgid "ppi"
 msgstr "ppi"
 
-#: dialog/save.py:819
+#: dialog/save.py:841
 msgid "Set password"
 msgstr "パスワードを設定"
 
-#: dialog/save.py:827
+#: dialog/save.py:850
 msgid "User password"
 msgstr "ユーザーパスワード"
 
-#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
-#: dialog/scan.py:933
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
 msgid "Manual"
 msgstr "マニュアル"
 
-#: dialog/scan.py:446
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
 msgid "Scan profiles"
 msgstr "スキャンプロファイル"
 
-#: dialog/scan.py:500
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
+msgid "Save"
+msgstr "保存"
+
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:118
+msgid "Edit"
+msgstr "編集"
+
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
+msgid "Delete"
+msgstr "削除"
+
+#: dialog/scan.py:503
 msgid "Scan"
 msgstr "スキャン"
 
-#: dialog/scan.py:514
+#: dialog/scan.py:531
 msgid "Device"
 msgstr "デバイス"
 
-#: dialog/scan.py:552
+#: dialog/scan.py:559
 msgid "Sets the device to be used for the scan"
 msgstr "スキャンに使用するデバイスを設定"
 
-#: dialog/scan.py:599
+#: dialog/scan.py:562
+msgid "Blacklist this device"
+msgstr "このデバイスをブラックリストに登録"
+
+#: dialog/scan.py:564
+msgid "Hide the selected device from the device list"
+msgstr "選択したデバイスをデバイス一覧から非表示にする"
+
+#: dialog/scan.py:705
 #, python-format
 msgid "Error: unknown device: %s"
 msgstr "エラー: 不明なデバイス: %s"
 
-#: dialog/scan.py:657
+#: dialog/scan.py:767
 msgid "pel"
-msgstr "pel"
+msgstr "ピクセル"
 
-#: dialog/scan.py:658
+#: dialog/scan.py:768
 msgid "bit"
-msgstr "bit"
+msgstr "ビット"
 
-#: dialog/scan.py:659
+#: dialog/scan.py:769
 msgid "mm"
 msgstr "mm"
 
-#: dialog/scan.py:662
+#: dialog/scan.py:772
 msgid "μs"
 msgstr "μs"
 
-#: dialog/scan.py:686
+#: dialog/scan.py:796
 msgid "Paper size"
 msgstr "用紙サイズ"
 
-#: dialog/scan.py:690 dialog/scan.py:707
-msgid "Edit"
-msgstr "編集"
-
-#: dialog/scan.py:691
+#: dialog/scan.py:801
 msgid "Selects or edits the paper size"
 msgstr "用紙サイズを選択するか編集してください"
 
-#: dialog/scan.py:770
+#: dialog/scan.py:880
 #, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
-"file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
+"%(options)d scan options. Please file a bug, attaching a log file "
+"reproducing the problem."
 msgstr ""
-"リロードの再帰制限(%d)を超えました: %d個のスキャンオプションに対して%d回のリ"
-"ロード。問題を再現するログファイルを添付してバグを報告してください。"
+"再帰読み込みの上限 (%(limit)d) を超えました: %(options)d 個のスキャンオプションで %(reloads)d "
+"回の再読み込みが発生しました。問題を再現するログファイルを添付して、バグを報告してください。"
 
-#: dialog/scan.py:1024
+#: dialog/scan.py:1138
 msgid "Edit paper size"
 msgstr "用紙サイズを編集"
 
-#: dialog/scan.py:1051
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
+msgid "Add a paper size"
+msgstr "用紙サイズを追加"
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
+msgid "Remove the selected paper size"
+msgstr "選択した用紙サイズを削除"
+
+#: dialog/scan.py:1167
 msgid "Apply"
 msgstr "適用"
 
-#: dialog/scan.py:1069
+#: dialog/scan.py:1185
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
-msgstr ""
-"選択されたデバイスでスキャンするには、以下のページサイズは大きすぎます:"
+msgstr "選択されたデバイスでスキャンするには、以下のページサイズは大きすぎます:"
 
-#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-msgid "Cancel"
-msgstr "キャンセル"
-
-#: dialog/scan.py:1563 dialog/scan.py:1571
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
 msgid "Name of scan profile"
 msgstr "スキャンプロファイル名"
 
-#: dialog/scan.py:1585
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
 #, python-format
 msgid "Profile '%s' exists. Overwrite?"
-msgstr "プロファイル'%s'は既に存在します。上書きしますか？"
+msgstr "プロファイル '%s' は既に存在します。上書きしますか？"
 
-#: dialog/scan.py:1592 dialog/scan.py:1634
-msgid "OK"
-msgstr "OK"
-
-#: dialog/scan.py:1621
+#: dialog/scan.py:1756
 msgid "Editing current scan options"
-msgstr "現在のスキャンオプションを編集中"
+msgstr "現在のスキャン オプションを編集中"
 
-#: dialog/scan.py:1625
+#: dialog/scan.py:1760
 #, python-format
 msgid "Editing scan profile \"%s\""
-msgstr "スキャンプロファイル\"%s\"を編集中"
+msgstr "スキャンプロファイル \"%s\" を編集中"
 
-#: dialog/scan.py:1686
+#: dialog/scan.py:1822
 msgid "Backend options"
 msgstr "バックエンドオプション"
 
-#: dialog/scan.py:1687
+#: dialog/scan.py:1823
 msgid "Frontend options"
 msgstr "フロントエンドオプション"
 
-#: dialog/scan.py:1752
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
 #, python-format
-msgid "Scanning page %d of %d"
-msgstr "%dページ目をスキャン中（全%dページ）"
+msgid "Remove %(option)s from the profile"
+msgstr "プロファイルから %(option)s を削除"
 
-#: dialog/scan.py:1753
+#: dialog/scan.py:1890
 #, python-format
-msgid "Scanning page %d"
-msgstr "ページ%dをスキャン中"
+msgid "Scanning page %(current)d of %(total)d"
+msgstr "%(total)d ページ中 %(current)d ページをスキャンしています"
 
-#: docthread.py:1167
+#: dialog/scan.py:1894
 #, python-format
-msgid "Analysing page %i of %i"
-msgstr "%iページ目を分析中（全%iページ）"
+msgid "Scanning page %(current)d"
+msgstr "%(current)d ページをスキャン中"
 
-#: docthread.py:1461
+#: dialog/tesseractparams.py:45
+msgid "Tesseract parameters"
+msgstr "Tesseract パラメータ"
+
+#: dialog/tesseractparams.py:56
+msgid "Filter parameters"
+msgstr "フィルターパラメーター"
+
+#: dialog/tesseractparams.py:70 postprocess_controls.py:697 tesseract.py:213
+msgid "Default"
+msgstr "デフォルト"
+
+#: dialog/tesseractparams.py:71
+msgid "Description"
+msgstr "説明"
+
+#: dialog/tesseractparams.py:96
+msgid "_Insert"
+msgstr "挿入(_I)"
+
+#: dialog/tesseractparams.py:110
+msgid ""
+"The Tesseract parameter list is unavailable. OCR can still run with the "
+"parameters already entered."
+msgstr "Tesseract のパラメーター一覧は利用できません。OCR は既に入力されているパラメーターで実行できます。"
+
+#: dialog/tesseractparams.py:127
+#, python-format
+msgid "Set by the %(control)s control"
+msgstr "%(control)s コントロールで設定"
+
+#: dialog/tesseractparams.py:147
+msgid "No parameters match"
+msgstr "一致するパラメーターはありません"
+
+#: docthread.py:1285
+#, python-format
+msgid "Error reading hOCR file %(path)s: %(error)s"
+msgstr "hOCR ファイル %(path)s の読み取り中にエラーが発生しました: %(error)s"
+
+#: docthread.py:1293
+#, python-format
+msgid "Error parsing hOCR file %(path)s: %(error)s"
+msgstr "hOCRファイル %(path)s の解析エラー: %(error)s"
+
+#: docthread.py:1299
+msgid "The file contains no hOCR pages."
+msgstr "ファイルには hOCR ページが含まれていません。"
+
+#: docthread.py:1312
+#, python-format
+msgid ""
+"The hOCR file contains %(found)i pages, but %(expected)i pages are selected."
+msgstr "hOCR ファイルには %(found)i ページが含まれていますが、%(expected)i ページが選択されています。"
+
+#: docthread.py:1322
+#, python-format
+msgid "Checking hOCR page %(current)i of %(total)i"
+msgstr "hOCR ページ %(current)i / %(total)i を確認しています"
+
+#: docthread.py:1330
+#, python-format
+msgid "The hOCR page for page %(page)i has no page box."
+msgstr "ページ %(page)i の hOCR ページにはページボックスがありません。"
+
+#: docthread.py:1342
+#, python-format
+msgid ""
+"The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the"
+" page is %(width)ix%(height)i."
+msgstr ""
+"ページ %(page)i の hOCR ページは %(found_width)ix%(found_height)i ですが、ページは "
+"%(width)ix%(height)i です。"
+
+#: docthread.py:1366
+msgid "No pages selected for hOCR import."
+msgstr "hOCRインポート用にページが選択されていません。"
+
+#: docthread.py:1385
+#, python-format
+msgid "Importing hOCR page %(current)i of %(total)i"
+msgstr "hOCR ページ %(current)i / %(total)i をインポートしています"
+
+#: docthread.py:1526
+#, python-format
+msgid "Analysing page %(current)i of %(total)i"
+msgstr "%(total)i ページ中 %(current)i ページ目を分析中"
+
+#: docthread.py:1800
 msgid "No tesseract language specified"
-msgstr "tesseract言語が指定されていません"
+msgstr "Tesseract の言語が指定されていません"
 
-#: docthread.py:1470
-msgid "tessdata directory not found"
-msgstr "tessdataディレクトリが見つかりません"
+#: docthread.py:1832
+#, python-format
+msgid "Failed to initialise OCR with the %(mode)s engine mode: %(error)s"
+msgstr "%(mode)sエンジンモードでのOCRの初期化に失敗しました: %(error)s"
+
+#: docthread.py:1844 postprocess_controls.py:605
+#, python-format
+msgid "Unknown Tesseract option: %(variable)s"
+msgstr "不明な Tesseract オプション: %(variable)s"
 
 #: document.py:111
 msgid "Error: cannot open a session file at the same time as another file."
@@ -1108,31 +1339,29 @@ msgstr "エラー: 別のファイルと同時にセッションファイルを�
 
 #: document.py:127
 msgid "Error: importing a multipage file at the same time as another file."
-msgstr ""
-"エラー: 別のファイルと同時に複数ページのファイルをインポートすることはできま"
-"せん。"
+msgstr "エラー：別のファイルと同時にマルチページファイルをインポートしています。"
 
-#: edit_menu_mixins.py:60
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
 msgstr "プロパティ"
 
-#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
+#: edit_menu_mixins.py:72 edit_menu_mixins.py:82
 msgid "dpi"
 msgstr "dpi"
 
-#: edit_menu_mixins.py:362
+#: edit_menu_mixins.py:377
 msgid "Invalid regex. Try without special characters such as '*'"
-msgstr "無効な正規表現です。'*'などの特殊文字なしでお試しください"
+msgstr "正規表現が無効です。'*' などの特殊文字を使わずに試してください。"
 
-#: edit_menu_mixins.py:394
+#: edit_menu_mixins.py:409
 msgid "Changes will only take effect after restarting scantpaper."
-msgstr "変更はscantpaperを再起動した後にのみ有効になります。"
+msgstr "変更は scantpaper を再起動した後にのみ有効になります。"
 
-#: edit_menu_mixins.py:396
+#: edit_menu_mixins.py:411
 msgid "Restart scantpaper now?"
-msgstr "scantpaperを今すぐ再起動しますか？"
+msgstr "scantpaper を今すぐ再起動しますか？"
 
-#: file_menu_mixins.py:104
+#: file_menu_mixins.py:87
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
@@ -1140,128 +1369,127 @@ msgstr ""
 "一部のページは保存されていません。\n"
 "本当にすべてのページをクリアしますか?"
 
-#: file_menu_mixins.py:129
+#: file_menu_mixins.py:112
 msgid "Open image"
 msgstr "画像を開く"
 
-#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
 msgstr "画像ファイル"
 
-#: file_menu_mixins.py:180
+#: file_menu_mixins.py:164
 msgid "Pages to extract"
 msgstr "抽出するページ"
 
-#: file_menu_mixins.py:194
+#: file_menu_mixins.py:181
 msgid "First page to extract"
 msgstr "抽出する最初のページ"
 
-#: file_menu_mixins.py:200
+#: file_menu_mixins.py:188
 msgid "Last page to extract"
 msgstr "抽出する最後のページ"
 
-#: file_menu_mixins.py:214
+#: file_menu_mixins.py:201
 #, python-format
 msgid "Enter user password for PDF %s"
-msgstr "PDF %sのユーザーパスワードを入力してください"
+msgstr "PDF %s のユーザーパスワードを入力してください"
 
-#: file_menu_mixins.py:281
-msgid "Open crashed session"
-msgstr "クラッシュしたセッションを開く"
+#: file_menu_mixins.py:268
+msgid "Import hOCR"
+msgstr "hOCRをインポート"
 
-#: file_menu_mixins.py:336
-msgid "Save"
-msgstr "保存"
-
-#: file_menu_mixins.py:367
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
 msgstr "保存後フック"
 
-#: file_menu_mixins.py:370
+#: file_menu_mixins.py:377
 #, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
-msgstr ""
-"保存したファイルに対してコマンドを実行します。利用可能なコマンドは、%oを指定"
-"しないユーザー定義ツールです"
+msgstr "保存済みファイルに対してコマンドを実行します。使用可能なコマンドは、%o を指定しないユーザー定義ツールです。"
 
-#: file_menu_mixins.py:392 file_menu_mixins.py:393
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
 msgstr "保存時にダイアログを閉じる"
 
-#: file_menu_mixins.py:465
+#: file_menu_mixins.py:407 menu.ui:24
+msgid "_Save"
+msgstr "保存(_S)"
+
+#: file_menu_mixins.py:471
 msgid "PDF filename"
 msgstr "PDFファイル名"
 
-#: file_menu_mixins.py:466
+#: file_menu_mixins.py:472
 msgid "PDF files"
 msgstr "PDFファイル"
 
-#: file_menu_mixins.py:469
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
 msgstr "DjVuファイル名"
 
-#: file_menu_mixins.py:470
+#: file_menu_mixins.py:476
 msgid "DjVu files"
 msgstr "DjVuファイル"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
 msgstr "TIFFファイル名"
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:483
 msgid "Text filename"
 msgstr "テキストファイル名"
 
-#: file_menu_mixins.py:478
+#: file_menu_mixins.py:484
 msgid "Text files"
 msgstr "テキストファイル"
 
-#: file_menu_mixins.py:481
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
-msgstr "hOCRファイル名"
+msgstr "hOCR ファイル名"
 
-#: file_menu_mixins.py:482
-msgid "hOCR files"
-msgstr "hOCRファイル"
-
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:491
 msgid "PS filename"
 msgstr "PSファイル名"
 
-#: file_menu_mixins.py:486
+#: file_menu_mixins.py:492
 msgid "Postscript files"
 msgstr "Postscriptファイル"
 
-#: file_menu_mixins.py:489
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
 msgstr "scantpaperセッションファイル名"
 
-#: file_menu_mixins.py:490
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
 msgstr "scantpaperセッションファイル"
 
-#: file_menu_mixins.py:601
+#: file_menu_mixins.py:604
+#, python-format
+msgid "Error saving %(filename)s: %(error)s"
+msgstr "%(filename)s の保存中にエラーが発生しました: %(error)s"
+
+#: file_menu_mixins.py:619
 #, python-format
 msgid "Directory %s is read-only"
-msgstr "ディレクトリ%sは読み取り専用です"
+msgstr "ディレクトリ %s は読み取り専用です"
 
-#: file_menu_mixins.py:611
+#: file_menu_mixins.py:629
 #, python-format
 msgid "File %s is read-only"
 msgstr "ファイル %s は読み込み専用です"
 
-#: file_menu_mixins.py:802
+#: file_menu_mixins.py:821
 msgid "Image filename"
 msgstr "画像ファイル名"
 
-#: file_menu_mixins.py:862
+#: file_menu_mixins.py:881
 #, python-format
 msgid "This operation would overwrite %s"
-msgstr "この操作は%sを上書きします"
+msgstr "この操作を行うと%sが上書きされます"
 
-#: file_menu_mixins.py:945
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
@@ -1269,1234 +1497,1621 @@ msgstr ""
 "一部のページはまだ保存されていません。\n"
 "本当に終了しますか？"
 
-#: importthread.py:86
+#: importthread.py:100
 #, python-format
 msgid "File %s not found"
-msgstr "ファイル%sが見つかりません"
+msgstr "ファイル %s が見つかりません"
 
-#: importthread.py:92
+#: importthread.py:106
 #, python-format
-msgid "Error getting file info for %s: %s"
-msgstr "%sのファイル情報を取得する際のエラー: %s"
+msgid "Error getting file info for %(path)s: %(error)s"
+msgstr "%(path)s のファイル情報取得中にエラーが発生しました: %(error)s"
 
-#: importthread.py:97
+#: importthread.py:112
 #, python-format
 msgid "Error importing zero-length file %s."
-msgstr "長さゼロのファイル%sをインポートする際のエラー。"
+msgstr "長さ 0 のファイル %s のインポート中にエラーが発生しました。"
 
-#: importthread.py:135 importthread.py:178
+#: importthread.py:150 importthread.py:193
 #, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
-msgstr "DjVuファイルを開くにはdjvulibre-binをインストールしてください: %s"
+msgstr "DjVuファイルを開くには、djvulibre-binをインストールしてください: %s"
 
-#: importthread.py:166
+#: importthread.py:181
 msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "不明なDjVuファイル構造です。作者に連絡してください。"
 
-#: importthread.py:266
-#, python-format
+#: importthread.py:281
+#, python-format, fuzzy
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr "TIFFファイルを開くにはlibtiff-toolsをインストールしてください: %s"
 
-#: importthread.py:328 importthread.py:388
+#: importthread.py:343 importthread.py:403
 #, python-format
-msgid "Importing page %i of %i"
-msgstr "ページをインポート中 %i/%i"
+msgid "Importing page %(current)i of %(total)i"
+msgstr "%(total)i ページ中 %(current)i ページをインポートしています"
 
-#: importthread.py:509
+#: importthread.py:524
 msgid "Error extracting images from PDF"
 msgstr "PDFから画像の抽出中にエラー"
 
-#: importthread.py:521
+#: importthread.py:536
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
 "add scans to an existing PDF, use the prepend/append to PDF options in the "
 "Save dialogue."
 msgstr ""
-"警告: scantpaperはページごとに1つの画像を想定していますが、それが満たされませ"
-"んでした。PDFが正しくインポートされていない可能性があります。既存のPDFにス"
-"キャンを追加する場合は、保存ダイアログのPDF先頭/末尾に追加オプションを使用し"
-"てください。"
+"警告: scantpaper は 1 ページにつき 1 画像を想定していますが、これが満たされていません。PDF "
+"が正しくインポートされていない可能性があります。既存の PDF にスキャンを追加する場合は、保存ダイアログの「PDF "
+"に先頭追加/末尾追加」オプションを使用してください。"
 
-#: importthread.py:560
+#: importthread.py:575
 msgid "Error importing PDF"
-msgstr "PDFのインポート中にエラー"
+msgstr "PDFのインポートエラー"
 
-#: importthread.py:587
+#: importthread.py:602
 msgid "Error extracting text layer from PDF"
-msgstr "PDFからテキストレイヤーを抽出する際のエラー"
+msgstr "PDFからテキストレイヤーを抽出中にエラーが発生しました"
 
-#: pagerange.py:46
-msgid "Selected"
-msgstr "選択した範囲"
-
-#: postprocess_controls.py:22
-msgid "Both sides"
-msgstr "両面"
-
-#: postprocess_controls.py:22
-msgid "Both sides."
-msgstr "両面"
-
-#: postprocess_controls.py:23
-msgid "Facing side"
-msgstr "表面"
-
-#: postprocess_controls.py:23
-msgid "Facing side."
-msgstr "表面"
-
-#: postprocess_controls.py:24
-msgid "Reverse side"
-msgstr "裏面"
-
-#: postprocess_controls.py:24
-msgid "Reverse side."
-msgstr "裏面"
-
-#: postprocess_controls.py:27
-msgid "90°"
-msgstr "90°"
-
-#: postprocess_controls.py:27
-msgid "Rotate image 90 degrees clockwise."
-msgstr "画像を時計回りに90度回転。"
-
-#: postprocess_controls.py:28
-msgid "180°"
-msgstr "180°"
-
-#: postprocess_controls.py:28
-msgid "Rotate image 180 degrees clockwise."
-msgstr "画像を時計回りに180度回転。"
-
-#: postprocess_controls.py:29
-msgid "270°"
-msgstr "270°"
-
-#: postprocess_controls.py:29
-msgid "Rotate image 90 degrees anticlockwise."
-msgstr "画像を反時計回りに90度回転。"
-
-#: postprocess_controls.py:39
-msgid "Rotate"
-msgstr "回転"
-
-#: postprocess_controls.py:40
-msgid "Rotate image after scanning"
-msgstr "スキャン後に画像を回転"
-
-#: postprocess_controls.py:43
-msgid "Select side to rotate"
-msgstr "回転する面を選択"
-
-#: postprocess_controls.py:46
-msgid "Select angle of rotation"
-msgstr "回転角度を選択"
-
-#: postprocess_controls.py:49
-msgid "Anticlockwise"
-msgstr "反時計回り"
-
-#: postprocess_controls.py:350 postprocess_controls.py:351
-msgid "OCR scanned pages"
-msgstr "スキャンしたページをOCR処理"
-
-#: postprocess_controls.py:378
-msgid "Threshold before OCR"
-msgstr "OCR前のしきい値"
-
-#: postprocess_controls.py:381
-msgid ""
-"Threshold the image before performing OCR. This only affects the image "
-"passed to the OCR engine, and not the image stored."
-msgstr ""
-"OCRを実行する前に画像にしきい値を適用します。これはOCRエンジンに渡される画像"
-"のみに影響し、保存される画像には影響しません。"
-
-#: postprocess_controls.py:392 tools_menu_mixins.py:114
-msgid ""
-"Pixels that differ from the paper colour by more than this percentage are "
-"rendered black. Higher values only keep stronger marks."
-msgstr ""
-"紙の色からこのパーセンテージ以上異なるピクセルは黒で描画されます。値が大きい"
-"ほど、より濃い跡だけが残ります。"
-
-#: postprocess_controls.py:428
-msgid "Language to recognise"
-msgstr "認識する言語"
-
-#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-msgid "_Cancel"
-msgstr "_キャンセル"
-
-#: progress.py:76 progress.py:110
-#, python-format
-msgid "Process %i of %i (%s)"
-msgstr "処理中 %i/%i (%s)"
-
-#: progress.py:119
-#, python-format
-msgid "Process %i of %i"
-msgstr "処理中 %i/%i"
-
-#: savethread.py:83
-msgid "Processing PDF"
-msgstr "PDFを処理中"
-
-#: savethread.py:148
-msgid "Embedding text layer"
-msgstr "テキストレイヤーを埋め込み中"
-
-#: savethread.py:195
-msgid "Setting up PDF"
-msgstr "PDFの設定"
-
-#: savethread.py:264 savethread.py:405
-#, python-format
-msgid "Writing page %i of %i"
-msgstr "ページの書き込み中 %i/%i"
-
-#: savethread.py:291
-#, python-format
-msgid ""
-"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
-msgstr ""
-"推定PDFサイズ（%.1f GiB）が2 GiBを超えています。ページ数を減らして保存してく"
-"ださい。"
-
-#: savethread.py:314 tests/test_savethread.py:1240
-msgid "Writing PDF"
-msgstr "PDFを書き込み中"
-
-#: savethread.py:363
-msgid "Converting to PS"
-msgstr "PSに変換中"
-
-#: savethread.py:374
-#, python-format
-msgid "Error converting PDF to PS: %s"
-msgstr "PDFをPSに変換する際のエラー: %s"
-
-#: savethread.py:418
-msgid "Merging DjVu"
-msgstr "DjVuを結合中"
-
-#: savethread.py:425
-#, python-format
-msgid "Error merging DjVu: %s"
-msgstr "DjVuの結合中にエラー: %s"
-
-#: savethread.py:519
-#, python-format
-msgid "Error converting TIFF to PS: %s"
-msgstr "TIFFをPSに変換する際のエラー: %s"
-
-#: savethread.py:664
-msgid "Error copying page"
-msgstr "ページのコピー中にエラー"
-
-#: savethread.py:814
-#, python-format
-msgid "Error prepending PDF: %s"
-msgstr "PDFの先頭に追加する際のエラー: %s"
-
-#: savethread.py:822
-#, python-format
-msgid "Error appending PDF: %s"
-msgstr "PDFの末尾に追加する際のエラー: %s"
-
-#: savethread.py:831
-msgid "Error creating backup of PDF"
-msgstr "PDFのバックアップ作成中にエラー"
-
-#: savethread.py:905
-#, python-format
-msgid "Error encrypting PDF: %s"
-msgstr "PDFの暗号化中にエラー: %s"
-
-#: scan_menu_item_mixins.py:72
-msgid "Really cache libusb device names?"
-msgstr "本当にlibusbデバイス名をキャッシュしますか？"
-
-#: scan_menu_item_mixins.py:76
-msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
-msgstr ""
-"libusbデバイスを含むデバイス一覧のキャッシュは、再起動の間に変わることがある"
-"ため推奨されません。"
-
-#: scan_menu_item_mixins.py:78
-msgid "Are you sure you want to do this?"
-msgstr "本当に実行しますか？"
-
-#: scan_menu_item_mixins.py:114
-msgid "Scan Document"
-msgstr "ドキュメントをスキャン"
-
-#: scan_menu_item_mixins.py:216
-msgid "Postprocessing"
-msgstr "後処理"
-
-#: scan_menu_item_mixins.py:230
-msgid "Alternate rotation every 2nd page"
-msgstr "2ページごとに回転を交互にする"
-
-#: scan_menu_item_mixins.py:233
-msgid ""
-"Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
-"degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its front."
-msgstr ""
-"奇数ページを選択した角度で、偶数ページをその角度+180度で回転します。各シート"
-"が同じ端に揃えられた本をスキャンする際に使用します。各シートの裏面は表面に対"
-"して180度回転しているためです。"
-
-#: scan_menu_item_mixins.py:298
-msgid "Clean up images"
-msgstr "画像をクリーニング"
-
-#: scan_menu_item_mixins.py:299
-msgid "Clean up scanned images with unpaper"
-msgstr "unpaperでスキャン済みの画像のゴミ取りをします"
-
-#: scan_menu_item_mixins.py:307
-msgid "Options"
-msgstr "オプション"
-
-#: scan_menu_item_mixins.py:308
-msgid "Set unpaper options"
-msgstr "unpaperオプションを設定"
-
-#: scan_menu_item_mixins.py:316
-msgid "unpaper options"
-msgstr "unpaperのオプション"
-
-#: scan_menu_item_mixins.py:339
-msgid "Process with user-defined tool"
-msgstr "ユーザー定義ツールで処理"
-
-#: scan_menu_item_mixins.py:340
-msgid "Process scanned images with user-defined tool"
-msgstr "スキャンした画像をユーザー定義ツールで処理"
-
-#: session_mixins.py:74
-#, python-format
-msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
-msgstr ""
-"警告: %s を一時ストレージとして使用できません。代わりに %s をデフォルトにしま"
-"す。"
-
-#: session_mixins.py:118 session_mixins.py:123
-msgid "Pick crashed session to restore"
-msgstr "クラッシュしたセッションを復元する"
-
-#: session_mixins.py:191
-msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
-msgstr "GraphicsMagickがImageMagick互換モードで使用されています。"
-
-#: session_mixins.py:193
-msgid "Whilst this might work, it is not currently supported."
-msgstr "これは動作するかもしれませんが、現在はサポートされていません。"
-
-#: session_mixins.py:195
-msgid "Please switch to ImageMagick in case of problems."
-msgstr "問題が発生した場合はImageMagickに切り替えてください。"
-
-#: session_mixins.py:212
-msgid "Tesseract"
-msgstr "Tesseract"
-
-#: session_mixins.py:212
-msgid "Process image with Tesseract."
-msgstr "Tesseractで画像を処理"
-
-#: session_mixins.py:229
-msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr "表面のスキャンが完了しました。裏面をスキャンしますか？"
-
-#: session_mixins.py:232
-msgid "Finished scanning reverse pages. Scan facing pages?"
-msgstr "裏面のスキャンが完了しました。表面をスキャンしますか？"
-
-#: session_mixins.py:448 text_layer_control.py:80
-msgid "_OK"
-msgstr "_OK"
-
-#: session_mixins.py:449 text_layer_control.py:80
-msgid "Accept corrections"
-msgstr "修正を適用"
-
-#: session_mixins.py:452 text_layer_control.py:83
-msgid "Cancel corrections"
-msgstr "修正をキャンセル"
-
-#: session_mixins.py:458
-msgid "Add annotation"
-msgstr "注釈を追加"
-
-#: session_mixins.py:461
-msgid "Delete annotation"
-msgstr "注釈を削除"
-
-#: session_mixins.py:505
-msgid "my-new-word"
-msgstr "my-new-word"
-
-#: session_mixins.py:560
-msgid "my-new-annotation"
-msgstr "my-new-annotation"
-
-#: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, python-format
-msgid "You are using locale '%s'."
-msgstr "ロケール'%s'を使用しています。"
-
-#: tesseract.py:235
-msgid ""
-"scantpaper does not currently know which tesseract language package would be "
-"necessary for that locale."
-msgstr ""
-"scantpaperは現在、そのロケールにどのtesseract言語パッケージが必要か把握してい"
-"ません。"
-
-#: tesseract.py:239
-msgid "Please contact the developers to add support for that locale."
-msgstr "そのロケールのサポートを追加するために開発者に連絡してください。"
-
-#: tesseract.py:250
-#, python-format
-msgid ""
-"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
-"for OCR for %s with tesseract."
-msgstr ""
-"tesseractパッケージ'tesseract-ocr-%s'をインストールし、tesseractで%sのOCRを行"
-"うためにscantpaperを再起動してください。"
-
-#: tesseract.py:260
-#, python-format
-msgid "There is no tesseract package for %s"
-msgstr "%s用のtesseractパッケージはありません"
-
-#: tesseract.py:262
-msgid "If this is in error, please contact the scantpaper developers."
-msgstr "これが誤りの場合は、scantpaperの開発者に連絡してください。"
-
-#: tests/test_savethread.py:1230
-msgid "Writing page"
-msgstr "ページを書き込み中"
-
-#: text_layer_control.py:27
+#: layer.py:45
 msgid "Sort by confidence"
 msgstr "信頼度で並べ替え"
 
-#: text_layer_control.py:28
+#: layer.py:46
 msgid "Sort OCR text boxes by confidence."
-msgstr "OCRテキストボックスを信頼度で並べ替えます。"
+msgstr "OCR テキスト ボックスを信頼度で並べ替えます。"
 
-#: text_layer_control.py:30
+#: layer.py:48
 msgid "Sort by position"
 msgstr "位置で並べ替え"
 
-#: text_layer_control.py:30
+#: layer.py:48
 msgid "Sort OCR text boxes by position."
-msgstr "OCRテキストボックスを位置で並べ替えます。"
+msgstr "OCRテキストボックスを位置で並べ替える。"
 
-#: text_layer_control.py:61
+#: layer.py:62
+msgid "my-new-word"
+msgstr "私の新しい単語"
+
+#: layer.py:63
+msgid "my-new-annotation"
+msgstr "私の新しい注釈"
+
+#: layer.py:207
 msgid "Go to least confident text"
 msgstr "最も信頼度の低いテキストへ移動"
 
-#: text_layer_control.py:64
+#: layer.py:212
 msgid "Go to previous text"
 msgstr "前のテキストへ移動"
 
-#: text_layer_control.py:67
+#: layer.py:217
 msgid "Select sort method for OCR boxes"
 msgstr "OCRボックスの並べ替え方法を選択"
 
-#: text_layer_control.py:73
+#: layer.py:228
 msgid "Go to next text"
 msgstr "次のテキストへ移動"
 
-#: text_layer_control.py:75
+#: layer.py:232
 msgid "Go to most confident text"
 msgstr "最も信頼度の高いテキストへ移動"
 
-#: text_layer_control.py:77
+#: layer.py:238 layer.py:396
 msgid "Add text"
 msgstr "テキストを追加"
 
-#: text_layer_control.py:86
+#: layer.py:246
+msgid "Rotate text clockwise"
+msgstr "テキストを時計回りに回転"
+
+#: layer.py:251
+msgid "Rotate text anticlockwise"
+msgstr "テキストを反時計回りに回転"
+
+#: layer.py:256
+msgid "Accept corrections"
+msgstr "修正を承認"
+
+#: layer.py:259
+msgid "Cancel corrections"
+msgstr "修正をキャンセル"
+
+#: layer.py:264 app.ui:287 menu.ui:61
 msgid "_Copy"
 msgstr "コピー(_C)"
 
-#: text_layer_control.py:86
+#: layer.py:264
 msgid "Duplicate text"
 msgstr "テキストを複製"
 
-#: text_layer_control.py:89
+#: layer.py:267
 msgid "Delete text"
 msgstr "テキストを削除"
 
-#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
+#: layer.py:317
+msgid "Focus zoom"
+msgstr "フォーカスズーム"
+
+#: layer.py:335
+msgid "Reset"
+msgstr "リセット"
+
+#: layer.py:362
+#, python-format
+msgid "Focus zoom: %(percent)d%%"
+msgstr "フォーカスズーム：%(percent)d%%"
+
+#: layer.py:399
+msgid "Draw or select a rectangle before adding"
+msgstr "追加する前に長方形を描画または選択してください"
+
+#: pagerange.py:47
+msgid "Selected"
+msgstr "選択した範囲"
+
+#: postprocess_controls.py:43
+msgid "Both sides"
+msgstr "両面"
+
+#: postprocess_controls.py:43
+msgid "Both sides."
+msgstr "両面"
+
+#: postprocess_controls.py:44
+msgid "Facing side"
+msgstr "表面"
+
+#: postprocess_controls.py:44
+msgid "Facing side."
+msgstr "表面"
+
+#: postprocess_controls.py:45
+msgid "Reverse side"
+msgstr "裏面"
+
+#: postprocess_controls.py:45
+msgid "Reverse side."
+msgstr "裏面"
+
+#: postprocess_controls.py:48
+msgid "90°"
+msgstr "90°"
+
+#: postprocess_controls.py:48
+msgid "Rotate image 90 degrees clockwise."
+msgstr "画像を時計回りに90度回転します。"
+
+#: postprocess_controls.py:49
+msgid "180°"
+msgstr "180°"
+
+#: postprocess_controls.py:49
+msgid "Rotate image 180 degrees clockwise."
+msgstr "画像を時計回りに180度回転します。"
+
+#: postprocess_controls.py:50
+msgid "270°"
+msgstr "270°"
+
+#: postprocess_controls.py:50
+msgid "Rotate image 90 degrees anticlockwise."
+msgstr "画像を反時計回りに90度回転します。"
+
+#: postprocess_controls.py:55 postprocess_controls.py:738
+msgid "Page segmentation mode"
+msgstr "ページセグメンテーションモード"
+
+#: postprocess_controls.py:56 postprocess_controls.py:747
+msgid "OCR engine mode"
+msgstr "OCR エンジンモード"
+
+#: postprocess_controls.py:67
+msgid "Rotate"
+msgstr "回転"
+
+#: postprocess_controls.py:68
+msgid "Rotate image after scanning"
+msgstr "スキャン後に画像を回転"
+
+#: postprocess_controls.py:72
+msgid "Select side to rotate"
+msgstr "回転する面を選択"
+
+#: postprocess_controls.py:76
+msgid "Select angle of rotation"
+msgstr "回転角度を選択"
+
+#: postprocess_controls.py:79
+msgid "Anticlockwise"
+msgstr "反時計回り"
+
+#: postprocess_controls.py:478 postprocess_controls.py:479
+msgid "OCR scanned pages"
+msgstr "スキャンしたページをOCR処理"
+
+#: postprocess_controls.py:507
+msgid "Threshold before OCR"
+msgstr "OCR前のしきい値"
+
+#: postprocess_controls.py:510
+msgid ""
+"Threshold the image before performing OCR. This only affects the image "
+"passed to the OCR engine, and not the image stored."
+msgstr "OCR を実行する前に画像を二値化します。これは OCR エンジンに渡される画像にのみ影響し、保存されている画像には影響しません。"
+
+#: postprocess_controls.py:520 tools_menu_mixins.py:122
+msgid ""
+"Pixels that differ from the paper colour by more than this percentage are "
+"rendered black. Higher values only keep stronger marks."
+msgstr "紙の色との差がこの割合を超えるピクセルは黒でレンダリングされます。値を大きくすると、より強いマークだけが保持されます。"
+
+#: postprocess_controls.py:585
+msgid "No OCR language selected."
+msgstr "OCR言語が選択されていません。"
+
+#: postprocess_controls.py:588
+#, python-format
+msgid "The following OCR languages are not installed: %(languages)s"
+msgstr "次の OCR 言語はインストールされていません: %(languages)s"
+
+#: postprocess_controls.py:598
+#, python-format
+msgid ""
+"'%(variable)s' is set by the %(control)s control; remove it from this field."
+msgstr "'%(variable)s' は %(control)s コントロールによって設定されています。このフィールドから削除してください。"
+
+#: postprocess_controls.py:609
+#, python-format
+msgid "Unknown Tesseract options: %(variables)s"
+msgstr "不明なTesseractオプション: %(variables)s"
+
+#: postprocess_controls.py:624
+msgid "Language to recognise"
+msgstr "認識する言語"
+
+#: postprocess_controls.py:632
+msgid "Additional languages"
+msgstr "追加の言語"
+
+#: postprocess_controls.py:674
+msgid "Tessdata directory"
+msgstr "Tessdata ディレクトリ"
+
+#: postprocess_controls.py:677
+msgid "Default (system tessdata)"
+msgstr "デフォルト（システム tessdata）"
+
+#: postprocess_controls.py:680
+msgid ""
+"Directory that directly contains the Tesseract .traineddata language files. "
+"Leave empty for the system default."
+msgstr ""
+"Tesseractの.traineddata言語ファイルを直接含むディレクトリ。システムのデフォルトを使用する場合は空のままにしてください。"
+
+#: postprocess_controls.py:693
+msgid "Choose the tessdata directory"
+msgstr "tessdataディレクトリを選択してください"
+
+#: postprocess_controls.py:698
+msgid "Use the system tessdata directory"
+msgstr "システムの tessdata ディレクトリを使用する"
+
+#: postprocess_controls.py:710
+msgid "Select tessdata directory"
+msgstr "tessdata ディレクトリを選択"
+
+#: postprocess_controls.py:741
+msgid "How tesseract should segment the page. Automatic suits most pages."
+msgstr "Tesseract がページをどのように分割するか。自動はほとんどのページに適しています。"
+
+#: postprocess_controls.py:750
+msgid "Which tesseract engine to use. Default uses the engine's own choice."
+msgstr "どのtesseractエンジンを使用するか。デフォルトではエンジン自体の選択を使用します。"
+
+#: postprocess_controls.py:758
+msgid "Advanced Tesseract engine parameters"
+msgstr "Tesseract エンジンの詳細パラメーター"
+
+#: postprocess_controls.py:761
+msgid ""
+"Tesseract engine parameters - the values of tesseract's -c option - not "
+"command-line flags. Use absolute paths."
+msgstr ""
+"Tesseract エンジンのパラメータ - tesseract の -c オプションの値 - "
+"コマンドラインフラグではありません。絶対パスを使用してください。"
+
+#: postprocess_controls.py:769
+msgid ""
+"One name=value engine parameter per line, e.g. "
+"user_words_file=/path/to/words.txt. Write engine parameters, not command-"
+"line options such as --user-words."
+msgstr ""
+"1 行につき name=value 形式のエンジンパラメーターを 1 つ記述します（例: "
+"user_words_file=/path/to/words.txt）。--user-words "
+"などのコマンドラインオプションではなく、エンジンパラメーターを記述してください。"
+
+#: postprocess_controls.py:791
+msgid "_Available parameters"
+msgstr "_利用可能なパラメータ"
+
+#: postprocess_controls.py:794
+msgid "Browse the parameters the installed Tesseract reports"
+msgstr "インストールされている Tesseract が報告するパラメーターを参照"
+
+#: postprocess_controls.py:907
+msgid "No additional languages"
+msgstr "追加の言語はありません"
+
+#: postprocess_controls.py:922
+#, python-format
+msgid "%(language)s (not installed)"
+msgstr "%(language)s (未インストール)"
+
+#: progress.py:79 progress.py:118
+#, python-format
+msgid "Process %(current)i of %(total)i (%(process)s)"
+msgstr "%(total)i 中 %(current)i を処理中 (%(process)s)"
+
+#: progress.py:127
+#, python-format
+msgid "Process %(current)i of %(total)i"
+msgstr "%(total)i 中 %(current)i を処理中"
+
+#: savethread.py:210
+msgid "Processing PDF"
+msgstr "PDFを処理中"
+
+#: savethread.py:283
+msgid "Embedding text layer"
+msgstr "テキストレイヤーを埋め込み中"
+
+#: savethread.py:341
+msgid "Setting up PDF"
+msgstr "PDFの設定"
+
+#: savethread.py:409 tests/test_savethread.py:1822
+msgid "Converting to JBIG2"
+msgstr "JBIG2に変換中"
+
+#: savethread.py:447 savethread.py:615
+#, python-format
+msgid "Writing page %(current)i of %(total)i"
+msgstr "%(total)i ページ中 %(current)i ページ目を書き出し中"
+
+#: savethread.py:498
+#, python-format
+msgid ""
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+msgstr "推定 PDF サイズ (%.1f GiB) が 2 GiB を超えています。保存するページ数を減らしてください。"
+
+#: savethread.py:521 tests/test_savethread.py:1599
+msgid "Writing PDF"
+msgstr "PDFを作成中"
+
+#: savethread.py:571
+msgid "Converting to PS"
+msgstr "PSに変換中"
+
+#: savethread.py:584
+#, python-format
+msgid "Error converting PDF to PS: %s"
+msgstr "PDFからPSへの変換エラー: %s"
+
+#: savethread.py:628
+msgid "Merging DjVu"
+msgstr "DjVu を結合しています"
+
+#: savethread.py:635
+#, python-format
+msgid "Error merging DjVu: %s"
+msgstr "DjVu のマージ中にエラーが発生しました: %s"
+
+#: savethread.py:729
+#, python-format
+msgid "Error converting TIFF to PS: %s"
+msgstr "TIFF から PS への変換エラー: %s"
+
+#: savethread.py:877
+msgid "Error copying page"
+msgstr "ページのコピー中にエラー"
+
+#: savethread.py:948 tools_menu_mixins.py:840
+#, python-format
+msgid ""
+"Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
+"it one page at a time instead."
+msgstr "バッチモードは'%(tool)s'では使用できません。%(variable)sを使用しているため、代わりに1ページずつ実行してください。"
+
+#: savethread.py:1009
+msgid ""
+"No pages were modified. If the tool was already running (for example GIMP), "
+"it may have opened the images in the existing instance."
+msgstr "ページは変更されませんでした。ツールがすでに実行されている場合（たとえば GIMP）、既存のインスタンスで画像が開かれた可能性があります。"
+
+#: savethread.py:1018
+#, python-format
+msgid "'%(tool)s' failed with status %(status)s."
+msgstr "'%(tool)s' はステータス %(status)s で失敗しました。"
+
+#: savethread.py:1024
+#, python-format
+msgid "Error running '%(tool)s': %(error)s."
+msgstr "'%(tool)s' の実行中にエラーが発生しました: %(error)s。"
+
+#: savethread.py:1294
+#, python-format
+msgid "Error prepending PDF: %s"
+msgstr "PDFの先頭への追加中にエラーが発生しました: %s"
+
+#: savethread.py:1302
+#, python-format
+msgid "Error appending PDF: %s"
+msgstr "PDFの追加中にエラーが発生しました: %s"
+
+#: savethread.py:1311
+#, fuzzy
+msgid "Error creating backup of PDF"
+msgstr "PDFのバックアップ作成中にエラー"
+
+#: savethread.py:1385
+#, python-format
+msgid "Error encrypting PDF: %s"
+msgstr "PDFの暗号化エラー: %s"
+
+#: scan_menu_item_mixins.py:118
+msgid "Really cache libusb device names?"
+msgstr "本当にlibusbデバイス名をキャッシュしますか？"
+
+#: scan_menu_item_mixins.py:122
+msgid ""
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
+msgstr ""
+"libusbデバイスを含むデバイスリストをキャッシュすることは、再起動時に変更される可能性があるため推奨されません。それでもキャッシュしますか？"
+
+#: scan_menu_item_mixins.py:127
+msgid "Don't ask again"
+msgstr "今後確認しない"
+
+#: scan_menu_item_mixins.py:176
+msgid "Scan Document"
+msgstr "ドキュメントをスキャン"
+
+#: scan_menu_item_mixins.py:291
+msgid "Postprocessing"
+msgstr "後処理"
+
+#: scan_menu_item_mixins.py:400
+msgid "Alternate rotation every 2nd page"
+msgstr "2ページごとに交互回転"
+
+#: scan_menu_item_mixins.py:403
+msgid ""
+"Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
+"degrees. Use when scanning a book where every sheet is aligned to the same "
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
+msgstr ""
+"奇数ページを選択した角度だけ回転し、偶数ページをその角度に180度を加えた角度だけ回転します。すべての用紙が同じ端に揃っている本をスキャンするときに使用します。この場合、各用紙の裏面は表面に対して180度回転しています。"
+
+#: scan_menu_item_mixins.py:425
+msgid "Clean up images"
+msgstr "画像をクリーンアップ"
+
+#: scan_menu_item_mixins.py:426
+msgid "Clean up scanned images with unpaper"
+msgstr "unpaperでスキャン済みの画像のゴミ取りをします"
+
+#: scan_menu_item_mixins.py:435
+msgid "Options"
+msgstr "オプション"
+
+#: scan_menu_item_mixins.py:436
+msgid "Set unpaper options"
+msgstr "unpaperのオプションを設定"
+
+#: scan_menu_item_mixins.py:445
+msgid "unpaper options"
+msgstr "unpaperのオプション"
+
+#: scan_menu_item_mixins.py:468
+msgid "Process with user-defined tool"
+msgstr "ユーザー定義ツールで処理"
+
+#: scan_menu_item_mixins.py:469
+msgid "Process scanned images with user-defined tool"
+msgstr "スキャン画像をユーザー定義ツールで処理する"
+
+#: session_mixins.py:84
+#, python-format
+msgid ""
+"Warning: unable to use %(configured)s for temporary storage. Defaulting to "
+"%(default)s instead."
+msgstr "警告: 一時ストレージに %(configured)s を使用できません。代わりに %(default)s を既定として使用します。"
+
+#: session_mixins.py:163
+msgid "No crashed sessions found."
+msgstr "クラッシュしたセッションが見つかりません。"
+
+#: session_mixins.py:169
+msgid "Crashed sessions"
+msgstr "クラッシュしたセッション"
+
+#: session_mixins.py:174
+msgid "_Discard"
+msgstr "_破棄"
+
+#: session_mixins.py:175
+msgid "_Restore"
+msgstr "_復元"
+
+#: session_mixins.py:178
+msgid "Restore or discard a crashed session"
+msgstr "クラッシュしたセッションを復元または破棄"
+
+#: session_mixins.py:207
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to restore a crashed session?"
+msgstr ""
+"一部のページは保存されていません。\n"
+"クラッシュしたセッションを本当に復元しますか？"
+
+#: session_mixins.py:242
+msgid "Restore file"
+msgstr "ファイルを復元"
+
+#: session_mixins.py:258
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] "クラッシュしたセッション %(count)d 件を破棄しますか？"
+
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] "%(count)d 件のクラッシュしたセッションを削除できませんでした。"
+
+#: session_mixins.py:301
+msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
+msgstr "GraphicsMagick が ImageMagick 互換モードで使用されています。"
+
+#: session_mixins.py:303
+msgid "Whilst this might work, it is not currently supported."
+msgstr "これは動作する可能性がありますが、現在サポートされていません。"
+
+#: session_mixins.py:305
+#, fuzzy
+msgid "Please switch to ImageMagick in case of problems."
+msgstr "問題が発生した場合はImageMagickに切り替えてください。"
+
+#: session_mixins.py:318
+msgid "Tesseract"
+msgstr "Tesseract"
+
+#: session_mixins.py:318
+msgid "Process image with Tesseract."
+msgstr "Tesseractで画像を処理"
+
+#: session_mixins.py:330
+msgid "Finished scanning facing pages. Scan reverse pages?"
+msgstr "見開きページのスキャンが完了しました。裏面ページをスキャンしますか？"
+
+#: session_mixins.py:333
+#, fuzzy
+msgid "Finished scanning reverse pages. Scan facing pages?"
+msgstr "裏面のスキャンが完了しました。表面をスキャンしますか？"
+
+#: tesseract.py:197
+msgid "Fully automatic page segmentation."
+msgstr "完全自動ページ分割。"
+
+#: tesseract.py:198
+msgid "Single column"
+msgstr "シングルカラム"
+
+#: tesseract.py:198
+msgid "A single column of text of variable sizes."
+msgstr "さまざまなサイズのテキストの単一列"
+
+#: tesseract.py:199
+msgid "Single block"
+msgstr "単一ブロック"
+
+#: tesseract.py:199
+msgid "A single uniform block of text."
+msgstr "単一の均一なテキストブロック。"
+
+#: tesseract.py:200
+msgid "Single line"
+msgstr "単一行"
+
+#: tesseract.py:200
+msgid "The image is a single text line."
+msgstr "画像は1行のテキストです。"
+
+#: tesseract.py:201
+msgid "Single word"
+msgstr "単一の単語"
+
+#: tesseract.py:201
+msgid "The image is a single word."
+msgstr "画像は1つの単語です。"
+
+#: tesseract.py:202
+msgid "Single character"
+msgstr "1文字"
+
+#: tesseract.py:202
+msgid "The image is a single character."
+msgstr "画像は1文字です。"
+
+#: tesseract.py:203
+msgid "Sparse text"
+msgstr "疎なテキスト"
+
+#: tesseract.py:203
+msgid "Find as much text as possible, in no order."
+msgstr "できるだけ多くのテキストを、順不同で検索します。"
+
+#: tesseract.py:204
+msgid "Raw line"
+msgstr "生の行"
+
+#: tesseract.py:204
+msgid "A single line, without tesseract-specific hacks."
+msgstr "tesseract 固有のハックを使わない 1 行"
+
+#: tesseract.py:214
+msgid "LSTM only"
+msgstr "LSTMのみ"
+
+#: tesseract.py:215
+msgid "Legacy"
+msgstr "レガシー"
+
+#: tesseract.py:216
+msgid "Combined"
+msgstr "結合"
+
+#: tesseract.py:260
+#, python-format
+msgid "The tessdata directory does not exist: %(path)s"
+msgstr "tessdataディレクトリが存在しません: %(path)s"
+
+#: tesseract.py:262
+#, python-format
+msgid "The tessdata path is not a directory: %(path)s"
+msgstr "tessdata のパスはディレクトリではありません: %(path)s"
+
+#: tesseract.py:264
+#, python-format
+msgid "The tessdata directory cannot be read: %(path)s"
+msgstr "tessdata ディレクトリを読み取れません: %(path)s"
+
+#: tesseract.py:268
+#, python-format
+msgid ""
+"No Tesseract language data was found in the tessdata directory: %(path)s"
+msgstr "tessdataディレクトリにTesseractの言語データが見つかりませんでした: %(path)s"
+
+#: tesseract.py:272
+#, python-format
+msgid "Did you mean %(path)s?"
+msgstr "もしかして %(path)s ですか？"
+
+#: tesseract.py:322
+msgid "tessdata directory not found"
+msgstr "tessdataディレクトリが見つかりません"
+
+#: tesseract.py:388
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; this field accepts engine "
+"parameters in name=value form only."
+msgstr ""
+"'%(flag)s' は Tesseract のコマンドライン オプションです。このフィールドでは、エンジン パラメーターを name=value "
+"形式でのみ指定できます。"
+
+#: tesseract.py:393
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' "
+"instead."
+msgstr ""
+"'%(flag)s' は Tesseract のコマンドラインオプションです。代わりに '%(variable)s=%(value)s' "
+"を使用してください。"
+
+#: tesseract.py:413 tesseract.py:420
+#, python-format
+msgid "Invalid Tesseract option on line %(line)s: %(text)s"
+msgstr "行 %(line)s の Tesseract オプションが無効です: %(text)s"
+
+#: tesseract.py:435
+#, python-format
+msgid "%(variable)s names a file that does not exist: %(path)s"
+msgstr "%(variable)s は存在しないファイルを指定しています: %(path)s"
+
+#: tesseract.py:440
+#, python-format
+msgid "%(variable)s names a file that cannot be read: %(path)s"
+msgstr "%(variable)s は読み込めないファイルを指定しています: %(path)s"
+
+#: tesseract.py:567 tesseract.py:581 tesseract.py:594
+#, python-format
+msgid "You are using locale '%s'."
+msgstr "ロケール '%s' を使用しています。"
+
+#: tesseract.py:570
+msgid ""
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
+msgstr "scantpaper は現在、そのロケールに必要な tesseract 言語パッケージがどれであるかを認識していません。"
+
+#: tesseract.py:574
+msgid "Please contact the developers to add support for that locale."
+msgstr "そのロケールのサポートを追加するよう、開発者にご連絡ください。"
+
+#: tesseract.py:585
+#, python-format
+msgid ""
+"Please install tesseract package 'tesseract-ocr-%(package)s' and restart "
+"scantpaper for OCR for %(language)s with tesseract."
+msgstr ""
+"%(language)s の tesseract による OCR のために、tesseract パッケージ 'tesseract-"
+"ocr-%(package)s' をインストールし、scantpaper を再起動してください。"
+
+#: tesseract.py:596
+#, python-format
+msgid "There is no tesseract package for %s"
+msgstr "%s 用の tesseract パッケージがありません"
+
+#: tesseract.py:598
+msgid "If this is in error, please contact the scantpaper developers."
+msgstr "これが誤りである場合は、scantpaper の開発者にご連絡ください。"
+
+#: tests/test_savethread.py:1589
+msgid "Writing page"
+msgstr "執筆ページ"
+
+#: tools_menu_mixins.py:105 tools_menu_mixins.py:298
 msgid "Threshold"
 msgstr "しきい値"
 
-#: tools_menu_mixins.py:106
+#: tools_menu_mixins.py:115
 msgid "Ink strength"
-msgstr "インク濃度"
+msgstr "インクの濃さ"
 
-#: tools_menu_mixins.py:159
+#: tools_menu_mixins.py:156 tools_menu_mixins.py:226 tools_menu_mixins.py:265
+#: tools_menu_mixins.py:368 tools_menu_mixins.py:410 tools_menu_mixins.py:533
+msgid "_Apply"
+msgstr "_適用"
+
+#: tools_menu_mixins.py:168
 msgid "Brightness / Contrast"
 msgstr "明るさ / コントラスト"
 
-#: tools_menu_mixins.py:170
+#: tools_menu_mixins.py:179
 msgid "Brightness"
 msgstr "明るさ"
 
-#: tools_menu_mixins.py:181
+#: tools_menu_mixins.py:190
 msgid "Contrast"
 msgstr "コントラスト"
 
-#: tools_menu_mixins.py:227
+#: tools_menu_mixins.py:236
 msgid "Negate"
-msgstr "反転"
+msgstr "否定"
 
-#: tools_menu_mixins.py:264
+#: tools_menu_mixins.py:273
 msgid "Unsharp mask"
 msgstr "アンシャープマスク"
 
-#: tools_menu_mixins.py:275
+#: tools_menu_mixins.py:284
 msgid "Radius"
 msgstr "半径"
 
-#: tools_menu_mixins.py:279
+#: tools_menu_mixins.py:288
 msgid "Blur Radius."
-msgstr "ぼかしの半径。"
+msgstr "ぼかし半径。"
 
-#: tools_menu_mixins.py:282
+#: tools_menu_mixins.py:291
 msgid "Percentage"
 msgstr "パーセンテージ"
 
-#: tools_menu_mixins.py:286
+#: tools_menu_mixins.py:295
 msgid "Unsharp strength, in percent."
-msgstr "アンシャープの強さ（パーセント）。"
+msgstr "アンシャープマスクの強さ（％）"
 
-#: tools_menu_mixins.py:294
+#: tools_menu_mixins.py:303
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
-msgstr "しきい値は、シャープネス処理される最小の明るさの変化を制御します。"
+msgstr "しきい値は、シャープ化される最小の明るさ変化を制御します。"
 
-#: tools_menu_mixins.py:444
+#: tools_menu_mixins.py:459
 msgid "Split"
 msgstr "分割"
 
-#: tools_menu_mixins.py:453
+#: tools_menu_mixins.py:468
 msgid "Direction"
 msgstr "方向"
 
-#: tools_menu_mixins.py:458
+#: tools_menu_mixins.py:473
 msgid "Vertically"
-msgstr "垂直"
+msgstr "垂直方向に"
 
-#: tools_menu_mixins.py:459
+#: tools_menu_mixins.py:474
 msgid "Split the page vertically into left and right pages."
-msgstr "ページを垂直に左右のページに分割します。"
+msgstr "ページを縦に分割して、左右のページにします。"
 
-#: tools_menu_mixins.py:463
+#: tools_menu_mixins.py:478
 msgid "Horizontally"
-msgstr "水平"
+msgstr "水平方向"
 
-#: tools_menu_mixins.py:464
+#: tools_menu_mixins.py:479
 msgid "Split the page horizontally into top and bottom pages."
-msgstr "ページを水平に上下のページに分割します。"
+msgstr "ページを水平方向に上下のページに分割します。"
 
-#: tools_menu_mixins.py:487
+#: tools_menu_mixins.py:502
 msgid "Position"
 msgstr "位置"
 
-#: tools_menu_mixins.py:590
+#: tools_menu_mixins.py:605
 msgid "unpaper"
 msgstr "unpaper"
 
-#: tools_menu_mixins.py:649
+#: tools_menu_mixins.py:664
 msgid "OCR"
 msgstr "OCR"
 
-#: tools_menu_mixins.py:730
+#: tools_menu_mixins.py:777
 msgid "User-defined tools"
 msgstr "ユーザー定義ツール"
 
-#: tools_menu_mixins.py:739
+#: tools_menu_mixins.py:786
 msgid "Selected tool"
-msgstr "選択したツール"
+msgstr "選択中のツール"
 
-#: tools_menu_mixins.py:782
+#: tools_menu_mixins.py:790
+msgid "Process selected pages at once"
+msgstr "選択したページを一括処理"
+
+#: tools_menu_mixins.py:891 app.ui:125
 msgid "Email as PDF"
 msgstr "PDFとしてメール送信"
 
-#: tools_menu_mixins.py:861
+#: tools_menu_mixins.py:970
 msgid "Error creating email"
 msgstr "メールの作成中にエラー"
 
-#: tools_menu_mixins.py:917
+#: tools_menu_mixins.py:1026
 msgid "To aid the scan-to-PDF process"
-msgstr "スキャンからPDFへの処理を支援するため"
+msgstr "スキャンからPDFへの変換プロセスを支援するため"
 
-#: tools_menu_mixins.py:918
+#: tools_menu_mixins.py:1027
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
-msgstr "Copyright 2006--2026 Jeffrey Ratcliffe"
+msgstr "著作権 2006--2026 Jeffrey Ratcliffe"
 
-#: unpaper.py:38
+#: unpaper.py:40
 msgid "Layout"
 msgstr "レイアウト"
 
-#: unpaper.py:41
-msgid "Single"
-msgstr "単一"
-
 #: unpaper.py:43
-msgid "One page per sheet, oriented upwards without rotation."
-msgstr "シートごとに1ページ、回転なしで上向きに配置。"
+msgid "Single"
+msgstr "独身"
 
-#: unpaper.py:47
-msgid "Double"
-msgstr "二重"
+#: unpaper.py:45
+msgid "One page per sheet, oriented upwards without rotation."
+msgstr "1枚の用紙に1ページ、回転せずに上向きに配置します。"
 
 #: unpaper.py:49
+msgid "Double"
+msgstr "ダブル"
+
+#: unpaper.py:51
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
-msgstr "シートごとに2ページ、横方向（左半分に1ページ、右半分に1ページ）。"
+msgstr "用紙1枚に2ページ、横向き（左半分に1ページ、右半分に1ページ）。"
 
-#: unpaper.py:58
+#: unpaper.py:60
 msgid "# Output pages"
 msgstr "出力ページ数"
 
-#: unpaper.py:59
+#: unpaper.py:61
 msgid "Number of pages to output."
 msgstr "出力するページ数です。"
 
-#: unpaper.py:67
+#: unpaper.py:69
 msgid "Writing system"
 msgstr "文字体系"
 
-#: unpaper.py:70
+#: unpaper.py:72
 msgid "Left-to-right"
 msgstr "左から右"
 
-#: unpaper.py:72
+#: unpaper.py:74
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
-msgstr "ほとんどの文字体系、例: ラテン文字、ギリシャ文字、キリル文字。"
+msgstr "ほとんどの文字体系（例：ラテン文字、ギリシャ文字、キリル文字）。"
 
-#: unpaper.py:76
+#: unpaper.py:78
 msgid "Right-to-left"
 msgstr "右から左"
 
-#: unpaper.py:77
+#: unpaper.py:79
 msgid "Scripts like Arabic or Hebrew."
-msgstr "アラビア文字やヘブライ文字などの文字体系。"
+msgstr "アラビア文字やヘブライ文字などのスクリプト。"
 
-#: unpaper.py:85
+#: unpaper.py:87
 msgid "No deskew"
 msgstr "傾き補正なし"
 
-#: unpaper.py:86
+#: unpaper.py:88
 msgid "Disable deskewing."
-msgstr "傾き補正を無効にします。"
+msgstr "デスキューを無効にする。"
 
-#: unpaper.py:91
+#: unpaper.py:93
 msgid "No mask scan"
-msgstr "マスク検出なし"
+msgstr "マスクスキャンなし"
 
-#: unpaper.py:92
+#: unpaper.py:94
 msgid "Disable mask detection."
-msgstr "マスク検出を無効にします。"
+msgstr "マスク検出を無効にする。"
 
-#: unpaper.py:97
+#: unpaper.py:99
 msgid "No mask centering"
-msgstr "マスクの中央揃えなし"
+msgstr "マスクセンタリングなし"
 
-#: unpaper.py:98
+#: unpaper.py:100
 msgid "Disable mask centering."
-msgstr "マスクの中央揃えを無効にします。"
+msgstr "マスクの中央寄せを無効にする。"
 
-#: unpaper.py:103
+#: unpaper.py:105
 msgid "No black filter"
 msgstr "黒フィルターなし"
 
-#: unpaper.py:104
+#: unpaper.py:106
 msgid "Disable black area scan."
-msgstr "黒領域の走査を無効にします。"
+msgstr "黒領域スキャンを無効にします。"
 
-#: unpaper.py:109
+#: unpaper.py:111
 msgid "No gray filter"
 msgstr "グレーフィルターなし"
 
-#: unpaper.py:110
+#: unpaper.py:112
 msgid "Disable gray area scan."
-msgstr "グレー領域の走査を無効にします。"
+msgstr "グレー領域のスキャンを無効にします。"
 
-#: unpaper.py:115
+#: unpaper.py:117
 msgid "No noise filter"
 msgstr "ノイズフィルターなし"
 
-#: unpaper.py:116
+#: unpaper.py:118
 msgid "Disable noise filter."
-msgstr "ノイズフィルターを無効にします。"
+msgstr "ノイズフィルターを無効にする。"
 
-#: unpaper.py:121
+#: unpaper.py:123
 msgid "No blur filter"
 msgstr "ぼかしフィルターなし"
 
-#: unpaper.py:122
+#: unpaper.py:124
 msgid "Disable blur filter."
 msgstr "ぼかしフィルターを無効にします。"
 
-#: unpaper.py:127
+#: unpaper.py:129
 msgid "No border scan"
-msgstr "境界の走査なし"
+msgstr "枠なしスキャン"
 
-#: unpaper.py:128
+#: unpaper.py:130
 msgid "Disable border scanning."
-msgstr "境界の走査を無効にします。"
-
-#: unpaper.py:133
-msgid "No border align"
-msgstr "境界の整列なし"
+msgstr "ボーダー スキャンを無効にします。"
 
 #: unpaper.py:135
-msgid "Disable aligning of the area detected by border scanning."
-msgstr "境界の走査で検出された領域の整列を無効にします。"
+msgid "No border align"
+msgstr "境界線を整列しない"
 
-#: unpaper.py:141
-msgid "Deskew to edge"
-msgstr "端まで傾きを補正"
+#: unpaper.py:137
+msgid "Disable aligning of the area detected by border scanning."
+msgstr "枠線スキャンで検出された領域の位置合わせを無効にします。"
 
 #: unpaper.py:143
+msgid "Deskew to edge"
+msgstr "端に合わせて傾き補正"
+
+#: unpaper.py:145
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
 "value will be used, unless the statistical deviation exceeds --deskew-scan-"
 "deviation."
 msgstr ""
-"回転を走査する端。マスクの各端を使用してマスクの回転を検出できます。複数の端"
-"が指定された場合は、統計的な偏差が--deskew-scan-deviationを超えない限り、平均"
-"値が使用されます。"
+"回転をスキャンするエッジ。マスクの各エッジを使用してマスクの回転を検出できます。複数のエッジが指定されている場合、統計的偏差が --deskew-"
+"scan-deviation を超えない限り、平均値が使用されます。"
 
-#: unpaper.py:152
+#: unpaper.py:154
 msgid "Use 'left' for scanning from the left edge."
-msgstr "左端から走査するには'left'を使用します。"
+msgstr "左端からスキャンするには 'left' を使用してください。"
 
-#: unpaper.py:157
+#: unpaper.py:159
 msgid "Use 'top' for scanning from the top edge."
-msgstr "上端から走査するには'top'を使用します。"
+msgstr "上端からスキャンするには 'top' を使用してください。"
 
-#: unpaper.py:161 unpaper.py:189
+#: unpaper.py:163 unpaper.py:191
 msgid "Right"
 msgstr "右"
 
-#: unpaper.py:162
+#: unpaper.py:164
 msgid "Use 'right' for scanning from the right edge."
-msgstr "右端から走査するには'right'を使用します。"
+msgstr "右端からスキャンするには 'right' を使用します。"
 
-#: unpaper.py:166 unpaper.py:194
+#: unpaper.py:168 unpaper.py:196
 msgid "Bottom"
-msgstr "下"
+msgstr "下部"
 
-#: unpaper.py:167
+#: unpaper.py:169
 msgid "Use 'bottom' for scanning from the bottom."
-msgstr "下端から走査するには'bottom'を使用します。"
+msgstr "下からスキャンするには 'bottom' を使用してください。"
 
-#: unpaper.py:174
+#: unpaper.py:176
 msgid "Align to edge"
-msgstr "端に整列"
+msgstr "端に揃える"
 
-#: unpaper.py:175
+#: unpaper.py:177
 msgid "Edge to which to align the page."
-msgstr "ページを整列する端。"
+msgstr "ページを整列する基準となる端。"
 
-#: unpaper.py:180
+#: unpaper.py:182
 msgid "Use 'left' to align to the left edge."
-msgstr "左端に整列するには'left'を使用します。"
+msgstr "左端に揃えるには 'left' を使用します。"
 
-#: unpaper.py:185
+#: unpaper.py:187
 msgid "Use 'top' to align to the top edge."
-msgstr "上端に整列するには'top'を使用します。"
+msgstr "上端に揃えるには 'top' を使用します。"
 
-#: unpaper.py:190
+#: unpaper.py:192
 msgid "Use 'right' to align to the right edge."
-msgstr "右端に整列するには'right'を使用します。"
+msgstr "'right' を使用して右端に揃えます。"
 
-#: unpaper.py:195
+#: unpaper.py:197
 msgid "Use 'bottom' to align to the bottom."
-msgstr "下端に整列するには'bottom'を使用します。"
+msgstr "下に揃えるには 'bottom' を使用します。"
 
-#: unpaper.py:201
+#: unpaper.py:203
 msgid "Border margin"
-msgstr "境界マージン"
+msgstr "ボーダーの余白"
 
-#: unpaper.py:205
+#: unpaper.py:207
 msgid "Vertical margin"
 msgstr "垂直マージン"
 
-#: unpaper.py:207
+#: unpaper.py:209
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
-msgstr "境界領域を整列する際にシートの端から保つ垂直距離。"
+msgstr "境界領域を整列するときに、シートの端から保つ垂直距離。"
 
-#: unpaper.py:217
+#: unpaper.py:219
 msgid "Horizontal margin"
 msgstr "水平マージン"
 
-#: unpaper.py:219
+#: unpaper.py:221
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
-msgstr "境界領域を整列する際にシートの端から保つ水平距離。"
+msgstr "罫線領域を位置合わせするときにシートの端から保つ水平距離。"
 
-#: unpaper.py:231
+#: unpaper.py:233
 msgid "White threshold"
 msgstr "白のしきい値"
 
-#: unpaper.py:233
+#: unpaper.py:235
 msgid "Brightness ratio above which a pixel is considered white."
-msgstr "ピクセルが白と見なされる明るさの比率。"
+msgstr "ピクセルが白と見なされる輝度比のしきい値。"
 
-#: unpaper.py:243
+#: unpaper.py:245
 msgid "Black threshold"
 msgstr "黒のしきい値"
 
-#: unpaper.py:245
+#: unpaper.py:247
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
 msgstr ""
-"ピクセルが黒（非グレー）と見なされる明るさの比率。これはグレーフィルターで使"
-"用されます。この値はグレースケール画像を白黒モードに変換する際にも使用されま"
-"す。"
+"ピクセルが黒（非グレー）とみなされる明るさの比率です。グレーフィルターで使用されます。この値はグレースケール画像を白黒モードに変換する際にも使用されます。"
 
-#: unpaper.py:355
+#: unpaper.py:370
 msgid "Deskew"
 msgstr "Deskew"
 
-#: unpaper.py:359
+#: unpaper.py:374
 msgid "Border"
-msgstr "境界"
+msgstr "境界線"
 
-#: unpaper.py:364
+#: unpaper.py:385
 msgid "Filters"
 msgstr "フィルター"
 
-#: app.ui:5 menu.ui:6
-msgid "_File"
-msgstr "ファイル(_F)"
-
-#: app.ui:9 menu.ui:9
-msgid "_New"
-msgstr "新規(_N)"
-
-#: app.ui:14 menu.ui:14
-msgid "_Open"
-msgstr "開く(_O)"
-
-#: app.ui:19
-msgid "Open c_rashed session"
-msgstr "クラッシュしたセッションを開く"
-
-#: app.ui:23 menu.ui:19
-msgid "S_can"
-msgstr "スキャン(_C)"
-
-#: app.ui:33 menu.ui:29
-msgid "_Email as PDF"
-msgstr "PDFとしてメール送信(_E)"
-
-#: app.ui:38 menu.ui:34
-msgid "_Print"
-msgstr "印刷(_P)"
-
-#: app.ui:45 menu.ui:39
-msgid "_Quit"
-msgstr "終了(_Q)"
-
-#: app.ui:51 menu.ui:46
-msgid "_Edit"
-msgstr "編集(_E)"
-
-#: app.ui:55 menu.ui:49
-msgid "_Undo"
-msgstr "元に戻す(_U)"
-
-#: app.ui:60 menu.ui:53
-msgid "_Redo"
-msgstr "やり直し(_R)"
-
-#: app.ui:67 menu.ui:57
-msgid "Cu_t"
-msgstr "切り取り(_T)"
-
-#: app.ui:77 menu.ui:65
-msgid "_Paste"
-msgstr "貼り付け(_P)"
-
-#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
-msgid "_Select"
-msgstr "選択(_S)"
-
-#: app.ui:89 menu.ui:76
-msgid "_All"
-msgstr "すべて(_A)"
-
-#: app.ui:94 menu.ui:80
-msgid "_Odd"
-msgstr "奇数ページ(_O)"
-
-#: app.ui:99 menu.ui:84
-msgid "_Even"
-msgstr "偶数ページ(_E)"
-
-#: app.ui:104 menu.ui:88
-msgid "_Invert"
-msgstr "反転(_I)"
-
-#: app.ui:109 menu.ui:92
-msgid "_Blank"
-msgstr "空白ページ(_B)"
-
-#: app.ui:114 menu.ui:96
-msgid "_Dark"
-msgstr "黒ページ(_D)"
-
-#: app.ui:119 menu.ui:100
-msgid "_Modified"
-msgstr "変更されたページ(_M)"
-
-#: app.ui:124 menu.ui:104
-msgid "_No OCR"
-msgstr "OCRなし(_N)"
-
-#: app.ui:130 menu.ui:108
-msgid "_Clear OCR"
-msgstr "OCRをクリア(_C)"
-
-#: app.ui:136 menu.ui:114
-msgid "Propert_ies"
-msgstr "プロパティ(_I)"
-
-#: app.ui:142 menu.ui:118
-msgid "Prefere_nces"
-msgstr "設定(_N)"
-
-#: app.ui:147 menu.ui:124
-msgid "_View"
-msgstr "表示(_V)"
-
-#: app.ui:150 app.ui:293
-msgid "_Pan"
-msgstr "パン(_P)"
-
-#: app.ui:160 app.ui:310
-#, fuzzy
-msgid "_Select & pan"
-msgstr "選択とパン(_S)"
-
-#: app.ui:167
-msgid "_Tabbed"
-msgstr "タブ(_T)"
-
-#: app.ui:172
-#, fuzzy
-msgid "_Split horizontally"
-msgstr "水平分割(_S)"
-
-#: app.ui:177
-#, fuzzy
-msgid "_Split vertically"
-msgstr "垂直分割(_S)"
-
-#: app.ui:184
-#, fuzzy
-msgid "Edit text layer"
-msgstr "テキストレイヤーを編集"
-
-#: app.ui:189
-#, fuzzy
-msgid "Edit annotations"
-msgstr "注釈を編集"
-
-#: app.ui:197 app.ui:320 menu.ui:127
-msgid "Zoom _100%"
-msgstr "100% に拡大(_1)"
-
-#: app.ui:201 app.ui:327 menu.ui:131
-msgid "Zoom to _fit"
-msgstr "画面に合わせて拡大(_F)"
-
-#: app.ui:205 app.ui:334 menu.ui:135
-msgid "Zoom _in"
-msgstr "拡大(_I)"
-
-#: app.ui:210 app.ui:341 menu.ui:139
-msgid "Zoom _out"
-msgstr "縮小(_O)"
-
-#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
-msgid "Rotate 90° clockwise"
-msgstr "時計回りに90度回転"
-
-#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
-msgid "Rotate 180°"
-msgstr "180度回転"
-
-#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
-msgid "Rotate 90° anticlockwise"
-msgstr "反時計回りに90度回転"
-
-#: app.ui:233 menu.ui:157
-msgid "_Tools"
-msgstr "ツール(_T)"
-
-#: app.ui:237 menu.ui:160
-msgid "_Threshold"
-msgstr "しきい値(_T)"
-
-#: app.ui:241 menu.ui:164
-#, fuzzy
-msgid "_Brightness / Contrast"
-msgstr "明るさ / コントラスト(_B)"
-
-#: app.ui:245 menu.ui:168
-#, fuzzy
-msgid "_Negate"
-msgstr "反転(_N)"
-
-#: app.ui:249 menu.ui:172
-msgid "_Unsharp Mask"
-msgstr "アンシャープマスク(_U)"
-
-#: app.ui:253 menu.ui:176
-msgid "_Crop"
-msgstr "切り抜き(_C)"
-
-#: app.ui:259 menu.ui:180
-msgid "_Clean up"
-msgstr "ゴミ取り(_C)"
-
-#: app.ui:263 menu.ui:184
-#, fuzzy
-msgid "_Split"
-msgstr "分割(_S)"
-
-#: app.ui:267 menu.ui:188
-msgid "_OCR"
-msgstr "OCR(_O)"
-
-#: app.ui:273 menu.ui:192
-msgid "U_ser-defined"
-msgstr "ユーザー定義(_S)"
-
-#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
-msgid "_Help"
-msgstr "ヘルプ(_H)"
-
-#: app.ui:286 menu.ui:205
-msgid "_About"
-msgstr "情報(_A)"
-
-#: app.ui:375 app.ui:478
-msgid "Cut"
-msgstr "切り取り(_T)"
-
-#: app.ui:381 app.ui:484
-msgid "Copy"
-msgstr "コピー(_C)"
-
-#: app.ui:387 app.ui:490
-msgid "Paste"
-msgstr "貼り付け(_P)"
-
-#: app.ui:393 app.ui:496
-msgid "Delete"
-msgstr "削除(_D)"
-
-#: app.ui:420 app.ui:573
-msgid "Print"
-msgstr "印刷"
-
-#: app.ui:427
-#, fuzzy
-msgid "Select All"
-msgstr "すべてを選択"
-
-#: app.ui:433
-#, fuzzy
-msgid "Select Odd"
-msgstr "奇数ページを選択"
-
-#: app.ui:439
-#, fuzzy
-msgid "Select Even"
-msgstr "偶数ページを選択"
-
-#: app.ui:445
-#, fuzzy
-msgid "Invert selection"
-msgstr "選択範囲を反転"
-
-#: app.ui:503
-msgid "Clear OCR"
-msgstr "OCRをクリア(_C)"
-
-#: app.ui:523
-msgid "Clears all pages"
-msgstr "すべてのページをクリア"
-
-#: app.ui:533
-#, fuzzy
-msgid "Open images"
-msgstr "画像を開く"
-
-#: app.ui:543
-msgid "Scan document"
-msgstr "書類をスキャン"
-
-#: app.ui:563
-msgid "Attach as PDF to a new email"
-msgstr "新規メールにPDFとして添付する"
-
-#: app.ui:584
-msgid "Undo"
-msgstr "元に戻す"
-
-#: app.ui:594
-msgid "Redo"
-msgstr "やり直し"
-
-#: app.ui:605
-msgid "Cut selection"
-msgstr "選択範囲を切り取り"
-
-#: app.ui:615
-msgid "Copy selection"
-msgstr "選択範囲をコピー"
-
-#: app.ui:625
-msgid "Paste selection"
-msgstr "選択範囲を貼り付け"
-
-#: app.ui:635
-msgid "Delete selected pages"
-msgstr "選択したページを削除"
-
-#: app.ui:646
-msgid "Select all pages"
-msgstr "すべてのページを選択"
-
-#: app.ui:657
-#, fuzzy
-msgid "Use the pan tool"
-msgstr "パンツールを使用する"
-
-#: app.ui:668
-msgid "Use the rectangular selection tool"
-msgstr "矩形選択ツールを使用する"
-
-#: app.ui:680
-#, fuzzy
-msgid "Use the combined select and pan tool"
-msgstr "選択とパンの複合ツールを使用する"
-
-#: app.ui:693
-msgid "Zoom to 100%"
-msgstr "100% に拡大"
-
-#: app.ui:703
+#: app.ui:11
+msgid "Pan"
+msgstr "パン"
+
+#: app.ui:18
+msgid "Select"
+msgstr "選択"
+
+#: app.ui:25
+msgid "Select & pan"
+msgstr "選択とパン"
+
+#: app.ui:35
+msgid "Zoom 100%"
+msgstr "100% にズーム"
+
+#: app.ui:40 app.ui:708
 msgid "Zoom to fit"
 msgstr "画面に合わせて拡大"
 
-#: app.ui:713
+#: app.ui:45 app.ui:718
 msgid "Zoom in"
 msgstr "拡大"
 
-#: app.ui:723
+#: app.ui:50 app.ui:728
 msgid "Zoom out"
 msgstr "縮小"
 
-#: app.ui:765
-#, fuzzy
-msgid "Crop selection"
-msgstr "選択範囲を切り抜き"
+#: app.ui:58 app.ui:161 app.ui:427 app.ui:761 menu.ui:143
+msgid "Rotate 90° clockwise"
+msgstr "時計回りに90度回転"
 
-#: app.ui:776
+#: app.ui:63 app.ui:166 app.ui:431 app.ui:751 menu.ui:147
+msgid "Rotate 180°"
+msgstr "180度回転"
+
+#: app.ui:68 app.ui:171 app.ui:435 app.ui:741 menu.ui:151
+msgid "Rotate 90° anticlockwise"
+msgstr "反時計回りに90度回転"
+
+#: app.ui:84 app.ui:187
+msgid "Cut"
+msgstr "切り取り"
+
+#: app.ui:89 app.ui:192
+msgid "Copy"
+msgstr "コピー"
+
+#: app.ui:94 app.ui:197
+msgid "Paste"
+msgstr "貼り付け"
+
+#: app.ui:130 app.ui:560
+msgid "Print"
+msgstr "印刷"
+
+#: app.ui:138
+msgid "Select All"
+msgstr "すべて選択"
+
+#: app.ui:143
+msgid "Select Odd"
+msgstr "奇数を選択"
+
+#: app.ui:148
+msgid "Select Even"
+msgstr "偶数を選択"
+
+#: app.ui:153
+msgid "Invert selection"
+msgstr "選択を反転"
+
+#: app.ui:210
+msgid "Clear OCR"
+msgstr "OCRをクリア"
+
+#: app.ui:226 menu.ui:6
+msgid "_File"
+msgstr "ファイル(_F)"
+
+#: app.ui:230 menu.ui:9
+msgid "_New"
+msgstr "新規(_N)"
+
+#: app.ui:234 menu.ui:14
+msgid "_Open"
+msgstr "開く(_O)"
+
+#: app.ui:238
+msgid "Open c_rashed session"
+msgstr "クラッシュしたセッションを開く(_R)"
+
+#: app.ui:242
+msgid "Import _hOCR…"
+msgstr "_hOCR をインポート…"
+
+#: app.ui:246 menu.ui:19
+msgid "S_can"
+msgstr "スキャン(_C)"
+
+#: app.ui:254 menu.ui:29
+msgid "_Email as PDF"
+msgstr "PDFとしてメール送信(_E)"
+
+#: app.ui:258 menu.ui:34
+msgid "_Print"
+msgstr "印刷(_P)"
+
+#: app.ui:264 menu.ui:39
+msgid "_Quit"
+msgstr "終了(_Q)"
+
+#: app.ui:269 menu.ui:46
+msgid "_Edit"
+msgstr "編集(_E)"
+
+#: app.ui:273 menu.ui:49
+msgid "_Undo"
+msgstr "元に戻す(_U)"
+
+#: app.ui:277 menu.ui:53
+msgid "_Redo"
+msgstr "やり直し(_R)"
+
+#: app.ui:283 menu.ui:57
+msgid "Cu_t"
+msgstr "切り取り(_T)"
+
+#: app.ui:291 menu.ui:65
+msgid "_Paste"
+msgstr "貼り付け(_P)"
+
+#: app.ui:299 app.ui:361 menu.ui:73
+msgid "_Select"
+msgstr "選択(_S)"
+
+#: app.ui:302 menu.ui:76
+msgid "_All"
+msgstr "すべて(_A)"
+
+#: app.ui:306 menu.ui:80
+msgid "_Odd"
+msgstr "奇数ページ(_O)"
+
+#: app.ui:310 menu.ui:84
+msgid "_Even"
+msgstr "偶数ページ(_E)"
+
+#: app.ui:314 menu.ui:88
+msgid "_Invert"
+msgstr "反転(_I)"
+
+#: app.ui:318 menu.ui:92
+msgid "_Blank"
+msgstr "空白ページ(_B)"
+
+#: app.ui:322 menu.ui:96
+msgid "_Dark"
+msgstr "黒ページ(_D)"
+
+#: app.ui:326 menu.ui:100
+msgid "_Modified"
+msgstr "変更されたページ(_M)"
+
+#: app.ui:330 menu.ui:104
+msgid "_No OCR"
+msgstr "OCRなし(_N)"
+
+#: app.ui:336 menu.ui:108
+msgid "_Clear OCR"
+msgstr "OCRをクリア(_C)"
+
+#: app.ui:342 menu.ui:114
+msgid "Propert_ies"
+msgstr "プロパティ(_I)"
+
+#: app.ui:348 menu.ui:118
+msgid "Prefere_nces"
+msgstr "設定(_N)"
+
+#: app.ui:353 menu.ui:124
+msgid "_View"
+msgstr "表示(_V)"
+
+#: app.ui:356
+msgid "_Pan"
+msgstr "パン(_P)"
+
+#: app.ui:366
+msgid "_Select & pan"
+msgstr "_選択 & パン"
+
+#: app.ui:374
+msgid "_Clear image selection"
+msgstr "_画像選択の解除"
+
+#: app.ui:379
+msgid "_Tabbed"
+msgstr "タブ付き(_T)"
+
+#: app.ui:384
+msgid "_Split horizontally"
+msgstr "_水平に分割"
+
+#: app.ui:389
+msgid "_Split vertically"
+msgstr "_縦に分割"
+
+#: app.ui:396
+msgid "Edit text layer"
+msgstr "テキストレイヤーを編集"
+
+#: app.ui:401
+msgid "Edit annotations"
+msgstr "注釈を編集"
+
+#: app.ui:409 menu.ui:127
+msgid "Zoom _100%"
+msgstr "100% に拡大(_1)"
+
+#: app.ui:413 menu.ui:131
+msgid "Zoom to _fit"
+msgstr "画面に合わせて拡大(_F)"
+
+#: app.ui:417 menu.ui:135
+msgid "Zoom _in"
+msgstr "拡大(_I)"
+
+#: app.ui:421 menu.ui:139
+msgid "Zoom _out"
+msgstr "縮小(_O)"
+
+#: app.ui:440 menu.ui:157
+msgid "_Tools"
+msgstr "ツール(_T)"
+
+#: app.ui:444 menu.ui:160
+msgid "_Threshold"
+msgstr "しきい値(_T)"
+
+#: app.ui:448 menu.ui:164
+msgid "_Brightness / Contrast"
+msgstr "_明るさ / コントラスト"
+
+#: app.ui:452 menu.ui:168
+msgid "_Negate"
+msgstr "_N否定"
+
+#: app.ui:456 menu.ui:172
+msgid "_Unsharp Mask"
+msgstr "アンシャープマスク(_U)"
+
+#: app.ui:460 menu.ui:176
+msgid "_Crop"
+msgstr "切り抜き(_C)"
+
+#: app.ui:466 menu.ui:180
+msgid "_Clean up"
+msgstr "ゴミ取り(_C)"
+
+#: app.ui:470 menu.ui:184
+msgid "_Split"
+msgstr "分割(_S)"
+
+#: app.ui:474 menu.ui:188
+msgid "_OCR"
+msgstr "OCR(_O)"
+
+#: app.ui:480 menu.ui:192
+msgid "U_ser-defined"
+msgstr "ユーザー定義(_S)"
+
+#: app.ui:485 app.ui:488 menu.ui:198 menu.ui:201
+msgid "_Help"
+msgstr "ヘルプ(_H)"
+
+#: app.ui:492 menu.ui:205
+msgid "_About"
+msgstr "情報(_A)"
+
+#: app.ui:510
+msgid "Clears all pages"
+msgstr "すべてのページをクリア"
+
+#: app.ui:520
+msgid "Open images"
+msgstr "画像を開く"
+
+#: app.ui:530
+msgid "Scan document"
+msgstr "書類をスキャン"
+
+#: app.ui:550
+msgid "Attach as PDF to a new email"
+msgstr "新規メールにPDFとして添付する"
+
+#: app.ui:573
+msgid "Undo"
+msgstr "元に戻す"
+
+#: app.ui:583
+msgid "Redo"
+msgstr "やり直し"
+
+#: app.ui:596
+msgid "Cut selection"
+msgstr "選択範囲を切り取り"
+
+#: app.ui:606
+msgid "Copy selection"
+msgstr "選択範囲をコピー"
+
+#: app.ui:616
+msgid "Paste selection"
+msgstr "選択範囲を貼り付け"
+
+#: app.ui:626
+msgid "Delete selected pages"
+msgstr "選択したページを削除"
+
+#: app.ui:639
+msgid "Select all pages"
+msgstr "すべてのページを選択"
+
+#: app.ui:652
+msgid "Use the pan tool"
+msgstr "パンツールを使用してください"
+
+#: app.ui:663
+msgid "Use the rectangular selection tool"
+msgstr "矩形選択ツールを使用する"
+
+#: app.ui:674
+msgid "Use the combined select and pan tool"
+msgstr "選択とパンを組み合わせたツールを使用する"
+
+#: app.ui:685
+msgid "Clear image selection"
+msgstr "画像選択をクリア"
+
+#: app.ui:698
+msgid "Zoom to 100%"
+msgstr "100% に拡大"
+
+#: app.ui:774
+msgid "Crop selection"
+msgstr "選択範囲のクロップ"
+
+#: app.ui:787
 msgid "Quit"
 msgstr "終了"
 
-#: menu.ui:24
-#, fuzzy
-msgid "_Save"
-msgstr "保存(_S)"
-
-#: session_mixins.py:160
-#, fuzzy
-msgid "No crashed sessions found."
-msgstr ""
-
-#: session_mixins.py:166
-#, fuzzy
-msgid "Crashed sessions"
-msgstr ""
-
-#: session_mixins.py:171
-#, fuzzy
-msgid "_Discard"
-msgstr ""
-
-#: session_mixins.py:172
-#, fuzzy
-msgid "_Restore"
-msgstr ""
-
-#: session_mixins.py:175
-#, fuzzy
-msgid "Restore or discard a crashed session"
-msgstr ""
-
-#: session_mixins.py:204
-#, fuzzy
-msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
-msgstr ""
-
-#: session_mixins.py:239
-#, fuzzy
-msgid "Restore file"
-msgstr ""
-
-#: session_mixins.py:255
 #, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
+#~ msgid "%dMb free in %s."
+#~ msgid_plural "%dMb free in %s."
+#~ msgstr[0] "空き容量 %dMB（%s）。"
 
-#: session_mixins.py:279
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
-msgstr ""
+#, python-format
+#~ msgid ""
+#~ "The setting %s is %r and cannot be used as %s, so it has been left "
+#~ "unchanged."
+#~ msgstr "設定%sは%rであり、%sとして使用できないため、変更されずに残されています。"
 
-#: scan_menu_item_mixins.py:122
-#, fuzzy
-msgid ""
-"Caching the device list with libusb devices is not recommended, as they can "
-"change between reboots. Cache them anyway?"
-msgstr ""
+#, python-format
+#~ msgid ""
+#~ "The settings file %s could not be read in full. The following settings were "
+#~ "restored: %s. The rest were reset to their defaults. A backup of the "
+#~ "original file has been saved as %s."
+#~ msgstr ""
+#~ "設定ファイル%sを完全に読み取ることができませんでした。次の設定が復元されました: "
+#~ "%s。残りは既定値にリセットされました。元のファイルのバックアップが%sとして保存されました。"
 
-#: scan_menu_item_mixins.py:127
-#, fuzzy
-msgid "Don't ask again"
-msgstr ""
+#, python-format
+#~ msgid ""
+#~ "The settings file %s could not be read, so all settings have been reset to "
+#~ "their defaults. A backup of the original file has been saved as %s."
+#~ msgstr ""
+#~ "設定ファイル%sを読み取ることができなかったため、すべての設定が既定値にリセットされました。元のファイルのバックアップが%sとして保存されました。"
+
+#~ msgid ""
+#~ "Please see https://imagemagick.org/script/resources.php for more information"
+#~ msgstr "詳細については https://imagemagick.org/script/resources.php を参照してください"
+
+#~ msgid "Device blacklist (regular expression)"
+#~ msgstr "デバイスのブラックリスト（正規表現）"
+
+#, python-format
+#~ msgid ""
+#~ "Use %i and %o for the input and output filenames respectively,\n"
+#~ "or a single %i if the image is to be modified in-place.\n"
+#~ "\n"
+#~ "The other variable available is:\n"
+#~ "%r resolution"
+#~ msgstr ""
+#~ "入力ファイル名と出力ファイル名にはそれぞれ%iと%oを使用してください。\n"
+#~ "画像をその場で変更する場合は%iのみを使用してください。\n"
+#~ "\n"
+#~ "利用可能なもう1つの変数:\n"
+#~ "%r 解像度"
+
+#, python-format
+#~ msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+#~ msgstr "スキャンオプション'%s'を無視します。最小範囲(%s) > 最大(%s)"
+
+#~ msgid "JPEG Quality"
+#~ msgstr "JPEG 画質"
+
+#, python-format
+#~ msgid ""
+#~ "Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
+#~ " file a bug, attaching a log file reproducing the problem."
+#~ msgstr ""
+#~ "リロードの再帰制限(%d)を超えました: "
+#~ "%d個のスキャンオプションに対して%d回のリロード。問題を再現するログファイルを添付してバグを報告してください。"
+
+#, python-format
+#~ msgid "Scanning page %d of %d"
+#~ msgstr "%dページ目をスキャン中（全%dページ）"
+
+#, python-format
+#~ msgid "Scanning page %d"
+#~ msgstr "ページ%dをスキャン中"
+
+#, python-format
+#~ msgid "Analysing page %i of %i"
+#~ msgstr "%iページ目を分析中（全%iページ）"
+
+#~ msgid "Open crashed session"
+#~ msgstr "クラッシュしたセッションを開く"
+
+#, python-format
+#~ msgid "Error getting file info for %s: %s"
+#~ msgstr "%sのファイル情報を取得する際のエラー: %s"
+
+#, python-format
+#~ msgid "Importing page %i of %i"
+#~ msgstr "ページをインポート中 %i/%i"
+
+#, python-format
+#~ msgid "Process %i of %i (%s)"
+#~ msgstr "処理中 %i/%i (%s)"
+
+#, python-format
+#~ msgid "Process %i of %i"
+#~ msgstr "処理中 %i/%i"
+
+#, python-format
+#~ msgid "Writing page %i of %i"
+#~ msgstr "ページの書き込み中 %i/%i"
+
+#~ msgid ""
+#~ "Caching device list with libusb devices included is not recommended as they "
+#~ "can change between reboots."
+#~ msgstr "libusbデバイスを含むデバイス一覧のキャッシュは、再起動の間に変わることがあるため推奨されません。"
+
+#~ msgid "Are you sure you want to do this?"
+#~ msgstr "本当に実行しますか？"
+
+#, python-format
+#~ msgid ""
+#~ "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+#~ msgstr "警告: %s を一時ストレージとして使用できません。代わりに %s をデフォルトにします。"
+
+#~ msgid "Pick crashed session to restore"
+#~ msgstr "クラッシュしたセッションを復元する"
+
+#~ msgid "Add annotation"
+#~ msgstr "注釈を追加"
+
+#~ msgid "Delete annotation"
+#~ msgstr "注釈を削除"
+
+#, python-format
+#~ msgid ""
+#~ "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
+#~ "for OCR for %s with tesseract."
+#~ msgstr ""
+#~ "tesseractパッケージ'tesseract-"
+#~ "ocr-%s'をインストールし、tesseractで%sのOCRを行うためにscantpaperを再起動してください。"
 
 #~ msgid "PPI"
 #~ msgstr "PPI"
@@ -2617,9 +3232,7 @@ msgstr ""
 #~ msgstr "unpaperが見つかりません\n"
 
 #~ msgid "OCR requires gocr, tesseract, ocropus, or cuneiform\n"
-#~ msgstr ""
-#~ "OCRを行うには、gocr、 tesseract、 ocropus、 cuneiformのいずれかが必要で"
-#~ "す\n"
+#~ msgstr "OCRを行うには、gocr、 tesseract、 ocropus、 cuneiformのいずれかが必要です\n"
 
 #~ msgid "Editing text"
 #~ msgstr "テキストを編集"
@@ -2729,21 +3342,18 @@ msgstr ""
 #~ msgstr "デバイス独自のオプションキャッシュをクリア"
 
 #~ msgid ""
-#~ "You will have to restart gscanp2df for changes to the temporary directory "
-#~ "to take effect."
-#~ msgstr ""
-#~ "一時ディレクトリの変更を有効にするため、gscanp2dfを再起動してください。"
+#~ "You will have to restart gscanp2df for changes to the temporary directory to"
+#~ " take effect."
+#~ msgstr "一時ディレクトリの変更を有効にするため、gscanp2dfを再起動してください。"
 
 #~ msgid ""
-#~ "Use %i and %o for the input and output filenames respectively, or a "
-#~ "single %i if the image is to be modified in-place.\n"
+#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
 #~ "\n"
 #~ "The other variable available is:\n"
 #~ "\n"
 #~ "%r resolution"
 #~ msgstr ""
-#~ "入力ファイル名と出力ファイル名には、それぞれ「%i」と「%o」を使用してくださ"
-#~ "い。または、画像をその場で変更する場合は「%i」のみにしてください。\n"
+#~ "入力ファイル名と出力ファイル名には、それぞれ「%i」と「%o」を使用してください。または、画像をその場で変更する場合は「%i」のみにしてください。\n"
 #~ "\n"
 #~ "利用可能な他の変数:\n"
 #~ "\n"
