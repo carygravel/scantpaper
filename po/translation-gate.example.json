@@ -88,6 +88,10 @@
     "eu": {
       "qualification": 0.25,
       "drift": 0.2
+    },
+    "el": {
+      "qualification": 0.3,
+      "drift": 0.2
     }
   },
   "releases": {

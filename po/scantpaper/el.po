@@ -19,387 +19,419 @@ msgstr ""
 "X-Generator: Launchpad (build 17908)\n"
 "X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
-#: app_window.py:516
-#, fuzzy
-msgid "Save image and Save as PDF both require imagemagick"
-msgstr "Η αποθήκευση εικόνας και η αποθήκευση ως PDF απαιτούν το imagemagick"
-
-#: app_window.py:517
-#, fuzzy
-msgid "Save image requires libtiff"
-msgstr "Η αποθήκευση εικόνας απαιτεί το libtiff"
-
-#: app_window.py:518
-#, fuzzy
-msgid "Save as DjVu requires djvulibre-bin"
-msgstr "Η αποθήκευση ως DjVu απαιτεί το djvulibre-bin"
-
-#: app_window.py:519
-#, fuzzy
-msgid "Email as PDF requires xdg-email"
-msgstr "Η αποστολή ως PDF μέσω email απαιτεί το xdg-email"
-
-#: app_window.py:520
-#, fuzzy
-msgid "unpaper missing"
-msgstr "Λείπει το unpaper"
-
-#: app_window.py:528
-#, fuzzy
-msgid "OCR requires tesseract"
-msgstr "Το OCR απαιτεί το tesseract"
-
-#: app_window.py:543
-#, fuzzy
-msgid "PDF encryption requires qpdf"
-msgstr "Η κρυπτογράφηση PDF απαιτεί το qpdf"
-
-#: app_window.py:575
+#: app_window.py:751
 msgid "Warning: missing packages"
 msgstr "Προσοχή: πακέτα που λείπουν"
 
-#: app_window.py:593
+#: app_window.py:827
 msgid "Image"
 msgstr "Εικόνα"
 
-#: app_window.py:594 text_layer_control.py:57
-#, fuzzy
+#: app_window.py:828 layer.py:197
 msgid "Text layer"
-msgstr "Στρώμα κειμένου"
+msgstr "Επίπεδο κειμένου"
 
-#: app_window.py:596 session_mixins.py:446
-#, fuzzy
+#: app_window.py:830
 msgid "Annotations"
 msgstr "Σχολιασμοί"
 
-#: app_window.py:837
-#, fuzzy, python-format
-msgid "%dMb free in %s."
-msgid_plural "%dMb free in %s."
-msgstr[0] "%dMB ελεύθερα στο %s."
-msgstr[1] "%dMB ελεύθερα στο %s."
+#: app_window.py:1294
+#, python-format
+msgid "%(mb)dMb free in %(name)s."
+msgid_plural "%(mb)dMb free in %(name)s."
+msgstr[0] "%(mb)dMb ελεύθερο στο %(name)s."
+msgstr[1] "%(mb)dMb ελεύθερα στο %(name)s."
 
-#: app_window.py:864 helpers.py:372
-#, fuzzy
+#: app_window.py:1322 helpers.py:531
 msgid "Messages"
 msgstr "Μηνύματα"
 
-#: app_window.py:949
-#, fuzzy
+#: app_window.py:1405
 msgid "Error opening the last device used."
 msgstr "Σφάλμα κατά το άνοιγμα της τελευταίας συσκευής που χρησιμοποιήθηκε."
 
-#: app_window.py:951
-#, fuzzy
+#: app_window.py:1407
 msgid "There was an error opening the last device used."
 msgstr ""
 "Παρουσιάστηκε σφάλμα κατά το άνοιγμα της τελευταίας συσκευής που "
 "χρησιμοποιήθηκε."
 
-#: app_window.py:954
-#, fuzzy
+#: app_window.py:1410
 msgid "Whoops! I forgot to turn it on. Try again now."
-msgstr "Ουπς! Ξέχασα να την ενεργοποιήσω. Δοκιμάστε ξανά τώρα."
+msgstr "Ουπς! Ξέχασα να το ενεργοποιήσω. Δοκιμάστε ξανά τώρα."
 
-#: app_window.py:959 dialog/scan.py:517
+#: app_window.py:1416 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr "Νέα σάρωση για συσκευές"
 
-#: app_window.py:963
-#, fuzzy
+#: app_window.py:1419
 msgid "Restart scantpaper."
 msgstr "Επανεκκινήστε το scantpaper."
 
-#: app_window.py:968
-#, fuzzy
+#: app_window.py:1423
 msgid "Just ignore the error. I don't need the scanner yet."
-msgstr "Απλώς αγνοήστε το σφάλμα. Δεν χρειάζομαι ακόμα τον σαρωτή."
+msgstr "Απλά αγνοήστε το σφάλμα. Δεν χρειάζομαι τον σαρωτή ακόμα."
 
-#: app_window.py:971 dialog/preferences.py:162
-#, fuzzy
+#: app_window.py:1427 dialog/preferences.py:189
 msgid "Cache device list"
-msgstr "Αποθήκευση λίστας συσκευών"
+msgstr "Λίστα συσκευών προσωρινής μνήμης"
 
-#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr "Να μην εμφανισθεί ξανά αυτό το μήνυμα"
 
-#: basedocument.py:48
+#: basedocument.py:47
 msgid "Thumbnails"
 msgstr "Μικρογραφίες"
 
-#: basedocument.py:711
-#, fuzzy
+#: basedocument.py:876
 msgid "No pages to process"
-msgstr "Δεν υπάρχουν σελίδες για επεξεργασία"
+msgstr "Δεν υπάρχουν σελίδες προς επεξεργασία"
 
-#: basedocument.py:715
-#, fuzzy
+#: basedocument.py:880
 msgid "No pages selected"
 msgstr "Δεν έχουν επιλεγεί σελίδες"
 
-#: config.py:107
-#, fuzzy
+#: config.py:113
 msgid "A3"
 msgstr "A3"
 
-#: config.py:113
+#: config.py:119
 msgid "A4"
 msgstr "A4"
 
-#: config.py:119
+#: config.py:125
 msgid "US Letter"
 msgstr "Επιστολή με Αμερικανικά πρότυπα"
 
-#: config.py:125
+#: config.py:131
 msgid "US Legal"
 msgstr "Νομικής φύσεως (ΗΠΑ)"
 
-#: config.py:263
-#, fuzzy, python-format
+#: config.py:276
+#, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
+"The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
+"been left unchanged."
 msgstr ""
-"Η ρύθμιση %s είναι %r και δεν μπορεί να χρησιμοποιηθεί ως %s, οπότε "
-"παραμένει ως έχει."
+"Η ρύθμιση %(key)s είναι %(value)r και δεν μπορεί να χρησιμοποιηθεί ως "
+"%(type)s, επομένως έχει παραμείνει αμετάβλητη."
 
-#: config.py:299
-#, fuzzy, python-format
+#: config.py:312
+#, python-format
 msgid ""
-"The settings file %s could not be read in full. The following settings were "
-"restored: %s. The rest were reset to their defaults. A backup of the "
-"original file has been saved as %s."
+"The settings file %(filename)s could not be read in full. These settings "
+"were restored: %(settings)s. The rest were reset to their defaults. A backup"
+" has been saved as %(backup)s."
 msgstr ""
-"Το αρχείο ρυθμίσεων %s δεν μπόρεσε να διαβαστεί πλήρως. Οι ακόλουθες "
-"ρυθμίσεις επαναφέρθηκαν: %s. Οι υπόλοιπες επαναφέρθηκαν στις προεπιλογές "
-"τους. Ένα αντίγραφο ασφαλείας του αρχικού αρχείου αποθηκεύτηκε ως %s."
+"Το αρχείο ρυθμίσεων %(filename)s δεν ήταν δυνατό να διαβαστεί πλήρως. Αυτές "
+"οι ρυθμίσεις αποκαταστάθηκαν: %(settings)s. Οι υπόλοιπες επαναφέρθηκαν στις "
+"προεπιλεγμένες τιμές τους. Ένα αντίγραφο ασφαλείας αποθηκεύτηκε ως "
+"%(backup)s."
 
-#: config.py:306
-#, fuzzy, python-format
+#: config.py:323
+#, python-format
 msgid ""
-"The settings file %s could not be read, so all settings have been reset to "
-"their defaults. A backup of the original file has been saved as %s."
+"The settings file %(filename)s could not be read, so all settings have been "
+"reset to their defaults. A backup of the original file has been saved as "
+"%(backup)s."
 msgstr ""
-"Το αρχείο ρυθμίσεων %s δεν μπόρεσε να διαβαστεί, οπότε όλες οι ρυθμίσεις "
-"επαναφέρθηκαν στις προεπιλογές τους. Ένα αντίγραφο ασφαλείας του αρχικού "
-"αρχείου αποθηκεύτηκε ως %s."
+"Το αρχείο ρυθμίσεων %(filename)s δεν ήταν δυνατόν να διαβαστεί, επομένως "
+"όλες οι ρυθμίσεις έχουν επαναφερθεί στις προεπιλεγμένες τιμές τους. Ένα "
+"αντίγραφο ασφαλείας του αρχικού αρχείου έχει αποθηκευτεί ως %(backup)s."
 
-#: dialog/__init__.py:67
+#: dependencies.py:166 tests/test_app_window.py:880
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr ""
+"Η αποθήκευση εικόνας και η αποθήκευση ως PDF απαιτούν και οι δύο το "
+"imagemagick"
+
+#: dependencies.py:172
+msgid "Save image requires libtiff"
+msgstr "Η αποθήκευση εικόνας απαιτεί libtiff"
+
+#: dependencies.py:178 tests/test_app_window.py:881
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "Η αποθήκευση ως DjVu απαιτεί το djvulibre-bin"
+
+#: dependencies.py:186
+msgid "Email as PDF requires xdg-email"
+msgstr "Η αποστολή email ως PDF απαιτεί xdg-email"
+
+#: dependencies.py:189 tests/test_app_window.py:882
+msgid "unpaper missing"
+msgstr "Λείπει το unpaper"
+
+#: dependencies.py:191 tests/test_app_window.py:883
+msgid "OCR requires tesseract"
+msgstr "Το OCR απαιτεί το tesseract"
+
+#: dependencies.py:196 tests/test_app_window.py:884
+msgid "PDF encryption requires qpdf"
+msgstr "Η κρυπτογράφηση PDF απαιτεί qpdf"
+
+#: dependencies.py:202 tests/test_app_window.py:885
+msgid "JBIG2 PDF compression requires jbig2"
+msgstr "Η συμπίεση PDF με JBIG2 απαιτεί το jbig2"
+
+#: dialog/__init__.py:134
 msgid "Page Range"
 msgstr "Φάσμα σελίδας"
 
-#: dialog/__init__.py:106
-#, fuzzy
+#: dialog/__init__.py:174
 msgid "Error"
 msgstr "Σφάλμα"
 
-#: dialog/__init__.py:107
-#, fuzzy
+#: dialog/__init__.py:175
 msgid "Warning"
 msgstr "Προειδοποίηση"
 
-#: dialog/__init__.py:108
-#, fuzzy
+#: dialog/__init__.py:176
 msgid "Info"
 msgstr "Πληροφορίες"
 
-#: dialog/__init__.py:125
-#, fuzzy
+#: dialog/__init__.py:199
 msgid "Page"
 msgstr "Σελίδα"
 
-#: dialog/__init__.py:126
-#, fuzzy
+#: dialog/__init__.py:200
 msgid "Process"
-msgstr "Διαδικασία"
+msgstr "Επεξεργασία"
 
-#: dialog/__init__.py:127
-#, fuzzy
+#: dialog/__init__.py:201
 msgid "Message type"
 msgstr "Τύπος μηνύματος"
 
-#: dialog/__init__.py:129
-#, fuzzy
+#: dialog/__init__.py:203
 msgid "Message"
 msgstr "Μήνυμα"
 
-#: dialog/__init__.py:132
-#, fuzzy
+#: dialog/__init__.py:206
 msgid "Hide"
 msgstr "Απόκρυψη"
 
-#: dialog/__init__.py:193
-#, fuzzy
-msgid "Don't show these messages again"
-msgstr "Να μην εμφανιστούν ξανά αυτά τα μηνύματα"
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
+msgid "_Close"
+msgstr "_Κλείσιμο"
 
-#: dialog/__init__.py:313
-#, fuzzy
+#: dialog/__init__.py:295
+msgid "Don't show these messages again"
+msgstr "Να μην εμφανίζονται ξανά αυτά τα μηνύματα"
+
+#: dialog/__init__.py:409
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
-"Αυτό το σφάλμα οφείλεται συνήθως στην υπέρβαση των ορίων πόρων του "
-"ImageMagick."
+"Αυτό το σφάλμα συνήθως οφείλεται στο ότι το ImageMagick υπερβαίνει τα όρια "
+"πόρων του."
 
-#: dialog/__init__.py:317
-#, fuzzy
+#: dialog/__init__.py:413
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
 msgstr ""
-"Αυτά μπορούν να επεκταθούν επεξεργαζόμενοι το αρχείο πολιτικής του, το οποίο "
+"Αυτά μπορούν να επεκταθούν επεξεργάζοντας το αρχείο πολιτικής του, το οποίο "
 "στο σύστημά μου βρίσκεται στο /etc/ImageMagick-6/policy.xml"
 
-#: dialog/__init__.py:322
-#, fuzzy
+#: dialog/__init__.py:418
+#, python-format
 msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
+"Please see the ImageMagick resource documentation for more information: "
+"%(url)s"
 msgstr ""
-"Δείτε το https://imagemagick.org/script/resources.php για περισσότερες "
-"πληροφορίες"
+"Ανατρέξτε στην τεκμηρίωση πόρων του ImageMagick για περισσότερες "
+"πληροφορίες: %(url)s"
 
-#: dialog/crop.py:14
+#: dialog/crop.py:15
 msgid "x"
 msgstr "χ"
 
-#: dialog/crop.py:15
+#: dialog/crop.py:16
 msgid "The x-position of the left hand edge of the crop."
 msgstr "H x (οριζόντια) θέση της αριστερής χειρολαβής της περικοπής"
 
-#: dialog/crop.py:19
+#: dialog/crop.py:20
 msgid "y"
 msgstr "ψ"
 
-#: dialog/crop.py:20
+#: dialog/crop.py:21
 msgid "The y-position of the top edge of the crop."
 msgstr "Η θέση-Ψ στο άνω άκρο της περιοχής αποκοπής"
 
-#: dialog/crop.py:24 dialog/paperlist.py:22
+#: dialog/crop.py:25 dialog/paperlist.py:22
 msgid "Width"
 msgstr "Πλάτος"
 
-#: dialog/crop.py:25
+#: dialog/crop.py:26
 msgid "The width of the crop."
 msgstr "Το πλάτος της περιοχής αποκοπής (crop)"
 
-#: dialog/crop.py:29 dialog/paperlist.py:23
+#: dialog/crop.py:30 dialog/paperlist.py:23
 msgid "Height"
 msgstr "Ύψος"
 
-#: dialog/crop.py:30
+#: dialog/crop.py:31
 msgid "The height of the crop."
 msgstr "Το ύψος της περιοχής αποκοπής (crop)"
 
-#: dialog/crop.py:116
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr "Αποκοπή"
 
-#: dialog/crop.py:154 tools_menu_mixins.py:277
+#: dialog/crop.py:161 tools_menu_mixins.py:286
 msgid "pixels"
 msgstr "εικονοστοιχεία"
 
-#: dialog/pagecontrols.py:188
+#: dialog/importhocr.py:45
+msgid "hOCR file"
+msgstr "αρχείο hOCR"
+
+#: dialog/importhocr.py:50 dialog/preferences.py:272
+#: postprocess_controls.py:692
+msgid "Browse"
+msgstr "Εξερεύνηση"
+
+#: dialog/importhocr.py:56
+msgid "Pages are matched to the hOCR pages in order."
+msgstr "Οι σελίδες αντιστοιχίζονται με τις σελίδες hOCR κατά σειρά."
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_OK"
+msgstr "_ΟΚ"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
+#: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
+#: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_Cancel"
+msgstr "_Ακύρωση"
+
+#: dialog/importhocr.py:69
+msgid "Open hOCR file"
+msgstr "Άνοιγμα αρχείου hOCR"
+
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
+msgid "Cancel"
+msgstr "Ακύρωση"
+
+#: dialog/importhocr.py:76 file_menu_mixins.py:119
+msgid "Open"
+msgstr "Άνοιγμα"
+
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
+msgid "hOCR files"
+msgstr "αρχεία hOCR"
+
+#: dialog/pagecontrols.py:231
 msgid "Page Options"
 msgstr "Επιλογές σελίδας"
 
-#: dialog/pagecontrols.py:199
+#: dialog/pagecontrols.py:245
 msgid "# Pages"
 msgstr "# Σελίδων"
 
-#: dialog/pagecontrols.py:210 pagerange.py:47
+#: dialog/pagecontrols.py:256 pagerange.py:48
 msgid "All"
 msgstr "Όλα"
 
-#: dialog/pagecontrols.py:211
+#: dialog/pagecontrols.py:257
 msgid "Scan all pages"
 msgstr "Σάρωση όλων των σελίδων"
 
-#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+#: dialog/pagecontrols.py:268 dialog/pagecontrols.py:273
 msgid "Set number of pages to scan"
 msgstr "Αριθμός σελίδων για σάρωση"
 
-#: dialog/pagecontrols.py:247
+#: dialog/pagecontrols.py:277
+msgid "No page limit: scanning continues until you cancel."
+msgstr "Χωρίς όριο σελίδων: η σάρωση συνεχίζεται μέχρι να την ακυρώσετε."
+
+#: dialog/pagecontrols.py:311
 msgid "Extended page numbering"
 msgstr "Εκτεταμένη αρίθμηση σελίδων"
 
-#: dialog/pagecontrols.py:260
+#: dialog/pagecontrols.py:324
 msgid "Page number"
 msgstr "Αριθμός σελίδας"
 
-#: dialog/pagecontrols.py:271
-#, fuzzy
+#: dialog/pagecontrols.py:334
 msgid "Insert before page N"
 msgstr "Εισαγωγή πριν από τη σελίδα N"
 
-#: dialog/pagecontrols.py:274
-#, fuzzy
+#: dialog/pagecontrols.py:337
 msgid "Page number before which scans will be inserted"
 msgstr "Αριθμός σελίδας πριν από την οποία θα εισαχθούν οι σαρώσεις"
 
-#: dialog/pagecontrols.py:285
-#, fuzzy
+#: dialog/pagecontrols.py:348
 msgid "Position advance"
-msgstr "Προχώρηση θέσης"
+msgstr "Προώθηση θέσης"
 
-#: dialog/pagecontrols.py:289
-#, fuzzy
+#: dialog/pagecontrols.py:352
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
 msgstr ""
-"Προχώρηση θέσης για κάθε επόμενη σάρωση (0 = συνέχιση εισαγωγής πριν από την "
+"Προώθηση θέσης για κάθε επόμενη σάρωση (0 = συνεχής εισαγωγή πριν από την "
 "ίδια σελίδα)"
 
-#: dialog/pagecontrols.py:305
+#: dialog/pagecontrols.py:368
 msgid "Source document"
 msgstr "Αρχείο προέλευσης"
 
-#: dialog/pagecontrols.py:313
+#: dialog/pagecontrols.py:377
 msgid "Single sided"
 msgstr "Μονής όψης"
 
-#: dialog/pagecontrols.py:315
+#: dialog/pagecontrols.py:378
 msgid "Source document is single-sided"
 msgstr "Το αρχείο προέλευσης είναι μονής όψης"
 
-#: dialog/pagecontrols.py:321
+#: dialog/pagecontrols.py:385
 msgid "Double sided"
 msgstr "Διπλής όψης"
 
-#: dialog/pagecontrols.py:323
+#: dialog/pagecontrols.py:387
 msgid "Source document is double-sided"
 msgstr "Το αρχείο προέλευσης είναι διπλής όψης"
 
-#: dialog/pagecontrols.py:329
+#: dialog/pagecontrols.py:393
 msgid "Side to scan"
 msgstr "Πλευρά για σάρωση"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Facing"
 msgstr "Προσανατολισμός"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Reverse"
 msgstr "Ανάποδη πλευρά"
 
-#: dialog/pagecontrols.py:337
+#: dialog/pagecontrols.py:401
 msgid "Sets which side of a double-sided document is scanned"
 msgstr "Ορίζει ποια πλευρά ενός διπλής όψης εγγράφου θα σαρωθεί"
 
-#: dialog/paperlist.py:21
+#: dialog/paperlist.py:21 dialog/tesseractparams.py:69
 msgid "Name"
 msgstr "Όνομα"
 
-#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+#: dialog/paperlist.py:24 unpaper.py:153 unpaper.py:181
 msgid "Left"
 msgstr "Αριστερά"
 
-#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+#: dialog/paperlist.py:25 unpaper.py:158 unpaper.py:186
 msgid "Top"
 msgstr "Κορυφή"
 
 #: dialog/paperlist.py:26
-#, fuzzy
 msgid "Units"
 msgstr "Μονάδες"
 
@@ -407,143 +439,135 @@ msgstr "Μονάδες"
 msgid "Cannot delete all paper sizes"
 msgstr "Αδύνατη η διαγραφή όλων των μεγεθών σελίδας"
 
-#: dialog/preferences.py:42
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr "Προτιμήσεις"
 
-#: dialog/preferences.py:56
-#, fuzzy
+#: dialog/preferences.py:72
 msgid "Scan options"
 msgstr "Επιλογές σάρωσης"
 
-#: dialog/preferences.py:60
-#, fuzzy
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr "Γενικές επιλογές"
 
-#: dialog/preferences.py:68
-#, fuzzy
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
-msgstr "Άνοιγμα του σαρωτή κατά την εκκίνηση του προγράμματος"
+msgstr "Άνοιγμα σαρωτή κατά την εκκίνηση του προγράμματος"
 
-#: dialog/preferences.py:71
-#, fuzzy
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
 msgstr ""
-"Αυτόματο άνοιγμα του παραθύρου σάρωσης στο παρασκήνιο κατά την εκκίνηση του "
+"Αυτόματο άνοιγμα του διαλόγου σάρωσης στο παρασκήνιο κατά την εκκίνηση του "
 "προγράμματος. Αυτό εξοικονομεί χρόνο από το κλικ στο κουμπί σάρωσης και την "
-"αναμονή του προγράμματος να βρει τη λίστα σαρωτών"
+"αναμονή του προγράμματος να βρει τη λίστα των σαρωτών"
 
-#: dialog/preferences.py:83
-#, fuzzy
+#: dialog/preferences.py:104
 msgid "Device blacklist"
 msgstr "Μαύρη λίστα συσκευών"
 
-#: dialog/preferences.py:87
-#, fuzzy
-msgid "Device blacklist (regular expression)"
-msgstr "Μαύρη λίστα συσκευών (κανονική έκφραση)"
+#: dialog/preferences.py:107
+msgid "e.g. Camera or v4l:.*"
+msgstr "π.χ. Κάμερα ή v4l:.*"
 
-#: dialog/preferences.py:95
+#: dialog/preferences.py:110
+msgid ""
+"Regular expression matched case-insensitively against the device label and "
+"backend name, e.g. Camera or v4l:.*"
+msgstr ""
+"Κανονική έκφραση που αντιστοιχίζεται χωρίς διάκριση πεζών-κεφαλαίων με την "
+"ετικέτα της συσκευής και το όνομα του backend, π.χ. Camera ή v4l:.*"
+
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
 msgstr "Κύκλωσε την λαβή SANE μετά τη σάρωση"
 
-#: dialog/preferences.py:97
-#, fuzzy
+#: dialog/preferences.py:124
 msgid "Some ADFs do not feed out the last page if this is not enabled"
 msgstr ""
-"Ορισμένα ADF δεν εξάγουν την τελευταία σελίδα εάν αυτό δεν είναι "
+"Ορισμένοι ADF δεν τροφοδοτούν την τελευταία σελίδα εάν αυτό δεν είναι "
 "ενεργοποιημένο"
 
-#: dialog/preferences.py:105
-#, fuzzy
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
-msgstr "Να επιτρέπεται η μαζική σάρωση από flatbed"
+msgstr "Να επιτρέπεται η μαζική σάρωση από την επίπεδη επιφάνεια"
 
-#: dialog/preferences.py:109
-#, fuzzy
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 msgstr ""
-"Εάν δεν οριστεί, η εναλλαγή σε σαρωτή flatbed θα περιορίσει τις # σελίδες σε "
-"1 και σε λειτουργία μονής όψης."
+"Εάν δεν έχει οριστεί, η μετάβαση σε σαρωτή επίπεδης επιφάνειας θα αναγκάσει "
+"τις # σελίδες σε 1 και λειτουργία μονής όψης."
 
-#: dialog/preferences.py:118
-#, fuzzy
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
-msgstr "Αγνόηση δυνατοτήτων διπλής όψης του σαρωτή"
+msgstr "Παράβλεψη δυνατοτήτων διπλής όψης του σαρωτή"
 
-#: dialog/preferences.py:122
-#, fuzzy
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
 msgstr ""
-"Εάν οριστεί, όλες οι δυνατότητες διπλής όψης αγνοούνται και εμφανίζονται τα "
-"στοιχεία εμπρός/πίσω όψης για χειροκίνητη εναλλαγή των σελίδων."
+"Εάν οριστεί, τυχόν δυνατότητες διπλής όψης αγνοούνται και εμφανίζονται "
+"στοιχεία ελέγχου για αντικριστές/ανάστροφες σελίδες, ώστε να επιτρέπεται η "
+"μη αυτόματη παρεμβολή σελίδων."
 
-#: dialog/preferences.py:131
-#, fuzzy
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
-msgstr "Εξαναγκασμός νέας εργασίας σάρωσης μεταξύ των σελίδων"
+msgstr "Επιβολή νέας εργασίας σάρωσης μεταξύ σελίδων"
 
-#: dialog/preferences.py:135
-#, fuzzy
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
 msgstr ""
-"Διαφορετικά, ορισμένοι σαρωτές Brother αναφέρουν έλλειψη εγγράφων, παρά τη "
-"σάρωση από flatbed."
+"Διαφορετικά, ορισμένοι σαρωτές Brother αναφέρουν εξάντληση εγγράφων, παρόλο "
+"που η σάρωση γίνεται από την επίπεδη επιφάνεια."
 
-#: dialog/preferences.py:151
-#, fuzzy
+#: dialog/preferences.py:178
 msgid "Select # pages = all on selecting ADF"
 msgstr "Επιλογή # σελίδων = όλες κατά την επιλογή ADF"
 
-#: dialog/preferences.py:155
-#, fuzzy
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
 msgstr ""
-"Εάν αυτή η επιλογή είναι ενεργοποιημένη, όταν γίνεται εναλλαγή σε "
-"source=ADF, επιλέγεται # σελίδες = όλες"
+"Εάν αυτή η επιλογή είναι ενεργοποιημένη, κατά τη μετάβαση σε source=ADF, "
+"επιλέγεται # pages = all"
 
-#: dialog/preferences.py:165
-#, fuzzy
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
 msgstr ""
-"Εάν αυτή η επιλογή είναι ενεργοποιημένη, το άνοιγμα του σαρωτή είναι "
-"ταχύτερο, καθώς το scantpaper δεν αναζητά πρώτα τις διαθέσιμες συσκευές."
+"Εάν αυτή η επιλογή είναι ενεργοποιημένη, το άνοιγμα του σαρωτή είναι πιο "
+"γρήγορο, καθώς το scantpaper δεν αναζητά πρώτα τις διαθέσιμες συσκευές."
 
-#: dialog/preferences.py:169
-#, fuzzy
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
 "Αυτό είναι αποτελεσματικό μόνο εάν τα ονόματα των συσκευών δεν αλλάζουν "
 "μεταξύ των συνεδριών."
 
-#: dialog/preferences.py:178
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
 msgstr "Ανάκτηση των ρυθμίσεων παραθύρου κατά την εκκίνηση"
 
-#: dialog/preferences.py:183
+#: dialog/preferences.py:210
 msgid "View files on saving"
 msgstr "Εμφάνιση αρχείων κατά την αποθήκευση"
 
-#: dialog/preferences.py:190
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
 msgstr "Προεπιλεγμένο όνομα αρχείου για τα PDF"
 
-#: dialog/preferences.py:194
+#: dialog/preferences.py:221
 #, fuzzy
 msgid ""
 "strftime codes, e.g.:\n"
@@ -571,713 +595,837 @@ msgstr ""
 "%Ds\tθέμα\n"
 "%Dt\tτίτλος\n"
 "\n"
-"Όλοι οι κωδικοί ημερομηνίας εγγράφου χρησιμοποιούν κωδικούς strftime με "
-"αρχικό D, π.χ.:\n"
+"Όλοι οι κωδικοί ημερομηνίας εγγράφου χρησιμοποιούν κωδικούς strftime με αρχικό D, π.χ.:\n"
 "%DY\tέτος εγγράφου\n"
 "%Dm\tμήνας εγγράφου\n"
 "%Dd\tημέρα εγγράφου\n"
 
-#: dialog/preferences.py:215
-#, fuzzy
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
-msgstr "Αντικατάσταση κενών στα ονόματα αρχείων με κάτω παύλες"
+msgstr "Αντικατάσταση κενών στα ονόματα αρχείων με υπογράμμιση"
 
-#: dialog/preferences.py:221
-#, fuzzy
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
 msgstr "Χρήση ζώνης ώρας από τις τοπικές ρυθμίσεις"
 
-#: dialog/preferences.py:226
-#, fuzzy
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
-msgstr "Προσδιορισμός ώρας καθώς και ημερομηνίας"
+msgstr "Καθορίστε την ώρα καθώς και την ημερομηνία"
 
-#: dialog/preferences.py:232
-#, fuzzy
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
 msgstr ""
 "Ορισμός χρόνων πρόσβασης και τροποποίησης στην ημερομηνία μεταδεδομένων"
 
-#: dialog/preferences.py:240
+#: dialog/preferences.py:267
 msgid "Temporary directory"
 msgstr "Προσωρινός κατάλογος"
 
-#: dialog/preferences.py:245
-msgid "Browse"
-msgstr "Εξερεύνηση"
-
-#: dialog/preferences.py:251
+#: dialog/preferences.py:279
 msgid "Select temporary directory"
 msgstr "Επιλογή προσωρινού φακέλλου"
 
-#: dialog/preferences.py:273
-#, fuzzy
-msgid "Warn if available space less than (Mb)"
-msgstr "Προειδοποίηση εάν ο διαθέσιμος χώρος είναι μικρότερος από (Mb)"
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
+#: postprocess_controls.py:717
+msgid "OK"
+msgstr "Εντάξει"
 
-#: dialog/preferences.py:279
-#, fuzzy
+#: dialog/preferences.py:304
+msgid "Warn if available space less than (Mb)"
+msgstr "Προειδοποίηση αν ο διαθέσιμος χώρος είναι μικρότερος από (Mb)"
+
+#: dialog/preferences.py:310
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
 msgstr ""
-"Προειδοποίηση εάν ο διαθέσιμος χώρος στον προσωρινό κατάλογο είναι "
-"μικρότερος από αυτή την τιμή"
+"Προειδοποίηση αν ο διαθέσιμος χώρος στον προσωρινό κατάλογο είναι μικρότερος"
+" από αυτή την τιμή"
 
-#: dialog/preferences.py:287
+#: dialog/preferences.py:318
 msgid "Blank threshold"
 msgstr "Όριο ανοχής λευκού"
 
-#: dialog/preferences.py:292
+#: dialog/preferences.py:323
 msgid "Threshold used for selecting blank pages"
 msgstr "Το όριο που χρησιμοποιείται για την επιλογή κενών σελίδων"
 
-#: dialog/preferences.py:300
+#: dialog/preferences.py:331
 msgid "Dark threshold"
 msgstr "Όριο ανοχής σκοτεινού"
 
-#: dialog/preferences.py:304
+#: dialog/preferences.py:335
 msgid "Threshold used for selecting dark pages"
 msgstr "Το όριο που χρησιμοποιείται για την επιλογή σκοτεινών σελίδων"
 
-#: dialog/preferences.py:311
+#: dialog/preferences.py:342
 msgid "OCR output"
 msgstr "Έξοδος OCR"
 
-#: dialog/preferences.py:316
+#: dialog/preferences.py:347
 msgid "Replace"
 msgstr "Αντικατάσταση"
 
-#: dialog/preferences.py:318
+#: dialog/preferences.py:349
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr ""
 "Να γίνει αντικατάσταση των περιεχομένων του buffer κειμένου, με εκείνα από "
 "τη έξοδο OCR."
 
-#: dialog/preferences.py:321
-#, fuzzy
+#: dialog/preferences.py:352
 msgid "Prepend"
-msgstr "Πρόταξη"
+msgstr "Προσθήκη στην αρχή"
 
-#: dialog/preferences.py:321
-#, fuzzy
+#: dialog/preferences.py:352
 msgid "Prepend the OCR output to the text buffer."
-msgstr "Πρόταξη της εξόδου OCR στο buffer κειμένου."
+msgstr "Προσθέστε το αποτέλεσμα OCR στην αρχή του buffer κειμένου."
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append"
 msgstr "Προσάρτηση"
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append the OCR output to the text buffer."
 msgstr "Προσάρτηση της εξόδου του OCR στο buffer κειμένου"
 
-#: dialog/preferences.py:329
-#, fuzzy
+#: dialog/preferences.py:362
 msgid "Manage user-defined tools"
-msgstr "Διαχείριση εργαλείων που ορίζει ο χρήστης"
+msgstr "Διαχείριση εργαλείων που ορίζονται από τον χρήστη"
 
-#: dialog/preferences.py:352
-#, fuzzy, python-format
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
+msgid "Add a user-defined tool"
+msgstr "Προσθήκη εργαλείου οριζόμενου από τον χρήστη"
+
+#: dialog/preferences.py:378
+msgid "Bilevel compression"
+msgstr "Διεπίπεδη συμπίεση"
+
+#: dialog/preferences.py:383
+msgid "Group 4"
+msgstr "Ομάδα 4"
+
+#: dialog/preferences.py:384
+msgid "Compress bilevel images with CCITT Group 4 encoding."
+msgstr "Συμπίεση δυαδικών εικόνων με κωδικοποίηση CCITT Group 4."
+
+#: dialog/preferences.py:391 dialog/save.py:71
+msgid "JBIG2"
+msgstr "JBIG2"
+
+#: dialog/preferences.py:392
+msgid "Compress bilevel images with JBIG2 encoding."
+msgstr "Συμπίεση δυαδικών εικόνων με κωδικοποίηση JBIG2."
+
+#: dialog/preferences.py:414
+#, python-format
 msgid ""
-"Use %i and %o for the input and output filenames respectively,\n"
-"or a single %i if the image is to be modified in-place.\n"
+"Use %%i and %%o for the input and output filenames respectively,\n"
+"or a single %%i if the image is to be modified in-place.\n"
 "\n"
 "The other variable available is:\n"
-"%r resolution"
+"%%r resolution"
 msgstr ""
-"Χρησιμοποιήστε %i και %o για τα ονόματα αρχείων εισόδου και εξόδου "
-"αντίστοιχα,\n"
-"ή μόνο %i εάν η εικόνα πρόκειται να τροποποιηθεί επί τόπου.\n"
+"Χρησιμοποιήστε τα %%i και %%o για τα ονόματα αρχείων εισόδου και εξόδου αντίστοιχα,\n"
+"ή ένα μόνο %%i εάν η εικόνα πρόκειται να τροποποιηθεί επιτόπου.\n"
 "\n"
 "Η άλλη διαθέσιμη μεταβλητή είναι:\n"
-"%r ανάλυση"
+"%%r ανάλυση"
 
-#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
 msgid "_Delete"
 msgstr "_Διαγραφή"
 
-#: dialog/preferences.py:397
+#: dialog/preferences.py:462
 #, fuzzy
 msgid "The following user-defined tools could not be found:\n"
 msgstr "Τα ακόλουθα εργαλεία που ορίζει ο χρήστης δεν βρέθηκαν:\n"
 
-#: dialog/preferences.py:400
-#, fuzzy
+#: dialog/preferences.py:465
 msgid "Please check that the command is installed and in your PATH."
-msgstr "Βεβαιωθείτε ότι η εντολή είναι εγκατεστημένη και στο PATH σας."
+msgstr ""
+"Παρακαλούμε ελέγξτε ότι η εντολή είναι εγκατεστημένη και βρίσκεται στο PATH "
+"σας."
 
-#: dialog/preferences.py:402
-#, fuzzy
+#: dialog/preferences.py:467
 msgid "User-defined tool not found"
-msgstr "Δεν βρέθηκε το εργαλείο που ορίζει ο χρήστης"
+msgstr "Το εργαλείο που ορίστηκε από τον χρήστη δεν βρέθηκε"
 
-#: dialog/sane.py:71
+#: dialog/sane.py:89
 msgid "Fetching list of devices"
 msgstr "Ανάκτηση καταλόγου συσκευών"
 
-#: dialog/sane.py:89
+#: dialog/sane.py:108 scan_menu_item_mixins.py:93
 msgid "No devices found"
 msgstr "Δε βρέθηκαν συσκευές"
 
-#: dialog/sane.py:129
+#: dialog/sane.py:152
 msgid "Opening device"
 msgstr "Γίνεται άνοιγμα συσκευής"
 
-#: dialog/sane.py:142
-#, fuzzy
+#: dialog/sane.py:166
 msgid "Error opening device: "
-msgstr "Σφάλμα κατά το άνοιγμα της συσκευής: "
+msgstr "Σφάλμα κατά το άνοιγμα της συσκευής:"
 
-#: dialog/sane.py:148 dialog/sane.py:494
-#, fuzzy
+#: dialog/sane.py:175 dialog/sane.py:539
 msgid "Retrieving options"
 msgstr "Ανάκτηση επιλογών"
 
-#: dialog/sane.py:165 dialog/sane.py:507
-#, fuzzy
+#: dialog/sane.py:195 dialog/sane.py:553
 msgid "Error retrieving scanner options: "
-msgstr "Σφάλμα κατά την ανάκτηση επιλογών σαρωτή: "
+msgstr "Σφάλμα κατά την ανάκτηση των επιλογών σαρωτή:"
 
-#: dialog/sane.py:207
+#: dialog/sane.py:245
 msgid "Scan Options"
 msgstr "Επιλογές σάρωσης"
 
-#: dialog/sane.py:290
-#, fuzzy, python-format
-msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
-msgstr "Αγνόηση επιλογής σάρωσης '%s', ελάχιστο εύρος (%s) > μέγιστο (%s)"
+#: dialog/sane.py:329
+#, python-format
+msgid ""
+"Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum "
+"(%(maximum)s)"
+msgstr ""
+"Παράβλεψη επιλογής σάρωσης '%(name)s', ελάχιστο εύρος (%(minimum)s) > "
+"μέγιστο (%(maximum)s)"
 
-#: dialog/sane.py:450
-#, fuzzy, python-format
+#: dialog/sane.py:493
+#, python-format
 msgid "Setting option %s"
-msgstr "Ορισμός επιλογής %s"
+msgstr "Ρύθμιση επιλογής %s"
 
-#: dialog/sane.py:469
-#, fuzzy
+#: dialog/sane.py:512
 msgid "Error setting option: "
-msgstr "Σφάλμα κατά τον ορισμό της επιλογής: "
+msgstr "Σφάλμα κατά τη ρύθμιση της επιλογής:"
 
-#: dialog/sane.py:531
+#: dialog/sane.py:591
 msgid "Must scan facing pages first"
 msgstr "Πρέπει να σαρωθούν πρώτα οι μπροστινές πλευρές"
 
-#: dialog/save.py:31
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
+msgid ""
+"Scanner did not deliver the requested 1-bit output; the page has been "
+"converted to black-and-white"
+msgstr ""
+"Ο σαρωτής δεν απέδωσε την ζητούμενη έξοδο 1-bit· η σελίδα έχει μετατραπεί σε"
+" ασπρόμαυρη"
+
+#: dialog/sane.py:752
+msgid ""
+"The scanner did not respond to cancel. Reconnect the scanner or choose "
+"another device."
+msgstr ""
+"Ο σαρωτής δεν ανταποκρίθηκε στην ακύρωση. Επανασυνδέστε τον σαρωτή ή "
+"επιλέξτε άλλη συσκευή."
+
+#: dialog/save.py:32
 msgid "PDF"
 msgstr "PDF"
 
-#: dialog/save.py:31
+#: dialog/save.py:32
 msgid "Portable Document Format"
 msgstr "Portable Document Format"
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "GIF"
 msgstr "GIF"
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "CompuServe graphics interchange format"
 msgstr "Πρότυπο ανταλλαγής αρχείων CompuServe graphics"
 
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+#: dialog/save.py:34 dialog/save.py:54 dialog/save.py:100
 msgid "JPEG"
 msgstr "JPEG"
 
-#: dialog/save.py:33
+#: dialog/save.py:34
 msgid "Joint Photographic Experts Group JFIF format"
 msgstr "Διαμόρφωση Joint Photographic Experts Group JFIF"
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "PNG"
 msgstr "PNG"
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "Portable Network Graphics"
 msgstr "Φορητά Δικτυακά Γραφικά (PNG)"
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "PNM"
 msgstr "PNM"
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "Portable anymap"
 msgstr "Φορητό anymap"
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "PS"
 msgstr "PS"
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "Postscript"
 msgstr "Postscript"
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "TIFF"
 msgstr "TIFF"
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "Tagged Image File Format"
 msgstr "Μορφή αρχείων εικόνας με ετικέτα (TIFF)"
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Text"
 msgstr "Κείμενο"
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Plain text"
 msgstr "Απλό κείμενο"
 
-#: dialog/save.py:39
-#, fuzzy
+#: dialog/save.py:40
 msgid "hOCR"
 msgstr "hOCR"
 
-#: dialog/save.py:39
-#, fuzzy
+#: dialog/save.py:40
 msgid "hOCR markup language"
-msgstr "Γλώσσα σήμανσης hOCR"
+msgstr "γλώσσα σήμανσης hOCR"
 
-#: dialog/save.py:40 session_mixins.py:126
+#: dialog/save.py:41 session_mixins.py:182
 msgid "Session"
 msgstr "Συνεδρία"
 
-#: dialog/save.py:40
-#, fuzzy
+#: dialog/save.py:41
 msgid "scantpaper session database"
-msgstr "Βάση δεδομένων συνεδρίας του scantpaper"
+msgstr "βάση δεδομένων συνεδρίας scantpaper"
 
-#: dialog/save.py:41
-#, fuzzy
+#: dialog/save.py:42
 msgid "Prepend to PDF"
-msgstr "Πρόταξη σε PDF"
+msgstr "Προσθήκη στην αρχή του PDF"
 
-#: dialog/save.py:41
-#, fuzzy
+#: dialog/save.py:42
 msgid "Prepend to an existing PDF"
-msgstr "Πρόταξη σε υπάρχον PDF"
-
-#: dialog/save.py:42
-#, fuzzy
-msgid "Append to PDF"
-msgstr "Προσάρτηση σε PDF"
-
-#: dialog/save.py:42
-#, fuzzy
-msgid "Append to an existing PDF"
-msgstr "Προσάρτηση σε υπάρχον PDF"
+msgstr "Προσθήκη στην αρχή υπάρχοντος PDF"
 
 #: dialog/save.py:43
+msgid "Append to PDF"
+msgstr "Προσθήκη σε PDF"
+
+#: dialog/save.py:43
+msgid "Append to an existing PDF"
+msgstr "Προσθήκη σε υπάρχον PDF"
+
+#: dialog/save.py:44
 msgid "DjVu"
 msgstr "DjVu"
 
-#: dialog/save.py:43
+#: dialog/save.py:44
 msgid "Deja Vu"
 msgstr "Deja Vu"
 
-#: dialog/save.py:48
+#: dialog/save.py:49 tesseract.py:197
 msgid "Automatic"
 msgstr "Αυτόματα"
 
-#: dialog/save.py:49
+#: dialog/save.py:50
 msgid "Let scantpaper which type of compression to use."
 msgstr ""
 "Αφήστε το scantpaper να επιλέξει ποιο είδος συμπίεσης να χρησιμοποιηθεί."
 
-#: dialog/save.py:51 dialog/save.py:76
-msgid "LZW"
-msgstr "LZW"
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση Lempel-Ziv & Welch"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "G3"
-msgstr "G3"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 3"
-
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "G4"
 msgstr "G4"
 
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "Compress output with CCITT Group 4 encoding."
 msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 4"
 
-#: dialog/save.py:54
-#, fuzzy
+#: dialog/save.py:53
 msgid "Flate"
 msgstr "Flate"
 
-#: dialog/save.py:54
-#, fuzzy
+#: dialog/save.py:53
 msgid "Compress output with flate encoding."
 msgstr "Συμπίεση εξόδου με κωδικοποίηση flate."
 
-#: dialog/save.py:55
-#, fuzzy
+#: dialog/save.py:54
 msgid "Compress output with JPEG (DCT) encoding."
 msgstr "Συμπίεση εξόδου με κωδικοποίηση JPEG (DCT)."
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "None"
-msgstr "Τίποτα"
+#: dialog/save.py:55
+msgid "JPEG 2000"
+msgstr "JPEG 2000"
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "Use no compression algorithm on output."
-msgstr "Κανένας αλγόριθμος συμπίεσης στο εξαγώγιμο"
+#: dialog/save.py:55
+msgid "Compress output with JPEG 2000 encoding."
+msgstr "Συμπίεση εξόδου με κωδικοποίηση JPEG 2000."
 
-#: dialog/save.py:61
-#, fuzzy
+#: dialog/save.py:71
+msgid "Compress output with JBIG2 encoding."
+msgstr "Συμπίεση εξόδου με κωδικοποίηση JBIG2."
+
+#: dialog/save.py:79
 msgid "LibTIFF"
 msgstr "LibTIFF"
 
-#: dialog/save.py:62
-#, fuzzy
+#: dialog/save.py:80
 msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
-msgstr "Χρήση LibTIFF (tiff2ps) για τη δημιουργία αρχείων Postscript από TIFF."
+msgstr ""
+"Χρησιμοποιήστε το LibTIFF (tiff2ps) για να δημιουργήσετε αρχεία Postscript "
+"από TIFF."
 
-#: dialog/save.py:66
-#, fuzzy
+#: dialog/save.py:84
 msgid "Ghostscript"
 msgstr "Ghostscript"
 
-#: dialog/save.py:67
-#, fuzzy
+#: dialog/save.py:85
 msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
 msgstr ""
-"Χρήση Ghostscript (pdf2ps) για τη δημιουργία αρχείων Postscript από PDF."
+"Χρησιμοποιήστε το Ghostscript (pdf2ps) για να δημιουργήσετε αρχεία "
+"Postscript από PDF."
 
-#: dialog/save.py:71
-#, fuzzy
+#: dialog/save.py:89
 msgid "Poppler"
 msgstr "Poppler"
 
-#: dialog/save.py:72
-#, fuzzy
+#: dialog/save.py:90
 msgid "Use Poppler (pdftops) to create Postscript files from PDF."
-msgstr "Χρήση Poppler (pdftops) για τη δημιουργία αρχείων Postscript από PDF."
+msgstr ""
+"Χρησιμοποιήστε το Poppler (pdftops) για να δημιουργήσετε αρχεία Postscript "
+"από PDF."
 
-#: dialog/save.py:79
+#: dialog/save.py:94
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:94
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση Lempel-Ziv & Welch"
+
+#: dialog/save.py:97
 msgid "Zip"
 msgstr "Zip"
 
-#: dialog/save.py:80
+#: dialog/save.py:98
 msgid "Compress output with deflate encoding."
 msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση deflate"
 
-#: dialog/save.py:82
+#: dialog/save.py:100
 msgid "Compress output with JPEG encoding."
 msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση JPEG"
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Packbits"
 msgstr "Ψηφίδες"
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Compress output with Packbits encoding."
 msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση Packbits"
 
-#: dialog/save.py:360
-#, fuzzy
+#: dialog/save.py:102
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:102
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "Συμπίεση εξαγώγιμου με κωδικοποίηση CCITT Group 3"
+
+#: dialog/save.py:104 postprocess_controls.py:644 postprocess_controls.py:906
+msgid "None"
+msgstr "Τίποτα"
+
+#: dialog/save.py:104
+msgid "Use no compression algorithm on output."
+msgstr "Κανένας αλγόριθμος συμπίεσης στο εξαγώγιμο"
+
+#: dialog/save.py:374
 msgid "Document Metadata"
 msgstr "Μεταδεδομένα εγγράφου"
 
-#: dialog/save.py:374
-#, fuzzy
+#: dialog/save.py:385
 msgid "Date/Time"
 msgstr "Ημερομηνία/Ώρα"
 
-#: dialog/save.py:387 dialog/save.py:572
-#, fuzzy
+#: dialog/save.py:397 dialog/save.py:591
 msgid "Now"
 msgstr "Τώρα"
 
-#: dialog/save.py:388 dialog/save.py:573
-#, fuzzy
+#: dialog/save.py:398 dialog/save.py:592
 msgid "Use current date and time"
 msgstr "Χρήση τρέχουσας ημερομηνίας και ώρας"
 
-#: dialog/save.py:393
-#, fuzzy
+#: dialog/save.py:405
 msgid "Specify"
-msgstr "Προσδιορισμός"
+msgstr "Προσδιορίστε"
 
-#: dialog/save.py:395
-#, fuzzy
+#: dialog/save.py:407
 msgid "Specify date and time"
-msgstr "Προσδιορισμός ημερομηνίας και ώρας"
+msgstr "Καθορίστε ημερομηνία και ώρα"
 
-#: dialog/save.py:403
+#: dialog/save.py:415
 msgid "Year-Month-Day"
 msgstr "Έτος-Μήνας-Μέρα"
 
-#: dialog/save.py:413
-#, fuzzy
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
 msgid "Select date with calendar"
-msgstr "Επιλογή ημερομηνίας με ημερολόγιο"
+msgstr "Επιλέξτε ημερομηνία με ημερολόγιο"
 
-#: dialog/save.py:459
+#: dialog/save.py:467
 msgid "Select Date"
 msgstr "Επιλογή Ημερομηνίας"
 
-#: dialog/save.py:489 dialog/save.py:579
+#: dialog/save.py:509 dialog/save.py:598
 msgid "Today"
 msgstr "Σήμερα"
 
-#: dialog/save.py:545
+#: dialog/save.py:565
 msgid "Title"
 msgstr "Τίτλος"
 
-#: dialog/save.py:546
-#, fuzzy
+#: dialog/save.py:566
 msgid "Author"
 msgstr "Συγγραφέας"
 
-#: dialog/save.py:547
+#: dialog/save.py:567
 msgid "Subject"
 msgstr "Θέμα"
 
-#: dialog/save.py:548
+#: dialog/save.py:568
 msgid "Keywords"
 msgstr "Λέξεις κλεδιά"
 
-#: dialog/save.py:580
-#, fuzzy
+#: dialog/save.py:599
 msgid "Use today's date"
-msgstr "Χρήση σημερινής ημερομηνίας"
+msgstr "Χρήση της σημερινής ημερομηνίας"
 
-#: dialog/save.py:590
-#, fuzzy
+#: dialog/save.py:609
 msgid "Document type"
 msgstr "Τύπος εγγράφου"
 
-#: dialog/save.py:598
-#, fuzzy
+#: dialog/save.py:618
 msgid "Postscript backend"
 msgstr "Υποσύστημα Postscript"
 
-#: dialog/save.py:614 dialog/save.py:754
+#: dialog/save.py:635 dialog/save.py:776
 msgid "Compression"
 msgstr "Συμπίεση"
 
-#: dialog/save.py:735
-msgid "JPEG Quality"
-msgstr "Ποιότητα JPEG"
+#: dialog/save.py:754
+msgid "Quality"
+msgstr "Ποιότητα"
 
-#: dialog/save.py:769
-#, fuzzy
+#: dialog/save.py:791
 msgid "Encrypt PDF"
 msgstr "Κρυπτογράφηση PDF"
 
-#: dialog/save.py:785
+#: dialog/save.py:808
 msgid "Downsample to"
 msgstr "Μείωση ανάλυσης σε"
 
-#: dialog/save.py:789 dialog/scan.py:660
-#, fuzzy
+#: dialog/save.py:812 dialog/scan.py:770
 msgid "ppi"
 msgstr "ppi"
 
-#: dialog/save.py:819
-#, fuzzy
+#: dialog/save.py:841
 msgid "Set password"
 msgstr "Ορισμός κωδικού πρόσβασης"
 
-#: dialog/save.py:827
-#, fuzzy
+#: dialog/save.py:850
 msgid "User password"
 msgstr "Κωδικός πρόσβασης χρήστη"
 
-#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
-#: dialog/scan.py:933
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
 msgid "Manual"
 msgstr "Χειροκίνητα"
 
-#: dialog/scan.py:446
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
 msgid "Scan profiles"
 msgstr "Προφίλ σάρωσης"
 
-#: dialog/scan.py:500
-msgid "Scan"
-msgstr "Σάρωση"
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
+msgid "Save"
+msgstr "Αποθήκευση"
 
-#: dialog/scan.py:514
-msgid "Device"
-msgstr "Συσκευή"
-
-#: dialog/scan.py:552
-msgid "Sets the device to be used for the scan"
-msgstr "Ορίζεται η συσκευή σάρωσης που θα χρησιμοποιηθεί"
-
-#: dialog/scan.py:599
-#, fuzzy, python-format
-msgid "Error: unknown device: %s"
-msgstr "Σφάλμα: άγνωστη συσκευή: %s"
-
-#: dialog/scan.py:657
-#, fuzzy
-msgid "pel"
-msgstr "pel"
-
-#: dialog/scan.py:658
-#, fuzzy
-msgid "bit"
-msgstr "bit"
-
-#: dialog/scan.py:659
-#, fuzzy
-msgid "mm"
-msgstr "mm"
-
-#: dialog/scan.py:662
-#, fuzzy
-msgid "μs"
-msgstr "μs"
-
-#: dialog/scan.py:686
-msgid "Paper size"
-msgstr "Μέγεθος σελίδας"
-
-#: dialog/scan.py:690 dialog/scan.py:707
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:118
 msgid "Edit"
 msgstr "Επεξεργασία"
 
-#: dialog/scan.py:691
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
+msgid "Delete"
+msgstr "Διαγραφή"
+
+#: dialog/scan.py:503
+msgid "Scan"
+msgstr "Σάρωση"
+
+#: dialog/scan.py:531
+msgid "Device"
+msgstr "Συσκευή"
+
+#: dialog/scan.py:559
+msgid "Sets the device to be used for the scan"
+msgstr "Ορίζεται η συσκευή σάρωσης που θα χρησιμοποιηθεί"
+
+#: dialog/scan.py:562
+msgid "Blacklist this device"
+msgstr "Προσθήκη αυτής της συσκευής στη μαύρη λίστα"
+
+#: dialog/scan.py:564
+msgid "Hide the selected device from the device list"
+msgstr "Απόκρυψη της επιλεγμένης συσκευής από τη λίστα συσκευών"
+
+#: dialog/scan.py:705
+#, python-format
+msgid "Error: unknown device: %s"
+msgstr "Σφάλμα: άγνωστη συσκευή: %s"
+
+#: dialog/scan.py:767
+msgid "pel"
+msgstr "pel"
+
+#: dialog/scan.py:768
+msgid "bit"
+msgstr "bit"
+
+#: dialog/scan.py:769
+msgid "mm"
+msgstr "mm"
+
+#: dialog/scan.py:772
+msgid "μs"
+msgstr "μs"
+
+#: dialog/scan.py:796
+msgid "Paper size"
+msgstr "Μέγεθος σελίδας"
+
+#: dialog/scan.py:801
 msgid "Selects or edits the paper size"
 msgstr "Επιλέγει ή επεξεργάζεται το μέγεθος σελίδας"
 
-#: dialog/scan.py:770
-#, fuzzy, python-format
+#: dialog/scan.py:880
+#, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
-"file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
+"%(options)d scan options. Please file a bug, attaching a log file "
+"reproducing the problem."
 msgstr ""
-"Υπέρβαση ορίου αναδρομής επαναφόρτωσης (%d): %d επαναφορτώσεις για %d "
-"επιλογές σάρωσης. Παρακαλούμε αναφέρετε το σφάλμα, επισυνάπτοντας ένα αρχείο "
-"καταγραφής που αναπαράγει το πρόβλημα."
+"Ξεπεράστηκε το όριο αναδρομής επαναφόρτωσης (%(limit)d): %(reloads)d "
+"επαναφορτώσεις για %(options)d επιλογές σάρωσης. Παρακαλούμε υποβάλετε μια "
+"αναφορά σφάλματος, επισυνάπτοντας ένα αρχείο καταγραφής που αναπαράγει το "
+"πρόβλημα."
 
-#: dialog/scan.py:1024
+#: dialog/scan.py:1138
 msgid "Edit paper size"
 msgstr "Επεξεργασία μεγέθους σελίδας"
 
-#: dialog/scan.py:1051
-#, fuzzy
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
+msgid "Add a paper size"
+msgstr "Προσθήκη μεγέθους χαρτιού"
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
+msgid "Remove the selected paper size"
+msgstr "Κατάργηση του επιλεγμένου μεγέθους χαρτιού"
+
+#: dialog/scan.py:1167
 msgid "Apply"
 msgstr "Εφαρμογή"
 
-#: dialog/scan.py:1069
+#: dialog/scan.py:1185
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr ""
 "Τα ακόλουθα μεγέθη σελίδας είναι πολύ μεγάλα για σάρωση από την επιλεγμένη "
 "συσκευή:"
 
-#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-#, fuzzy
-msgid "Cancel"
-msgstr "Άκυρο"
-
-#: dialog/scan.py:1563 dialog/scan.py:1571
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
 msgid "Name of scan profile"
 msgstr "Όνομα του προφίλ σάρωσης"
 
-#: dialog/scan.py:1585
-#, fuzzy, python-format
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
+#, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "Το προφίλ '%s' υπάρχει. Αντικατάσταση;"
 
-#: dialog/scan.py:1592 dialog/scan.py:1634
-#, fuzzy
-msgid "OK"
-msgstr "OK"
-
-#: dialog/scan.py:1621
-#, fuzzy
+#: dialog/scan.py:1756
 msgid "Editing current scan options"
 msgstr "Επεξεργασία τρεχουσών επιλογών σάρωσης"
 
-#: dialog/scan.py:1625
-#, fuzzy, python-format
+#: dialog/scan.py:1760
+#, python-format
 msgid "Editing scan profile \"%s\""
 msgstr "Επεξεργασία προφίλ σάρωσης \"%s\""
 
-#: dialog/scan.py:1686
-#, fuzzy
+#: dialog/scan.py:1822
 msgid "Backend options"
-msgstr "Επιλογές υποσυστήματος"
+msgstr "Επιλογές backend"
 
-#: dialog/scan.py:1687
-#, fuzzy
+#: dialog/scan.py:1823
 msgid "Frontend options"
-msgstr "Επιλογές διεπαφής"
+msgstr "Επιλογές frontend"
 
-#: dialog/scan.py:1752
-#, fuzzy, python-format
-msgid "Scanning page %d of %d"
-msgstr "Σάρωση σελίδας %d από %d"
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
+#, python-format
+msgid "Remove %(option)s from the profile"
+msgstr "Κατάργηση του %(option)s από το προφίλ"
 
-#: dialog/scan.py:1753
-#, fuzzy, python-format
-msgid "Scanning page %d"
-msgstr "Σάρωση σελίδας %d"
+#: dialog/scan.py:1890
+#, python-format
+msgid "Scanning page %(current)d of %(total)d"
+msgstr "Σάρωση σελίδας %(current)d από %(total)d"
 
-#: docthread.py:1167
-#, fuzzy, python-format
-msgid "Analysing page %i of %i"
-msgstr "Ανάλυση σελίδας %i από %i"
+#: dialog/scan.py:1894
+#, python-format
+msgid "Scanning page %(current)d"
+msgstr "Σάρωση σελίδας %(current)d"
 
-#: docthread.py:1461
-#, fuzzy
+#: dialog/tesseractparams.py:45
+msgid "Tesseract parameters"
+msgstr "Παράμετροι Tesseract"
+
+#: dialog/tesseractparams.py:56
+msgid "Filter parameters"
+msgstr "Παράμετροι φίλτρου"
+
+#: dialog/tesseractparams.py:70 postprocess_controls.py:697 tesseract.py:213
+msgid "Default"
+msgstr "Προεπιλογή"
+
+#: dialog/tesseractparams.py:71
+msgid "Description"
+msgstr "Περιγραφή"
+
+#: dialog/tesseractparams.py:96
+msgid "_Insert"
+msgstr "_Εισαγωγή"
+
+#: dialog/tesseractparams.py:110
+msgid ""
+"The Tesseract parameter list is unavailable. OCR can still run with the "
+"parameters already entered."
+msgstr ""
+"Η λίστα παραμέτρων του Tesseract δεν είναι διαθέσιμη. Το OCR μπορεί να "
+"εκτελεστεί ακόμη με τις παραμέτρους που έχουν ήδη εισαχθεί."
+
+#: dialog/tesseractparams.py:127
+#, python-format
+msgid "Set by the %(control)s control"
+msgstr "Ορίζεται από το στοιχείο ελέγχου %(control)s"
+
+#: dialog/tesseractparams.py:147
+msgid "No parameters match"
+msgstr "Καμία παράμετρος δεν αντιστοιχεί"
+
+#: docthread.py:1285
+#, python-format
+msgid "Error reading hOCR file %(path)s: %(error)s"
+msgstr "Σφάλμα κατά την ανάγνωση του αρχείου hOCR %(path)s: %(error)s"
+
+#: docthread.py:1293
+#, python-format
+msgid "Error parsing hOCR file %(path)s: %(error)s"
+msgstr "Σφάλμα κατά την ανάλυση του αρχείου hOCR %(path)s: %(error)s"
+
+#: docthread.py:1299
+msgid "The file contains no hOCR pages."
+msgstr "Το αρχείο δεν περιέχει σελίδες hOCR."
+
+#: docthread.py:1312
+#, python-format
+msgid ""
+"The hOCR file contains %(found)i pages, but %(expected)i pages are selected."
+msgstr ""
+"Το αρχείο hOCR περιέχει %(found)i σελίδες, αλλά έχουν επιλεγεί %(expected)i "
+"σελίδες."
+
+#: docthread.py:1322
+#, python-format
+msgid "Checking hOCR page %(current)i of %(total)i"
+msgstr "Έλεγχος της σελίδας hOCR %(current)i από %(total)i"
+
+#: docthread.py:1330
+#, python-format
+msgid "The hOCR page for page %(page)i has no page box."
+msgstr "Η σελίδα hOCR για τη σελίδα %(page)i δεν έχει πλαίσιο σελίδας."
+
+#: docthread.py:1342
+#, python-format
+msgid ""
+"The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the"
+" page is %(width)ix%(height)i."
+msgstr ""
+"Η σελίδα hOCR για τη σελίδα %(page)i είναι %(found_width)ix%(found_height)i,"
+" αλλά η σελίδα είναι %(width)ix%(height)i."
+
+#: docthread.py:1366
+msgid "No pages selected for hOCR import."
+msgstr "Δεν έχουν επιλεγεί σελίδες για εισαγωγή hOCR."
+
+#: docthread.py:1385
+#, python-format
+msgid "Importing hOCR page %(current)i of %(total)i"
+msgstr "Εισαγωγή σελίδας hOCR %(current)i από %(total)i"
+
+#: docthread.py:1526
+#, python-format
+msgid "Analysing page %(current)i of %(total)i"
+msgstr "Ανάλυση σελίδας %(current)i από %(total)i"
+
+#: docthread.py:1800
 msgid "No tesseract language specified"
-msgstr "Δεν καθορίστηκε γλώσσα tesseract"
+msgstr "Δεν έχει καθοριστεί γλώσσα tesseract"
 
-#: docthread.py:1470
-#, fuzzy
-msgid "tessdata directory not found"
-msgstr "Δεν βρέθηκε ο κατάλογος tessdata"
+#: docthread.py:1832
+#, python-format
+msgid "Failed to initialise OCR with the %(mode)s engine mode: %(error)s"
+msgstr ""
+"Αποτυχία αρχικοποίησης του OCR με τη λειτουργία μηχανής %(mode)s: %(error)s"
+
+#: docthread.py:1844 postprocess_controls.py:605
+#, python-format
+msgid "Unknown Tesseract option: %(variable)s"
+msgstr "Άγνωστη επιλογή Tesseract: %(variable)s"
 
 #: document.py:111
-#, fuzzy
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr ""
-"Σφάλμα: δεν είναι δυνατό να ανοίξετε ένα αρχείο συνεδρίας ταυτόχρονα με άλλο "
+"Σφάλμα: δεν είναι δυνατό το άνοιγμα αρχείου συνεδρίας ταυτόχρονα με άλλο "
 "αρχείο."
 
 #: document.py:127
-#, fuzzy
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr "Σφάλμα: εισαγωγή αρχείου πολλαπλών σελίδων ταυτόχρονα με άλλο αρχείο."
 
-#: edit_menu_mixins.py:60
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
 msgstr "Ιδιότητες"
 
-#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
-#, fuzzy
+#: edit_menu_mixins.py:72 edit_menu_mixins.py:82
 msgid "dpi"
 msgstr "dpi"
 
-#: edit_menu_mixins.py:362
-#, fuzzy
+#: edit_menu_mixins.py:377
 msgid "Invalid regex. Try without special characters such as '*'"
 msgstr ""
-"Μη έγκυρη κανονική έκφραση. Δοκιμάστε χωρίς ειδικούς χαρακτήρες όπως το '*'"
+"Μη έγκυρη κανονική έκφραση. Δοκιμάστε χωρίς ειδικούς χαρακτήρες όπως '*'"
 
-#: edit_menu_mixins.py:394
-#, fuzzy
+#: edit_menu_mixins.py:409
 msgid "Changes will only take effect after restarting scantpaper."
 msgstr ""
 "Οι αλλαγές θα τεθούν σε ισχύ μόνο μετά την επανεκκίνηση του scantpaper."
 
-#: edit_menu_mixins.py:396
-#, fuzzy
+#: edit_menu_mixins.py:411
 msgid "Restart scantpaper now?"
 msgstr "Επανεκκίνηση του scantpaper τώρα;"
 
-#: file_menu_mixins.py:104
+#: file_menu_mixins.py:87
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
@@ -1285,133 +1433,129 @@ msgstr ""
 "Ορισμένες σελίδες δεν αποθηκεύθηκαν.\n"
 "Θέλετε πραγματικά να καθαρίσετε όλες τις σελίδες;"
 
-#: file_menu_mixins.py:129
+#: file_menu_mixins.py:112
 msgid "Open image"
 msgstr "Άνοιγμα εικόνας"
 
-#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
 msgstr "Αρχεία εικόνων"
 
-#: file_menu_mixins.py:180
+#: file_menu_mixins.py:164
 msgid "Pages to extract"
 msgstr "Σελίδες για εξαγωγή"
 
-#: file_menu_mixins.py:194
+#: file_menu_mixins.py:181
 msgid "First page to extract"
 msgstr "Πρώτη σελίδα για εξαγωγή"
 
-#: file_menu_mixins.py:200
+#: file_menu_mixins.py:188
 msgid "Last page to extract"
 msgstr "Τελευταία σελίδα προς εξαγωγή"
 
-#: file_menu_mixins.py:214
-#, fuzzy, python-format
+#: file_menu_mixins.py:201
+#, python-format
 msgid "Enter user password for PDF %s"
 msgstr "Εισαγάγετε τον κωδικό πρόσβασης χρήστη για το PDF %s"
 
-#: file_menu_mixins.py:281
-#, fuzzy
-msgid "Open crashed session"
-msgstr "Άνοιγμα συνεδρίας που κατέρρευσε"
+#: file_menu_mixins.py:268
+msgid "Import hOCR"
+msgstr "Εισαγωγή hOCR"
 
-#: file_menu_mixins.py:336
-msgid "Save"
-msgstr "Αποθήκευση"
-
-#: file_menu_mixins.py:367
-#, fuzzy
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
-msgstr "Ενέργεια μετά την αποθήκευση"
+msgstr "Hook μετά την αποθήκευση"
 
-#: file_menu_mixins.py:370
-#, fuzzy, python-format
+#: file_menu_mixins.py:377
+#, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
 msgstr ""
-"Εκτέλεση εντολής στο αποθηκευμένο αρχείο. Οι διαθέσιμες εντολές είναι εκείνα "
-"τα εργαλεία που ορίζει ο χρήστης και δεν καθορίζουν %o"
+"Εκτέλεση εντολής σε αποθηκευμένο αρχείο. Οι διαθέσιμες εντολές είναι εκείνα "
+"τα εργαλεία που ορίζονται από τον χρήστη και δεν καθορίζουν %o"
 
-#: file_menu_mixins.py:392 file_menu_mixins.py:393
-#, fuzzy
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
-msgstr "Κλείσιμο παραθύρου κατά την αποθήκευση"
+msgstr "Κλείσιμο παραθύρου διαλόγου κατά την αποθήκευση"
 
-#: file_menu_mixins.py:465
+#: file_menu_mixins.py:407 menu.ui:24
+msgid "_Save"
+msgstr "_Αποθήκευση"
+
+#: file_menu_mixins.py:471
 msgid "PDF filename"
 msgstr "Όνομα αρχείου PDF"
 
-#: file_menu_mixins.py:466
+#: file_menu_mixins.py:472
 msgid "PDF files"
 msgstr "Αρχεία PDF"
 
-#: file_menu_mixins.py:469
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
 msgstr "Όνομα αρχείου DjVu"
 
-#: file_menu_mixins.py:470
+#: file_menu_mixins.py:476
 msgid "DjVu files"
 msgstr "Αρχεία DjVu"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
 msgstr "Όνομα αρχείου TIFF"
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:483
 msgid "Text filename"
 msgstr "Όνομα αρχείου κειμένου"
 
-#: file_menu_mixins.py:478
+#: file_menu_mixins.py:484
 msgid "Text files"
 msgstr "Αρχεία κειμένου"
 
-#: file_menu_mixins.py:481
-#, fuzzy
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
 msgstr "Όνομα αρχείου hOCR"
 
-#: file_menu_mixins.py:482
-#, fuzzy
-msgid "hOCR files"
-msgstr "Αρχεία hOCR"
-
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:491
 msgid "PS filename"
 msgstr "Όνομα PS αρχείου"
 
-#: file_menu_mixins.py:486
+#: file_menu_mixins.py:492
 msgid "Postscript files"
 msgstr "Αρχεία Postscript"
 
-#: file_menu_mixins.py:489
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
 msgstr "Όνομα αρχείου συνεδρίας του scantpaper"
 
-#: file_menu_mixins.py:490
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
 msgstr "Αρχεία συνεδρίας του scantpaper"
 
-#: file_menu_mixins.py:601
-#, fuzzy, python-format
+#: file_menu_mixins.py:604
+#, python-format
+msgid "Error saving %(filename)s: %(error)s"
+msgstr "Σφάλμα κατά την αποθήκευση του %(filename)s: %(error)s"
+
+#: file_menu_mixins.py:619
+#, python-format
 msgid "Directory %s is read-only"
 msgstr "Ο κατάλογος %s είναι μόνο για ανάγνωση"
 
-#: file_menu_mixins.py:611
+#: file_menu_mixins.py:629
 #, python-format
 msgid "File %s is read-only"
 msgstr "Το αρχείο %s είναι μόνο για ανάγνωση"
 
-#: file_menu_mixins.py:802
+#: file_menu_mixins.py:821
 msgid "Image filename"
 msgstr "Όνομα αρχείου εικόνας"
 
-#: file_menu_mixins.py:862
-#, fuzzy, python-format
+#: file_menu_mixins.py:881
+#, python-format
 msgid "This operation would overwrite %s"
-msgstr "Αυτή η λειτουργία θα αντικαθιστούσε το %s"
+msgstr "Αυτή η λειτουργία θα αντικαταστήσει το %s"
 
-#: file_menu_mixins.py:945
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
@@ -1419,46 +1563,47 @@ msgstr ""
 "Κάποιες σελίδες δεν έχουν αποθηκευτεί.\n"
 "Θέλετε πράγματι να εγκαταλείψετε;"
 
-#: importthread.py:86
-#, fuzzy, python-format
+#: importthread.py:100
+#, python-format
 msgid "File %s not found"
 msgstr "Το αρχείο %s δεν βρέθηκε"
 
-#: importthread.py:92
-#, fuzzy, python-format
-msgid "Error getting file info for %s: %s"
-msgstr "Σφάλμα κατά τη λήψη πληροφοριών αρχείου για το %s: %s"
+#: importthread.py:106
+#, python-format
+msgid "Error getting file info for %(path)s: %(error)s"
+msgstr "Σφάλμα κατά τη λήψη πληροφοριών αρχείου για το %(path)s: %(error)s"
 
-#: importthread.py:97
-#, fuzzy, python-format
+#: importthread.py:112
+#, python-format
 msgid "Error importing zero-length file %s."
-msgstr "Σφάλμα εισαγωγής αρχείου μηδενικού μεγέθους %s."
+msgstr "Σφάλμα κατά την εισαγωγή αρχείου μηδενικού μήκους %s."
 
-#: importthread.py:135 importthread.py:178
-#, fuzzy, python-format
+#: importthread.py:150 importthread.py:193
+#, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
-msgstr "Εγκαταστήστε το djvulibre-bin για να ανοίγετε αρχεία DjVu: %s"
+msgstr ""
+"Παρακαλώ εγκαταστήστε το djvulibre-bin για να ανοίξετε αρχεία DjVu: %s"
 
-#: importthread.py:166
+#: importthread.py:181
 msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "Άγνωστη δομή αρχείου DjVu . Παρακαλώ, επικοινωνήστε με τον συγγραφέα."
 
-#: importthread.py:266
-#, fuzzy, python-format
-msgid "Please install libtiff-tools in order to open TIFF files: %s"
-msgstr "Εγκαταστήστε το libtiff-tools για να ανοίγετε αρχεία TIFF: %s"
-
-#: importthread.py:328 importthread.py:388
+#: importthread.py:281
 #, python-format
-msgid "Importing page %i of %i"
-msgstr "Εισαγωγή σελίδας %i του %i"
+msgid "Please install libtiff-tools in order to open TIFF files: %s"
+msgstr ""
+"Παρακαλώ εγκαταστήστε το libtiff-tools για να ανοίξετε αρχεία TIFF: %s"
 
-#: importthread.py:509
+#: importthread.py:343 importthread.py:403
+#, python-format
+msgid "Importing page %(current)i of %(total)i"
+msgstr "Εισαγωγή σελίδας %(current)i από %(total)i"
+
+#: importthread.py:524
 msgid "Error extracting images from PDF"
 msgstr "Σημειώθηκε σφάλμα κατά την εξαγωγή εικόνων από το PDF"
 
-#: importthread.py:521
-#, fuzzy
+#: importthread.py:536
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
@@ -1466,634 +1611,918 @@ msgid ""
 "Save dialogue."
 msgstr ""
 "Προειδοποίηση: το scantpaper αναμένει μία εικόνα ανά σελίδα, αλλά αυτό δεν "
-"ικανοποιήθηκε. Είναι πιθανό το PDF να μην έχει εισαχθεί σωστά. Εάν θέλετε να "
-"προσθέσετε σαρώσεις σε υπάρχον PDF, χρησιμοποιήστε τις επιλογές πρόταξης/"
-"προσάρτησης σε PDF στο παράθυρο Αποθήκευση."
+"ικανοποιήθηκε. Είναι πιθανό το PDF να μην έχει εισαχθεί σωστά. Εάν θέλετε να"
+" προσθέσετε σαρώσεις σε ένα υπάρχον PDF, χρησιμοποιήστε τις επιλογές "
+"προσθήκης στην αρχή/στο τέλος του PDF στο παράθυρο διαλόγου Αποθήκευση."
 
-#: importthread.py:560
-#, fuzzy
+#: importthread.py:575
 msgid "Error importing PDF"
 msgstr "Σφάλμα εισαγωγής PDF"
 
-#: importthread.py:587
-#, fuzzy
+#: importthread.py:602
 msgid "Error extracting text layer from PDF"
-msgstr "Σφάλμα εξαγωγής στρώματος κειμένου από PDF"
+msgstr "Σφάλμα κατά την εξαγωγή του επιπέδου κειμένου από το PDF"
 
-#: pagerange.py:46
+#: layer.py:45
+msgid "Sort by confidence"
+msgstr "Ταξινόμηση κατά βαθμό βεβαιότητας"
+
+#: layer.py:46
+msgid "Sort OCR text boxes by confidence."
+msgstr "Ταξινόμηση πλαισίων κειμένου OCR κατά βαθμό βεβαιότητας."
+
+#: layer.py:48
+msgid "Sort by position"
+msgstr "Ταξινόμηση κατά θέση"
+
+#: layer.py:48
+msgid "Sort OCR text boxes by position."
+msgstr "Ταξινόμηση των πλαισίων κειμένου OCR κατά θέση."
+
+#: layer.py:62
+msgid "my-new-word"
+msgstr "my-new-word"
+
+#: layer.py:63
+msgid "my-new-annotation"
+msgstr "νέα-επισήμανσή-μου"
+
+#: layer.py:207
+msgid "Go to least confident text"
+msgstr "Μετάβαση στο κείμενο με τη μικρότερη βεβαιότητα"
+
+#: layer.py:212
+msgid "Go to previous text"
+msgstr "Μετάβαση στο προηγούμενο κείμενο"
+
+#: layer.py:217
+msgid "Select sort method for OCR boxes"
+msgstr "Επιλέξτε μέθοδο ταξινόμησης για τα πλαίσια OCR"
+
+#: layer.py:228
+msgid "Go to next text"
+msgstr "Μετάβαση στο επόμενο κείμενο"
+
+#: layer.py:232
+msgid "Go to most confident text"
+msgstr "Μετάβαση στο κείμενο με τη μεγαλύτερη βεβαιότητα"
+
+#: layer.py:238 layer.py:396
+msgid "Add text"
+msgstr "Προσθήκη κειμένου"
+
+#: layer.py:246
+msgid "Rotate text clockwise"
+msgstr "Περιστροφή κειμένου δεξιόστροφα"
+
+#: layer.py:251
+msgid "Rotate text anticlockwise"
+msgstr "Περιστροφή κειμένου αριστερόστροφα"
+
+#: layer.py:256
+msgid "Accept corrections"
+msgstr "Αποδοχή διορθώσεων"
+
+#: layer.py:259
+msgid "Cancel corrections"
+msgstr "Ακύρωση διορθώσεων"
+
+#: layer.py:264 app.ui:287 menu.ui:61
+msgid "_Copy"
+msgstr "Αντι_γραφή"
+
+#: layer.py:264
+msgid "Duplicate text"
+msgstr "Δημιουργία αντιγράφου κειμένου"
+
+#: layer.py:267
+msgid "Delete text"
+msgstr "Διαγραφή κειμένου"
+
+#: layer.py:317
+msgid "Focus zoom"
+msgstr "Ζουμ εστίασης"
+
+#: layer.py:335
+msgid "Reset"
+msgstr "Επαναφορά"
+
+#: layer.py:362
+#, python-format
+msgid "Focus zoom: %(percent)d%%"
+msgstr "Ζουμ εστίασης: %(percent)d%%"
+
+#: layer.py:399
+msgid "Draw or select a rectangle before adding"
+msgstr "Σχεδιάστε ή επιλέξτε ένα ορθογώνιο πριν προσθέσετε"
+
+#: pagerange.py:47
 msgid "Selected"
 msgstr "Επιλεγμένο"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides"
 msgstr "Και τις δύο πλευρές"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides."
 msgstr "Και τις δύο πλευρές."
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side"
 msgstr "Ίσια πλευρά"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side."
 msgstr "Μπροστινή πλευρά"
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side"
 msgstr "Ανάποδη πλευρά"
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side."
 msgstr "Ανάποδη πλευρά"
 
-#: postprocess_controls.py:27
-#, fuzzy
+#: postprocess_controls.py:48
 msgid "90°"
 msgstr "90°"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:48
 msgid "Rotate image 90 degrees clockwise."
 msgstr "Περιστροφή εικόνας κατά 90 μοίρες δεξιόστροφα."
 
-#: postprocess_controls.py:28
-#, fuzzy
+#: postprocess_controls.py:49
 msgid "180°"
 msgstr "180°"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:49
 msgid "Rotate image 180 degrees clockwise."
 msgstr "Περιστροφή εικόνας κατά 180 μοίρες δεξιόστροφα."
 
-#: postprocess_controls.py:29
-#, fuzzy
+#: postprocess_controls.py:50
 msgid "270°"
 msgstr "270°"
 
-#: postprocess_controls.py:29
+#: postprocess_controls.py:50
 msgid "Rotate image 90 degrees anticlockwise."
 msgstr "Περιστροφή εικόνας κατά 90 μοίρες αριστερόστροφα."
 
-#: postprocess_controls.py:39
+#: postprocess_controls.py:55 postprocess_controls.py:738
+msgid "Page segmentation mode"
+msgstr "Λειτουργία τμηματοποίησης σελίδας"
+
+#: postprocess_controls.py:56 postprocess_controls.py:747
+msgid "OCR engine mode"
+msgstr "Λειτουργία μηχανής OCR"
+
+#: postprocess_controls.py:67
 msgid "Rotate"
 msgstr "Περιστροφή"
 
-#: postprocess_controls.py:40
+#: postprocess_controls.py:68
 msgid "Rotate image after scanning"
 msgstr "Περιστροφή της εικόνας μετά την επεξργασία"
 
-#: postprocess_controls.py:43
+#: postprocess_controls.py:72
 msgid "Select side to rotate"
 msgstr "Επιλογή πλευράς προς περιστροφή"
 
-#: postprocess_controls.py:46
-#, fuzzy
+#: postprocess_controls.py:76
 msgid "Select angle of rotation"
-msgstr "Επιλογή γωνίας περιστροφής"
+msgstr "Επιλέξτε γωνία περιστροφής"
 
-#: postprocess_controls.py:49
-#, fuzzy
+#: postprocess_controls.py:79
 msgid "Anticlockwise"
-msgstr "Αντίθετα από τη φορά των δεικτών του ρολογιού"
+msgstr "Αριστερόστροφα"
 
-#: postprocess_controls.py:350 postprocess_controls.py:351
+#: postprocess_controls.py:478 postprocess_controls.py:479
 msgid "OCR scanned pages"
 msgstr "Σελίδες που σαρώθηκαν με OCR"
 
-#: postprocess_controls.py:378
-#, fuzzy
+#: postprocess_controls.py:507
 msgid "Threshold before OCR"
-msgstr "Όριο πριν από το OCR"
+msgstr "Κατώφλι πριν από το OCR"
 
-#: postprocess_controls.py:381
-#, fuzzy
+#: postprocess_controls.py:510
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
 msgstr ""
-"Εφαρμογή ορίου στην εικόνα πριν από την εκτέλεση OCR. Αυτό επηρεάζει μόνο "
-"την εικόνα που μεταβιβάζεται στη μηχανή OCR, όχι την αποθηκευμένη εικόνα."
+"Εφαρμόστε κατωφλίωση στην εικόνα πριν από την εκτέλεση OCR. Αυτό επηρεάζει "
+"μόνο την εικόνα που μεταβιβάζεται στη μηχανή OCR και όχι την αποθηκευμένη "
+"εικόνα."
 
-#: postprocess_controls.py:392 tools_menu_mixins.py:114
-#, fuzzy
+#: postprocess_controls.py:520 tools_menu_mixins.py:122
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
 msgstr ""
 "Τα εικονοστοιχεία που διαφέρουν από το χρώμα του χαρτιού κατά περισσότερο "
-"από αυτό το ποσοστό αποδίδονται μαύρα. Οι υψηλότερες τιμές διατηρούν μόνο τα "
-"πιο έντονα σημάδια."
+"από αυτό το ποσοστό αποδίδονται ως μαύρα. Οι υψηλότερες τιμές διατηρούν μόνο"
+" πιο έντονα σημάδια."
 
-#: postprocess_controls.py:428
+#: postprocess_controls.py:585
+msgid "No OCR language selected."
+msgstr "Δεν έχει επιλεγεί γλώσσα OCR."
+
+#: postprocess_controls.py:588
+#, python-format
+msgid "The following OCR languages are not installed: %(languages)s"
+msgstr "Οι ακόλουθες γλώσσες OCR δεν είναι εγκατεστημένες: %(languages)s"
+
+#: postprocess_controls.py:598
+#, python-format
+msgid ""
+"'%(variable)s' is set by the %(control)s control; remove it from this field."
+msgstr ""
+"Το '%(variable)s' ορίζεται από το στοιχείο ελέγχου %(control)s· αφαιρέστε το"
+" από αυτό το πεδίο."
+
+#: postprocess_controls.py:609
+#, python-format
+msgid "Unknown Tesseract options: %(variables)s"
+msgstr "Άγνωστες επιλογές Tesseract: %(variables)s"
+
+#: postprocess_controls.py:624
 msgid "Language to recognise"
 msgstr "Γλώσσα προς αναγνώριση"
 
-#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-#, fuzzy
-msgid "_Cancel"
-msgstr "_Άκυρο"
+#: postprocess_controls.py:632
+msgid "Additional languages"
+msgstr "Πρόσθετες γλώσσες"
 
-#: progress.py:76 progress.py:110
+#: postprocess_controls.py:674
+msgid "Tessdata directory"
+msgstr "Κατάλογος Tessdata"
+
+#: postprocess_controls.py:677
+msgid "Default (system tessdata)"
+msgstr "Προεπιλογή (tessdata συστήματος)"
+
+#: postprocess_controls.py:680
+msgid ""
+"Directory that directly contains the Tesseract .traineddata language files. "
+"Leave empty for the system default."
+msgstr ""
+"Κατάλογος που περιέχει απευθείας τα αρχεία γλώσσας .traineddata του "
+"Tesseract. Αφήστε κενό για την προεπιλογή του συστήματος."
+
+#: postprocess_controls.py:693
+msgid "Choose the tessdata directory"
+msgstr "Επιλέξτε τον κατάλογο tessdata"
+
+#: postprocess_controls.py:698
+msgid "Use the system tessdata directory"
+msgstr "Χρήση του καταλόγου tessdata του συστήματος"
+
+#: postprocess_controls.py:710
+msgid "Select tessdata directory"
+msgstr "Επιλέξτε κατάλογο tessdata"
+
+#: postprocess_controls.py:741
+msgid "How tesseract should segment the page. Automatic suits most pages."
+msgstr ""
+"Πώς πρέπει να τμηματοποιεί το Tesseract τη σελίδα. Η αυτόματη επιλογή "
+"ταιριάζει στις περισσότερες σελίδες."
+
+#: postprocess_controls.py:750
+msgid "Which tesseract engine to use. Default uses the engine's own choice."
+msgstr ""
+"Ποια μηχανή tesseract να χρησιμοποιηθεί. Η προεπιλογή χρησιμοποιεί την "
+"επιλογή της ίδιας της μηχανής."
+
+#: postprocess_controls.py:758
+msgid "Advanced Tesseract engine parameters"
+msgstr "Προηγμένες παράμετροι μηχανής Tesseract"
+
+#: postprocess_controls.py:761
+msgid ""
+"Tesseract engine parameters - the values of tesseract's -c option - not "
+"command-line flags. Use absolute paths."
+msgstr ""
+"Παράμετροι μηχανής Tesseract - οι τιμές της επιλογής -c του tesseract - όχι "
+"σημαίες γραμμής εντολών. Χρησιμοποιήστε απόλυτες διαδρομές."
+
+#: postprocess_controls.py:769
+msgid ""
+"One name=value engine parameter per line, e.g. "
+"user_words_file=/path/to/words.txt. Write engine parameters, not command-"
+"line options such as --user-words."
+msgstr ""
+"Μία παράμετρος μηχανής της μορφής name=value ανά γραμμή, π.χ. "
+"user_words_file=/path/to/words.txt. Γράψτε παραμέτρους μηχανής, όχι επιλογές"
+" γραμμής εντολών όπως --user-words."
+
+#: postprocess_controls.py:791
+msgid "_Available parameters"
+msgstr "_Διαθέσιμες παράμετροι"
+
+#: postprocess_controls.py:794
+msgid "Browse the parameters the installed Tesseract reports"
+msgstr "Περιηγηθείτε στις παραμέτρους που αναφέρει το εγκατεστημένο Tesseract"
+
+#: postprocess_controls.py:907
+msgid "No additional languages"
+msgstr "Δεν υπάρχουν πρόσθετες γλώσσες"
+
+#: postprocess_controls.py:922
 #, python-format
-msgid "Process %i of %i (%s)"
-msgstr "Λειτουργία %i επί συνόλου %i (%s)"
+msgid "%(language)s (not installed)"
+msgstr "%(language)s (δεν έχει εγκατασταθεί)"
 
-#: progress.py:119
+#: progress.py:79 progress.py:118
 #, python-format
-msgid "Process %i of %i"
-msgstr "Επεξεργασία %i απο %i"
+msgid "Process %(current)i of %(total)i (%(process)s)"
+msgstr "Διαδικασία %(current)i από %(total)i (%(process)s)"
 
-#: savethread.py:83
-#, fuzzy
+#: progress.py:127
+#, python-format
+msgid "Process %(current)i of %(total)i"
+msgstr "Διαδικασία %(current)i από %(total)i"
+
+#: savethread.py:210
 msgid "Processing PDF"
 msgstr "Επεξεργασία PDF"
 
-#: savethread.py:148
-#, fuzzy
+#: savethread.py:283
 msgid "Embedding text layer"
-msgstr "Ενσωμάτωση στρώματος κειμένου"
+msgstr "Ενσωμάτωση επιπέδου κειμένου"
 
-#: savethread.py:195
+#: savethread.py:341
 msgid "Setting up PDF"
 msgstr "Ρύθμιση του PDF"
 
-#: savethread.py:264 savethread.py:405
-#, python-format
-msgid "Writing page %i of %i"
-msgstr "Γίνεται εγγραφη της σελίδας %i (επί συνόλου %i)"
+#: savethread.py:409 tests/test_savethread.py:1822
+msgid "Converting to JBIG2"
+msgstr "Μετατροπή σε JBIG2"
 
-#: savethread.py:291
-#, fuzzy, python-format
+#: savethread.py:447 savethread.py:615
+#, python-format
+msgid "Writing page %(current)i of %(total)i"
+msgstr "Εγγραφή σελίδας %(current)i από %(total)i"
+
+#: savethread.py:498
+#, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
-"Το εκτιμώμενο μέγεθος PDF (%.1f GiB) υπερβαίνει τα 2 GiB. Αποθηκεύστε "
-"λιγότερες σελίδες."
+"Το εκτιμώμενο μέγεθος PDF (%.1f GiB) υπερβαίνει τα 2 GiB.  Παρακαλώ "
+"αποθηκεύστε λιγότερες σελίδες."
 
-#: savethread.py:314 tests/test_savethread.py:1240
-#, fuzzy
+#: savethread.py:521 tests/test_savethread.py:1599
 msgid "Writing PDF"
 msgstr "Εγγραφή PDF"
 
-#: savethread.py:363
+#: savethread.py:571
 msgid "Converting to PS"
 msgstr "Μετατροπή σε PS"
 
-#: savethread.py:374
-#, fuzzy, python-format
+#: savethread.py:584
+#, python-format
 msgid "Error converting PDF to PS: %s"
-msgstr "Σφάλμα μετατροπής PDF σε PS: %s"
+msgstr "Σφάλμα κατά τη μετατροπή PDF σε PS: %s"
 
-#: savethread.py:418
-#, fuzzy
+#: savethread.py:628
 msgid "Merging DjVu"
 msgstr "Συγχώνευση DjVu"
 
-#: savethread.py:425
-#, fuzzy, python-format
+#: savethread.py:635
+#, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Σφάλμα συγχώνευσης DjVu: %s"
 
-#: savethread.py:519
-#, fuzzy, python-format
+#: savethread.py:729
+#, python-format
 msgid "Error converting TIFF to PS: %s"
-msgstr "Σφάλμα μετατροπής TIFF σε PS: %s"
+msgstr "Σφάλμα κατά τη μετατροπή TIFF σε PS: %s"
 
-#: savethread.py:664
+#: savethread.py:877
 msgid "Error copying page"
 msgstr "Σφάλμα κατά την αντιγραφή σελίδας"
 
-#: savethread.py:814
-#, fuzzy, python-format
+#: savethread.py:948 tools_menu_mixins.py:840
+#, python-format
+msgid ""
+"Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
+"it one page at a time instead."
+msgstr ""
+"Η λειτουργία παρτίδας δεν μπορεί να χρησιμοποιηθεί με το «%(tool)s» επειδή "
+"χρησιμοποιεί %(variable)s. Εκτελέστε το μία σελίδα τη φορά."
+
+#: savethread.py:1009
+msgid ""
+"No pages were modified. If the tool was already running (for example GIMP), "
+"it may have opened the images in the existing instance."
+msgstr ""
+"Δεν τροποποιήθηκε καμία σελίδα. Αν το εργαλείο εκτελούνταν ήδη (για "
+"παράδειγμα το GIMP), μπορεί να άνοιξε τις εικόνες στο υπάρχον στιγμιότυπο."
+
+#: savethread.py:1018
+#, python-format
+msgid "'%(tool)s' failed with status %(status)s."
+msgstr "'%(tool)s' απέτυχε με κατάσταση %(status)s."
+
+#: savethread.py:1024
+#, python-format
+msgid "Error running '%(tool)s': %(error)s."
+msgstr "Σφάλμα κατά την εκτέλεση του '%(tool)s': %(error)s."
+
+#: savethread.py:1294
+#, python-format
 msgid "Error prepending PDF: %s"
-msgstr "Σφάλμα πρόταξης PDF: %s"
+msgstr "Σφάλμα κατά την προσθήκη PDF στην αρχή: %s"
 
-#: savethread.py:822
-#, fuzzy, python-format
+#: savethread.py:1302
+#, python-format
 msgid "Error appending PDF: %s"
-msgstr "Σφάλμα προσάρτησης PDF: %s"
+msgstr "Σφάλμα κατά την προσάρτηση PDF: %s"
 
-#: savethread.py:831
-#, fuzzy
+#: savethread.py:1311
 msgid "Error creating backup of PDF"
-msgstr "Σφάλμα δημιουργίας αντιγράφου ασφαλείας του PDF"
+msgstr "Σφάλμα κατά τη δημιουργία αντιγράφου ασφαλείας του PDF"
 
-#: savethread.py:905
-#, fuzzy, python-format
+#: savethread.py:1385
+#, python-format
 msgid "Error encrypting PDF: %s"
 msgstr "Σφάλμα κρυπτογράφησης PDF: %s"
 
-#: scan_menu_item_mixins.py:72
-#, fuzzy
+#: scan_menu_item_mixins.py:118
 msgid "Really cache libusb device names?"
-msgstr "Να αποθηκευτούν πραγματικά τα ονόματα συσκευών libusb;"
-
-#: scan_menu_item_mixins.py:76
-#, fuzzy
-msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
 msgstr ""
-"Η αποθήκευση λίστας συσκευών με συσκευές libusb δεν συνιστάται, καθώς "
-"μπορούν να αλλάξουν μεταξύ επανεκκινήσεων."
+"Να γίνει πραγματικά προσωρινή αποθήκευση των ονομάτων συσκευών libusb;"
 
-#: scan_menu_item_mixins.py:78
-#, fuzzy
-msgid "Are you sure you want to do this?"
-msgstr "Είστε βέβαιοι ότι θέλετε να το κάνετε αυτό;"
+#: scan_menu_item_mixins.py:122
+msgid ""
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
+msgstr ""
+"Η προσωρινή αποθήκευση της λίστας συσκευών με συσκευές libusb δεν "
+"συνιστάται, καθώς αυτές μπορούν να αλλάξουν μεταξύ επανεκκινήσεων. Να τις "
+"αποθηκεύσουμε προσωρινά ούτως ή άλλως;"
 
-#: scan_menu_item_mixins.py:114
+#: scan_menu_item_mixins.py:127
+msgid "Don't ask again"
+msgstr "Να μην ξαναρωτηθώ"
+
+#: scan_menu_item_mixins.py:176
 msgid "Scan Document"
 msgstr "Σάρωση εγγράφου"
 
-#: scan_menu_item_mixins.py:216
-#, fuzzy
+#: scan_menu_item_mixins.py:291
 msgid "Postprocessing"
-msgstr "Μετα-επεξεργασία"
+msgstr "Μετεπεξεργασία"
 
-#: scan_menu_item_mixins.py:230
-#, fuzzy
+#: scan_menu_item_mixins.py:400
 msgid "Alternate rotation every 2nd page"
-msgstr "Εναλλαγή περιστροφής κάθε 2η σελίδα"
+msgstr "Εναλλασσόμενη περιστροφή σε κάθε 2η σελίδα"
 
-#: scan_menu_item_mixins.py:233
-#, fuzzy
+#: scan_menu_item_mixins.py:403
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
 msgstr ""
-"Περιστρέψτε τις μονές σελίδες κατά την επιλεγμένη γωνία και τις ζυγές κατά "
-"τη γωνία αυτή συν 180 μοίρες. Χρησιμοποιήστε το κατά τη σάρωση ενός βιβλίου "
-"όπου κάθε φύλλο είναι ευθυγραμμισμένο στην ίδια ακμή, οπότε το πίσω μέρος "
-"κάθε φύλλου είναι περιστραμμένο κατά 180 μοίρες σε σχέση με το μπροστινό."
+"Περιστρέψτε τις μονές σελίδες κατά την επιλεγμένη γωνία και τις ζυγές "
+"σελίδες κατά αυτή τη γωνία συν 180 μοίρες. Χρησιμοποιήστε το όταν σαρώνετε "
+"ένα βιβλίο όπου κάθε φύλλο είναι ευθυγραμμισμένο με την ίδια άκρη, έτσι ώστε"
+" η πίσω πλευρά κάθε φύλλου να είναι περιστραμμένη κατά 180 μοίρες σε σχέση "
+"με την μπροστινή του."
 
-#: scan_menu_item_mixins.py:298
+#: scan_menu_item_mixins.py:425
 msgid "Clean up images"
 msgstr "Καθαρισμός εικόνων"
 
-#: scan_menu_item_mixins.py:299
+#: scan_menu_item_mixins.py:426
 msgid "Clean up scanned images with unpaper"
 msgstr "Καθαρίστε τις σαρωμένες εικόνες με τον αποσελιδοποιητή"
 
-#: scan_menu_item_mixins.py:307
+#: scan_menu_item_mixins.py:435
 msgid "Options"
 msgstr "Επιλογές"
 
-#: scan_menu_item_mixins.py:308
+#: scan_menu_item_mixins.py:436
 msgid "Set unpaper options"
 msgstr "Ορισμός επιλογών αποχάρτισης"
 
-#: scan_menu_item_mixins.py:316
+#: scan_menu_item_mixins.py:445
 msgid "unpaper options"
 msgstr "Επιλογές αποχάρτισης"
 
-#: scan_menu_item_mixins.py:339
-#, fuzzy
+#: scan_menu_item_mixins.py:468
 msgid "Process with user-defined tool"
-msgstr "Επεξεργασία με εργαλείο που ορίζει ο χρήστης"
+msgstr "Επεξεργασία με εργαλείο καθορισμένο από το χρήστη"
 
-#: scan_menu_item_mixins.py:340
-#, fuzzy
+#: scan_menu_item_mixins.py:469
 msgid "Process scanned images with user-defined tool"
-msgstr "Επεξεργασία σαρωμένων εικόνων με εργαλείο που ορίζει ο χρήστης"
+msgstr "Επεξεργασία σαρωμένων εικόνων με εργαλείο καθορισμένο από τον χρήστη"
 
-#: session_mixins.py:74
+#: session_mixins.py:84
 #, python-format
 msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+"Warning: unable to use %(configured)s for temporary storage. Defaulting to "
+"%(default)s instead."
 msgstr ""
-"Προσοχή: αδύνατη η χρήση του %s για προσωρινή αποθήκευση. Αντί για αυτό, "
-"γίνεται μετάπτωση στο %s"
+"Προειδοποίηση: δεν είναι δυνατή η χρήση του %(configured)s για προσωρινή "
+"αποθήκευση. Αντί αυτού, θα χρησιμοποιηθεί το %(default)s ως προεπιλογή."
 
-#: session_mixins.py:118 session_mixins.py:123
-msgid "Pick crashed session to restore"
-msgstr "Επιλέξτε προς ανάκτηση τη συνεδρία που κατέρρευσε"
+#: session_mixins.py:163
+msgid "No crashed sessions found."
+msgstr "Δεν βρέθηκαν συνεδρίες που κατέρρευσαν."
 
-#: session_mixins.py:191
-#, fuzzy
+#: session_mixins.py:169
+msgid "Crashed sessions"
+msgstr "Συνεδρίες που κατέρρευσαν"
+
+#: session_mixins.py:174
+msgid "_Discard"
+msgstr "_Απόρριψη"
+
+#: session_mixins.py:175
+msgid "_Restore"
+msgstr "_Επαναφορά"
+
+#: session_mixins.py:178
+msgid "Restore or discard a crashed session"
+msgstr "Επαναφορά ή απόρριψη μιας συνεδρίας που κατέρρευσε"
+
+#: session_mixins.py:207
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to restore a crashed session?"
+msgstr ""
+"Ορισμένες σελίδες δεν έχουν αποθηκευτεί.\n"
+"Θέλετε πραγματικά να επαναφέρετε μια συνεδρία που έχει καταρρεύσει;"
+
+#: session_mixins.py:242
+msgid "Restore file"
+msgstr "Επαναφορά αρχείου"
+
+#: session_mixins.py:258
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] "Απόρριψη %(count)d κατεστραμμένης συνεδρίας;"
+msgstr[1] "Απόρριψη %(count)d κατεστραμμένων συνεδριών;"
+
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] "Δεν ήταν δυνατή η κατάργηση %(count)d συνεδρίας που κατέρρευσε."
+msgstr[1] "Δεν ήταν δυνατή η κατάργηση %(count)d συνεδριών που κατέρρευσαν."
+
+#: session_mixins.py:301
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
 msgstr ""
-"Το GraphicsMagick χρησιμοποιείται σε λειτουργία συμβατότητας ImageMagick."
+"Το GraphicsMagick χρησιμοποιείται σε λειτουργία συμβατότητας με το "
+"ImageMagick."
 
-#: session_mixins.py:193
-#, fuzzy
+#: session_mixins.py:303
 msgid "Whilst this might work, it is not currently supported."
 msgstr ""
-"Αν και αυτό μπορεί να λειτουργήσει, δεν υποστηρίζεται επί του παρόντος."
+"Παρόλο που αυτό μπορεί να λειτουργήσει, δεν υποστηρίζεται προς το παρόν."
 
-#: session_mixins.py:195
-#, fuzzy
+#: session_mixins.py:305
 msgid "Please switch to ImageMagick in case of problems."
-msgstr "Σε περίπτωση προβλημάτων, μεταβείτε στο ImageMagick."
+msgstr "Παρακαλώ μεταβείτε στο ImageMagick σε περίπτωση προβλημάτων."
 
-#: session_mixins.py:212
+#: session_mixins.py:318
 msgid "Tesseract"
 msgstr "Tesseract"
 
-#: session_mixins.py:212
+#: session_mixins.py:318
 msgid "Process image with Tesseract."
 msgstr "Επεξεργασία εικόνας με Υπερκυβισμό (Tesseract)"
 
-#: session_mixins.py:229
-#, fuzzy
+#: session_mixins.py:330
 msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr "Ολοκληρώθηκε η σάρωση των εμπρός όψεων. Σάρωση των πίσω όψεων;"
+msgstr ""
+"Ολοκληρώθηκε η σάρωση των αντικριστών σελίδων. Σάρωση των αντίστροφων "
+"σελίδων;"
 
-#: session_mixins.py:232
-#, fuzzy
+#: session_mixins.py:333
 msgid "Finished scanning reverse pages. Scan facing pages?"
-msgstr "Ολοκληρώθηκε η σάρωση των πίσω όψεων. Σάρωση των εμπρός όψεων;"
-
-#: session_mixins.py:448 text_layer_control.py:80
-#, fuzzy
-msgid "_OK"
-msgstr "_OK"
-
-#: session_mixins.py:449 text_layer_control.py:80
-#, fuzzy
-msgid "Accept corrections"
-msgstr "Αποδοχή διορθώσεων"
-
-#: session_mixins.py:452 text_layer_control.py:83
-#, fuzzy
-msgid "Cancel corrections"
-msgstr "Ακύρωση διορθώσεων"
-
-#: session_mixins.py:458
-#, fuzzy
-msgid "Add annotation"
-msgstr "Προσθήκη σχολιασμού"
-
-#: session_mixins.py:461
-#, fuzzy
-msgid "Delete annotation"
-msgstr "Διαγραφή σχολιασμού"
-
-#: session_mixins.py:505
-#, fuzzy
-msgid "my-new-word"
-msgstr "my-new-word"
-
-#: session_mixins.py:560
-#, fuzzy
-msgid "my-new-annotation"
-msgstr "my-new-annotation"
-
-#: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, fuzzy, python-format
-msgid "You are using locale '%s'."
-msgstr "Χρησιμοποιείτε τις τοπικές ρυθμίσεις '%s'."
-
-#: tesseract.py:235
-#, fuzzy
-msgid ""
-"scantpaper does not currently know which tesseract language package would be "
-"necessary for that locale."
 msgstr ""
-"Το scantpaper δεν γνωρίζει επί του παρόντος ποιο πακέτο γλώσσας tesseract θα "
-"ήταν απαραίτητο για αυτές τις τοπικές ρυθμίσεις."
+"Ολοκληρώθηκε η σάρωση των πίσω σελίδων. Να γίνει σάρωση των αντικριστών "
+"σελίδων;"
 
-#: tesseract.py:239
-#, fuzzy
-msgid "Please contact the developers to add support for that locale."
-msgstr ""
-"Επικοινωνήστε με τους προγραμματιστές για να προσθέσετε υποστήριξη για αυτές "
-"τις τοπικές ρυθμίσεις."
+#: tesseract.py:197
+msgid "Fully automatic page segmentation."
+msgstr "Πλήρως αυτόματη τμηματοποίηση σελίδας."
 
-#: tesseract.py:250
-#, fuzzy, python-format
-msgid ""
-"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
-"for OCR for %s with tesseract."
+#: tesseract.py:198
+msgid "Single column"
+msgstr "Μία στήλη"
+
+#: tesseract.py:198
+msgid "A single column of text of variable sizes."
+msgstr "Μια ενιαία στήλη κειμένου μεταβλητών μεγεθών."
+
+#: tesseract.py:199
+msgid "Single block"
+msgstr "Μονό μπλοκ"
+
+#: tesseract.py:199
+msgid "A single uniform block of text."
+msgstr "Ένα ενιαίο ομοιόμορφο μπλοκ κειμένου."
+
+#: tesseract.py:200
+msgid "Single line"
+msgstr "Μονή γραμμή"
+
+#: tesseract.py:200
+msgid "The image is a single text line."
+msgstr "Η εικόνα είναι μία μόνο γραμμή κειμένου."
+
+#: tesseract.py:201
+msgid "Single word"
+msgstr "Μία λέξη"
+
+#: tesseract.py:201
+msgid "The image is a single word."
+msgstr "Η εικόνα είναι μία μόνο λέξη."
+
+#: tesseract.py:202
+msgid "Single character"
+msgstr "Ένας χαρακτήρας"
+
+#: tesseract.py:202
+msgid "The image is a single character."
+msgstr "Η εικόνα είναι ένας μόνο χαρακτήρας."
+
+#: tesseract.py:203
+msgid "Sparse text"
+msgstr "Αραιό κείμενο"
+
+#: tesseract.py:203
+msgid "Find as much text as possible, in no order."
+msgstr "Βρείτε όσο το δυνατόν περισσότερο κείμενο, χωρίς συγκεκριμένη σειρά."
+
+#: tesseract.py:204
+msgid "Raw line"
+msgstr "Ακατέργαστη γραμμή"
+
+#: tesseract.py:204
+msgid "A single line, without tesseract-specific hacks."
 msgstr ""
-"Εγκαταστήστε το πακέτο tesseract 'tesseract-ocr-%s' και επανεκκινήστε το "
-"scantpaper για OCR για %s με το tesseract."
+
+#: tesseract.py:214
+msgid "LSTM only"
+msgstr "Μόνο LSTM"
+
+#: tesseract.py:215
+msgid "Legacy"
+msgstr "Παλαιό"
+
+#: tesseract.py:216
+msgid "Combined"
+msgstr "Συνδυασμένο"
 
 #: tesseract.py:260
-#, fuzzy, python-format
+#, python-format
+msgid "The tessdata directory does not exist: %(path)s"
+msgstr "Ο κατάλογος tessdata δεν υπάρχει: %(path)s"
+
+#: tesseract.py:262
+#, python-format
+msgid "The tessdata path is not a directory: %(path)s"
+msgstr "Η διαδρομή tessdata δεν είναι κατάλογος: %(path)s"
+
+#: tesseract.py:264
+#, python-format
+msgid "The tessdata directory cannot be read: %(path)s"
+msgstr "Ο κατάλογος tessdata δεν είναι δυνατόν να διαβαστεί: %(path)s"
+
+#: tesseract.py:268
+#, python-format
+msgid ""
+"No Tesseract language data was found in the tessdata directory: %(path)s"
+msgstr ""
+"Δεν βρέθηκαν γλωσσικά δεδομένα Tesseract στον κατάλογο tessdata: %(path)s"
+
+#: tesseract.py:272
+#, python-format
+msgid "Did you mean %(path)s?"
+msgstr "Μήπως εννοούσατε %(path)s;"
+
+#: tesseract.py:322
+msgid "tessdata directory not found"
+msgstr "Ο κατάλογος tessdata δεν βρέθηκε"
+
+#: tesseract.py:388
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; this field accepts engine "
+"parameters in name=value form only."
+msgstr ""
+"Το '%(flag)s' είναι επιλογή γραμμής εντολών του Tesseract· αυτό το πεδίο "
+"δέχεται παραμέτρους μηχανής μόνο στη μορφή όνομα=τιμή."
+
+#: tesseract.py:393
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' "
+"instead."
+msgstr ""
+"Το '%(flag)s' είναι επιλογή γραμμής εντολών του Tesseract· χρησιμοποιήστε το"
+" '%(variable)s=%(value)s' αντί γι' αυτό."
+
+#: tesseract.py:413 tesseract.py:420
+#, python-format
+msgid "Invalid Tesseract option on line %(line)s: %(text)s"
+msgstr "Μη έγκυρη επιλογή Tesseract στη γραμμή %(line)s: %(text)s"
+
+#: tesseract.py:435
+#, python-format
+msgid "%(variable)s names a file that does not exist: %(path)s"
+msgstr "Το %(variable)s αναφέρεται σε αρχείο που δεν υπάρχει: %(path)s"
+
+#: tesseract.py:440
+#, python-format
+msgid "%(variable)s names a file that cannot be read: %(path)s"
+msgstr ""
+"Το %(variable)s ονομάζει ένα αρχείο που δεν μπορεί να διαβαστεί: %(path)s"
+
+#: tesseract.py:567 tesseract.py:581 tesseract.py:594
+#, python-format
+msgid "You are using locale '%s'."
+msgstr "Χρησιμοποιείτε την τοπική ρύθμιση '%s'."
+
+#: tesseract.py:570
+msgid ""
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
+msgstr ""
+"Το scantpaper δεν γνωρίζει επί του παρόντος ποιο πακέτο γλώσσας tesseract θα"
+" ήταν απαραίτητο για αυτήν τη τοπική ρύθμιση."
+
+#: tesseract.py:574
+msgid "Please contact the developers to add support for that locale."
+msgstr ""
+"Παρακαλώ επικοινωνήστε με τους προγραμματιστές για να προστεθεί υποστήριξη "
+"για αυτήν την τοπική ρύθμιση."
+
+#: tesseract.py:585
+#, python-format
+msgid ""
+"Please install tesseract package 'tesseract-ocr-%(package)s' and restart "
+"scantpaper for OCR for %(language)s with tesseract."
+msgstr ""
+"Παρακαλώ εγκαταστήστε το πακέτο tesseract 'tesseract-ocr-%(package)s' και "
+"επανεκκινήστε το scantpaper για OCR για %(language)s με το tesseract."
+
+#: tesseract.py:596
+#, python-format
 msgid "There is no tesseract package for %s"
 msgstr "Δεν υπάρχει πακέτο tesseract για %s"
 
-#: tesseract.py:262
-#, fuzzy
+#: tesseract.py:598
 msgid "If this is in error, please contact the scantpaper developers."
 msgstr ""
-"Εάν αυτό είναι λάθος, επικοινωνήστε με τους προγραμματιστές του scantpaper."
+"Αν αυτό είναι εσφαλμένο, παρακαλώ επικοινωνήστε με τους προγραμματιστές του "
+"scantpaper."
 
-#: tests/test_savethread.py:1230
-#, fuzzy
+#: tests/test_savethread.py:1589
 msgid "Writing page"
-msgstr "Εγγραφή σελίδας"
+msgstr "Σελίδα γραφής"
 
-#: text_layer_control.py:27
-#, fuzzy
-msgid "Sort by confidence"
-msgstr "Ταξινόμηση κατά βεβαιότητα"
-
-#: text_layer_control.py:28
-#, fuzzy
-msgid "Sort OCR text boxes by confidence."
-msgstr "Ταξινόμηση πλαισίων κειμένου OCR κατά βεβαιότητα."
-
-#: text_layer_control.py:30
-#, fuzzy
-msgid "Sort by position"
-msgstr "Ταξινόμηση κατά θέση"
-
-#: text_layer_control.py:30
-#, fuzzy
-msgid "Sort OCR text boxes by position."
-msgstr "Ταξινόμηση πλαισίων κειμένου OCR κατά θέση."
-
-#: text_layer_control.py:61
-#, fuzzy
-msgid "Go to least confident text"
-msgstr "Μετάβαση στο λιγότερο βέβαιο κείμενο"
-
-#: text_layer_control.py:64
-#, fuzzy
-msgid "Go to previous text"
-msgstr "Μετάβαση στο προηγούμενο κείμενο"
-
-#: text_layer_control.py:67
-#, fuzzy
-msgid "Select sort method for OCR boxes"
-msgstr "Επιλογή μεθόδου ταξινόμησης για τα πλαίσια OCR"
-
-#: text_layer_control.py:73
-#, fuzzy
-msgid "Go to next text"
-msgstr "Μετάβαση στο επόμενο κείμενο"
-
-#: text_layer_control.py:75
-#, fuzzy
-msgid "Go to most confident text"
-msgstr "Μετάβαση στο πιο βέβαιο κείμενο"
-
-#: text_layer_control.py:77
-#, fuzzy
-msgid "Add text"
-msgstr "Προσθήκη κειμένου"
-
-#: text_layer_control.py:86
-msgid "_Copy"
-msgstr "Αντι_γραφή"
-
-#: text_layer_control.py:86
-#, fuzzy
-msgid "Duplicate text"
-msgstr "Διπλασιασμός κειμένου"
-
-#: text_layer_control.py:89
-#, fuzzy
-msgid "Delete text"
-msgstr "Διαγραφή κειμένου"
-
-#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
+#: tools_menu_mixins.py:105 tools_menu_mixins.py:298
 msgid "Threshold"
 msgstr "Ανοχή"
 
-#: tools_menu_mixins.py:106
-#, fuzzy
+#: tools_menu_mixins.py:115
 msgid "Ink strength"
 msgstr "Ένταση μελανιού"
 
-#: tools_menu_mixins.py:159
-#, fuzzy
+#: tools_menu_mixins.py:156 tools_menu_mixins.py:226 tools_menu_mixins.py:265
+#: tools_menu_mixins.py:368 tools_menu_mixins.py:410 tools_menu_mixins.py:533
+msgid "_Apply"
+msgstr "_Εφαρμογή"
+
+#: tools_menu_mixins.py:168
 msgid "Brightness / Contrast"
 msgstr "Φωτεινότητα / Αντίθεση"
 
-#: tools_menu_mixins.py:170
-#, fuzzy
+#: tools_menu_mixins.py:179
 msgid "Brightness"
 msgstr "Φωτεινότητα"
 
-#: tools_menu_mixins.py:181
-#, fuzzy
+#: tools_menu_mixins.py:190
 msgid "Contrast"
 msgstr "Αντίθεση"
 
-#: tools_menu_mixins.py:227
+#: tools_menu_mixins.py:236
 msgid "Negate"
 msgstr "Απόρριψη"
 
-#: tools_menu_mixins.py:264
+#: tools_menu_mixins.py:273
 msgid "Unsharp mask"
 msgstr "Μάσκα άμβλυνσης"
 
-#: tools_menu_mixins.py:275
+#: tools_menu_mixins.py:284
 msgid "Radius"
 msgstr "Η ακ"
 
-#: tools_menu_mixins.py:279
-#, fuzzy
+#: tools_menu_mixins.py:288
 msgid "Blur Radius."
-msgstr "Ακτίνα θολώματος."
+msgstr "Ακτίνα θαμπώματος."
 
-#: tools_menu_mixins.py:282
-#, fuzzy
+#: tools_menu_mixins.py:291
 msgid "Percentage"
 msgstr "Ποσοστό"
 
-#: tools_menu_mixins.py:286
-#, fuzzy
+#: tools_menu_mixins.py:295
 msgid "Unsharp strength, in percent."
-msgstr "Ένταση μη ευκρινούς μάσκας, σε ποσοστό."
+msgstr "Ισχύς αποθόλωσης, σε ποσοστό."
 
-#: tools_menu_mixins.py:294
-#, fuzzy
+#: tools_menu_mixins.py:303
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
-msgstr "Το όριο ελέγχει την ελάχιστη αλλαγή φωτεινότητας που θα οξυνθεί."
+msgstr "Το κατώφλι ελέγχει την ελάχιστη μεταβολή φωτεινότητας που θα οξυνθεί."
 
-#: tools_menu_mixins.py:444
-#, fuzzy
+#: tools_menu_mixins.py:459
 msgid "Split"
 msgstr "Διαίρεση"
 
-#: tools_menu_mixins.py:453
-#, fuzzy
+#: tools_menu_mixins.py:468
 msgid "Direction"
 msgstr "Κατεύθυνση"
 
-#: tools_menu_mixins.py:458
-#, fuzzy
+#: tools_menu_mixins.py:473
 msgid "Vertically"
-msgstr "Κάθετα"
+msgstr "Κατακόρυφα"
 
-#: tools_menu_mixins.py:459
-#, fuzzy
+#: tools_menu_mixins.py:474
 msgid "Split the page vertically into left and right pages."
-msgstr "Διαίρεση της σελίδας κάθετα σε αριστερή και δεξιά σελίδα."
+msgstr "Διαχωρίστε τη σελίδα κατακόρυφα σε αριστερή και δεξιά σελίδα."
 
-#: tools_menu_mixins.py:463
-#, fuzzy
+#: tools_menu_mixins.py:478
 msgid "Horizontally"
 msgstr "Οριζόντια"
 
-#: tools_menu_mixins.py:464
-#, fuzzy
+#: tools_menu_mixins.py:479
 msgid "Split the page horizontally into top and bottom pages."
-msgstr "Διαίρεση της σελίδας οριζόντια σε επάνω και κάτω σελίδα."
+msgstr "Διαχωρίστε τη σελίδα οριζόντια σε επάνω και κάτω σελίδες."
 
-#: tools_menu_mixins.py:487
-#, fuzzy
+#: tools_menu_mixins.py:502
 msgid "Position"
 msgstr "Θέση"
 
-#: tools_menu_mixins.py:590
+#: tools_menu_mixins.py:605
 msgid "unpaper"
 msgstr "Αποσελιδοποιήση"
 
-#: tools_menu_mixins.py:649
+#: tools_menu_mixins.py:664
 msgid "OCR"
 msgstr "Οπτική Αναγνώριση Χαρακτήρων (OCR)"
 
-#: tools_menu_mixins.py:730
+#: tools_menu_mixins.py:777
 msgid "User-defined tools"
 msgstr "Εργαλεία καθοριζόμενα από τον χρήστη"
 
-#: tools_menu_mixins.py:739
-#, fuzzy
+#: tools_menu_mixins.py:786
 msgid "Selected tool"
 msgstr "Επιλεγμένο εργαλείο"
 
-#: tools_menu_mixins.py:782
+#: tools_menu_mixins.py:790
+msgid "Process selected pages at once"
+msgstr "Επεξεργασία επιλεγμένων σελίδων ταυτόχρονα"
+
+#: tools_menu_mixins.py:891 app.ui:125
 msgid "Email as PDF"
 msgstr "Ηλεκτρονική ταχυδρόμιση ως PDF"
 
-#: tools_menu_mixins.py:861
+#: tools_menu_mixins.py:970
 msgid "Error creating email"
 msgstr "Σφάλμα κατά τη δημιουργία e-mail"
 
-#: tools_menu_mixins.py:917
+#: tools_menu_mixins.py:1026
 msgid "To aid the scan-to-PDF process"
 msgstr "Για βοήθεια στην εξέλιξη του scan-to-PDF"
 
-#: tools_menu_mixins.py:918
-#, fuzzy
+#: tools_menu_mixins.py:1027
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
 msgstr "Πνευματικά δικαιώματα 2006--2026 Jeffrey Ratcliffe"
 
-#: unpaper.py:38
+#: unpaper.py:40
 msgid "Layout"
 msgstr "Διάταξη"
 
-#: unpaper.py:41
+#: unpaper.py:43
 msgid "Single"
 msgstr "Μονό"
 
-#: unpaper.py:43
+#: unpaper.py:45
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Μία σελίδα ανά φύλλο, προσανατολισμός προς τα επάνω χωρίς περιστροφή"
 
-#: unpaper.py:47
+#: unpaper.py:49
 msgid "Double"
 msgstr "Διπλό"
 
-#: unpaper.py:49
+#: unpaper.py:51
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -2101,654 +2530,730 @@ msgstr ""
 "Δύο σελίδες ανά φύλλο, με οριζόντιο προσανατολισμό (μία σελίδα στο αριστερό "
 "μισό, μία σελίδα στο δεξί μισό)."
 
-#: unpaper.py:58
+#: unpaper.py:60
 msgid "# Output pages"
 msgstr "# Αριθμός εξαγώγιμων σελίδων"
 
-#: unpaper.py:59
+#: unpaper.py:61
 msgid "Number of pages to output."
 msgstr "Αριθμός σελίδων προς εξαγωγή."
 
-#: unpaper.py:67
-#, fuzzy
+#: unpaper.py:69
 msgid "Writing system"
 msgstr "Σύστημα γραφής"
 
-#: unpaper.py:70
-#, fuzzy
+#: unpaper.py:72
 msgid "Left-to-right"
 msgstr "Αριστερά προς δεξιά"
 
-#: unpaper.py:72
-#, fuzzy
+#: unpaper.py:74
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
 msgstr "Τα περισσότερα συστήματα γραφής, π.χ. Λατινικό, Ελληνικό, Κυριλλικό."
 
-#: unpaper.py:76
-#, fuzzy
+#: unpaper.py:78
 msgid "Right-to-left"
 msgstr "Δεξιά προς αριστερά"
 
-#: unpaper.py:77
-#, fuzzy
+#: unpaper.py:79
 msgid "Scripts like Arabic or Hebrew."
-msgstr "Γραφές όπως τα Αραβικά ή τα Εβραϊκά."
+msgstr "Γραφές όπως η αραβική ή η εβραϊκή."
 
-#: unpaper.py:85
+#: unpaper.py:87
 msgid "No deskew"
 msgstr "Χωρίς αντιστρέβλωση"
 
-#: unpaper.py:86
+#: unpaper.py:88
 msgid "Disable deskewing."
 msgstr "Απενεργοποίηση αντιστρέβλωσης"
 
-#: unpaper.py:91
-#, fuzzy
+#: unpaper.py:93
 msgid "No mask scan"
-msgstr "Χωρίς ανίχνευση μάσκας"
+msgstr "Χωρίς σάρωση μάσκας"
 
-#: unpaper.py:92
+#: unpaper.py:94
 msgid "Disable mask detection."
 msgstr "Άρση ανίχνευσης μάσκας"
 
-#: unpaper.py:97
-#, fuzzy
+#: unpaper.py:99
 msgid "No mask centering"
 msgstr "Χωρίς κεντράρισμα μάσκας"
 
-#: unpaper.py:98
-#, fuzzy
+#: unpaper.py:100
 msgid "Disable mask centering."
 msgstr "Απενεργοποίηση κεντραρίσματος μάσκας."
 
-#: unpaper.py:103
+#: unpaper.py:105
 msgid "No black filter"
 msgstr "Χωρίς φίλτρο μαύρου"
 
-#: unpaper.py:104
+#: unpaper.py:106
 msgid "Disable black area scan."
 msgstr "Άρση σάρωσης μαύρων περιοχών"
 
-#: unpaper.py:109
+#: unpaper.py:111
 msgid "No gray filter"
 msgstr "Χωρίς φίλτρο γρί"
 
-#: unpaper.py:110
+#: unpaper.py:112
 msgid "Disable gray area scan."
 msgstr "Άρση σάρωσης γκρι περιοχών"
 
-#: unpaper.py:115
+#: unpaper.py:117
 msgid "No noise filter"
 msgstr "Χωρίς φίλτρο θορύβου"
 
-#: unpaper.py:116
+#: unpaper.py:118
 msgid "Disable noise filter."
 msgstr "Άρση φίλτρου θορύβου"
 
-#: unpaper.py:121
+#: unpaper.py:123
 msgid "No blur filter"
 msgstr "Χωρίς φίλτρο θαμπώματος"
 
-#: unpaper.py:122
+#: unpaper.py:124
 msgid "Disable blur filter."
 msgstr "Άρση φίλτρου θαμπώματος"
 
-#: unpaper.py:127
+#: unpaper.py:129
 msgid "No border scan"
 msgstr "Χωρίς σάρωση περιθωρίων"
 
-#: unpaper.py:128
+#: unpaper.py:130
 msgid "Disable border scanning."
 msgstr "Απενεργοποίηση σάρωσης περιθωρίων"
 
-#: unpaper.py:133
+#: unpaper.py:135
 msgid "No border align"
 msgstr "Χωρίς στοίχιση περιθωρίου"
 
-#: unpaper.py:135
+#: unpaper.py:137
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "Απενεργοποίηση στοίχισης"
 
-#: unpaper.py:141
+#: unpaper.py:143
 msgid "Deskew to edge"
 msgstr "Αντιστρέβλωση στο άκρο"
 
-#: unpaper.py:143
+#: unpaper.py:145
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
 "value will be used, unless the statistical deviation exceeds --deskew-scan-"
 "deviation."
 msgstr ""
-"Ακμές από τις οποίες θα γίνει σάρωση για περιστροφή. Κάθε ακμή μάσκας μπορεί "
-"να χρησιμοποιηθεί για εντοπισμό περιστροφής της μάσκας. Αν οριστούν πολλές "
+"Ακμές από τις οποίες θα γίνει σάρωση για περιστροφή. Κάθε ακμή μάσκας μπορεί"
+" να χρησιμοποιηθεί για εντοπισμό περιστροφής της μάσκας. Αν οριστούν πολλές "
 "ακμές, θα χρησιμοποιηθεί ο μέσος όρος, εκτός αν η στατιστική απόκλιση "
 "υπερβαίνει την απόκλιση --αντιστρέβλωσης-σάρωσης"
 
-#: unpaper.py:152
+#: unpaper.py:154
 msgid "Use 'left' for scanning from the left edge."
 msgstr "Χρησιμοποίησε το \"αριστερά\" για σάρωση από αριστερά"
 
-#: unpaper.py:157
+#: unpaper.py:159
 msgid "Use 'top' for scanning from the top edge."
 msgstr "Χρησιμοποίησε το \"κορυφή\" για σάρωση από την κορυφή"
 
-#: unpaper.py:161 unpaper.py:189
+#: unpaper.py:163 unpaper.py:191
 msgid "Right"
 msgstr "Δεξιά"
 
-#: unpaper.py:162
+#: unpaper.py:164
 msgid "Use 'right' for scanning from the right edge."
 msgstr "Χρησιμοποίησε το \"δεξιά\" για σάρωση από δεξιά"
 
-#: unpaper.py:166 unpaper.py:194
+#: unpaper.py:168 unpaper.py:196
 msgid "Bottom"
 msgstr "Βάση"
 
-#: unpaper.py:167
+#: unpaper.py:169
 msgid "Use 'bottom' for scanning from the bottom."
 msgstr "Χρησιμοποίησε το \"βάση\" για σάρωση από την βάση"
 
-#: unpaper.py:174
+#: unpaper.py:176
 msgid "Align to edge"
 msgstr "Στοίχιση στην ακμή"
 
-#: unpaper.py:175
+#: unpaper.py:177
 msgid "Edge to which to align the page."
 msgstr "Ακμή που θα ευθυγραμιστεί η σελίδα"
 
-#: unpaper.py:180
+#: unpaper.py:182
 msgid "Use 'left' to align to the left edge."
 msgstr "Χρησιμοποίησε το \"αριστερά\" για στοίχιση αριστερά"
 
-#: unpaper.py:185
+#: unpaper.py:187
 msgid "Use 'top' to align to the top edge."
 msgstr "Χρήση της επιλογής 'top' για να γίνει στοίχιση στο πάνω μέρος."
 
-#: unpaper.py:190
+#: unpaper.py:192
 msgid "Use 'right' to align to the right edge."
 msgstr "Χρήση της επιλογής 'right' για να γίνει στοίχιση στο δεξί μέρος."
 
-#: unpaper.py:195
+#: unpaper.py:197
 msgid "Use 'bottom' to align to the bottom."
 msgstr "Χρήση της επιλογής 'bottom' για να γίνει στοίχιση στο κάτω μέρος."
 
-#: unpaper.py:201
+#: unpaper.py:203
 msgid "Border margin"
 msgstr "περίγραμμα περιθωρίου"
 
-#: unpaper.py:205
+#: unpaper.py:207
 msgid "Vertical margin"
 msgstr "Κατακόρυφο περιθώριο"
 
-#: unpaper.py:207
+#: unpaper.py:209
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Η κάθετη απόσταση από την άκρη του φύλλου, όταν γίνεται στοίχιση των "
 "περιθωρίων μιας περιοχής"
 
-#: unpaper.py:217
+#: unpaper.py:219
 msgid "Horizontal margin"
 msgstr "Οριζόντιο περιθώριο"
 
-#: unpaper.py:219
+#: unpaper.py:221
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Οριζόντια απόσταση από την ακμή του φύλλου για ευθυγράμμιση στο περιθώριο"
 
-#: unpaper.py:231
+#: unpaper.py:233
 msgid "White threshold"
 msgstr "Ανοχή λευκού"
 
-#: unpaper.py:233
+#: unpaper.py:235
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr ""
 "Τιμή φωτεινότητας πάνω από την οποία ένα εικονοστοιχείο θα θεωρείται ως "
 "λευκό."
 
-#: unpaper.py:243
+#: unpaper.py:245
 msgid "Black threshold"
 msgstr "Ανοχή μαύρου"
 
-#: unpaper.py:245
+#: unpaper.py:247
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
 msgstr ""
 "Αναλογία φωτεινότητας κάτω από την οποία ένα εικονοστοιχείο θεωρείται μαύρο "
 "(όχι γκρι). Αυτό χρησιμοποιείται από το φίλτρο γκρι. Η ποσότητα αυτή επίσης "
 "χρησιμοποιείται στη μετατροπή μίας εικόνας από τόνους γκρι σε μαυρόασπρη."
 
-#: unpaper.py:355
+#: unpaper.py:370
 msgid "Deskew"
 msgstr "Αντιστρέβλωση"
 
-#: unpaper.py:359
+#: unpaper.py:374
 msgid "Border"
 msgstr "Περίγραμμα"
 
-#: unpaper.py:364
+#: unpaper.py:385
 msgid "Filters"
 msgstr "Φίλτρα"
 
-#: app.ui:5 menu.ui:6
-msgid "_File"
-msgstr "_Αρχείο"
-
-#: app.ui:9 menu.ui:9
-msgid "_New"
-msgstr "_Νέο"
-
-#: app.ui:14 menu.ui:14
-msgid "_Open"
-msgstr "_Άνοιγμα"
-
-#: app.ui:19
-#, fuzzy
-msgid "Open c_rashed session"
-msgstr "Άνοιγμα συνεδρίας που κατέρρευσε"
-
-#: app.ui:23 menu.ui:19
-msgid "S_can"
-msgstr "Σ_άρωση"
-
-#: app.ui:33 menu.ui:29
-msgid "_Email as PDF"
-msgstr "_Email ως PDF"
-
-#: app.ui:38 menu.ui:34
-msgid "_Print"
-msgstr "_Εκτύπωση"
-
-#: app.ui:45 menu.ui:39
-msgid "_Quit"
-msgstr "_'Εξοδος"
-
-#: app.ui:51 menu.ui:46
-msgid "_Edit"
-msgstr "_Επεξεργασία"
-
-#: app.ui:55 menu.ui:49
-msgid "_Undo"
-msgstr "_Αναίρεση"
-
-#: app.ui:60 menu.ui:53
-msgid "_Redo"
-msgstr "_Ακύρωση Αναίρεσης"
-
-#: app.ui:67 menu.ui:57
-msgid "Cu_t"
-msgstr "Απο_κοπή"
-
-#: app.ui:77 menu.ui:65
-msgid "_Paste"
-msgstr "Ε_πικόλληση"
-
-#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
-msgid "_Select"
-msgstr "_Επιλογή"
-
-#: app.ui:89 menu.ui:76
-msgid "_All"
-msgstr "_Όλα"
-
-#: app.ui:94 menu.ui:80
-msgid "_Odd"
-msgstr "_Μονό"
-
-#: app.ui:99 menu.ui:84
-msgid "_Even"
-msgstr "_Ζυγό"
-
-#: app.ui:104 menu.ui:88
-#, fuzzy
-msgid "_Invert"
-msgstr "_Αντιστροφή"
-
-#: app.ui:109 menu.ui:92
-msgid "_Blank"
-msgstr "_Κενό"
-
-#: app.ui:114 menu.ui:96
-msgid "_Dark"
-msgstr "_Σκοτεινό"
-
-#: app.ui:119 menu.ui:100
-msgid "_Modified"
-msgstr "_Τροποποιήθηκαν"
-
-#: app.ui:124 menu.ui:104
-msgid "_No OCR"
-msgstr "_Χωρίς OCR"
-
-#: app.ui:130 menu.ui:108
-msgid "_Clear OCR"
-msgstr "_Διαγραφή OCR"
-
-#: app.ui:136 menu.ui:114
-msgid "Propert_ies"
-msgstr "Ιδιό_τητες"
-
-#: app.ui:142 menu.ui:118
-msgid "Prefere_nces"
-msgstr "Προτι_μήσεις"
-
-#: app.ui:147 menu.ui:124
-msgid "_View"
-msgstr "_Προβολή"
-
-#: app.ui:150 app.ui:293
-#, fuzzy
-msgid "_Pan"
-msgstr "_Μετατόπιση"
-
-#: app.ui:160 app.ui:310
-#, fuzzy
-msgid "_Select & pan"
-msgstr "_Επιλογή"
-
-#: app.ui:167
-#, fuzzy
-msgid "_Tabbed"
-msgstr "_Καρτέλες"
-
-#: app.ui:172
-#, fuzzy
-msgid "_Split horizontally"
-msgstr "Οριζόντια"
-
-#: app.ui:177
-#, fuzzy
-msgid "_Split vertically"
-msgstr "Κάθετα"
-
-#: app.ui:184
-#, fuzzy
-msgid "Edit text layer"
-msgstr "Ενσωμάτωση στρώματος κειμένου"
-
-#: app.ui:189
-#, fuzzy
-msgid "Edit annotations"
-msgstr "Προσθήκη σχολιασμού"
-
-#: app.ui:197 app.ui:320 menu.ui:127
-msgid "Zoom _100%"
-msgstr "Μεγέθυνση _100%"
-
-#: app.ui:201 app.ui:327 menu.ui:131
-msgid "Zoom to _fit"
-msgstr "Αλλαγή κλίμακας για _ταίριασμα"
-
-#: app.ui:205 app.ui:334 menu.ui:135
-msgid "Zoom _in"
-msgstr "_Μεγέθυνση"
-
-#: app.ui:210 app.ui:341 menu.ui:139
-msgid "Zoom _out"
-msgstr "Σ_μίκρυνση"
-
-#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
-msgid "Rotate 90° clockwise"
-msgstr "Περιστροφή 90 δεξιόστροφα"
-
-#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
-msgid "Rotate 180°"
-msgstr "Περιστροφή 180"
-
-#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
-msgid "Rotate 90° anticlockwise"
-msgstr "Περιστροφή 90 αριστερόστροφα"
-
-#: app.ui:233 menu.ui:157
-msgid "_Tools"
-msgstr "_Εργαλεία"
-
-#: app.ui:237 menu.ui:160
-msgid "_Threshold"
-msgstr "_Ανοχή"
-
-#: app.ui:241 menu.ui:164
-#, fuzzy
-msgid "_Brightness / Contrast"
-msgstr "Φωτεινότητα / Αντίθεση"
-
-#: app.ui:245 menu.ui:168
-msgid "_Negate"
-msgstr "_Απόρριψη"
-
-#: app.ui:249 menu.ui:172
-msgid "_Unsharp Mask"
-msgstr "_Μάσκα Άμβλυνσης"
-
-#: app.ui:253 menu.ui:176
-msgid "_Crop"
-msgstr "Α_ποκοπή"
-
-#: app.ui:259 menu.ui:180
-msgid "_Clean up"
-msgstr "_Καθαρισμός"
-
-#: app.ui:263 menu.ui:184
-#, fuzzy
-msgid "_Split"
-msgstr "Διαίρεση"
-
-#: app.ui:267 menu.ui:188
-msgid "_OCR"
-msgstr "_OCR"
-
-#: app.ui:273 menu.ui:192
-msgid "U_ser-defined"
-msgstr "Ο_ρίζεται από τον χρήστη"
-
-#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
-msgid "_Help"
-msgstr "_Βοήθεια"
-
-#: app.ui:286 menu.ui:205
-msgid "_About"
-msgstr "_Σχετικά"
-
-#: app.ui:375 app.ui:478
-#, fuzzy
-msgid "Cut"
-msgstr "Απο_κοπή"
-
-#: app.ui:381 app.ui:484
-#, fuzzy
-msgid "Copy"
-msgstr "Αντι_γραφή"
-
-#: app.ui:387 app.ui:490
-#, fuzzy
-msgid "Paste"
-msgstr "Ε_πικόλληση"
-
-#: app.ui:393 app.ui:496
-#, fuzzy
-msgid "Delete"
-msgstr "_Διαγραφή"
-
-#: app.ui:420 app.ui:573
-msgid "Print"
-msgstr "Εκτύπωση"
-
-#: app.ui:427
-#, fuzzy
-msgid "Select All"
-msgstr "_Επιλογή"
-
-#: app.ui:433
-#, fuzzy
-msgid "Select Odd"
-msgstr "Επιλεγμένο"
-
-#: app.ui:439
-#, fuzzy
-msgid "Select Even"
-msgstr "Επιλεγμένο"
-
-#: app.ui:445
-#, fuzzy
-msgid "Invert selection"
-msgstr "Αποκοπή επιλογής"
-
-#: app.ui:503
-#, fuzzy
-msgid "Clear OCR"
-msgstr "_Διαγραφή OCR"
-
-#: app.ui:523
-msgid "Clears all pages"
-msgstr "Καθαρισμός όλων των σελίδων"
-
-#: app.ui:533
-#, fuzzy
-msgid "Open images"
-msgstr "Άνοιγμα εικόνας"
-
-#: app.ui:543
-msgid "Scan document"
-msgstr "Σάρωση εγγράφου"
-
-#: app.ui:563
-msgid "Attach as PDF to a new email"
-msgstr "Επισύναψη σαν PDF σε νέο email"
-
-#: app.ui:584
-msgid "Undo"
-msgstr "Αναίρεση"
-
-#: app.ui:594
-msgid "Redo"
-msgstr "Ακύρωση Αναίρεσης"
-
-#: app.ui:605
-msgid "Cut selection"
-msgstr "Αποκοπή επιλογής"
-
-#: app.ui:615
-msgid "Copy selection"
-msgstr "Αντιγραφή επιλογής"
-
-#: app.ui:625
-msgid "Paste selection"
-msgstr "Επικόλληση επιλογής"
-
-#: app.ui:635
-msgid "Delete selected pages"
-msgstr "Διαγραφή επιλεγμένων σελίδων"
-
-#: app.ui:646
-msgid "Select all pages"
-msgstr "Επιλογή όλων των σελίδων"
-
-#: app.ui:657
-#, fuzzy
-msgid "Use the pan tool"
-msgstr "Χρησιμοποιήστε το χειροκίνητο εργαλείο"
-
-#: app.ui:668
-msgid "Use the rectangular selection tool"
-msgstr "Χρησιμοποιήστε το ορθογώνιο εργαλείο επιλογής"
-
-#: app.ui:680
-#, fuzzy
-msgid "Use the combined select and pan tool"
-msgstr "Χρησιμοποιήστε το ορθογώνιο εργαλείο επιλογής"
-
-#: app.ui:693
-msgid "Zoom to 100%"
-msgstr "Κλίμακα στο 100%"
-
-#: app.ui:703
+#: app.ui:11
+msgid "Pan"
+msgstr "Μετακίνηση"
+
+#: app.ui:18
+msgid "Select"
+msgstr "Επιλογή"
+
+#: app.ui:25
+msgid "Select & pan"
+msgstr "Επιλογή & μετατόπιση"
+
+#: app.ui:35
+msgid "Zoom 100%"
+msgstr "Μεγέθυνση 100%"
+
+#: app.ui:40 app.ui:708
 msgid "Zoom to fit"
 msgstr "Αλλαγή κλίμακας για ταίριασμα"
 
-#: app.ui:713
+#: app.ui:45 app.ui:718
 msgid "Zoom in"
 msgstr "Μεγέθυνση"
 
-#: app.ui:723
+#: app.ui:50 app.ui:728
 msgid "Zoom out"
 msgstr "Σμίκρυνση"
 
-#: app.ui:765
-#, fuzzy
-msgid "Crop selection"
+#: app.ui:58 app.ui:161 app.ui:427 app.ui:761 menu.ui:143
+msgid "Rotate 90° clockwise"
+msgstr "Περιστροφή 90 δεξιόστροφα"
+
+#: app.ui:63 app.ui:166 app.ui:431 app.ui:751 menu.ui:147
+msgid "Rotate 180°"
+msgstr "Περιστροφή 180"
+
+#: app.ui:68 app.ui:171 app.ui:435 app.ui:741 menu.ui:151
+msgid "Rotate 90° anticlockwise"
+msgstr "Περιστροφή 90 αριστερόστροφα"
+
+#: app.ui:84 app.ui:187
+msgid "Cut"
+msgstr "Αποκοπή"
+
+#: app.ui:89 app.ui:192
+msgid "Copy"
+msgstr "Αντιγραφή"
+
+#: app.ui:94 app.ui:197
+msgid "Paste"
+msgstr "Επικόλληση"
+
+#: app.ui:130 app.ui:560
+msgid "Print"
+msgstr "Εκτύπωση"
+
+#: app.ui:138
+msgid "Select All"
+msgstr "Επιλογή όλων"
+
+#: app.ui:143
+msgid "Select Odd"
+msgstr "Επιλογή μονών"
+
+#: app.ui:148
+msgid "Select Even"
+msgstr "Επιλογή Άρτιων"
+
+#: app.ui:153
+msgid "Invert selection"
+msgstr "Αντιστροφή επιλογής"
+
+#: app.ui:210
+msgid "Clear OCR"
+msgstr "Εκκαθάριση OCR"
+
+#: app.ui:226 menu.ui:6
+msgid "_File"
+msgstr "_Αρχείο"
+
+#: app.ui:230 menu.ui:9
+msgid "_New"
+msgstr "_Νέο"
+
+#: app.ui:234 menu.ui:14
+msgid "_Open"
+msgstr "_Άνοιγμα"
+
+#: app.ui:238
+msgid "Open c_rashed session"
+msgstr "Άνοιγμα κατεστ_ραμμένης συνεδρίας"
+
+#: app.ui:242
+msgid "Import _hOCR…"
+msgstr "Εισαγωγή _hOCR…"
+
+#: app.ui:246 menu.ui:19
+msgid "S_can"
+msgstr "Σ_άρωση"
+
+#: app.ui:254 menu.ui:29
+msgid "_Email as PDF"
+msgstr "_Email ως PDF"
+
+#: app.ui:258 menu.ui:34
+msgid "_Print"
+msgstr "_Εκτύπωση"
+
+#: app.ui:264 menu.ui:39
+msgid "_Quit"
+msgstr "_'Εξοδος"
+
+#: app.ui:269 menu.ui:46
+msgid "_Edit"
+msgstr "_Επεξεργασία"
+
+#: app.ui:273 menu.ui:49
+msgid "_Undo"
+msgstr "_Αναίρεση"
+
+#: app.ui:277 menu.ui:53
+msgid "_Redo"
+msgstr "_Ακύρωση Αναίρεσης"
+
+#: app.ui:283 menu.ui:57
+msgid "Cu_t"
+msgstr "Απο_κοπή"
+
+#: app.ui:291 menu.ui:65
+msgid "_Paste"
+msgstr "Ε_πικόλληση"
+
+#: app.ui:299 app.ui:361 menu.ui:73
+msgid "_Select"
+msgstr "_Επιλογή"
+
+#: app.ui:302 menu.ui:76
+msgid "_All"
+msgstr "_Όλα"
+
+#: app.ui:306 menu.ui:80
+msgid "_Odd"
+msgstr "_Μονό"
+
+#: app.ui:310 menu.ui:84
+msgid "_Even"
+msgstr "_Ζυγό"
+
+#: app.ui:314 menu.ui:88
+msgid "_Invert"
+msgstr "_Αντιστροφή"
+
+#: app.ui:318 menu.ui:92
+msgid "_Blank"
+msgstr "_Κενό"
+
+#: app.ui:322 menu.ui:96
+msgid "_Dark"
+msgstr "_Σκοτεινό"
+
+#: app.ui:326 menu.ui:100
+msgid "_Modified"
+msgstr "_Τροποποιήθηκαν"
+
+#: app.ui:330 menu.ui:104
+msgid "_No OCR"
+msgstr "_Χωρίς OCR"
+
+#: app.ui:336 menu.ui:108
+msgid "_Clear OCR"
+msgstr "_Διαγραφή OCR"
+
+#: app.ui:342 menu.ui:114
+msgid "Propert_ies"
+msgstr "Ιδιό_τητες"
+
+#: app.ui:348 menu.ui:118
+msgid "Prefere_nces"
+msgstr "Προτι_μήσεις"
+
+#: app.ui:353 menu.ui:124
+msgid "_View"
+msgstr "_Προβολή"
+
+#: app.ui:356
+msgid "_Pan"
+msgstr "_Μετακίνηση"
+
+#: app.ui:366
+msgid "_Select & pan"
+msgstr "_Επιλογή & πανοράμιση"
+
+#: app.ui:374
+msgid "_Clear image selection"
+msgstr "_Καθαρισμός επιλογής εικόνας"
+
+#: app.ui:379
+msgid "_Tabbed"
+msgstr "_Με καρτέλες"
+
+#: app.ui:384
+msgid "_Split horizontally"
+msgstr "_Διαχωρισμός οριζόντια"
+
+#: app.ui:389
+msgid "_Split vertically"
+msgstr "_Διαχωρισμός κατακόρυφα"
+
+#: app.ui:396
+msgid "Edit text layer"
+msgstr "Επεξεργασία επιπέδου κειμένου"
+
+#: app.ui:401
+msgid "Edit annotations"
+msgstr "Επεξεργασία σχολιασμών"
+
+#: app.ui:409 menu.ui:127
+msgid "Zoom _100%"
+msgstr "Μεγέθυνση _100%"
+
+#: app.ui:413 menu.ui:131
+msgid "Zoom to _fit"
+msgstr "Αλλαγή κλίμακας για _ταίριασμα"
+
+#: app.ui:417 menu.ui:135
+msgid "Zoom _in"
+msgstr "_Μεγέθυνση"
+
+#: app.ui:421 menu.ui:139
+msgid "Zoom _out"
+msgstr "Σ_μίκρυνση"
+
+#: app.ui:440 menu.ui:157
+msgid "_Tools"
+msgstr "_Εργαλεία"
+
+#: app.ui:444 menu.ui:160
+msgid "_Threshold"
+msgstr "_Ανοχή"
+
+#: app.ui:448 menu.ui:164
+msgid "_Brightness / Contrast"
+msgstr "_Φωτεινότητα / Αντίθεση"
+
+#: app.ui:452 menu.ui:168
+msgid "_Negate"
+msgstr "_Απόρριψη"
+
+#: app.ui:456 menu.ui:172
+msgid "_Unsharp Mask"
+msgstr "_Μάσκα Άμβλυνσης"
+
+#: app.ui:460 menu.ui:176
+msgid "_Crop"
+msgstr "Α_ποκοπή"
+
+#: app.ui:466 menu.ui:180
+msgid "_Clean up"
+msgstr "_Καθαρισμός"
+
+#: app.ui:470 menu.ui:184
+msgid "_Split"
+msgstr "_Διαίρεση"
+
+#: app.ui:474 menu.ui:188
+msgid "_OCR"
+msgstr "_OCR"
+
+#: app.ui:480 menu.ui:192
+msgid "U_ser-defined"
+msgstr "Ο_ρίζεται από τον χρήστη"
+
+#: app.ui:485 app.ui:488 menu.ui:198 menu.ui:201
+msgid "_Help"
+msgstr "_Βοήθεια"
+
+#: app.ui:492 menu.ui:205
+msgid "_About"
+msgstr "_Σχετικά"
+
+#: app.ui:510
+msgid "Clears all pages"
+msgstr "Καθαρισμός όλων των σελίδων"
+
+#: app.ui:520
+msgid "Open images"
+msgstr "Άνοιγμα εικόνων"
+
+#: app.ui:530
+msgid "Scan document"
+msgstr "Σάρωση εγγράφου"
+
+#: app.ui:550
+msgid "Attach as PDF to a new email"
+msgstr "Επισύναψη σαν PDF σε νέο email"
+
+#: app.ui:573
+msgid "Undo"
+msgstr "Αναίρεση"
+
+#: app.ui:583
+msgid "Redo"
+msgstr "Ακύρωση Αναίρεσης"
+
+#: app.ui:596
+msgid "Cut selection"
+msgstr "Αποκοπή επιλογής"
+
+#: app.ui:606
+msgid "Copy selection"
 msgstr "Αντιγραφή επιλογής"
 
-#: app.ui:776
+#: app.ui:616
+msgid "Paste selection"
+msgstr "Επικόλληση επιλογής"
+
+#: app.ui:626
+msgid "Delete selected pages"
+msgstr "Διαγραφή επιλεγμένων σελίδων"
+
+#: app.ui:639
+msgid "Select all pages"
+msgstr "Επιλογή όλων των σελίδων"
+
+#: app.ui:652
+msgid "Use the pan tool"
+msgstr "Χρησιμοποιήστε το εργαλείο μετατόπισης"
+
+#: app.ui:663
+msgid "Use the rectangular selection tool"
+msgstr "Χρησιμοποιήστε το ορθογώνιο εργαλείο επιλογής"
+
+#: app.ui:674
+msgid "Use the combined select and pan tool"
+msgstr "Χρησιμοποιήστε το συνδυασμένο εργαλείο επιλογής και μετακίνησης"
+
+#: app.ui:685
+msgid "Clear image selection"
+msgstr "Εκκαθάριση επιλογής εικόνας"
+
+#: app.ui:698
+msgid "Zoom to 100%"
+msgstr "Κλίμακα στο 100%"
+
+#: app.ui:774
+msgid "Crop selection"
+msgstr "Περικοπή επιλογής"
+
+#: app.ui:787
 msgid "Quit"
 msgstr "'Εξοδος"
 
-#: menu.ui:24
-#, fuzzy
-msgid "_Save"
-msgstr "Αποθήκευση"
-
-#: session_mixins.py:160
-#, fuzzy
-msgid "No crashed sessions found."
-msgstr ""
-
-#: session_mixins.py:166
-#, fuzzy
-msgid "Crashed sessions"
-msgstr ""
-
-#: session_mixins.py:171
-#, fuzzy
-msgid "_Discard"
-msgstr ""
-
-#: session_mixins.py:172
-#, fuzzy
-msgid "_Restore"
-msgstr ""
-
-#: session_mixins.py:175
-#, fuzzy
-msgid "Restore or discard a crashed session"
-msgstr ""
-
-#: session_mixins.py:204
-#, fuzzy
-msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
-msgstr ""
-
-#: session_mixins.py:239
-#, fuzzy
-msgid "Restore file"
-msgstr ""
-
-#: session_mixins.py:255
 #, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
-msgstr[1] ""
+#~ msgid "%dMb free in %s."
+#~ msgid_plural "%dMb free in %s."
+#~ msgstr[0] "%dMB ελεύθερα στο %s."
+#~ msgstr[1] "%dMB ελεύθερα στο %s."
 
-#: session_mixins.py:279
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
-msgstr ""
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The setting %s is %r and cannot be used as %s, so it has been left "
+#~ "unchanged."
+#~ msgstr ""
+#~ "Η ρύθμιση %s είναι %r και δεν μπορεί να χρησιμοποιηθεί ως %s, οπότε "
+#~ "παραμένει ως έχει."
 
-#: scan_menu_item_mixins.py:122
-#, fuzzy
-msgid ""
-"Caching the device list with libusb devices is not recommended, as they can "
-"change between reboots. Cache them anyway?"
-msgstr ""
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The settings file %s could not be read in full. The following settings were "
+#~ "restored: %s. The rest were reset to their defaults. A backup of the "
+#~ "original file has been saved as %s."
+#~ msgstr ""
+#~ "Το αρχείο ρυθμίσεων %s δεν μπόρεσε να διαβαστεί πλήρως. Οι ακόλουθες "
+#~ "ρυθμίσεις επαναφέρθηκαν: %s. Οι υπόλοιπες επαναφέρθηκαν στις προεπιλογές "
+#~ "τους. Ένα αντίγραφο ασφαλείας του αρχικού αρχείου αποθηκεύτηκε ως %s."
 
-#: scan_menu_item_mixins.py:127
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The settings file %s could not be read, so all settings have been reset to "
+#~ "their defaults. A backup of the original file has been saved as %s."
+#~ msgstr ""
+#~ "Το αρχείο ρυθμίσεων %s δεν μπόρεσε να διαβαστεί, οπότε όλες οι ρυθμίσεις "
+#~ "επαναφέρθηκαν στις προεπιλογές τους. Ένα αντίγραφο ασφαλείας του αρχικού "
+#~ "αρχείου αποθηκεύτηκε ως %s."
+
 #, fuzzy
-msgid "Don't ask again"
-msgstr ""
+#~ msgid ""
+#~ "Please see https://imagemagick.org/script/resources.php for more information"
+#~ msgstr ""
+#~ "Δείτε το https://imagemagick.org/script/resources.php για περισσότερες "
+#~ "πληροφορίες"
+
+#, fuzzy
+#~ msgid "Device blacklist (regular expression)"
+#~ msgstr "Μαύρη λίστα συσκευών (κανονική έκφραση)"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Use %i and %o for the input and output filenames respectively,\n"
+#~ "or a single %i if the image is to be modified in-place.\n"
+#~ "\n"
+#~ "The other variable available is:\n"
+#~ "%r resolution"
+#~ msgstr ""
+#~ "Χρησιμοποιήστε %i και %o για τα ονόματα αρχείων εισόδου και εξόδου αντίστοιχα,\n"
+#~ "ή μόνο %i εάν η εικόνα πρόκειται να τροποποιηθεί επί τόπου.\n"
+#~ "\n"
+#~ "Η άλλη διαθέσιμη μεταβλητή είναι:\n"
+#~ "%r ανάλυση"
+
+#, fuzzy, python-format
+#~ msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+#~ msgstr "Αγνόηση επιλογής σάρωσης '%s', ελάχιστο εύρος (%s) > μέγιστο (%s)"
+
+#~ msgid "JPEG Quality"
+#~ msgstr "Ποιότητα JPEG"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
+#~ " file a bug, attaching a log file reproducing the problem."
+#~ msgstr ""
+#~ "Υπέρβαση ορίου αναδρομής επαναφόρτωσης (%d): %d επαναφορτώσεις για %d "
+#~ "επιλογές σάρωσης. Παρακαλούμε αναφέρετε το σφάλμα, επισυνάπτοντας ένα αρχείο"
+#~ " καταγραφής που αναπαράγει το πρόβλημα."
+
+#, fuzzy, python-format
+#~ msgid "Scanning page %d of %d"
+#~ msgstr "Σάρωση σελίδας %d από %d"
+
+#, fuzzy, python-format
+#~ msgid "Scanning page %d"
+#~ msgstr "Σάρωση σελίδας %d"
+
+#, fuzzy, python-format
+#~ msgid "Analysing page %i of %i"
+#~ msgstr "Ανάλυση σελίδας %i από %i"
+
+#, fuzzy
+#~ msgid "Open crashed session"
+#~ msgstr "Άνοιγμα συνεδρίας που κατέρρευσε"
+
+#, fuzzy, python-format
+#~ msgid "Error getting file info for %s: %s"
+#~ msgstr "Σφάλμα κατά τη λήψη πληροφοριών αρχείου για το %s: %s"
+
+#, python-format
+#~ msgid "Importing page %i of %i"
+#~ msgstr "Εισαγωγή σελίδας %i του %i"
+
+#, python-format
+#~ msgid "Process %i of %i (%s)"
+#~ msgstr "Λειτουργία %i επί συνόλου %i (%s)"
+
+#, python-format
+#~ msgid "Process %i of %i"
+#~ msgstr "Επεξεργασία %i απο %i"
+
+#, python-format
+#~ msgid "Writing page %i of %i"
+#~ msgstr "Γίνεται εγγραφη της σελίδας %i (επί συνόλου %i)"
+
+#, fuzzy
+#~ msgid ""
+#~ "Caching device list with libusb devices included is not recommended as they "
+#~ "can change between reboots."
+#~ msgstr ""
+#~ "Η αποθήκευση λίστας συσκευών με συσκευές libusb δεν συνιστάται, καθώς "
+#~ "μπορούν να αλλάξουν μεταξύ επανεκκινήσεων."
+
+#, fuzzy
+#~ msgid "Are you sure you want to do this?"
+#~ msgstr "Είστε βέβαιοι ότι θέλετε να το κάνετε αυτό;"
+
+#, python-format
+#~ msgid ""
+#~ "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+#~ msgstr ""
+#~ "Προσοχή: αδύνατη η χρήση του %s για προσωρινή αποθήκευση. Αντί για αυτό, "
+#~ "γίνεται μετάπτωση στο %s"
+
+#~ msgid "Pick crashed session to restore"
+#~ msgstr "Επιλέξτε προς ανάκτηση τη συνεδρία που κατέρρευσε"
+
+#, fuzzy
+#~ msgid "Add annotation"
+#~ msgstr "Προσθήκη σχολιασμού"
+
+#, fuzzy
+#~ msgid "Delete annotation"
+#~ msgstr "Διαγραφή σχολιασμού"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
+#~ "for OCR for %s with tesseract."
+#~ msgstr ""
+#~ "Εγκαταστήστε το πακέτο tesseract 'tesseract-ocr-%s' και επανεκκινήστε το "
+#~ "scantpaper για OCR για %s με το tesseract."
 
 #~ msgid "PPI"
 #~ msgstr "PPI"
@@ -2859,8 +3364,7 @@ msgstr ""
 #~ msgstr "Χρησιμοποιήστε το εργαλείο σχεδίασης/ ζωγραφικής"
 
 #~ msgid "Save image and Save as PDF both require imagemagick\n"
-#~ msgstr ""
-#~ "Η αποθήκευση εικόνας και η αποθήκευση ώς PDF απαιτέι το imagemagick\n"
+#~ msgstr "Η αποθήκευση εικόνας και η αποθήκευση ώς PDF απαιτέι το imagemagick\n"
 
 #~ msgid "Save image requires libtiff\n"
 #~ msgstr "Η αποθήκευση εικονας απαιτεί το libtiff\n"
@@ -2872,8 +3376,7 @@ msgstr ""
 #~ msgstr "Η αποστολή email ως PDF απαιτεί xdg-email\n"
 
 #~ msgid "The rotating options and unpaper support require perlmagick\n"
-#~ msgstr ""
-#~ "Οι επιλογές περιστροφής και αποσελιδοποίησης απαιτούν το perlmagick\n"
+#~ msgstr "Οι επιλογές περιστροφής και αποσελιδοποίησης απαιτούν το perlmagick\n"
 
 #~ msgid "unpaper missing\n"
 #~ msgstr "Η αποχάρτιση λείπει\n"
@@ -2950,8 +3453,8 @@ msgstr ""
 #~ "The radius of the Gaussian, in pixels, not counting the center pixel (0 = "
 #~ "automatic)."
 #~ msgstr ""
-#~ "Η ακτίνα της Γκαουσσιανής, σε εικονοστοιχεία (pixels), χωρίς να "
-#~ "προσμετράται το κεντρικό εικονοστοιχείο (0= αυτόματο)."
+#~ "Η ακτίνα της Γκαουσσιανής, σε εικονοστοιχεία (pixels), χωρίς να προσμετράται"
+#~ " το κεντρικό εικονοστοιχείο (0= αυτόματο)."
 
 #~ msgid "Sigma"
 #~ msgstr "Sigma"
@@ -2966,8 +3469,8 @@ msgstr ""
 #~ "The percentage of the difference between the original and the blur image "
 #~ "that is added back into the original."
 #~ msgstr ""
-#~ "Η ποσοστιαία διαφορά ανάμεσα στην αρχική και στη θολωμένη (blur)  εικόνα "
-#~ "που προστέθηκε στο πρωτότυπο."
+#~ "Η ποσοστιαία διαφορά ανάμεσα στην αρχική και στη θολωμένη (blur)  εικόνα που"
+#~ " προστέθηκε στο πρωτότυπο."
 
 #~ msgid "label"
 #~ msgstr "ετικέτα"
@@ -2987,8 +3490,7 @@ msgstr ""
 #~ "Alternatively, try: %s %s\n"
 #~ "\n"
 #~ msgstr ""
-#~ "Το σύστημα για την εμφάνιση βοήθειας απαιτεί το άρθρωμα "
-#~ "Gtk2::Ex::PodViewer\n"
+#~ "Το σύστημα για την εμφάνιση βοήθειας απαιτεί το άρθρωμα Gtk2::Ex::PodViewer\n"
 #~ "Εναλλακτικά, δοκιμάστε το: %s %s\n"
 #~ "\n"
 
@@ -3032,27 +3534,23 @@ msgstr ""
 #~ msgstr "Επιλογές εξαρτώμενες από το είδος της συσκευής"
 
 #~ msgid "Clear device-dependent options cache"
-#~ msgstr ""
-#~ "Να γίνει καθαρισμός των επιλογών που εξαρτώνται από το είδος συσκευής"
+#~ msgstr "Να γίνει καθαρισμός των επιλογών που εξαρτώνται από το είδος συσκευής"
 
 #~ msgid ""
-#~ "You will have to restart gscanp2df for changes to the temporary directory "
-#~ "to take effect."
+#~ "You will have to restart gscanp2df for changes to the temporary directory to"
+#~ " take effect."
 #~ msgstr ""
 #~ "Για να εφαρμοσθούν οι αλλαγές στον προσωρινό φάκελλο, θα πρέπει να "
 #~ "επανεκκινήσετε το gscanp2df"
 
 #~ msgid ""
-#~ "Use %i and %o for the input and output filenames respectively, or a "
-#~ "single %i if the image is to be modified in-place.\n"
+#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
 #~ "\n"
 #~ "The other variable available is:\n"
 #~ "\n"
 #~ "%r resolution"
 #~ msgstr ""
-#~ "Για την Είσοδο και την Έξοδο ονομάτων αρχείων, χρησιμοποιήστε το %i  και "
-#~ "το %o, αντίστοιχα, ή ένα μεμονωμένο %i αν η εικόνα πρέπει να τροποποιηθεί "
-#~ "επί τόπου.\n"
+#~ "Για την Είσοδο και την Έξοδο ονομάτων αρχείων, χρησιμοποιήστε το %i  και το %o, αντίστοιχα, ή ένα μεμονωμένο %i αν η εικόνα πρέπει να τροποποιηθεί επί τόπου.\n"
 #~ "\n"
 #~ "The other variable available is:\n"
 #~ "\n"
@@ -3100,8 +3598,8 @@ msgstr ""
 #, perl-format
 #~ msgid "Error embedding file image in %s format to PDF: %s"
 #~ msgstr ""
-#~ "Σημειώθηκε σφάλμα κατά την ενσωμάτωση αρχείου εικόνας σε μορφή %s, μέσα "
-#~ "στο PDF: %s"
+#~ "Σημειώθηκε σφάλμα κατά την ενσωμάτωση αρχείου εικόνας σε μορφή %s, μέσα στο "
+#~ "PDF: %s"
 
 #, perl-format
 #~ msgid "Error compressing image: %s"
@@ -3116,8 +3614,7 @@ msgstr ""
 
 #~ msgid "Error adding text layer to DjVu"
 #~ msgstr ""
-#~ "Σημειώθηκε σφάλμα κατά την προσθήκη στιβάδας κειμένου (text layer) στο "
-#~ "DjVu"
+#~ "Σημειώθηκε σφάλμα κατά την προσθήκη στιβάδας κειμένου (text layer) στο DjVu"
 
 #, perl-format
 #~ msgid "Converting image %i of %i to TIFF"
