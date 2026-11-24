@@ -68,6 +68,10 @@
     "sv": {
       "qualification": 0.35,
       "drift": 0.3
+    },
+    "nl": {
+      "qualification": 0.3,
+      "drift": 0.22
     }
   },
   "releases": {

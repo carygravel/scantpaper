@@ -42,8 +42,9 @@
 * Updated German translation thanks to Martin Butter
 * The German and Spanish translations now cover every shipped string, including
   counted forms.
-* Updated Brazilian Portuguese, Czech, Danish, Finnish, French, Hungarian,
-  Italian, Polish, Russian, Slovak, Swedish, Turkish & Ukrainian translations
+* Updated Brazilian Portuguese, Czech, Danish, Dutch, Finnish, French,
+  Hungarian, Italian, Polish, Russian, Slovak, Swedish, Turkish &
+  Ukrainian translations
 
 
 ## 4.0.4 (2026-11-14)
