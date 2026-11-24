@@ -19,380 +19,418 @@ msgstr ""
 "X-Generator: Launchpad (build 17908)\n"
 "X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
-#: app_window.py:516
-#, fuzzy
+#: app_window.py:751
+msgid "Warning: missing packages"
+msgstr "Abisua: paketeak galdu dira"
+
+#: app_window.py:827
+msgid "Image"
+msgstr "Irudia"
+
+#: app_window.py:828 layer.py:197
+msgid "Text layer"
+msgstr "Testu-geruza"
+
+#: app_window.py:830
+msgid "Annotations"
+msgstr "Anotazioak"
+
+#: app_window.py:1294
+#, python-format
+msgid "%(mb)dMb free in %(name)s."
+msgid_plural "%(mb)dMb free in %(name)s."
+msgstr[0] "%(mb)dMb libre %(name)s(e)n."
+msgstr[1] "%(mb)dMb libre %(name)s(e)n."
+
+#: app_window.py:1322 helpers.py:531
+msgid "Messages"
+msgstr "Mezuak"
+
+#: app_window.py:1405
+msgid "Error opening the last device used."
+msgstr "Errorea erabilitako azken gailua irekitzean."
+
+#: app_window.py:1407
+msgid "There was an error opening the last device used."
+msgstr "Errore bat gertatu da erabilitako azken gailua irekitzean."
+
+#: app_window.py:1410
+msgid "Whoops! I forgot to turn it on. Try again now."
+msgstr "Ups! Piztea ahaztu zait. Saiatu berriro orain."
+
+#: app_window.py:1416 dialog/scan.py:534
+msgid "Rescan for devices"
+msgstr "Berriro eskaneatu gailuen bila"
+
+#: app_window.py:1419
+msgid "Restart scantpaper."
+msgstr "Berrabiarazi scantpaper."
+
+#: app_window.py:1423
+msgid "Just ignore the error. I don't need the scanner yet."
+msgstr "Ez ikusi errorea. Ez dut oraindik eskanerraren beharrik."
+
+#: app_window.py:1427 dialog/preferences.py:189
+msgid "Cache device list"
+msgstr "Gailuen zerrenda cachean gorde"
+
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
+msgid "Don't show this message again"
+msgstr "Ez erakutsi mezu hau berriro"
+
+#: basedocument.py:47
+msgid "Thumbnails"
+msgstr "Irudi txikiak"
+
+#: basedocument.py:876
+msgid "No pages to process"
+msgstr "Orrialderik ez prozesatzeko"
+
+#: basedocument.py:880
+msgid "No pages selected"
+msgstr "Orrialderik ez hautaturik"
+
+#: config.py:113
+msgid "A3"
+msgstr "A3"
+
+#: config.py:119
+msgid "A4"
+msgstr "A4 formatua ( 8.27 × 11.69 hazbete)"
+
+#: config.py:125
+msgid "US Letter"
+msgstr "US Letter formatua"
+
+#: config.py:131
+msgid "US Legal"
+msgstr "US Legal formatua"
+
+#: config.py:276
+#, python-format
+msgid ""
+"The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
+"been left unchanged."
+msgstr ""
+"%(key)s ezarpena %(value)r da eta ezin da %(type)s gisa erabili, beraz, "
+"aldatu gabe utzi da."
+
+#: config.py:312
+#, python-format
+msgid ""
+"The settings file %(filename)s could not be read in full. These settings "
+"were restored: %(settings)s. The rest were reset to their defaults. A backup"
+" has been saved as %(backup)s."
+msgstr ""
+"%(filename)s ezarpen-fitxategia ezin izan da osorik irakurri. Ezarpen hauek "
+"leheneratu dira: %(settings)s. Gainerakoak beren balio lehenetsietara "
+"berrezarri dira. Babeskopia bat %(backup)s izenarekin gorde da."
+
+#: config.py:323
+#, python-format
+msgid ""
+"The settings file %(filename)s could not be read, so all settings have been "
+"reset to their defaults. A backup of the original file has been saved as "
+"%(backup)s."
+msgstr ""
+"Ezin izan da %(filename)s ezarpen-fitxategia irakurri, beraz ezarpen guztiak"
+" lehenetsitara berrezarri dira. Jatorrizko fitxategiaren babeskopia "
+"%(backup)s gisa gorde da."
+
+#: dependencies.py:166 tests/test_app_window.py:880
 msgid "Save image and Save as PDF both require imagemagick"
-msgstr "Irudia gordetzeko eta PDF gisa gordetzeko imagemagick behar da"
+msgstr "Gorde irudia eta Gorde PDF gisa, biek imagemagick behar dute"
 
-#: app_window.py:517
-#, fuzzy
+#: dependencies.py:172
 msgid "Save image requires libtiff"
-msgstr "Irudia gordetzeko libtiff behar da"
+msgstr "Irudia gordetzeak libtiff behar du"
 
-#: app_window.py:518
-#, fuzzy
+#: dependencies.py:178 tests/test_app_window.py:881
 msgid "Save as DjVu requires djvulibre-bin"
-msgstr "DjVu gisa gordetzeko djvulibre-bin behar da"
+msgstr "DjVu gisa gordetzeak djvulibre-bin behar du"
 
-#: app_window.py:519
+#: dependencies.py:186
 #, fuzzy
 msgid "Email as PDF requires xdg-email"
 msgstr "PDFa posta elektronikoz bidaltzeko xdg-email behar da"
 
-#: app_window.py:520
-#, fuzzy
+#: dependencies.py:189 tests/test_app_window.py:882
 msgid "unpaper missing"
 msgstr "unpaper falta da"
 
-#: app_window.py:528
-#, fuzzy
+#: dependencies.py:191 tests/test_app_window.py:883
 msgid "OCR requires tesseract"
-msgstr "OCRak tesseract behar du"
+msgstr "OCR-k tesseract behar du"
 
-#: app_window.py:543
-#, fuzzy
+#: dependencies.py:196 tests/test_app_window.py:884
 msgid "PDF encryption requires qpdf"
-msgstr "PDF enkriptatzeko qpdf behar da"
+msgstr "PDF zifratzeak qpdf behar du"
 
-#: app_window.py:575
-msgid "Warning: missing packages"
-msgstr "Abisua: paketeak galdu dira"
+#: dependencies.py:202 tests/test_app_window.py:885
+msgid "JBIG2 PDF compression requires jbig2"
+msgstr "JBIG2 PDF konpresioak jbig2 behar du"
 
-#: app_window.py:593
-msgid "Image"
-msgstr "Irudia"
-
-#: app_window.py:594 text_layer_control.py:57
-#, fuzzy
-msgid "Text layer"
-msgstr "Testu-geruza"
-
-#: app_window.py:596 session_mixins.py:446
-#, fuzzy
-msgid "Annotations"
-msgstr "Oharrak"
-
-#: app_window.py:837
-#, fuzzy, python-format
-msgid "%dMb free in %s."
-msgid_plural "%dMb free in %s."
-msgstr[0] "%dMb libre %s-en."
-msgstr[1] "%dMb libre %s-en."
-
-#: app_window.py:864 helpers.py:372
-#, fuzzy
-msgid "Messages"
-msgstr "Mezuak"
-
-#: app_window.py:949
-#, fuzzy
-msgid "Error opening the last device used."
-msgstr "Errorea erabilitako azken gailua irekitzean."
-
-#: app_window.py:951
-#, fuzzy
-msgid "There was an error opening the last device used."
-msgstr "Errorea gertatu da erabilitako azken gailua irekitzean."
-
-#: app_window.py:954
-#, fuzzy
-msgid "Whoops! I forgot to turn it on. Try again now."
-msgstr "Ene! Piztea ahaztu zait. Saiatu berriro orain."
-
-#: app_window.py:959 dialog/scan.py:517
-msgid "Rescan for devices"
-msgstr "Berriro eskaneatu gailuen bila"
-
-#: app_window.py:963
-#, fuzzy
-msgid "Restart scantpaper."
-msgstr "Berrabiarazi scantpaper."
-
-#: app_window.py:968
-#, fuzzy
-msgid "Just ignore the error. I don't need the scanner yet."
-msgstr "Ez ikusi egin erroreari. Oraindik ez dut eskanerra behar."
-
-#: app_window.py:971 dialog/preferences.py:162
-#, fuzzy
-msgid "Cache device list"
-msgstr "Gailuen zerrenda cachean gorde"
-
-#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
-msgid "Don't show this message again"
-msgstr "Ez erakutsi mezu hau berriro"
-
-#: basedocument.py:48
-msgid "Thumbnails"
-msgstr "Irudi txikiak"
-
-#: basedocument.py:711
-msgid "No pages to process"
-msgstr "Orrialderik ez prozesatzeko"
-
-#: basedocument.py:715
-msgid "No pages selected"
-msgstr "Orrialderik ez hautaturik"
-
-#: config.py:107
-#, fuzzy
-msgid "A3"
-msgstr "A3"
-
-#: config.py:113
-msgid "A4"
-msgstr "A4 formatua ( 8.27 × 11.69 hazbete)"
-
-#: config.py:119
-msgid "US Letter"
-msgstr "US Letter formatua"
-
-#: config.py:125
-msgid "US Legal"
-msgstr "US Legal formatua"
-
-#: config.py:263
-#, fuzzy, python-format
-msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
-msgstr ""
-"%s ezarpena %r da eta ezin da %s gisa erabili; beraz, aldatu gabe utzi da."
-
-#: config.py:299
-#, fuzzy, python-format
-msgid ""
-"The settings file %s could not be read in full. The following settings were "
-"restored: %s. The rest were reset to their defaults. A backup of the "
-"original file has been saved as %s."
-msgstr ""
-"Ezin izan da %s ezarpen-fitxategia osorik irakurri. Hurrengo ezarpenak "
-"leheneratu dira: %s. Gainontzekoak beren lehenetsietara berrezarri dira. "
-"Jatorrizko fitxategiaren segurtasun-kopia %s gisa gorde da."
-
-#: config.py:306
-#, fuzzy, python-format
-msgid ""
-"The settings file %s could not be read, so all settings have been reset to "
-"their defaults. A backup of the original file has been saved as %s."
-msgstr ""
-"Ezin izan da %s ezarpen-fitxategia irakurri; beraz, ezarpen guztiak beren "
-"lehenetsietara berrezarri dira. Jatorrizko fitxategiaren segurtasun-kopia %s "
-"gisa gorde da."
-
-#: dialog/__init__.py:67
+#: dialog/__init__.py:134
 msgid "Page Range"
 msgstr "Orrialde barrutia"
 
-#: dialog/__init__.py:106
-#, fuzzy
+#: dialog/__init__.py:174
 msgid "Error"
 msgstr "Errorea"
 
-#: dialog/__init__.py:107
-#, fuzzy
+#: dialog/__init__.py:175
 msgid "Warning"
 msgstr "Abisua"
 
-#: dialog/__init__.py:108
-#, fuzzy
+#: dialog/__init__.py:176
 msgid "Info"
 msgstr "Informazioa"
 
-#: dialog/__init__.py:125
-#, fuzzy
+#: dialog/__init__.py:199
 msgid "Page"
-msgstr "Orrialdea"
+msgstr "Orria"
 
-#: dialog/__init__.py:126
-#, fuzzy
+#: dialog/__init__.py:200
 msgid "Process"
-msgstr "Prozesua"
+msgstr "Prozesu"
 
-#: dialog/__init__.py:127
-#, fuzzy
+#: dialog/__init__.py:201
 msgid "Message type"
-msgstr "Mezu-mota"
+msgstr "Mezu mota"
 
-#: dialog/__init__.py:129
-#, fuzzy
+#: dialog/__init__.py:203
 msgid "Message"
 msgstr "Mezua"
 
-#: dialog/__init__.py:132
+#: dialog/__init__.py:206
 msgid "Hide"
 msgstr "Ezkutatu"
 
-#: dialog/__init__.py:193
-#, fuzzy
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
+msgid "_Close"
+msgstr "_Itxi"
+
+#: dialog/__init__.py:295
 msgid "Don't show these messages again"
 msgstr "Ez erakutsi mezu hauek berriro"
 
-#: dialog/__init__.py:313
-#, fuzzy
+#: dialog/__init__.py:409
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
-"Errore hau ImageMagick-ek bere baliabide-mugak gainditzeagatik gertatzen da "
-"normalean."
+"Errore hau, normalean, ImageMagick-ek bere baliabide-mugak gainditzen "
+"dituelako gertatzen da."
 
-#: dialog/__init__.py:317
-#, fuzzy
+#: dialog/__init__.py:413
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
 msgstr ""
-"Baliabide horiek handitu daitezke bere politika-fitxategia editatuta; nire "
-"sisteman /etc/ImageMagick-6/policy.xml-en dago"
+"Hauek hedatu daitezke bere politika-fitxategia editatuz, nire sisteman "
+"/etc/ImageMagick-6/policy.xml helbidean dagoena"
 
-#: dialog/__init__.py:322
-#, fuzzy
+#: dialog/__init__.py:418
+#, python-format
 msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
+"Please see the ImageMagick resource documentation for more information: "
+"%(url)s"
 msgstr ""
-"Ikusi https://imagemagick.org/script/resources.php informazio gehiagorako"
+"Informazio gehiago lortzeko, ikusi ImageMagick baliabideen dokumentazioa: "
+"%(url)s"
 
-#: dialog/crop.py:14
+#: dialog/crop.py:15
 msgid "x"
 msgstr "x"
 
-#: dialog/crop.py:15
+#: dialog/crop.py:16
 msgid "The x-position of the left hand edge of the crop."
 msgstr "Moztutako zatiaren ezkerreko bazterreko x-posizioa"
 
-#: dialog/crop.py:19
+#: dialog/crop.py:20
 msgid "y"
 msgstr "y"
 
-#: dialog/crop.py:20
+#: dialog/crop.py:21
 msgid "The y-position of the top edge of the crop."
 msgstr "Moztutako zatiaren goiko bazterreko y-posizioa"
 
-#: dialog/crop.py:24 dialog/paperlist.py:22
+#: dialog/crop.py:25 dialog/paperlist.py:22
 msgid "Width"
 msgstr "Zabalera"
 
-#: dialog/crop.py:25
+#: dialog/crop.py:26
 msgid "The width of the crop."
 msgstr "Moztutako zatiaren zabalera."
 
-#: dialog/crop.py:29 dialog/paperlist.py:23
+#: dialog/crop.py:30 dialog/paperlist.py:23
 msgid "Height"
 msgstr "Altuera"
 
-#: dialog/crop.py:30
+#: dialog/crop.py:31
 msgid "The height of the crop."
 msgstr "Moztutako zatiaren altuera."
 
-#: dialog/crop.py:116
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr "Moztu"
 
-#: dialog/crop.py:154 tools_menu_mixins.py:277
+#: dialog/crop.py:161 tools_menu_mixins.py:286
 msgid "pixels"
 msgstr "pixel"
 
-#: dialog/pagecontrols.py:188
+#: dialog/importhocr.py:45
+msgid "hOCR file"
+msgstr "hOCR fitxategia"
+
+#: dialog/importhocr.py:50 dialog/preferences.py:272
+#: postprocess_controls.py:692
+msgid "Browse"
+msgstr "Arakatu"
+
+#: dialog/importhocr.py:56
+msgid "Pages are matched to the hOCR pages in order."
+msgstr "Orrialdeak hOCR orrialdeekin parekatzen dira ordenan."
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_OK"
+msgstr "_Ados"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
+#: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
+#: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_Cancel"
+msgstr "_Utzi"
+
+#: dialog/importhocr.py:69
+msgid "Open hOCR file"
+msgstr "Ireki hOCR fitxategia"
+
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
+msgid "Cancel"
+msgstr "Utzi"
+
+#: dialog/importhocr.py:76 file_menu_mixins.py:119
+msgid "Open"
+msgstr "Ireki"
+
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
+msgid "hOCR files"
+msgstr "hOCR fitxategiak"
+
+#: dialog/pagecontrols.py:231
 msgid "Page Options"
 msgstr "Orrialde aukerak"
 
-#: dialog/pagecontrols.py:199
+#: dialog/pagecontrols.py:245
 msgid "# Pages"
 msgstr "#Orrialdeak"
 
-#: dialog/pagecontrols.py:210 pagerange.py:47
+#: dialog/pagecontrols.py:256 pagerange.py:48
 msgid "All"
 msgstr "Denak"
 
-#: dialog/pagecontrols.py:211
+#: dialog/pagecontrols.py:257
 msgid "Scan all pages"
 msgstr "Eskaneatu orrialde guztiak"
 
-#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+#: dialog/pagecontrols.py:268 dialog/pagecontrols.py:273
 msgid "Set number of pages to scan"
 msgstr "Ezarri eskaneatzeko orrialde kopurua"
 
-#: dialog/pagecontrols.py:247
+#: dialog/pagecontrols.py:277
+msgid "No page limit: scanning continues until you cancel."
+msgstr ""
+"Orrialde-mugarik ez: eskaneatzeak jarraitzen du bertan behera utzi arte."
+
+#: dialog/pagecontrols.py:311
 msgid "Extended page numbering"
 msgstr "Orrialde zenbakitze sistema zabalduta"
 
-#: dialog/pagecontrols.py:260
+#: dialog/pagecontrols.py:324
 msgid "Page number"
 msgstr "Orrialdearen zenbakia"
 
-#: dialog/pagecontrols.py:271
-#, fuzzy
+#: dialog/pagecontrols.py:334
 msgid "Insert before page N"
 msgstr "Txertatu N orrialdearen aurretik"
 
-#: dialog/pagecontrols.py:274
-#, fuzzy
+#: dialog/pagecontrols.py:337
 msgid "Page number before which scans will be inserted"
-msgstr "Eskaneatutakoak txertatuko diren orrialde-zenbakia"
+msgstr ""
+"Eskaneatzeak zein orriren aurretik txertatuko diren adierazten duen orri-"
+"zenbakia"
 
-#: dialog/pagecontrols.py:285
-#, fuzzy
+#: dialog/pagecontrols.py:348
 msgid "Position advance"
-msgstr "Posizio-aurrerapena"
+msgstr "Posizioaren aurrerapena"
 
-#: dialog/pagecontrols.py:289
-#, fuzzy
+#: dialog/pagecontrols.py:352
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
 msgstr ""
-"Ondorengo eskaneatu bakoitzeko posizio-aurrerapena (0 = orrialde berearen "
-"aurretik txertatzen jarraitu)"
+"Posizioaren aurrerapena ondorengo eskaneatze bakoitzeko (0 = jarraitu orri "
+"beraren aurretik txertatzen)"
 
-#: dialog/pagecontrols.py:305
+#: dialog/pagecontrols.py:368
 msgid "Source document"
 msgstr "Iturburuko dokumentua"
 
-#: dialog/pagecontrols.py:313
+#: dialog/pagecontrols.py:377
 msgid "Single sided"
 msgstr "Alde bakarrekoa"
 
-#: dialog/pagecontrols.py:315
+#: dialog/pagecontrols.py:378
 msgid "Source document is single-sided"
 msgstr "Iturburuko dokumentuak alde bakarreko orrialdeak ditu"
 
-#: dialog/pagecontrols.py:321
+#: dialog/pagecontrols.py:385
 msgid "Double sided"
 msgstr "Bi aldeetakoa"
 
-#: dialog/pagecontrols.py:323
+#: dialog/pagecontrols.py:387
 msgid "Source document is double-sided"
 msgstr "Iturburuko dokumentuak bi aldeetako orrialdeak ditu"
 
-#: dialog/pagecontrols.py:329
+#: dialog/pagecontrols.py:393
 msgid "Side to scan"
 msgstr "Eskaneatzeko aldea"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Facing"
 msgstr "Gainaldea"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Reverse"
 msgstr "Atzealdea"
 
-#: dialog/pagecontrols.py:337
+#: dialog/pagecontrols.py:401
 msgid "Sets which side of a double-sided document is scanned"
 msgstr "Bi aldetako dokumentu baten zein alde eskaneatuko den ezartzen du"
 
-#: dialog/paperlist.py:21
+#: dialog/paperlist.py:21 dialog/tesseractparams.py:69
 msgid "Name"
 msgstr "Izena"
 
-#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+#: dialog/paperlist.py:24 unpaper.py:153 unpaper.py:181
 msgid "Left"
 msgstr "Ezkerra"
 
-#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+#: dialog/paperlist.py:25 unpaper.py:158 unpaper.py:186
 msgid "Top"
 msgstr "Goian"
 
 #: dialog/paperlist.py:26
-#, fuzzy
 msgid "Units"
 msgstr "Unitateak"
 
@@ -400,24 +438,23 @@ msgstr "Unitateak"
 msgid "Cannot delete all paper sizes"
 msgstr "Ezin dira paper tamaina guztiak ezabatu"
 
-#: dialog/preferences.py:42
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr "Hobespenak"
 
-#: dialog/preferences.py:56
+#: dialog/preferences.py:72
 msgid "Scan options"
 msgstr "Eskaneatzeko aukerak"
 
-#: dialog/preferences.py:60
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr "Aukera orokorrak"
 
-#: dialog/preferences.py:68
-#, fuzzy
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
 msgstr "Ireki eskanerra programa hastean"
 
-#: dialog/preferences.py:71
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
@@ -427,109 +464,105 @@ msgstr ""
 "atzeko aldean. Honek denbora aurrezten du botoiari klik egiterakoan eta "
 "gutxiago itxaron beharko da aplikazioak eskaner zerrenda arakatu bitartean"
 
-#: dialog/preferences.py:83
+#: dialog/preferences.py:104
 msgid "Device blacklist"
 msgstr "Gailuaren zerrenda beltza"
 
-#: dialog/preferences.py:87
-msgid "Device blacklist (regular expression)"
-msgstr "Gailuaren zerrenda beltza (adierazpen erregular)"
+#: dialog/preferences.py:107
+msgid "e.g. Camera or v4l:.*"
+msgstr "adib. Kamera edo v4l:.*"
 
-#: dialog/preferences.py:95
+#: dialog/preferences.py:110
+msgid ""
+"Regular expression matched case-insensitively against the device label and "
+"backend name, e.g. Camera or v4l:.*"
+msgstr ""
+"Gailuaren etiketaren eta backend izenaren aurka maiuskulak eta minuskulak "
+"bereizi gabe parekatzen den adierazpen erregularra, adib. Camera edo v4l:.*"
+
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
 msgstr "Birziklatu SANE heldulekua eskaneatu ostean"
 
-#: dialog/preferences.py:97
-#, fuzzy
+#: dialog/preferences.py:124
 msgid "Some ADFs do not feed out the last page if this is not enabled"
-msgstr "ADF batzuek ez dute azken orrialdea elikatzen hau gaituta ez badago"
+msgstr "ADF batzuek ez dute azken orria ateratzen hau gaituta ez badago"
 
-#: dialog/preferences.py:105
-#, fuzzy
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
-msgstr "Baimendu lote-eskaneatzea flatbed-ean"
+msgstr "Baimendu sortako eskaneatzea erretilu lautik"
 
-#: dialog/preferences.py:109
-#, fuzzy
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 msgstr ""
-"Ez badago ezarrita, flatbed eskanerrera aldatzean # orrialdeak 1era eta alde "
-"bakarreko modura behartuko dira."
+"Ezarrita ez badago, eskaner lau batera aldatzeak # orrialde 1era behartuko "
+"ditu eta alde bakarreko modura."
 
-#: dialog/preferences.py:118
-#, fuzzy
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
-msgstr "Ez ikusi eskanerraren zati bikoitzeko gaitasunak"
+msgstr "Ezikusi eskanerraren duplex gaitasunak"
 
-#: dialog/preferences.py:122
-#, fuzzy
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
 msgstr ""
-"Ezarrita badago, zati bikoitzeko gaitasun guztiak ezikusi egiten dira, eta "
-"aurreko/atzeko widget-ak erakusten dira orrialdeak eskuz tartekatzea "
-"ahalbidetzeko."
+"Ezarrita badago, duplex gaitasun guztiak ezikusten dira, eta aurrez/atzera "
+"widgetak bistaratzen dira orrialdeen eskuzko tartekatzea ahalbidetzeko."
 
-#: dialog/preferences.py:131
-#, fuzzy
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
-msgstr "Behartu eskaneatze-lan berria orrialdeen artean"
+msgstr "Behartu eskaneatze-lan berri bat orrialdeen artean"
 
-#: dialog/preferences.py:135
-#, fuzzy
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
 msgstr ""
-"Bestela, Brother eskaner batzuek dokumenturik ez dagoela adierazten dute, "
-"flatbed-etik eskaneatu arren."
+"Bestela, Brother eskaner batzuek dokumentuak agortu direla adierazten dute, "
+"nahiz eta gainazal lauan eskaneatu."
 
-#: dialog/preferences.py:151
-#, fuzzy
+#: dialog/preferences.py:178
 msgid "Select # pages = all on selecting ADF"
-msgstr "Aukeratu # orrialdeak = guztiak ADF aukeratzean"
+msgstr "Hautatu # orrialde = guztiak ADF hautatzean"
 
-#: dialog/preferences.py:155
-#, fuzzy
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
 msgstr ""
-"Aukera hau gaituta badago, source=ADF-era aldatzean, # orrialdeak = guztiak "
-"aukeratzen da"
+"Aukera hau gaituta badago, source=ADF aukerara aldatzean, # pages = all "
+"hautatzen da"
 
-#: dialog/preferences.py:165
-#, fuzzy
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
 msgstr ""
-"Aukera hau gaituta badago, eskanerra azkarrago irekitzen da, scantpaper-ek "
-"ez baititu lehenengo erabilgarri dauden gailuak bilatzen."
+"Aukera hau gaituta dagoenean, eskanerra irekitzea azkarragoa da, scantpaper-"
+"ek ez baititu lehenik eskuragarri dauden gailuak bilatzen."
 
-#: dialog/preferences.py:169
-#, fuzzy
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
-"Hau eraginkorra da gailuen izenak saioen artean aldatzen ez badira soilik."
+"Hau soilik eraginkorra da gailuen izenak saioen artean aldatzen ez badira."
 
-#: dialog/preferences.py:178
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
 msgstr "Berriro ezarri window ezarpenak hasi menuan"
 
-#: dialog/preferences.py:183
+#: dialog/preferences.py:210
 msgid "View files on saving"
 msgstr "Ikusi fitxategiak gordetzerakoan"
 
-#: dialog/preferences.py:190
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
 msgstr "Lehenetsitako fitxategi izena PDFetarako"
 
-#: dialog/preferences.py:194
+#: dialog/preferences.py:221
 #, fuzzy
 msgid ""
 "strftime codes, e.g.:\n"
@@ -557,702 +590,830 @@ msgstr ""
 "%Ds\tgaia\n"
 "%Dt\tizenburua\n"
 "\n"
-"Dokumentuaren data-kode guztiek D-kin hasten diren strftime kodeak "
-"erabiltzen dituzte, adib.:\n"
+"Dokumentuaren data-kode guztiek D-kin hasten diren strftime kodeak erabiltzen dituzte, adib.:\n"
 "%DY\tdokumentuaren urtea\n"
 "%Dm\tdokumentuaren hilabetea\n"
 "%Dd\tdokumentuaren eguna\n"
 
-#: dialog/preferences.py:215
-#, fuzzy
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
-msgstr "Ordeztu fitxategi-izenetako zuriuneak azpimarrarekin"
+msgstr "Ordeztu fitxategi-izenetako zuriuneak azpimarrekin"
 
-#: dialog/preferences.py:221
-#, fuzzy
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
-msgstr "Erabili ordu-zona lokalean"
+msgstr "Erabili ordu-eremua kokalekutik"
 
-#: dialog/preferences.py:226
-#, fuzzy
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
 msgstr "Zehaztu ordua eta data"
 
-#: dialog/preferences.py:232
-#, fuzzy
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
-msgstr "Ezarri sarbide- eta aldaketa-denborak metadata-datan"
+msgstr "Ezarri atzipen- eta aldaketa-orduak metadatuen datara"
 
-#: dialog/preferences.py:240
+#: dialog/preferences.py:267
 msgid "Temporary directory"
 msgstr "Aldi baterako direktorioa"
 
-#: dialog/preferences.py:245
-msgid "Browse"
-msgstr "Arakatu"
-
-#: dialog/preferences.py:251
+#: dialog/preferences.py:279
 msgid "Select temporary directory"
 msgstr "Hautatu aldi baterako direktorioa"
 
-#: dialog/preferences.py:273
-#, fuzzy
-msgid "Warn if available space less than (Mb)"
-msgstr "Abisatu eskuragarri dagoen espazioa (Mb) baino txikiagoa bada"
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
+#: postprocess_controls.py:717
+msgid "OK"
+msgstr "Ados"
 
-#: dialog/preferences.py:279
-#, fuzzy
+#: dialog/preferences.py:304
+msgid "Warn if available space less than (Mb)"
+msgstr "Abisatu erabilgarri dagoen espazioa (Mb) baino gutxiago denean"
+
+#: dialog/preferences.py:310
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
 msgstr ""
-"Abisatu aldi baterako direktorioan eskuragarri dagoen espazioa balio hau "
+"Abisatu behin-behineko direktorioan eskuragarri dagoen espazioa balio hau "
 "baino txikiagoa bada"
 
-#: dialog/preferences.py:287
+#: dialog/preferences.py:318
 msgid "Blank threshold"
 msgstr "Atalase zuria"
 
-#: dialog/preferences.py:292
+#: dialog/preferences.py:323
 msgid "Threshold used for selecting blank pages"
 msgstr "Erabili den kontraste atalasea orri zuriak hautatzeko"
 
-#: dialog/preferences.py:300
+#: dialog/preferences.py:331
 msgid "Dark threshold"
 msgstr "Atalase iluna"
 
-#: dialog/preferences.py:304
+#: dialog/preferences.py:335
 msgid "Threshold used for selecting dark pages"
 msgstr "Erabili den kontraste atalasea orri beltzak hautatzeko"
 
-#: dialog/preferences.py:311
+#: dialog/preferences.py:342
 msgid "OCR output"
 msgstr "OCR irteera"
 
-#: dialog/preferences.py:316
+#: dialog/preferences.py:347
 msgid "Replace"
 msgstr "Ordezkatu"
 
-#: dialog/preferences.py:318
+#: dialog/preferences.py:349
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr ""
 "Ordezkatu testuaren edukietako tarteko memoria (bufferra) OCR irteera "
 "datuekin"
 
-#: dialog/preferences.py:321
+#: dialog/preferences.py:352
 msgid "Prepend"
 msgstr "Aurretik erantsi"
 
-#: dialog/preferences.py:321
+#: dialog/preferences.py:352
 msgid "Prepend the OCR output to the text buffer."
-msgstr "Aurretik erantsi OCR irteera testuaren tarteko memoriari (bufferrari)."
+msgstr ""
+"Aurretik erantsi OCR irteera testuaren tarteko memoriari (bufferrari)."
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append"
 msgstr "Erantsi"
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append the OCR output to the text buffer."
 msgstr "Erantsi OCR irteera testuaren tarteko memoriari (bufferrari)."
 
-#: dialog/preferences.py:329
-#, fuzzy
+#: dialog/preferences.py:362
 msgid "Manage user-defined tools"
 msgstr "Kudeatu erabiltzaileak definitutako tresnak"
 
-#: dialog/preferences.py:352
-#, fuzzy, python-format
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
+msgid "Add a user-defined tool"
+msgstr "Gehitu erabiltzaileak definitutako tresna bat"
+
+#: dialog/preferences.py:378
+msgid "Bilevel compression"
+msgstr "Bi mailako konpresioa"
+
+#: dialog/preferences.py:383
+msgid "Group 4"
+msgstr "4. taldea"
+
+#: dialog/preferences.py:384
+msgid "Compress bilevel images with CCITT Group 4 encoding."
+msgstr "Konprimitu bi mailako irudiak CCITT 4. taldeko kodeketarekin."
+
+#: dialog/preferences.py:391 dialog/save.py:71
+msgid "JBIG2"
+msgstr "JBIG2"
+
+#: dialog/preferences.py:392
+msgid "Compress bilevel images with JBIG2 encoding."
+msgstr "Konprimatu bi mailako irudiak JBIG2 kodeketarekin."
+
+#: dialog/preferences.py:414
+#, python-format
 msgid ""
-"Use %i and %o for the input and output filenames respectively,\n"
-"or a single %i if the image is to be modified in-place.\n"
+"Use %%i and %%o for the input and output filenames respectively,\n"
+"or a single %%i if the image is to be modified in-place.\n"
 "\n"
 "The other variable available is:\n"
-"%r resolution"
+"%%r resolution"
 msgstr ""
-"Erabili %i eta %o sarrera- eta irteera-fitxategi-izenetarako, hurrenez "
-"hurren,\n"
-"edo %i bakarra irudia bertan aldatu behar bada.\n"
+"Erabili %%i eta %%o sarrerako eta irteerako fitxategi-izenetarako hurrenez hurren,\n"
+"edo %%i bakarra irudia tokian bertan aldatu behar bada.\n"
 "\n"
-"Eskuragarri dagoen beste aldagaia da:\n"
-"%r bereizmena"
+"Erabilgarri dagoen beste aldagaia hau da:\n"
+"%%r bereizmena"
 
-#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
 msgid "_Delete"
 msgstr "E_zabatu"
 
-#: dialog/preferences.py:397
+#: dialog/preferences.py:462
 #, fuzzy
 msgid "The following user-defined tools could not be found:\n"
 msgstr "Erabiltzaileak definitutako hurrengo tresnak ezin izan dira aurkitu:\n"
 
-#: dialog/preferences.py:400
-#, fuzzy
+#: dialog/preferences.py:465
 msgid "Please check that the command is installed and in your PATH."
-msgstr "Egiaztatu komandoa instalatuta eta zure PATH-en dagoela."
+msgstr ""
+"Mesedez, egiaztatu komandoa instalatuta dagoela eta zure PATH-en dagoela."
 
-#: dialog/preferences.py:402
-#, fuzzy
+#: dialog/preferences.py:467
 msgid "User-defined tool not found"
 msgstr "Ez da erabiltzaileak definitutako tresna aurkitu"
 
-#: dialog/sane.py:71
+#: dialog/sane.py:89
 msgid "Fetching list of devices"
 msgstr "Eskuratze-ziklo, bilaketa-ziklo baten gailuen zerrenda"
 
-#: dialog/sane.py:89
+#: dialog/sane.py:108 scan_menu_item_mixins.py:93
 msgid "No devices found"
 msgstr "Ez da gailurik aurkitu"
 
-#: dialog/sane.py:129
+#: dialog/sane.py:152
 msgid "Opening device"
 msgstr "Zabaltzen gailua"
 
-#: dialog/sane.py:142
+#: dialog/sane.py:166
 msgid "Error opening device: "
 msgstr "Errore gailua zabaltzerakoan: "
 
-#: dialog/sane.py:148 dialog/sane.py:494
+#: dialog/sane.py:175 dialog/sane.py:539
 msgid "Retrieving options"
 msgstr "Berreskuratzeko aukerak"
 
-#: dialog/sane.py:165 dialog/sane.py:507
+#: dialog/sane.py:195 dialog/sane.py:553
 msgid "Error retrieving scanner options: "
 msgstr "Errorea eskanerraren aukerak berreskuratzerakoan: "
 
-#: dialog/sane.py:207
+#: dialog/sane.py:245
 msgid "Scan Options"
 msgstr "Eskaneatze aukerak"
 
-#: dialog/sane.py:290
-#, fuzzy, python-format
-msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+#: dialog/sane.py:329
+#, python-format
+msgid ""
+"Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum "
+"(%(maximum)s)"
 msgstr ""
-"Eskaneatze-aukera '%s' ezikusten, gutxieneko tartea (%s) > gehienekoa (%s)"
+"'%(name)s' eskaneatze-aukerari ezikusia ematen, gutxieneko tartea "
+"(%(minimum)s) > gehienezkoa (%(maximum)s)"
 
-#: dialog/sane.py:450
+#: dialog/sane.py:493
 #, python-format
 msgid "Setting option %s"
 msgstr "Ezartzen %s aukera"
 
-#: dialog/sane.py:469
-#, fuzzy
+#: dialog/sane.py:512
 msgid "Error setting option: "
-msgstr "Errorea aukera ezartzean: "
+msgstr "Errorea aukera ezartzean:"
 
-#: dialog/sane.py:531
+#: dialog/sane.py:591
 msgid "Must scan facing pages first"
 msgstr "Eskaneatu beharko lehenengo gainaldeko orrialdeak"
 
-#: dialog/save.py:31
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
+msgid ""
+"Scanner did not deliver the requested 1-bit output; the page has been "
+"converted to black-and-white"
+msgstr ""
+"Eskanerrak ez du eskatutako 1 biteko irteera eman; orria zuri-beltzera "
+"bihurtu da."
+
+#: dialog/sane.py:752
+msgid ""
+"The scanner did not respond to cancel. Reconnect the scanner or choose "
+"another device."
+msgstr ""
+"Eskanerrak ez zion ezeztatzeari erantzun. Konektatu berriro eskanerra edo "
+"aukeratu beste gailu bat."
+
+#: dialog/save.py:32
 msgid "PDF"
 msgstr "PDF"
 
-#: dialog/save.py:31
+#: dialog/save.py:32
 msgid "Portable Document Format"
 msgstr "PDF - Portable Document Format"
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "GIF"
 msgstr "GIF"
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe graphics, trukatzeko formatua"
 
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+#: dialog/save.py:34 dialog/save.py:54 dialog/save.py:100
 msgid "JPEG"
 msgstr "JPEG"
 
-#: dialog/save.py:33
+#: dialog/save.py:34
 msgid "Joint Photographic Experts Group JFIF format"
 msgstr "JFIF (JPEG) formatua"
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "PNG"
 msgstr "PNG"
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "Portable Network Graphics"
 msgstr "Sareko Grafiko Eramangarriak (Portable Network Graphics)"
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "PNM"
 msgstr "PNM"
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "Portable anymap"
 msgstr "'Portable anymap' formatua (PNM)."
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "PS"
 msgstr "PS"
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "Postscript"
 msgstr "Postscript"
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "TIFF"
 msgstr "TIFF"
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "Tagged Image File Format"
 msgstr ""
 "Tagged Image File Format (TIFF) - Etiketaturiko Argazkien Artxiboen Formatua"
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Text"
 msgstr "Testua"
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Plain text"
 msgstr "Testu arrunta"
 
-#: dialog/save.py:39
+#: dialog/save.py:40
 msgid "hOCR"
 msgstr "hOCR"
 
-#: dialog/save.py:39
+#: dialog/save.py:40
 msgid "hOCR markup language"
 msgstr "hOCR markaketa lengoaia"
 
-#: dialog/save.py:40 session_mixins.py:126
+#: dialog/save.py:41 session_mixins.py:182
 msgid "Session"
 msgstr "Saioa"
 
-#: dialog/save.py:40
-#, fuzzy
+#: dialog/save.py:41
 msgid "scantpaper session database"
-msgstr "scantpaper saioaren datu-basea"
+msgstr "scantpaper saioen datu-basea"
 
-#: dialog/save.py:41
-#, fuzzy
+#: dialog/save.py:42
 msgid "Prepend to PDF"
-msgstr "Aurretik gehitu PDF-era"
+msgstr "Aurretik gehitu PDFari"
 
-#: dialog/save.py:41
-#, fuzzy
+#: dialog/save.py:42
 msgid "Prepend to an existing PDF"
-msgstr "Aurretik gehitu lehendik dagoen PDF batera"
-
-#: dialog/save.py:42
-#, fuzzy
-msgid "Append to PDF"
-msgstr "Atzetik gehitu PDF-era"
-
-#: dialog/save.py:42
-#, fuzzy
-msgid "Append to an existing PDF"
-msgstr "Atzetik gehitu lehendik dagoen PDF batera"
+msgstr "Gehitu lehendik dagoen PDF baten hasieran"
 
 #: dialog/save.py:43
+msgid "Append to PDF"
+msgstr "Erantsi PDFari"
+
+#: dialog/save.py:43
+msgid "Append to an existing PDF"
+msgstr "Erantsi lehendik dagoen PDF bati"
+
+#: dialog/save.py:44
 msgid "DjVu"
 msgstr "DjVu"
 
-#: dialog/save.py:43
+#: dialog/save.py:44
 msgid "Deja Vu"
 msgstr "Deja Vu"
 
-#: dialog/save.py:48
+#: dialog/save.py:49 tesseract.py:197
 msgid "Automatic"
 msgstr "Automatikoa"
 
-#: dialog/save.py:49
+#: dialog/save.py:50
 msgid "Let scantpaper which type of compression to use."
 msgstr "Utz iezaiozu scantpaper aplikazioari berez hautatzea konpresio mota."
 
-#: dialog/save.py:51 dialog/save.py:76
-msgid "LZW"
-msgstr "LZW"
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "Konprimitu irteera Lempel-Ziv & Welch algoritmoa erabiliz."
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "G3"
-msgstr "G3"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr "Konpresio irteera CCITT Group 3 kodetze sistemarekin."
-
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "G4"
 msgstr "G4"
 
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "Compress output with CCITT Group 4 encoding."
 msgstr "Konpresio irteera CCITT Group 4 kodetze sistemarekin."
 
-#: dialog/save.py:54
-#, fuzzy
+#: dialog/save.py:53
 msgid "Flate"
-msgstr "Flate"
+msgstr "Etxebizitza"
+
+#: dialog/save.py:53
+msgid "Compress output with flate encoding."
+msgstr "Konprimatu irteera flate kodeketarekin."
 
 #: dialog/save.py:54
-#, fuzzy
-msgid "Compress output with flate encoding."
-msgstr "Konprimatu irteera flate kodetzearekin."
+msgid "Compress output with JPEG (DCT) encoding."
+msgstr "Konprimitu irteera JPEG (DCT) kodeketarekin."
 
 #: dialog/save.py:55
-#, fuzzy
-msgid "Compress output with JPEG (DCT) encoding."
-msgstr "Konprimatu irteera JPEG (DCT) kodetzearekin."
+msgid "JPEG 2000"
+msgstr "JPEG 2000"
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "None"
-msgstr "Ezer Ez"
+#: dialog/save.py:55
+msgid "Compress output with JPEG 2000 encoding."
+msgstr "Konprimatu irteera JPEG 2000 kodeketarekin."
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "Use no compression algorithm on output."
-msgstr "Ez erabili konprimitzeko inolako algoritmorik."
+#: dialog/save.py:71
+msgid "Compress output with JBIG2 encoding."
+msgstr "Konprimatu irteera JBIG2 kodeketarekin."
 
-#: dialog/save.py:61
-#, fuzzy
+#: dialog/save.py:79
 msgid "LibTIFF"
 msgstr "LibTIFF"
 
-#: dialog/save.py:62
-#, fuzzy
+#: dialog/save.py:80
 msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
-msgstr "Erabili LibTIFF (tiff2ps) TIFF-etik Postscript fitxategiak sortzeko."
+msgstr ""
+"Erabili LibTIFF (tiff2ps) TIFF fitxategietatik Postscript fitxategiak "
+"sortzeko."
 
-#: dialog/save.py:66
-#, fuzzy
+#: dialog/save.py:84
 msgid "Ghostscript"
 msgstr "Ghostscript"
 
-#: dialog/save.py:67
-#, fuzzy
+#: dialog/save.py:85
 msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
-msgstr "Erabili Ghostscript (pdf2ps) PDF-etik Postscript fitxategiak sortzeko."
+msgstr ""
+"Erabili Ghostscript (pdf2ps) PDF fitxategietatik PostScript fitxategiak "
+"sortzeko."
 
-#: dialog/save.py:71
-#, fuzzy
+#: dialog/save.py:89
 msgid "Poppler"
 msgstr "Poppler"
 
-#: dialog/save.py:72
-#, fuzzy
+#: dialog/save.py:90
 msgid "Use Poppler (pdftops) to create Postscript files from PDF."
-msgstr "Erabili Poppler (pdftops) PDF-etik Postscript fitxategiak sortzeko."
+msgstr "Erabili Poppler (pdftops) Postscript fitxategiak PDFtik sortzeko."
 
-#: dialog/save.py:79
+#: dialog/save.py:94
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:94
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "Konprimitu irteera Lempel-Ziv & Welch algoritmoa erabiliz."
+
+#: dialog/save.py:97
 msgid "Zip"
 msgstr "Zip"
 
-#: dialog/save.py:80
+#: dialog/save.py:98
 msgid "Compress output with deflate encoding."
 msgstr "Konprimitu irteera Deflate algoritmoa erabiliz."
 
-#: dialog/save.py:82
+#: dialog/save.py:100
 msgid "Compress output with JPEG encoding."
 msgstr "Konprimitu irteera JPEG algoritmoa erabiliz."
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Packbits"
 msgstr "Packbits"
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Compress output with Packbits encoding."
 msgstr "Konprimitu irteera Packbits algoritmoa erabiliz."
 
-#: dialog/save.py:360
+#: dialog/save.py:102
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:102
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "Konpresio irteera CCITT Group 3 kodetze sistemarekin."
+
+#: dialog/save.py:104 postprocess_controls.py:644 postprocess_controls.py:906
+msgid "None"
+msgstr "Ezer Ez"
+
+#: dialog/save.py:104
+msgid "Use no compression algorithm on output."
+msgstr "Ez erabili konprimitzeko inolako algoritmorik."
+
+#: dialog/save.py:374
 msgid "Document Metadata"
 msgstr "Document Metadatuak"
 
-#: dialog/save.py:374
-#, fuzzy
+#: dialog/save.py:385
 msgid "Date/Time"
 msgstr "Data/Ordua"
 
-#: dialog/save.py:387 dialog/save.py:572
-#, fuzzy
+#: dialog/save.py:397 dialog/save.py:591
 msgid "Now"
 msgstr "Orain"
 
-#: dialog/save.py:388 dialog/save.py:573
-#, fuzzy
+#: dialog/save.py:398 dialog/save.py:592
 msgid "Use current date and time"
 msgstr "Erabili uneko data eta ordua"
 
-#: dialog/save.py:393
-#, fuzzy
+#: dialog/save.py:405
 msgid "Specify"
 msgstr "Zehaztu"
 
-#: dialog/save.py:395
-#, fuzzy
+#: dialog/save.py:407
 msgid "Specify date and time"
 msgstr "Zehaztu data eta ordua"
 
-#: dialog/save.py:403
+#: dialog/save.py:415
 msgid "Year-Month-Day"
 msgstr "Urtea-Hila-Eguna"
 
-#: dialog/save.py:413
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
 msgid "Select date with calendar"
 msgstr "Hautatu data egutegia erabiliz"
 
-#: dialog/save.py:459
+#: dialog/save.py:467
 msgid "Select Date"
 msgstr "Hautatu data (eguna)"
 
-#: dialog/save.py:489 dialog/save.py:579
+#: dialog/save.py:509 dialog/save.py:598
 msgid "Today"
 msgstr "Gaur"
 
-#: dialog/save.py:545
+#: dialog/save.py:565
 msgid "Title"
 msgstr "Izenburua"
 
-#: dialog/save.py:546
+#: dialog/save.py:566
 msgid "Author"
 msgstr "Egilea"
 
-#: dialog/save.py:547
+#: dialog/save.py:567
 msgid "Subject"
 msgstr "Gaia"
 
-#: dialog/save.py:548
+#: dialog/save.py:568
 msgid "Keywords"
 msgstr "Hitz gakoak"
 
-#: dialog/save.py:580
-#, fuzzy
+#: dialog/save.py:599
 msgid "Use today's date"
 msgstr "Erabili gaurko data"
 
-#: dialog/save.py:590
-#, fuzzy
+#: dialog/save.py:609
 msgid "Document type"
-msgstr "Dokumentu-mota"
+msgstr "Dokumentu mota"
 
-#: dialog/save.py:598
-#, fuzzy
+#: dialog/save.py:618
 msgid "Postscript backend"
-msgstr "Postscript backend-a"
+msgstr "Postscript motorra"
 
-#: dialog/save.py:614 dialog/save.py:754
+#: dialog/save.py:635 dialog/save.py:776
 msgid "Compression"
 msgstr "Konpresioa"
 
-#: dialog/save.py:735
-msgid "JPEG Quality"
-msgstr "JPEG kalitatea"
+#: dialog/save.py:754
+msgid "Quality"
+msgstr "Kalitatea"
 
-#: dialog/save.py:769
-#, fuzzy
+#: dialog/save.py:791
 msgid "Encrypt PDF"
-msgstr "Enkriptatu PDF-a"
+msgstr "Zifratu PDFa"
 
-#: dialog/save.py:785
+#: dialog/save.py:808
 msgid "Downsample to"
 msgstr "Irudiaren karga arindu honaino:"
 
-#: dialog/save.py:789 dialog/scan.py:660
-#, fuzzy
+#: dialog/save.py:812 dialog/scan.py:770
 msgid "ppi"
 msgstr "ppi"
 
-#: dialog/save.py:819
-#, fuzzy
+#: dialog/save.py:841
 msgid "Set password"
 msgstr "Ezarri pasahitza"
 
-#: dialog/save.py:827
-#, fuzzy
+#: dialog/save.py:850
 msgid "User password"
 msgstr "Erabiltzailearen pasahitza"
 
-#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
-#: dialog/scan.py:933
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
 msgid "Manual"
 msgstr "Eskuz"
 
-#: dialog/scan.py:446
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
 msgid "Scan profiles"
 msgstr "Eskaneatze profilak"
 
-#: dialog/scan.py:500
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
+msgid "Save"
+msgstr "Gorde"
+
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:118
+msgid "Edit"
+msgstr "Editatu"
+
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
+msgid "Delete"
+msgstr "Ezabatu"
+
+#: dialog/scan.py:503
 msgid "Scan"
 msgstr "Eskaneatu"
 
-#: dialog/scan.py:514
+#: dialog/scan.py:531
 msgid "Device"
 msgstr "Gailua"
 
-#: dialog/scan.py:552
+#: dialog/scan.py:559
 msgid "Sets the device to be used for the scan"
 msgstr "Gailua doitu egiten du eskanerrak erabil dezan"
 
-#: dialog/scan.py:599
+#: dialog/scan.py:562
+msgid "Blacklist this device"
+msgstr "Jarri gailu hau zerrenda beltzean"
+
+#: dialog/scan.py:564
+msgid "Hide the selected device from the device list"
+msgstr "Ezkutatu hautatutako gailua gailuen zerrendatik"
+
+#: dialog/scan.py:705
 #, python-format
 msgid "Error: unknown device: %s"
 msgstr "Errorea: gailu ezezaguna: %s"
 
-#: dialog/scan.py:657
-#, fuzzy
+#: dialog/scan.py:767
 msgid "pel"
-msgstr "pel"
+msgstr "filma"
 
-#: dialog/scan.py:658
-#, fuzzy
+#: dialog/scan.py:768
 msgid "bit"
 msgstr "bit"
 
-#: dialog/scan.py:659
-#, fuzzy
+#: dialog/scan.py:769
 msgid "mm"
 msgstr "mm"
 
-#: dialog/scan.py:662
-#, fuzzy
+#: dialog/scan.py:772
 msgid "μs"
 msgstr "μs"
 
-#: dialog/scan.py:686
+#: dialog/scan.py:796
 msgid "Paper size"
 msgstr "Paperaren tamaina"
 
-#: dialog/scan.py:690 dialog/scan.py:707
-msgid "Edit"
-msgstr "Editatu"
-
-#: dialog/scan.py:691
+#: dialog/scan.py:801
 msgid "Selects or edits the paper size"
 msgstr "Hautatzen du edo editatzen du paperaren tamaina"
 
-#: dialog/scan.py:770
-#, fuzzy, python-format
+#: dialog/scan.py:880
+#, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
-"file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
+"%(options)d scan options. Please file a bug, attaching a log file "
+"reproducing the problem."
 msgstr ""
-"Birkargatze-errekurtsioaren muga (%d) gainditu da: %d birkargatze %d "
-"eskaneatze-aukeretarako. Mesedez, salatu akatsa, arazoa errepikatzen duen "
-"erregistro-fitxategia erantsita."
+"Birkargatzeko errekurtsio-muga (%(limit)d) gainditu da: %(options)d "
+"eskaneatze-aukeretarako %(reloads)d birkarga. Mesedez, bidali akats-txosten "
+"bat, arazoa erreproduzitzen duen erregistro-fitxategia erantsita."
 
-#: dialog/scan.py:1024
+#: dialog/scan.py:1138
 msgid "Edit paper size"
 msgstr "Editatu paper tamaina"
 
-#: dialog/scan.py:1051
-#, fuzzy
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
+msgid "Add a paper size"
+msgstr "Gehitu paper-tamaina bat"
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
+msgid "Remove the selected paper size"
+msgstr "Kendu hautatutako paperaren tamaina"
+
+#: dialog/scan.py:1167
 msgid "Apply"
 msgstr "Aplikatu"
 
-#: dialog/scan.py:1069
+#: dialog/scan.py:1185
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr "Honako paperen tamainak handiegiak dira hautaturiko gailuarentzat:"
 
-#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-#, fuzzy
-msgid "Cancel"
-msgstr "Utzi"
-
-#: dialog/scan.py:1563 dialog/scan.py:1571
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
 msgid "Name of scan profile"
 msgstr "Eskaneatze profilaren izena"
 
-#: dialog/scan.py:1585
-#, fuzzy, python-format
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
+#, python-format
 msgid "Profile '%s' exists. Overwrite?"
-msgstr "%s profila existitzen da. Gainidatzi?"
+msgstr "'%s' profila existitzen da. Gainidatzi?"
 
-#: dialog/scan.py:1592 dialog/scan.py:1634
-#, fuzzy
-msgid "OK"
-msgstr "Ados"
-
-#: dialog/scan.py:1621
-#, fuzzy
+#: dialog/scan.py:1756
 msgid "Editing current scan options"
 msgstr "Uneko eskaneatze-aukerak editatzen"
 
-#: dialog/scan.py:1625
-#, fuzzy, python-format
+#: dialog/scan.py:1760
+#, python-format
 msgid "Editing scan profile \"%s\""
-msgstr "%s eskaneatze-profila editatzen"
+msgstr "\"%s\" eskaneatze-profila editatzen"
 
-#: dialog/scan.py:1686
-#, fuzzy
+#: dialog/scan.py:1822
 msgid "Backend options"
 msgstr "Backend aukerak"
 
-#: dialog/scan.py:1687
-#, fuzzy
+#: dialog/scan.py:1823
 msgid "Frontend options"
-msgstr "Frontend aukerak"
+msgstr "Frontendaren aukerak"
 
-#: dialog/scan.py:1752
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
 #, python-format
-msgid "Scanning page %d of %d"
-msgstr "Eskaneatzen %dtik  %d orrialdea(k)"
+msgid "Remove %(option)s from the profile"
+msgstr "Kendu %(option)s profiletik"
 
-#: dialog/scan.py:1753
+#: dialog/scan.py:1890
 #, python-format
-msgid "Scanning page %d"
-msgstr "Eskaneatzen %d orrialdea"
+msgid "Scanning page %(current)d of %(total)d"
+msgstr "Orrialdea eskaneatzen: %(current)d / %(total)d"
 
-#: docthread.py:1167
-#, fuzzy, python-format
-msgid "Analysing page %i of %i"
-msgstr "%i orrialdea aztertzen, guztira %i"
+#: dialog/scan.py:1894
+#, python-format
+msgid "Scanning page %(current)d"
+msgstr "%(current)d. orrialdea eskaneatzen"
 
-#: docthread.py:1461
-#, fuzzy
+#: dialog/tesseractparams.py:45
+msgid "Tesseract parameters"
+msgstr "Tesseract parametroak"
+
+#: dialog/tesseractparams.py:56
+msgid "Filter parameters"
+msgstr "Iragazkiaren parametroak"
+
+#: dialog/tesseractparams.py:70 postprocess_controls.py:697 tesseract.py:213
+msgid "Default"
+msgstr "Lehenetsia"
+
+#: dialog/tesseractparams.py:71
+msgid "Description"
+msgstr "Deskribapena"
+
+#: dialog/tesseractparams.py:96
+msgid "_Insert"
+msgstr "_Txertatu"
+
+#: dialog/tesseractparams.py:110
+msgid ""
+"The Tesseract parameter list is unavailable. OCR can still run with the "
+"parameters already entered."
+msgstr ""
+"Tesseract-en parametro-zerrenda ez dago erabilgarri. OCR oraindik exekuta "
+"daiteke lehendik sartutako parametroekin."
+
+#: dialog/tesseractparams.py:127
+#, python-format
+msgid "Set by the %(control)s control"
+msgstr "%(control)s kontrolak ezarria"
+
+#: dialog/tesseractparams.py:147
+msgid "No parameters match"
+msgstr "Ez dago bat datorren parametrorik"
+
+#: docthread.py:1285
+#, python-format
+msgid "Error reading hOCR file %(path)s: %(error)s"
+msgstr "Errorea %(path)s hOCR fitxategia irakurtzean: %(error)s"
+
+#: docthread.py:1293
+#, python-format
+msgid "Error parsing hOCR file %(path)s: %(error)s"
+msgstr "Errorea hOCR fitxategia %(path)s analizatzean: %(error)s"
+
+#: docthread.py:1299
+msgid "The file contains no hOCR pages."
+msgstr "Fitxategiak ez du hOCR orrialderik."
+
+#: docthread.py:1312
+#, python-format
+msgid ""
+"The hOCR file contains %(found)i pages, but %(expected)i pages are selected."
+msgstr ""
+"hOCR fitxategiak %(found)i orrialde ditu, baina %(expected)i orrialde "
+"hautatuta daude."
+
+#: docthread.py:1322
+#, python-format
+msgid "Checking hOCR page %(current)i of %(total)i"
+msgstr "hOCR orrialdea %(current)i / %(total)i egiaztatzen"
+
+#: docthread.py:1330
+#, python-format
+msgid "The hOCR page for page %(page)i has no page box."
+msgstr "%(page)i orrialderako hOCR orrialdeak ez du orrialde-koadrorik."
+
+#: docthread.py:1342
+#, python-format
+msgid ""
+"The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the"
+" page is %(width)ix%(height)i."
+msgstr ""
+"%(page)i orrialderako hOCR orria %(found_width)ix%(found_height)i da, baina "
+"orrialdea %(width)ix%(height)i da."
+
+#: docthread.py:1366
+msgid "No pages selected for hOCR import."
+msgstr "Ez da orrialderik hautatu hOCR inportatzeko."
+
+#: docthread.py:1385
+#, python-format
+msgid "Importing hOCR page %(current)i of %(total)i"
+msgstr "hOCR orrialdea %(current)i inportatzen, %(total)i(e)tik"
+
+#: docthread.py:1526
+#, python-format
+msgid "Analysing page %(current)i of %(total)i"
+msgstr "Orrialdea aztertzen: %(current)i / %(total)i"
+
+#: docthread.py:1800
 msgid "No tesseract language specified"
 msgstr "Ez da tesseract hizkuntzarik zehaztu"
 
-#: docthread.py:1470
-#, fuzzy
-msgid "tessdata directory not found"
-msgstr "Ez da tessdata direktorioa aurkitu"
+#: docthread.py:1832
+#, python-format
+msgid "Failed to initialise OCR with the %(mode)s engine mode: %(error)s"
+msgstr "Ezin izan da OCR hasieratu %(mode)s motor moduarekin: %(error)s"
+
+#: docthread.py:1844 postprocess_controls.py:605
+#, python-format
+msgid "Unknown Tesseract option: %(variable)s"
+msgstr "Tesseract aukera ezezaguna: %(variable)s"
 
 #: document.py:111
-#, fuzzy
 msgid "Error: cannot open a session file at the same time as another file."
 msgstr ""
-"Errorea: ezin da saio-fitxategi bat ireki beste fitxategi batekin aldi "
-"berean."
+"Errorea: ezin da saio-fitxategi bat beste fitxategi batekin batera ireki."
 
 #: document.py:127
-#, fuzzy
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr ""
-"Errorea: orrialde anitzeko fitxategi bat inportatzen beste fitxategi batekin "
-"aldi berean."
+"Errorea: orrialde anitzeko fitxategi bat beste fitxategi batekin aldi berean"
+" inportatzea."
 
-#: edit_menu_mixins.py:60
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
 msgstr "Propietateak"
 
-#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
+#: edit_menu_mixins.py:72 edit_menu_mixins.py:82
 msgid "dpi"
 msgstr "dpi"
 
-#: edit_menu_mixins.py:362
-#, fuzzy
+#: edit_menu_mixins.py:377
 msgid "Invalid regex. Try without special characters such as '*'"
-msgstr ""
-"Adierazpen erregular baliogabea. Saiatu karaktere berezirik gabe, esaterako "
-"'*'"
+msgstr "Regex baliogabea. Saiatu karaktere berezirik gabe, hala nola '*'."
 
-#: edit_menu_mixins.py:394
-#, fuzzy
+#: edit_menu_mixins.py:409
 msgid "Changes will only take effect after restarting scantpaper."
 msgstr ""
-"Aldaketak scantpaper berrabiarazi ondoren soilik izango dira eraginkorrak."
+"Aldaketek scantpaper berrabiarazi ondoren bakarrik izango dute eragina."
 
-#: edit_menu_mixins.py:396
-#, fuzzy
+#: edit_menu_mixins.py:411
 msgid "Restart scantpaper now?"
 msgstr "Berrabiarazi scantpaper orain?"
 
-#: file_menu_mixins.py:104
+#: file_menu_mixins.py:87
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
@@ -1260,130 +1421,129 @@ msgstr ""
 "Orri batzuk ez dira gorde.\n"
 "Benetan orrialde guztiak ezabatu nahi dituzu?"
 
-#: file_menu_mixins.py:129
+#: file_menu_mixins.py:112
 msgid "Open image"
 msgstr "Ireki irudia"
 
-#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
 msgstr "Irudien fitxategiak"
 
-#: file_menu_mixins.py:180
+#: file_menu_mixins.py:164
 msgid "Pages to extract"
 msgstr "Erauzi beharreko orrialdeak"
 
-#: file_menu_mixins.py:194
+#: file_menu_mixins.py:181
 msgid "First page to extract"
 msgstr "Erauzi beharreko lehen orrialdea"
 
-#: file_menu_mixins.py:200
+#: file_menu_mixins.py:188
 msgid "Last page to extract"
 msgstr "Erauzi beharreko azken orrialdea"
 
-#: file_menu_mixins.py:214
-#, fuzzy, python-format
+#: file_menu_mixins.py:201
+#, python-format
 msgid "Enter user password for PDF %s"
-msgstr "Sartu PDF %s-ren erabiltzailearen pasahitza"
+msgstr "Sartu erabiltzailearen pasahitza PDF %s fitxategirako"
 
-#: file_menu_mixins.py:281
-msgid "Open crashed session"
-msgstr "Ireki hondatutako saioa"
+#: file_menu_mixins.py:268
+msgid "Import hOCR"
+msgstr "Inportatu hOCR"
 
-#: file_menu_mixins.py:336
-msgid "Save"
-msgstr "Gorde"
-
-#: file_menu_mixins.py:367
-#, fuzzy
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
 msgstr "Gorde osteko kakoa"
 
-#: file_menu_mixins.py:370
-#, fuzzy, python-format
+#: file_menu_mixins.py:377
+#, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
 msgstr ""
-"Exekutatu komandoa gordetako fitxategian. Eskuragarri dauden komandoak %o "
-"zehazten ez duten erabiltzaileak definitutako tresnak dira"
+"Exekutatu komandoa gordetako fitxategian. Erabilgarri dauden komandoak %o "
+"zehazten ez duten erabiltzaileak definitutako tresnak dira."
 
-#: file_menu_mixins.py:392 file_menu_mixins.py:393
-#, fuzzy
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
 msgstr "Itxi elkarrizketa-koadroa gordetzean"
 
-#: file_menu_mixins.py:465
+#: file_menu_mixins.py:407 menu.ui:24
+msgid "_Save"
+msgstr "_Gorde"
+
+#: file_menu_mixins.py:471
 msgid "PDF filename"
 msgstr "PDF fitxategi izena"
 
-#: file_menu_mixins.py:466
+#: file_menu_mixins.py:472
 msgid "PDF files"
 msgstr "PDF fitxategiak"
 
-#: file_menu_mixins.py:469
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
 msgstr "DjVu fitxategi izenak"
 
-#: file_menu_mixins.py:470
+#: file_menu_mixins.py:476
 msgid "DjVu files"
 msgstr "DjVu fitxategiak"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
 msgstr "TIFF fitxategi-izena"
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:483
 msgid "Text filename"
 msgstr "Testu fitxategi-izenak"
 
-#: file_menu_mixins.py:478
+#: file_menu_mixins.py:484
 msgid "Text files"
 msgstr "Testu fitxategiak"
 
-#: file_menu_mixins.py:481
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
 msgstr "hOCR fitxategi-izena"
 
-#: file_menu_mixins.py:482
-msgid "hOCR files"
-msgstr "hOCR fitxategiak"
-
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:491
 msgid "PS filename"
 msgstr "PS  (Postscript) fitxategi-izena"
 
-#: file_menu_mixins.py:486
+#: file_menu_mixins.py:492
 msgid "Postscript files"
 msgstr "Postscript fitxategiak"
 
-#: file_menu_mixins.py:489
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
 msgstr "scantpaper saioko fitxategi-izena"
 
-#: file_menu_mixins.py:490
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
 msgstr "scantpaper saioko fitxategiak"
 
-#: file_menu_mixins.py:601
-#, fuzzy, python-format
+#: file_menu_mixins.py:604
+#, python-format
+msgid "Error saving %(filename)s: %(error)s"
+msgstr "Errorea %(filename)s gordetzean: %(error)s"
+
+#: file_menu_mixins.py:619
+#, python-format
 msgid "Directory %s is read-only"
 msgstr "%s direktorioa irakurtzeko soilik da"
 
-#: file_menu_mixins.py:611
+#: file_menu_mixins.py:629
 #, python-format
 msgid "File %s is read-only"
 msgstr "%s fitxategi hori irakurtzekoa besterik ez"
 
-#: file_menu_mixins.py:802
+#: file_menu_mixins.py:821
 msgid "Image filename"
 msgstr "Irudiaren fitxategi-izena"
 
-#: file_menu_mixins.py:862
-#, fuzzy, python-format
+#: file_menu_mixins.py:881
+#, python-format
 msgid "This operation would overwrite %s"
 msgstr "Eragiketa honek %s gainidatziko luke"
 
-#: file_menu_mixins.py:945
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
@@ -1391,155 +1551,248 @@ msgstr ""
 "Orri batzuk ez dira gorde.\n"
 "Benetan irten nahi duzu?"
 
-#: importthread.py:86
+#: importthread.py:100
 #, python-format
 msgid "File %s not found"
 msgstr "Ez da %s fitxategia aurkitu"
 
-#: importthread.py:92
-#, fuzzy, python-format
-msgid "Error getting file info for %s: %s"
-msgstr "Errorea %s-ren fitxategi-informazioa lortzean: %s"
+#: importthread.py:106
+#, python-format
+msgid "Error getting file info for %(path)s: %(error)s"
+msgstr "Errorea %(path)s fitxategiaren informazioa lortzean: %(error)s"
 
-#: importthread.py:97
-#, fuzzy, python-format
+#: importthread.py:112
+#, python-format
 msgid "Error importing zero-length file %s."
-msgstr "Errorea luzera nuluko %s fitxategia inportatzean."
+msgstr "Errorea zero luzerako fitxategia %s inportatzean."
 
-#: importthread.py:135 importthread.py:178
-#, fuzzy, python-format
+#: importthread.py:150 importthread.py:193
+#, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
-msgstr "Instalatu djvulibre-bin DjVu fitxategiak irekitzeko: %s"
+msgstr "Mesedez, instalatu djvulibre-bin DjVu fitxategiak irekitzeko: %s"
 
-#: importthread.py:166
+#: importthread.py:181
 msgid "Unknown DjVu file structure. Please contact the author."
 msgstr ""
 "Ezezaguna DjVu fitxategi estruktura. Mesedez jar zaitez harremanetan "
 "egilearekin."
 
-#: importthread.py:266
-#, fuzzy, python-format
-msgid "Please install libtiff-tools in order to open TIFF files: %s"
-msgstr "Instalatu libtiff-tools TIFF fitxategiak irekitzeko: %s"
-
-#: importthread.py:328 importthread.py:388
+#: importthread.py:281
 #, python-format
-msgid "Importing page %i of %i"
-msgstr "Inportatzen %itik %i orrialdea"
+msgid "Please install libtiff-tools in order to open TIFF files: %s"
+msgstr "Mesedez, instalatu libtiff-tools TIFF fitxategiak irekitzeko: %s"
 
-#: importthread.py:509
+#: importthread.py:343 importthread.py:403
+#, python-format
+msgid "Importing page %(current)i of %(total)i"
+msgstr "%(current)i. orrialdea inportatzen, %(total)i(e)tik"
+
+#: importthread.py:524
 msgid "Error extracting images from PDF"
 msgstr "Errorea PDFtik irudiak erauzterakoan"
 
-#: importthread.py:521
-#, fuzzy
+#: importthread.py:536
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
 "add scans to an existing PDF, use the prepend/append to PDF options in the "
 "Save dialogue."
 msgstr ""
-"Abisua: scantpaper-ek orrialde bakoitzeko irudi bat espero du, baina ez da "
-"hori bete. Litekeena da PDF-a ez zuzen inportatzea. Lehendik dagoen PDF "
-"batera eskaneatutakoak gehitu nahi badituzu, erabili PDF-aren aurretik/"
-"atzetik gehitzeko aukerak Gorde elkarrizketa-koadroan."
+"Abisua: scantpaper(e)k orrialde bakoitzeko irudi bat espero du, baina hori "
+"ez da bete. Litekeena da PDFa ez dela behar bezala inportatu. Lehendik "
+"dagoen PDF bati eskaneatzeak gehitu nahi badizkiozu, erabili Gordetzeko "
+"elkarrizketa-koadroko PDFari aurretik/ondoren eransteko aukerak."
 
-#: importthread.py:560
-#, fuzzy
+#: importthread.py:575
 msgid "Error importing PDF"
-msgstr "Errorea PDF-a inportatzean"
+msgstr "Errorea PDFa inportatzean"
 
-#: importthread.py:587
-#, fuzzy
+#: importthread.py:602
 msgid "Error extracting text layer from PDF"
-msgstr "Errorea testu-geruza PDF-etik ateratzean"
+msgstr "Errorea PDFtik testu-geruza ateratzean"
 
-#: pagerange.py:46
+#: layer.py:45
+msgid "Sort by confidence"
+msgstr "Ordenatu konfiantzaren arabera"
+
+#: layer.py:46
+msgid "Sort OCR text boxes by confidence."
+msgstr "Ordenatu OCR testu-koadroak konfiantzaren arabera."
+
+#: layer.py:48
+msgid "Sort by position"
+msgstr "Ordenatu posizioaren arabera"
+
+#: layer.py:48
+msgid "Sort OCR text boxes by position."
+msgstr "Ordenatu OCR testu-koadroak posizioaren arabera."
+
+#: layer.py:62
+msgid "my-new-word"
+msgstr "nire-hitz-berria"
+
+#: layer.py:63
+msgid "my-new-annotation"
+msgstr "nire-oharpen-berria"
+
+#: layer.py:207
+msgid "Go to least confident text"
+msgstr "Joan konfiantza gutxieneko testura"
+
+#: layer.py:212
+msgid "Go to previous text"
+msgstr "Joan aurreko testura"
+
+#: layer.py:217
+msgid "Select sort method for OCR boxes"
+msgstr "Hautatu OCR koadroetarako ordenatzeko metodoa"
+
+#: layer.py:228
+msgid "Go to next text"
+msgstr "Joan hurrengo testura"
+
+#: layer.py:232
+msgid "Go to most confident text"
+msgstr "Joan konfiantza handieneko testura"
+
+#: layer.py:238 layer.py:396
+msgid "Add text"
+msgstr "Gehitu testua"
+
+#: layer.py:246
+msgid "Rotate text clockwise"
+msgstr "Biratu testua erlojuaren noranzkoan"
+
+#: layer.py:251
+msgid "Rotate text anticlockwise"
+msgstr "Biratu testua erlojuaren kontrako noranzkoan"
+
+#: layer.py:256
+msgid "Accept corrections"
+msgstr "Onartu zuzenketak"
+
+#: layer.py:259
+msgid "Cancel corrections"
+msgstr "Ezeztatu zuzenketak"
+
+#: layer.py:264 app.ui:287 menu.ui:61
+msgid "_Copy"
+msgstr "_Kopiatu"
+
+#: layer.py:264
+msgid "Duplicate text"
+msgstr "Bikoiztu testua"
+
+#: layer.py:267
+msgid "Delete text"
+msgstr "Ezabatu testua"
+
+#: layer.py:317
+msgid "Focus zoom"
+msgstr "Foku-zooma"
+
+#: layer.py:335
+msgid "Reset"
+msgstr "Berrezarri"
+
+#: layer.py:362
+#, python-format
+msgid "Focus zoom: %(percent)d%%"
+msgstr "Foku-zooma: %(percent)d%%"
+
+#: layer.py:399
+msgid "Draw or select a rectangle before adding"
+msgstr "Marraztu edo aukeratu laukizuzen bat gehitu aurretik"
+
+#: pagerange.py:47
 msgid "Selected"
 msgstr "Hautatua"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides"
 msgstr "Bi aldeetatik"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides."
 msgstr "Bi aldeetatik."
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side"
 msgstr "Orriaren gainaldea"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side."
 msgstr "Orriaren gainaldea."
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side"
 msgstr "Orriaren atzealdea"
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side."
 msgstr "Orriaren atzealdea."
 
-#: postprocess_controls.py:27
-#, fuzzy
+#: postprocess_controls.py:48
 msgid "90°"
 msgstr "90°"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:48
 msgid "Rotate image 90 degrees clockwise."
 msgstr "Biratu irudia 90 gradu erlujuaren norabidean"
 
-#: postprocess_controls.py:28
-#, fuzzy
+#: postprocess_controls.py:49
 msgid "180°"
 msgstr "180°"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:49
 msgid "Rotate image 180 degrees clockwise."
 msgstr "Biratu irudia 180 gradu erlojuaren norabidean"
 
-#: postprocess_controls.py:29
-#, fuzzy
+#: postprocess_controls.py:50
 msgid "270°"
 msgstr "270°"
 
-#: postprocess_controls.py:29
+#: postprocess_controls.py:50
 msgid "Rotate image 90 degrees anticlockwise."
 msgstr "Biratu irudia 90 gradu erlojuaren kontrako norabidean"
 
-#: postprocess_controls.py:39
+#: postprocess_controls.py:55 postprocess_controls.py:738
+msgid "Page segmentation mode"
+msgstr "Orrialde segmentazio modua"
+
+#: postprocess_controls.py:56 postprocess_controls.py:747
+msgid "OCR engine mode"
+msgstr "OCR motorraren modua"
+
+#: postprocess_controls.py:67
 msgid "Rotate"
 msgstr "Biratu"
 
-#: postprocess_controls.py:40
+#: postprocess_controls.py:68
 msgid "Rotate image after scanning"
 msgstr "Biratu irudia eskaneatu ondoren"
 
-#: postprocess_controls.py:43
+#: postprocess_controls.py:72
 msgid "Select side to rotate"
 msgstr "Hautatu biratzeko aldea"
 
-#: postprocess_controls.py:46
-#, fuzzy
+#: postprocess_controls.py:76
 msgid "Select angle of rotation"
-msgstr "Aukeratu biraketa-angelua"
+msgstr "Hautatu biraketa-angelua"
 
-#: postprocess_controls.py:49
-#, fuzzy
+#: postprocess_controls.py:79
 msgid "Anticlockwise"
-msgstr "Erlojuaren orratzen kontrako noranzkoan"
+msgstr "Erlojuaren kontra"
 
-#: postprocess_controls.py:350 postprocess_controls.py:351
+#: postprocess_controls.py:478 postprocess_controls.py:479
 msgid "OCR scanned pages"
 msgstr "OCR erabiliz eskaneaturiko orrialdeak"
 
-#: postprocess_controls.py:378
+#: postprocess_controls.py:507
 msgid "Threshold before OCR"
 msgstr "Kontrastea handitu OCR erabili baino lehen"
 
-#: postprocess_controls.py:381
+#: postprocess_controls.py:510
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
@@ -1547,523 +1800,713 @@ msgstr ""
 "Kontrastea handitu OCR erabili baino lehen. Honek ez dio bilduman gordetako "
 "irudiei kalte egingo, OCR motorrari lagundu ahal dio."
 
-#: postprocess_controls.py:392 tools_menu_mixins.py:114
-#, fuzzy
+#: postprocess_controls.py:520 tools_menu_mixins.py:122
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
 msgstr ""
-"Paperaren koloretik portzentaje hau baino gehiago desberdintzen diren "
-"pixelak beltzez errendatzen dira. Balio altuek marka sendoagoak soilik "
-"mantentzen dituzte."
+"Paperaren koloretik ehuneko hau baino gehiago desberdintzen diren pixelak "
+"beltzez marrazten dira. Balio handiagoek marka sendoagoak soilik mantentzen "
+"dituzte."
 
-#: postprocess_controls.py:428
+#: postprocess_controls.py:585
+msgid "No OCR language selected."
+msgstr "Ez da OCR hizkuntzarik hautatu."
+
+#: postprocess_controls.py:588
+#, python-format
+msgid "The following OCR languages are not installed: %(languages)s"
+msgstr "Hurrengo OCR hizkuntzak ez daude instalatuta: %(languages)s"
+
+#: postprocess_controls.py:598
+#, python-format
+msgid ""
+"'%(variable)s' is set by the %(control)s control; remove it from this field."
+msgstr ""
+"'%(variable)s' %(control)s kontrolak ezartzen du; kendu ezazu eremu "
+"honetatik."
+
+#: postprocess_controls.py:609
+#, python-format
+msgid "Unknown Tesseract options: %(variables)s"
+msgstr "Tesseracten aukera ezezagunak: %(variables)s"
+
+#: postprocess_controls.py:624
 msgid "Language to recognise"
 msgstr "Hautemateko hizkuntza"
 
-#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-#, fuzzy
-msgid "_Cancel"
-msgstr "_Utzi"
+#: postprocess_controls.py:632
+msgid "Additional languages"
+msgstr "Hizkuntza gehigarriak"
 
-#: progress.py:76 progress.py:110
+#: postprocess_controls.py:674
+msgid "Tessdata directory"
+msgstr "Tessdata direktorioa"
+
+#: postprocess_controls.py:677
+msgid "Default (system tessdata)"
+msgstr "Lehenetsia (sistemako tessdata)"
+
+#: postprocess_controls.py:680
+msgid ""
+"Directory that directly contains the Tesseract .traineddata language files. "
+"Leave empty for the system default."
+msgstr ""
+"Tesseract .traineddata hizkuntza-fitxategiak zuzenean dituen direktorioa. "
+"Utzi hutsik sistemaren lehenetsia erabiltzeko."
+
+#: postprocess_controls.py:693
+msgid "Choose the tessdata directory"
+msgstr "Aukeratu tessdata direktorioa"
+
+#: postprocess_controls.py:698
+msgid "Use the system tessdata directory"
+msgstr "Erabili sistemaren tessdata direktorioa"
+
+#: postprocess_controls.py:710
+msgid "Select tessdata directory"
+msgstr "Hautatu tessdata direktorioa"
+
+#: postprocess_controls.py:741
+msgid "How tesseract should segment the page. Automatic suits most pages."
+msgstr ""
+"Tesseract-ek orria nola segmentatu behar duen. Automatikoa orrialde "
+"gehienetarako egokia da."
+
+#: postprocess_controls.py:750
+msgid "Which tesseract engine to use. Default uses the engine's own choice."
+msgstr ""
+"Zein tesseract motor erabili. Lehenetsiak motorraren beraren hautua "
+"erabiltzen du."
+
+#: postprocess_controls.py:758
+msgid "Advanced Tesseract engine parameters"
+msgstr "Tesseract motorraren parametro aurreratuak"
+
+#: postprocess_controls.py:761
+msgid ""
+"Tesseract engine parameters - the values of tesseract's -c option - not "
+"command-line flags. Use absolute paths."
+msgstr ""
+"Tesseract motorraren parametroak - tesseract-en -c aukeraren balioak - ez "
+"komando-lerroko flagak. Erabili bide absolutuak."
+
+#: postprocess_controls.py:769
+msgid ""
+"One name=value engine parameter per line, e.g. "
+"user_words_file=/path/to/words.txt. Write engine parameters, not command-"
+"line options such as --user-words."
+msgstr ""
+"Lerro bakoitzeko name=value formatuko motor-parametro bat, adib. "
+"user_words_file=/path/to/words.txt. Idatzi motor-parametroak, ez komando-"
+"lerroko aukerak, hala nola --user-words."
+
+#: postprocess_controls.py:791
+msgid "_Available parameters"
+msgstr "_Erabilgarri dauden parametroak"
+
+#: postprocess_controls.py:794
+msgid "Browse the parameters the installed Tesseract reports"
+msgstr "Arakatu instalatutako Tesseract-ek jakinarazten dituen parametroak"
+
+#: postprocess_controls.py:907
+msgid "No additional languages"
+msgstr "Ez dago hizkuntza gehigarririk"
+
+#: postprocess_controls.py:922
 #, python-format
-msgid "Process %i of %i (%s)"
-msgstr "Procesuan %i   %i (%s)tik"
+msgid "%(language)s (not installed)"
+msgstr "%(language)s (ez dago instalatuta)"
 
-#: progress.py:119
+#: progress.py:79 progress.py:118
 #, python-format
-msgid "Process %i of %i"
-msgstr "Procesuan %i   %i tik"
+msgid "Process %(current)i of %(total)i (%(process)s)"
+msgstr "%(current)i / %(total)i prozesua (%(process)s)"
 
-#: savethread.py:83
-#, fuzzy
+#: progress.py:127
+#, python-format
+msgid "Process %(current)i of %(total)i"
+msgstr "%(current)i/%(total)i prozesatzen"
+
+#: savethread.py:210
 msgid "Processing PDF"
-msgstr "PDF-a prozesatzen"
+msgstr "PDFa prozesatzen"
 
-#: savethread.py:148
-#, fuzzy
+#: savethread.py:283
 msgid "Embedding text layer"
 msgstr "Testu-geruza txertatzen"
 
-#: savethread.py:195
+#: savethread.py:341
 msgid "Setting up PDF"
 msgstr "PDFa doitzen"
 
-#: savethread.py:264 savethread.py:405
-#, python-format
-msgid "Writing page %i of %i"
-msgstr "Idazten  %i orrialdea %i -tik"
+#: savethread.py:409 tests/test_savethread.py:1822
+msgid "Converting to JBIG2"
+msgstr "JBIG2ra bihurtzen"
 
-#: savethread.py:291
-#, fuzzy, python-format
+#: savethread.py:447 savethread.py:615
+#, python-format
+msgid "Writing page %(current)i of %(total)i"
+msgstr "%(total)i orrialdetik %(current)i. orrialdea idazten"
+
+#: savethread.py:498
+#, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
-"PDF-aren kalkulatutako tamaina (%.1f GiB) 2 GiB baino handiagoa da. Mesedez, "
+"PDFaren estimatutako tamaina (%.1f GiB) 2 GiB baino handiagoa da.  Mesedez, "
 "gorde orrialde gutxiago."
 
-#: savethread.py:314 tests/test_savethread.py:1240
-#, fuzzy
+#: savethread.py:521 tests/test_savethread.py:1599
 msgid "Writing PDF"
-msgstr "PDF-a idazten"
+msgstr "PDFa idazten"
 
-#: savethread.py:363
+#: savethread.py:571
 msgid "Converting to PS"
 msgstr "Bihurtzen PS (postscript) horretara"
 
-#: savethread.py:374
-#, fuzzy, python-format
+#: savethread.py:584
+#, python-format
 msgid "Error converting PDF to PS: %s"
-msgstr "Errorea PDF-a PS bihurtzean: %s"
+msgstr "Errorea PDFa PSra bihurtzean: %s"
 
-#: savethread.py:418
+#: savethread.py:628
 msgid "Merging DjVu"
 msgstr "Batu DjVu"
 
-#: savethread.py:425
-#, fuzzy, python-format
+#: savethread.py:635
+#, python-format
 msgid "Error merging DjVu: %s"
 msgstr "Errorea DjVu batzean: %s"
 
-#: savethread.py:519
-#, fuzzy, python-format
+#: savethread.py:729
+#, python-format
 msgid "Error converting TIFF to PS: %s"
-msgstr "Errorea TIFF-a PS bihurtzean: %s"
+msgstr "Errorea TIFF PSra bihurtzean: %s"
 
-#: savethread.py:664
+#: savethread.py:877
 msgid "Error copying page"
 msgstr "Errorea orrialdea kopiatzerakoan"
 
-#: savethread.py:814
-#, fuzzy, python-format
-msgid "Error prepending PDF: %s"
-msgstr "Errorea PDF-ari aurretik gehitzean: %s"
-
-#: savethread.py:822
-#, fuzzy, python-format
-msgid "Error appending PDF: %s"
-msgstr "Errorea PDF-ari atzetik gehitzean: %s"
-
-#: savethread.py:831
-#, fuzzy
-msgid "Error creating backup of PDF"
-msgstr "Errorea PDF-aren segurtasun-kopia sortzean"
-
-#: savethread.py:905
-#, fuzzy, python-format
-msgid "Error encrypting PDF: %s"
-msgstr "Errorea PDF-a enkriptatzean: %s"
-
-#: scan_menu_item_mixins.py:72
-#, fuzzy
-msgid "Really cache libusb device names?"
-msgstr "Libusb gailuen izenak cachean gorde?"
-
-#: scan_menu_item_mixins.py:76
-#, fuzzy
+#: savethread.py:948 tools_menu_mixins.py:840
+#, python-format
 msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
+"Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
+"it one page at a time instead."
 msgstr ""
-"Libusb gailuak dituen gailu-zerrenda cachean gordetzea ez da gomendatzen, "
-"berrabiarazteen artean alda daitezkeelako."
+"Lote modua ezin da erabili '%(tool)s'-rekin, %(variable)s erabiltzen "
+"duelako. Exekutatu orrialde bat aldi bakoitzean horren ordez."
 
-#: scan_menu_item_mixins.py:78
-#, fuzzy
-msgid "Are you sure you want to do this?"
-msgstr "Ziur zaude hau egin nahi duzula?"
+#: savethread.py:1009
+msgid ""
+"No pages were modified. If the tool was already running (for example GIMP), "
+"it may have opened the images in the existing instance."
+msgstr ""
+"Ez da orrialderik aldatu. Tresna jada martxan bazegoen (adibidez, GIMP), "
+"baliteke irudiak lehendik dagoen instantzian ireki izana."
 
-#: scan_menu_item_mixins.py:114
+#: savethread.py:1018
+#, python-format
+msgid "'%(tool)s' failed with status %(status)s."
+msgstr "'%(tool)s'(e)k huts egin du %(status)s egoerarekin."
+
+#: savethread.py:1024
+#, python-format
+msgid "Error running '%(tool)s': %(error)s."
+msgstr "Errorea '%(tool)s' exekutatzean: %(error)s."
+
+#: savethread.py:1294
+#, python-format
+msgid "Error prepending PDF: %s"
+msgstr "Errorea PDFa aurretik gehitzean: %s"
+
+#: savethread.py:1302
+#, python-format
+msgid "Error appending PDF: %s"
+msgstr "Errorea PDFa eranstean: %s"
+
+#: savethread.py:1311
+msgid "Error creating backup of PDF"
+msgstr "Errorea PDFaren babeskopia sortzean"
+
+#: savethread.py:1385
+#, python-format
+msgid "Error encrypting PDF: %s"
+msgstr "Errorea PDFa zifratzean: %s"
+
+#: scan_menu_item_mixins.py:118
+msgid "Really cache libusb device names?"
+msgstr "Benetan cacheatu libusb gailuen izenak?"
+
+#: scan_menu_item_mixins.py:122
+msgid ""
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
+msgstr ""
+"Gailuen zerrenda libusb gailuekin cachean gordetzea ez da gomendatzen, "
+"berrabiarazteetan alda daitezkeelako. Gorde cachean hala ere?"
+
+#: scan_menu_item_mixins.py:127
+msgid "Don't ask again"
+msgstr "Ez galdetu berriro"
+
+#: scan_menu_item_mixins.py:176
 msgid "Scan Document"
 msgstr "Eskaneatu dokumentua"
 
-#: scan_menu_item_mixins.py:216
-#, fuzzy
+#: scan_menu_item_mixins.py:291
 msgid "Postprocessing"
-msgstr "Osteko prozesaketa"
+msgstr "Postprozesatzea"
 
-#: scan_menu_item_mixins.py:230
-#, fuzzy
+#: scan_menu_item_mixins.py:400
 msgid "Alternate rotation every 2nd page"
 msgstr "Txandakatu biraketa 2. orrialde bakoitzean"
 
-#: scan_menu_item_mixins.py:233
-#, fuzzy
+#: scan_menu_item_mixins.py:403
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
 msgstr ""
-"Biratu orrialde bakoitiak aukeratutako angeluaz eta bikoitiak angelu hori "
-"gehi 180 gradu. Erabili liburu bat eskaneatzean, non orri bakoitza ertz "
-"berera lerrokatuta dagoen; orri bakoitzaren atzealdea bere aurrekoarekiko "
-"180 gradu biratuta egongo da."
+"Biratu orrialde bakoitiak aukeratutako angeluarekin eta orrialde bikoitiak "
+"angelu horri 180 gradu gehituta. Erabili liburu bat eskaneatzen duzunean "
+"orri bakoitza ertz berera lerrokatuta dagoenean, orri bakoitzaren atzealdea "
+"bere aurreko aldearekiko 180 gradu biratuta dagoelako."
 
-#: scan_menu_item_mixins.py:298
+#: scan_menu_item_mixins.py:425
 msgid "Clean up images"
 msgstr "Ezabatu irudiak"
 
-#: scan_menu_item_mixins.py:299
+#: scan_menu_item_mixins.py:426
 msgid "Clean up scanned images with unpaper"
 msgstr ""
-"Garbitu eskaneaturiko irudiak unpaper aplikazioaz (http://"
-"unpaper.berlios.de/)"
+"Garbitu eskaneaturiko irudiak unpaper aplikazioaz "
+"(http://unpaper.berlios.de/)"
 
-#: scan_menu_item_mixins.py:307
+#: scan_menu_item_mixins.py:435
 msgid "Options"
 msgstr "Aukerak"
 
-#: scan_menu_item_mixins.py:308
+#: scan_menu_item_mixins.py:436
 msgid "Set unpaper options"
 msgstr "Ezarri unpaper aukerak"
 
-#: scan_menu_item_mixins.py:316
+#: scan_menu_item_mixins.py:445
 msgid "unpaper options"
 msgstr "unpaper aukerak"
 
-#: scan_menu_item_mixins.py:339
-#, fuzzy
+#: scan_menu_item_mixins.py:468
 msgid "Process with user-defined tool"
 msgstr "Prozesatu erabiltzaileak definitutako tresnarekin"
 
-#: scan_menu_item_mixins.py:340
-#, fuzzy
+#: scan_menu_item_mixins.py:469
 msgid "Process scanned images with user-defined tool"
 msgstr ""
 "Prozesatu eskaneatutako irudiak erabiltzaileak definitutako tresnarekin"
 
-#: session_mixins.py:74
+#: session_mixins.py:84
 #, python-format
 msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+"Warning: unable to use %(configured)s for temporary storage. Defaulting to "
+"%(default)s instead."
 msgstr ""
-"Kontuz: ezin izan da %s hori erabili denboraldi batean gordetzeko. "
-"Lehenetsitako beste %s hori erabili behar izan da."
+"Abisua: ezin da %(configured)s erabili aldi baterako biltegirako. Horren "
+"ordez, %(default)s erabiliko da modu lehenetsian."
 
-#: session_mixins.py:118 session_mixins.py:123
-msgid "Pick crashed session to restore"
-msgstr "Hautatu kale egindako saioak berrekiteko"
+#: session_mixins.py:163
+msgid "No crashed sessions found."
+msgstr "Ez da kraskatutako saiorik aurkitu."
 
-#: session_mixins.py:191
-#, fuzzy
+#: session_mixins.py:169
+msgid "Crashed sessions"
+msgstr "Kale egindako saioak"
+
+#: session_mixins.py:174
+msgid "_Discard"
+msgstr "_Baztertu"
+
+#: session_mixins.py:175
+msgid "_Restore"
+msgstr "Lehene_ratu"
+
+#: session_mixins.py:178
+msgid "Restore or discard a crashed session"
+msgstr "Berreskuratu edo baztertu huts egin duen saioa"
+
+#: session_mixins.py:207
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to restore a crashed session?"
+msgstr ""
+"Orrialde batzuk ez dira gorde.\n"
+"Ziur al zaude saio kraskatu bat leheneratu nahi duzula?"
+
+#: session_mixins.py:242
+msgid "Restore file"
+msgstr "Berreskuratu fitxategia"
+
+#: session_mixins.py:258
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] "Baztertu %(count)d kraskatutako saioa?"
+msgstr[1] "Baztertu %(count)d kraskatutako saioak?"
+
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] "Ezin izan da %(count)d saio kraskatua kendu."
+msgstr[1] "Ezin izan dira %(count)d saio kraskatuak kendu."
+
+#: session_mixins.py:301
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
-msgstr "GraphicsMagick ImageMagick bateragarritasun-moduan erabiltzen ari da."
+msgstr ""
+"GraphicsMagick ImageMagick-ekin bateragarritasun moduan erabiltzen ari da."
 
-#: session_mixins.py:193
-#, fuzzy
+#: session_mixins.py:303
 msgid "Whilst this might work, it is not currently supported."
-msgstr "Honek funtziona dezakeen arren, gaur egun ez da onartzen."
+msgstr "Honek funtziona lezakeen arren, oraingoz ez da onartzen."
 
-#: session_mixins.py:195
-#, fuzzy
+#: session_mixins.py:305
 msgid "Please switch to ImageMagick in case of problems."
-msgstr "Arazorik izanez gero, aldatu ImageMagick-era."
+msgstr "Mesedez, aldatu ImageMagick-era arazoak izanez gero."
 
-#: session_mixins.py:212
+#: session_mixins.py:318
 msgid "Tesseract"
 msgstr "Tesseract (open source OCR softwarea)"
 
-#: session_mixins.py:212
+#: session_mixins.py:318
 msgid "Process image with Tesseract."
 msgstr "Irudia prozesatzen Tesseract erabiliz"
 
-#: session_mixins.py:229
-#, fuzzy
+#: session_mixins.py:330
 msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr "Aurreko orrialdeen eskaneatzea amaitu da. Eskaneatu atzeko orrialdeak?"
+msgstr ""
+"Aurrez aurreko orrien eskaneatzea amaitu da. Alderantzizko orriak eskaneatu?"
 
-#: session_mixins.py:232
-#, fuzzy
+#: session_mixins.py:333
 msgid "Finished scanning reverse pages. Scan facing pages?"
-msgstr "Atzeko orrialdeen eskaneatzea amaitu da. Eskaneatu aurreko orrialdeak?"
-
-#: session_mixins.py:448 text_layer_control.py:80
-#, fuzzy
-msgid "_OK"
-msgstr "_Ados"
-
-#: session_mixins.py:449 text_layer_control.py:80
-#, fuzzy
-msgid "Accept corrections"
-msgstr "Onartu zuzentzeak"
-
-#: session_mixins.py:452 text_layer_control.py:83
-#, fuzzy
-msgid "Cancel corrections"
-msgstr "Utzi zuzentzeak"
-
-#: session_mixins.py:458
-#, fuzzy
-msgid "Add annotation"
-msgstr "Gehitu oharra"
-
-#: session_mixins.py:461
-#, fuzzy
-msgid "Delete annotation"
-msgstr "Ezabatu oharra"
-
-#: session_mixins.py:505
-#, fuzzy
-msgid "my-new-word"
-msgstr "my-new-word"
-
-#: session_mixins.py:560
-#, fuzzy
-msgid "my-new-annotation"
-msgstr "my-new-annotation"
-
-#: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, fuzzy, python-format
-msgid "You are using locale '%s'."
-msgstr "%s lokalea erabiltzen ari zara."
-
-#: tesseract.py:235
-#, fuzzy
-msgid ""
-"scantpaper does not currently know which tesseract language package would be "
-"necessary for that locale."
 msgstr ""
-"scantpaper-ek ez daki gaur egun zein tesseract hizkuntza-pakete beharko "
-"litzatekeen lokale horretarako."
+"Alderantzizko orrien eskaneatzea amaitu da. Aurrez aurreko orriak eskaneatu?"
 
-#: tesseract.py:239
-#, fuzzy
-msgid "Please contact the developers to add support for that locale."
-msgstr ""
-"Jarri harremanetan garatzaileekin lokale horretarako laguntza gehitzeko."
+#: tesseract.py:197
+msgid "Fully automatic page segmentation."
+msgstr "Orrialdearen segmentazio guztiz automatikoa."
 
-#: tesseract.py:250
-#, fuzzy, python-format
-msgid ""
-"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
-"for OCR for %s with tesseract."
-msgstr ""
-"Instalatu 'tesseract-ocr-%s' tesseract paketea eta berrabiarazi scantpaper "
-"%s-rentzako OCRa tesseract-ekin egiteko."
+#: tesseract.py:198
+msgid "Single column"
+msgstr "Zutabe bakarra"
+
+#: tesseract.py:198
+msgid "A single column of text of variable sizes."
+msgstr "Tamaina desberdinetako testu-zutabe bakarra."
+
+#: tesseract.py:199
+msgid "Single block"
+msgstr "Bloke bakarra"
+
+#: tesseract.py:199
+msgid "A single uniform block of text."
+msgstr "Testu-bloke uniforme bakar bat."
+
+#: tesseract.py:200
+msgid "Single line"
+msgstr "Lerro bakarra"
+
+#: tesseract.py:200
+msgid "The image is a single text line."
+msgstr "Irudia testu-lerro bakarra da."
+
+#: tesseract.py:201
+msgid "Single word"
+msgstr "Hitz bakarra"
+
+#: tesseract.py:201
+msgid "The image is a single word."
+msgstr "Irudia hitz bakarra da."
+
+#: tesseract.py:202
+msgid "Single character"
+msgstr "Karaktere bakarra"
+
+#: tesseract.py:202
+msgid "The image is a single character."
+msgstr "Irudia karaktere bakarra da."
+
+#: tesseract.py:203
+msgid "Sparse text"
+msgstr "Testu sakabanatua"
+
+#: tesseract.py:203
+msgid "Find as much text as possible, in no order."
+msgstr "Aurkitu ahalik eta testu gehien, ordenarik gabe."
+
+#: tesseract.py:204
+msgid "Raw line"
+msgstr "Lerro gordina"
+
+#: tesseract.py:204
+msgid "A single line, without tesseract-specific hacks."
+msgstr "Lerro bakarra, tesseract-entzako hack espezifikorik gabe."
+
+#: tesseract.py:214
+msgid "LSTM only"
+msgstr "LSTM soilik"
+
+#: tesseract.py:215
+msgid "Legacy"
+msgstr "Legatua"
+
+#: tesseract.py:216
+msgid "Combined"
+msgstr "Konbinatua"
 
 #: tesseract.py:260
-#, fuzzy, python-format
-msgid "There is no tesseract package for %s"
-msgstr "Ez dago tesseract paketerik %s-rentzat"
+#, python-format
+msgid "The tessdata directory does not exist: %(path)s"
+msgstr "tessdata direktorioa ez da existitzen: %(path)s"
 
 #: tesseract.py:262
-#, fuzzy
+#, python-format
+msgid "The tessdata path is not a directory: %(path)s"
+msgstr "tessdata bidea ez da direktorio bat: %(path)s"
+
+#: tesseract.py:264
+#, python-format
+msgid "The tessdata directory cannot be read: %(path)s"
+msgstr "Tessdata direktorioa ezin da irakurri: %(path)s"
+
+#: tesseract.py:268
+#, python-format
+msgid ""
+"No Tesseract language data was found in the tessdata directory: %(path)s"
+msgstr ""
+"Ez da Tesseract hizkuntza-daturik aurkitu tessdata direktorioan: %(path)s"
+
+#: tesseract.py:272
+#, python-format
+msgid "Did you mean %(path)s?"
+msgstr "%(path)s esan nahi duzu?"
+
+#: tesseract.py:322
+msgid "tessdata directory not found"
+msgstr "tessdata direktorioa ez da aurkitu"
+
+#: tesseract.py:388
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; this field accepts engine "
+"parameters in name=value form only."
+msgstr ""
+"'%(flag)s' Tesseract-en komando-lerroko aukera bat da; eremu honek motor-"
+"parametroak onartzen ditu name=value forman soilik."
+
+#: tesseract.py:393
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' "
+"instead."
+msgstr ""
+"'%(flag)s' Tesseract komando-lerroko aukera bat da; erabili "
+"'%(variable)s=%(value)s' horren ordez."
+
+#: tesseract.py:413 tesseract.py:420
+#, python-format
+msgid "Invalid Tesseract option on line %(line)s: %(text)s"
+msgstr "Tesseract-en aukera baliogabea %(line)s lerroan: %(text)s"
+
+#: tesseract.py:435
+#, python-format
+msgid "%(variable)s names a file that does not exist: %(path)s"
+msgstr ""
+"%(variable)s(e)k existitzen ez den fitxategi bat izendatzen du: %(path)s"
+
+#: tesseract.py:440
+#, python-format
+msgid "%(variable)s names a file that cannot be read: %(path)s"
+msgstr ""
+"%(variable)s(e)k irakurri ezin den fitxategi bat izendatzen du: %(path)s"
+
+#: tesseract.py:567 tesseract.py:581 tesseract.py:594
+#, python-format
+msgid "You are using locale '%s'."
+msgstr "%s lokala erabiltzen ari zara."
+
+#: tesseract.py:570
+msgid ""
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
+msgstr ""
+"scantpaperek ez daki une honetan zein tesseract hizkuntza-pakete beharko "
+"litzatekeen kokaleku horretarako."
+
+#: tesseract.py:574
+msgid "Please contact the developers to add support for that locale."
+msgstr ""
+"Mesedez, jarri harremanetan garatzaileekin hizkuntza horrentzako euskarria "
+"gehitzeko."
+
+#: tesseract.py:585
+#, python-format
+msgid ""
+"Please install tesseract package 'tesseract-ocr-%(package)s' and restart "
+"scantpaper for OCR for %(language)s with tesseract."
+msgstr ""
+"Mesedez, instalatu tesseract paketea ('tesseract-ocr-%(package)s') eta "
+"berrabiarazi scantpaper, %(language)s hizkuntzarako OCRa tesseract-ekin "
+"egiteko."
+
+#: tesseract.py:596
+#, python-format
+msgid "There is no tesseract package for %s"
+msgstr "Ez dago tesseract paketerik %s(r)entzat"
+
+#: tesseract.py:598
 msgid "If this is in error, please contact the scantpaper developers."
-msgstr "Hau akatsa bada, jarri harremanetan scantpaper-eko garatzaileekin."
+msgstr ""
+"Hau akatsa bada, jarri harremanetan scantpaper-en garatzaileekin, mesedez."
 
-#: tests/test_savethread.py:1230
-#, fuzzy
+#: tests/test_savethread.py:1589
 msgid "Writing page"
-msgstr "Orrialdea idazten"
+msgstr "Idazketa-orria"
 
-#: text_layer_control.py:27
-#, fuzzy
-msgid "Sort by confidence"
-msgstr "Ordenatu konfiantzaren arabera"
-
-#: text_layer_control.py:28
-#, fuzzy
-msgid "Sort OCR text boxes by confidence."
-msgstr "Ordenatu OCR testu-kutxak konfiantzaren arabera."
-
-#: text_layer_control.py:30
-#, fuzzy
-msgid "Sort by position"
-msgstr "Ordenatu posizioaren arabera"
-
-#: text_layer_control.py:30
-#, fuzzy
-msgid "Sort OCR text boxes by position."
-msgstr "Ordenatu OCR testu-kutxak posizioaren arabera."
-
-#: text_layer_control.py:61
-#, fuzzy
-msgid "Go to least confident text"
-msgstr "Joan konfiantza gutxieneko testura"
-
-#: text_layer_control.py:64
-#, fuzzy
-msgid "Go to previous text"
-msgstr "Joan aurreko testura"
-
-#: text_layer_control.py:67
-#, fuzzy
-msgid "Select sort method for OCR boxes"
-msgstr "Aukeratu OCR kutxetarako ordenatze-metodoa"
-
-#: text_layer_control.py:73
-#, fuzzy
-msgid "Go to next text"
-msgstr "Joan hurrengo testura"
-
-#: text_layer_control.py:75
-#, fuzzy
-msgid "Go to most confident text"
-msgstr "Joan konfiantza handieneko testura"
-
-#: text_layer_control.py:77
-#, fuzzy
-msgid "Add text"
-msgstr "Gehitu testua"
-
-#: text_layer_control.py:86
-msgid "_Copy"
-msgstr "_Kopiatu"
-
-#: text_layer_control.py:86
-#, fuzzy
-msgid "Duplicate text"
-msgstr "Bikoiztu testua"
-
-#: text_layer_control.py:89
-#, fuzzy
-msgid "Delete text"
-msgstr "Ezabatu testua"
-
-#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
+#: tools_menu_mixins.py:105 tools_menu_mixins.py:298
 msgid "Threshold"
 msgstr "Atalasea (kontrastearen muga)"
 
-#: tools_menu_mixins.py:106
-#, fuzzy
+#: tools_menu_mixins.py:115
 msgid "Ink strength"
-msgstr "Tinta-intentsitatea"
+msgstr "Tintaren indarra"
 
-#: tools_menu_mixins.py:159
-#, fuzzy
+#: tools_menu_mixins.py:156 tools_menu_mixins.py:226 tools_menu_mixins.py:265
+#: tools_menu_mixins.py:368 tools_menu_mixins.py:410 tools_menu_mixins.py:533
+msgid "_Apply"
+msgstr "_Aplikatu"
+
+#: tools_menu_mixins.py:168
 msgid "Brightness / Contrast"
 msgstr "Distira / Kontrastea"
 
-#: tools_menu_mixins.py:170
-#, fuzzy
+#: tools_menu_mixins.py:179
 msgid "Brightness"
 msgstr "Distira"
 
-#: tools_menu_mixins.py:181
-#, fuzzy
+#: tools_menu_mixins.py:190
 msgid "Contrast"
 msgstr "Kontrastea"
 
-#: tools_menu_mixins.py:227
+#: tools_menu_mixins.py:236
 msgid "Negate"
 msgstr "Negatiboa egin"
 
-#: tools_menu_mixins.py:264
+#: tools_menu_mixins.py:273
 msgid "Unsharp mask"
 msgstr "Desenfokatze-maskara"
 
-#: tools_menu_mixins.py:275
+#: tools_menu_mixins.py:284
 msgid "Radius"
 msgstr "Erradioa"
 
-#: tools_menu_mixins.py:279
-#, fuzzy
+#: tools_menu_mixins.py:288
 msgid "Blur Radius."
 msgstr "Lausotze-erradioa."
 
-#: tools_menu_mixins.py:282
-#, fuzzy
+#: tools_menu_mixins.py:291
 msgid "Percentage"
-msgstr "Portzentajea"
+msgstr "Ehunekoa"
 
-#: tools_menu_mixins.py:286
-#, fuzzy
+#: tools_menu_mixins.py:295
 msgid "Unsharp strength, in percent."
-msgstr "Zorrotz ezaren indarra, portzentajean."
+msgstr "Zorroztasunaren indarra, ehunekotan."
 
-#: tools_menu_mixins.py:294
-#, fuzzy
+#: tools_menu_mixins.py:303
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
-msgstr "Atalaseak zorrozten den gutxieneko distira-aldaketa kontrolatzen du."
+msgstr "Atalaseak zorroztuko den distira-aldaketa minimoa kontrolatzen du."
 
-#: tools_menu_mixins.py:444
-#, fuzzy
+#: tools_menu_mixins.py:459
 msgid "Split"
 msgstr "Zatitu"
 
-#: tools_menu_mixins.py:453
-#, fuzzy
+#: tools_menu_mixins.py:468
 msgid "Direction"
 msgstr "Norabidea"
 
-#: tools_menu_mixins.py:458
-#, fuzzy
+#: tools_menu_mixins.py:473
 msgid "Vertically"
 msgstr "Bertikalki"
 
-#: tools_menu_mixins.py:459
-#, fuzzy
+#: tools_menu_mixins.py:474
 msgid "Split the page vertically into left and right pages."
-msgstr "Zatitu orrialdea bertikalki ezkerreko eta eskuineko orrialdeetan."
+msgstr "Zatitu orria bertikalki ezkerreko eta eskuineko orrialdeetan."
 
-#: tools_menu_mixins.py:463
-#, fuzzy
+#: tools_menu_mixins.py:478
 msgid "Horizontally"
 msgstr "Horizontalki"
 
-#: tools_menu_mixins.py:464
-#, fuzzy
+#: tools_menu_mixins.py:479
 msgid "Split the page horizontally into top and bottom pages."
-msgstr "Zatitu orrialdea horizontalki goiko eta beheko orrialdeetan."
+msgstr "Zatitu orria horizontalki goiko eta beheko orrietan."
 
-#: tools_menu_mixins.py:487
-#, fuzzy
+#: tools_menu_mixins.py:502
 msgid "Position"
 msgstr "Posizioa"
 
-#: tools_menu_mixins.py:590
+#: tools_menu_mixins.py:605
 msgid "unpaper"
 msgstr "unpaper (garbitu paper itxurako atzeko planoa)"
 
-#: tools_menu_mixins.py:649
+#: tools_menu_mixins.py:664
 msgid "OCR"
 msgstr "OCR (karaktere-ezagutze optikoa)"
 
-#: tools_menu_mixins.py:730
+#: tools_menu_mixins.py:777
 msgid "User-defined tools"
 msgstr "Erabiltzaileak hautaturiko tresnak"
 
-#: tools_menu_mixins.py:739
-#, fuzzy
+#: tools_menu_mixins.py:786
 msgid "Selected tool"
-msgstr "Aukeratutako tresna"
+msgstr "Hautatutako tresna"
 
-#: tools_menu_mixins.py:782
+#: tools_menu_mixins.py:790
+msgid "Process selected pages at once"
+msgstr "Prozesatu hautatutako orrialdeak aldi berean"
+
+#: tools_menu_mixins.py:891 app.ui:125
 msgid "Email as PDF"
 msgstr "Bidali posta-e mezua PDF formatuarekin"
 
-#: tools_menu_mixins.py:861
+#: tools_menu_mixins.py:970
 msgid "Error creating email"
 msgstr "Errorea posta-e mezua sortzerakoan"
 
-#: tools_menu_mixins.py:917
+#: tools_menu_mixins.py:1026
 msgid "To aid the scan-to-PDF process"
 msgstr "Laguntzeko eskaneatze-bihurtu-PDF  prozesuan"
 
-#: tools_menu_mixins.py:918
-#, fuzzy
+#: tools_menu_mixins.py:1027
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
-msgstr "Copyright 2006--2026 Jeffrey Ratcliffe"
+msgstr "Egile-eskubideak 2006--2026 Jeffrey Ratcliffe"
 
-#: unpaper.py:38
+#: unpaper.py:40
 msgid "Layout"
 msgstr "Diseinua"
 
-#: unpaper.py:41
+#: unpaper.py:43
 msgid "Single"
 msgstr "Bakuna"
 
-#: unpaper.py:43
+#: unpaper.py:45
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "Orri bakoitzeko orrialde bat, gorantz orientaturik biraketarik gabe."
 
-#: unpaper.py:47
+#: unpaper.py:49
 msgid "Double"
 msgstr "Bikoitza"
 
-#: unpaper.py:49
+#: unpaper.py:51
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
@@ -2071,654 +2514,729 @@ msgstr ""
 "Orri bakoitzeko bi orrialde, horizontalki orientaturik (orrialde bat "
 "ezkerreko erdialdean, beste orrialde bat eskuineko erdialdean)."
 
-#: unpaper.py:58
+#: unpaper.py:60
 msgid "# Output pages"
 msgstr "# Irteerako orrialdeak"
 
-#: unpaper.py:59
+#: unpaper.py:61
 msgid "Number of pages to output."
 msgstr "Irteerako orrialde kopurua."
 
-#: unpaper.py:67
-#, fuzzy
+#: unpaper.py:69
 msgid "Writing system"
 msgstr "Idazketa-sistema"
 
-#: unpaper.py:70
-#, fuzzy
+#: unpaper.py:72
 msgid "Left-to-right"
 msgstr "Ezkerretik eskuinera"
 
-#: unpaper.py:72
-#, fuzzy
+#: unpaper.py:74
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
-msgstr "Idazketa-sistema gehienak, adib. latinoa, grekoa, zirilikoa."
+msgstr "Idazketa-sistema gehienak, adibidez, latinoa, grekoa, zirilikoa."
 
-#: unpaper.py:76
-#, fuzzy
+#: unpaper.py:78
 msgid "Right-to-left"
 msgstr "Eskuinetik ezkerrera"
 
-#: unpaper.py:77
-#, fuzzy
+#: unpaper.py:79
 msgid "Scripts like Arabic or Hebrew."
 msgstr "Arabiera edo hebreera bezalako idazkerak."
 
-#: unpaper.py:85
+#: unpaper.py:87
 msgid "No deskew"
 msgstr "Ez desokertu (ez biratu aurreko posiziora)"
 
-#: unpaper.py:86
+#: unpaper.py:88
 msgid "Disable deskewing."
 msgstr "Desgaitu desokertu (desgaitu 'ez biratu aurreko posiziora')"
 
-#: unpaper.py:91
+#: unpaper.py:93
 msgid "No mask scan"
 msgstr "Ez egin maskara eskaneatzea"
 
-#: unpaper.py:92
+#: unpaper.py:94
 msgid "Disable mask detection."
 msgstr "Desgaitu maskara detekzioa."
 
-#: unpaper.py:97
-#, fuzzy
+#: unpaper.py:99
 msgid "No mask centering"
-msgstr "Maskararen zentratzerik gabe"
+msgstr "Maskararen zentratzerik ez"
 
-#: unpaper.py:98
-#, fuzzy
+#: unpaper.py:100
 msgid "Disable mask centering."
 msgstr "Desgaitu maskararen zentratzea."
 
-#: unpaper.py:103
+#: unpaper.py:105
 msgid "No black filter"
 msgstr "Iragazki beltzik ez"
 
-#: unpaper.py:104
+#: unpaper.py:106
 msgid "Disable black area scan."
 msgstr "Desgaitu azalera beltzaren eskaneatzea."
 
-#: unpaper.py:109
+#: unpaper.py:111
 msgid "No gray filter"
 msgstr "Iragazki grisik ez"
 
-#: unpaper.py:110
+#: unpaper.py:112
 msgid "Disable gray area scan."
 msgstr "Desgaitu azalera grisaren eskaneatzea."
 
-#: unpaper.py:115
+#: unpaper.py:117
 msgid "No noise filter"
 msgstr "Zarata iragazkirik ez"
 
-#: unpaper.py:116
+#: unpaper.py:118
 msgid "Disable noise filter."
 msgstr "Desgaitu zarata iragazkia."
 
-#: unpaper.py:121
+#: unpaper.py:123
 msgid "No blur filter"
 msgstr "Ez dago lausotze iragazkirik"
 
-#: unpaper.py:122
+#: unpaper.py:124
 msgid "Disable blur filter."
 msgstr "Desgaitu lausotze iragazkia."
 
-#: unpaper.py:127
+#: unpaper.py:129
 msgid "No border scan"
 msgstr "Ez eskaneatu bazterra"
 
-#: unpaper.py:128
+#: unpaper.py:130
 msgid "Disable border scanning."
 msgstr "Desgaitu bazterretako eskaneatzea."
 
-#: unpaper.py:133
+#: unpaper.py:135
 msgid "No border align"
 msgstr "Ez lerrokatu bazterra"
 
-#: unpaper.py:135
+#: unpaper.py:137
 msgid "Disable aligning of the area detected by border scanning."
 msgstr ""
 "Desgaitu lerrokatzeko aukera bazterretako eskaneatzeak detektatu duen "
 "azaleran."
 
-#: unpaper.py:141
+#: unpaper.py:143
 msgid "Deskew to edge"
 msgstr "Desokertu ertzeraino"
 
-#: unpaper.py:143
+#: unpaper.py:145
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
 "value will be used, unless the statistical deviation exceeds --deskew-scan-"
 "deviation."
 msgstr ""
-"Biratzeko behar diren eskaneatze ertzak. Maskara bateko ertz bakoitza erabil "
-"daiteke maskararen biraketa hautemateko. Hainbat ertz zehazturik baldin "
+"Biratzeko behar diren eskaneatze ertzak. Maskara bateko ertz bakoitza erabil"
+" daiteke maskararen biraketa hautemateko. Hainbat ertz zehazturik baldin "
 "badaude, batez besteko balioa erabiliko da, desbideratze estatistikoak ez "
 "badu hauxe gainditzen: --desokertu-eskaneatze-desbiderapena."
 
-#: unpaper.py:152
+#: unpaper.py:154
 msgid "Use 'left' for scanning from the left edge."
 msgstr "Erabili 'ezkerretik' ezkerreko ertzetik eskaneatzeko."
 
-#: unpaper.py:157
+#: unpaper.py:159
 msgid "Use 'top' for scanning from the top edge."
 msgstr "Erabili 'gainetik' gaineko ertzetik eskaneatzeko."
 
-#: unpaper.py:161 unpaper.py:189
+#: unpaper.py:163 unpaper.py:191
 msgid "Right"
 msgstr "Eskuina"
 
-#: unpaper.py:162
+#: unpaper.py:164
 msgid "Use 'right' for scanning from the right edge."
 msgstr "Erabili 'eskuinetik' eskuineko ertzetik eskaneatzeko."
 
-#: unpaper.py:166 unpaper.py:194
+#: unpaper.py:168 unpaper.py:196
 msgid "Bottom"
 msgstr "Behe-behean"
 
-#: unpaper.py:167
+#: unpaper.py:169
 msgid "Use 'bottom' for scanning from the bottom."
 msgstr "Erabili 'azpitik' beheko ertzetik eskaneatzeko."
 
-#: unpaper.py:174
+#: unpaper.py:176
 msgid "Align to edge"
 msgstr "Lerrokatu ertzean"
 
-#: unpaper.py:175
+#: unpaper.py:177
 msgid "Edge to which to align the page."
 msgstr "Orrialdea lerrokatzeko; ertz honekin."
 
-#: unpaper.py:180
+#: unpaper.py:182
 msgid "Use 'left' to align to the left edge."
 msgstr "Erabili 'ezkerretik' ezkerreko ertzetik lerrokatzeko."
 
-#: unpaper.py:185
+#: unpaper.py:187
 msgid "Use 'top' to align to the top edge."
 msgstr "Erabili 'gainaldetik' goiko ertzetik lerrokatzeko."
 
-#: unpaper.py:190
+#: unpaper.py:192
 msgid "Use 'right' to align to the right edge."
 msgstr "Erabili 'eskuinetik' eskuineko ertzetik lerrokatzeko."
 
-#: unpaper.py:195
+#: unpaper.py:197
 msgid "Use 'bottom' to align to the bottom."
 msgstr "Erabili 'azpitik' beheko ertzetik lerrokatzeko."
 
-#: unpaper.py:201
+#: unpaper.py:203
 msgid "Border margin"
 msgstr "Ertzeko marjina"
 
-#: unpaper.py:205
+#: unpaper.py:207
 msgid "Vertical margin"
 msgstr "Marjin bertikala"
 
-#: unpaper.py:207
+#: unpaper.py:209
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Orriaren ertzean gorde behar den distantzia bertikala bazterreko azalera "
 "lerrokatzerakoan."
 
-#: unpaper.py:217
+#: unpaper.py:219
 msgid "Horizontal margin"
 msgstr "Marjin horizontala"
 
-#: unpaper.py:219
+#: unpaper.py:221
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
 "Orriaren ertzean gorde behar den distantzia horizontala bazterreko azalera "
 "lerrokatzerakoan."
 
-#: unpaper.py:231
+#: unpaper.py:233
 msgid "White threshold"
 msgstr "Atalase zuria"
 
-#: unpaper.py:233
+#: unpaper.py:235
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "Distira maila non hortik gora pixel bat zuritzat hartuko da."
 
-#: unpaper.py:243
+#: unpaper.py:245
 msgid "Black threshold"
 msgstr "Atalase beltza"
 
-#: unpaper.py:245
+#: unpaper.py:247
 msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
 msgstr ""
 "Distira maila non horren azpitik pixel bat belztzat hartuko da (ez "
 "gristzat). Aukera hau gris-iragazkiak erabili ohi du.  Balio hau gris-"
 "eskalako irudi bat zuri-beltzeko irudi modura bihurtzen denean ere erabili "
 "ohi da."
 
-#: unpaper.py:355
+#: unpaper.py:370
 msgid "Deskew"
 msgstr "Desokertu"
 
-#: unpaper.py:359
+#: unpaper.py:374
 msgid "Border"
 msgstr "Ertza"
 
-#: unpaper.py:364
+#: unpaper.py:385
 msgid "Filters"
 msgstr "Iragazkiak"
 
-#: app.ui:5 menu.ui:6
-msgid "_File"
-msgstr "_Fitxategia"
-
-#: app.ui:9 menu.ui:9
-msgid "_New"
-msgstr "_Berria"
-
-#: app.ui:14 menu.ui:14
-msgid "_Open"
-msgstr "_Zabaldu"
-
-#: app.ui:19
-msgid "Open c_rashed session"
-msgstr "Ireki _hondatutako  saioa"
-
-#: app.ui:23 menu.ui:19
-msgid "S_can"
-msgstr "Es_kaneatu"
-
-#: app.ui:33 menu.ui:29
-msgid "_Email as PDF"
-msgstr "_Bidali PDFa posta-e mezu batean"
-
-#: app.ui:38 menu.ui:34
-msgid "_Print"
-msgstr "_Inprimatu"
-
-#: app.ui:45 menu.ui:39
-msgid "_Quit"
-msgstr "I_rten"
-
-#: app.ui:51 menu.ui:46
-msgid "_Edit"
-msgstr "_Editatu"
-
-#: app.ui:55 menu.ui:49
-msgid "_Undo"
-msgstr "_Desegin"
-
-#: app.ui:60 menu.ui:53
-msgid "_Redo"
-msgstr "_Berregin"
-
-#: app.ui:67 menu.ui:57
-msgid "Cu_t"
-msgstr "E_baki"
-
-#: app.ui:77 menu.ui:65
-msgid "_Paste"
-msgstr "It_satsi"
-
-#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
-msgid "_Select"
-msgstr "_Hautatu"
-
-#: app.ui:89 menu.ui:76
-msgid "_All"
-msgstr "_Denak"
-
-#: app.ui:94 menu.ui:80
-msgid "_Odd"
-msgstr "_Osatugabea"
-
-#: app.ui:99 menu.ui:84
-msgid "_Even"
-msgstr "_Bikoiti"
-
-#: app.ui:104 menu.ui:88
-#, fuzzy
-msgid "_Invert"
-msgstr "_Alderantzikatu"
-
-#: app.ui:109 menu.ui:92
-msgid "_Blank"
-msgstr "_Hutsik"
-
-#: app.ui:114 menu.ui:96
-msgid "_Dark"
-msgstr "I_lun"
-
-#: app.ui:119 menu.ui:100
-msgid "_Modified"
-msgstr "_Aldatua"
-
-#: app.ui:124 menu.ui:104
-msgid "_No OCR"
-msgstr "OCR _gabe"
-
-#: app.ui:130 menu.ui:108
-msgid "_Clear OCR"
-msgstr "_Garbitu OCR"
-
-#: app.ui:136 menu.ui:114
-msgid "Propert_ies"
-msgstr "_Propietateak"
-
-#: app.ui:142 menu.ui:118
-msgid "Prefere_nces"
-msgstr "Hobespe_nak"
-
-#: app.ui:147 menu.ui:124
-msgid "_View"
-msgstr "I_kusi"
-
-#: app.ui:150 app.ui:293
-#, fuzzy
-msgid "_Pan"
-msgstr "_Mugitu"
-
-#: app.ui:160 app.ui:310
-#, fuzzy
-msgid "_Select & pan"
-msgstr "_Hautatu"
-
-#: app.ui:167
-#, fuzzy
-msgid "_Tabbed"
-msgstr "_Fitxak"
-
-#: app.ui:172
-#, fuzzy
-msgid "_Split horizontally"
-msgstr "Horizontalki"
-
-#: app.ui:177
-#, fuzzy
-msgid "_Split vertically"
-msgstr "Bertikalki"
-
-#: app.ui:184
-#, fuzzy
-msgid "Edit text layer"
-msgstr "Testu-geruza txertatzen"
-
-#: app.ui:189
-#, fuzzy
-msgid "Edit annotations"
-msgstr "Gehitu oharra"
-
-#: app.ui:197 app.ui:320 menu.ui:127
-msgid "Zoom _100%"
-msgstr "Zoom %_100"
-
-#: app.ui:201 app.ui:327 menu.ui:131
-msgid "Zoom to _fit"
-msgstr "_Doitzeko zooma"
-
-#: app.ui:205 app.ui:334 menu.ui:135
-msgid "Zoom _in"
-msgstr "_Handiagotu zooma"
-
-#: app.ui:210 app.ui:341 menu.ui:139
-msgid "Zoom _out"
-msgstr "_Txikiagotu zooma"
-
-#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
-msgid "Rotate 90° clockwise"
-msgstr "Biratu 90º erlojuaren norabidean"
-
-#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
-msgid "Rotate 180°"
-msgstr "Biratu 180º"
-
-#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
-msgid "Rotate 90° anticlockwise"
-msgstr "Biratu 90º erlojuaren kontrako norabidean"
-
-#: app.ui:233 menu.ui:157
-msgid "_Tools"
-msgstr "_Tresnak"
-
-#: app.ui:237 menu.ui:160
-msgid "_Threshold"
-msgstr "_Muga"
-
-#: app.ui:241 menu.ui:164
-#, fuzzy
-msgid "_Brightness / Contrast"
-msgstr "Distira / Kontrastea"
-
-#: app.ui:245 menu.ui:168
-msgid "_Negate"
-msgstr "_Negatiboa egin"
-
-#: app.ui:249 menu.ui:172
-msgid "_Unsharp Mask"
-msgstr "_Fokatze maskara"
-
-#: app.ui:253 menu.ui:176
-msgid "_Crop"
-msgstr "_Moztu"
-
-#: app.ui:259 menu.ui:180
-msgid "_Clean up"
-msgstr "_Garbitu (ezabatu)"
-
-#: app.ui:263 menu.ui:184
-#, fuzzy
-msgid "_Split"
-msgstr "Zatitu"
-
-#: app.ui:267 menu.ui:188
-msgid "_OCR"
-msgstr "_OCR"
-
-#: app.ui:273 menu.ui:192
-msgid "U_ser-defined"
-msgstr "E_rabiltzaileak definitua"
-
-#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
-msgid "_Help"
-msgstr "_Laguntza"
-
-#: app.ui:286 menu.ui:205
-msgid "_About"
-msgstr "_Honi buruz"
-
-#: app.ui:375 app.ui:478
-#, fuzzy
-msgid "Cut"
-msgstr "E_baki"
-
-#: app.ui:381 app.ui:484
-#, fuzzy
-msgid "Copy"
-msgstr "_Kopiatu"
-
-#: app.ui:387 app.ui:490
-#, fuzzy
-msgid "Paste"
-msgstr "It_satsi"
-
-#: app.ui:393 app.ui:496
-#, fuzzy
-msgid "Delete"
-msgstr "E_zabatu"
-
-#: app.ui:420 app.ui:573
-msgid "Print"
-msgstr "Inprimatu"
-
-#: app.ui:427
-#, fuzzy
-msgid "Select All"
-msgstr "_Hautatu"
-
-#: app.ui:433
-#, fuzzy
-msgid "Select Odd"
-msgstr "Hautatua"
-
-#: app.ui:439
-#, fuzzy
-msgid "Select Even"
-msgstr "Hautatua"
-
-#: app.ui:445
-#, fuzzy
-msgid "Invert selection"
-msgstr "Ebaki hautapena"
-
-#: app.ui:503
-#, fuzzy
-msgid "Clear OCR"
-msgstr "_Garbitu OCR"
-
-#: app.ui:523
-msgid "Clears all pages"
-msgstr "Ezabatu orrialde guztiak"
-
-#: app.ui:533
-#, fuzzy
-msgid "Open images"
-msgstr "Ireki irudia"
-
-#: app.ui:543
-msgid "Scan document"
-msgstr "Eskaneatu dokumentua"
-
-#: app.ui:563
-msgid "Attach as PDF to a new email"
-msgstr "Erantsi PDF legez posta-e mezu berri batean"
-
-#: app.ui:584
-msgid "Undo"
-msgstr "Desegin"
-
-#: app.ui:594
-msgid "Redo"
-msgstr "Berregin"
-
-#: app.ui:605
-msgid "Cut selection"
-msgstr "Ebaki hautapena"
-
-#: app.ui:615
-msgid "Copy selection"
-msgstr "Kopiatu hautapena"
-
-#: app.ui:625
-msgid "Paste selection"
-msgstr "Itsatsi hautapena"
-
-#: app.ui:635
-msgid "Delete selected pages"
-msgstr "Ezabatu hautaturiko orrialdeak"
-
-#: app.ui:646
-msgid "Select all pages"
-msgstr "Hautatu orrialde guztiak"
-
-#: app.ui:657
-#, fuzzy
-msgid "Use the pan tool"
-msgstr "Erabili 'eskuz' tresna"
-
-#: app.ui:668
-msgid "Use the rectangular selection tool"
-msgstr "Erabili erraktanguluak hautatzeko tresna"
-
-#: app.ui:680
-#, fuzzy
-msgid "Use the combined select and pan tool"
-msgstr "Erabili erraktanguluak hautatzeko tresna"
-
-#: app.ui:693
-msgid "Zoom to 100%"
-msgstr "Zooma %100"
-
-#: app.ui:703
+#: app.ui:11
+msgid "Pan"
+msgstr "Ogia"
+
+#: app.ui:18
+msgid "Select"
+msgstr "Hautatu"
+
+#: app.ui:25
+msgid "Select & pan"
+msgstr "Hautatu & mugitu"
+
+#: app.ui:35
+msgid "Zoom 100%"
+msgstr "Zooma 100%"
+
+#: app.ui:40 app.ui:708
 msgid "Zoom to fit"
 msgstr "Doitzeko zooma"
 
-#: app.ui:713
+#: app.ui:45 app.ui:718
 msgid "Zoom in"
 msgstr "Handiagotu zooma"
 
-#: app.ui:723
+#: app.ui:50 app.ui:728
 msgid "Zoom out"
 msgstr "Txikiagotu zooma"
 
-#: app.ui:765
-#, fuzzy
-msgid "Crop selection"
+#: app.ui:58 app.ui:161 app.ui:427 app.ui:761 menu.ui:143
+msgid "Rotate 90° clockwise"
+msgstr "Biratu 90º erlojuaren norabidean"
+
+#: app.ui:63 app.ui:166 app.ui:431 app.ui:751 menu.ui:147
+msgid "Rotate 180°"
+msgstr "Biratu 180º"
+
+#: app.ui:68 app.ui:171 app.ui:435 app.ui:741 menu.ui:151
+msgid "Rotate 90° anticlockwise"
+msgstr "Biratu 90º erlojuaren kontrako norabidean"
+
+#: app.ui:84 app.ui:187
+msgid "Cut"
+msgstr "Ebaki"
+
+#: app.ui:89 app.ui:192
+msgid "Copy"
+msgstr "Kopiatu"
+
+#: app.ui:94 app.ui:197
+msgid "Paste"
+msgstr "Itsatsi"
+
+#: app.ui:130 app.ui:560
+msgid "Print"
+msgstr "Inprimatu"
+
+#: app.ui:138
+msgid "Select All"
+msgstr "Hautatu dena"
+
+#: app.ui:143
+msgid "Select Odd"
+msgstr "Hautatu bakoitia"
+
+#: app.ui:148
+msgid "Select Even"
+msgstr "Hautatu bikoitiak"
+
+#: app.ui:153
+msgid "Invert selection"
+msgstr "Alderantzikatu hautapena"
+
+#: app.ui:210
+msgid "Clear OCR"
+msgstr "Garbitu OCR"
+
+#: app.ui:226 menu.ui:6
+msgid "_File"
+msgstr "_Fitxategia"
+
+#: app.ui:230 menu.ui:9
+msgid "_New"
+msgstr "_Berria"
+
+#: app.ui:234 menu.ui:14
+msgid "_Open"
+msgstr "_Zabaldu"
+
+#: app.ui:238
+msgid "Open c_rashed session"
+msgstr "Ireki _hondatutako  saioa"
+
+#: app.ui:242
+msgid "Import _hOCR…"
+msgstr "Inportatu _hOCR…"
+
+#: app.ui:246 menu.ui:19
+msgid "S_can"
+msgstr "Es_kaneatu"
+
+#: app.ui:254 menu.ui:29
+msgid "_Email as PDF"
+msgstr "_Bidali PDFa posta-e mezu batean"
+
+#: app.ui:258 menu.ui:34
+msgid "_Print"
+msgstr "_Inprimatu"
+
+#: app.ui:264 menu.ui:39
+msgid "_Quit"
+msgstr "I_rten"
+
+#: app.ui:269 menu.ui:46
+msgid "_Edit"
+msgstr "_Editatu"
+
+#: app.ui:273 menu.ui:49
+msgid "_Undo"
+msgstr "_Desegin"
+
+#: app.ui:277 menu.ui:53
+msgid "_Redo"
+msgstr "_Berregin"
+
+#: app.ui:283 menu.ui:57
+msgid "Cu_t"
+msgstr "E_baki"
+
+#: app.ui:291 menu.ui:65
+msgid "_Paste"
+msgstr "It_satsi"
+
+#: app.ui:299 app.ui:361 menu.ui:73
+msgid "_Select"
+msgstr "_Hautatu"
+
+#: app.ui:302 menu.ui:76
+msgid "_All"
+msgstr "_Denak"
+
+#: app.ui:306 menu.ui:80
+msgid "_Odd"
+msgstr "_Osatugabea"
+
+#: app.ui:310 menu.ui:84
+msgid "_Even"
+msgstr "_Bikoiti"
+
+#: app.ui:314 menu.ui:88
+msgid "_Invert"
+msgstr "_Inbertitu"
+
+#: app.ui:318 menu.ui:92
+msgid "_Blank"
+msgstr "_Hutsik"
+
+#: app.ui:322 menu.ui:96
+msgid "_Dark"
+msgstr "I_lun"
+
+#: app.ui:326 menu.ui:100
+msgid "_Modified"
+msgstr "_Aldatua"
+
+#: app.ui:330 menu.ui:104
+msgid "_No OCR"
+msgstr "OCR _gabe"
+
+#: app.ui:336 menu.ui:108
+msgid "_Clear OCR"
+msgstr "_Garbitu OCR"
+
+#: app.ui:342 menu.ui:114
+msgid "Propert_ies"
+msgstr "_Propietateak"
+
+#: app.ui:348 menu.ui:118
+msgid "Prefere_nces"
+msgstr "Hobespe_nak"
+
+#: app.ui:353 menu.ui:124
+msgid "_View"
+msgstr "I_kusi"
+
+#: app.ui:356
+msgid "_Pan"
+msgstr "_Panoramika"
+
+#: app.ui:366
+msgid "_Select & pan"
+msgstr "_Hautatu & mugitu"
+
+#: app.ui:374
+msgid "_Clear image selection"
+msgstr "_Garbitu irudiaren hautapena"
+
+#: app.ui:379
+msgid "_Tabbed"
+msgstr "Fi_txaduna"
+
+#: app.ui:384
+msgid "_Split horizontally"
+msgstr "_Zatitu horizontalki"
+
+#: app.ui:389
+msgid "_Split vertically"
+msgstr "_Zatitu bertikalki"
+
+#: app.ui:396
+msgid "Edit text layer"
+msgstr "Editatu testu-geruza"
+
+#: app.ui:401
+msgid "Edit annotations"
+msgstr "Editatu anotazioak"
+
+#: app.ui:409 menu.ui:127
+msgid "Zoom _100%"
+msgstr "Zoom %_100"
+
+#: app.ui:413 menu.ui:131
+msgid "Zoom to _fit"
+msgstr "_Doitzeko zooma"
+
+#: app.ui:417 menu.ui:135
+msgid "Zoom _in"
+msgstr "_Handiagotu zooma"
+
+#: app.ui:421 menu.ui:139
+msgid "Zoom _out"
+msgstr "_Txikiagotu zooma"
+
+#: app.ui:440 menu.ui:157
+msgid "_Tools"
+msgstr "_Tresnak"
+
+#: app.ui:444 menu.ui:160
+msgid "_Threshold"
+msgstr "_Muga"
+
+#: app.ui:448 menu.ui:164
+msgid "_Brightness / Contrast"
+msgstr "_Argitasuna / Kontrastea"
+
+#: app.ui:452 menu.ui:168
+msgid "_Negate"
+msgstr "_Negatiboa egin"
+
+#: app.ui:456 menu.ui:172
+msgid "_Unsharp Mask"
+msgstr "_Fokatze maskara"
+
+#: app.ui:460 menu.ui:176
+msgid "_Crop"
+msgstr "_Moztu"
+
+#: app.ui:466 menu.ui:180
+msgid "_Clean up"
+msgstr "_Garbitu (ezabatu)"
+
+#: app.ui:470 menu.ui:184
+msgid "_Split"
+msgstr "_Zatitu"
+
+#: app.ui:474 menu.ui:188
+msgid "_OCR"
+msgstr "_OCR"
+
+#: app.ui:480 menu.ui:192
+msgid "U_ser-defined"
+msgstr "E_rabiltzaileak definitua"
+
+#: app.ui:485 app.ui:488 menu.ui:198 menu.ui:201
+msgid "_Help"
+msgstr "_Laguntza"
+
+#: app.ui:492 menu.ui:205
+msgid "_About"
+msgstr "_Honi buruz"
+
+#: app.ui:510
+msgid "Clears all pages"
+msgstr "Ezabatu orrialde guztiak"
+
+#: app.ui:520
+msgid "Open images"
+msgstr "Ireki irudiak"
+
+#: app.ui:530
+msgid "Scan document"
+msgstr "Eskaneatu dokumentua"
+
+#: app.ui:550
+msgid "Attach as PDF to a new email"
+msgstr "Erantsi PDF legez posta-e mezu berri batean"
+
+#: app.ui:573
+msgid "Undo"
+msgstr "Desegin"
+
+#: app.ui:583
+msgid "Redo"
+msgstr "Berregin"
+
+#: app.ui:596
+msgid "Cut selection"
+msgstr "Ebaki hautapena"
+
+#: app.ui:606
+msgid "Copy selection"
 msgstr "Kopiatu hautapena"
 
-#: app.ui:776
+#: app.ui:616
+msgid "Paste selection"
+msgstr "Itsatsi hautapena"
+
+#: app.ui:626
+msgid "Delete selected pages"
+msgstr "Ezabatu hautaturiko orrialdeak"
+
+#: app.ui:639
+msgid "Select all pages"
+msgstr "Hautatu orrialde guztiak"
+
+#: app.ui:652
+msgid "Use the pan tool"
+msgstr "Erabili mugitzeko tresna"
+
+#: app.ui:663
+msgid "Use the rectangular selection tool"
+msgstr "Erabili erraktanguluak hautatzeko tresna"
+
+#: app.ui:674
+msgid "Use the combined select and pan tool"
+msgstr "Erabili hautatzeko eta desplazatzeko tresna konbinatua"
+
+#: app.ui:685
+msgid "Clear image selection"
+msgstr "Garbitu irudiaren hautapena"
+
+#: app.ui:698
+msgid "Zoom to 100%"
+msgstr "Zooma %100"
+
+#: app.ui:774
+msgid "Crop selection"
+msgstr "Moztu hautapena"
+
+#: app.ui:787
 msgid "Quit"
 msgstr "Irten"
 
-#: menu.ui:24
-#, fuzzy
-msgid "_Save"
-msgstr "Gorde"
-
-#: session_mixins.py:160
-#, fuzzy
-msgid "No crashed sessions found."
-msgstr ""
-
-#: session_mixins.py:166
-#, fuzzy
-msgid "Crashed sessions"
-msgstr ""
-
-#: session_mixins.py:171
-#, fuzzy
-msgid "_Discard"
-msgstr ""
-
-#: session_mixins.py:172
-#, fuzzy
-msgid "_Restore"
-msgstr ""
-
-#: session_mixins.py:175
-#, fuzzy
-msgid "Restore or discard a crashed session"
-msgstr ""
-
-#: session_mixins.py:204
-#, fuzzy
-msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
-msgstr ""
-
-#: session_mixins.py:239
-#, fuzzy
-msgid "Restore file"
-msgstr ""
-
-#: session_mixins.py:255
 #, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
-msgstr[1] ""
+#~ msgid "%dMb free in %s."
+#~ msgid_plural "%dMb free in %s."
+#~ msgstr[0] "%dMb libre %s-en."
+#~ msgstr[1] "%dMb libre %s-en."
 
-#: session_mixins.py:279
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
-msgstr ""
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The setting %s is %r and cannot be used as %s, so it has been left "
+#~ "unchanged."
+#~ msgstr ""
+#~ "%s ezarpena %r da eta ezin da %s gisa erabili; beraz, aldatu gabe utzi da."
 
-#: scan_menu_item_mixins.py:122
-#, fuzzy
-msgid ""
-"Caching the device list with libusb devices is not recommended, as they can "
-"change between reboots. Cache them anyway?"
-msgstr ""
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The settings file %s could not be read in full. The following settings were "
+#~ "restored: %s. The rest were reset to their defaults. A backup of the "
+#~ "original file has been saved as %s."
+#~ msgstr ""
+#~ "Ezin izan da %s ezarpen-fitxategia osorik irakurri. Hurrengo ezarpenak "
+#~ "leheneratu dira: %s. Gainontzekoak beren lehenetsietara berrezarri dira. "
+#~ "Jatorrizko fitxategiaren segurtasun-kopia %s gisa gorde da."
 
-#: scan_menu_item_mixins.py:127
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The settings file %s could not be read, so all settings have been reset to "
+#~ "their defaults. A backup of the original file has been saved as %s."
+#~ msgstr ""
+#~ "Ezin izan da %s ezarpen-fitxategia irakurri; beraz, ezarpen guztiak beren "
+#~ "lehenetsietara berrezarri dira. Jatorrizko fitxategiaren segurtasun-kopia %s"
+#~ " gisa gorde da."
+
 #, fuzzy
-msgid "Don't ask again"
-msgstr ""
+#~ msgid ""
+#~ "Please see https://imagemagick.org/script/resources.php for more information"
+#~ msgstr ""
+#~ "Ikusi https://imagemagick.org/script/resources.php informazio gehiagorako"
+
+#~ msgid "Device blacklist (regular expression)"
+#~ msgstr "Gailuaren zerrenda beltza (adierazpen erregular)"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Use %i and %o for the input and output filenames respectively,\n"
+#~ "or a single %i if the image is to be modified in-place.\n"
+#~ "\n"
+#~ "The other variable available is:\n"
+#~ "%r resolution"
+#~ msgstr ""
+#~ "Erabili %i eta %o sarrera- eta irteera-fitxategi-izenetarako, hurrenez hurren,\n"
+#~ "edo %i bakarra irudia bertan aldatu behar bada.\n"
+#~ "\n"
+#~ "Eskuragarri dagoen beste aldagaia da:\n"
+#~ "%r bereizmena"
+
+#, fuzzy, python-format
+#~ msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+#~ msgstr ""
+#~ "Eskaneatze-aukera '%s' ezikusten, gutxieneko tartea (%s) > gehienekoa (%s)"
+
+#~ msgid "JPEG Quality"
+#~ msgstr "JPEG kalitatea"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
+#~ " file a bug, attaching a log file reproducing the problem."
+#~ msgstr ""
+#~ "Birkargatze-errekurtsioaren muga (%d) gainditu da: %d birkargatze %d "
+#~ "eskaneatze-aukeretarako. Mesedez, salatu akatsa, arazoa errepikatzen duen "
+#~ "erregistro-fitxategia erantsita."
+
+#, python-format
+#~ msgid "Scanning page %d of %d"
+#~ msgstr "Eskaneatzen %dtik  %d orrialdea(k)"
+
+#, python-format
+#~ msgid "Scanning page %d"
+#~ msgstr "Eskaneatzen %d orrialdea"
+
+#, fuzzy, python-format
+#~ msgid "Analysing page %i of %i"
+#~ msgstr "%i orrialdea aztertzen, guztira %i"
+
+#~ msgid "Open crashed session"
+#~ msgstr "Ireki hondatutako saioa"
+
+#, fuzzy, python-format
+#~ msgid "Error getting file info for %s: %s"
+#~ msgstr "Errorea %s-ren fitxategi-informazioa lortzean: %s"
+
+#, python-format
+#~ msgid "Importing page %i of %i"
+#~ msgstr "Inportatzen %itik %i orrialdea"
+
+#, python-format
+#~ msgid "Process %i of %i (%s)"
+#~ msgstr "Procesuan %i   %i (%s)tik"
+
+#, python-format
+#~ msgid "Process %i of %i"
+#~ msgstr "Procesuan %i   %i tik"
+
+#, python-format
+#~ msgid "Writing page %i of %i"
+#~ msgstr "Idazten  %i orrialdea %i -tik"
+
+#, fuzzy
+#~ msgid ""
+#~ "Caching device list with libusb devices included is not recommended as they "
+#~ "can change between reboots."
+#~ msgstr ""
+#~ "Libusb gailuak dituen gailu-zerrenda cachean gordetzea ez da gomendatzen, "
+#~ "berrabiarazteen artean alda daitezkeelako."
+
+#, fuzzy
+#~ msgid "Are you sure you want to do this?"
+#~ msgstr "Ziur zaude hau egin nahi duzula?"
+
+#, python-format
+#~ msgid ""
+#~ "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+#~ msgstr ""
+#~ "Kontuz: ezin izan da %s hori erabili denboraldi batean gordetzeko. "
+#~ "Lehenetsitako beste %s hori erabili behar izan da."
+
+#~ msgid "Pick crashed session to restore"
+#~ msgstr "Hautatu kale egindako saioak berrekiteko"
+
+#, fuzzy
+#~ msgid "Add annotation"
+#~ msgstr "Gehitu oharra"
+
+#, fuzzy
+#~ msgid "Delete annotation"
+#~ msgstr "Ezabatu oharra"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
+#~ "for OCR for %s with tesseract."
+#~ msgstr ""
+#~ "Instalatu 'tesseract-ocr-%s' tesseract paketea eta berrabiarazi scantpaper "
+#~ "%s-rentzako OCRa tesseract-ekin egiteko."
 
 #~ msgid "PPI"
 #~ msgstr "PPI"
@@ -2830,8 +3348,7 @@ msgstr ""
 
 #~ msgid "Save image and Save as PDF both require imagemagick\n"
 #~ msgstr ""
-#~ "'Gorde irudia' eta 'Gorde irudia PDF bezala', biek behar dute "
-#~ "imagemagick\n"
+#~ "'Gorde irudia' eta 'Gorde irudia PDF bezala', biek behar dute imagemagick\n"
 
 #~ msgid "Save image requires libtiff\n"
 #~ msgstr "Irudia gordetzeko libtiff behar da\n"
@@ -2846,8 +3363,8 @@ msgstr ""
 
 #~ msgid "The rotating options and unpaper support require perlmagick\n"
 #~ msgstr ""
-#~ "Biratzeko aukera izateko eta unpaper garbiketa egin ahal izateko "
-#~ "perlmagick beharrezkoa da\n"
+#~ "Biratzeko aukera izateko eta unpaper garbiketa egin ahal izateko perlmagick "
+#~ "beharrezkoa da\n"
 
 #~ msgid "unpaper missing\n"
 #~ msgstr "unpaper galdu da\n"
@@ -2974,11 +3491,11 @@ msgstr ""
 #~ "lausotuaren arteko diferentziaren portzentajea."
 
 #~ msgid ""
-#~ "The threshold, as a fraction of QuantumRange, needed to apply the "
-#~ "difference amount."
+#~ "The threshold, as a fraction of QuantumRange, needed to apply the difference"
+#~ " amount."
 #~ msgstr ""
-#~ "Atalaseak, kontrastearen mugak, QuantumRange horren zati den heinean, "
-#~ "beste kopuru bat aplikatu behar izan zuen."
+#~ "Atalaseak, kontrastearen mugak, QuantumRange horren zati den heinean, beste "
+#~ "kopuru bat aplikatu behar izan zuen."
 
 #~ msgid "label"
 #~ msgstr "etiketa"
@@ -3074,22 +3591,20 @@ msgstr ""
 #~ msgstr "Erakutsi zerrendatu ez diren aukerak"
 
 #~ msgid ""
-#~ "You will have to restart gscanp2df for changes to the temporary directory "
-#~ "to take effect."
+#~ "You will have to restart gscanp2df for changes to the temporary directory to"
+#~ " take effect."
 #~ msgstr ""
-#~ "Berriro abiarazi beharko duzu gscanp2df aldi baterako direktorioan "
-#~ "egindako aldaketak gauzatu daitezen."
+#~ "Berriro abiarazi beharko duzu gscanp2df aldi baterako direktorioan egindako "
+#~ "aldaketak gauzatu daitezen."
 
 #~ msgid ""
-#~ "Use %i and %o for the input and output filenames respectively, or a "
-#~ "single %i if the image is to be modified in-place.\n"
+#~ "Use %i and %o for the input and output filenames respectively, or a single %i if the image is to be modified in-place.\n"
 #~ "\n"
 #~ "The other variable available is:\n"
 #~ "\n"
 #~ "%r resolution"
 #~ msgstr ""
-#~ "Erabili %i eta %o sarrera eta irteera fitxategietarako edo  %i soil bat "
-#~ "irudia bertan eraldatuko bada.\n"
+#~ "Erabili %i eta %o sarrera eta irteera fitxategietarako edo  %i soil bat irudia bertan eraldatuko bada.\n"
 #~ "\n"
 #~ "Aukeran dagoen beste aldagaia:\n"
 #~ "\n"
@@ -3138,8 +3653,8 @@ msgstr ""
 #~ msgstr "dokumentua"
 
 #~ msgid ""
-#~ "The current settings would result in duplicate page numbers. Please "
-#~ "select new start and increment values."
+#~ "The current settings would result in duplicate page numbers. Please select "
+#~ "new start and increment values."
 #~ msgstr ""
 #~ "Oraingo ezarpenek orrialde bikoiztuak sortuko dituzte. Mesedez hautatu "
 #~ "'hasi' berriro eta handitu balioak."
@@ -3225,8 +3740,8 @@ msgstr ""
 #, perl-format
 #~ msgid "Error embedding file image in %s format to PDF: %s"
 #~ msgstr ""
-#~ "Errorea fitxategiaren irudia kapsulatzerakoan %s formatutik PDF "
-#~ "formatura: %s"
+#~ "Errorea fitxategiaren irudia kapsulatzerakoan %s formatutik PDF formatura: "
+#~ "%s"
 
 #, perl-format
 #~ msgid "Error compressing image: %s"
