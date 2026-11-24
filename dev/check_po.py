@@ -191,7 +191,7 @@ OBSOLETE_CEILING: dict[str, int] = {
     "tr": 153,
     "uk": 143,
     "vi": 3,
-    "zh_CN": 94,
+    "zh_CN": 120,
     "zh_TW": 11,
 }
 

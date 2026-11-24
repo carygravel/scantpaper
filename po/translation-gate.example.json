@@ -92,6 +92,10 @@
     "el": {
       "qualification": 0.3,
       "drift": 0.2
+    },
+    "zh_CN": {
+      "qualification": 0.3,
+      "drift": 0.22
     }
   },
   "releases": {
