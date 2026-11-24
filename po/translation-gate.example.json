@@ -72,6 +72,10 @@
     "nl": {
       "qualification": 0.3,
       "drift": 0.22
+    },
+    "nb": {
+      "qualification": 0.4,
+      "drift": 0.3
     }
   },
   "releases": {
