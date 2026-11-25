@@ -100,6 +100,10 @@
     "ja": {
       "qualification": 0.35,
       "drift": 0.15
+    },
+    "ca": {
+      "qualification": 0.45,
+      "drift": 0.25
     }
   },
   "releases": {
