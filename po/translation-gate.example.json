@@ -104,6 +104,10 @@
     "ca": {
       "qualification": 0.45,
       "drift": 0.25
+    },
+    "ko": {
+      "qualification": 0.35,
+      "drift": 0.2
     }
   },
   "releases": {

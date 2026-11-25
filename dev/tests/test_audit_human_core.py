@@ -336,20 +336,21 @@ def test_scoped_apply_leaves_other_ledgers_untouched(tmp_path: Path) -> None:
     assert merged_report["languages"]["fr"] == first_report["languages"]["fr"]
 
 
-def test_committed_report_accounts_for_every_shipped_entry() -> None:
-    """Every shipped entry has an approval or is named as pending."""
-    ledger = AUDIT.load_ledger(REPO_ROOT / "po" / "approvals")
-    report = json.loads(
-        (REPO_ROOT / "po" / "translation-audit.json").read_text(encoding="utf-8")
-    )
+def _shipped_entries(
+    repo_root: Path,
+    ledger: dict[str, object],
+    report: dict[str, object],
+) -> int:
+    """Check shipped entries against the approval index and the pending list."""
+    pending_items = cast("list[dict[str, object]]", report["pending"])
     pending = {
         (item["language"], item["msgctxt"], item["msgid"], item["msgid_plural"])
-        for item in report["pending"]
+        for item in pending_items
     }
     index = LEDGER.approval_index(ledger)
 
     shipped = 0
-    for path in sorted((REPO_ROOT / "po" / "scantpaper").glob("*.po")):
+    for path in sorted((repo_root / "po" / "scantpaper").glob("*.po")):
         po = polib.pofile(str(path))
         for entry in po:
             if entry.obsolete or not entry.msgid or "fuzzy" in entry.flags:
@@ -368,10 +369,41 @@ def test_committed_report_accounts_for_every_shipped_entry() -> None:
                     entry.msgid_plural or None,
                 )
                 assert key in pending
+    return shipped
+
+
+def test_committed_report_accounts_for_every_shipped_entry() -> None:
+    """Every shipped entry has an approval or is named as pending."""
+    ledger = AUDIT.load_ledger(REPO_ROOT / "po" / "approvals")
+    report = json.loads(
+        (REPO_ROOT / "po" / "translation-audit.json").read_text(encoding="utf-8")
+    )
+    shipped = _shipped_entries(REPO_ROOT, ledger, report)
 
     totals = report["totals"]
     assert totals["shipped"] == shipped
-    assert totals["unchanged"] == 9654
-    assert totals["model-changed"] == 1780
+    assert totals["unchanged"] == 9653
+    assert totals["model-changed"] == 1775
     assert totals["approved"] + totals["pending"] == shipped
-    assert shipped == 18750
+    assert shipped == 18880
+
+
+def test_report_names_a_shipped_entry_without_an_approval(tmp_path: Path) -> None:
+    """A shipped entry with no matching approval must be named as pending."""
+    _write_po(tmp_path / "po" / "scantpaper" / "de.po", [("Keep", "Behalten")])
+    ledger: dict[str, object] = {
+        "version": 1,
+        "snapshot": "test",
+        "approvals": [],
+    }
+    report: dict[str, object] = {
+        "pending": [
+            {
+                "language": "de",
+                "msgctxt": None,
+                "msgid": "Keep",
+                "msgid_plural": None,
+            }
+        ]
+    }
+    assert _shipped_entries(tmp_path, ledger, report) == 1
