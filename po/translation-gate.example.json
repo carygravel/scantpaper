@@ -120,6 +120,18 @@
     "he": {
       "qualification": 0.35,
       "drift": 0.25
+    },
+    "oc": {
+      "qualification": 0.45,
+      "drift": 0.3
+    },
+    "fa": {
+      "qualification": 0.45,
+      "drift": 0.3
+    },
+    "zh_TW": {
+      "qualification": 0.4,
+      "drift": 0.3
     }
   },
   "releases": {
