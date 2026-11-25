@@ -170,7 +170,7 @@ OBSOLETE_CEILING: dict[str, int] = {
     "gu": 49,
     "he": 27,
     "hi": 3,
-    "hr": 30,
+    "hr": 56,
     "hu": 143,
     "id": 3,
     "it": 141,

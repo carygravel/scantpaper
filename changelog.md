@@ -42,9 +42,9 @@
 * Updated German translation thanks to Martin Butter
 * The German and Spanish translations now cover every shipped string, including
   counted forms.
-* Updated Basque, Brazilian Portuguese, Catalan, Czech, Danish, Dutch, Finnish,
-  French, Galician, Greek, Hungarian, Italian, Japanese, Korean,
-  Norwegian Bokmål, Polish, Portuguese, Russian, Simplified Chinese,
+* Updated Basque, Brazilian Portuguese, Catalan, Croatian, Czech, Danish,
+  Dutch, Finnish, French, Galician, Greek, Hungarian, Italian, Japanese,
+  Korean, Norwegian Bokmål, Polish, Portuguese, Russian, Simplified Chinese,
   Slovak, Slovenian, Swedish, Turkish & Ukrainian translations
 
 

@@ -112,6 +112,10 @@
     "sl": {
       "qualification": 0.35,
       "drift": 0.25
+    },
+    "hr": {
+      "qualification": 0.35,
+      "drift": 0.2
     }
   },
   "releases": {
