@@ -19,479 +19,536 @@ msgstr ""
 "X-Generator: Launchpad (build 17908)\n"
 "X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
-#: app_window.py:516
-msgid "Save image and Save as PDF both require imagemagick"
-msgstr ""
-
-#: app_window.py:517
-msgid "Save image requires libtiff"
-msgstr ""
-
-#: app_window.py:518
-msgid "Save as DjVu requires djvulibre-bin"
-msgstr ""
-
-#: app_window.py:519
-msgid "Email as PDF requires xdg-email"
-msgstr ""
-
-#: app_window.py:520
-msgid "unpaper missing"
-msgstr ""
-
-#: app_window.py:528
-msgid "OCR requires tesseract"
-msgstr ""
-
-#: app_window.py:543
-msgid "PDF encryption requires qpdf"
-msgstr ""
-
-#: app_window.py:575
+#: app_window.py:751
 msgid "Warning: missing packages"
-msgstr ""
+msgstr "אזהרה: חבילות חסרות"
 
-#: app_window.py:593
+#: app_window.py:827
 msgid "Image"
-msgstr ""
+msgstr "תמונה"
 
-#: app_window.py:594 text_layer_control.py:57
+#: app_window.py:828 layer.py:197
 msgid "Text layer"
-msgstr ""
+msgstr "שכבת טקסט"
 
-#: app_window.py:596 session_mixins.py:446
+#: app_window.py:830
 msgid "Annotations"
-msgstr ""
+msgstr "הערות"
 
-#: app_window.py:837
-#, python-format, fuzzy
-msgid "%dMb free in %s."
-msgid_plural "%dMb free in %s."
-msgstr[0] "%dMB פנויים ב-%s."
-msgstr[1] "%dMB פנויים ב-%s."
+#: app_window.py:1294
+#, python-format
+msgid "%(mb)dMb free in %(name)s."
+msgid_plural "%(mb)dMb free in %(name)s."
+msgstr[0] "%(mb)dMb פנוי ב%(name)s."
+msgstr[1] "%(mb)dMb פנויים ב%(name)s."
 
-#: app_window.py:864 helpers.py:372
-#, fuzzy
+#: app_window.py:1322 helpers.py:531
 msgid "Messages"
 msgstr "הודעות"
 
-#: app_window.py:949
+#: app_window.py:1405
 msgid "Error opening the last device used."
-msgstr ""
+msgstr "שגיאה בפתיחת ההתקן האחרון שבו נעשה שימוש."
 
-#: app_window.py:951
+#: app_window.py:1407
 msgid "There was an error opening the last device used."
-msgstr ""
+msgstr "אירעה שגיאה בפתיחת ההתקן האחרון שבו נעשה שימוש."
 
-#: app_window.py:954
+#: app_window.py:1410
 msgid "Whoops! I forgot to turn it on. Try again now."
-msgstr ""
+msgstr "אופס! שכחתי להפעיל את זה. נסה שוב עכשיו."
 
-#: app_window.py:959 dialog/scan.py:517
-#, fuzzy
+#: app_window.py:1416 dialog/scan.py:534
 msgid "Rescan for devices"
-msgstr "סרוק שוב לאיתור התקנים"
+msgstr "סרוק מחדש לאיתור מכשירים"
 
-#: app_window.py:963
-#, fuzzy
+#: app_window.py:1419
 msgid "Restart scantpaper."
 msgstr "הפעל מחדש את scantpaper."
 
-#: app_window.py:968
+#: app_window.py:1423
 msgid "Just ignore the error. I don't need the scanner yet."
-msgstr ""
+msgstr "פשוט התעלם מהשגיאה. אני עדיין לא צריך את הסורק."
 
-#: app_window.py:971 dialog/preferences.py:162
-#, fuzzy
+#: app_window.py:1427 dialog/preferences.py:189
 msgid "Cache device list"
-msgstr "שמור רשימת התקנים במטמון"
+msgstr "שמור את רשימת ההתקנים במטמון"
 
-#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr "אל תציג הודעה זו שוב"
 
-#: basedocument.py:48
-#, fuzzy
+#: basedocument.py:47
 msgid "Thumbnails"
 msgstr "תמונות ממוזערות"
 
-#: basedocument.py:711
-#, fuzzy
+#: basedocument.py:876
 msgid "No pages to process"
 msgstr "אין דפים לעיבוד"
 
-#: basedocument.py:715
-#, fuzzy
+#: basedocument.py:880
 msgid "No pages selected"
-msgstr "לא נבחרו דפים"
+msgstr "לא נבחרו עמודים"
 
-#: config.py:107
-#, fuzzy
+#: config.py:113
 msgid "A3"
 msgstr "A3"
 
-#: config.py:113
+#: config.py:119
 msgid "A4"
 msgstr "A4"
 
-#: config.py:119
+#: config.py:125
 msgid "US Letter"
 msgstr "US Letter"
 
-#: config.py:125
+#: config.py:131
 msgid "US Legal"
 msgstr "US Legal"
 
-#: config.py:263
+#: config.py:276
 #, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left "
-"unchanged."
+"The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
+"been left unchanged."
 msgstr ""
+"ההגדרה %(key)s היא %(value)r ולא ניתן להשתמש בה בתור %(type)s, ולכן היא "
+"הושארה ללא שינוי."
 
-#: config.py:299
+#: config.py:312
 #, python-format
 msgid ""
-"The settings file %s could not be read in full. The following settings were "
-"restored: %s. The rest were reset to their defaults. A backup of the "
-"original file has been saved as %s."
+"The settings file %(filename)s could not be read in full. These settings "
+"were restored: %(settings)s. The rest were reset to their defaults. A backup"
+" has been saved as %(backup)s."
 msgstr ""
+"לא ניתן היה לקרוא את קובץ ההגדרות %(filename)s במלואו. ההגדרות האלו שוחזרו: "
+"%(settings)s. שאר ההגדרות אופסו לברירות המחדל שלהן. גיבוי נשמר בשם "
+"%(backup)s."
 
-#: config.py:306
+#: config.py:323
 #, python-format
 msgid ""
-"The settings file %s could not be read, so all settings have been reset to "
-"their defaults. A backup of the original file has been saved as %s."
+"The settings file %(filename)s could not be read, so all settings have been "
+"reset to their defaults. A backup of the original file has been saved as "
+"%(backup)s."
 msgstr ""
+"לא ניתן היה לקרוא את קובץ ההגדרות %(filename)s, ולכן כל ההגדרות אופסו "
+"לברירות המחדל שלהן. גיבוי של הקובץ המקורי נשמר בשם %(backup)s."
 
-#: dialog/__init__.py:67
-#, fuzzy
+#: dependencies.py:166 tests/test_app_window.py:880
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr "שמירת תמונה ושמירה כ-PDF שתיהן דורשות את imagemagick"
+
+#: dependencies.py:172
+msgid "Save image requires libtiff"
+msgstr "שמירת תמונה דורשת libtiff"
+
+#: dependencies.py:178 tests/test_app_window.py:881
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "שמירה כ-DjVu דורשת את djvulibre-bin"
+
+#: dependencies.py:186
+msgid "Email as PDF requires xdg-email"
+msgstr "דוא״ל כ-PDF דורש xdg-email"
+
+#: dependencies.py:189 tests/test_app_window.py:882
+msgid "unpaper missing"
+msgstr "unpaper חסר"
+
+#: dependencies.py:191 tests/test_app_window.py:883
+msgid "OCR requires tesseract"
+msgstr "OCR דורש tesseract"
+
+#: dependencies.py:196 tests/test_app_window.py:884
+msgid "PDF encryption requires qpdf"
+msgstr "הצפנת PDF דורשת את qpdf"
+
+#: dependencies.py:202 tests/test_app_window.py:885
+msgid "JBIG2 PDF compression requires jbig2"
+msgstr "דחיסת PDF ב-JBIG2 דורשת jbig2"
+
+#: dialog/__init__.py:134
 msgid "Page Range"
-msgstr "טווח דפים"
+msgstr "טווח עמודים"
 
-#: dialog/__init__.py:106
-#, fuzzy
+#: dialog/__init__.py:174
 msgid "Error"
 msgstr "שגיאה"
 
-#: dialog/__init__.py:107
-#, fuzzy
+#: dialog/__init__.py:175
 msgid "Warning"
 msgstr "אזהרה"
 
-#: dialog/__init__.py:108
-#, fuzzy
+#: dialog/__init__.py:176
 msgid "Info"
 msgstr "מידע"
 
-#: dialog/__init__.py:125
-#, fuzzy
+#: dialog/__init__.py:199
 msgid "Page"
-msgstr "דף"
+msgstr "עמוד"
 
-#: dialog/__init__.py:126
+#: dialog/__init__.py:200
 msgid "Process"
-msgstr ""
+msgstr "תהליך"
 
-#: dialog/__init__.py:127
+#: dialog/__init__.py:201
 msgid "Message type"
-msgstr ""
+msgstr "סוג הודעה"
 
-#: dialog/__init__.py:129
-#, fuzzy
+#: dialog/__init__.py:203
 msgid "Message"
 msgstr "הודעה"
 
-#: dialog/__init__.py:132
-#, fuzzy
+#: dialog/__init__.py:206
 msgid "Hide"
-msgstr "הסתרה"
+msgstr "הסתר"
 
-#: dialog/__init__.py:193
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
+msgid "_Close"
+msgstr "_סגור"
+
+#: dialog/__init__.py:295
 msgid "Don't show these messages again"
-msgstr ""
+msgstr "אל תציג הודעות אלה שוב"
 
-#: dialog/__init__.py:313
+#: dialog/__init__.py:409
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
-msgstr ""
+msgstr "שגיאה זו נגרמת בדרך כלל מכך ש-ImageMagick חורג ממגבלות המשאבים שלו."
 
-#: dialog/__init__.py:317
+#: dialog/__init__.py:413
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
 msgstr ""
+"ניתן להרחיב אותם על ידי עריכת קובץ המדיניות שלו, אשר במערכת שלי נמצא בכתובת "
+"/etc/ImageMagick-6/policy.xml"
 
-#: dialog/__init__.py:322
+#: dialog/__init__.py:418
+#, python-format
 msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
-msgstr ""
+"Please see the ImageMagick resource documentation for more information: "
+"%(url)s"
+msgstr "אנא עיין בתיעוד המשאבים של ImageMagick למידע נוסף: %(url)s"
 
-#: dialog/crop.py:14
-#, fuzzy
+#: dialog/crop.py:15
 msgid "x"
 msgstr "x"
 
-#: dialog/crop.py:15
+#: dialog/crop.py:16
 msgid "The x-position of the left hand edge of the crop."
-msgstr ""
+msgstr "מיקום ה-x של הקצה השמאלי של החיתוך."
 
-#: dialog/crop.py:19
-#, fuzzy
+#: dialog/crop.py:20
 msgid "y"
 msgstr "y"
 
-#: dialog/crop.py:20
+#: dialog/crop.py:21
 msgid "The y-position of the top edge of the crop."
-msgstr ""
+msgstr "מיקום ה-Y של הקצה העליון של החיתוך."
 
-#: dialog/crop.py:24 dialog/paperlist.py:22
-#, fuzzy
+#: dialog/crop.py:25 dialog/paperlist.py:22
 msgid "Width"
 msgstr "רוחב"
 
-#: dialog/crop.py:25
+#: dialog/crop.py:26
 msgid "The width of the crop."
-msgstr ""
+msgstr "רוחב החיתוך."
 
-#: dialog/crop.py:29 dialog/paperlist.py:23
-#, fuzzy
+#: dialog/crop.py:30 dialog/paperlist.py:23
 msgid "Height"
 msgstr "גובה"
 
-#: dialog/crop.py:30
+#: dialog/crop.py:31
 msgid "The height of the crop."
-msgstr ""
+msgstr "גובה היבול."
 
-#: dialog/crop.py:116
-#, fuzzy
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr "חיתוך"
 
-#: dialog/crop.py:154 tools_menu_mixins.py:277
-#, fuzzy
+#: dialog/crop.py:161 tools_menu_mixins.py:286
 msgid "pixels"
 msgstr "פיקסלים"
 
-#: dialog/pagecontrols.py:188
+#: dialog/importhocr.py:45
+msgid "hOCR file"
+msgstr "קובץ hOCR"
+
+#: dialog/importhocr.py:50 dialog/preferences.py:272
+#: postprocess_controls.py:692
+msgid "Browse"
+msgstr "עיון"
+
+#: dialog/importhocr.py:56
+msgid "Pages are matched to the hOCR pages in order."
+msgstr "הדפים מותאמים לדפי ה-hOCR לפי הסדר."
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_OK"
+msgstr "_אישור"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
+#: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
+#: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_Cancel"
+msgstr "_ביטול"
+
+#: dialog/importhocr.py:69
+msgid "Open hOCR file"
+msgstr "פתח קובץ hOCR"
+
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
+msgid "Cancel"
+msgstr "ביטול"
+
+#: dialog/importhocr.py:76 file_menu_mixins.py:119
+msgid "Open"
+msgstr "פתח"
+
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
+msgid "hOCR files"
+msgstr "קובצי hOCR"
+
+#: dialog/pagecontrols.py:231
 msgid "Page Options"
 msgstr "אפשרויות עמוד"
 
-#: dialog/pagecontrols.py:199
+#: dialog/pagecontrols.py:245
 msgid "# Pages"
 msgstr "מספר עמודים"
 
-#: dialog/pagecontrols.py:210 pagerange.py:47
+#: dialog/pagecontrols.py:256 pagerange.py:48
 msgid "All"
 msgstr "הכל"
 
-#: dialog/pagecontrols.py:211
+#: dialog/pagecontrols.py:257
 msgid "Scan all pages"
 msgstr "סרוק את כל העמודים"
 
-#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
-#, fuzzy
+#: dialog/pagecontrols.py:268 dialog/pagecontrols.py:273
 msgid "Set number of pages to scan"
-msgstr "הגדר מספר דפים לסריקה"
+msgstr "הגדר את מספר העמודים לסריקה"
 
-#: dialog/pagecontrols.py:247
-#, fuzzy
+#: dialog/pagecontrols.py:277
+msgid "No page limit: scanning continues until you cancel."
+msgstr "אין הגבלת עמודים: הסריקה ממשיכה עד שתבטל."
+
+#: dialog/pagecontrols.py:311
 msgid "Extended page numbering"
-msgstr "מספור דפים מורחב"
+msgstr "מספור עמודים מורחב"
 
-#: dialog/pagecontrols.py:260
-#, fuzzy
+#: dialog/pagecontrols.py:324
 msgid "Page number"
-msgstr "מספר דף"
+msgstr "מספר עמוד"
 
-#: dialog/pagecontrols.py:271
+#: dialog/pagecontrols.py:334
 msgid "Insert before page N"
-msgstr ""
+msgstr "הוסף לפני עמוד N"
 
-#: dialog/pagecontrols.py:274
+#: dialog/pagecontrols.py:337
 msgid "Page number before which scans will be inserted"
-msgstr ""
+msgstr "מספר העמוד שלפניו יוכנסו הסריקות"
 
-#: dialog/pagecontrols.py:285
+#: dialog/pagecontrols.py:348
 msgid "Position advance"
-msgstr ""
+msgstr "קידום מיקום"
 
-#: dialog/pagecontrols.py:289
+#: dialog/pagecontrols.py:352
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
-msgstr ""
+msgstr "קידום מיקום עבור כל סריקה עוקבת (0 = להמשיך להוסיף לפני אותו עמוד)"
 
-#: dialog/pagecontrols.py:305
-#, fuzzy
+#: dialog/pagecontrols.py:368
 msgid "Source document"
 msgstr "מסמך מקור"
 
-#: dialog/pagecontrols.py:313
-#, fuzzy
+#: dialog/pagecontrols.py:377
 msgid "Single sided"
 msgstr "חד-צדדי"
 
-#: dialog/pagecontrols.py:315
+#: dialog/pagecontrols.py:378
 msgid "Source document is single-sided"
-msgstr ""
+msgstr "מסמך המקור הוא חד-צדדי"
 
-#: dialog/pagecontrols.py:321
-#, fuzzy
+#: dialog/pagecontrols.py:385
 msgid "Double sided"
 msgstr "דו-צדדי"
 
-#: dialog/pagecontrols.py:323
+#: dialog/pagecontrols.py:387
 msgid "Source document is double-sided"
-msgstr ""
+msgstr "מסמך המקור הוא דו־צדדי"
 
-#: dialog/pagecontrols.py:329
-#, fuzzy
+#: dialog/pagecontrols.py:393
 msgid "Side to scan"
 msgstr "צד לסריקה"
 
-#: dialog/pagecontrols.py:332
-#, fuzzy
+#: dialog/pagecontrols.py:396
 msgid "Facing"
-msgstr "קדמי"
+msgstr "פונה"
 
-#: dialog/pagecontrols.py:332
-#, fuzzy
+#: dialog/pagecontrols.py:396
 msgid "Reverse"
-msgstr "אחורי"
+msgstr "הפוך"
 
-#: dialog/pagecontrols.py:337
+#: dialog/pagecontrols.py:401
 msgid "Sets which side of a double-sided document is scanned"
-msgstr ""
+msgstr "קובע איזה צד של מסמך דו-צדדי נסרק"
 
-#: dialog/paperlist.py:21
-#, fuzzy
+#: dialog/paperlist.py:21 dialog/tesseractparams.py:69
 msgid "Name"
 msgstr "שם"
 
-#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+#: dialog/paperlist.py:24 unpaper.py:153 unpaper.py:181
 msgid "Left"
 msgstr "שמאלה"
 
-#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+#: dialog/paperlist.py:25 unpaper.py:158 unpaper.py:186
 msgid "Top"
 msgstr "למעלה"
 
 #: dialog/paperlist.py:26
-#, fuzzy
 msgid "Units"
 msgstr "יחידות"
 
 #: dialog/paperlist.py:73 dialog/paperlist.py:115
 msgid "Cannot delete all paper sizes"
-msgstr ""
+msgstr "לא ניתן למחוק את כל גדלי הנייר"
 
-#: dialog/preferences.py:42
-#, fuzzy
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr "העדפות"
 
-#: dialog/preferences.py:56
+#: dialog/preferences.py:72
 msgid "Scan options"
-msgstr ""
+msgstr "אפשרויות סריקה"
 
-#: dialog/preferences.py:60
-#, fuzzy
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr "אפשרויות כלליות"
 
-#: dialog/preferences.py:68
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
-msgstr ""
+msgstr "פתח סורק בהפעלת התוכנית"
 
-#: dialog/preferences.py:71
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
 msgstr ""
+"פתח אוטומטית את חלון הסריקה ברקע בעת הפעלת התוכנית. זה חוסך זמן של לחיצה על "
+"כפתור הסריקה והמתנה לכך שהתוכנית תמצא את רשימת הסורקים"
 
-#: dialog/preferences.py:83
+#: dialog/preferences.py:104
 msgid "Device blacklist"
-msgstr ""
+msgstr "רשימה שחורה של מכשירים"
 
-#: dialog/preferences.py:87
-msgid "Device blacklist (regular expression)"
-msgstr ""
+#: dialog/preferences.py:107
+msgid "e.g. Camera or v4l:.*"
+msgstr "למשל מצלמה או v4l:.*"
 
-#: dialog/preferences.py:95
+#: dialog/preferences.py:110
+msgid ""
+"Regular expression matched case-insensitively against the device label and "
+"backend name, e.g. Camera or v4l:.*"
+msgstr ""
+"ביטוי רגולרי מותאם ללא תלות ברישיות כנגד תווית ההתקן ושם ה-backend, למשל "
+"Camera או v4l:.*"
+
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
-msgstr ""
+msgstr "החלף ידית SANE לאחר סריקה"
 
-#: dialog/preferences.py:97
+#: dialog/preferences.py:124
 msgid "Some ADFs do not feed out the last page if this is not enabled"
 msgstr ""
+"חלק ממזיני המסמכים האוטומטיים (ADF) אינם מוציאים את הדף האחרון אם אפשרות זו "
+"אינה מופעלת"
 
-#: dialog/preferences.py:105
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
-msgstr ""
+msgstr "אפשר סריקה באצווה ממשטח הסריקה"
 
-#: dialog/preferences.py:109
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
-msgstr ""
+msgstr "אם לא מוגדר, מעבר לסורק שטוח יכפה # עמודים ל־1 ומצב חד־צדדי."
 
-#: dialog/preferences.py:118
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
-msgstr ""
+msgstr "התעלם מיכולות הדופלקס של הסורק"
 
-#: dialog/preferences.py:122
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
 msgstr ""
+"אם מוגדר, מתעלמים מכל יכולות הדופלקס, ומוצגים ווידג'טים של פנים/גב כדי לאפשר"
+" שילוב ידני של דפים."
 
-#: dialog/preferences.py:131
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
-msgstr ""
+msgstr "כפה משימת סריקה חדשה בין דפים"
 
-#: dialog/preferences.py:135
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
 msgstr ""
+"אחרת, סורקים מסוימים של Brother מדווחים שאזלו המסמכים, למרות הסריקה ממשטח "
+"הסריקה."
 
-#: dialog/preferences.py:151
+#: dialog/preferences.py:178
 msgid "Select # pages = all on selecting ADF"
-msgstr ""
+msgstr "בחר # דפים = הכל בעת בחירת ADF"
 
-#: dialog/preferences.py:155
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
 msgstr ""
+"אם האפשרות הזו מופעלת, בעת מעבר ל-source=ADF, האפשרות # דפים = הכול נבחרת"
 
-#: dialog/preferences.py:165
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
 msgstr ""
+"אם אפשרות זו מופעלת, פתיחת הסורק מהירה יותר, מכיוון ש-scantpaper לא מחפש "
+"תחילה התקנים זמינים."
 
-#: dialog/preferences.py:169
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
-msgstr ""
+msgstr "זה יעיל רק אם שמות ההתקנים אינם משתנים בין הפעלות."
 
-#: dialog/preferences.py:178
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
-msgstr ""
+msgstr "שחזר את הגדרות החלון בעת האתחול"
 
-#: dialog/preferences.py:183
-#, fuzzy
+#: dialog/preferences.py:210
 msgid "View files on saving"
-msgstr "הצג קבצים בעת שמירה"
+msgstr "הצג קבצים בעת השמירה"
 
-#: dialog/preferences.py:190
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
 msgstr ""
 
-#: dialog/preferences.py:194
+#: dialog/preferences.py:221
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -509,848 +566,991 @@ msgid ""
 "%Dd\tdocument day\n"
 msgstr ""
 
-#: dialog/preferences.py:215
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
-msgstr ""
+msgstr "החלף רווחים בשמות קבצים בקווים תחתונים"
 
-#: dialog/preferences.py:221
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
-msgstr ""
+msgstr "השתמש באזור זמן מהלוקאל"
 
-#: dialog/preferences.py:226
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
-msgstr ""
+msgstr "ציין גם שעה ולא רק תאריך"
 
-#: dialog/preferences.py:232
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
-msgstr ""
+msgstr "הגדר זמני גישה ושינוי לתאריך המטא-נתונים"
 
-#: dialog/preferences.py:240
+#: dialog/preferences.py:267
 msgid "Temporary directory"
-msgstr ""
-
-#: dialog/preferences.py:245
-msgid "Browse"
-msgstr ""
-
-#: dialog/preferences.py:251
-msgid "Select temporary directory"
-msgstr ""
-
-#: dialog/preferences.py:273
-msgid "Warn if available space less than (Mb)"
-msgstr ""
+msgstr "תיקייה זמנית"
 
 #: dialog/preferences.py:279
-msgid ""
-"Warn if the available space in the temporary directory is less than this "
-"value"
-msgstr ""
-
-#: dialog/preferences.py:287
-msgid "Blank threshold"
-msgstr ""
-
-#: dialog/preferences.py:292
-msgid "Threshold used for selecting blank pages"
-msgstr ""
-
-#: dialog/preferences.py:300
-msgid "Dark threshold"
-msgstr ""
-
-#: dialog/preferences.py:304
-msgid "Threshold used for selecting dark pages"
-msgstr ""
-
-#: dialog/preferences.py:311
-msgid "OCR output"
-msgstr ""
-
-#: dialog/preferences.py:316
-msgid "Replace"
-msgstr ""
-
-#: dialog/preferences.py:318
-msgid "Replace the contents of the text buffer with that from the OCR output."
-msgstr ""
-
-#: dialog/preferences.py:321
-msgid "Prepend"
-msgstr ""
-
-#: dialog/preferences.py:321
-msgid "Prepend the OCR output to the text buffer."
-msgstr ""
-
-#: dialog/preferences.py:322
-msgid "Append"
-msgstr ""
-
-#: dialog/preferences.py:322
-msgid "Append the OCR output to the text buffer."
-msgstr ""
-
-#: dialog/preferences.py:329
-#, fuzzy
-msgid "Manage user-defined tools"
-msgstr "ניהול כלים המוגדרים על ידי המשתמש"
-
-#: dialog/preferences.py:352
-#, python-format
-msgid ""
-"Use %i and %o for the input and output filenames respectively,\n"
-"or a single %i if the image is to be modified in-place.\n"
-"\n"
-"The other variable available is:\n"
-"%r resolution"
-msgstr ""
-
-#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
-msgid "_Delete"
-msgstr "_מחק"
-
-#: dialog/preferences.py:397
-msgid "The following user-defined tools could not be found:\n"
-msgstr ""
-
-#: dialog/preferences.py:400
-msgid "Please check that the command is installed and in your PATH."
-msgstr ""
-
-#: dialog/preferences.py:402
-msgid "User-defined tool not found"
-msgstr ""
-
-#: dialog/sane.py:71
-#, fuzzy
-msgid "Fetching list of devices"
-msgstr "מאחזר רשימת התקנים"
-
-#: dialog/sane.py:89
-#, fuzzy
-msgid "No devices found"
-msgstr "לא נמצאו התקנים"
-
-#: dialog/sane.py:129
-#, fuzzy
-msgid "Opening device"
-msgstr "פותח התקן"
-
-#: dialog/sane.py:142
-#, fuzzy
-msgid "Error opening device: "
-msgstr "שגיאה בפתיחת ההתקן: "
-
-#: dialog/sane.py:148 dialog/sane.py:494
-#, fuzzy
-msgid "Retrieving options"
-msgstr "מאחזר אפשרויות"
-
-#: dialog/sane.py:165 dialog/sane.py:507
-msgid "Error retrieving scanner options: "
-msgstr ""
-
-#: dialog/sane.py:207
-msgid "Scan Options"
-msgstr "אפשרויות סריקה"
-
-#: dialog/sane.py:290
-#, python-format
-msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
-msgstr ""
-
-#: dialog/sane.py:450
-#, python-format
-msgid "Setting option %s"
-msgstr ""
-
-#: dialog/sane.py:469
-#, fuzzy
-msgid "Error setting option: "
-msgstr "שגיאה בהגדרת האפשרות: "
-
-#: dialog/sane.py:531
-msgid "Must scan facing pages first"
-msgstr ""
-
-#: dialog/save.py:31
-msgid "PDF"
-msgstr "PDF"
-
-#: dialog/save.py:31
-msgid "Portable Document Format"
-msgstr ""
-
-#: dialog/save.py:32
-msgid "GIF"
-msgstr "GIF"
-
-#: dialog/save.py:32
-msgid "CompuServe graphics interchange format"
-msgstr ""
-
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
-msgid "JPEG"
-msgstr "JPEG"
-
-#: dialog/save.py:33
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr ""
-
-#: dialog/save.py:34
-msgid "PNG"
-msgstr "PNG"
-
-#: dialog/save.py:34
-msgid "Portable Network Graphics"
-msgstr ""
-
-#: dialog/save.py:35
-msgid "PNM"
-msgstr ""
-
-#: dialog/save.py:35
-msgid "Portable anymap"
-msgstr ""
-
-#: dialog/save.py:36
-msgid "PS"
-msgstr "PS"
-
-#: dialog/save.py:36
-msgid "Postscript"
-msgstr "Postscript"
-
-#: dialog/save.py:37
-msgid "TIFF"
-msgstr "TIFF"
-
-#: dialog/save.py:37
-msgid "Tagged Image File Format"
-msgstr ""
-
-#: dialog/save.py:38
-msgid "Text"
-msgstr "טקסט"
-
-#: dialog/save.py:38
-#, fuzzy
-msgid "Plain text"
-msgstr "טקסט פשוט"
-
-#: dialog/save.py:39
-#, fuzzy
-msgid "hOCR"
-msgstr "hOCR"
-
-#: dialog/save.py:39
-msgid "hOCR markup language"
-msgstr ""
-
-#: dialog/save.py:40 session_mixins.py:126
-msgid "Session"
-msgstr ""
-
-#: dialog/save.py:40
-msgid "scantpaper session database"
-msgstr ""
-
-#: dialog/save.py:41
-msgid "Prepend to PDF"
-msgstr ""
-
-#: dialog/save.py:41
-msgid "Prepend to an existing PDF"
-msgstr ""
-
-#: dialog/save.py:42
-msgid "Append to PDF"
-msgstr ""
-
-#: dialog/save.py:42
-msgid "Append to an existing PDF"
-msgstr ""
-
-#: dialog/save.py:43
-#, fuzzy
-msgid "DjVu"
-msgstr "DjVu"
-
-#: dialog/save.py:43
-msgid "Deja Vu"
-msgstr ""
-
-#: dialog/save.py:48
-msgid "Automatic"
-msgstr "אוטומטי"
-
-#: dialog/save.py:49
-msgid "Let scantpaper which type of compression to use."
-msgstr ""
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "LZW"
-msgstr "LZW"
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "דחס פלט באמצעות קידוד Lempel-Ziv & Welch"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "G3"
-msgstr "G3"
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr ""
-
-#: dialog/save.py:53 dialog/save.py:85
-msgid "G4"
-msgstr "G4"
-
-#: dialog/save.py:53 dialog/save.py:85
-msgid "Compress output with CCITT Group 4 encoding."
-msgstr ""
-
-#: dialog/save.py:54
-#, fuzzy
-msgid "Flate"
-msgstr "Flate"
-
-#: dialog/save.py:54
-#, fuzzy
-msgid "Compress output with flate encoding."
-msgstr "דחוס פלט בקידוד flate."
-
-#: dialog/save.py:55
-#, fuzzy
-msgid "Compress output with JPEG (DCT) encoding."
-msgstr "דחוס פלט בקידוד JPEG (DCT)."
-
-#: dialog/save.py:56 dialog/save.py:86
-msgid "None"
-msgstr "ללא"
-
-#: dialog/save.py:56 dialog/save.py:86
-msgid "Use no compression algorithm on output."
-msgstr ""
-
-#: dialog/save.py:61
-#, fuzzy
-msgid "LibTIFF"
-msgstr "LibTIFF"
-
-#: dialog/save.py:62
-msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
-msgstr ""
-
-#: dialog/save.py:66
-#, fuzzy
-msgid "Ghostscript"
-msgstr "Ghostscript"
-
-#: dialog/save.py:67
-msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
-msgstr ""
-
-#: dialog/save.py:71
-#, fuzzy
-msgid "Poppler"
-msgstr "Poppler"
-
-#: dialog/save.py:72
-msgid "Use Poppler (pdftops) to create Postscript files from PDF."
-msgstr ""
-
-#: dialog/save.py:79
-msgid "Zip"
-msgstr "Zip"
-
-#: dialog/save.py:80
-msgid "Compress output with deflate encoding."
-msgstr ""
-
-#: dialog/save.py:82
-msgid "Compress output with JPEG encoding."
-msgstr ""
-
-#: dialog/save.py:83
-msgid "Packbits"
-msgstr ""
-
-#: dialog/save.py:83
-msgid "Compress output with Packbits encoding."
-msgstr ""
-
-#: dialog/save.py:360
-#, fuzzy
-msgid "Document Metadata"
-msgstr "מטא-נתונים של מסמך"
-
-#: dialog/save.py:374
-#, fuzzy
-msgid "Date/Time"
-msgstr "תאריך/שעה"
-
-#: dialog/save.py:387 dialog/save.py:572
-#, fuzzy
-msgid "Now"
-msgstr "עכשיו"
-
-#: dialog/save.py:388 dialog/save.py:573
-#, fuzzy
-msgid "Use current date and time"
-msgstr "השתמש בתאריך ובשעה הנוכחיים"
-
-#: dialog/save.py:393
-#, fuzzy
-msgid "Specify"
-msgstr "ציון"
-
-#: dialog/save.py:395
-msgid "Specify date and time"
-msgstr ""
-
-#: dialog/save.py:403
-msgid "Year-Month-Day"
-msgstr ""
-
-#: dialog/save.py:413
-msgid "Select date with calendar"
-msgstr ""
-
-#: dialog/save.py:459
-msgid "Select Date"
-msgstr "בחר תאריך"
-
-#: dialog/save.py:489 dialog/save.py:579
-msgid "Today"
-msgstr "היום"
-
-#: dialog/save.py:545
-msgid "Title"
-msgstr "כותרת"
-
-#: dialog/save.py:546
-#, fuzzy
-msgid "Author"
-msgstr "מחבר"
-
-#: dialog/save.py:547
-msgid "Subject"
-msgstr "נושא"
-
-#: dialog/save.py:548
-msgid "Keywords"
-msgstr "מילות מפתח"
-
-#: dialog/save.py:580
-#, fuzzy
-msgid "Use today's date"
-msgstr "השתמש בתאריך של היום"
-
-#: dialog/save.py:590
-#, fuzzy
-msgid "Document type"
-msgstr "סוג מסמך"
-
-#: dialog/save.py:598
-#, fuzzy
-msgid "Postscript backend"
-msgstr "מנוע Postscript"
-
-#: dialog/save.py:614 dialog/save.py:754
-msgid "Compression"
-msgstr "דחיסה"
-
-#: dialog/save.py:735
-msgid "JPEG Quality"
-msgstr "איכות JPEG"
-
-#: dialog/save.py:769
-#, fuzzy
-msgid "Encrypt PDF"
-msgstr "הצפנת PDF"
-
-#: dialog/save.py:785
-#, fuzzy
-msgid "Downsample to"
-msgstr "הפחתת רזולוציה ל-"
-
-#: dialog/save.py:789 dialog/scan.py:660
-#, fuzzy
-msgid "ppi"
-msgstr "ppi"
-
-#: dialog/save.py:819
-#, fuzzy
-msgid "Set password"
-msgstr "הגדר סיסמה"
-
-#: dialog/save.py:827
-#, fuzzy
-msgid "User password"
-msgstr "סיסמת משתמש"
-
-#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
-#: dialog/scan.py:933
-#, fuzzy
-msgid "Manual"
-msgstr "ידני"
-
-#: dialog/scan.py:446
-#, fuzzy
-msgid "Scan profiles"
-msgstr "פרופילי סריקה"
-
-#: dialog/scan.py:500
-#, fuzzy
-msgid "Scan"
-msgstr "סריקה"
-
-#: dialog/scan.py:514
-#, fuzzy
-msgid "Device"
-msgstr "התקן"
-
-#: dialog/scan.py:552
-msgid "Sets the device to be used for the scan"
-msgstr ""
-
-#: dialog/scan.py:599
-#, python-format
-msgid "Error: unknown device: %s"
-msgstr ""
-
-#: dialog/scan.py:657
-#, fuzzy
-msgid "pel"
-msgstr "pel"
-
-#: dialog/scan.py:658
-#, fuzzy
-msgid "bit"
-msgstr "bit"
-
-#: dialog/scan.py:659
-#, fuzzy
-msgid "mm"
-msgstr "mm"
-
-#: dialog/scan.py:662
-#, fuzzy
-msgid "μs"
-msgstr "μs"
-
-#: dialog/scan.py:686
-#, fuzzy
-msgid "Paper size"
-msgstr "גודל נייר"
-
-#: dialog/scan.py:690 dialog/scan.py:707
-#, fuzzy
-msgid "Edit"
-msgstr "עריכה"
-
-#: dialog/scan.py:691
-msgid "Selects or edits the paper size"
-msgstr ""
-
-#: dialog/scan.py:770
-#, python-format
-msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
-" file a bug, attaching a log file reproducing the problem."
-msgstr ""
-
-#: dialog/scan.py:1024
-msgid "Edit paper size"
-msgstr ""
-
-#: dialog/scan.py:1051
-#, fuzzy
-msgid "Apply"
-msgstr "החל"
-
-#: dialog/scan.py:1069
-msgid ""
-"The following paper sizes are too big to be scanned by the selected device:"
-msgstr ""
-
-#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-#, fuzzy
-msgid "Cancel"
-msgstr "ביטול"
-
-#: dialog/scan.py:1563 dialog/scan.py:1571
-msgid "Name of scan profile"
-msgstr ""
-
-#: dialog/scan.py:1585
-#, python-format
-msgid "Profile '%s' exists. Overwrite?"
-msgstr ""
-
-#: dialog/scan.py:1592 dialog/scan.py:1634
-#, fuzzy
+msgid "Select temporary directory"
+msgstr "בחר תיקייה זמנית"
+
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
+#: postprocess_controls.py:717
 msgid "OK"
 msgstr "אישור"
 
-#: dialog/scan.py:1621
-msgid "Editing current scan options"
+#: dialog/preferences.py:304
+msgid "Warn if available space less than (Mb)"
+msgstr "הצג אזהרה אם המקום הפנוי קטן מ-(Mb)"
+
+#: dialog/preferences.py:310
+msgid ""
+"Warn if the available space in the temporary directory is less than this "
+"value"
+msgstr "הצג אזהרה אם המקום הפנוי בתיקייה הזמנית קטן מערך זה"
+
+#: dialog/preferences.py:318
+msgid "Blank threshold"
+msgstr "סף ריק"
+
+#: dialog/preferences.py:323
+msgid "Threshold used for selecting blank pages"
+msgstr "סף המשמש לבחירת דפים ריקים"
+
+#: dialog/preferences.py:331
+msgid "Dark threshold"
+msgstr "סף כהה"
+
+#: dialog/preferences.py:335
+msgid "Threshold used for selecting dark pages"
+msgstr "סף המשמש לבחירת דפים כהים"
+
+#: dialog/preferences.py:342
+msgid "OCR output"
+msgstr "פלט OCR"
+
+#: dialog/preferences.py:347
+msgid "Replace"
+msgstr "החלף"
+
+#: dialog/preferences.py:349
+msgid "Replace the contents of the text buffer with that from the OCR output."
+msgstr "החלף את תוכן מאגר הטקסט בתוכן מפלט ה-OCR."
+
+#: dialog/preferences.py:352
+#| msgid ""
+#| "Use %i and %o for the input and output filenames respectively,\n"
+#| "or a single %i if the image is to be modified in-place.\n"
+#| "\n"
+#| "The other variable available is:\n"
+#| "%r resolution"
+msgid "Prepend"
+msgstr "הוסף בתחילה"
+
+#: dialog/preferences.py:352
+#| msgid ""
+#| "Use %i and %o for the input and output filenames respectively,\n"
+#| "or a single %i if the image is to be modified in-place.\n"
+#| "\n"
+#| "The other variable available is:\n"
+#| "%r resolution"
+msgid "Prepend the OCR output to the text buffer."
+msgstr "הוסף את פלט ה-OCR לתחילת מאגר הטקסט."
+
+#: dialog/preferences.py:353
+msgid "Append"
+msgstr "הוסף"
+
+#: dialog/preferences.py:353
+msgid "Append the OCR output to the text buffer."
+msgstr "הוסף את פלט ה-OCR לחוצץ הטקסט."
+
+#: dialog/preferences.py:362
+msgid "Manage user-defined tools"
+msgstr "ניהול כלים מוגדרי משתמש"
+
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
+msgid "Add a user-defined tool"
+msgstr "הוסף כלי מוגדר על ידי המשתמש"
+
+#: dialog/preferences.py:378
+msgid "Bilevel compression"
+msgstr "דחיסה דו-רמתית"
+
+#: dialog/preferences.py:383
+msgid "Group 4"
+msgstr "קבוצה 4"
+
+#: dialog/preferences.py:384
+msgid "Compress bilevel images with CCITT Group 4 encoding."
+msgstr "דחוס תמונות דו-רמתיות בקידוד CCITT Group 4."
+
+#: dialog/preferences.py:391 dialog/save.py:71
+msgid "JBIG2"
+msgstr "JBIG2"
+
+#: dialog/preferences.py:392
+msgid "Compress bilevel images with JBIG2 encoding."
+msgstr "כיווץ תמונות דו-גוניות בקידוד JBIG2."
+
+#: dialog/preferences.py:414
+#, python-format
+msgid ""
+"Use %%i and %%o for the input and output filenames respectively,\n"
+"or a single %%i if the image is to be modified in-place.\n"
+"\n"
+"The other variable available is:\n"
+"%%r resolution"
+msgstr ""
+"השתמשו ב־%%i וב־%%o עבור שמות קובצי הקלט והפלט בהתאמה,\n"
+"או ב־%%i בודד אם יש לשנות את התמונה במקומה.\n"
+"\n"
+"המשתנה הנוסף הזמין הוא:\n"
+"%%r רזולוציה"
+
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
+msgid "_Delete"
+msgstr "_מחק"
+
+#: dialog/preferences.py:462
+msgid "The following user-defined tools could not be found:\n"
 msgstr ""
 
-#: dialog/scan.py:1625
+#: dialog/preferences.py:465
+msgid "Please check that the command is installed and in your PATH."
+msgstr "אנא בדוק שהפקודה מותקנת ונמצאת ב-PATH שלך."
+
+#: dialog/preferences.py:467
+msgid "User-defined tool not found"
+msgstr "כלי שהוגדר על ידי המשתמש לא נמצא"
+
+#: dialog/sane.py:89
+msgid "Fetching list of devices"
+msgstr "טוען רשימת מכשירים"
+
+#: dialog/sane.py:108 scan_menu_item_mixins.py:93
+msgid "No devices found"
+msgstr "לא נמצאו מכשירים"
+
+#: dialog/sane.py:152
+msgid "Opening device"
+msgstr "פתיחת התקן"
+
+#: dialog/sane.py:166
+msgid "Error opening device: "
+msgstr "שגיאה בפתיחת ההתקן:"
+
+#: dialog/sane.py:175 dialog/sane.py:539
+msgid "Retrieving options"
+msgstr "מאחזר אפשרויות"
+
+#: dialog/sane.py:195 dialog/sane.py:553
+msgid "Error retrieving scanner options: "
+msgstr "שגיאה באחזור אפשרויות הסורק:"
+
+#: dialog/sane.py:245
+msgid "Scan Options"
+msgstr "אפשרויות סריקה"
+
+#: dialog/sane.py:329
+#, python-format
+msgid ""
+"Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum "
+"(%(maximum)s)"
+msgstr ""
+"מתעלם מאפשרות הסריקה '%(name)s', טווח מינימלי (%(minimum)s) > מקסימלי "
+"(%(maximum)s)"
+
+#: dialog/sane.py:493
+#, python-format
+msgid "Setting option %s"
+msgstr "הגדרת אפשרות %s"
+
+#: dialog/sane.py:512
+msgid "Error setting option: "
+msgstr "שגיאה בהגדרת האפשרות:"
+
+#: dialog/sane.py:591
+msgid "Must scan facing pages first"
+msgstr "יש לסרוק תחילה עמודים ממול"
+
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
+msgid ""
+"Scanner did not deliver the requested 1-bit output; the page has been "
+"converted to black-and-white"
+msgstr "הסורק לא סיפק את פלט 1-bit המבוקש; הדף הומר לשחור-לבן"
+
+#: dialog/sane.py:752
+msgid ""
+"The scanner did not respond to cancel. Reconnect the scanner or choose "
+"another device."
+msgstr "הסורק לא הגיב לביטול. חבר מחדש את הסורק או בחר התקן אחר."
+
+#: dialog/save.py:32
+msgid "PDF"
+msgstr "PDF"
+
+#: dialog/save.py:32
+msgid "Portable Document Format"
+msgstr "פורמט מסמך נייד"
+
+#: dialog/save.py:33
+msgid "GIF"
+msgstr "GIF"
+
+#: dialog/save.py:33
+msgid "CompuServe graphics interchange format"
+msgstr "פורמט החלפת גרפיקה של CompuServe"
+
+#: dialog/save.py:34 dialog/save.py:54 dialog/save.py:100
+msgid "JPEG"
+msgstr "JPEG"
+
+#: dialog/save.py:34
+msgid "Joint Photographic Experts Group JFIF format"
+msgstr "פורמט JFIF של קבוצת המומחים המשותפת לצילום"
+
+#: dialog/save.py:35
+msgid "PNG"
+msgstr "PNG"
+
+#: dialog/save.py:35
+msgid "Portable Network Graphics"
+msgstr "גרפיקת רשת ניידת"
+
+#: dialog/save.py:36
+msgid "PNM"
+msgstr "PNM"
+
+#: dialog/save.py:36
+msgid "Portable anymap"
+msgstr "anymap נייד"
+
+#: dialog/save.py:37
+msgid "PS"
+msgstr "PS"
+
+#: dialog/save.py:37
+msgid "Postscript"
+msgstr "Postscript"
+
+#: dialog/save.py:38
+msgid "TIFF"
+msgstr "TIFF"
+
+#: dialog/save.py:38
+msgid "Tagged Image File Format"
+msgstr "פורמט קובץ תמונה מתויגת"
+
+#: dialog/save.py:39
+msgid "Text"
+msgstr "טקסט"
+
+#: dialog/save.py:39
+msgid "Plain text"
+msgstr "טקסט פשוט"
+
+#: dialog/save.py:40
+msgid "hOCR"
+msgstr "hOCR"
+
+#: dialog/save.py:40
+msgid "hOCR markup language"
+msgstr "שפת סימון hOCR"
+
+#: dialog/save.py:41 session_mixins.py:182
+msgid "Session"
+msgstr "הפעלה"
+
+#: dialog/save.py:41
+msgid "scantpaper session database"
+msgstr "מסד נתוני הפעלה של scantpaper"
+
+#: dialog/save.py:42
+msgid "Prepend to PDF"
+msgstr "הוסף לתחילת PDF"
+
+#: dialog/save.py:42
+msgid "Prepend to an existing PDF"
+msgstr "הוסף בתחילת PDF קיים"
+
+#: dialog/save.py:43
+msgid "Append to PDF"
+msgstr "הוסף ל-PDF"
+
+#: dialog/save.py:43
+msgid "Append to an existing PDF"
+msgstr "הוסף ל-PDF קיים"
+
+#: dialog/save.py:44
+msgid "DjVu"
+msgstr "DjVu"
+
+#: dialog/save.py:44
+msgid "Deja Vu"
+msgstr "דה ז'ה וו"
+
+#: dialog/save.py:49 tesseract.py:197
+msgid "Automatic"
+msgstr "אוטומטי"
+
+#: dialog/save.py:50
+msgid "Let scantpaper which type of compression to use."
+msgstr "אפשר ל-scantpaper לבחור באיזה סוג דחיסה להשתמש."
+
+#: dialog/save.py:52 dialog/save.py:103
+msgid "G4"
+msgstr "G4"
+
+#: dialog/save.py:52 dialog/save.py:103
+msgid "Compress output with CCITT Group 4 encoding."
+msgstr "דחוס את הפלט בקידוד CCITT Group 4."
+
+#: dialog/save.py:53
+msgid "Flate"
+msgstr "פלייט"
+
+#: dialog/save.py:53
+msgid "Compress output with flate encoding."
+msgstr "דחוס את הפלט באמצעות קידוד flate."
+
+#: dialog/save.py:54
+msgid "Compress output with JPEG (DCT) encoding."
+msgstr "דחיסת פלט בקידוד JPEG (DCT)."
+
+#: dialog/save.py:55
+msgid "JPEG 2000"
+msgstr "JPEG 2000"
+
+#: dialog/save.py:55
+msgid "Compress output with JPEG 2000 encoding."
+msgstr "דחוס את הפלט בקידוד JPEG 2000."
+
+#: dialog/save.py:71
+msgid "Compress output with JBIG2 encoding."
+msgstr "דחוס את הפלט בקידוד JBIG2."
+
+#: dialog/save.py:79
+msgid "LibTIFF"
+msgstr "LibTIFF"
+
+#: dialog/save.py:80
+msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
+msgstr "השתמש ב-LibTIFF (tiff2ps) ליצירת קבצי Postscript מ-TIFF."
+
+#: dialog/save.py:84
+msgid "Ghostscript"
+msgstr "Ghostscript"
+
+#: dialog/save.py:85
+msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
+msgstr "השתמש ב-Ghostscript (pdf2ps) כדי ליצור קובצי Postscript מ-PDF."
+
+#: dialog/save.py:89
+msgid "Poppler"
+msgstr "Poppler"
+
+#: dialog/save.py:90
+msgid "Use Poppler (pdftops) to create Postscript files from PDF."
+msgstr "השתמש ב־Poppler (pdftops) כדי ליצור קובצי PostScript מ־PDF."
+
+#: dialog/save.py:94
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:94
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "דחס פלט באמצעות קידוד Lempel-Ziv & Welch"
+
+#: dialog/save.py:97
+msgid "Zip"
+msgstr "Zip"
+
+#: dialog/save.py:98
+msgid "Compress output with deflate encoding."
+msgstr "דחוס את הפלט באמצעות קידוד deflate."
+
+#: dialog/save.py:100
+msgid "Compress output with JPEG encoding."
+msgstr "דחוס את הפלט בקידוד JPEG."
+
+#: dialog/save.py:101
+msgid "Packbits"
+msgstr "Packbits"
+
+#: dialog/save.py:101
+msgid "Compress output with Packbits encoding."
+msgstr "דחוס את הפלט בקידוד Packbits."
+
+#: dialog/save.py:102
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:102
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "כווץ את הפלט באמצעות קידוד CCITT Group 3."
+
+#: dialog/save.py:104 postprocess_controls.py:644 postprocess_controls.py:906
+msgid "None"
+msgstr "ללא"
+
+#: dialog/save.py:104
+msgid "Use no compression algorithm on output."
+msgstr "אל תשתמש באלגוריתם דחיסה על הפלט."
+
+#: dialog/save.py:374
+msgid "Document Metadata"
+msgstr "מטא-נתוני מסמך"
+
+#: dialog/save.py:385
+msgid "Date/Time"
+msgstr "תאריך/שעה"
+
+#: dialog/save.py:397 dialog/save.py:591
+msgid "Now"
+msgstr "עכשיו"
+
+#: dialog/save.py:398 dialog/save.py:592
+msgid "Use current date and time"
+msgstr "השתמש בתאריך ובשעה הנוכחיים"
+
+#: dialog/save.py:405
+msgid "Specify"
+msgstr "ציין"
+
+#: dialog/save.py:407
+msgid "Specify date and time"
+msgstr "ציין תאריך ושעה"
+
+#: dialog/save.py:415
+msgid "Year-Month-Day"
+msgstr "שנה-חודש-יום"
+
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
+msgid "Select date with calendar"
+msgstr "בחר תאריך בלוח השנה"
+
+#: dialog/save.py:467
+msgid "Select Date"
+msgstr "בחר תאריך"
+
+#: dialog/save.py:509 dialog/save.py:598
+msgid "Today"
+msgstr "היום"
+
+#: dialog/save.py:565
+msgid "Title"
+msgstr "כותרת"
+
+#: dialog/save.py:566
+msgid "Author"
+msgstr "מחבר"
+
+#: dialog/save.py:567
+msgid "Subject"
+msgstr "נושא"
+
+#: dialog/save.py:568
+msgid "Keywords"
+msgstr "מילות מפתח"
+
+#: dialog/save.py:599
+msgid "Use today's date"
+msgstr "השתמש בתאריך של היום"
+
+#: dialog/save.py:609
+msgid "Document type"
+msgstr "סוג מסמך"
+
+#: dialog/save.py:618
+msgid "Postscript backend"
+msgstr "Backend של PostScript"
+
+#: dialog/save.py:635 dialog/save.py:776
+msgid "Compression"
+msgstr "דחיסה"
+
+#: dialog/save.py:754
+msgid "Quality"
+msgstr "איכות"
+
+#: dialog/save.py:791
+msgid "Encrypt PDF"
+msgstr "הצפן PDF"
+
+#: dialog/save.py:808
+msgid "Downsample to"
+msgstr "דגימה מטה ל־"
+
+#: dialog/save.py:812 dialog/scan.py:770
+msgid "ppi"
+msgstr "ppi"
+
+#: dialog/save.py:841
+msgid "Set password"
+msgstr "הגדר סיסמה"
+
+#: dialog/save.py:850
+msgid "User password"
+msgstr "סיסמת משתמש"
+
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
+msgid "Manual"
+msgstr "מדריך"
+
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
+msgid "Scan profiles"
+msgstr "פרופילי סריקה"
+
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
+msgid "Save"
+msgstr "שמור"
+
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:118
+msgid "Edit"
+msgstr "עריכה"
+
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
+msgid "Delete"
+msgstr "מחק"
+
+#: dialog/scan.py:503
+msgid "Scan"
+msgstr "סרוק"
+
+#: dialog/scan.py:531
+msgid "Device"
+msgstr "התקן"
+
+#: dialog/scan.py:559
+msgid "Sets the device to be used for the scan"
+msgstr "מגדיר את ההתקן שישמש לסריקה"
+
+#: dialog/scan.py:562
+msgid "Blacklist this device"
+msgstr "הוסף מכשיר זה לרשימה השחורה"
+
+#: dialog/scan.py:564
+msgid "Hide the selected device from the device list"
+msgstr "הסתר את ההתקן הנבחר מרשימת ההתקנים"
+
+#: dialog/scan.py:705
+#, python-format
+msgid "Error: unknown device: %s"
+msgstr "שגיאה: התקן לא ידוע: %s"
+
+#: dialog/scan.py:767
+msgid "pel"
+msgstr "pel"
+
+#: dialog/scan.py:768
+msgid "bit"
+msgstr "ביט"
+
+#: dialog/scan.py:769
+msgid "mm"
+msgstr "מ״מ"
+
+#: dialog/scan.py:772
+msgid "μs"
+msgstr "μs"
+
+#: dialog/scan.py:796
+msgid "Paper size"
+msgstr "גודל נייר"
+
+#: dialog/scan.py:801
+msgid "Selects or edits the paper size"
+msgstr "בוחר או עורך את גודל הנייר"
+
+#: dialog/scan.py:880
+#, python-format
+msgid ""
+"Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
+"%(options)d scan options. Please file a bug, attaching a log file "
+"reproducing the problem."
+msgstr ""
+"חריגה ממגבלת רקורסיית הטעינה מחדש (%(limit)d): %(reloads)d טעינות מחדש עבור "
+"%(options)d אפשרויות סריקה. נא לדווח על באג, בצירוף קובץ יומן המשחזר את "
+"הבעיה."
+
+#: dialog/scan.py:1138
+msgid "Edit paper size"
+msgstr "עריכת גודל נייר"
+
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
+msgid "Add a paper size"
+msgstr "הוסף גודל נייר"
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
+msgid "Remove the selected paper size"
+msgstr "הסר את גודל הנייר הנבחר"
+
+#: dialog/scan.py:1167
+msgid "Apply"
+msgstr "החל"
+
+#: dialog/scan.py:1185
+msgid ""
+"The following paper sizes are too big to be scanned by the selected device:"
+msgstr "גדלי הנייר הבאים גדולים מדי לסריקה במכשיר שנבחר:"
+
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
+msgid "Name of scan profile"
+msgstr "שם פרופיל הסריקה"
+
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
+#, python-format
+msgid "Profile '%s' exists. Overwrite?"
+msgstr "הפרופיל '%s' קיים. לדרוס?"
+
+#: dialog/scan.py:1756
+msgid "Editing current scan options"
+msgstr "עריכת אפשרויות הסריקה הנוכחיות"
+
+#: dialog/scan.py:1760
 #, python-format
 msgid "Editing scan profile \"%s\""
-msgstr ""
+msgstr "עריכת פרופיל סריקה \"%s\""
 
-#: dialog/scan.py:1686
+#: dialog/scan.py:1822
 msgid "Backend options"
-msgstr ""
+msgstr "אפשרויות צד שרת"
 
-#: dialog/scan.py:1687
+#: dialog/scan.py:1823
 msgid "Frontend options"
+msgstr "אפשרויות ממשק המשתמש"
+
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
+#, python-format
+msgid "Remove %(option)s from the profile"
+msgstr "הסר את %(option)s מהפרופיל"
+
+#: dialog/scan.py:1890
+#, python-format
+msgid "Scanning page %(current)d of %(total)d"
+msgstr "סורק עמוד %(current)d מתוך %(total)d"
+
+#: dialog/scan.py:1894
+#, python-format
+msgid "Scanning page %(current)d"
+msgstr "סורק עמוד %(current)d"
+
+#: dialog/tesseractparams.py:45
+msgid "Tesseract parameters"
+msgstr "פרמטרים של Tesseract"
+
+#: dialog/tesseractparams.py:56
+msgid "Filter parameters"
+msgstr "פרמטרי סינון"
+
+#: dialog/tesseractparams.py:70 postprocess_controls.py:697 tesseract.py:213
+msgid "Default"
+msgstr "ברירת מחדל"
+
+#: dialog/tesseractparams.py:71
+msgid "Description"
+msgstr "תיאור"
+
+#: dialog/tesseractparams.py:96
+msgid "_Insert"
+msgstr "_הוסף"
+
+#: dialog/tesseractparams.py:110
+msgid ""
+"The Tesseract parameter list is unavailable. OCR can still run with the "
+"parameters already entered."
 msgstr ""
+"רשימת הפרמטרים של Tesseract אינה זמינה. ניתן עדיין להריץ OCR עם הפרמטרים "
+"שכבר הוזנו."
 
-#: dialog/scan.py:1752
-#, fuzzy, python-format
-msgid "Scanning page %d of %d"
-msgstr "סורק דף %d מתוך %d"
+#: dialog/tesseractparams.py:127
+#, python-format
+msgid "Set by the %(control)s control"
+msgstr "נקבע על ידי פקד ה%(control)s"
 
-#: dialog/scan.py:1753
-#, fuzzy, python-format
-msgid "Scanning page %d"
-msgstr "סורק דף %d"
+#: dialog/tesseractparams.py:147
+msgid "No parameters match"
+msgstr "אין פרמטרים תואמים"
 
-#: docthread.py:1167
-#, fuzzy, python-format
-msgid "Analysing page %i of %i"
-msgstr "מנתח דף %i מתוך %i"
+#: docthread.py:1285
+#, python-format
+msgid "Error reading hOCR file %(path)s: %(error)s"
+msgstr "שגיאה בקריאת קובץ hOCR %(path)s: %(error)s"
 
-#: docthread.py:1461
+#: docthread.py:1293
+#, python-format
+msgid "Error parsing hOCR file %(path)s: %(error)s"
+msgstr "שגיאה בפענוח קובץ hOCR %(path)s: %(error)s"
+
+#: docthread.py:1299
+msgid "The file contains no hOCR pages."
+msgstr "הקובץ אינו מכיל דפי hOCR."
+
+#: docthread.py:1312
+#, python-format
+msgid ""
+"The hOCR file contains %(found)i pages, but %(expected)i pages are selected."
+msgstr "קובץ ה-hOCR מכיל %(found)i עמודים, אך %(expected)i עמודים נבחרו."
+
+#: docthread.py:1322
+#, python-format
+msgid "Checking hOCR page %(current)i of %(total)i"
+msgstr "בודק עמוד hOCR %(current)i מתוך %(total)i"
+
+#: docthread.py:1330
+#, python-format
+msgid "The hOCR page for page %(page)i has no page box."
+msgstr "לדף ה-hOCR של עמוד %(page)i אין תיבת עמוד."
+
+#: docthread.py:1342
+#, python-format
+msgid ""
+"The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the"
+" page is %(width)ix%(height)i."
+msgstr ""
+"דף ה-hOCR עבור עמוד %(page)i הוא %(found_width)ix%(found_height)i, אך העמוד "
+"הוא %(width)ix%(height)i."
+
+#: docthread.py:1366
+msgid "No pages selected for hOCR import."
+msgstr "לא נבחרו עמודים לייבוא hOCR."
+
+#: docthread.py:1385
+#, python-format
+msgid "Importing hOCR page %(current)i of %(total)i"
+msgstr "מייבא דף hOCR %(current)i מתוך %(total)i"
+
+#: docthread.py:1526
+#, python-format
+msgid "Analysing page %(current)i of %(total)i"
+msgstr "מנתח עמוד %(current)i מתוך %(total)i"
+
+#: docthread.py:1800
 msgid "No tesseract language specified"
-msgstr ""
+msgstr "לא צוינה שפת Tesseract"
 
-#: docthread.py:1470
-msgid "tessdata directory not found"
-msgstr ""
+#: docthread.py:1832
+#, python-format
+msgid "Failed to initialise OCR with the %(mode)s engine mode: %(error)s"
+msgstr "נכשל באתחול OCR עם מצב מנוע %(mode)s: %(error)s"
+
+#: docthread.py:1844 postprocess_controls.py:605
+#, python-format
+msgid "Unknown Tesseract option: %(variable)s"
+msgstr "אפשרות Tesseract לא ידועה: %(variable)s"
 
 #: document.py:111
 msgid "Error: cannot open a session file at the same time as another file."
-msgstr ""
+msgstr "שגיאה: לא ניתן לפתוח קובץ סשן בו-זמנית עם קובץ אחר."
 
 #: document.py:127
 msgid "Error: importing a multipage file at the same time as another file."
-msgstr ""
+msgstr "שגיאה: ייבוא קובץ רב-עמודי בו-זמנית עם קובץ אחר."
 
-#: edit_menu_mixins.py:60
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
-msgstr ""
+msgstr "מאפיינים"
 
-#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
-#, fuzzy
+#: edit_menu_mixins.py:72 edit_menu_mixins.py:82
 msgid "dpi"
 msgstr "dpi"
 
-#: edit_menu_mixins.py:362
+#: edit_menu_mixins.py:377
 msgid "Invalid regex. Try without special characters such as '*'"
-msgstr ""
+msgstr "ביטוי רגולרי לא תקין. נסה ללא תווים מיוחדים כגון '*'"
 
-#: edit_menu_mixins.py:394
-#, fuzzy
+#: edit_menu_mixins.py:409
 msgid "Changes will only take effect after restarting scantpaper."
 msgstr "השינויים ייכנסו לתוקף רק לאחר הפעלה מחדש של scantpaper."
 
-#: edit_menu_mixins.py:396
-#, fuzzy
+#: edit_menu_mixins.py:411
 msgid "Restart scantpaper now?"
-msgstr "להפעיל מחדש את scantpaper עכשיו?"
+msgstr "להפעיל מחדש את scantpaper כעת?"
 
-#: file_menu_mixins.py:104
+#: file_menu_mixins.py:87
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
 msgstr ""
+"חלק מהעמודים לא נשמרו.\n"
+"האם באמת ברצונך לנקות את כל העמודים?"
 
-#: file_menu_mixins.py:129
-#, fuzzy
+#: file_menu_mixins.py:112
 msgid "Open image"
 msgstr "פתח תמונה"
 
-#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
-#, fuzzy
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
 msgstr "קבצי תמונה"
 
-#: file_menu_mixins.py:180
-#, fuzzy
+#: file_menu_mixins.py:164
 msgid "Pages to extract"
-msgstr "דפים לחילוץ"
+msgstr "עמודים לחילוץ"
 
-#: file_menu_mixins.py:194
-#, fuzzy
+#: file_menu_mixins.py:181
 msgid "First page to extract"
-msgstr "הדף הראשון לחילוץ"
+msgstr "עמוד ראשון לחילוץ"
 
-#: file_menu_mixins.py:200
-#, fuzzy
+#: file_menu_mixins.py:188
 msgid "Last page to extract"
-msgstr "הדף האחרון לחילוץ"
+msgstr "עמוד אחרון לחילוץ"
 
-#: file_menu_mixins.py:214
-#, fuzzy, python-format
+#: file_menu_mixins.py:201
+#, python-format
 msgid "Enter user password for PDF %s"
 msgstr "הזן סיסמת משתמש עבור PDF %s"
 
-#: file_menu_mixins.py:281
-#, fuzzy
-msgid "Open crashed session"
-msgstr "פתח הפעלה שקרסה"
+#: file_menu_mixins.py:268
+msgid "Import hOCR"
+msgstr "ייבוא hOCR"
 
-#: file_menu_mixins.py:336
-msgid "Save"
-msgstr "שמור"
-
-#: file_menu_mixins.py:367
-#, fuzzy
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
-msgstr "פעולה לאחר שמירה"
+msgstr "הוק לאחר שמירה"
 
-#: file_menu_mixins.py:370
+#: file_menu_mixins.py:377
 #, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
 msgstr ""
+"הפעל פקודה על קובץ שמור. הפקודות הזמינות הן כלים שהוגדרו על ידי המשתמש שאינם"
+" מציינים את %o"
 
-#: file_menu_mixins.py:392 file_menu_mixins.py:393
-#, fuzzy
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
-msgstr "סגור תיבת דו-שיח בעת שמירה"
+msgstr "סגור את תיבת הדו־שיח בשמירה"
 
-#: file_menu_mixins.py:465
+#: file_menu_mixins.py:407 menu.ui:24
+msgid "_Save"
+msgstr "_שמור"
+
+#: file_menu_mixins.py:471
 msgid "PDF filename"
 msgstr "שם קובץ PDF"
 
-#: file_menu_mixins.py:466
-#, fuzzy
+#: file_menu_mixins.py:472
 msgid "PDF files"
-msgstr "קבצי PDF"
+msgstr "קובצי PDF"
 
-#: file_menu_mixins.py:469
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
-msgstr ""
+msgstr "שם קובץ DjVu"
 
-#: file_menu_mixins.py:470
-#, fuzzy
+#: file_menu_mixins.py:476
 msgid "DjVu files"
-msgstr "קבצי DjVu"
+msgstr "קובצי DjVu"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
-msgstr ""
+msgstr "שם קובץ TIFF"
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:483
 msgid "Text filename"
-msgstr ""
+msgstr "שם קובץ טקסט"
 
-#: file_menu_mixins.py:478
-#, fuzzy
+#: file_menu_mixins.py:484
 msgid "Text files"
 msgstr "קבצי טקסט"
 
-#: file_menu_mixins.py:481
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
-msgstr ""
+msgstr "שם קובץ hOCR"
 
-#: file_menu_mixins.py:482
-#, fuzzy
-msgid "hOCR files"
-msgstr "קבצי hOCR"
-
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:491
 msgid "PS filename"
-msgstr ""
+msgstr "שם קובץ PS"
 
-#: file_menu_mixins.py:486
-#, fuzzy
+#: file_menu_mixins.py:492
 msgid "Postscript files"
-msgstr "קבצי Postscript"
+msgstr "קובצי PostScript"
 
-#: file_menu_mixins.py:489
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
-msgstr ""
+msgstr "שם קובץ הפעלת scantpaper"
 
-#: file_menu_mixins.py:490
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
-msgstr ""
+msgstr "קובצי סשן של scantpaper"
 
-#: file_menu_mixins.py:601
+#: file_menu_mixins.py:604
+#, python-format
+msgid "Error saving %(filename)s: %(error)s"
+msgstr "שגיאה בשמירת %(filename)s: %(error)s"
+
+#: file_menu_mixins.py:619
 #, python-format
 msgid "Directory %s is read-only"
-msgstr ""
+msgstr "התיקייה %s היא לקריאה בלבד"
 
-#: file_menu_mixins.py:611
+#: file_menu_mixins.py:629
 #, python-format
 msgid "File %s is read-only"
-msgstr ""
+msgstr "הקובץ %s הוא לקריאה בלבד"
 
-#: file_menu_mixins.py:802
+#: file_menu_mixins.py:821
 msgid "Image filename"
 msgstr "שם קובץ תמונה"
 
-#: file_menu_mixins.py:862
+#: file_menu_mixins.py:881
 #, python-format
 msgid "This operation would overwrite %s"
-msgstr ""
+msgstr "פעולה זו תדרוס את %s"
 
-#: file_menu_mixins.py:945
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
 msgstr ""
+"חלק מהדפים לא נשמרו.\n"
+"האם באמת ברצונך לצאת?"
 
-#: importthread.py:86
+#: importthread.py:100
 #, python-format
 msgid "File %s not found"
-msgstr ""
+msgstr "הקובץ %s לא נמצא"
 
-#: importthread.py:92
+#: importthread.py:106
 #, python-format
-msgid "Error getting file info for %s: %s"
-msgstr ""
+msgid "Error getting file info for %(path)s: %(error)s"
+msgstr "שגיאה בקבלת מידע על הקובץ עבור %(path)s: %(error)s"
 
-#: importthread.py:97
+#: importthread.py:112
 #, python-format
 msgid "Error importing zero-length file %s."
-msgstr ""
+msgstr "שגיאה בייבוא קובץ באורך אפס %s."
 
-#: importthread.py:135 importthread.py:178
+#: importthread.py:150 importthread.py:193
 #, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
-msgstr ""
+msgstr "אנא התקן את djvulibre-bin כדי לפתוח קבצי DjVu: %s"
 
-#: importthread.py:166
+#: importthread.py:181
 msgid "Unknown DjVu file structure. Please contact the author."
-msgstr ""
+msgstr "מבנה קובץ DjVu לא ידוע. אנא צור קשר עם המחבר."
 
-#: importthread.py:266
+#: importthread.py:281
 #, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
-msgstr ""
+msgstr "נא להתקין את libtiff-tools כדי לפתוח קובצי TIFF: %s"
 
-#: importthread.py:328 importthread.py:388
+#: importthread.py:343 importthread.py:403
 #, python-format
-msgid "Importing page %i of %i"
-msgstr ""
+msgid "Importing page %(current)i of %(total)i"
+msgstr "מייבא עמוד %(current)i מתוך %(total)i"
 
-#: importthread.py:509
+#: importthread.py:524
 msgid "Error extracting images from PDF"
-msgstr ""
+msgstr "שגיאה בחילוץ תמונות מ-PDF"
 
-#: importthread.py:521
+#: importthread.py:536
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
@@ -1358,709 +1558,998 @@ msgid ""
 "Save dialogue."
 msgstr ""
 
-#: importthread.py:560
+#: importthread.py:575
 msgid "Error importing PDF"
-msgstr ""
+msgstr "שגיאה בייבוא PDF"
 
-#: importthread.py:587
+#: importthread.py:602
 msgid "Error extracting text layer from PDF"
-msgstr ""
+msgstr "שגיאה בחילוץ שכבת הטקסט מה-PDF"
 
-#: pagerange.py:46
-msgid "Selected"
-msgstr ""
+#: layer.py:45
+msgid "Sort by confidence"
+msgstr "מיון לפי רמת ביטחון"
 
-#: postprocess_controls.py:22
+#: layer.py:46
+msgid "Sort OCR text boxes by confidence."
+msgstr "מיין תיבות טקסט של OCR לפי רמת ביטחון."
+
+#: layer.py:48
+msgid "Sort by position"
+msgstr "מיון לפי מיקום"
+
+#: layer.py:48
+msgid "Sort OCR text boxes by position."
+msgstr "מיין תיבות טקסט OCR לפי מיקום."
+
+#: layer.py:62
+msgid "my-new-word"
+msgstr "המילה החדשה שלי"
+
+#: layer.py:63
+msgid "my-new-annotation"
+msgstr "ההערה-החדשה-שלי"
+
+#: layer.py:207
+msgid "Go to least confident text"
+msgstr "עבור לטקסט בעל הביטחון הנמוך ביותר"
+
+#: layer.py:212
+msgid "Go to previous text"
+msgstr "מעבר לטקסט הקודם"
+
+#: layer.py:217
+msgid "Select sort method for OCR boxes"
+msgstr "בחר שיטת מיון לתיבות OCR"
+
+#: layer.py:228
+msgid "Go to next text"
+msgstr "עבור לטקסט הבא"
+
+#: layer.py:232
 #, fuzzy
+msgid "Go to most confident text"
+msgstr "מעבר לטקסט הכי אמין"
+
+#: layer.py:238 layer.py:396
+msgid "Add text"
+msgstr "הוסף טקסט"
+
+#: layer.py:246
+msgid "Rotate text clockwise"
+msgstr "סובב טקסט בכיוון השעון"
+
+#: layer.py:251
+msgid "Rotate text anticlockwise"
+msgstr "סובב טקסט נגד כיוון השעון"
+
+#: layer.py:256
+msgid "Accept corrections"
+msgstr "קבל תיקונים"
+
+#: layer.py:259
+msgid "Cancel corrections"
+msgstr "ביטול תיקונים"
+
+#: layer.py:264 app.ui:287 menu.ui:61
+msgid "_Copy"
+msgstr "הע_תק"
+
+#: layer.py:264
+msgid "Duplicate text"
+msgstr "שכפול טקסט"
+
+#: layer.py:267
+msgid "Delete text"
+msgstr "מחק טקסט"
+
+#: layer.py:317
+msgid "Focus zoom"
+msgstr "זום מיקוד"
+
+#: layer.py:335
+msgid "Reset"
+msgstr "איפוס"
+
+#: layer.py:362
+#, python-format
+msgid "Focus zoom: %(percent)d%%"
+msgstr "זום מיקוד: %(percent)d%%"
+
+#: layer.py:399
+msgid "Draw or select a rectangle before adding"
+msgstr "צייר או בחר מלבן לפני הוספה"
+
+#: pagerange.py:47
+msgid "Selected"
+msgstr "נבחר"
+
+#: postprocess_controls.py:43
 msgid "Both sides"
 msgstr "שני הצדדים"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides."
-msgstr ""
+msgstr "שני הצדדים."
 
-#: postprocess_controls.py:23
-#, fuzzy
+#: postprocess_controls.py:44
 msgid "Facing side"
-msgstr "צד קדמי"
+msgstr "צד פונה"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side."
-msgstr ""
+msgstr "צד פונה."
 
-#: postprocess_controls.py:24
-#, fuzzy
+#: postprocess_controls.py:45
 msgid "Reverse side"
 msgstr "צד אחורי"
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side."
-msgstr ""
+msgstr "צד אחורי."
 
-#: postprocess_controls.py:27
-#, fuzzy
+#: postprocess_controls.py:48
 msgid "90°"
 msgstr "90°"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:48
 msgid "Rotate image 90 degrees clockwise."
-msgstr ""
+msgstr "סובב את התמונה 90 מעלות בכיוון השעון."
 
-#: postprocess_controls.py:28
-#, fuzzy
+#: postprocess_controls.py:49
 msgid "180°"
 msgstr "180°"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:49
 msgid "Rotate image 180 degrees clockwise."
-msgstr ""
+msgstr "סובב תמונה 180 מעלות בכיוון השעון."
 
-#: postprocess_controls.py:29
-#, fuzzy
+#: postprocess_controls.py:50
 msgid "270°"
 msgstr "270°"
 
-#: postprocess_controls.py:29
+#: postprocess_controls.py:50
 msgid "Rotate image 90 degrees anticlockwise."
-msgstr ""
+msgstr "סובב תמונה 90 מעלות נגד כיוון השעון."
 
-#: postprocess_controls.py:39
-#, fuzzy
+#: postprocess_controls.py:55 postprocess_controls.py:738
+msgid "Page segmentation mode"
+msgstr "מצב פילוח דף"
+
+#: postprocess_controls.py:56 postprocess_controls.py:747
+msgid "OCR engine mode"
+msgstr "מצב מנוע OCR"
+
+#: postprocess_controls.py:67
 msgid "Rotate"
-msgstr "סיבוב"
+msgstr "סובב"
 
-#: postprocess_controls.py:40
-#, fuzzy
+#: postprocess_controls.py:68
 msgid "Rotate image after scanning"
-msgstr "סובב תמונה לאחר הסריקה"
+msgstr "סובב את התמונה לאחר הסריקה"
 
-#: postprocess_controls.py:43
+#: postprocess_controls.py:72
 msgid "Select side to rotate"
-msgstr ""
+msgstr "בחר צד לסיבוב"
 
-#: postprocess_controls.py:46
-#, fuzzy
+#: postprocess_controls.py:76
 msgid "Select angle of rotation"
-msgstr "בחירת זווית סיבוב"
+msgstr "בחר זווית סיבוב"
 
-#: postprocess_controls.py:49
-#, fuzzy
+#: postprocess_controls.py:79
 msgid "Anticlockwise"
 msgstr "נגד כיוון השעון"
 
-#: postprocess_controls.py:350 postprocess_controls.py:351
-#, fuzzy
+#: postprocess_controls.py:478 postprocess_controls.py:479
 msgid "OCR scanned pages"
-msgstr "OCR לדפים שנסרקו"
+msgstr "דפים שנסרקו ב-OCR"
 
-#: postprocess_controls.py:378
-#, fuzzy
+#: postprocess_controls.py:507
 msgid "Threshold before OCR"
 msgstr "סף לפני OCR"
 
-#: postprocess_controls.py:381
+#: postprocess_controls.py:510
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
 msgstr ""
+"החל סף על התמונה לפני ביצוע OCR. זה משפיע רק על התמונה המועברת למנוע ה-OCR, "
+"ולא על התמונה המאוחסנת."
 
-#: postprocess_controls.py:392 tools_menu_mixins.py:114
+#: postprocess_controls.py:520 tools_menu_mixins.py:122
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
 msgstr ""
+"פיקסלים השונים מצבע הנייר ביותר מאחוז זה מוצגים בשחור. ערכים גבוהים יותר "
+"שומרים רק סימנים חזקים יותר."
 
-#: postprocess_controls.py:428
-#, fuzzy
+#: postprocess_controls.py:585
+msgid "No OCR language selected."
+msgstr "לא נבחרה שפת OCR."
+
+#: postprocess_controls.py:588
+#, python-format
+msgid "The following OCR languages are not installed: %(languages)s"
+msgstr "שפות ה-OCR הבאות אינן מותקנות: %(languages)s"
+
+#: postprocess_controls.py:598
+#, python-format
+msgid ""
+"'%(variable)s' is set by the %(control)s control; remove it from this field."
+msgstr "'%(variable)s' מוגדר על ידי הפקד %(control)s; הסר אותו משדה זה."
+
+#: postprocess_controls.py:609
+#, python-format
+msgid "Unknown Tesseract options: %(variables)s"
+msgstr "אפשרויות Tesseract לא ידועות: %(variables)s"
+
+#: postprocess_controls.py:624
 msgid "Language to recognise"
 msgstr "שפה לזיהוי"
 
-#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-msgid "_Cancel"
-msgstr ""
+#: postprocess_controls.py:632
+msgid "Additional languages"
+msgstr "שפות נוספות"
 
-#: progress.py:76 progress.py:110
+#: postprocess_controls.py:674
+msgid "Tessdata directory"
+msgstr "תיקיית Tessdata"
+
+#: postprocess_controls.py:677
+msgid "Default (system tessdata)"
+msgstr "ברירת מחדל (tessdata של המערכת)"
+
+#: postprocess_controls.py:680
+msgid ""
+"Directory that directly contains the Tesseract .traineddata language files. "
+"Leave empty for the system default."
+msgstr ""
+"תיקייה שמכילה ישירות את קובצי השפה .traineddata של Tesseract. השאר ריק כדי "
+"להשתמש בברירת המחדל של המערכת."
+
+#: postprocess_controls.py:693
+msgid "Choose the tessdata directory"
+msgstr "בחר את תיקיית ה-tessdata"
+
+#: postprocess_controls.py:698
+msgid "Use the system tessdata directory"
+msgstr "השתמש בתיקיית tessdata של המערכת"
+
+#: postprocess_controls.py:710
+msgid "Select tessdata directory"
+msgstr "בחר תיקיית tessdata"
+
+#: postprocess_controls.py:741
+msgid "How tesseract should segment the page. Automatic suits most pages."
+msgstr "כיצד tesseract צריך לפלח את הדף. אוטומטי מתאים לרוב הדפים."
+
+#: postprocess_controls.py:750
+msgid "Which tesseract engine to use. Default uses the engine's own choice."
+msgstr "באיזה מנוע tesseract להשתמש. ברירת המחדל משתמשת בבחירה של המנוע עצמו."
+
+#: postprocess_controls.py:758
+msgid "Advanced Tesseract engine parameters"
+msgstr "פרמטרים מתקדמים של מנוע Tesseract"
+
+#: postprocess_controls.py:761
+msgid ""
+"Tesseract engine parameters - the values of tesseract's -c option - not "
+"command-line flags. Use absolute paths."
+msgstr ""
+"פרמטרים של מנוע Tesseract - הערכים של אפשרות -c של tesseract - לא דגלי שורת "
+"פקודה. השתמש בנתיבים מוחלטים."
+
+#: postprocess_controls.py:769
+msgid ""
+"One name=value engine parameter per line, e.g. "
+"user_words_file=/path/to/words.txt. Write engine parameters, not command-"
+"line options such as --user-words."
+msgstr ""
+"פרמטר מנוע אחד מסוג name=value בכל שורה, למשל "
+"user_words_file=/path/to/words.txt. יש לכתוב פרמטרי מנוע, ולא אפשרויות שורת "
+"פקודה כגון --user-words."
+
+#: postprocess_controls.py:791
+msgid "_Available parameters"
+msgstr "_פרמטרים זמינים"
+
+#: postprocess_controls.py:794
+msgid "Browse the parameters the installed Tesseract reports"
+msgstr "עיין בפרמטרים ש-Tesseract המותקן מדווח עליהם"
+
+#: postprocess_controls.py:907
+msgid "No additional languages"
+msgstr "אין שפות נוספות"
+
+#: postprocess_controls.py:922
 #, python-format
-msgid "Process %i of %i (%s)"
-msgstr ""
+msgid "%(language)s (not installed)"
+msgstr "%(language)s (לא מותקנת)"
 
-#: progress.py:119
+#: progress.py:79 progress.py:118
 #, python-format
-msgid "Process %i of %i"
-msgstr ""
+msgid "Process %(current)i of %(total)i (%(process)s)"
+msgstr "תהליך %(current)i מתוך %(total)i (%(process)s)"
 
-#: savethread.py:83
-#, fuzzy
+#: progress.py:127
+#, python-format
+msgid "Process %(current)i of %(total)i"
+msgstr "תהליך %(current)i מתוך %(total)i"
+
+#: savethread.py:210
 msgid "Processing PDF"
 msgstr "מעבד PDF"
 
-#: savethread.py:148
+#: savethread.py:283
 msgid "Embedding text layer"
-msgstr ""
+msgstr "הטמעת שכבת טקסט"
 
-#: savethread.py:195
+#: savethread.py:341
 msgid "Setting up PDF"
-msgstr ""
+msgstr "מגדיר PDF"
 
-#: savethread.py:264 savethread.py:405
+#: savethread.py:409 tests/test_savethread.py:1822
+msgid "Converting to JBIG2"
+msgstr "ממיר ל-JBIG2"
+
+#: savethread.py:447 savethread.py:615
 #, python-format
-msgid "Writing page %i of %i"
-msgstr ""
+msgid "Writing page %(current)i of %(total)i"
+msgstr "כותב עמוד %(current)i מתוך %(total)i"
 
-#: savethread.py:291
+#: savethread.py:498
 #, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
+"הגודל המשוער של ה-PDF (%.1f GiB) עולה על 2 GiB.  אנא שמור פחות עמודים."
 
-#: savethread.py:314 tests/test_savethread.py:1240
-#, fuzzy
+#: savethread.py:521 tests/test_savethread.py:1599
 msgid "Writing PDF"
 msgstr "כותב PDF"
 
-#: savethread.py:363
-#, fuzzy
+#: savethread.py:571
 msgid "Converting to PS"
 msgstr "ממיר ל-PS"
 
-#: savethread.py:374
+#: savethread.py:584
 #, python-format
 msgid "Error converting PDF to PS: %s"
-msgstr ""
+msgstr "שגיאה בהמרת PDF ל-PS: %s"
 
-#: savethread.py:418
-#, fuzzy
+#: savethread.py:628
 msgid "Merging DjVu"
-msgstr "ממזג DjVu"
+msgstr "מיזוג DjVu"
 
-#: savethread.py:425
+#: savethread.py:635
 #, python-format
 msgid "Error merging DjVu: %s"
-msgstr ""
+msgstr "שגיאה במיזוג DjVu: %s"
 
-#: savethread.py:519
+#: savethread.py:729
 #, python-format
 msgid "Error converting TIFF to PS: %s"
-msgstr ""
+msgstr "שגיאה בהמרת TIFF ל-PS: %s"
 
-#: savethread.py:664
+#: savethread.py:877
 msgid "Error copying page"
 msgstr "שגיאה בהעתקת תמונה"
 
-#: savethread.py:814
+#: savethread.py:948 tools_menu_mixins.py:840
+#, python-format
+msgid ""
+"Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
+"it one page at a time instead."
+msgstr ""
+"לא ניתן להשתמש במצב אצווה עם '%(tool)s' מכיוון שהוא משתמש ב-%(variable)s. "
+"הפעל אותו דף אחד בכל פעם במקום זאת."
+
+#: savethread.py:1009
+msgid ""
+"No pages were modified. If the tool was already running (for example GIMP), "
+"it may have opened the images in the existing instance."
+msgstr ""
+"לא בוצעו שינויים בדפים. אם הכלי כבר היה פועל (לדוגמה GIMP), ייתכן שהוא פתח "
+"את התמונות במופע הקיים."
+
+#: savethread.py:1018
+#, python-format
+msgid "'%(tool)s' failed with status %(status)s."
+msgstr "'%(tool)s' נכשל עם סטטוס %(status)s."
+
+#: savethread.py:1024
+#, python-format
+msgid "Error running '%(tool)s': %(error)s."
+msgstr "שגיאה בהרצת '%(tool)s': %(error)s."
+
+#: savethread.py:1294
 #, python-format
 msgid "Error prepending PDF: %s"
-msgstr ""
+msgstr "שגיאה בהוספת PDF בראש: %s"
 
-#: savethread.py:822
+#: savethread.py:1302
 #, python-format
 msgid "Error appending PDF: %s"
-msgstr ""
+msgstr "שגיאה בהוספת PDF: %s"
 
-#: savethread.py:831
+#: savethread.py:1311
 msgid "Error creating backup of PDF"
-msgstr ""
+msgstr "שגיאה ביצירת גיבוי של PDF"
 
-#: savethread.py:905
+#: savethread.py:1385
 #, python-format
 msgid "Error encrypting PDF: %s"
-msgstr ""
+msgstr "שגיאה בהצפנת PDF: %s"
 
-#: scan_menu_item_mixins.py:72
+#: scan_menu_item_mixins.py:118
 msgid "Really cache libusb device names?"
-msgstr ""
+msgstr "האם באמת לשמור את שמות התקני libusb במטמון?"
 
-#: scan_menu_item_mixins.py:76
+#: scan_menu_item_mixins.py:122
 msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
 msgstr ""
+"לא מומלץ לשמור במטמון את רשימת ההתקנים עם התקני libusb, מכיוון שהם עשויים "
+"להשתנות בין אתחולים. לשמור אותם במטמון בכל זאת?"
 
-#: scan_menu_item_mixins.py:78
-msgid "Are you sure you want to do this?"
-msgstr ""
+#: scan_menu_item_mixins.py:127
+msgid "Don't ask again"
+msgstr "אל תשאל שוב"
 
-#: scan_menu_item_mixins.py:114
+#: scan_menu_item_mixins.py:176
 msgid "Scan Document"
-msgstr ""
+msgstr "סרוק מסמך"
 
-#: scan_menu_item_mixins.py:216
+#: scan_menu_item_mixins.py:291
 msgid "Postprocessing"
-msgstr ""
+msgstr "עיבוד לאחר"
 
-#: scan_menu_item_mixins.py:230
+#: scan_menu_item_mixins.py:400
 msgid "Alternate rotation every 2nd page"
-msgstr ""
+msgstr "סיבוב מתחלף בכל עמוד שני"
 
-#: scan_menu_item_mixins.py:233
+#: scan_menu_item_mixins.py:403
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
 "edge, so the back of each sheet is rotated 180 degrees relative to its "
 "front."
 msgstr ""
+"סובב דפים אי-זוגיים בזווית הנבחרת ודפים זוגיים באותה זווית ועוד 180 מעלות. "
+"השתמש כאשר סורקים ספר שבו כל גיליון מיושר לאותו קצה, כך שגב הגיליון מסובב "
+"ב-180 מעלות ביחס לחזית שלו."
 
-#: scan_menu_item_mixins.py:298
-#, fuzzy
+#: scan_menu_item_mixins.py:425
 msgid "Clean up images"
-msgstr "ניקוי תמונות"
+msgstr "נקה תמונות"
 
-#: scan_menu_item_mixins.py:299
+#: scan_menu_item_mixins.py:426
 msgid "Clean up scanned images with unpaper"
 msgstr "נקה את התמונות הסרוקות עם unpaper"
 
-#: scan_menu_item_mixins.py:307
-#, fuzzy
+#: scan_menu_item_mixins.py:435
 msgid "Options"
 msgstr "אפשרויות"
 
-#: scan_menu_item_mixins.py:308
-#, fuzzy
+#: scan_menu_item_mixins.py:436
 msgid "Set unpaper options"
 msgstr "הגדר אפשרויות unpaper"
 
-#: scan_menu_item_mixins.py:316
-#, fuzzy
+#: scan_menu_item_mixins.py:445
 msgid "unpaper options"
 msgstr "אפשרויות unpaper"
 
-#: scan_menu_item_mixins.py:339
-#, fuzzy
+#: scan_menu_item_mixins.py:468
 msgid "Process with user-defined tool"
-msgstr "עבד עם כלי המוגדר על ידי המשתמש"
+msgstr "עיבוד בכלי שהוגדר על ידי המשתמש"
 
-#: scan_menu_item_mixins.py:340
-#, fuzzy
+#: scan_menu_item_mixins.py:469
 msgid "Process scanned images with user-defined tool"
-msgstr "עבד תמונות שנסרקו עם כלי המוגדר על ידי המשתמש"
+msgstr "עבד תמונות סרוקות באמצעות כלי שהוגדר על ידי המשתמש"
 
-#: session_mixins.py:74
+#: session_mixins.py:84
 #, python-format
 msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+"Warning: unable to use %(configured)s for temporary storage. Defaulting to "
+"%(default)s instead."
 msgstr ""
+"אזהרה: לא ניתן להשתמש ב-%(configured)s לאחסון זמני. עובר לברירת מחדל "
+"%(default)s במקום."
 
-#: session_mixins.py:118 session_mixins.py:123
-#, fuzzy
-msgid "Pick crashed session to restore"
-msgstr "בחר הפעלה שקרסה לשחזור"
+#: session_mixins.py:163
+msgid "No crashed sessions found."
+msgstr "לא נמצאו הפעלות שקרסו."
 
-#: session_mixins.py:191
+#: session_mixins.py:169
+msgid "Crashed sessions"
+msgstr "הפעלות שקרסו"
+
+#: session_mixins.py:174
+msgid "_Discard"
+msgstr "_השלך"
+
+#: session_mixins.py:175
+msgid "_Restore"
+msgstr "_שחזר"
+
+#: session_mixins.py:178
+msgid "Restore or discard a crashed session"
+msgstr "שחזר או השלך הפעלה שקרסה"
+
+#: session_mixins.py:207
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to restore a crashed session?"
+msgstr ""
+"חלק מהדפים לא נשמרו.\n"
+"האם אתה באמת רוצה לשחזר הפעלה שקרסה?"
+
+#: session_mixins.py:242
+msgid "Restore file"
+msgstr "שחזר קובץ"
+
+#: session_mixins.py:258
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] "לבטל %(count)d הפעלה שקרסה?"
+msgstr[1] "לבטל %(count)d הפעלות שקרסו?"
+
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] "לא ניתן להסיר %(count)d הפעלה שקרסה."
+msgstr[1] "לא ניתן להסיר %(count)d הפעלות שקרסו."
+
+#: session_mixins.py:301
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
-msgstr ""
+msgstr "נעשה שימוש ב-GraphicsMagick במצב תאימות של ImageMagick."
 
-#: session_mixins.py:193
+#: session_mixins.py:303
 msgid "Whilst this might work, it is not currently supported."
-msgstr ""
+msgstr "למרות שזה עשוי לעבוד, זה לא נתמך כרגע."
 
-#: session_mixins.py:195
+#: session_mixins.py:305
 msgid "Please switch to ImageMagick in case of problems."
-msgstr ""
+msgstr "אנא עבור ל-ImageMagick במקרה של בעיות."
 
-#: session_mixins.py:212
-#, fuzzy
+#: session_mixins.py:318
 msgid "Tesseract"
-msgstr "Tesseract"
+msgstr "טסרקט"
 
-#: session_mixins.py:212
-#, fuzzy
+#: session_mixins.py:318
 msgid "Process image with Tesseract."
 msgstr "עבד תמונה עם Tesseract."
 
-#: session_mixins.py:229
+#: session_mixins.py:330
 msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr ""
+msgstr "סיימת לסרוק עמודים ממול. לסרוק עמודים בצד השני?"
 
-#: session_mixins.py:232
+#: session_mixins.py:333
 msgid "Finished scanning reverse pages. Scan facing pages?"
+msgstr "הושלמה סריקת העמודים ההפוכים. לסרוק עמודים ממול?"
+
+#: tesseract.py:197
+msgid "Fully automatic page segmentation."
+msgstr "פילוח עמוד אוטומטי לחלוטין."
+
+#: tesseract.py:198
+msgid "Single column"
+msgstr "עמודה אחת"
+
+#: tesseract.py:198
+msgid "A single column of text of variable sizes."
+msgstr "עמודה אחת של טקסט בגדלים משתנים."
+
+#: tesseract.py:199
+msgid "Single block"
+msgstr "בלוק בודד"
+
+#: tesseract.py:199
+msgid "A single uniform block of text."
+msgstr "גוש טקסט אחיד יחיד."
+
+#: tesseract.py:200
+msgid "Single line"
+msgstr "שורה אחת"
+
+#: tesseract.py:200
+msgid "The image is a single text line."
+msgstr "התמונה היא שורת טקסט אחת."
+
+#: tesseract.py:201
+msgid "Single word"
+msgstr "מילה בודדת"
+
+#: tesseract.py:201
+msgid "The image is a single word."
+msgstr "התמונה היא מילה אחת."
+
+#: tesseract.py:202
+msgid "Single character"
+msgstr "תו בודד"
+
+#: tesseract.py:202
+msgid "The image is a single character."
+msgstr "התמונה היא תו בודד."
+
+#: tesseract.py:203
+msgid "Sparse text"
+msgstr "טקסט דליל"
+
+#: tesseract.py:203
+msgid "Find as much text as possible, in no order."
+msgstr "מצא כמה שיותר טקסט, ללא סדר."
+
+#: tesseract.py:204
+msgid "Raw line"
+msgstr "שורה גולמית"
+
+#: tesseract.py:204
+msgid "A single line, without tesseract-specific hacks."
+msgstr "שורה אחת, ללא האקים ספציפיים ל-Tesseract."
+
+#: tesseract.py:214
+msgid "LSTM only"
+msgstr "LSTM בלבד"
+
+#: tesseract.py:215
+msgid "Legacy"
+msgstr "מורשת"
+
+#: tesseract.py:216
+msgid "Combined"
+msgstr "משולב"
+
+#: tesseract.py:260
+#, python-format
+msgid "The tessdata directory does not exist: %(path)s"
+msgstr "תיקיית tessdata אינה קיימת: %(path)s"
+
+#: tesseract.py:262
+#, python-format
+msgid "The tessdata path is not a directory: %(path)s"
+msgstr "נתיב ה-tessdata אינו תיקייה: %(path)s"
+
+#: tesseract.py:264
+#, python-format
+msgid "The tessdata directory cannot be read: %(path)s"
 msgstr ""
 
-#: session_mixins.py:448 text_layer_control.py:80
-msgid "_OK"
+#: tesseract.py:268
+#, python-format
+msgid ""
+"No Tesseract language data was found in the tessdata directory: %(path)s"
+msgstr "לא נמצאו נתוני שפה של Tesseract בתיקיית tessdata: %(path)s"
+
+#: tesseract.py:272
+#, python-format
+msgid "Did you mean %(path)s?"
+msgstr "האם התכוונת ל%(path)s?"
+
+#: tesseract.py:322
+msgid "tessdata directory not found"
+msgstr "תיקיית tessdata לא נמצאה"
+
+#: tesseract.py:388
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; this field accepts engine "
+"parameters in name=value form only."
 msgstr ""
+"'%(flag)s' היא אפשרות בשורת הפקודה של Tesseract; שדה זה מקבל פרמטרים של מנוע"
+" רק בצורת name=value."
 
-#: session_mixins.py:449 text_layer_control.py:80
-msgid "Accept corrections"
+#: tesseract.py:393
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' "
+"instead."
 msgstr ""
+"\"%(flag)s\" היא אפשרות שורת פקודה של Tesseract; השתמש "
+"ב-\"%(variable)s=%(value)s\" במקום זאת."
 
-#: session_mixins.py:452 text_layer_control.py:83
-msgid "Cancel corrections"
-msgstr ""
+#: tesseract.py:413 tesseract.py:420
+#, python-format
+msgid "Invalid Tesseract option on line %(line)s: %(text)s"
+msgstr "אפשרות Tesseract לא חוקית בשורה %(line)s: %(text)s"
 
-#: session_mixins.py:458
-#, fuzzy
-msgid "Add annotation"
-msgstr "הוספת הערה"
+#: tesseract.py:435
+#, python-format
+msgid "%(variable)s names a file that does not exist: %(path)s"
+msgstr "%(variable)s מציין קובץ שאינו קיים: %(path)s"
 
-#: session_mixins.py:461
-msgid "Delete annotation"
-msgstr ""
+#: tesseract.py:440
+#, python-format
+msgid "%(variable)s names a file that cannot be read: %(path)s"
+msgstr "%(variable)s מציין קובץ שלא ניתן לקרוא: %(path)s"
 
-#: session_mixins.py:505
-#, fuzzy
-msgid "my-new-word"
-msgstr "my-new-word"
-
-#: session_mixins.py:560
-#, fuzzy
-msgid "my-new-annotation"
-msgstr "my-new-annotation"
-
-#: tesseract.py:232 tesseract.py:246 tesseract.py:258
+#: tesseract.py:567 tesseract.py:581 tesseract.py:594
 #, python-format
 msgid "You are using locale '%s'."
-msgstr ""
+msgstr "אתה משתמש בלוקאל '%s'."
 
-#: tesseract.py:235
+#: tesseract.py:570
 msgid ""
 "scantpaper does not currently know which tesseract language package would be"
 " necessary for that locale."
 msgstr ""
+"scantpaper אינו יודע כרגע איזו חבילת שפה של tesseract נדרשת עבור אזור זה."
 
-#: tesseract.py:239
+#: tesseract.py:574
 msgid "Please contact the developers to add support for that locale."
-msgstr ""
+msgstr "אנא צור קשר עם המפתחים כדי להוסיף תמיכה בלוקאל הזה."
 
-#: tesseract.py:250
+#: tesseract.py:585
 #, python-format
 msgid ""
-"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
-"for OCR for %s with tesseract."
+"Please install tesseract package 'tesseract-ocr-%(package)s' and restart "
+"scantpaper for OCR for %(language)s with tesseract."
 msgstr ""
+"אנא התקן את חבילת tesseract 'tesseract-ocr-%(package)s' והפעל מחדש את "
+"scantpaper עבור OCR של %(language)s באמצעות tesseract."
 
-#: tesseract.py:260
+#: tesseract.py:596
 #, python-format
 msgid "There is no tesseract package for %s"
-msgstr ""
+msgstr "אין חבילת tesseract עבור %s"
 
-#: tesseract.py:262
+#: tesseract.py:598
 msgid "If this is in error, please contact the scantpaper developers."
-msgstr ""
+msgstr "אם זו טעות, אנא צרו קשר עם מפתחי scantpaper."
 
-#: tests/test_savethread.py:1230
-#, fuzzy
+#: tests/test_savethread.py:1589
 msgid "Writing page"
-msgstr "כותב דף"
+msgstr "דף כתיבה"
 
-#: text_layer_control.py:27
-msgid "Sort by confidence"
-msgstr ""
-
-#: text_layer_control.py:28
-msgid "Sort OCR text boxes by confidence."
-msgstr ""
-
-#: text_layer_control.py:30
-msgid "Sort by position"
-msgstr ""
-
-#: text_layer_control.py:30
-msgid "Sort OCR text boxes by position."
-msgstr ""
-
-#: text_layer_control.py:61
-#, fuzzy
-msgid "Go to least confident text"
-msgstr "מעבר לטקסט הכי פחות אמין"
-
-#: text_layer_control.py:64
-#, fuzzy
-msgid "Go to previous text"
-msgstr "מעבר לטקסט הקודם"
-
-#: text_layer_control.py:67
-#, fuzzy
-msgid "Select sort method for OCR boxes"
-msgstr "בחירת שיטת מיון לתיבות OCR"
-
-#: text_layer_control.py:73
-#, fuzzy
-msgid "Go to next text"
-msgstr "מעבר לטקסט הבא"
-
-#: text_layer_control.py:75
-#, fuzzy
-msgid "Go to most confident text"
-msgstr "מעבר לטקסט הכי אמין"
-
-#: text_layer_control.py:77
-#, fuzzy
-msgid "Add text"
-msgstr "הוספת טקסט"
-
-#: text_layer_control.py:86
-msgid "_Copy"
-msgstr "הע_תק"
-
-#: text_layer_control.py:86
-#, fuzzy
-msgid "Duplicate text"
-msgstr "שכפל טקסט"
-
-#: text_layer_control.py:89
-msgid "Delete text"
-msgstr ""
-
-#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
+#: tools_menu_mixins.py:105 tools_menu_mixins.py:298
 msgid "Threshold"
 msgstr "רמת סף"
 
-#: tools_menu_mixins.py:106
-#, fuzzy
+#: tools_menu_mixins.py:115
 msgid "Ink strength"
 msgstr "עוצמת דיו"
 
-#: tools_menu_mixins.py:159
-#, fuzzy
+#: tools_menu_mixins.py:156 tools_menu_mixins.py:226 tools_menu_mixins.py:265
+#: tools_menu_mixins.py:368 tools_menu_mixins.py:410 tools_menu_mixins.py:533
+msgid "_Apply"
+msgstr "_החל"
+
+#: tools_menu_mixins.py:168
 msgid "Brightness / Contrast"
 msgstr "בהירות / ניגודיות"
 
-#: tools_menu_mixins.py:170
-#, fuzzy
+#: tools_menu_mixins.py:179
 msgid "Brightness"
 msgstr "בהירות"
 
-#: tools_menu_mixins.py:181
-#, fuzzy
+#: tools_menu_mixins.py:190
 msgid "Contrast"
 msgstr "ניגודיות"
 
-#: tools_menu_mixins.py:227
+#: tools_menu_mixins.py:236
 msgid "Negate"
-msgstr ""
+msgstr "שלול"
 
-#: tools_menu_mixins.py:264
+#: tools_menu_mixins.py:273
 msgid "Unsharp mask"
-msgstr ""
+msgstr "מסכת חידוד"
 
-#: tools_menu_mixins.py:275
-#, fuzzy
+#: tools_menu_mixins.py:284
 msgid "Radius"
 msgstr "רדיוס"
 
-#: tools_menu_mixins.py:279
-#, fuzzy
+#: tools_menu_mixins.py:288
 msgid "Blur Radius."
 msgstr "רדיוס טשטוש."
 
-#: tools_menu_mixins.py:282
-#, fuzzy
+#: tools_menu_mixins.py:291
 msgid "Percentage"
 msgstr "אחוז"
 
-#: tools_menu_mixins.py:286
-#, fuzzy
+#: tools_menu_mixins.py:295
 msgid "Unsharp strength, in percent."
 msgstr "עוצמת חידוד, באחוזים."
 
-#: tools_menu_mixins.py:294
+#: tools_menu_mixins.py:303
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
-msgstr ""
+msgstr "הסף שולט בשינוי הבהירות המינימלי שיוחדד."
 
-#: tools_menu_mixins.py:444
-#, fuzzy
+#: tools_menu_mixins.py:459
 msgid "Split"
-msgstr "פיצול"
+msgstr "פצל"
 
-#: tools_menu_mixins.py:453
-#, fuzzy
+#: tools_menu_mixins.py:468
 msgid "Direction"
 msgstr "כיוון"
 
-#: tools_menu_mixins.py:458
-#, fuzzy
+#: tools_menu_mixins.py:473
 msgid "Vertically"
 msgstr "אנכית"
 
-#: tools_menu_mixins.py:459
+#: tools_menu_mixins.py:474
 msgid "Split the page vertically into left and right pages."
-msgstr ""
+msgstr "פצל את הדף אנכית לדפים שמאליים וימניים."
 
-#: tools_menu_mixins.py:463
-#, fuzzy
+#: tools_menu_mixins.py:478
 msgid "Horizontally"
 msgstr "אופקית"
 
-#: tools_menu_mixins.py:464
+#: tools_menu_mixins.py:479
 msgid "Split the page horizontally into top and bottom pages."
-msgstr ""
+msgstr "פצל את הדף אופקית לדפים עליון ותחתון."
 
-#: tools_menu_mixins.py:487
-#, fuzzy
+#: tools_menu_mixins.py:502
 msgid "Position"
 msgstr "מיקום"
 
-#: tools_menu_mixins.py:590
-#, fuzzy
+#: tools_menu_mixins.py:605
 msgid "unpaper"
 msgstr "unpaper"
 
-#: tools_menu_mixins.py:649
-#, fuzzy
+#: tools_menu_mixins.py:664
 msgid "OCR"
-msgstr "OCR"
+msgstr "זיהוי תווים אופטי"
 
-#: tools_menu_mixins.py:730
-#, fuzzy
+#: tools_menu_mixins.py:777
 msgid "User-defined tools"
 msgstr "כלים המוגדרים על ידי המשתמש"
 
-#: tools_menu_mixins.py:739
-#, fuzzy
+#: tools_menu_mixins.py:786
 msgid "Selected tool"
-msgstr "הכלי שנבחר"
+msgstr "כלי נבחר"
 
-#: tools_menu_mixins.py:782
+#: tools_menu_mixins.py:790
+msgid "Process selected pages at once"
+msgstr "עבד את העמודים הנבחרים בבת אחת"
+
+#: tools_menu_mixins.py:891 app.ui:125
 msgid "Email as PDF"
 msgstr "שלח באימייל כ- PDF"
 
-#: tools_menu_mixins.py:861
-#, fuzzy
+#: tools_menu_mixins.py:970
 msgid "Error creating email"
-msgstr "שגיאה ביצירת הדואר האלקטרוני"
+msgstr "שגיאה ביצירת אימייל"
 
-#: tools_menu_mixins.py:917
+#: tools_menu_mixins.py:1026
 msgid "To aid the scan-to-PDF process"
-msgstr ""
+msgstr "כדי לסייע בתהליך הסריקה ל-PDF"
 
-#: tools_menu_mixins.py:918
+#: tools_menu_mixins.py:1027
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
-msgstr ""
+msgstr "זכויות יוצרים 2006--2026 ג'פרי רטקליף"
 
-#: unpaper.py:38
+#: unpaper.py:40
 msgid "Layout"
 msgstr "עימוד"
 
-#: unpaper.py:41
+#: unpaper.py:43
 msgid "Single"
 msgstr "יחיד"
 
-#: unpaper.py:43
+#: unpaper.py:45
 msgid "One page per sheet, oriented upwards without rotation."
 msgstr "דף אחד לגליון, מכוון מעלה ללא סיבוב"
 
-#: unpaper.py:47
+#: unpaper.py:49
 msgid "Double"
 msgstr "כפול"
 
-#: unpaper.py:49
+#: unpaper.py:51
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
 msgstr "שני דפים לגליון, הגליון לרוחב (דף אחד בחצי הימני, דף שני בחצי השמאלי)"
 
-#: unpaper.py:58
+#: unpaper.py:60
 msgid "# Output pages"
 msgstr "מספר עמודי פלט"
 
-#: unpaper.py:59
+#: unpaper.py:61
 msgid "Number of pages to output."
 msgstr "מספר העמודים לייצר"
 
-#: unpaper.py:67
-#, fuzzy
+#: unpaper.py:69
 msgid "Writing system"
 msgstr "מערכת כתיבה"
 
-#: unpaper.py:70
-#, fuzzy
+#: unpaper.py:72
 msgid "Left-to-right"
 msgstr "משמאל לימין"
 
-#: unpaper.py:72
+#: unpaper.py:74
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
-msgstr ""
+msgstr "רוב מערכות הכתיבה, למשל לטינית, יוונית, קירילית."
 
-#: unpaper.py:76
-#, fuzzy
+#: unpaper.py:78
 msgid "Right-to-left"
 msgstr "מימין לשמאל"
 
-#: unpaper.py:77
+#: unpaper.py:79
 msgid "Scripts like Arabic or Hebrew."
-msgstr ""
+msgstr "כתבים כמו ערבית או עברית."
 
-#: unpaper.py:85
+#: unpaper.py:87
 msgid "No deskew"
 msgstr "ללא deskew"
 
-#: unpaper.py:86
+#: unpaper.py:88
 msgid "Disable deskewing."
 msgstr "ביטול deskewing"
 
-#: unpaper.py:91
+#: unpaper.py:93
 msgid "No mask scan"
 msgstr "ללא סריקת מסכה"
 
-#: unpaper.py:92
+#: unpaper.py:94
 msgid "Disable mask detection."
 msgstr "בטל את זיהוי המסכה"
 
-#: unpaper.py:97
-#, fuzzy
+#: unpaper.py:99
 msgid "No mask centering"
-msgstr "ללא מירכוז מסכה"
+msgstr "ללא מרכוז מסכה"
 
-#: unpaper.py:98
-#, fuzzy
+#: unpaper.py:100
 msgid "Disable mask centering."
-msgstr "השבת מירכוז מסכה."
+msgstr "השבת מרכוז מסכה."
 
-#: unpaper.py:103
+#: unpaper.py:105
 msgid "No black filter"
 msgstr "ללא פילטר שחור"
 
-#: unpaper.py:104
+#: unpaper.py:106
 msgid "Disable black area scan."
 msgstr "בטל סריקת איזור שחור"
 
-#: unpaper.py:109
+#: unpaper.py:111
 msgid "No gray filter"
 msgstr "ללא פילטר אפור"
 
-#: unpaper.py:110
+#: unpaper.py:112
 msgid "Disable gray area scan."
 msgstr "בטל סריקת איזור אפור"
 
-#: unpaper.py:115
+#: unpaper.py:117
 msgid "No noise filter"
 msgstr "ללא פילטר רעש"
 
-#: unpaper.py:116
+#: unpaper.py:118
 msgid "Disable noise filter."
 msgstr "בטל פילטר רעש"
 
-#: unpaper.py:121
+#: unpaper.py:123
 msgid "No blur filter"
 msgstr "ללא פילטר טשטוש"
 
-#: unpaper.py:122
+#: unpaper.py:124
 msgid "Disable blur filter."
 msgstr "בטל פילטר טשטוש (blur)"
 
-#: unpaper.py:127
+#: unpaper.py:129
 msgid "No border scan"
 msgstr "ללא סריקת מסגרת"
 
-#: unpaper.py:128
+#: unpaper.py:130
 msgid "Disable border scanning."
 msgstr "בטל סריקת מסגרת"
 
-#: unpaper.py:133
+#: unpaper.py:135
 msgid "No border align"
 msgstr "ללא יישור מסגרת"
 
-#: unpaper.py:135
+#: unpaper.py:137
 msgid "Disable aligning of the area detected by border scanning."
 msgstr "בטל את יישור האיזור שזוהה בסריקת המסגרת"
 
-#: unpaper.py:141
-#, fuzzy
-msgid "Deskew to edge"
-msgstr "תיקון הטיה עד הקצה"
-
 #: unpaper.py:143
+msgid "Deskew to edge"
+msgstr "יישר לקצה"
+
+#: unpaper.py:145
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
@@ -2071,89 +2560,89 @@ msgstr ""
 "מספר קצוות הממוצע ילקח, אלא אם סטיית התקן עוברת את הערך שצוין על ידי האפשרות"
 " --deskew-scan-deviation."
 
-#: unpaper.py:152
+#: unpaper.py:154
 msgid "Use 'left' for scanning from the left edge."
 msgstr "בחר 'שמאלה' לסריקה מן הקצה השמאלי"
 
-#: unpaper.py:157
+#: unpaper.py:159
 msgid "Use 'top' for scanning from the top edge."
 msgstr "בחר 'למעלה' לסריקה מן הקצה העליון"
 
-#: unpaper.py:161 unpaper.py:189
+#: unpaper.py:163 unpaper.py:191
 msgid "Right"
 msgstr "ימינה"
 
-#: unpaper.py:162
+#: unpaper.py:164
 msgid "Use 'right' for scanning from the right edge."
 msgstr "בחר 'ימינה' לסריקה מן הקצה הימני"
 
-#: unpaper.py:166 unpaper.py:194
+#: unpaper.py:168 unpaper.py:196
 msgid "Bottom"
 msgstr "למטה"
 
-#: unpaper.py:167
+#: unpaper.py:169
 msgid "Use 'bottom' for scanning from the bottom."
 msgstr "בחר 'למטה' לסריקה מן הקצה התחתון"
 
-#: unpaper.py:174
+#: unpaper.py:176
 msgid "Align to edge"
 msgstr "ישר לקצה"
 
-#: unpaper.py:175
+#: unpaper.py:177
 msgid "Edge to which to align the page."
 msgstr "קצה על פיו ייושר העמוד"
 
-#: unpaper.py:180
+#: unpaper.py:182
 msgid "Use 'left' to align to the left edge."
 msgstr "בחר 'שמאלה' לישור לקצה השמאלי"
 
-#: unpaper.py:185
+#: unpaper.py:187
 msgid "Use 'top' to align to the top edge."
 msgstr "בחר 'למעלה' לישור לקצה העליון"
 
-#: unpaper.py:190
+#: unpaper.py:192
 msgid "Use 'right' to align to the right edge."
 msgstr "בחר 'ימינה' לישור לקצה הימני"
 
-#: unpaper.py:195
+#: unpaper.py:197
 msgid "Use 'bottom' to align to the bottom."
 msgstr "בחר 'למטה' לישור לקצה התחתון"
 
-#: unpaper.py:201
+#: unpaper.py:203
 msgid "Border margin"
 msgstr "שולי גבול"
 
-#: unpaper.py:205
+#: unpaper.py:207
 msgid "Vertical margin"
 msgstr "שוליים אנכיים"
 
-#: unpaper.py:207
+#: unpaper.py:209
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
 msgstr "מרחק בטחון אנכי מקצה הדף בעת סיבוב שטח הגבול"
 
-#: unpaper.py:217
+#: unpaper.py:219
 msgid "Horizontal margin"
 msgstr "שוליים אופקיים"
 
-#: unpaper.py:219
+#: unpaper.py:221
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr "מרחק בטחון אופקי מקצה הדף בעת סיבוב שטח הגבול"
 
-#: unpaper.py:231
+#: unpaper.py:233
 msgid "White threshold"
 msgstr "רמת סף לבן"
 
-#: unpaper.py:233
+#: unpaper.py:235
 msgid "Brightness ratio above which a pixel is considered white."
 msgstr "מעל יחס בהירות זה הפיקסל יחשב לבן"
 
-#: unpaper.py:243
+#: unpaper.py:245
 msgid "Black threshold"
 msgstr "רמת סף שחור"
 
-#: unpaper.py:245
+#: unpaper.py:247
 msgid ""
 "Brightness ratio below which a pixel is considered black (non-gray). This is"
 " used by the gray-filter. This value is also used when converting a "
@@ -2162,434 +2651,402 @@ msgstr ""
 "מתחת יחס בהירות זה הפיקסל יחשב שחור (לא-אפור). פרמטר זה בשימוש על ידי פילטר-"
 "אפור, וכאשר מתבצעת המרה בין תמונת גווני-אפור למצב שחור-לבן."
 
-#: unpaper.py:355
-#, fuzzy
+#: unpaper.py:370
 msgid "Deskew"
-msgstr "תיקון הטיה"
+msgstr "יישור הטיה"
 
-#: unpaper.py:359
-#, fuzzy
+#: unpaper.py:374
 msgid "Border"
 msgstr "גבול"
 
-#: unpaper.py:364
-#, fuzzy
+#: unpaper.py:385
 msgid "Filters"
 msgstr "מסננים"
 
-#: app.ui:5 menu.ui:6
-msgid "_File"
-msgstr "_קובץ"
-
-#: app.ui:9 menu.ui:9
-msgid "_New"
-msgstr "_חדש"
-
-#: app.ui:14 menu.ui:14
-msgid "_Open"
-msgstr "_פתח"
-
-#: app.ui:19
-#, fuzzy
-msgid "Open c_rashed session"
-msgstr "פתח הפעלה שקרסה"
-
-#: app.ui:23 menu.ui:19
-msgid "S_can"
-msgstr "_סרוק"
-
-#: app.ui:33 menu.ui:29
-msgid "_Email as PDF"
-msgstr "_שלח כקובץ PDF"
-
-#: app.ui:38 menu.ui:34
-msgid "_Print"
-msgstr ""
-
-#: app.ui:45 menu.ui:39
-msgid "_Quit"
-msgstr "_יציאה"
-
-#: app.ui:51 menu.ui:46
-msgid "_Edit"
-msgstr "_ערוך"
-
-#: app.ui:55 menu.ui:49
-msgid "_Undo"
-msgstr "_בטל"
-
-#: app.ui:60 menu.ui:53
-msgid "_Redo"
-msgstr "ב_צע שוב"
-
-#: app.ui:67 menu.ui:57
-msgid "Cu_t"
-msgstr "גזו_ר"
-
-#: app.ui:77 menu.ui:65
-msgid "_Paste"
-msgstr "ה_דבק"
-
-#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
-msgid "_Select"
-msgstr "_בחר"
-
-#: app.ui:89 menu.ui:76
-msgid "_All"
-msgstr "_הכל"
-
-#: app.ui:94 menu.ui:80
-msgid "_Odd"
-msgstr "אי-זוגי_ים"
-
-#: app.ui:99 menu.ui:84
-msgid "_Even"
-msgstr "_זוגיים"
-
-#: app.ui:104 menu.ui:88
-msgid "_Invert"
-msgstr ""
-
-#: app.ui:109 menu.ui:92
-msgid "_Blank"
-msgstr "רי_ק"
-
-#: app.ui:114 menu.ui:96
-msgid "_Dark"
-msgstr "כה_ה"
-
-#: app.ui:119 menu.ui:100
-msgid "_Modified"
-msgstr ""
-
-#: app.ui:124 menu.ui:104
-msgid "_No OCR"
-msgstr ""
-
-#: app.ui:130 menu.ui:108
-#, fuzzy
-msgid "_Clear OCR"
-msgstr "נק_ה"
-
-#: app.ui:136 menu.ui:114
-msgid "Propert_ies"
-msgstr "מאפיי_נים"
-
-#: app.ui:142 menu.ui:118
-msgid "Prefere_nces"
-msgstr "העד_פות"
-
-#: app.ui:147 menu.ui:124
-msgid "_View"
-msgstr "_תצוגה"
-
-#: app.ui:150 app.ui:293
-msgid "_Pan"
-msgstr ""
-
-#: app.ui:160 app.ui:310
-#, fuzzy
-msgid "_Select & pan"
-msgstr "_בחר"
-
-#: app.ui:167
-msgid "_Tabbed"
-msgstr ""
-
-#: app.ui:172
-#, fuzzy
-msgid "_Split horizontally"
-msgstr "אופקית"
-
-#: app.ui:177
-#, fuzzy
-msgid "_Split vertically"
-msgstr "אנכית"
-
-#: app.ui:184
-msgid "Edit text layer"
-msgstr ""
-
-#: app.ui:189
-#, fuzzy
-msgid "Edit annotations"
-msgstr "הוספת הערה"
-
-#: app.ui:197 app.ui:320 menu.ui:127
-msgid "Zoom _100%"
-msgstr "ז_ום 100%"
-
-#: app.ui:201 app.ui:327 menu.ui:131
-msgid "Zoom to _fit"
-msgstr "קבע זום או_טומטי"
-
-#: app.ui:205 app.ui:334 menu.ui:135
-msgid "Zoom _in"
-msgstr "הת_קרב"
-
-#: app.ui:210 app.ui:341 menu.ui:139
-msgid "Zoom _out"
-msgstr "התרח_ק"
-
-#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
-msgid "Rotate 90° clockwise"
-msgstr "סובב 90° עם כיוון השעון"
-
-#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
-msgid "Rotate 180°"
-msgstr "סובב 180°"
-
-#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
-msgid "Rotate 90° anticlockwise"
-msgstr "סובב 90° נגד כיוון השעון"
-
-#: app.ui:233 menu.ui:157
-msgid "_Tools"
-msgstr "כ_לים"
-
-#: app.ui:237 menu.ui:160
-msgid "_Threshold"
-msgstr "רמת _סף"
-
-#: app.ui:241 menu.ui:164
-#, fuzzy
-msgid "_Brightness / Contrast"
-msgstr "בהירות / ניגודיות"
-
-#: app.ui:245 menu.ui:168
-msgid "_Negate"
-msgstr "הפוך _ערכים"
-
-#: app.ui:249 menu.ui:172
-msgid "_Unsharp Mask"
-msgstr "מסיכת ט_שטוש"
-
-#: app.ui:253 menu.ui:176
-msgid "_Crop"
-msgstr "ג_זור"
-
-#: app.ui:259 menu.ui:180
-msgid "_Clean up"
-msgstr "נק_ה"
-
-#: app.ui:263 menu.ui:184
-#, fuzzy
-msgid "_Split"
-msgstr "פיצול"
-
-#: app.ui:267 menu.ui:188
-msgid "_OCR"
-msgstr "זיה_וי טקסט"
-
-#: app.ui:273 menu.ui:192
-#, fuzzy
-msgid "U_ser-defined"
-msgstr "כלים המוגדרים על ידי המשתמש"
-
-#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
-msgid "_Help"
-msgstr "_עזרה"
-
-#: app.ui:286 menu.ui:205
-msgid "_About"
-msgstr "_אודות"
-
-#: app.ui:375 app.ui:478
-#, fuzzy
-msgid "Cut"
-msgstr "גזו_ר"
-
-#: app.ui:381 app.ui:484
-#, fuzzy
-msgid "Copy"
-msgstr "הע_תק"
-
-#: app.ui:387 app.ui:490
-#, fuzzy
-msgid "Paste"
-msgstr "ה_דבק"
-
-#: app.ui:393 app.ui:496
-#, fuzzy
-msgid "Delete"
-msgstr "_מחק"
-
-#: app.ui:420 app.ui:573
-msgid "Print"
-msgstr ""
-
-#: app.ui:427
-#, fuzzy
-msgid "Select All"
-msgstr "_בחר"
-
-#: app.ui:433
-#, fuzzy
-msgid "Select Odd"
-msgstr "_בחר"
-
-#: app.ui:439
-#, fuzzy
-msgid "Select Even"
-msgstr "בחר תאריך"
-
-#: app.ui:445
-#, fuzzy
-msgid "Invert selection"
-msgstr "גזור בחירה"
-
-#: app.ui:503
-msgid "Clear OCR"
-msgstr ""
-
-#: app.ui:523
-msgid "Clears all pages"
-msgstr "מוחק כל העמודים"
-
-#: app.ui:533
-#, fuzzy
-msgid "Open images"
-msgstr "פתח תמונה"
-
-#: app.ui:543
-msgid "Scan document"
-msgstr "סרוק מסמך"
-
-#: app.ui:563
-msgid "Attach as PDF to a new email"
-msgstr "צרף כמסמך PDF להודעת דואל חדשה"
-
-#: app.ui:584
-msgid "Undo"
-msgstr "בטל את הפעולה האחרונה"
-
-#: app.ui:594
-msgid "Redo"
-msgstr "בצע שוב"
-
-#: app.ui:605
-msgid "Cut selection"
-msgstr "גזור בחירה"
-
-#: app.ui:615
-msgid "Copy selection"
-msgstr "העתק בחירה"
-
-#: app.ui:625
-msgid "Paste selection"
-msgstr "הדבק בחירה"
-
-#: app.ui:635
-msgid "Delete selected pages"
-msgstr "מחק דפים מסומנים"
-
-#: app.ui:646
-msgid "Select all pages"
-msgstr "בחר את כל הדפים"
-
-#: app.ui:657
-#, fuzzy
-msgid "Use the pan tool"
-msgstr "השתמש בכלי יד"
-
-#: app.ui:668
-msgid "Use the rectangular selection tool"
-msgstr "השתמש בכלי בחירה המרובע"
-
-#: app.ui:680
-#, fuzzy
-msgid "Use the combined select and pan tool"
-msgstr "השתמש בכלי בחירה המרובע"
-
-#: app.ui:693
-msgid "Zoom to 100%"
-msgstr "קבע זום ל- 100%"
-
-#: app.ui:703
+#: app.ui:11
+msgid "Pan"
+msgstr "מחבת"
+
+#: app.ui:18
+msgid "Select"
+msgstr "בחר"
+
+#: app.ui:25
+msgid "Select & pan"
+msgstr "בחר והזז"
+
+#: app.ui:35
+msgid "Zoom 100%"
+msgstr "זום 100%"
+
+#: app.ui:40 app.ui:708
 msgid "Zoom to fit"
 msgstr "קבע זום אוטומטי"
 
-#: app.ui:713
+#: app.ui:45 app.ui:718
 msgid "Zoom in"
 msgstr "התקרב"
 
-#: app.ui:723
+#: app.ui:50 app.ui:728
 msgid "Zoom out"
 msgstr "התרחק"
 
-#: app.ui:765
-#, fuzzy
-msgid "Crop selection"
+#: app.ui:58 app.ui:161 app.ui:427 app.ui:761 menu.ui:143
+msgid "Rotate 90° clockwise"
+msgstr "סובב 90° עם כיוון השעון"
+
+#: app.ui:63 app.ui:166 app.ui:431 app.ui:751 menu.ui:147
+msgid "Rotate 180°"
+msgstr "סובב 180°"
+
+#: app.ui:68 app.ui:171 app.ui:435 app.ui:741 menu.ui:151
+msgid "Rotate 90° anticlockwise"
+msgstr "סובב 90° נגד כיוון השעון"
+
+#: app.ui:84 app.ui:187
+msgid "Cut"
+msgstr "גזור"
+
+#: app.ui:89 app.ui:192
+msgid "Copy"
+msgstr "העתק"
+
+#: app.ui:94 app.ui:197
+msgid "Paste"
+msgstr "הדבק"
+
+#: app.ui:130 app.ui:560
+msgid "Print"
+msgstr "הדפס"
+
+#: app.ui:138
+msgid "Select All"
+msgstr "בחר הכל"
+
+#: app.ui:143
+msgid "Select Odd"
+msgstr "בחר אי-זוגי"
+
+#: app.ui:148
+msgid "Select Even"
+msgstr "בחר זוגי"
+
+#: app.ui:153
+msgid "Invert selection"
+msgstr "הפוך בחירה"
+
+#: app.ui:210
+msgid "Clear OCR"
+msgstr "נקה OCR"
+
+#: app.ui:226 menu.ui:6
+msgid "_File"
+msgstr "_קובץ"
+
+#: app.ui:230 menu.ui:9
+msgid "_New"
+msgstr "_חדש"
+
+#: app.ui:234 menu.ui:14
+msgid "_Open"
+msgstr "_פתח"
+
+#: app.ui:238
+msgid "Open c_rashed session"
+msgstr "פתח הפעלה שק_רסה"
+
+#: app.ui:242
+msgid "Import _hOCR…"
+msgstr "ייבוא _hOCR…"
+
+#: app.ui:246 menu.ui:19
+msgid "S_can"
+msgstr "_סרוק"
+
+#: app.ui:254 menu.ui:29
+msgid "_Email as PDF"
+msgstr "_שלח כקובץ PDF"
+
+#: app.ui:258 menu.ui:34
+msgid "_Print"
+msgstr "_הדפס"
+
+#: app.ui:264 menu.ui:39
+msgid "_Quit"
+msgstr "_יציאה"
+
+#: app.ui:269 menu.ui:46
+msgid "_Edit"
+msgstr "_ערוך"
+
+#: app.ui:273 menu.ui:49
+msgid "_Undo"
+msgstr "_בטל"
+
+#: app.ui:277 menu.ui:53
+msgid "_Redo"
+msgstr "ב_צע שוב"
+
+#: app.ui:283 menu.ui:57
+msgid "Cu_t"
+msgstr "גזו_ר"
+
+#: app.ui:291 menu.ui:65
+msgid "_Paste"
+msgstr "ה_דבק"
+
+#: app.ui:299 app.ui:361 menu.ui:73
+msgid "_Select"
+msgstr "_בחר"
+
+#: app.ui:302 menu.ui:76
+msgid "_All"
+msgstr "_הכל"
+
+#: app.ui:306 menu.ui:80
+msgid "_Odd"
+msgstr "אי-זוגי_ים"
+
+#: app.ui:310 menu.ui:84
+msgid "_Even"
+msgstr "_זוגיים"
+
+#: app.ui:314 menu.ui:88
+msgid "_Invert"
+msgstr "_היפוך"
+
+#: app.ui:318 menu.ui:92
+msgid "_Blank"
+msgstr "רי_ק"
+
+#: app.ui:322 menu.ui:96
+msgid "_Dark"
+msgstr "כה_ה"
+
+#: app.ui:326 menu.ui:100
+msgid "_Modified"
+msgstr "_שונה"
+
+#: app.ui:330 menu.ui:104
+msgid "_No OCR"
+msgstr "_ללא OCR"
+
+#: app.ui:336 menu.ui:108
+msgid "_Clear OCR"
+msgstr "_נקה OCR"
+
+#: app.ui:342 menu.ui:114
+msgid "Propert_ies"
+msgstr "מאפיי_נים"
+
+#: app.ui:348 menu.ui:118
+msgid "Prefere_nces"
+msgstr "העד_פות"
+
+#: app.ui:353 menu.ui:124
+msgid "_View"
+msgstr "_תצוגה"
+
+#: app.ui:356
+msgid "_Pan"
+msgstr "_הזז"
+
+#: app.ui:366
+msgid "_Select & pan"
+msgstr "_בחר & הזז"
+
+#: app.ui:374
+msgid "_Clear image selection"
+msgstr "_נקה בחירת תמונה"
+
+#: app.ui:379
+msgid "_Tabbed"
+msgstr "_לשוניות"
+
+#: app.ui:384
+msgid "_Split horizontally"
+msgstr "_פצל אופקית"
+
+#: app.ui:389
+msgid "_Split vertically"
+msgstr "_פצל אנכית"
+
+#: app.ui:396
+msgid "Edit text layer"
+msgstr "ערוך שכבת טקסט"
+
+#: app.ui:401
+msgid "Edit annotations"
+msgstr "ערוך הערות"
+
+#: app.ui:409 menu.ui:127
+msgid "Zoom _100%"
+msgstr "ז_ום 100%"
+
+#: app.ui:413 menu.ui:131
+msgid "Zoom to _fit"
+msgstr "קבע זום או_טומטי"
+
+#: app.ui:417 menu.ui:135
+msgid "Zoom _in"
+msgstr "הת_קרב"
+
+#: app.ui:421 menu.ui:139
+msgid "Zoom _out"
+msgstr "התרח_ק"
+
+#: app.ui:440 menu.ui:157
+msgid "_Tools"
+msgstr "כ_לים"
+
+#: app.ui:444 menu.ui:160
+msgid "_Threshold"
+msgstr "רמת _סף"
+
+#: app.ui:448 menu.ui:164
+msgid "_Brightness / Contrast"
+msgstr "_בהירות / ניגודיות"
+
+#: app.ui:452 menu.ui:168
+msgid "_Negate"
+msgstr "הפוך _ערכים"
+
+#: app.ui:456 menu.ui:172
+msgid "_Unsharp Mask"
+msgstr "מסיכת ט_שטוש"
+
+#: app.ui:460 menu.ui:176
+msgid "_Crop"
+msgstr "ג_זור"
+
+#: app.ui:466 menu.ui:180
+msgid "_Clean up"
+msgstr "נק_ה"
+
+#: app.ui:470 menu.ui:184
+msgid "_Split"
+msgstr "_פצל"
+
+#: app.ui:474 menu.ui:188
+msgid "_OCR"
+msgstr "זיה_וי טקסט"
+
+#: app.ui:480 menu.ui:192
+msgid "U_ser-defined"
+msgstr "מוגד_ר על ידי המשתמש"
+
+#: app.ui:485 app.ui:488 menu.ui:198 menu.ui:201
+msgid "_Help"
+msgstr "_עזרה"
+
+#: app.ui:492 menu.ui:205
+msgid "_About"
+msgstr "_אודות"
+
+#: app.ui:510
+msgid "Clears all pages"
+msgstr "מוחק כל העמודים"
+
+#: app.ui:520
+msgid "Open images"
+msgstr "פתח תמונות"
+
+#: app.ui:530
+msgid "Scan document"
+msgstr "סרוק מסמך"
+
+#: app.ui:550
+msgid "Attach as PDF to a new email"
+msgstr "צרף כמסמך PDF להודעת דואל חדשה"
+
+#: app.ui:573
+msgid "Undo"
+msgstr "בטל את הפעולה האחרונה"
+
+#: app.ui:583
+msgid "Redo"
+msgstr "בצע שוב"
+
+#: app.ui:596
+msgid "Cut selection"
+msgstr "גזור בחירה"
+
+#: app.ui:606
+msgid "Copy selection"
 msgstr "העתק בחירה"
 
-#: app.ui:776
+#: app.ui:616
+msgid "Paste selection"
+msgstr "הדבק בחירה"
+
+#: app.ui:626
+msgid "Delete selected pages"
+msgstr "מחק דפים מסומנים"
+
+#: app.ui:639
+msgid "Select all pages"
+msgstr "בחר את כל הדפים"
+
+#: app.ui:652
+msgid "Use the pan tool"
+msgstr "השתמש בכלי ההזזה"
+
+#: app.ui:663
+msgid "Use the rectangular selection tool"
+msgstr "השתמש בכלי בחירה המרובע"
+
+#: app.ui:674
+msgid "Use the combined select and pan tool"
+msgstr "השתמש בכלי המשולב של בחירה והזזה"
+
+#: app.ui:685
+msgid "Clear image selection"
+msgstr "נקה בחירת תמונה"
+
+#: app.ui:698
+msgid "Zoom to 100%"
+msgstr "קבע זום ל- 100%"
+
+#: app.ui:774
+msgid "Crop selection"
+msgstr "בחירת חיתוך"
+
+#: app.ui:787
 msgid "Quit"
 msgstr "יציאה"
 
-#: menu.ui:24
-#, fuzzy
-msgid "_Save"
-msgstr "שמור"
-
-#, fuzzy
-#: session_mixins.py:160
-#, fuzzy
-msgid "No crashed sessions found."
-msgstr ""
-
-#: session_mixins.py:166
-#, fuzzy
-msgid "Crashed sessions"
-msgstr ""
-
-#: session_mixins.py:171
-#, fuzzy
-msgid "_Discard"
-msgstr ""
-
-#: session_mixins.py:172
-#, fuzzy
-msgid "_Restore"
-msgstr ""
-
-#: session_mixins.py:175
-#, fuzzy
-msgid "Restore or discard a crashed session"
-msgstr ""
-
-#: session_mixins.py:204
-#, fuzzy
-msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
-msgstr ""
-
-#: session_mixins.py:239
-#, fuzzy
-msgid "Restore file"
-msgstr ""
-
-#: session_mixins.py:255
 #, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
-msgstr[1] ""
+#~ msgid "%dMb free in %s."
+#~ msgid_plural "%dMb free in %s."
+#~ msgstr[0] "%dMB פנויים ב-%s."
+#~ msgstr[1] "%dMB פנויים ב-%s."
 
-#: session_mixins.py:279
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
-msgstr ""
+#~ msgid "JPEG Quality"
+#~ msgstr "איכות JPEG"
 
-#: scan_menu_item_mixins.py:122
-#, fuzzy
-msgid ""
-"Caching the device list with libusb devices is not recommended, as they can "
-"change between reboots. Cache them anyway?"
-msgstr ""
+#, fuzzy, python-format
+#~ msgid "Scanning page %d of %d"
+#~ msgstr "סורק דף %d מתוך %d"
 
-#: scan_menu_item_mixins.py:127
+#, fuzzy, python-format
+#~ msgid "Scanning page %d"
+#~ msgstr "סורק דף %d"
+
+#, fuzzy, python-format
+#~ msgid "Analysing page %i of %i"
+#~ msgstr "מנתח דף %i מתוך %i"
+
 #, fuzzy
-msgid "Don't ask again"
-msgstr ""
+#~ msgid "Open crashed session"
+#~ msgstr "פתח הפעלה שקרסה"
+
+#, fuzzy
+#~ msgid "Pick crashed session to restore"
+#~ msgstr "בחר הפעלה שקרסה לשחזור"
+
+#, fuzzy
+#~ msgid "Add annotation"
+#~ msgstr "הוספת הערה"
 
 #~ msgid "PPI"
 #~ msgstr "PPI"

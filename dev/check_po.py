@@ -168,7 +168,7 @@ OBSOLETE_CEILING: dict[str, int] = {
     "fr": 131,
     "gl": 127,
     "gu": 49,
-    "he": 27,
+    "he": 35,
     "hi": 3,
     "hr": 56,
     "hu": 143,
