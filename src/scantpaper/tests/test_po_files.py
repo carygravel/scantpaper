@@ -556,18 +556,21 @@ def test_generate_pot_needs_no_intltool(tmp_path: Path) -> None:
         assert msgid in msgids, f"{msgid!r} missing from the generated template"
 
 
-def _desktop_line_keys() -> dict[str, str]:
-    """Map gettext's desktop reference line numbers to entry keys.
+def _desktop_source_for_extraction(tmp_path: Path) -> Path:
+    """Write a desktop copy whose untranslatable keys gettext ignores.
 
-    gettext reports the line after each key/value pair, so the number is one
-    greater than the 1-based line in the file.
+    Renaming ``Name`` and ``Keywords`` keeps every line in place, so the
+    extracted references stay meaningful while xgettext no longer sees the
+    values. This mirrors ``dev/generate_pot.py`` without sharing its code, so
+    the test still checks the extraction independently.
     """
-    return {
-        str(number + 1): line.split("=", 1)[0]
-        for number, line in enumerate(
-            _DESKTOP_SOURCE.read_text(encoding="utf-8").splitlines(), 1
-        )
-    }
+    copy = tmp_path / "desktop-copy.desktop"
+    lines = []
+    for line in _DESKTOP_SOURCE.read_text(encoding="utf-8").splitlines(keepends=True):
+        key = line.split("=", 1)[0].strip()
+        lines.append(f"X-Scantpaper-{line}" if key in _EXCLUDED_DESKTOP_KEYS else line)
+    copy.write_text("".join(lines), encoding="utf-8")
+    return copy
 
 
 def _metadata_msgids(tmp_path: Path) -> tuple[set[str], set[str]]:
@@ -594,22 +597,13 @@ def _metadata_msgids(tmp_path: Path) -> tuple[set[str], set[str]]:
             "--from-code=UTF-8",
             "-o",
             str(desktop_pot),
-            str(_DESKTOP_SOURCE),
+            str(_desktop_source_for_extraction(tmp_path)),
         ],
         capture_output=True,
         check=True,
         text=True,
     )
-    keys = _desktop_line_keys()
-    desktop = {
-        entry.msgid
-        for entry in polib.pofile(str(desktop_pot))
-        if entry.msgid
-        and not all(
-            keys.get(line) in _EXCLUDED_DESKTOP_KEYS
-            for _name, line in entry.occurrences
-        )
-    }
+    desktop = {entry.msgid for entry in polib.pofile(str(desktop_pot)) if entry.msgid}
     metainfo = {entry.msgid for entry in polib.pofile(str(metainfo_pot)) if entry.msgid}
     return metainfo, desktop
 
