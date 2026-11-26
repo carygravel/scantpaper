@@ -21,13 +21,13 @@ msgstr ""
 
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
-msgstr ""
+msgstr "从扫描文档生成 PDF 或 DjVu 的图形界面"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
-msgstr ""
+msgstr "只需两次点击即可扫描多页内容，然后将全部或选定的页面保存为 PDF 或 DjVu 文件，必要时还可包含元数据。"
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -35,28 +35,30 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper 可以通过 libimage-sane-perl、scanimage 或 scanadf 使用 SANE 控制普通或馈纸式 "
+"(ADF) 扫描仪，并且可以一次扫描多页。"
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
-msgstr ""
+msgstr "它提供扫描页面的缩略图视图，并允许执行裁剪、旋转和删除页面等简单操作。"
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
-msgstr ""
+msgstr "可以使用 OCR 识别扫描件中的文本，并将输出嵌入到 PDF 或 DjVu 中。"
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
-msgstr ""
+msgstr "生成的文档可保存为 PDF、DjVu、多页 TIFF 文件或单页图像文件。"
 
 #: org.scantpaper.desktop:4
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "一个用于辅助扫描至 PDF 流程的图形用户界面"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

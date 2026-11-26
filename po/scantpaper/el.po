@@ -22,12 +22,16 @@ msgstr ""
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
 msgstr ""
+"Γραφικό περιβάλλον χρήστη για παραγωγή PDF ή DjVu από σαρωμένα έγγραφα"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Χρειάζονται μόνο δύο κλικ για να σαρώσετε αρκετές σελίδες και στη συνέχεια "
+"να αποθηκεύσετε όλες τις σελίδες ή μια επιλογή τους ως αρχείο PDF ή DjVu, "
+"συμπεριλαμβανομένων των μεταδεδομένων εάν απαιτείται."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -35,28 +39,39 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"Το scantpaper μπορεί να ελέγχει κανονικούς σαρωτές ή σαρωτές με τροφοδοσία "
+"φύλλων (ADF) με το SANE μέσω των libimage-sane-perl, scanimage ή scanadf, "
+"και μπορεί να σαρώνει πολλές σελίδες ταυτόχρονα."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Παρουσιάζει μια προβολή μικρογραφιών των σαρωμένων σελίδων και επιτρέπει "
+"απλές λειτουργίες όπως περικοπή, περιστροφή και διαγραφή σελίδων."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"Η OCR μπορεί να χρησιμοποιηθεί για την αναγνώριση κειμένου στις σαρώσεις και"
+" η έξοδος να ενσωματωθεί στο PDF ή στο DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"Το έγγραφο που προκύπτει μπορεί να αποθηκευτεί ως PDF, DjVu, αρχείο TIFF "
+"πολλών σελίδων ή αρχείο εικόνας μίας σελίδας."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
 msgstr ""
+"Γραφικό περιβάλλον χρήστη για τη διευκόλυνση της διαδικασίας σάρωσης σε PDF"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

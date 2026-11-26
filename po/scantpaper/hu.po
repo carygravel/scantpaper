@@ -23,13 +23,16 @@ msgstr ""
 
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
-msgstr ""
+msgstr "GUI PDF vagy DjVu fájlok készítéséhez szkennelt dokumentumokból"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Mindössze két kattintással több oldal is beolvasható, majd az összes vagy a "
+"kiválasztott oldal PDF- vagy DjVu-fájlként menthető, szükség esetén a "
+"metaadatokkal együtt."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -37,28 +40,38 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"A scantpaper a SANE segítségével, libimage-sane-perl, scanimage vagy scanadf"
+" használatával képes vezérelni a normál vagy lapadagolós (ADF) szkennereket,"
+" és egyszerre több oldalt is be tud szkennelni."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"A beolvasott oldalakat bélyegképnézetben jeleníti meg, és egyszerű "
+"műveleteket tesz lehetővé, például az oldalak kivágását, elforgatását és "
+"törlését."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"Az OCR használható a szkennelt képeken lévő szöveg felismerésére, és az "
+"eredmény beágyazható a PDF vagy DjVu fájlba."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"Az eredményként létrejött dokumentum PDF, DjVu, többoldalas TIFF-fájl vagy "
+"egyoldalas képfájl formátumban menthető."
 
 #: org.scantpaper.desktop:4
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Grafikus felület a szkennelés-PDF folyamat támogatásához"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

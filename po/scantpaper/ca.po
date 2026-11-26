@@ -21,13 +21,15 @@ msgstr ""
 
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
-msgstr ""
+msgstr "GUI per produir PDFs o DjVus a partir de documents escanejats"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Només calen dos clics per escanejar diverses pàgines i després desar-ho tot "
+"o una selecció com a fitxer PDF o DjVu, incloent-hi les metadades si cal."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -35,28 +37,38 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper pot controlar escàners plans o amb alimentació de fulls (ADF) amb"
+" SANE mitjançant libimage-sane-perl, scanimage o scanadf, i pot escanejar "
+"diverses pàgines alhora."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Presenta una vista de miniatures de les pàgines escanejades i permet "
+"operacions simples com retallar, girar i eliminar pàgines."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"Es pot utilitzar l'OCR per reconèixer el text dels escaneigs, i la sortida "
+"es pot incrustar al PDF o DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"El document resultant es pot desar com a PDF, DjVu, fitxer TIFF multipàgina "
+"o fitxer d'imatge d'una sola pàgina."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Una GUI per ajudar en el procés d'escaneig a PDF"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

@@ -22,12 +22,17 @@ msgstr ""
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
 msgstr ""
+"Interface graphique pour produire des PDF ou des DjVu à partir de documents "
+"numérisés"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Seuls deux clics sont nécessaires pour numériser plusieurs pages, puis "
+"enregistrer l’ensemble ou une sélection dans un fichier PDF ou DjVu, y "
+"compris les métadonnées si nécessaire."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -35,28 +40,40 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper peut piloter des scanners à plat ou à chargeur automatique de "
+"documents (ADF) avec SANE via libimage-sane-perl, scanimage ou scanadf, et "
+"peut numériser plusieurs pages à la fois."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Il présente une vue en miniatures des pages numérisées et permet des "
+"opérations simples telles que le recadrage, la rotation et la suppression de"
+" pages."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"L’OCR peut être utilisé pour reconnaître le texte dans les numérisations, et"
+" la sortie intégrée dans le PDF ou le DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"Le document résultant peut être enregistré en tant que fichier PDF, DjVu, "
+"TIFF multipage ou fichier image d'une seule page."
 
 #: org.scantpaper.desktop:4
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr "Une interface graphique permettant de réaliser des fichiers PDF de plusieurs pages à partir d'un scanner"
+msgstr ""
+"Une interface graphique permettant de réaliser des fichiers PDF de plusieurs"
+" pages à partir d'un scanner"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

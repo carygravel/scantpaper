@@ -22,12 +22,17 @@ msgstr ""
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
 msgstr ""
+"Interfàcia grafica per produire de PDF o de DjVu a partir de documents "
+"escanats"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Cal solament dos clics per escanear mai d'una pagina e puèi enregistrar tot "
+"o una seleccion coma fichièr PDF o DjVu, en inclusent las metadonadas se "
+"cal."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -35,28 +40,39 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper pòt contrarotlar d'escanèrs ordinaris o d'alimentacion de fuèlhs "
+"(ADF) amb SANE via libimage-sane-perl, scanimage o scanadf, e pòt numerizar "
+"mantunas paginas a l'encòp."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Presenta una vista en miniaturas de las paginas numerizadas, e permet "
+"operacions simplas coma lo retalhatge, la rotacion e la supression de "
+"paginas."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"Se pòt utilizar l'OCR per reconéisser lo tèxte dins los escans, e incorporar"
+" la sortida dins lo PDF o DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"Lo document resultant pòt èsser enregistrat coma fichièr PDF, DjVu, TIFF "
+"multipagina o fichièr d'imatge d'una sola pagina."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Una interfàcia grafica per ajudar al proces d'escanejat cap a PDF"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

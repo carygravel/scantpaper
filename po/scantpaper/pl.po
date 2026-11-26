@@ -22,12 +22,17 @@ msgstr ""
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
 msgstr ""
+"Interfejs graficzny do tworzenia plików PDF lub DjVu ze zeskanowanych "
+"dokumentów"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Zeskanowanie kilku stron, a następnie zapisanie wszystkich lub wybranych "
+"jako plik PDF lub DjVu, wraz z metadanymi, jeśli są wymagane, wymaga tylko "
+"dwóch kliknięć."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -35,28 +40,38 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper może sterować skanerami zwykłymi lub z podajnikiem (ADF) za "
+"pomocą SANE poprzez libimage-sane-perl, scanimage lub scanadf, a także może "
+"skanować wiele stron naraz."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Prezentuje widok miniatur zeskanowanych stron i umożliwia wykonywanie "
+"prostych operacji, takich jak przycinanie, obracanie i usuwanie stron."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"OCR można użyć do rozpoznawania tekstu w skanach, a wynik osadzić w pliku "
+"PDF lub DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"Wynikowy dokument można zapisać jako plik PDF, DjVu, wielostronicowy plik "
+"TIFF lub jednostronicowy plik obrazu."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Interfejs graficzny ułatwiający skanowanie do PDF"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

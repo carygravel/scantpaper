@@ -17819,6 +17819,228 @@
       "deployment": null,
       "approval_date": "2026-11-26",
       "msgstr": "Une interface graphique permettant de réaliser des fichiers PDF de plusieurs pages à partir d'un scanner"
+    },
+    {
+      "language": "fr",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null,
+      "translation_sha256": "eb96a2243f27467a09c513588dd6d7afba80befc16062dfa4d3c8038915f37af",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "401302ee8e042cf840fa864bdf5839fcf6fed93af0898b87499664befab9b28b",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "Interface graphique pour produire des PDF ou des DjVu à partir de documents numérisés"
+    },
+    {
+      "language": "fr",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null,
+      "translation_sha256": "1c1a5c8996de62b07f788f288d1aba7ddac38ca5f588747d82a0cf2aaabb9158",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "475422ca811aea6f296a719a2ac47817a89a734049ad47237ac82d11f5b54fea",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "Il présente une vue en miniatures des pages numérisées et permet des opérations simples telles que le recadrage, la rotation et la suppression de pages."
+    },
+    {
+      "language": "fr",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null,
+      "translation_sha256": "1cb4b08219925236aecb1dce7ce3f1c5d2bb70b19c07a6cbda1db1634d51222c",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "8c1d4ea5f7cf5215b3aa134021864cdf6a0ddec2fbf263632e65804604ae638c",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "L’OCR peut être utilisé pour reconnaître le texte dans les numérisations, et la sortie intégrée dans le PDF ou le DjVu."
+    },
+    {
+      "language": "fr",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null,
+      "translation_sha256": "f197f2e282b00c659fb5a2de794a884fa8bee920152aab608eca544061087a10",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "67566e58ba6e22349999d7cef53073514fba749b6823c3f912cdbb8a45fc2e0f",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "Seuls deux clics sont nécessaires pour numériser plusieurs pages, puis enregistrer l’ensemble ou une sélection dans un fichier PDF ou DjVu, y compris les métadonnées si nécessaire."
+    },
+    {
+      "language": "fr",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null,
+      "translation_sha256": "53cb14be7a1be50e28de98f4edb51de9a820f596e7736f7ab444704b562f5aa9",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "B"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "5cc0299842a8c0bc5a0a6459274bbff43eae69760d0610878116189e0b4e2de5",
+      "model_release": "minimax/minimax-m3@2026-06-01",
+      "deployment": "opencode/minimax-m3",
+      "approval_date": "2026-11-26",
+      "msgstr": "Le document résultant peut être enregistré en tant que fichier PDF, DjVu, TIFF multipage ou fichier image d'une seule page."
+    },
+    {
+      "language": "fr",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null,
+      "translation_sha256": "758a484cb8f945d5254670fbbc3b6d2b61297f37ff5e7004a8d3708762299882",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "667208b6f58cebd446591fb36d5e88ba0b9d053247b0f0e5d533af201b073bf8",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "scantpaper peut piloter des scanners à plat ou à chargeur automatique de documents (ADF) avec SANE via libimage-sane-perl, scanimage ou scanadf, et peut numériser plusieurs pages à la fois."
     }
   ],
   "qualifications": [
@@ -23348,6 +23570,108 @@
       "total_cost_usd": 0.001177,
       "latency_ms": 15904.967,
       "evidence_sha256": "7b4fcc37c69d232c1c42669e005a120efd582f98bd69d86234ba0d51a7d5d0f8"
+    },
+    {
+      "action": "gate",
+      "language": "fr",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T12:22:30+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.001903,
+      "latency_ms": 17757.634,
+      "evidence_sha256": "4c93b0126ba7bc0d5d46734974613d05d15350472db8ed2412e9aa34aa34d4f5"
+    },
+    {
+      "action": "gate",
+      "language": "fr",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T12:22:48+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.002211,
+      "latency_ms": 19411.263,
+      "evidence_sha256": "78655d47126efc4cdd5604556cd750f7afab0511b7fb757181607a7d65e164d0"
+    },
+    {
+      "action": "gate",
+      "language": "fr",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T12:23:07+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.002047,
+      "latency_ms": 21562.958,
+      "evidence_sha256": "0cfa3f6e4afccd4393b7ffcd8de60798696548b43dab526de8f929ad622bfa99"
+    },
+    {
+      "action": "gate",
+      "language": "fr",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T12:23:26+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.002238,
+      "latency_ms": 20880.269,
+      "evidence_sha256": "86f5f666e2381945ae1a7d3ae2053c9f1f56d80ba1bcd674a55d75f0117852ee"
+    },
+    {
+      "action": "gate",
+      "language": "fr",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T12:23:43+00:00",
+      "winning_deployment": "opencode/minimax-m3",
+      "winning_release": "minimax/minimax-m3@2026-06-01",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.00178,
+      "latency_ms": 18715.15,
+      "evidence_sha256": "ccd4fe0bc07984237928fa46b81a0ad3098123b89aafacf3c6dbbb9ac5d0afcf"
+    },
+    {
+      "action": "gate",
+      "language": "fr",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T12:24:07+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.002672,
+      "latency_ms": 17121.544,
+      "evidence_sha256": "652d3fa1e15e52bcee4026b3ec6d16235f713dc597f7541a834cb31398475c86"
     }
   ]
 }

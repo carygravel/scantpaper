@@ -23,12 +23,16 @@ msgstr ""
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
 msgstr ""
+"Grafické rozhranie na vytváranie PDF alebo DjVu zo skenovaných dokumentov"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Len dva kliknutia stačia na naskenovanie niekoľkých strán a následné "
+"uloženie všetkých alebo výberu vo formáte PDF alebo DjVu, prípadne aj s "
+"metadátami."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -36,28 +40,38 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper dokáže ovládať bežné skenery alebo skenery s automatickým "
+"podávačom dokumentov (ADF) pomocou SANE prostredníctvom libimage-sane-perl, "
+"scanimage alebo scanadf a dokáže skenovať viacero strán naraz."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Zobrazuje miniatúry naskenovaných strán a umožňuje jednoduché operácie, ako "
+"je orezávanie, otáčanie a odstraňovanie strán."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"OCR možno použiť na rozpoznanie textu v skenoch a výstup vložiť do PDF alebo"
+" DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"Výsledný dokument je možné uložiť ako PDF, DjVu, viacstránkový súbor TIFF "
+"alebo jednostránkový obrázkový súbor."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Grafické rozhranie na pomoc s procesom skenovania do PDF"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

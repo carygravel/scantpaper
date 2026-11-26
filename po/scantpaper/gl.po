@@ -18,12 +18,17 @@ msgstr ""
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
 msgstr ""
+"Interfaz gráfica para xerar PDFs ou DjVus a partir de documentos "
+"dixitalizados"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Só se precisan dous clics para escanear varias páxinas e despois gardar todo"
+" ou unha selección como un ficheiro PDF ou DjVu, incluíndo os metadatos se é"
+" necesario."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -31,28 +36,38 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper pode controlar escáneres normais ou con alimentador de follas "
+"(ADF) con SANE mediante libimage-sane-perl, scanimage ou scanadf, e pode "
+"escanear varias páxinas á vez."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Presenta unha vista en miniaturas das páxinas escaneadas e permite "
+"operacións sinxelas como recortar, xirar e eliminar páxinas."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"Pódese usar OCR para recoñecer o texto das dixitalizacións e incrustar a "
+"saída no PDF ou DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"O documento resultante pódese gardar como un ficheiro PDF, DjVu, TIFF "
+"multipáxina ou ficheiro de imaxe dunha soa páxina."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Unha interface gráfica para axudar no proceso de dixitalización a PDF"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

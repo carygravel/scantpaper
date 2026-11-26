@@ -3,13 +3,13 @@
   "snapshot": "1a3037183eadc10004f7f4d6228bd7f9192aa2ec",
   "snapshot_date": "2026-02-28",
   "totals": {
-    "shipped": 22271,
-    "unchanged": 9643,
-    "model-changed": 3276,
-    "model-added": 9352,
+    "shipped": 22429,
+    "unchanged": 9649,
+    "model-changed": 3270,
+    "model-added": 9510,
     "approved": 9664,
-    "pending": 12607,
-    "restored": 10
+    "pending": 12765,
+    "restored": 4
   },
   "languages": {
     "be": {
@@ -33,12 +33,12 @@
       "has_snapshot": 1
     },
     "ca": {
-      "shipped": 665,
+      "shipped": 671,
       "unchanged": 212,
       "model-changed": 252,
-      "model-added": 201,
+      "model-added": 207,
       "approved": 212,
-      "pending": 453,
+      "pending": 459,
       "restored": 0,
       "has_snapshot": 1
     },
@@ -53,13 +53,13 @@
       "has_snapshot": 1
     },
     "da": {
-      "shipped": 664,
-      "unchanged": 312,
-      "model-changed": 10,
-      "model-added": 342,
+      "shipped": 671,
+      "unchanged": 313,
+      "model-changed": 9,
+      "model-added": 349,
       "approved": 313,
-      "pending": 351,
-      "restored": 1,
+      "pending": 358,
+      "restored": 0,
       "has_snapshot": 1
     },
     "de": {
@@ -73,12 +73,12 @@
       "has_snapshot": 1
     },
     "el": {
-      "shipped": 666,
+      "shipped": 672,
       "unchanged": 282,
       "model-changed": 40,
-      "model-added": 344,
+      "model-added": 350,
       "approved": 282,
-      "pending": 384,
+      "pending": 390,
       "restored": 0,
       "has_snapshot": 1
     },
@@ -113,53 +113,53 @@
       "has_snapshot": 1
     },
     "eu": {
-      "shipped": 666,
-      "unchanged": 310,
-      "model-changed": 12,
-      "model-added": 344,
+      "shipped": 672,
+      "unchanged": 311,
+      "model-changed": 11,
+      "model-added": 350,
       "approved": 311,
-      "pending": 355,
-      "restored": 1,
+      "pending": 361,
+      "restored": 0,
       "has_snapshot": 1
     },
     "fa": {
-      "shipped": 666,
+      "shipped": 672,
       "unchanged": 20,
       "model-changed": 301,
-      "model-added": 345,
+      "model-added": 351,
       "approved": 20,
-      "pending": 646,
+      "pending": 652,
       "restored": 0,
       "has_snapshot": 1
     },
     "fi": {
-      "shipped": 666,
-      "unchanged": 464,
-      "model-changed": 1,
-      "model-added": 201,
+      "shipped": 673,
+      "unchanged": 465,
+      "model-changed": 0,
+      "model-added": 208,
       "approved": 465,
-      "pending": 201,
-      "restored": 1,
+      "pending": 208,
+      "restored": 0,
       "has_snapshot": 1
     },
     "fr": {
-      "shipped": 667,
+      "shipped": 673,
       "unchanged": 356,
       "model-changed": 105,
-      "model-added": 206,
+      "model-added": 212,
       "approved": 356,
-      "pending": 311,
+      "pending": 317,
       "restored": 0,
       "has_snapshot": 1
     },
     "gl": {
-      "shipped": 665,
-      "unchanged": 341,
-      "model-changed": 123,
-      "model-added": 201,
+      "shipped": 671,
+      "unchanged": 342,
+      "model-changed": 122,
+      "model-added": 207,
       "approved": 342,
-      "pending": 323,
-      "restored": 1,
+      "pending": 329,
+      "restored": 0,
       "has_snapshot": 1
     },
     "gu": {
@@ -173,33 +173,33 @@
       "has_snapshot": 1
     },
     "he": {
-      "shipped": 663,
+      "shipped": 669,
       "unchanged": 138,
       "model-changed": 183,
-      "model-added": 342,
+      "model-added": 348,
       "approved": 138,
-      "pending": 525,
+      "pending": 531,
       "restored": 0,
       "has_snapshot": 1
     },
     "hr": {
-      "shipped": 663,
+      "shipped": 669,
       "unchanged": 114,
       "model-changed": 205,
-      "model-added": 344,
+      "model-added": 350,
       "approved": 114,
-      "pending": 549,
+      "pending": 555,
       "restored": 0,
       "has_snapshot": 1
     },
     "hu": {
-      "shipped": 662,
-      "unchanged": 464,
-      "model-changed": 1,
-      "model-added": 197,
+      "shipped": 669,
+      "unchanged": 465,
+      "model-changed": 0,
+      "model-added": 204,
       "approved": 465,
-      "pending": 197,
-      "restored": 1,
+      "pending": 204,
+      "restored": 0,
       "has_snapshot": 1
     },
     "it": {
@@ -213,82 +213,82 @@
       "has_snapshot": 1
     },
     "ja": {
-      "shipped": 658,
+      "shipped": 664,
       "unchanged": 218,
       "model-changed": 104,
-      "model-added": 336,
+      "model-added": 342,
       "approved": 218,
-      "pending": 440,
+      "pending": 446,
       "restored": 0,
       "has_snapshot": 1
     },
     "ko": {
-      "shipped": 656,
+      "shipped": 662,
       "unchanged": 127,
       "model-changed": 195,
-      "model-added": 334,
+      "model-added": 340,
       "approved": 127,
-      "pending": 529,
+      "pending": 535,
       "restored": 0,
       "has_snapshot": 1
     },
     "nb": {
-      "shipped": 665,
+      "shipped": 672,
       "unchanged": 227,
       "model-changed": 95,
-      "model-added": 343,
+      "model-added": 350,
       "approved": 227,
-      "pending": 438,
+      "pending": 445,
       "restored": 0,
       "has_snapshot": 1
     },
     "nl": {
-      "shipped": 663,
+      "shipped": 670,
       "unchanged": 277,
       "model-changed": 45,
-      "model-added": 341,
+      "model-added": 348,
       "approved": 277,
-      "pending": 386,
+      "pending": 393,
       "restored": 0,
       "has_snapshot": 1
     },
     "oc": {
-      "shipped": 663,
+      "shipped": 669,
       "unchanged": 36,
       "model-changed": 424,
-      "model-added": 203,
+      "model-added": 209,
       "approved": 36,
-      "pending": 627,
+      "pending": 633,
       "restored": 0,
       "has_snapshot": 1
     },
     "pl": {
-      "shipped": 663,
+      "shipped": 669,
       "unchanged": 290,
       "model-changed": 32,
-      "model-added": 341,
+      "model-added": 347,
       "approved": 290,
-      "pending": 373,
+      "pending": 379,
       "restored": 0,
       "has_snapshot": 1
     },
     "pt": {
-      "shipped": 665,
+      "shipped": 671,
       "unchanged": 146,
       "model-changed": 175,
-      "model-added": 344,
+      "model-added": 350,
       "approved": 146,
-      "pending": 519,
+      "pending": 525,
       "restored": 0,
       "has_snapshot": 1
     },
     "pt_BR": {
-      "shipped": 665,
+      "shipped": 671,
       "unchanged": 296,
       "model-changed": 167,
-      "model-added": 202,
+      "model-added": 208,
       "approved": 296,
-      "pending": 369,
+      "pending": 375,
       "restored": 0,
       "has_snapshot": 1
     },
@@ -303,43 +303,43 @@
       "has_snapshot": 1
     },
     "sk": {
-      "shipped": 665,
+      "shipped": 671,
       "unchanged": 429,
       "model-changed": 34,
-      "model-added": 202,
+      "model-added": 208,
       "approved": 429,
-      "pending": 236,
+      "pending": 242,
       "restored": 0,
       "has_snapshot": 1
     },
     "sl": {
-      "shipped": 662,
+      "shipped": 668,
       "unchanged": 225,
       "model-changed": 97,
-      "model-added": 340,
+      "model-added": 346,
       "approved": 225,
-      "pending": 437,
+      "pending": 443,
       "restored": 0,
       "has_snapshot": 1
     },
     "sv": {
-      "shipped": 661,
+      "shipped": 667,
       "unchanged": 278,
       "model-changed": 125,
-      "model-added": 258,
+      "model-added": 264,
       "approved": 278,
-      "pending": 383,
+      "pending": 389,
       "restored": 0,
       "has_snapshot": 1
     },
     "tr": {
-      "shipped": 663,
-      "unchanged": 405,
-      "model-changed": 36,
-      "model-added": 222,
+      "shipped": 670,
+      "unchanged": 406,
+      "model-changed": 35,
+      "model-added": 229,
       "approved": 406,
-      "pending": 257,
-      "restored": 1,
+      "pending": 264,
+      "restored": 0,
       "has_snapshot": 1
     },
     "uk": {
@@ -353,27 +353,75 @@
       "has_snapshot": 1
     },
     "zh_CN": {
-      "shipped": 659,
+      "shipped": 666,
       "unchanged": 247,
       "model-changed": 73,
-      "model-added": 339,
+      "model-added": 346,
       "approved": 247,
-      "pending": 412,
+      "pending": 419,
       "restored": 0,
       "has_snapshot": 1
     },
     "zh_TW": {
-      "shipped": 662,
+      "shipped": 669,
       "unchanged": 53,
       "model-changed": 292,
-      "model-added": 317,
+      "model-added": 324,
       "approved": 53,
-      "pending": 609,
+      "pending": 616,
       "restored": 0,
       "has_snapshot": 1
     }
   },
   "pending": [
+    {
+      "language": "ca",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "ca",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ca",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ca",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ca",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ca",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
     {
       "language": "ca",
       "category": "model-changed",
@@ -6132,6 +6180,62 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "da",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "da",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "da",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "da",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "da",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "da",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "da",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
       "msgid_plural": null
     },
     {
@@ -12451,6 +12555,54 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "fr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "A GUI to aid the scan-to-PDF process",
       "msgid_plural": null
     },
@@ -16995,6 +17147,54 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "ja",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ja",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ja",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ja",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ja",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ja",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Text layer",
       "msgid_plural": null
     },
@@ -20508,6 +20708,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "ko",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "ko",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ko",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ko",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ko",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "ko",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -24747,6 +24995,62 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "nl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
+      "msgid_plural": null
+    },
+    {
+      "language": "nl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Text layer",
       "msgid_plural": null
     },
@@ -27835,6 +28139,54 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "pl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Text layer",
       "msgid_plural": null
     },
@@ -30812,6 +31164,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -34964,6 +35364,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt_BR",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt_BR",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt_BR",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt_BR",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt_BR",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "pt_BR",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -39531,6 +39979,54 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "sv",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sv",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sv",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sv",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sv",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sv",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "Text layer",
       "msgid_plural": null
     },
@@ -44204,6 +44700,62 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_CN",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_CN",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_CN",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_CN",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_CN",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_CN",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_CN",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
       "msgid_plural": null
     },
     {
@@ -54963,6 +55515,62 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "hu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
+      "msgid_plural": null
+    },
+    {
+      "language": "hu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "%(mb)dMb free in %(name)s.",
       "msgid_plural": "%(mb)dMb free in %(name)s."
     },
@@ -56532,6 +57140,62 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "fi",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "fi",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fi",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fi",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fi",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fi",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fi",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
       "msgid_plural": null
     },
     {
@@ -58140,6 +58804,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "sk",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "sk",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sk",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sk",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sk",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sk",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -60028,6 +60740,62 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "tr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
       "msgid_plural": null
     },
     {
@@ -62084,6 +62852,62 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "nb",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "nb",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nb",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nb",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nb",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nb",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "nb",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
       "msgid_plural": null
     },
     {
@@ -65592,6 +66416,54 @@
     },
     {
       "language": "gl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "gl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "gl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "gl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "gl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "gl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "gl",
       "category": "model-changed",
       "reason": "model-changed with no human text",
       "msgctxt": null,
@@ -68172,6 +69044,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "eu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "eu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "eu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "eu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "eu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "eu",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -71012,6 +71932,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "el",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "el",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "el",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "el",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "el",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "el",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -74084,6 +75052,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "sl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "sl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "sl",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -77580,6 +78596,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "hr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "hr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "hr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -81976,6 +83040,54 @@
     },
     {
       "language": "he",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "he",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "he",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "he",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "he",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "he",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "he",
       "category": "model-changed",
       "reason": "model-changed with no human text",
       "msgctxt": null,
@@ -86172,6 +87284,54 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "oc",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "oc",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "oc",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "oc",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "oc",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "oc",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -91188,6 +92348,54 @@
       "reason": "model-changed with no human text",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "fa",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "fa",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fa",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fa",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fa",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "fa",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -96360,6 +97568,62 @@
     },
     {
       "language": "zh_TW",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_TW",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_TW",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_TW",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_TW",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_TW",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_TW",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
+      "msgid_plural": null
+    },
+    {
+      "language": "zh_TW",
       "category": "model-changed",
       "reason": "model-changed with no human text",
       "msgctxt": null,
@@ -101271,69 +102535,9 @@
         "msgstr": "Spadlé relace",
         "msgstr_plural": {}
       }
-    },
-    {
-      "language": "hu",
-      "msgctxt": null,
-      "msgid": "Crashed sessions",
-      "msgid_plural": null,
-      "model_variant": {
-        "msgstr": "Összeomlott munkamenetek",
-        "msgstr_plural": {}
-      }
-    },
-    {
-      "language": "fi",
-      "msgctxt": null,
-      "msgid": "Crashed sessions",
-      "msgid_plural": null,
-      "model_variant": {
-        "msgstr": "Kaatuneet istunnot",
-        "msgstr_plural": {}
-      }
-    },
-    {
-      "language": "tr",
-      "msgctxt": null,
-      "msgid": "Crashed sessions",
-      "msgid_plural": null,
-      "model_variant": {
-        "msgstr": "Çökmüş oturumlar",
-        "msgstr_plural": {}
-      }
-    },
-    {
-      "language": "da",
-      "msgctxt": null,
-      "msgid": "Crashed sessions",
-      "msgid_plural": null,
-      "model_variant": {
-        "msgstr": "Nedbrudte sessioner",
-        "msgstr_plural": {}
-      }
-    },
-    {
-      "language": "gl",
-      "msgctxt": null,
-      "msgid": "Crashed sessions",
-      "msgid_plural": null,
-      "model_variant": {
-        "msgstr": "Sesións fallidas",
-        "msgstr_plural": {}
-      }
-    },
-    {
-      "language": "eu",
-      "msgctxt": null,
-      "msgid": "Crashed sessions",
-      "msgid_plural": null,
-      "model_variant": {
-        "msgstr": "Kraskatutako saioak",
-        "msgstr_plural": {}
-      }
     }
   ],
   "notes": [
-    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 21602 with 9352 model-added and 3276 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 22271."
+    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 21760 with 9510 model-added and 3270 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 22429."
   ]
 }

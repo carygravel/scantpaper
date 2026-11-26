@@ -21,13 +21,16 @@ msgstr ""
 
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
-msgstr ""
+msgstr "GUI om PDF's of DjVu's te genereren uit gescande documenten"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Met slechts twee klikken kunt u meerdere pagina's scannen en vervolgens "
+"alles of een selectie opslaan als een PDF- of DjVu-bestand, inclusief "
+"metadata indien gewenst."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -35,28 +38,37 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper kan gewone of sheet-fed (ADF)-scanners aansturen met SANE via "
+"libimage-sane-perl, scanimage of scanadf, en kan meerdere pagina's tegelijk "
+"scannen."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Het toont een miniatuurweergave van gescande pagina's en maakt eenvoudige "
+"bewerkingen mogelijk, zoals pagina's bijsnijden, draaien en verwijderen."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"OCR kan worden gebruikt om tekst in de scans te herkennen en de uitvoer in "
+"de PDF of DjVu in te bedden."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"Het resulterende document kan worden opgeslagen als een PDF, DjVu, een TIFF-"
+"bestand met meerdere pagina's of een afbeeldingsbestand met één pagina."
 
 #: org.scantpaper.desktop:4
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Een GUI om het scan-naar-PDF-proces te ondersteunen"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

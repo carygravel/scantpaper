@@ -21,13 +21,15 @@ msgstr ""
 
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
-msgstr ""
+msgstr "스캔한 문서에서 PDF 또는 DjVu를 생성하는 GUI"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"여러 페이지를 스캔한 다음 전체 또는 선택한 페이지를 PDF 또는 DjVu 파일로 저장하는 데는 클릭 두 번이면 됩니다. 필요한 경우 "
+"메타데이터도 포함됩니다."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -35,28 +37,31 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper는 libimage-sane-perl, scanimage 또는 scanadf를 통해 SANE로 일반 스캐너 또는 자동 "
+"문서 공급 장치(ADF) 스캐너를 제어할 수 있으며, 한 번에 여러 페이지를 스캔할 수 있습니다."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
-msgstr ""
+msgstr "스캔한 페이지의 썸네일 보기를 제공하며, 페이지 자르기, 회전, 삭제와 같은 간단한 작업을 수행할 수 있습니다."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
-msgstr ""
+msgstr "OCR은 스캔본에서 텍스트를 인식하는 데 사용될 수 있으며, 그 결과를 PDF 또는 DjVu에 포함시킬 수 있습니다."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
-msgstr ""
+msgstr "결과 문서는 PDF, DjVu, 여러 페이지 TIFF 파일 또는 단일 페이지 이미지 파일로 저장할 수 있습니다."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "PDF로 스캔하는 과정을 돕는 GUI"
 
 #: app_window.py:751
 msgid "Warning: missing packages"
