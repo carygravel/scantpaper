@@ -6,6 +6,7 @@ import argparse
 import datetime as dt
 import os
 import subprocess
+import tempfile
 from pathlib import Path
 
 import polib
@@ -29,34 +30,29 @@ from scantpaper.const import (  # noqa: E402
 )
 
 
-def _desktop_line_keys(source: Path) -> dict[str, str]:
-    """Map gettext's desktop reference line numbers to entry keys.
+def _prepare_desktop_source(source: Path, destination: Path) -> None:
+    """Copy a desktop entry with its untranslatable keys renamed.
 
-    gettext's Desktop parser reports the line after the key/value line, so the
-    reported number is one greater than the 1-based line number in the file.
+    Renaming ``Name`` and ``Keywords`` keeps every line in place, so the
+    references xgettext records still point at the right line of the real
+    source, while the Desktop parser no longer extracts their values.
     """
-    keys: dict[str, str] = {}
-    for number, line in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
-        keys[str(number + 1)] = line.split("=", 1)[0]
-    return keys
+    lines = source.read_text(encoding="utf-8").splitlines(keepends=True)
+    renamed: list[str] = []
+    for line in lines:
+        key = line.split("=", 1)[0].strip()
+        renamed.append(f"X-Scantpaper-{line}" if key in EXCLUDED_DESKTOP_KEYS else line)
+    destination.write_text("".join(renamed), encoding="utf-8")
 
 
-def _filter_desktop_pot(pot: Path, source: Path) -> None:
-    """Remove entries extracted only from untranslatable desktop keys.
-
-    The filter looks at the line each occurrence points to rather than at the
-    msgid, so a translatable ``Comment`` that happens to share its text with
-    the brand or the keyword list is kept.
-    """
-    keys = _desktop_line_keys(source)
+def _rewrite_desktop_occurrences(pot: Path, temporary: str, source_name: str) -> None:
+    """Point the desktop references at the real source file."""
     parsed = polib.pofile(str(pot))
-    for entry in list(parsed):
-        if not entry.occurrences:
-            continue
-        if all(
-            keys.get(line) in EXCLUDED_DESKTOP_KEYS for _, line in entry.occurrences
-        ):
-            parsed.remove(entry)
+    for entry in parsed:
+        entry.occurrences = [
+            (source_name if name == temporary else name, line)
+            for name, line in entry.occurrences
+        ]
     parsed.save(str(pot))
 
 
@@ -90,18 +86,23 @@ def generate_template() -> str:
         )
 
         desktop_pot = repo_root / "_desktop_tmp.pot"
-        subprocess.run(
-            [
-                "xgettext",
-                "--language=Desktop",
-                "--from-code=UTF-8",
-                "-o",
-                str(desktop_pot),
-                desktop_source.name,
-            ],
-            check=True,
-        )
-        _filter_desktop_pot(desktop_pot, desktop_source)
+        with tempfile.TemporaryDirectory(prefix="scantpaper-desktop-") as tmp_name:
+            desktop_copy = Path(tmp_name) / desktop_source.name
+            _prepare_desktop_source(desktop_source, desktop_copy)
+            subprocess.run(
+                [
+                    "xgettext",
+                    "--language=Desktop",
+                    "--from-code=UTF-8",
+                    "-o",
+                    str(desktop_pot),
+                    str(desktop_copy),
+                ],
+                check=True,
+            )
+            _rewrite_desktop_occurrences(
+                desktop_pot, str(desktop_copy), desktop_source.name
+            )
 
         os.chdir(pkg_dir)
         ui_sources = sorted(str(x) for x in Path().rglob("*.ui"))

@@ -59,6 +59,13 @@ def test_dist_suffix_is_target_specific() -> None:
     assert text.index(leap_branch) < text.index("%dist .lp160.1")
 
 
+def test_setup_installs_the_metainfo_its_rules() -> None:
+    """Install the AppStream ITS package the metadata join requires."""
+    text = BUILD.read_text(encoding="utf-8")
+    setup = text[text.index("do_setup()") : text.index("fetch_source()")]
+    assert "AppStream-devel" in [line.strip() for line in setup.splitlines()]
+
+
 def test_sane_spec_follows_the_python_flavor() -> None:
     """Build the patched sane for the target's default Python flavor."""
     text = SANE.read_text(encoding="utf-8")

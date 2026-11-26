@@ -127,6 +127,8 @@ do_setup() {
     zypper -n remove busybox-gawk
   fi
 
+  # AppStream-devel provides the metainfo ITS rules used by
+  # dev/join_metadata.py through msgfmt --xml.
   zypper -n --gpg-auto-import-keys install --no-recommends \
     git curl tar gzip \
     rpm-build gcc gcc-c++ make pkgconf-pkg-config \
@@ -143,7 +145,8 @@ do_setup() {
     tesseract-ocr-devel tesseract-ocr leptonica-devel \
     libcurl-devel libarchive-devel sane-backends-devel sane-backends \
     ghostscript poppler-tools tiff rsvg-convert ImageMagick \
-    qpdf unpaper djvulibre xdg-utils gettext-tools help2man
+    qpdf unpaper djvulibre xdg-utils gettext-tools help2man \
+    AppStream-devel
 
   if [ "$TARGET" = tumbleweed ]; then
     # rpmbuild does not resolve BuildRequires, so install the distribution
