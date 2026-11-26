@@ -19,535 +19,517 @@ msgstr ""
 "X-Generator: Launchpad (build 18386)\n"
 "X-Launchpad-Export-Date: 2017-05-19 07:52+0000\n"
 
-#: app_window.py:516
-#, fuzzy
-msgid "Save image and Save as PDF both require imagemagick"
-msgstr "儲存影像及儲存為 PDF 皆需要 imagemagick"
-
-#: app_window.py:517
-#, fuzzy
-msgid "Save image requires libtiff"
-msgstr "儲存影像需要 libtiff"
-
-#: app_window.py:518
-#, fuzzy
-msgid "Save as DjVu requires djvulibre-bin"
-msgstr "儲存為 DjVu 需要 djvulibre-bin"
-
-#: app_window.py:519
-#, fuzzy
-msgid "Email as PDF requires xdg-email"
-msgstr "以 PDF 寄送電子郵件需要 xdg-email"
-
-#: app_window.py:520
-#, fuzzy
-msgid "unpaper missing"
-msgstr "缺少 unpaper"
-
-#: app_window.py:528
-#, fuzzy
-msgid "OCR requires tesseract"
-msgstr "OCR 需要 tesseract"
-
-#: app_window.py:543
-#, fuzzy
-msgid "PDF encryption requires qpdf"
-msgstr "PDF 加密需要 qpdf"
-
-#: app_window.py:575
-#, fuzzy
+#: app_window.py:751
 msgid "Warning: missing packages"
 msgstr "警告：缺少套件"
 
-#: app_window.py:593
-#, fuzzy
+#: app_window.py:827
 msgid "Image"
-msgstr "影像"
+msgstr "圖片"
 
-#: app_window.py:594 text_layer_control.py:57
-#, fuzzy
+#: app_window.py:828 layer.py:197
 msgid "Text layer"
 msgstr "文字圖層"
 
-#: app_window.py:596 session_mixins.py:446
-#, fuzzy
+#: app_window.py:830
 msgid "Annotations"
 msgstr "註解"
 
-#: app_window.py:837
-#, fuzzy, python-format
-msgid "%dMb free in %s."
-msgid_plural "%dMb free in %s."
-msgstr[0] "%dMB 可用空間，位於 %s。"
-msgstr[1] "%dMB 可用空間，位於 %s。"
+#: app_window.py:1294
+#, python-format
+msgid "%(mb)dMb free in %(name)s."
+msgid_plural "%(mb)dMb free in %(name)s."
+msgstr[0] "%(name)s 中有 %(mb)dMb 可用。"
 
-#: app_window.py:864 helpers.py:372
-#, fuzzy
+#: app_window.py:1322 helpers.py:531
 msgid "Messages"
 msgstr "訊息"
 
-#: app_window.py:949
-#, fuzzy
+#: app_window.py:1405
 msgid "Error opening the last device used."
 msgstr "開啟上次使用的裝置時發生錯誤。"
 
-#: app_window.py:951
-#, fuzzy
+#: app_window.py:1407
 msgid "There was an error opening the last device used."
 msgstr "開啟上次使用的裝置時發生錯誤。"
 
-#: app_window.py:954
-#, fuzzy
+#: app_window.py:1410
 msgid "Whoops! I forgot to turn it on. Try again now."
-msgstr "哎呀！我忘了開啟它。請現在再試一次。"
+msgstr "哎呀！我忘記把它開啟了。現在再試一次。"
 
-#: app_window.py:959 dialog/scan.py:517
-#, fuzzy
+#: app_window.py:1416 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr "重新掃描裝置"
 
-#: app_window.py:963
-#, fuzzy
+#: app_window.py:1419
 msgid "Restart scantpaper."
-msgstr "請重新啟動 scantpaper。"
+msgstr "重新啟動 scantpaper。"
 
-#: app_window.py:968
-#, fuzzy
+#: app_window.py:1423
 msgid "Just ignore the error. I don't need the scanner yet."
-msgstr "請忽略此錯誤。我目前還不需要掃描器。"
+msgstr "直接忽略這個錯誤就好。我還不需要掃描器。"
 
-#: app_window.py:971 dialog/preferences.py:162
-#, fuzzy
+#: app_window.py:1427 dialog/preferences.py:189
 msgid "Cache device list"
 msgstr "快取裝置清單"
 
-#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
-#, fuzzy
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr "不要再顯示此訊息"
 
-#: basedocument.py:48
-#, fuzzy
+#: basedocument.py:47
 msgid "Thumbnails"
 msgstr "縮圖"
 
-#: basedocument.py:711
-#, fuzzy
+#: basedocument.py:876
 msgid "No pages to process"
-msgstr "沒有要處理的頁面"
+msgstr "沒有可處理的頁面"
 
-#: basedocument.py:715
-#, fuzzy
+#: basedocument.py:880
 msgid "No pages selected"
 msgstr "未選取任何頁面"
 
-#: config.py:107
-#, fuzzy
+#: config.py:113
 msgid "A3"
 msgstr "A3"
 
-#: config.py:113
-#, fuzzy
+#: config.py:119
 msgid "A4"
 msgstr "A4"
 
-#: config.py:119
-#, fuzzy
-msgid "US Letter"
-msgstr "美國信紙"
-
 #: config.py:125
-#, fuzzy
+msgid "US Letter"
+msgstr "美式 Letter"
+
+#: config.py:131
 msgid "US Legal"
-msgstr "美國法律文件"
+msgstr "美國法律"
 
-#: config.py:263
-#, fuzzy, python-format
+#: config.py:276
+#, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
-msgstr "設定 %s 為 %r，無法作為 %s 使用，因此保持不變。"
+"The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
+"been left unchanged."
+msgstr "設定 %(key)s 的值為 %(value)r，無法作為 %(type)s 使用，因此保持不變。"
 
-#: config.py:299
-#, fuzzy, python-format
+#: config.py:312
+#, python-format
 msgid ""
-"The settings file %s could not be read in full. The following settings were "
-"restored: %s. The rest were reset to their defaults. A backup of the "
-"original file has been saved as %s."
+"The settings file %(filename)s could not be read in full. These settings "
+"were restored: %(settings)s. The rest were reset to their defaults. A backup"
+" has been saved as %(backup)s."
 msgstr ""
-"無法完整讀取設定檔 %s。下列設定已還原：%s。其餘設定已重設為預設值。原始檔案的"
-"備份已儲存為 %s。"
+"設定檔 %(filename)s 無法完整讀取。以下設定已還原：%(settings)s。其餘設定已重設為預設值。備份已儲存為 %(backup)s。"
 
-#: config.py:306
-#, fuzzy, python-format
+#: config.py:323
+#, python-format
 msgid ""
-"The settings file %s could not be read, so all settings have been reset to "
-"their defaults. A backup of the original file has been saved as %s."
-msgstr ""
-"無法讀取設定檔 %s，因此所有設定已重設為預設值。原始檔案的備份已儲存為 %s。"
+"The settings file %(filename)s could not be read, so all settings have been "
+"reset to their defaults. A backup of the original file has been saved as "
+"%(backup)s."
+msgstr "無法讀取設定檔 %(filename)s，因此所有設定都已重設為預設值。原始檔案的備份已儲存為 %(backup)s。"
 
-#: dialog/__init__.py:67
-#, fuzzy
+#: dependencies.py:166 tests/test_app_window.py:880
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr "儲存影像和另存為 PDF 皆需要 imagemagick"
+
+#: dependencies.py:172
+msgid "Save image requires libtiff"
+msgstr "儲存影像需要 libtiff"
+
+#: dependencies.py:178 tests/test_app_window.py:881
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "另存為 DjVu 需要 djvulibre-bin"
+
+#: dependencies.py:186
+msgid "Email as PDF requires xdg-email"
+msgstr "以電子郵件傳送 PDF 需要 xdg-email"
+
+#: dependencies.py:189 tests/test_app_window.py:882
+msgid "unpaper missing"
+msgstr "缺少 unpaper"
+
+#: dependencies.py:191 tests/test_app_window.py:883
+msgid "OCR requires tesseract"
+msgstr "OCR 需要 tesseract"
+
+#: dependencies.py:196 tests/test_app_window.py:884
+msgid "PDF encryption requires qpdf"
+msgstr "PDF 加密需要 qpdf"
+
+#: dependencies.py:202 tests/test_app_window.py:885
+msgid "JBIG2 PDF compression requires jbig2"
+msgstr "JBIG2 PDF 壓縮需要 jbig2"
+
+#: dialog/__init__.py:134
 msgid "Page Range"
 msgstr "頁面範圍"
 
-#: dialog/__init__.py:106
-#, fuzzy
+#: dialog/__init__.py:174
 msgid "Error"
 msgstr "錯誤"
 
-#: dialog/__init__.py:107
-#, fuzzy
+#: dialog/__init__.py:175
 msgid "Warning"
 msgstr "警告"
 
-#: dialog/__init__.py:108
-#, fuzzy
+#: dialog/__init__.py:176
 msgid "Info"
 msgstr "資訊"
 
-#: dialog/__init__.py:125
-#, fuzzy
+#: dialog/__init__.py:199
 msgid "Page"
 msgstr "頁面"
 
-#: dialog/__init__.py:126
-#, fuzzy
+#: dialog/__init__.py:200
 msgid "Process"
-msgstr "處理程序"
+msgstr "處理"
 
-#: dialog/__init__.py:127
-#, fuzzy
+#: dialog/__init__.py:201
 msgid "Message type"
 msgstr "訊息類型"
 
-#: dialog/__init__.py:129
-#, fuzzy
+#: dialog/__init__.py:203
 msgid "Message"
 msgstr "訊息"
 
-#: dialog/__init__.py:132
-#, fuzzy
+#: dialog/__init__.py:206
 msgid "Hide"
 msgstr "隱藏"
 
-#: dialog/__init__.py:193
-#, fuzzy
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
+msgid "_Close"
+msgstr "關閉(_C)"
+
+#: dialog/__init__.py:295
 msgid "Don't show these messages again"
 msgstr "不要再顯示這些訊息"
 
-#: dialog/__init__.py:313
-#, fuzzy
+#: dialog/__init__.py:409
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
-msgstr "此錯誤通常是因為 ImageMagick 超出其資源限制所致。"
+msgstr "此錯誤通常是因為 ImageMagick 超過其資源限制所致。"
 
-#: dialog/__init__.py:317
-#, fuzzy
+#: dialog/__init__.py:413
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
-msgstr ""
-"可透過編輯其原則檔來擴充這些限制，在我的系統上位於 /etc/ImageMagick-6/"
-"policy.xml"
+msgstr "這些可以透過編輯其原則檔案來擴充，在我的系統上，該檔案位於 /etc/ImageMagick-6/policy.xml"
 
-#: dialog/__init__.py:322
-#, fuzzy
+#: dialog/__init__.py:418
+#, python-format
 msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
-msgstr "更多資訊請參閱 https://imagemagick.org/script/resources.php"
+"Please see the ImageMagick resource documentation for more information: "
+"%(url)s"
+msgstr "請參閱 ImageMagick 資源說明文件以取得更多資訊：%(url)s"
 
-#: dialog/crop.py:14
-#, fuzzy
+#: dialog/crop.py:15
 msgid "x"
 msgstr "x"
 
-#: dialog/crop.py:15
-#, fuzzy
+#: dialog/crop.py:16
 msgid "The x-position of the left hand edge of the crop."
-msgstr "裁切區域左邊緣的 x 座標。"
+msgstr "裁切左側邊緣的 x 座標位置。"
 
-#: dialog/crop.py:19
-#, fuzzy
+#: dialog/crop.py:20
 msgid "y"
 msgstr "y"
 
-#: dialog/crop.py:20
-#, fuzzy
+#: dialog/crop.py:21
 msgid "The y-position of the top edge of the crop."
-msgstr "裁切區域上邊緣的 y 座標。"
+msgstr "裁切區域上邊緣的 Y 座標。"
 
-#: dialog/crop.py:24 dialog/paperlist.py:22
-#, fuzzy
+#: dialog/crop.py:25 dialog/paperlist.py:22
 msgid "Width"
 msgstr "寬度"
 
-#: dialog/crop.py:25
-#, fuzzy
+#: dialog/crop.py:26
 msgid "The width of the crop."
-msgstr "裁切區域的寬度。"
+msgstr "裁切的寬度。"
 
-#: dialog/crop.py:29 dialog/paperlist.py:23
-#, fuzzy
+#: dialog/crop.py:30 dialog/paperlist.py:23
 msgid "Height"
 msgstr "高度"
 
-#: dialog/crop.py:30
-#, fuzzy
+#: dialog/crop.py:31
 msgid "The height of the crop."
-msgstr "裁切區域的高度。"
+msgstr "裁切的高度。"
 
-#: dialog/crop.py:116
-#, fuzzy
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr "裁切"
 
-#: dialog/crop.py:154 tools_menu_mixins.py:277
-#, fuzzy
+#: dialog/crop.py:161 tools_menu_mixins.py:286
 msgid "pixels"
 msgstr "像素"
 
-#: dialog/pagecontrols.py:188
-#, fuzzy
+#: dialog/importhocr.py:45
+msgid "hOCR file"
+msgstr "hOCR 檔案"
+
+#: dialog/importhocr.py:50 dialog/preferences.py:272
+#: postprocess_controls.py:692
+msgid "Browse"
+msgstr "瀏覽"
+
+#: dialog/importhocr.py:56
+msgid "Pages are matched to the hOCR pages in order."
+msgstr "頁面會依序與 hOCR 頁面配對。"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_OK"
+msgstr "_確定"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
+#: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
+#: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_Cancel"
+msgstr "取消(_Q)"
+
+#: dialog/importhocr.py:69
+msgid "Open hOCR file"
+msgstr "開啟 hOCR 檔案"
+
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
+msgid "Cancel"
+msgstr "取消"
+
+#: dialog/importhocr.py:76 file_menu_mixins.py:119
+msgid "Open"
+msgstr "開啟"
+
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
+msgid "hOCR files"
+msgstr "hOCR 檔案"
+
+#: dialog/pagecontrols.py:231
 msgid "Page Options"
 msgstr "頁面選項"
 
-#: dialog/pagecontrols.py:199
+#: dialog/pagecontrols.py:245
 msgid "# Pages"
 msgstr "# 頁"
 
-#: dialog/pagecontrols.py:210 pagerange.py:47
+#: dialog/pagecontrols.py:256 pagerange.py:48
 msgid "All"
 msgstr "全部"
 
-#: dialog/pagecontrols.py:211
+#: dialog/pagecontrols.py:257
 msgid "Scan all pages"
 msgstr "全選頁面"
 
-#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+#: dialog/pagecontrols.py:268 dialog/pagecontrols.py:273
 msgid "Set number of pages to scan"
 msgstr "指定要掃描的頁面編號"
 
-#: dialog/pagecontrols.py:247
-#, fuzzy
+#: dialog/pagecontrols.py:277
+msgid "No page limit: scanning continues until you cancel."
+msgstr "無頁數限制：掃描會持續進行，直到您取消為止。"
+
+#: dialog/pagecontrols.py:311
 msgid "Extended page numbering"
 msgstr "延伸頁碼編號"
 
-#: dialog/pagecontrols.py:260
-#, fuzzy
+#: dialog/pagecontrols.py:324
 msgid "Page number"
 msgstr "頁碼"
 
-#: dialog/pagecontrols.py:271
-#, fuzzy
+#: dialog/pagecontrols.py:334
 msgid "Insert before page N"
-msgstr "插入到第 N 頁之前"
+msgstr "在第 N 頁之前插入"
 
-#: dialog/pagecontrols.py:274
+#: dialog/pagecontrols.py:337
 #, fuzzy
 msgid "Page number before which scans will be inserted"
 msgstr "掃描結果將插入到的頁碼之前"
 
-#: dialog/pagecontrols.py:285
-#, fuzzy
+#: dialog/pagecontrols.py:348
 msgid "Position advance"
 msgstr "位置前進"
 
-#: dialog/pagecontrols.py:289
-#, fuzzy
+#: dialog/pagecontrols.py:352
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
-msgstr "每次後續掃描的位置前進 (0 = 持續插入到同一頁之前)"
+msgstr "每次後續掃描的位置前進量（0 = 持續插入到同一頁面之前）"
 
-#: dialog/pagecontrols.py:305
+#: dialog/pagecontrols.py:368
 msgid "Source document"
 msgstr "來源文件"
 
-#: dialog/pagecontrols.py:313
+#: dialog/pagecontrols.py:377
 msgid "Single sided"
 msgstr "單面"
 
-#: dialog/pagecontrols.py:315
+#: dialog/pagecontrols.py:378
 msgid "Source document is single-sided"
 msgstr "來源文件為單面"
 
-#: dialog/pagecontrols.py:321
+#: dialog/pagecontrols.py:385
 msgid "Double sided"
 msgstr "雙面"
 
-#: dialog/pagecontrols.py:323
+#: dialog/pagecontrols.py:387
 msgid "Source document is double-sided"
 msgstr "來源文件為雙面"
 
-#: dialog/pagecontrols.py:329
+#: dialog/pagecontrols.py:393
 msgid "Side to scan"
 msgstr "掃描正/反面"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Facing"
 msgstr "正面"
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Reverse"
 msgstr "反面"
 
-#: dialog/pagecontrols.py:337
+#: dialog/pagecontrols.py:401
 msgid "Sets which side of a double-sided document is scanned"
 msgstr "指定雙面文件要掃描正或反面"
 
-#: dialog/paperlist.py:21
-#, fuzzy
+#: dialog/paperlist.py:21 dialog/tesseractparams.py:69
 msgid "Name"
 msgstr "名稱"
 
-#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
-#, fuzzy
+#: dialog/paperlist.py:24 unpaper.py:153 unpaper.py:181
 msgid "Left"
 msgstr "左"
 
-#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
-#, fuzzy
+#: dialog/paperlist.py:25 unpaper.py:158 unpaper.py:186
 msgid "Top"
-msgstr "上"
+msgstr "頂端"
 
 #: dialog/paperlist.py:26
-#, fuzzy
 msgid "Units"
 msgstr "單位"
 
 #: dialog/paperlist.py:73 dialog/paperlist.py:115
-#, fuzzy
 msgid "Cannot delete all paper sizes"
 msgstr "無法刪除所有紙張大小"
 
-#: dialog/preferences.py:42
-#, fuzzy
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr "偏好設定"
 
-#: dialog/preferences.py:56
-#, fuzzy
+#: dialog/preferences.py:72
 msgid "Scan options"
 msgstr "掃描選項"
 
-#: dialog/preferences.py:60
-#, fuzzy
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr "一般選項"
 
-#: dialog/preferences.py:68
-#, fuzzy
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
 msgstr "程式啟動時開啟掃描器"
 
-#: dialog/preferences.py:71
-#, fuzzy
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
-msgstr ""
-"程式啟動時在背景自動開啟掃描對話方塊。這樣可以省去點選掃描按鈕並等待程式尋找"
-"掃描器清單的時間"
+msgstr "程式啟動時自動在背景開啟掃描對話方塊。這可節省點擊掃描按鈕和等待程式尋找掃描器清單的時間。"
 
-#: dialog/preferences.py:83
-#, fuzzy
+#: dialog/preferences.py:104
 msgid "Device blacklist"
 msgstr "裝置黑名單"
 
-#: dialog/preferences.py:87
-#, fuzzy
-msgid "Device blacklist (regular expression)"
-msgstr "裝置黑名單 (正規表示式)"
+#: dialog/preferences.py:107
+msgid "e.g. Camera or v4l:.*"
+msgstr "例如 Camera 或 v4l:.*"
 
-#: dialog/preferences.py:95
-#, fuzzy
+#: dialog/preferences.py:110
+msgid ""
+"Regular expression matched case-insensitively against the device label and "
+"backend name, e.g. Camera or v4l:.*"
+msgstr "以不區分大小寫方式比對裝置標籤與後端名稱的正規表示式，例如 Camera 或 v4l:.*"
+
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
-msgstr "掃描後循環使用 SANE 控制代碼"
+msgstr "掃描後循環 SANE 控制代碼"
 
-#: dialog/preferences.py:97
+#: dialog/preferences.py:124
 #, fuzzy
 msgid "Some ADFs do not feed out the last page if this is not enabled"
 msgstr "若未啟用此選項，部分 ADF 不會送出最後一頁"
 
-#: dialog/preferences.py:105
-#, fuzzy
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
-msgstr "允許從平台式掃描器進行批次掃描"
+msgstr "允許從平台掃描器進行批次掃描"
 
-#: dialog/preferences.py:109
-#, fuzzy
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
-msgstr "若未設定，切換到平台式掃描器將強制 # 頁面為 1 並採用單面模式。"
+msgstr "如果未設定，切換到平台掃描器將強制將 # 頁設為 1 並使用單面模式。"
 
-#: dialog/preferences.py:118
-#, fuzzy
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
 msgstr "忽略掃描器的雙面功能"
 
-#: dialog/preferences.py:122
-#, fuzzy
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
-msgstr ""
-"若設定，將忽略所有雙面功能，並顯示正面/反面小工具以允許手動交錯排列頁面。"
+msgstr "若設定此項，將忽略所有雙面列印功能，並顯示正面/反面小工具，以便手動交錯頁面。"
 
-#: dialog/preferences.py:131
-#, fuzzy
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
-msgstr "在頁面之間強制建立新的掃描工作"
+msgstr "強制在頁面之間建立新的掃描工作"
 
-#: dialog/preferences.py:135
-#, fuzzy
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
-msgstr "否則，部分 Brother 掃描器即使從平台式掃描，仍會回報文件不足。"
+msgstr "否則，某些 Brother 掃描器會回報無文件，即使從平台掃描時也是如此。"
 
-#: dialog/preferences.py:151
+#: dialog/preferences.py:178
 #, fuzzy
 msgid "Select # pages = all on selecting ADF"
 msgstr "選取 ADF 時選擇 # 頁面 = 全部"
 
-#: dialog/preferences.py:155
-#, fuzzy
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
-msgstr "若啟用此選項，切換到 source=ADF 時，將選取 # 頁面 = 全部"
+msgstr "若啟用此選項，切換至來源=ADF 時，會選取 # 頁數 = 全部"
 
-#: dialog/preferences.py:165
-#, fuzzy
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
-msgstr "若啟用此選項，開啟掃描器會更快，因為 scantpaper 不會先搜尋可用的裝置。"
+msgstr "如果啟用此選項，開啟掃描器會更快速，因為 scantpaper 不會先搜尋可用的裝置。"
 
-#: dialog/preferences.py:169
-#, fuzzy
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
-msgstr "只有在裝置名稱在會話之間不變時，此選項才有效。"
+msgstr "這只有在裝置名稱在工作階段之間不會變更時才有效。"
 
-#: dialog/preferences.py:178
-#, fuzzy
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
 msgstr "啟動時還原視窗設定"
 
-#: dialog/preferences.py:183
-#, fuzzy
+#: dialog/preferences.py:210
 msgid "View files on saving"
 msgstr "儲存時檢視檔案"
 
-#: dialog/preferences.py:190
-#, fuzzy
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
-msgstr "預設 PDF 與 DjVu 檔名"
+msgstr "預設 PDF & DjVu 檔名"
 
-#: dialog/preferences.py:194
+#: dialog/preferences.py:221
 #, fuzzy
 msgid ""
 "strftime codes, e.g.:\n"
@@ -580,2297 +562,2541 @@ msgstr ""
 "%Dm\t文件月份\n"
 "%Dd\t文件日期\n"
 
-#: dialog/preferences.py:215
-#, fuzzy
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
-msgstr "將檔案名稱中的空白字元取代為底線"
+msgstr "將檔名中的空白字元取代為底線"
 
-#: dialog/preferences.py:221
-#, fuzzy
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
-msgstr "使用語言環境的時區"
+msgstr "使用地區設定中的時區"
 
-#: dialog/preferences.py:226
-#, fuzzy
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
-msgstr "同時指定時間與日期"
+msgstr "同時指定時間和日期"
 
-#: dialog/preferences.py:232
-#, fuzzy
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
-msgstr "將存取與修改時間設定為中繼資料日期"
+msgstr "將存取和修改時間設定為中繼資料日期"
 
-#: dialog/preferences.py:240
-#, fuzzy
+#: dialog/preferences.py:267
 msgid "Temporary directory"
 msgstr "暫存目錄"
 
-#: dialog/preferences.py:245
-#, fuzzy
-msgid "Browse"
-msgstr "瀏覽"
-
-#: dialog/preferences.py:251
-#, fuzzy
-msgid "Select temporary directory"
-msgstr "選取暫存目錄"
-
-#: dialog/preferences.py:273
-#, fuzzy
-msgid "Warn if available space less than (Mb)"
-msgstr "可用空間小於 (Mb) 時發出警告"
-
 #: dialog/preferences.py:279
-#, fuzzy
+msgid "Select temporary directory"
+msgstr "選擇暫存目錄"
+
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
+#: postprocess_controls.py:717
+msgid "OK"
+msgstr "確定"
+
+#: dialog/preferences.py:304
+msgid "Warn if available space less than (Mb)"
+msgstr "可用空間小於 (Mb) 時警告"
+
+#: dialog/preferences.py:310
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
-msgstr "暫存目錄中的可用空間小於此值時發出警告"
+msgstr "若暫存目錄的可用空間小於此值時發出警告"
 
-#: dialog/preferences.py:287
-#, fuzzy
+#: dialog/preferences.py:318
 msgid "Blank threshold"
-msgstr "空白頁臨界值"
+msgstr "空白閾值"
 
-#: dialog/preferences.py:292
-#, fuzzy
+#: dialog/preferences.py:323
 msgid "Threshold used for selecting blank pages"
-msgstr "用於選取空白頁的臨界值"
+msgstr "用於選取空白頁面的閾值"
 
-#: dialog/preferences.py:300
-#, fuzzy
+#: dialog/preferences.py:331
 msgid "Dark threshold"
-msgstr "深色頁臨界值"
+msgstr "深色閾值"
 
-#: dialog/preferences.py:304
-#, fuzzy
+#: dialog/preferences.py:335
 msgid "Threshold used for selecting dark pages"
-msgstr "用於選取深色頁的臨界值"
+msgstr "用於選取深色頁面的閾值"
 
-#: dialog/preferences.py:311
-#, fuzzy
+#: dialog/preferences.py:342
 msgid "OCR output"
 msgstr "OCR 輸出"
 
-#: dialog/preferences.py:316
-#, fuzzy
+#: dialog/preferences.py:347
 msgid "Replace"
 msgstr "取代"
 
-#: dialog/preferences.py:318
-#, fuzzy
+#: dialog/preferences.py:349
 msgid "Replace the contents of the text buffer with that from the OCR output."
-msgstr "以 OCR 輸出的內容取代文字緩衝區的內容。"
+msgstr "使用 OCR 輸出的內容取代文字緩衝區的內容。"
 
-#: dialog/preferences.py:321
-#, fuzzy
+#: dialog/preferences.py:352
 msgid "Prepend"
 msgstr "前置"
 
-#: dialog/preferences.py:321
-#, fuzzy
+#: dialog/preferences.py:352
 msgid "Prepend the OCR output to the text buffer."
-msgstr "將 OCR 輸出前置到文字緩衝區。"
+msgstr "將 OCR 輸出附加至文字緩衝區的開頭。"
 
-#: dialog/preferences.py:322
-#, fuzzy
+#: dialog/preferences.py:353
 msgid "Append"
 msgstr "附加"
 
-#: dialog/preferences.py:322
-#, fuzzy
+#: dialog/preferences.py:353
 msgid "Append the OCR output to the text buffer."
 msgstr "將 OCR 輸出附加到文字緩衝區。"
 
-#: dialog/preferences.py:329
-#, fuzzy
+#: dialog/preferences.py:362
 msgid "Manage user-defined tools"
-msgstr "管理使用者自訂工具"
+msgstr "管理使用者定義的工具"
 
-#: dialog/preferences.py:352
-#, fuzzy, python-format
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
+msgid "Add a user-defined tool"
+msgstr "新增使用者定義的工具"
+
+#: dialog/preferences.py:378
+msgid "Bilevel compression"
+msgstr "雙階壓縮"
+
+#: dialog/preferences.py:383
+msgid "Group 4"
+msgstr "群組 4"
+
+#: dialog/preferences.py:384
+msgid "Compress bilevel images with CCITT Group 4 encoding."
+msgstr "使用 CCITT Group 4 編碼壓縮雙階影像。"
+
+#: dialog/preferences.py:391 dialog/save.py:71
+msgid "JBIG2"
+msgstr "JBIG2"
+
+#: dialog/preferences.py:392
+msgid "Compress bilevel images with JBIG2 encoding."
+msgstr "使用 JBIG2 編碼壓縮雙階影像。"
+
+#: dialog/preferences.py:414
+#, python-format
 msgid ""
-"Use %i and %o for the input and output filenames respectively,\n"
-"or a single %i if the image is to be modified in-place.\n"
+"Use %%i and %%o for the input and output filenames respectively,\n"
+"or a single %%i if the image is to be modified in-place.\n"
 "\n"
 "The other variable available is:\n"
-"%r resolution"
+"%%r resolution"
 msgstr ""
-"輸入與輸出檔名請分別使用 %i 與 %o，\n"
-"若影像需原地修改，則僅使用一個 %i。\n"
+"使用 %%i 和 %%o 分別代表輸入與輸出檔名，\n"
+"若影像要就地修改，則只需使用單一 %%i。\n"
 "\n"
-"可用的另一個變數為：\n"
-"%r 解析度"
+"其他可用的變數為：\n"
+"%%r 解析度"
 
-#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
 msgid "_Delete"
 msgstr "刪除(_D)"
 
-#: dialog/preferences.py:397
+#: dialog/preferences.py:462
 #, fuzzy
 msgid "The following user-defined tools could not be found:\n"
 msgstr "找不到下列使用者自訂工具：\n"
 
-#: dialog/preferences.py:400
-#, fuzzy
+#: dialog/preferences.py:465
 msgid "Please check that the command is installed and in your PATH."
-msgstr "請確認該指令已安裝並位於您的 PATH 中。"
+msgstr "請檢查該指令是否已安裝並位於您的 PATH 中。"
 
-#: dialog/preferences.py:402
-#, fuzzy
+#: dialog/preferences.py:467
 msgid "User-defined tool not found"
-msgstr "找不到使用者自訂工具"
+msgstr "找不到使用者定義的工具"
 
-#: dialog/sane.py:71
-#, fuzzy
+#: dialog/sane.py:89
 msgid "Fetching list of devices"
 msgstr "正在擷取裝置清單"
 
-#: dialog/sane.py:89
-#, fuzzy
+#: dialog/sane.py:108 scan_menu_item_mixins.py:93
 msgid "No devices found"
-msgstr "找不到任何裝置"
+msgstr "找不到裝置"
 
-#: dialog/sane.py:129
-#, fuzzy
+#: dialog/sane.py:152
 msgid "Opening device"
 msgstr "正在開啟裝置"
 
-#: dialog/sane.py:142
-#, fuzzy
+#: dialog/sane.py:166
 msgid "Error opening device: "
 msgstr "開啟裝置時發生錯誤："
 
-#: dialog/sane.py:148 dialog/sane.py:494
-#, fuzzy
+#: dialog/sane.py:175 dialog/sane.py:539
 msgid "Retrieving options"
 msgstr "正在擷取選項"
 
-#: dialog/sane.py:165 dialog/sane.py:507
-#, fuzzy
+#: dialog/sane.py:195 dialog/sane.py:553
 msgid "Error retrieving scanner options: "
 msgstr "擷取掃描器選項時發生錯誤："
 
-#: dialog/sane.py:207
-#, fuzzy
+#: dialog/sane.py:245
 msgid "Scan Options"
 msgstr "掃描選項"
 
-#: dialog/sane.py:290
-#, fuzzy, python-format
-msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
-msgstr "忽略掃描選項 '%s'，最小值 (%s) > 最大值 (%s)"
+#: dialog/sane.py:329
+#, python-format
+msgid ""
+"Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum "
+"(%(maximum)s)"
+msgstr "忽略掃描選項 '%(name)s'，最小範圍 (%(minimum)s) > 最大值 (%(maximum)s)"
 
-#: dialog/sane.py:450
-#, fuzzy, python-format
+#: dialog/sane.py:493
+#, python-format
 msgid "Setting option %s"
-msgstr "正在設定選項 %s"
+msgstr "設定選項 %s"
 
-#: dialog/sane.py:469
-#, fuzzy
+#: dialog/sane.py:512
 msgid "Error setting option: "
 msgstr "設定選項時發生錯誤："
 
-#: dialog/sane.py:531
+#: dialog/sane.py:591
 msgid "Must scan facing pages first"
 msgstr "必須先掃描正面"
 
-#: dialog/save.py:31
-#, fuzzy
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
+msgid ""
+"Scanner did not deliver the requested 1-bit output; the page has been "
+"converted to black-and-white"
+msgstr "掃描器未提供所要求的 1 位元輸出；頁面已轉換為黑白"
+
+#: dialog/sane.py:752
+msgid ""
+"The scanner did not respond to cancel. Reconnect the scanner or choose "
+"another device."
+msgstr "掃描器沒有回應取消操作。請重新連接掃描器或選擇其他裝置。"
+
+#: dialog/save.py:32
 msgid "PDF"
 msgstr "PDF"
 
-#: dialog/save.py:31
-#, fuzzy
+#: dialog/save.py:32
 msgid "Portable Document Format"
 msgstr "可攜式文件格式"
 
-#: dialog/save.py:32
-#, fuzzy
+#: dialog/save.py:33
 msgid "GIF"
 msgstr "GIF"
 
-#: dialog/save.py:32
-#, fuzzy
+#: dialog/save.py:33
 msgid "CompuServe graphics interchange format"
 msgstr "CompuServe 圖形交換格式"
 
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+#: dialog/save.py:34 dialog/save.py:54 dialog/save.py:100
 msgid "JPEG"
 msgstr "JPEG 格式"
 
-#: dialog/save.py:33
-#, fuzzy
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr "JPEG 專家小組 JFIF 格式"
-
 #: dialog/save.py:34
-#, fuzzy
+msgid "Joint Photographic Experts Group JFIF format"
+msgstr "聯合影像專家小組 JFIF 格式"
+
+#: dialog/save.py:35
 msgid "PNG"
 msgstr "PNG"
 
-#: dialog/save.py:34
-#, fuzzy
+#: dialog/save.py:35
 msgid "Portable Network Graphics"
 msgstr "可攜式網路圖形"
 
-#: dialog/save.py:35
-#, fuzzy
+#: dialog/save.py:36
 msgid "PNM"
 msgstr "PNM"
 
-#: dialog/save.py:35
-#, fuzzy
-msgid "Portable anymap"
-msgstr "可攜式 anymap"
-
 #: dialog/save.py:36
-#, fuzzy
+msgid "Portable anymap"
+msgstr "可攜式任意圖"
+
+#: dialog/save.py:37
 msgid "PS"
 msgstr "PS"
 
-#: dialog/save.py:36
-#, fuzzy
-msgid "Postscript"
-msgstr "Postscript"
-
 #: dialog/save.py:37
-#, fuzzy
+msgid "Postscript"
+msgstr "後記"
+
+#: dialog/save.py:38
 msgid "TIFF"
 msgstr "TIFF"
 
-#: dialog/save.py:37
-#, fuzzy
+#: dialog/save.py:38
 msgid "Tagged Image File Format"
 msgstr "標記影像檔案格式"
 
-#: dialog/save.py:38
-#, fuzzy
+#: dialog/save.py:39
 msgid "Text"
 msgstr "文字"
 
-#: dialog/save.py:38
-#, fuzzy
+#: dialog/save.py:39
 msgid "Plain text"
 msgstr "純文字"
 
-#: dialog/save.py:39
-#, fuzzy
+#: dialog/save.py:40
 msgid "hOCR"
 msgstr "hOCR"
 
-#: dialog/save.py:39
-#, fuzzy
+#: dialog/save.py:40
 msgid "hOCR markup language"
 msgstr "hOCR 標記語言"
 
-#: dialog/save.py:40 session_mixins.py:126
-#, fuzzy
+#: dialog/save.py:41 session_mixins.py:182
 msgid "Session"
-msgstr "會話"
+msgstr "工作階段"
 
-#: dialog/save.py:40
-#, fuzzy
+#: dialog/save.py:41
 msgid "scantpaper session database"
-msgstr "scantpaper 會話資料庫"
+msgstr "scantpaper 工作階段資料庫"
 
-#: dialog/save.py:41
-#, fuzzy
+#: dialog/save.py:42
 msgid "Prepend to PDF"
-msgstr "前置到 PDF"
+msgstr "添加到 PDF 開頭"
 
-#: dialog/save.py:41
-#, fuzzy
+#: dialog/save.py:42
 msgid "Prepend to an existing PDF"
-msgstr "前置到現有 PDF"
-
-#: dialog/save.py:42
-#, fuzzy
-msgid "Append to PDF"
-msgstr "附加到 PDF"
-
-#: dialog/save.py:42
-#, fuzzy
-msgid "Append to an existing PDF"
-msgstr "附加到現有 PDF"
+msgstr "加到現有 PDF 的開頭"
 
 #: dialog/save.py:43
-#, fuzzy
+msgid "Append to PDF"
+msgstr "附加至 PDF"
+
+#: dialog/save.py:43
+msgid "Append to an existing PDF"
+msgstr "附加至現有 PDF"
+
+#: dialog/save.py:44
 msgid "DjVu"
 msgstr "DjVu"
 
-#: dialog/save.py:43
-#, fuzzy
+#: dialog/save.py:44
 msgid "Deja Vu"
-msgstr "Deja Vu"
+msgstr "既視感"
 
-#: dialog/save.py:48
-#, fuzzy
+#: dialog/save.py:49 tesseract.py:197
 msgid "Automatic"
 msgstr "自動"
 
-#: dialog/save.py:49
-#, fuzzy
+#: dialog/save.py:50
 msgid "Let scantpaper which type of compression to use."
-msgstr "讓 scantpaper 決定要使用哪種壓縮類型。"
+msgstr "讓 scantpaper 決定要使用哪一種壓縮類型。"
 
-#: dialog/save.py:51 dialog/save.py:76
-#, fuzzy
-msgid "LZW"
-msgstr "LZW"
-
-#: dialog/save.py:51 dialog/save.py:76
-#, fuzzy
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr "使用 Lempel-Ziv 與 Welch 編碼壓縮輸出。"
-
-#: dialog/save.py:52 dialog/save.py:84
-#, fuzzy
-msgid "G3"
-msgstr "G3"
-
-#: dialog/save.py:52 dialog/save.py:84
-#, fuzzy
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr "使用 CCITT 第 3 組編碼壓縮輸出。"
-
-#: dialog/save.py:53 dialog/save.py:85
-#, fuzzy
+#: dialog/save.py:52 dialog/save.py:103
 msgid "G4"
 msgstr "G4"
 
-#: dialog/save.py:53 dialog/save.py:85
-#, fuzzy
+#: dialog/save.py:52 dialog/save.py:103
 msgid "Compress output with CCITT Group 4 encoding."
-msgstr "使用 CCITT 第 4 組編碼壓縮輸出。"
+msgstr "使用 CCITT Group 4 編碼壓縮輸出。"
 
-#: dialog/save.py:54
-#, fuzzy
+#: dialog/save.py:53
 msgid "Flate"
 msgstr "Flate"
 
-#: dialog/save.py:54
-#, fuzzy
+#: dialog/save.py:53
 msgid "Compress output with flate encoding."
 msgstr "使用 flate 編碼壓縮輸出。"
 
-#: dialog/save.py:55
-#, fuzzy
+#: dialog/save.py:54
 msgid "Compress output with JPEG (DCT) encoding."
 msgstr "使用 JPEG (DCT) 編碼壓縮輸出。"
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "None"
-msgstr "無"
+#: dialog/save.py:55
+msgid "JPEG 2000"
+msgstr "JPEG 2000"
 
-#: dialog/save.py:56 dialog/save.py:86
-#, fuzzy
-msgid "Use no compression algorithm on output."
-msgstr "對輸出不使用任何壓縮演算法。"
+#: dialog/save.py:55
+msgid "Compress output with JPEG 2000 encoding."
+msgstr "使用 JPEG 2000 編碼壓縮輸出。"
 
-#: dialog/save.py:61
-#, fuzzy
+#: dialog/save.py:71
+msgid "Compress output with JBIG2 encoding."
+msgstr "使用 JBIG2 編碼壓縮輸出。"
+
+#: dialog/save.py:79
 msgid "LibTIFF"
 msgstr "LibTIFF"
 
-#: dialog/save.py:62
-#, fuzzy
+#: dialog/save.py:80
 msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
 msgstr "使用 LibTIFF (tiff2ps) 從 TIFF 建立 Postscript 檔案。"
 
-#: dialog/save.py:66
-#, fuzzy
+#: dialog/save.py:84
 msgid "Ghostscript"
 msgstr "Ghostscript"
 
-#: dialog/save.py:67
-#, fuzzy
+#: dialog/save.py:85
 msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
-msgstr "使用 Ghostscript (pdf2ps) 從 PDF 建立 Postscript 檔案。"
+msgstr "使用 Ghostscript (pdf2ps) 從 PDF 建立 PostScript 檔案。"
 
-#: dialog/save.py:71
-#, fuzzy
+#: dialog/save.py:89
 msgid "Poppler"
 msgstr "Poppler"
 
-#: dialog/save.py:72
-#, fuzzy
+#: dialog/save.py:90
 msgid "Use Poppler (pdftops) to create Postscript files from PDF."
 msgstr "使用 Poppler (pdftops) 從 PDF 建立 Postscript 檔案。"
 
-#: dialog/save.py:79
+#: dialog/save.py:94
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:94
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "使用 Lempel-Ziv & Welch 編碼壓縮輸出。"
+
+#: dialog/save.py:97
 msgid "Zip"
 msgstr "Zip 壓縮"
 
-#: dialog/save.py:80
-#, fuzzy
+#: dialog/save.py:98
 msgid "Compress output with deflate encoding."
 msgstr "使用 deflate 編碼壓縮輸出。"
 
-#: dialog/save.py:82
-#, fuzzy
+#: dialog/save.py:100
 msgid "Compress output with JPEG encoding."
 msgstr "使用 JPEG 編碼壓縮輸出。"
 
-#: dialog/save.py:83
-#, fuzzy
+#: dialog/save.py:101
 msgid "Packbits"
 msgstr "Packbits"
 
-#: dialog/save.py:83
-#, fuzzy
+#: dialog/save.py:101
 msgid "Compress output with Packbits encoding."
 msgstr "使用 Packbits 編碼壓縮輸出。"
 
-#: dialog/save.py:360
-#, fuzzy
+#: dialog/save.py:102
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:102
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "使用 CCITT Group 3 編碼壓縮輸出。"
+
+#: dialog/save.py:104 postprocess_controls.py:644 postprocess_controls.py:906
+msgid "None"
+msgstr "無"
+
+#: dialog/save.py:104
+msgid "Use no compression algorithm on output."
+msgstr "輸出時不要使用壓縮演算法。"
+
+#: dialog/save.py:374
 msgid "Document Metadata"
 msgstr "文件中繼資料"
 
-#: dialog/save.py:374
-#, fuzzy
+#: dialog/save.py:385
 msgid "Date/Time"
 msgstr "日期/時間"
 
-#: dialog/save.py:387 dialog/save.py:572
-#, fuzzy
+#: dialog/save.py:397 dialog/save.py:591
 msgid "Now"
 msgstr "現在"
 
-#: dialog/save.py:388 dialog/save.py:573
-#, fuzzy
+#: dialog/save.py:398 dialog/save.py:592
 msgid "Use current date and time"
 msgstr "使用目前的日期與時間"
 
-#: dialog/save.py:393
-#, fuzzy
+#: dialog/save.py:405
 msgid "Specify"
 msgstr "指定"
 
-#: dialog/save.py:395
-#, fuzzy
+#: dialog/save.py:407
 msgid "Specify date and time"
-msgstr "指定日期與時間"
+msgstr "指定日期和時間"
 
-#: dialog/save.py:403
-#, fuzzy
+#: dialog/save.py:415
 msgid "Year-Month-Day"
 msgstr "年-月-日"
 
-#: dialog/save.py:413
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
 #, fuzzy
 msgid "Select date with calendar"
 msgstr "使用行事曆選取日期"
 
-#: dialog/save.py:459
+#: dialog/save.py:467
 msgid "Select Date"
 msgstr "選擇日期"
 
-#: dialog/save.py:489 dialog/save.py:579
-#, fuzzy
+#: dialog/save.py:509 dialog/save.py:598
 msgid "Today"
 msgstr "今天"
 
-#: dialog/save.py:545
+#: dialog/save.py:565
 msgid "Title"
 msgstr "主標題"
 
-#: dialog/save.py:546
-#, fuzzy
+#: dialog/save.py:566
 msgid "Author"
 msgstr "作者"
 
-#: dialog/save.py:547
+#: dialog/save.py:567
 msgid "Subject"
 msgstr "副標題"
 
-#: dialog/save.py:548
+#: dialog/save.py:568
 msgid "Keywords"
 msgstr "關鍵字"
 
-#: dialog/save.py:580
-#, fuzzy
+#: dialog/save.py:599
 msgid "Use today's date"
 msgstr "使用今天的日期"
 
-#: dialog/save.py:590
-#, fuzzy
+#: dialog/save.py:609
 msgid "Document type"
 msgstr "文件類型"
 
-#: dialog/save.py:598
-#, fuzzy
+#: dialog/save.py:618
 msgid "Postscript backend"
-msgstr "Postscript 後端"
+msgstr "PostScript 後端"
 
-#: dialog/save.py:614 dialog/save.py:754
+#: dialog/save.py:635 dialog/save.py:776
 msgid "Compression"
 msgstr "壓縮"
 
-#: dialog/save.py:735
-msgid "JPEG Quality"
-msgstr "JPEG 品質"
+#: dialog/save.py:754
+msgid "Quality"
+msgstr "品質"
 
-#: dialog/save.py:769
-#, fuzzy
+#: dialog/save.py:791
 msgid "Encrypt PDF"
 msgstr "加密 PDF"
 
-#: dialog/save.py:785
-#, fuzzy
+#: dialog/save.py:808
 msgid "Downsample to"
-msgstr "降低解析度至"
+msgstr "降取樣至"
 
-#: dialog/save.py:789 dialog/scan.py:660
-#, fuzzy
+#: dialog/save.py:812 dialog/scan.py:770
 msgid "ppi"
 msgstr "ppi"
 
-#: dialog/save.py:819
-#, fuzzy
+#: dialog/save.py:841
 msgid "Set password"
 msgstr "設定密碼"
 
-#: dialog/save.py:827
-#, fuzzy
+#: dialog/save.py:850
 msgid "User password"
 msgstr "使用者密碼"
 
-#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
-#: dialog/scan.py:933
-#, fuzzy
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
 msgid "Manual"
 msgstr "手動"
 
-#: dialog/scan.py:446
-#, fuzzy
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
 msgid "Scan profiles"
 msgstr "掃描設定檔"
 
-#: dialog/scan.py:500
-msgid "Scan"
-msgstr "掃描"
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
+msgid "Save"
+msgstr "儲存"
 
-#: dialog/scan.py:514
-msgid "Device"
-msgstr "裝置"
-
-#: dialog/scan.py:552
-msgid "Sets the device to be used for the scan"
-msgstr "指定使用此裝置來掃描"
-
-#: dialog/scan.py:599
-#, fuzzy, python-format
-msgid "Error: unknown device: %s"
-msgstr "錯誤：未知的裝置：%s"
-
-#: dialog/scan.py:657
-#, fuzzy
-msgid "pel"
-msgstr "pel"
-
-#: dialog/scan.py:658
-#, fuzzy
-msgid "bit"
-msgstr "bit"
-
-#: dialog/scan.py:659
-#, fuzzy
-msgid "mm"
-msgstr "mm"
-
-#: dialog/scan.py:662
-#, fuzzy
-msgid "μs"
-msgstr "μs"
-
-#: dialog/scan.py:686
-msgid "Paper size"
-msgstr "紙張大小"
-
-#: dialog/scan.py:690 dialog/scan.py:707
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:118
 msgid "Edit"
 msgstr "編輯(E)"
 
-#: dialog/scan.py:691
-#, fuzzy
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
+msgid "Delete"
+msgstr "刪除"
+
+#: dialog/scan.py:503
+msgid "Scan"
+msgstr "掃描"
+
+#: dialog/scan.py:531
+msgid "Device"
+msgstr "裝置"
+
+#: dialog/scan.py:559
+msgid "Sets the device to be used for the scan"
+msgstr "指定使用此裝置來掃描"
+
+#: dialog/scan.py:562
+msgid "Blacklist this device"
+msgstr "將此裝置加入黑名單"
+
+#: dialog/scan.py:564
+msgid "Hide the selected device from the device list"
+msgstr "從裝置清單中隱藏選取的裝置"
+
+#: dialog/scan.py:705
+#, python-format
+msgid "Error: unknown device: %s"
+msgstr "錯誤：未知裝置：%s"
+
+#: dialog/scan.py:767
+msgid "pel"
+msgstr "pel"
+
+#: dialog/scan.py:768
+msgid "bit"
+msgstr "位元"
+
+#: dialog/scan.py:769
+msgid "mm"
+msgstr "公釐"
+
+#: dialog/scan.py:772
+msgid "μs"
+msgstr "μs"
+
+#: dialog/scan.py:796
+msgid "Paper size"
+msgstr "紙張大小"
+
+#: dialog/scan.py:801
 msgid "Selects or edits the paper size"
 msgstr "選取或編輯紙張大小"
 
-#: dialog/scan.py:770
-#, fuzzy, python-format
+#: dialog/scan.py:880
+#, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
-"file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
+"%(options)d scan options. Please file a bug, attaching a log file "
+"reproducing the problem."
 msgstr ""
-"超出重新載入遞迴限制 (%d)：%d 個掃描選項進行了 %d 次重新載入。請回報錯誤，並"
-"附上可重現問題的記錄檔。"
+"重新載入遞迴上限 (%(limit)d) 已超過：%(options)d 個掃描選項共有 %(reloads)d "
+"次重新載入。請提交錯誤報告，並附上可重現此問題的日誌檔。"
 
-#: dialog/scan.py:1024
-#, fuzzy
+#: dialog/scan.py:1138
 msgid "Edit paper size"
 msgstr "編輯紙張大小"
 
-#: dialog/scan.py:1051
-#, fuzzy
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
+msgid "Add a paper size"
+msgstr "新增紙張大小"
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
+msgid "Remove the selected paper size"
+msgstr "移除選取的紙張大小"
+
+#: dialog/scan.py:1167
 msgid "Apply"
 msgstr "套用"
 
-#: dialog/scan.py:1069
-#, fuzzy
+#: dialog/scan.py:1185
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
-msgstr "下列紙張大小太大，無法由所選裝置掃描："
+msgstr "下列紙張尺寸太大，無法由所選裝置掃描："
 
-#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-#, fuzzy
-msgid "Cancel"
-msgstr "取消"
-
-#: dialog/scan.py:1563 dialog/scan.py:1571
-#, fuzzy
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
 msgid "Name of scan profile"
 msgstr "掃描設定檔名稱"
 
-#: dialog/scan.py:1585
-#, fuzzy, python-format
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
+#, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr "設定檔 '%s' 已存在。是否覆寫？"
 
-#: dialog/scan.py:1592 dialog/scan.py:1634
-#, fuzzy
-msgid "OK"
-msgstr "確定"
-
-#: dialog/scan.py:1621
-#, fuzzy
+#: dialog/scan.py:1756
 msgid "Editing current scan options"
 msgstr "正在編輯目前的掃描選項"
 
-#: dialog/scan.py:1625
-#, fuzzy, python-format
+#: dialog/scan.py:1760
+#, python-format
 msgid "Editing scan profile \"%s\""
-msgstr "正在編輯掃描設定檔 \"%s\""
+msgstr "編輯掃描設定檔 \"%s\""
 
-#: dialog/scan.py:1686
-#, fuzzy
+#: dialog/scan.py:1822
 msgid "Backend options"
 msgstr "後端選項"
 
-#: dialog/scan.py:1687
-#, fuzzy
+#: dialog/scan.py:1823
 msgid "Frontend options"
 msgstr "前端選項"
 
-#: dialog/scan.py:1752
-#, fuzzy, python-format
-msgid "Scanning page %d of %d"
-msgstr "正在掃描第 %d 頁，共 %d 頁"
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
+#, python-format
+msgid "Remove %(option)s from the profile"
+msgstr "從設定檔中移除 %(option)s"
 
-#: dialog/scan.py:1753
-#, fuzzy, python-format
-msgid "Scanning page %d"
-msgstr "正在掃描第 %d 頁"
+#: dialog/scan.py:1890
+#, python-format
+msgid "Scanning page %(current)d of %(total)d"
+msgstr "正在掃描第 %(current)d 頁，共 %(total)d 頁"
 
-#: docthread.py:1167
-#, fuzzy, python-format
-msgid "Analysing page %i of %i"
-msgstr "正在分析第 %i 頁，共 %i 頁"
+#: dialog/scan.py:1894
+#, python-format
+msgid "Scanning page %(current)d"
+msgstr "正在掃描第 %(current)d 頁"
 
-#: docthread.py:1461
-#, fuzzy
+#: dialog/tesseractparams.py:45
+msgid "Tesseract parameters"
+msgstr "Tesseract 參數"
+
+#: dialog/tesseractparams.py:56
+msgid "Filter parameters"
+msgstr "篩選參數"
+
+#: dialog/tesseractparams.py:70 postprocess_controls.py:697 tesseract.py:213
+msgid "Default"
+msgstr "預設"
+
+#: dialog/tesseractparams.py:71
+msgid "Description"
+msgstr "描述"
+
+#: dialog/tesseractparams.py:96
+msgid "_Insert"
+msgstr "_插入"
+
+#: dialog/tesseractparams.py:110
+msgid ""
+"The Tesseract parameter list is unavailable. OCR can still run with the "
+"parameters already entered."
+msgstr "Tesseract 參數清單無法取得。OCR 仍可使用已輸入的參數執行。"
+
+#: dialog/tesseractparams.py:127
+#, python-format
+msgid "Set by the %(control)s control"
+msgstr "由 %(control)s 控制項設定"
+
+#: dialog/tesseractparams.py:147
+msgid "No parameters match"
+msgstr "沒有符合的參數"
+
+#: docthread.py:1285
+#, python-format
+msgid "Error reading hOCR file %(path)s: %(error)s"
+msgstr "讀取 hOCR 檔案 %(path)s 時發生錯誤：%(error)s"
+
+#: docthread.py:1293
+#, python-format
+msgid "Error parsing hOCR file %(path)s: %(error)s"
+msgstr "解析 hOCR 檔案 %(path)s 時發生錯誤：%(error)s"
+
+#: docthread.py:1299
+msgid "The file contains no hOCR pages."
+msgstr "此檔案不含任何 hOCR 頁面。"
+
+#: docthread.py:1312
+#, python-format
+msgid ""
+"The hOCR file contains %(found)i pages, but %(expected)i pages are selected."
+msgstr "hOCR 檔案包含 %(found)i 頁，但已選取 %(expected)i 頁。"
+
+#: docthread.py:1322
+#, python-format
+msgid "Checking hOCR page %(current)i of %(total)i"
+msgstr "正在檢查 hOCR 頁面 %(current)i，共 %(total)i"
+
+#: docthread.py:1330
+#, python-format
+msgid "The hOCR page for page %(page)i has no page box."
+msgstr "第 %(page)i 頁的 hOCR 頁面沒有頁面框。"
+
+#: docthread.py:1342
+#, python-format
+msgid ""
+"The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the"
+" page is %(width)ix%(height)i."
+msgstr ""
+"第 %(page)i 頁的 hOCR 頁面為 %(found_width)ix%(found_height)i，但頁面為 "
+"%(width)ix%(height)i。"
+
+#: docthread.py:1366
+msgid "No pages selected for hOCR import."
+msgstr "未選取任何頁面進行 hOCR 匯入。"
+
+#: docthread.py:1385
+#, python-format
+msgid "Importing hOCR page %(current)i of %(total)i"
+msgstr "正在匯入 hOCR 頁面 %(current)i，共 %(total)i 頁"
+
+#: docthread.py:1526
+#, python-format
+msgid "Analysing page %(current)i of %(total)i"
+msgstr "正在分析第 %(current)i 頁，共 %(total)i 頁"
+
+#: docthread.py:1800
 msgid "No tesseract language specified"
-msgstr "未指定 tesseract 語言"
+msgstr "未指定 Tesseract 語言"
 
-#: docthread.py:1470
-#, fuzzy
-msgid "tessdata directory not found"
-msgstr "找不到 tessdata 目錄"
+#: docthread.py:1832
+#, python-format
+msgid "Failed to initialise OCR with the %(mode)s engine mode: %(error)s"
+msgstr "無法使用 %(mode)s 引擎模式初始化 OCR：%(error)s"
+
+#: docthread.py:1844 postprocess_controls.py:605
+#, python-format
+msgid "Unknown Tesseract option: %(variable)s"
+msgstr "未知的 Tesseract 選項：%(variable)s"
 
 #: document.py:111
-#, fuzzy
 msgid "Error: cannot open a session file at the same time as another file."
-msgstr "錯誤：無法與其他檔案同時開啟會話檔案。"
+msgstr "錯誤：無法同時開啟工作階段檔案與另一個檔案。"
 
 #: document.py:127
-#, fuzzy
 msgid "Error: importing a multipage file at the same time as another file."
-msgstr "錯誤：無法與其他檔案同時匯入多頁檔案。"
+msgstr "錯誤：無法同時匯入多頁檔案與另一個檔案。"
 
-#: edit_menu_mixins.py:60
-#, fuzzy
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
-msgstr "內容"
+msgstr "屬性"
 
-#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
-#, fuzzy
+#: edit_menu_mixins.py:72 edit_menu_mixins.py:82
 msgid "dpi"
 msgstr "dpi"
 
-#: edit_menu_mixins.py:362
-#, fuzzy
+#: edit_menu_mixins.py:377
 msgid "Invalid regex. Try without special characters such as '*'"
-msgstr "無效的正規表示式。請嘗試不要使用 '*' 等特殊字元"
+msgstr "無效的規則運算式。請嘗試不使用特殊字元，例如「*」"
 
-#: edit_menu_mixins.py:394
-#, fuzzy
+#: edit_menu_mixins.py:409
 msgid "Changes will only take effect after restarting scantpaper."
 msgstr "變更只有在重新啟動 scantpaper 後才會生效。"
 
-#: edit_menu_mixins.py:396
-#, fuzzy
+#: edit_menu_mixins.py:411
 msgid "Restart scantpaper now?"
-msgstr "現在重新啟動 scantpaper？"
+msgstr "立即重新啟動 scantpaper？"
 
-#: file_menu_mixins.py:104
-#, fuzzy
+#: file_menu_mixins.py:87
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
 msgstr ""
-"有些頁面尚未儲存。\n"
-"確定要清除所有頁面嗎？"
+"部分頁面尚未儲存。\n"
+"您確定要清除所有頁面嗎？"
 
-#: file_menu_mixins.py:129
-#, fuzzy
+#: file_menu_mixins.py:112
 msgid "Open image"
-msgstr "開啟影像"
+msgstr "開啟圖片"
 
-#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
-#, fuzzy
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
-msgstr "影像檔"
+msgstr "影像檔案"
 
-#: file_menu_mixins.py:180
-#, fuzzy
+#: file_menu_mixins.py:164
 msgid "Pages to extract"
 msgstr "要擷取的頁面"
 
-#: file_menu_mixins.py:194
-#, fuzzy
+#: file_menu_mixins.py:181
 msgid "First page to extract"
 msgstr "要擷取的第一頁"
 
-#: file_menu_mixins.py:200
-#, fuzzy
+#: file_menu_mixins.py:188
 msgid "Last page to extract"
 msgstr "要擷取的最後一頁"
 
-#: file_menu_mixins.py:214
-#, fuzzy, python-format
+#: file_menu_mixins.py:201
+#, python-format
 msgid "Enter user password for PDF %s"
-msgstr "輸入 PDF %s 的使用者密碼"
+msgstr "請輸入 PDF %s 的使用者密碼"
 
-#: file_menu_mixins.py:281
-#, fuzzy
-msgid "Open crashed session"
-msgstr "開啟當機的會話"
+#: file_menu_mixins.py:268
+msgid "Import hOCR"
+msgstr "匯入 hOCR"
 
-#: file_menu_mixins.py:336
-#, fuzzy
-msgid "Save"
-msgstr "儲存"
-
-#: file_menu_mixins.py:367
-#, fuzzy
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
-msgstr "儲存後勾點"
+msgstr "儲存後鉤子"
 
-#: file_menu_mixins.py:370
-#, fuzzy, python-format
+#: file_menu_mixins.py:377
+#, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
-msgstr "在儲存的檔案上執行指令。可用的指令是那些未指定 %o 的使用者自訂工具"
+msgstr "對已儲存的檔案執行指令。可用的指令為未指定 %o 的使用者自訂工具。"
 
-#: file_menu_mixins.py:392 file_menu_mixins.py:393
-#, fuzzy
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
 msgstr "儲存時關閉對話方塊"
 
-#: file_menu_mixins.py:465
+#: file_menu_mixins.py:407 menu.ui:24
+msgid "_Save"
+msgstr "_儲存"
+
+#: file_menu_mixins.py:471
 msgid "PDF filename"
 msgstr "PDF 檔名"
 
-#: file_menu_mixins.py:466
-#, fuzzy
+#: file_menu_mixins.py:472
 msgid "PDF files"
-msgstr "PDF 檔"
+msgstr "PDF 檔案"
 
-#: file_menu_mixins.py:469
-#, fuzzy
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
-msgstr "DjVu 檔名"
+msgstr "DjVu 檔案名稱"
 
-#: file_menu_mixins.py:470
-#, fuzzy
+#: file_menu_mixins.py:476
 msgid "DjVu files"
-msgstr "DjVu 檔"
+msgstr "DjVu 檔案"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
 msgstr "TIFF 檔名"
 
-#: file_menu_mixins.py:477
-#, fuzzy
+#: file_menu_mixins.py:483
 msgid "Text filename"
 msgstr "文字檔名"
 
-#: file_menu_mixins.py:478
-#, fuzzy
+#: file_menu_mixins.py:484
 msgid "Text files"
-msgstr "文字檔"
+msgstr "文字檔案"
 
-#: file_menu_mixins.py:481
-#, fuzzy
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
-msgstr "hOCR 檔名"
+msgstr "hOCR 檔案名稱"
 
-#: file_menu_mixins.py:482
-#, fuzzy
-msgid "hOCR files"
-msgstr "hOCR 檔"
-
-#: file_menu_mixins.py:485
-#, fuzzy
+#: file_menu_mixins.py:491
 msgid "PS filename"
-msgstr "PS 檔名"
+msgstr "PS 檔案名稱"
 
-#: file_menu_mixins.py:486
-#, fuzzy
+#: file_menu_mixins.py:492
 msgid "Postscript files"
-msgstr "Postscript 檔"
+msgstr "Postscript 檔案"
 
-#: file_menu_mixins.py:489
-#, fuzzy
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
-msgstr "scantpaper 會話檔名"
+msgstr "scantpaper 工作階段檔案名稱"
 
-#: file_menu_mixins.py:490
-#, fuzzy
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
-msgstr "scantpaper 會話檔"
+msgstr "scantpaper 工作階段檔案"
 
-#: file_menu_mixins.py:601
-#, fuzzy, python-format
+#: file_menu_mixins.py:604
+#, python-format
+msgid "Error saving %(filename)s: %(error)s"
+msgstr "儲存 %(filename)s 時發生錯誤：%(error)s"
+
+#: file_menu_mixins.py:619
+#, python-format
 msgid "Directory %s is read-only"
-msgstr "目錄 %s 為唯讀"
+msgstr "目錄 %s 是唯讀的"
 
-#: file_menu_mixins.py:611
-#, fuzzy, python-format
+#: file_menu_mixins.py:629
+#, python-format
 msgid "File %s is read-only"
 msgstr "檔案 %s 為唯讀"
 
-#: file_menu_mixins.py:802
-#, fuzzy
+#: file_menu_mixins.py:821
 msgid "Image filename"
-msgstr "影像檔名"
+msgstr "圖片檔名"
 
-#: file_menu_mixins.py:862
-#, fuzzy, python-format
+#: file_menu_mixins.py:881
+#, python-format
 msgid "This operation would overwrite %s"
-msgstr "此作業將覆寫 %s"
+msgstr "此操作會覆寫 %s"
 
-#: file_menu_mixins.py:945
-#, fuzzy
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
 msgstr ""
 "有些頁面尚未儲存。\n"
-"確定要結束嗎？"
+"您確定要結束嗎？"
 
-#: importthread.py:86
-#, fuzzy, python-format
+#: importthread.py:100
+#, python-format
 msgid "File %s not found"
 msgstr "找不到檔案 %s"
 
-#: importthread.py:92
-#, fuzzy, python-format
-msgid "Error getting file info for %s: %s"
-msgstr "取得 %s 的檔案資訊時發生錯誤：%s"
+#: importthread.py:106
+#, python-format
+msgid "Error getting file info for %(path)s: %(error)s"
+msgstr "取得 %(path)s 的檔案資訊時發生錯誤：%(error)s"
 
-#: importthread.py:97
-#, fuzzy, python-format
+#: importthread.py:112
+#, python-format
 msgid "Error importing zero-length file %s."
 msgstr "匯入零長度檔案 %s 時發生錯誤。"
 
-#: importthread.py:135 importthread.py:178
-#, fuzzy, python-format
+#: importthread.py:150 importthread.py:193
+#, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
-msgstr "請安裝 djvulibre-bin 以開啟 DjVu 檔：%s"
+msgstr "請安裝 djvulibre-bin 以便開啟 DjVu 檔案：%s"
 
-#: importthread.py:166
-#, fuzzy
+#: importthread.py:181
 msgid "Unknown DjVu file structure. Please contact the author."
 msgstr "未知的 DjVu 檔案結構。請聯絡作者。"
 
-#: importthread.py:266
-#, fuzzy, python-format
+#: importthread.py:281
+#, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
-msgstr "請安裝 libtiff-tools 以開啟 TIFF 檔：%s"
+msgstr "請安裝 libtiff-tools 以便開啟 TIFF 檔案：%s"
 
-#: importthread.py:328 importthread.py:388
-#, fuzzy, python-format
-msgid "Importing page %i of %i"
-msgstr "正在匯入第 %i 頁，共 %i 頁"
+#: importthread.py:343 importthread.py:403
+#, python-format
+msgid "Importing page %(current)i of %(total)i"
+msgstr "正在匯入第 %(current)i 頁，共 %(total)i 頁"
 
-#: importthread.py:509
-#, fuzzy
+#: importthread.py:524
 msgid "Error extracting images from PDF"
 msgstr "從 PDF 擷取影像時發生錯誤"
 
-#: importthread.py:521
-#, fuzzy
+#: importthread.py:536
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
 "add scans to an existing PDF, use the prepend/append to PDF options in the "
 "Save dialogue."
 msgstr ""
-"警告：scantpaper 預期每頁一張影像，但未滿足此要求。PDF 很可能未被正確匯入。若"
-"要將掃描結果新增到現有 PDF，請使用「儲存」對話方塊中的前置/附加到 PDF 選項。"
+"警告：scantpaper 預期每頁一張影像，但這項條件未符合。PDF 可能未正確匯入。如果您想將掃描影像加入現有 "
+"PDF，請在「儲存」對話方塊中使用「前置/附加至 PDF」選項。"
 
-#: importthread.py:560
-#, fuzzy
+#: importthread.py:575
 msgid "Error importing PDF"
 msgstr "匯入 PDF 時發生錯誤"
 
-#: importthread.py:587
-#, fuzzy
+#: importthread.py:602
 msgid "Error extracting text layer from PDF"
-msgstr "從 PDF 擷取文字圖層時發生錯誤"
+msgstr "擷取 PDF 文字層時發生錯誤"
 
-#: pagerange.py:46
+#: layer.py:45
+msgid "Sort by confidence"
+msgstr "依信心度排序"
+
+#: layer.py:46
+msgid "Sort OCR text boxes by confidence."
+msgstr "依信賴度排序 OCR 文字方塊。"
+
+#: layer.py:48
+msgid "Sort by position"
+msgstr "依位置排序"
+
+#: layer.py:48
+msgid "Sort OCR text boxes by position."
+msgstr "依位置排序 OCR 文字方塊。"
+
+#: layer.py:62
+msgid "my-new-word"
+msgstr "我的新單字"
+
+#: layer.py:63
+msgid "my-new-annotation"
+msgstr "我的新註解"
+
+#: layer.py:207
+msgid "Go to least confident text"
+msgstr "前往信心度最低的文字"
+
+#: layer.py:212
+msgid "Go to previous text"
+msgstr "移至上一段文字"
+
+#: layer.py:217
+msgid "Select sort method for OCR boxes"
+msgstr "選擇 OCR 文字方塊的排序方式"
+
+#: layer.py:228
+msgid "Go to next text"
+msgstr "前往下一個文字"
+
+#: layer.py:232
+msgid "Go to most confident text"
+msgstr "前往信心度最高的文字"
+
+#: layer.py:238 layer.py:396
+msgid "Add text"
+msgstr "新增文字"
+
+#: layer.py:246
+msgid "Rotate text clockwise"
+msgstr "順時針旋轉文字"
+
+#: layer.py:251
+msgid "Rotate text anticlockwise"
+msgstr "逆時針旋轉文字"
+
+#: layer.py:256
+msgid "Accept corrections"
+msgstr "接受修正"
+
+#: layer.py:259
+msgid "Cancel corrections"
+msgstr "取消更正"
+
+#: layer.py:264 app.ui:287 menu.ui:61
+msgid "_Copy"
+msgstr "複製(_C)"
+
+#: layer.py:264
+msgid "Duplicate text"
+msgstr "複製文字"
+
+#: layer.py:267
+msgid "Delete text"
+msgstr "刪除文字"
+
+#: layer.py:317
+msgid "Focus zoom"
+msgstr "對焦縮放"
+
+#: layer.py:335
+msgid "Reset"
+msgstr "重設"
+
+#: layer.py:362
+#, python-format
+msgid "Focus zoom: %(percent)d%%"
+msgstr "焦點縮放：%(percent)d%%"
+
+#: layer.py:399
+msgid "Draw or select a rectangle before adding"
+msgstr "新增前請先繪製或選取矩形"
+
+#: pagerange.py:47
 msgid "Selected"
 msgstr "選取的"
 
-#: postprocess_controls.py:22
-#, fuzzy
+#: postprocess_controls.py:43
 msgid "Both sides"
-msgstr "雙面"
+msgstr "兩側"
 
-#: postprocess_controls.py:22
-#, fuzzy
+#: postprocess_controls.py:43
 msgid "Both sides."
-msgstr "雙面。"
+msgstr "兩側。"
 
-#: postprocess_controls.py:23
-#, fuzzy
+#: postprocess_controls.py:44
 msgid "Facing side"
-msgstr "正面"
+msgstr "面向側"
 
-#: postprocess_controls.py:23
-#, fuzzy
+#: postprocess_controls.py:44
 msgid "Facing side."
-msgstr "正面。"
+msgstr "面向側。"
 
-#: postprocess_controls.py:24
-#, fuzzy
+#: postprocess_controls.py:45
 msgid "Reverse side"
-msgstr "反面"
+msgstr "背面"
 
-#: postprocess_controls.py:24
-#, fuzzy
+#: postprocess_controls.py:45
 msgid "Reverse side."
-msgstr "反面。"
+msgstr "背面。"
 
-#: postprocess_controls.py:27
-#, fuzzy
+#: postprocess_controls.py:48
 msgid "90°"
 msgstr "90°"
 
-#: postprocess_controls.py:27
-#, fuzzy
+#: postprocess_controls.py:48
 msgid "Rotate image 90 degrees clockwise."
-msgstr "順時針旋轉影像 90 度。"
+msgstr "將影像順時針旋轉 90 度。"
 
-#: postprocess_controls.py:28
-#, fuzzy
+#: postprocess_controls.py:49
 msgid "180°"
 msgstr "180°"
 
-#: postprocess_controls.py:28
-#, fuzzy
+#: postprocess_controls.py:49
 msgid "Rotate image 180 degrees clockwise."
-msgstr "順時針旋轉影像 180 度。"
+msgstr "順時針旋轉圖片 180 度。"
 
-#: postprocess_controls.py:29
-#, fuzzy
+#: postprocess_controls.py:50
 msgid "270°"
 msgstr "270°"
 
-#: postprocess_controls.py:29
-#, fuzzy
+#: postprocess_controls.py:50
 msgid "Rotate image 90 degrees anticlockwise."
-msgstr "逆時針旋轉影像 90 度。"
+msgstr "將影像逆時針旋轉 90 度。"
 
-#: postprocess_controls.py:39
-#, fuzzy
+#: postprocess_controls.py:55 postprocess_controls.py:738
+msgid "Page segmentation mode"
+msgstr "頁面分割模式"
+
+#: postprocess_controls.py:56 postprocess_controls.py:747
+msgid "OCR engine mode"
+msgstr "OCR 引擎模式"
+
+#: postprocess_controls.py:67
 msgid "Rotate"
 msgstr "旋轉"
 
-#: postprocess_controls.py:40
-#, fuzzy
+#: postprocess_controls.py:68
 msgid "Rotate image after scanning"
 msgstr "掃描後旋轉影像"
 
-#: postprocess_controls.py:43
-#, fuzzy
+#: postprocess_controls.py:72
 msgid "Select side to rotate"
-msgstr "選取要旋轉的面"
+msgstr "選擇要旋轉的面"
 
-#: postprocess_controls.py:46
-#, fuzzy
+#: postprocess_controls.py:76
 msgid "Select angle of rotation"
-msgstr "選取旋轉角度"
+msgstr "選擇旋轉角度"
 
-#: postprocess_controls.py:49
-#, fuzzy
+#: postprocess_controls.py:79
 msgid "Anticlockwise"
 msgstr "逆時針"
 
-#: postprocess_controls.py:350 postprocess_controls.py:351
-#, fuzzy
+#: postprocess_controls.py:478 postprocess_controls.py:479
 msgid "OCR scanned pages"
-msgstr "對掃描的頁面執行 OCR"
+msgstr "OCR 掃描頁面"
 
-#: postprocess_controls.py:378
-#, fuzzy
+#: postprocess_controls.py:507
 msgid "Threshold before OCR"
-msgstr "OCR 前臨界值"
+msgstr "OCR 前閾值"
 
-#: postprocess_controls.py:381
-#, fuzzy
+#: postprocess_controls.py:510
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
-msgstr ""
-"在執行 OCR 前對影像套用臨界值。這只會影響傳遞給 OCR 引擎的影像，而不會影響儲"
-"存的影像。"
+msgstr "在執行 OCR 之前對影像進行閾值處理。這只會影響傳遞給 OCR 引擎的影像，而不會影響儲存的影像。"
 
-#: postprocess_controls.py:392 tools_menu_mixins.py:114
-#, fuzzy
+#: postprocess_controls.py:520 tools_menu_mixins.py:122
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
-msgstr ""
-"與紙張顏色差異超過此百分比的像素會以黑色呈現。較高的值只會保留較深的痕跡。"
+msgstr "與紙張顏色差異超過此百分比的像素將被渲染為黑色。較高的數值只會保留較深的痕跡。"
 
-#: postprocess_controls.py:428
-#, fuzzy
+#: postprocess_controls.py:585
+msgid "No OCR language selected."
+msgstr "未選擇 OCR 語言。"
+
+#: postprocess_controls.py:588
+#, python-format
+msgid "The following OCR languages are not installed: %(languages)s"
+msgstr "下列 OCR 語言尚未安裝：%(languages)s"
+
+#: postprocess_controls.py:598
+#, python-format
+msgid ""
+"'%(variable)s' is set by the %(control)s control; remove it from this field."
+msgstr "「%(variable)s」是由 %(control)s 控制項設定的；請從此欄位移除它。"
+
+#: postprocess_controls.py:609
+#, python-format
+msgid "Unknown Tesseract options: %(variables)s"
+msgstr "未知的 Tesseract 選項：%(variables)s"
+
+#: postprocess_controls.py:624
 msgid "Language to recognise"
 msgstr "要辨識的語言"
 
-#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-#, fuzzy
-msgid "_Cancel"
-msgstr "_取消"
+#: postprocess_controls.py:632
+msgid "Additional languages"
+msgstr "其他語言"
 
-#: progress.py:76 progress.py:110
-#, fuzzy, python-format
-msgid "Process %i of %i (%s)"
-msgstr "處理中 %i/%i (%s)"
+#: postprocess_controls.py:674
+msgid "Tessdata directory"
+msgstr "Tessdata 目錄"
 
-#: progress.py:119
-#, fuzzy, python-format
-msgid "Process %i of %i"
-msgstr "處理中 %i/%i"
+#: postprocess_controls.py:677
+msgid "Default (system tessdata)"
+msgstr "預設 (系統 tessdata)"
 
-#: savethread.py:83
-#, fuzzy
+#: postprocess_controls.py:680
+msgid ""
+"Directory that directly contains the Tesseract .traineddata language files. "
+"Leave empty for the system default."
+msgstr "直接包含 Tesseract .traineddata 語言檔案的目錄。留空以使用系統預設值。"
+
+#: postprocess_controls.py:693
+msgid "Choose the tessdata directory"
+msgstr "選擇 tessdata 目錄"
+
+#: postprocess_controls.py:698
+msgid "Use the system tessdata directory"
+msgstr "使用系統 tessdata 目錄"
+
+#: postprocess_controls.py:710
+msgid "Select tessdata directory"
+msgstr "選擇 tessdata 目錄"
+
+#: postprocess_controls.py:741
+msgid "How tesseract should segment the page. Automatic suits most pages."
+msgstr "Tesseract 應如何分割頁面。自動模式適合大多數頁面。"
+
+#: postprocess_controls.py:750
+msgid "Which tesseract engine to use. Default uses the engine's own choice."
+msgstr "要使用哪個 tesseract 引擎。預設使用引擎本身的選擇。"
+
+#: postprocess_controls.py:758
+msgid "Advanced Tesseract engine parameters"
+msgstr "進階 Tesseract 引擎參數"
+
+#: postprocess_controls.py:761
+msgid ""
+"Tesseract engine parameters - the values of tesseract's -c option - not "
+"command-line flags. Use absolute paths."
+msgstr "Tesseract 引擎參數 - tesseract 的 -c 選項的值 - 不是命令列旗標。請使用絕對路徑。"
+
+#: postprocess_controls.py:769
+msgid ""
+"One name=value engine parameter per line, e.g. "
+"user_words_file=/path/to/words.txt. Write engine parameters, not command-"
+"line options such as --user-words."
+msgstr ""
+"每行一個 name=value 引擎參數，例如 user_words_file=/path/to/words.txt。請填寫引擎參數，而非 "
+"--user-words 這類命令列選項。"
+
+#: postprocess_controls.py:791
+msgid "_Available parameters"
+msgstr "_可用參數"
+
+#: postprocess_controls.py:794
+msgid "Browse the parameters the installed Tesseract reports"
+msgstr "瀏覽已安裝的 Tesseract 所回報的參數"
+
+#: postprocess_controls.py:907
+msgid "No additional languages"
+msgstr "沒有其他語言"
+
+#: postprocess_controls.py:922
+#, python-format
+msgid "%(language)s (not installed)"
+msgstr "%(language)s (未安裝)"
+
+#: progress.py:79 progress.py:118
+#, python-format
+msgid "Process %(current)i of %(total)i (%(process)s)"
+msgstr "處理第 %(current)i 個，共 %(total)i 個 (%(process)s)"
+
+#: progress.py:127
+#, python-format
+msgid "Process %(current)i of %(total)i"
+msgstr "處理第 %(current)i 個，共 %(total)i 個"
+
+#: savethread.py:210
 msgid "Processing PDF"
 msgstr "正在處理 PDF"
 
-#: savethread.py:148
-#, fuzzy
+#: savethread.py:283
 msgid "Embedding text layer"
-msgstr "正在嵌入文字圖層"
+msgstr "嵌入文字圖層"
 
-#: savethread.py:195
-#, fuzzy
+#: savethread.py:341
 msgid "Setting up PDF"
 msgstr "正在設定 PDF"
 
-#: savethread.py:264 savethread.py:405
-#, fuzzy, python-format
-msgid "Writing page %i of %i"
-msgstr "正在寫入第 %i 頁，共 %i 頁"
+#: savethread.py:409 tests/test_savethread.py:1822
+msgid "Converting to JBIG2"
+msgstr "正在轉換為 JBIG2"
 
-#: savethread.py:291
-#, fuzzy, python-format
+#: savethread.py:447 savethread.py:615
+#, python-format
+msgid "Writing page %(current)i of %(total)i"
+msgstr "正在寫入第 %(current)i 頁，共 %(total)i 頁"
+
+#: savethread.py:498
+#, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
-msgstr "估計的 PDF 大小 (%.1f GiB) 超過 2 GiB。請減少要儲存的頁面數。"
+msgstr "預估的 PDF 大小（%.1f GiB）超過 2 GiB。請儲存較少的頁面。"
 
-#: savethread.py:314 tests/test_savethread.py:1240
-#, fuzzy
+#: savethread.py:521 tests/test_savethread.py:1599
 msgid "Writing PDF"
 msgstr "正在寫入 PDF"
 
-#: savethread.py:363
-#, fuzzy
+#: savethread.py:571
 msgid "Converting to PS"
 msgstr "正在轉換為 PS"
 
-#: savethread.py:374
-#, fuzzy, python-format
+#: savethread.py:584
+#, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr "將 PDF 轉換為 PS 時發生錯誤：%s"
 
-#: savethread.py:418
-#, fuzzy
+#: savethread.py:628
 msgid "Merging DjVu"
 msgstr "正在合併 DjVu"
 
-#: savethread.py:425
-#, fuzzy, python-format
+#: savethread.py:635
+#, python-format
 msgid "Error merging DjVu: %s"
 msgstr "合併 DjVu 時發生錯誤：%s"
 
-#: savethread.py:519
-#, fuzzy, python-format
+#: savethread.py:729
+#, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr "將 TIFF 轉換為 PS 時發生錯誤：%s"
 
-#: savethread.py:664
-#, fuzzy
+#: savethread.py:877
 msgid "Error copying page"
 msgstr "複製頁面時發生錯誤"
 
-#: savethread.py:814
-#, fuzzy, python-format
+#: savethread.py:948 tools_menu_mixins.py:840
+#, python-format
+msgid ""
+"Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
+"it one page at a time instead."
+msgstr "批次模式無法搭配 '%(tool)s' 使用，因為它使用了 %(variable)s。請改為一次執行一頁。"
+
+#: savethread.py:1009
+msgid ""
+"No pages were modified. If the tool was already running (for example GIMP), "
+"it may have opened the images in the existing instance."
+msgstr "未修改任何頁面。如果工具已在執行中（例如 GIMP），它可能已在現有執行個體中開啟影像。"
+
+#: savethread.py:1018
+#, python-format
+msgid "'%(tool)s' failed with status %(status)s."
+msgstr "'%(tool)s' 失敗，狀態為 %(status)s。"
+
+#: savethread.py:1024
+#, python-format
+msgid "Error running '%(tool)s': %(error)s."
+msgstr "執行 '%(tool)s' 時發生錯誤：%(error)s。"
+
+#: savethread.py:1294
+#, python-format
 msgid "Error prepending PDF: %s"
 msgstr "前置 PDF 時發生錯誤：%s"
 
-#: savethread.py:822
-#, fuzzy, python-format
+#: savethread.py:1302
+#, python-format
 msgid "Error appending PDF: %s"
 msgstr "附加 PDF 時發生錯誤：%s"
 
-#: savethread.py:831
-#, fuzzy
+#: savethread.py:1311
 msgid "Error creating backup of PDF"
 msgstr "建立 PDF 備份時發生錯誤"
 
-#: savethread.py:905
-#, fuzzy, python-format
+#: savethread.py:1385
+#, python-format
 msgid "Error encrypting PDF: %s"
-msgstr "加密 PDF 時發生錯誤：%s"
+msgstr "PDF 加密時發生錯誤：%s"
 
-#: scan_menu_item_mixins.py:72
-#, fuzzy
+#: scan_menu_item_mixins.py:118
 msgid "Really cache libusb device names?"
 msgstr "確定要快取 libusb 裝置名稱嗎？"
 
-#: scan_menu_item_mixins.py:76
-#, fuzzy
+#: scan_menu_item_mixins.py:122
 msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
-msgstr ""
-"不建議快取包含 libusb 裝置的裝置清單，因為它們在重新開機之間可能會變更。"
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
+msgstr "不建議快取 libusb 裝置清單，因為它們可能會在重新開機後變更。仍要快取嗎？"
 
-#: scan_menu_item_mixins.py:78
-#, fuzzy
-msgid "Are you sure you want to do this?"
-msgstr "確定要執行此操作嗎？"
+#: scan_menu_item_mixins.py:127
+msgid "Don't ask again"
+msgstr "不要再詢問"
 
-#: scan_menu_item_mixins.py:114
+#: scan_menu_item_mixins.py:176
 msgid "Scan Document"
 msgstr "掃描文件"
 
-#: scan_menu_item_mixins.py:216
-#, fuzzy
+#: scan_menu_item_mixins.py:291
 msgid "Postprocessing"
 msgstr "後處理"
 
-#: scan_menu_item_mixins.py:230
-#, fuzzy
+#: scan_menu_item_mixins.py:400
 msgid "Alternate rotation every 2nd page"
-msgstr "每隔一頁交替旋轉"
+msgstr "每隔 2 頁交替旋轉"
 
-#: scan_menu_item_mixins.py:233
-#, fuzzy
+#: scan_menu_item_mixins.py:403
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its front."
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
 msgstr ""
-"將奇數頁旋轉所選角度，將偶數頁旋轉該角度加 180 度。適用於掃描每張紙都對齊到同"
-"一邊緣的書籍，這樣每張紙的背面相對於正面旋轉了 180 度。"
+"將奇數頁旋轉所選角度，偶數頁則旋轉該角度加上 180 度。適用於掃描書本時每張紙張對齊同一邊緣的情況，如此每張紙張的背面會相對於正面旋轉 180 度。"
 
-#: scan_menu_item_mixins.py:298
-#, fuzzy
+#: scan_menu_item_mixins.py:425
 msgid "Clean up images"
-msgstr "清理影像"
+msgstr "清理圖片"
 
-#: scan_menu_item_mixins.py:299
-#, fuzzy
+#: scan_menu_item_mixins.py:426
 msgid "Clean up scanned images with unpaper"
 msgstr "使用 unpaper 清理掃描影像"
 
-#: scan_menu_item_mixins.py:307
-#, fuzzy
+#: scan_menu_item_mixins.py:435
 msgid "Options"
 msgstr "選項"
 
-#: scan_menu_item_mixins.py:308
-#, fuzzy
+#: scan_menu_item_mixins.py:436
 msgid "Set unpaper options"
 msgstr "設定 unpaper 選項"
 
-#: scan_menu_item_mixins.py:316
-#, fuzzy
+#: scan_menu_item_mixins.py:445
 msgid "unpaper options"
 msgstr "unpaper 選項"
 
-#: scan_menu_item_mixins.py:339
-#, fuzzy
+#: scan_menu_item_mixins.py:468
 msgid "Process with user-defined tool"
-msgstr "使用使用者自訂工具處理"
+msgstr "使用使用者定義的工具處理"
 
-#: scan_menu_item_mixins.py:340
-#, fuzzy
+#: scan_menu_item_mixins.py:469
 msgid "Process scanned images with user-defined tool"
-msgstr "使用使用者自訂工具處理掃描影像"
+msgstr "使用使用者定義的工具處理掃描影像"
 
-#: session_mixins.py:74
-#, fuzzy, python-format
+#: session_mixins.py:84
+#, python-format
 msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
-msgstr "警告：無法使用 %s 作為暫存空間。改為使用 %s。"
+"Warning: unable to use %(configured)s for temporary storage. Defaulting to "
+"%(default)s instead."
+msgstr "警告：無法使用 %(configured)s 作為暫存空間，將改用預設值 %(default)s。"
 
-#: session_mixins.py:118 session_mixins.py:123
-#, fuzzy
-msgid "Pick crashed session to restore"
-msgstr "選取要還原的當機會話"
+#: session_mixins.py:163
+msgid "No crashed sessions found."
+msgstr "找不到當機的工作階段。"
 
-#: session_mixins.py:191
-#, fuzzy
+#: session_mixins.py:169
+msgid "Crashed sessions"
+msgstr "當機的工作階段"
+
+#: session_mixins.py:174
+msgid "_Discard"
+msgstr "捨棄(_D)"
+
+#: session_mixins.py:175
+msgid "_Restore"
+msgstr "_還原"
+
+#: session_mixins.py:178
+msgid "Restore or discard a crashed session"
+msgstr "還原或捨棄當機的工作階段"
+
+#: session_mixins.py:207
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to restore a crashed session?"
+msgstr ""
+"部分頁面尚未儲存。\n"
+"您確定要還原先前當機的工作階段嗎？"
+
+#: session_mixins.py:242
+msgid "Restore file"
+msgstr "還原檔案"
+
+#: session_mixins.py:258
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] "要捨棄 %(count)d 個已當機的工作階段嗎？"
+
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] "無法移除 %(count)d 個已當機的工作階段。"
+
+#: session_mixins.py:301
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
-msgstr "GraphicsMagick 正以 ImageMagick 相容模式執行。"
+msgstr "GraphicsMagick 正以 ImageMagick 相容模式運作。"
 
-#: session_mixins.py:193
-#, fuzzy
+#: session_mixins.py:303
 msgid "Whilst this might work, it is not currently supported."
-msgstr "雖然這可能有效，但目前不支援。"
+msgstr "雖然這或許可行，但目前不受支援。"
 
-#: session_mixins.py:195
+#: session_mixins.py:305
 #, fuzzy
 msgid "Please switch to ImageMagick in case of problems."
 msgstr "若發生問題，請切換到 ImageMagick。"
 
-#: session_mixins.py:212
-#, fuzzy
+#: session_mixins.py:318
 msgid "Tesseract"
 msgstr "Tesseract"
 
-#: session_mixins.py:212
-#, fuzzy
+#: session_mixins.py:318
 msgid "Process image with Tesseract."
 msgstr "使用 Tesseract 處理影像。"
 
-#: session_mixins.py:229
-#, fuzzy
+#: session_mixins.py:330
 msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr "正面頁面掃描完成。是否掃描反面頁面？"
+msgstr "已完成掃描對開頁面。要掃描反面頁面嗎？"
 
-#: session_mixins.py:232
-#, fuzzy
+#: session_mixins.py:333
 msgid "Finished scanning reverse pages. Scan facing pages?"
-msgstr "反面頁面掃描完成。是否掃描正面頁面？"
+msgstr "已完成掃描反面頁面。要掃描對開頁面嗎？"
 
-#: session_mixins.py:448 text_layer_control.py:80
-#, fuzzy
-msgid "_OK"
-msgstr "_確定"
+#: tesseract.py:197
+msgid "Fully automatic page segmentation."
+msgstr "全自動頁面分割。"
 
-#: session_mixins.py:449 text_layer_control.py:80
-#, fuzzy
-msgid "Accept corrections"
-msgstr "接受更正"
+#: tesseract.py:198
+msgid "Single column"
+msgstr "單欄"
 
-#: session_mixins.py:452 text_layer_control.py:83
-#, fuzzy
-msgid "Cancel corrections"
-msgstr "取消更正"
+#: tesseract.py:198
+msgid "A single column of text of variable sizes."
+msgstr "單欄文字，大小可變。"
 
-#: session_mixins.py:458
-#, fuzzy
-msgid "Add annotation"
-msgstr "新增註解"
+#: tesseract.py:199
+msgid "Single block"
+msgstr "單一區塊"
 
-#: session_mixins.py:461
-#, fuzzy
-msgid "Delete annotation"
-msgstr "刪除註解"
+#: tesseract.py:199
+msgid "A single uniform block of text."
+msgstr "單一均勻的文字區塊。"
 
-#: session_mixins.py:505
-#, fuzzy
-msgid "my-new-word"
-msgstr "my-new-word"
+#: tesseract.py:200
+msgid "Single line"
+msgstr "單行"
 
-#: session_mixins.py:560
-#, fuzzy
-msgid "my-new-annotation"
-msgstr "my-new-annotation"
+#: tesseract.py:200
+msgid "The image is a single text line."
+msgstr "此圖片為單行文字。"
 
-#: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, fuzzy, python-format
-msgid "You are using locale '%s'."
-msgstr "您正在使用語言環境 '%s'。"
+#: tesseract.py:201
+msgid "Single word"
+msgstr "單字"
 
-#: tesseract.py:235
-#, fuzzy
-msgid ""
-"scantpaper does not currently know which tesseract language package would be "
-"necessary for that locale."
-msgstr "scantpaper 目前不知道該語言環境需要哪個 tesseract 語言套件。"
+#: tesseract.py:201
+msgid "The image is a single word."
+msgstr "此圖片為單一字詞。"
 
-#: tesseract.py:239
-#, fuzzy
-msgid "Please contact the developers to add support for that locale."
-msgstr "請聯絡開發人員以新增對該語言環境的支援。"
+#: tesseract.py:202
+msgid "Single character"
+msgstr "單一字元"
 
-#: tesseract.py:250
-#, fuzzy, python-format
-msgid ""
-"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
-"for OCR for %s with tesseract."
-msgstr ""
-"請安裝 tesseract 套件 'tesseract-ocr-%s' 並重新啟動 scantpaper，以使用 "
-"tesseract 對 %s 執行 OCR。"
+#: tesseract.py:202
+msgid "The image is a single character."
+msgstr "此影像為單一字元。"
+
+#: tesseract.py:203
+msgid "Sparse text"
+msgstr "稀疏文字"
+
+#: tesseract.py:203
+msgid "Find as much text as possible, in no order."
+msgstr "盡可能找出最多的文字，順序不拘。"
+
+#: tesseract.py:204
+msgid "Raw line"
+msgstr "原始行"
+
+#: tesseract.py:204
+msgid "A single line, without tesseract-specific hacks."
+msgstr "單行，不含 Tesseract 專屬的權宜做法。"
+
+#: tesseract.py:214
+msgid "LSTM only"
+msgstr "僅 LSTM"
+
+#: tesseract.py:215
+msgid "Legacy"
+msgstr "舊版"
+
+#: tesseract.py:216
+msgid "Combined"
+msgstr "合併"
 
 #: tesseract.py:260
-#, fuzzy, python-format
+#, python-format
+msgid "The tessdata directory does not exist: %(path)s"
+msgstr "tessdata 目錄不存在：%(path)s"
+
+#: tesseract.py:262
+#, python-format
+msgid "The tessdata path is not a directory: %(path)s"
+msgstr "tessdata 路徑不是目錄：%(path)s"
+
+#: tesseract.py:264
+#, python-format
+msgid "The tessdata directory cannot be read: %(path)s"
+msgstr "無法讀取 tessdata 目錄：%(path)s"
+
+#: tesseract.py:268
+#, python-format
+msgid ""
+"No Tesseract language data was found in the tessdata directory: %(path)s"
+msgstr "在 tessdata 目錄中找不到 Tesseract 語言資料：%(path)s"
+
+#: tesseract.py:272
+#, python-format
+msgid "Did you mean %(path)s?"
+msgstr "您是指 %(path)s 嗎？"
+
+#: tesseract.py:322
+msgid "tessdata directory not found"
+msgstr "找不到 tessdata 目錄"
+
+#: tesseract.py:388
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; this field accepts engine "
+"parameters in name=value form only."
+msgstr "'%(flag)s' 是 Tesseract 命令列選項；此欄位僅接受 name=value 形式的引擎參數。"
+
+#: tesseract.py:393
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' "
+"instead."
+msgstr "'%(flag)s' 是 Tesseract 的命令列選項；請改用 '%(variable)s=%(value)s'。"
+
+#: tesseract.py:413 tesseract.py:420
+#, python-format
+msgid "Invalid Tesseract option on line %(line)s: %(text)s"
+msgstr "第 %(line)s 行的 Tesseract 選項無效：%(text)s"
+
+#: tesseract.py:435
+#, python-format
+msgid "%(variable)s names a file that does not exist: %(path)s"
+msgstr "%(variable)s 指定的檔案不存在：%(path)s"
+
+#: tesseract.py:440
+#, python-format
+msgid "%(variable)s names a file that cannot be read: %(path)s"
+msgstr "%(variable)s 所指的檔案無法讀取：%(path)s"
+
+#: tesseract.py:567 tesseract.py:581 tesseract.py:594
+#, python-format
+msgid "You are using locale '%s'."
+msgstr "您目前使用的語言環境為「%s」。"
+
+#: tesseract.py:570
+msgid ""
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
+msgstr "scantpaper 目前不知道該地區設定需要哪個 tesseract 語言套件。"
+
+#: tesseract.py:574
+msgid "Please contact the developers to add support for that locale."
+msgstr "請聯絡開發人員，以新增對該地區設定的支援。"
+
+#: tesseract.py:585
+#, python-format
+msgid ""
+"Please install tesseract package 'tesseract-ocr-%(package)s' and restart "
+"scantpaper for OCR for %(language)s with tesseract."
+msgstr ""
+"請安裝 tesseract 套件「tesseract-ocr-%(package)s」，並重新啟動 scantpaper，以便使用 tesseract "
+"對 %(language)s 進行 OCR。"
+
+#: tesseract.py:596
+#, python-format
 msgid "There is no tesseract package for %s"
 msgstr "沒有適用於 %s 的 tesseract 套件"
 
-#: tesseract.py:262
-#, fuzzy
+#: tesseract.py:598
 msgid "If this is in error, please contact the scantpaper developers."
-msgstr "如果這是錯誤，請聯絡 scantpaper 開發人員。"
+msgstr "如果這是錯誤的，請聯絡 scantpaper 開發人員。"
 
-#: tests/test_savethread.py:1230
-#, fuzzy
+#: tests/test_savethread.py:1589
 msgid "Writing page"
-msgstr "正在寫入頁面"
+msgstr "寫作頁面"
 
-#: text_layer_control.py:27
-#, fuzzy
-msgid "Sort by confidence"
-msgstr "依信賴度排序"
-
-#: text_layer_control.py:28
-#, fuzzy
-msgid "Sort OCR text boxes by confidence."
-msgstr "依信賴度對 OCR 文字方塊排序。"
-
-#: text_layer_control.py:30
-#, fuzzy
-msgid "Sort by position"
-msgstr "依位置排序"
-
-#: text_layer_control.py:30
-#, fuzzy
-msgid "Sort OCR text boxes by position."
-msgstr "依位置對 OCR 文字方塊排序。"
-
-#: text_layer_control.py:61
-#, fuzzy
-msgid "Go to least confident text"
-msgstr "移至信賴度最低的文字"
-
-#: text_layer_control.py:64
-#, fuzzy
-msgid "Go to previous text"
-msgstr "移至前一個文字"
-
-#: text_layer_control.py:67
-#, fuzzy
-msgid "Select sort method for OCR boxes"
-msgstr "選取 OCR 方塊的排序方法"
-
-#: text_layer_control.py:73
-#, fuzzy
-msgid "Go to next text"
-msgstr "移至下一個文字"
-
-#: text_layer_control.py:75
-#, fuzzy
-msgid "Go to most confident text"
-msgstr "移至信賴度最高的文字"
-
-#: text_layer_control.py:77
-#, fuzzy
-msgid "Add text"
-msgstr "新增文字"
-
-#: text_layer_control.py:86
-#, fuzzy
-msgid "_Copy"
-msgstr "_複製"
-
-#: text_layer_control.py:86
-#, fuzzy
-msgid "Duplicate text"
-msgstr "複製文字"
-
-#: text_layer_control.py:89
-#, fuzzy
-msgid "Delete text"
-msgstr "刪除文字"
-
-#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
-#, fuzzy
+#: tools_menu_mixins.py:105 tools_menu_mixins.py:298
 msgid "Threshold"
-msgstr "臨界值"
+msgstr "閾值"
 
-#: tools_menu_mixins.py:106
-#, fuzzy
+#: tools_menu_mixins.py:115
 msgid "Ink strength"
-msgstr "墨跡濃度"
+msgstr "墨水濃度"
 
-#: tools_menu_mixins.py:159
-#, fuzzy
+#: tools_menu_mixins.py:156 tools_menu_mixins.py:226 tools_menu_mixins.py:265
+#: tools_menu_mixins.py:368 tools_menu_mixins.py:410 tools_menu_mixins.py:533
+msgid "_Apply"
+msgstr "_套用"
+
+#: tools_menu_mixins.py:168
 msgid "Brightness / Contrast"
 msgstr "亮度 / 對比"
 
-#: tools_menu_mixins.py:170
-#, fuzzy
+#: tools_menu_mixins.py:179
 msgid "Brightness"
 msgstr "亮度"
 
-#: tools_menu_mixins.py:181
-#, fuzzy
+#: tools_menu_mixins.py:190
 msgid "Contrast"
 msgstr "對比"
 
-#: tools_menu_mixins.py:227
-#, fuzzy
+#: tools_menu_mixins.py:236
 msgid "Negate"
-msgstr "反轉"
+msgstr "否定"
 
-#: tools_menu_mixins.py:264
-#, fuzzy
+#: tools_menu_mixins.py:273
 msgid "Unsharp mask"
-msgstr "不銳利遮罩"
+msgstr "非銳化遮罩"
 
-#: tools_menu_mixins.py:275
-#, fuzzy
+#: tools_menu_mixins.py:284
 msgid "Radius"
 msgstr "半徑"
 
-#: tools_menu_mixins.py:279
-#, fuzzy
+#: tools_menu_mixins.py:288
 msgid "Blur Radius."
-msgstr "模糊半徑。"
+msgstr "模糊半徑"
 
-#: tools_menu_mixins.py:282
-#, fuzzy
+#: tools_menu_mixins.py:291
 msgid "Percentage"
 msgstr "百分比"
 
-#: tools_menu_mixins.py:286
-#, fuzzy
+#: tools_menu_mixins.py:295
 msgid "Unsharp strength, in percent."
-msgstr "不銳利強度 (百分比)。"
+msgstr "銳利化強度，以百分比表示。"
 
-#: tools_menu_mixins.py:294
-#, fuzzy
+#: tools_menu_mixins.py:303
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
-msgstr "臨界值控制將被銳化的最小亮度變化。"
+msgstr "閾值控制將進行銳化處理的最小亮度變化。"
 
-#: tools_menu_mixins.py:444
-#, fuzzy
+#: tools_menu_mixins.py:459
 msgid "Split"
 msgstr "分割"
 
-#: tools_menu_mixins.py:453
-#, fuzzy
+#: tools_menu_mixins.py:468
 msgid "Direction"
 msgstr "方向"
 
-#: tools_menu_mixins.py:458
-#, fuzzy
+#: tools_menu_mixins.py:473
 msgid "Vertically"
 msgstr "垂直"
 
-#: tools_menu_mixins.py:459
-#, fuzzy
+#: tools_menu_mixins.py:474
 msgid "Split the page vertically into left and right pages."
-msgstr "將頁面垂直分割為左右兩頁。"
+msgstr "將頁面垂直分割為左頁和右頁。"
 
-#: tools_menu_mixins.py:463
-#, fuzzy
+#: tools_menu_mixins.py:478
 msgid "Horizontally"
 msgstr "水平"
 
-#: tools_menu_mixins.py:464
-#, fuzzy
+#: tools_menu_mixins.py:479
 msgid "Split the page horizontally into top and bottom pages."
-msgstr "將頁面水平分割為上下兩頁。"
+msgstr "將頁面水平分割為上下兩個頁面。"
 
-#: tools_menu_mixins.py:487
-#, fuzzy
+#: tools_menu_mixins.py:502
 msgid "Position"
 msgstr "位置"
 
-#: tools_menu_mixins.py:590
-#, fuzzy
+#: tools_menu_mixins.py:605
 msgid "unpaper"
 msgstr "unpaper"
 
-#: tools_menu_mixins.py:649
-#, fuzzy
+#: tools_menu_mixins.py:664
 msgid "OCR"
-msgstr "OCR"
+msgstr "光學字元辨識"
 
-#: tools_menu_mixins.py:730
-#, fuzzy
+#: tools_menu_mixins.py:777
 msgid "User-defined tools"
 msgstr "使用者自訂工具"
 
-#: tools_menu_mixins.py:739
-#, fuzzy
+#: tools_menu_mixins.py:786
 msgid "Selected tool"
-msgstr "選取的工具"
+msgstr "已選取的工具"
 
-#: tools_menu_mixins.py:782
-#, fuzzy
+#: tools_menu_mixins.py:790
+msgid "Process selected pages at once"
+msgstr "一次處理選取的頁面"
+
+#: tools_menu_mixins.py:891 app.ui:125
 msgid "Email as PDF"
-msgstr "以 PDF 寄送電子郵件"
+msgstr "以 PDF 格式傳送"
 
-#: tools_menu_mixins.py:861
-#, fuzzy
+#: tools_menu_mixins.py:970
 msgid "Error creating email"
 msgstr "建立電子郵件時發生錯誤"
 
-#: tools_menu_mixins.py:917
+#: tools_menu_mixins.py:1026
 msgid "To aid the scan-to-PDF process"
 msgstr "加速掃描至 PDF 流程"
 
-#: tools_menu_mixins.py:918
-#, fuzzy
+#: tools_menu_mixins.py:1027
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
-msgstr "版權所有 2006--2026 Jeffrey Ratcliffe"
+msgstr "著作權 2006--2026 Jeffrey Ratcliffe"
 
-#: unpaper.py:38
-#, fuzzy
+#: unpaper.py:40
 msgid "Layout"
 msgstr "版面配置"
 
-#: unpaper.py:41
-#, fuzzy
+#: unpaper.py:43
 msgid "Single"
 msgstr "單一"
 
-#: unpaper.py:43
-#, fuzzy
+#: unpaper.py:45
 msgid "One page per sheet, oriented upwards without rotation."
-msgstr "每張紙一頁，朝上方向且不旋轉。"
-
-#: unpaper.py:47
-#, fuzzy
-msgid "Double"
-msgstr "雙頁"
+msgstr "每張紙一頁，朝上方向，無需旋轉。"
 
 #: unpaper.py:49
-#, fuzzy
+msgid "Double"
+msgstr "雙倍"
+
+#: unpaper.py:51
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
-msgstr "每張紙兩頁，橫向方向 (左半部一頁，右半部一頁)。"
+msgstr "每張紙兩頁，橫向（左半部一頁，右半部一頁）。"
 
-#: unpaper.py:58
-#, fuzzy
+#: unpaper.py:60
 msgid "# Output pages"
 msgstr "# 輸出頁面"
 
-#: unpaper.py:59
-#, fuzzy
+#: unpaper.py:61
 msgid "Number of pages to output."
-msgstr "要輸出的頁面數。"
+msgstr "要輸出的頁數"
 
-#: unpaper.py:67
-#, fuzzy
+#: unpaper.py:69
 msgid "Writing system"
 msgstr "書寫系統"
 
-#: unpaper.py:70
-#, fuzzy
+#: unpaper.py:72
 msgid "Left-to-right"
 msgstr "由左至右"
 
-#: unpaper.py:72
-#, fuzzy
+#: unpaper.py:74
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
-msgstr "大多數書寫系統，例如拉丁文、希臘文、西里爾文。"
+msgstr "大多數書寫系統，例如拉丁字母、希臘字母、西里爾字母。"
 
-#: unpaper.py:76
-#, fuzzy
+#: unpaper.py:78
 msgid "Right-to-left"
 msgstr "由右至左"
 
-#: unpaper.py:77
-#, fuzzy
+#: unpaper.py:79
 msgid "Scripts like Arabic or Hebrew."
-msgstr "如阿拉伯文或希伯來文等文字。"
+msgstr "阿拉伯文或希伯來文等文字系統。"
 
-#: unpaper.py:85
-#, fuzzy
+#: unpaper.py:87
 msgid "No deskew"
-msgstr "不校正歪斜"
+msgstr "不進行歪斜校正"
 
-#: unpaper.py:86
-#, fuzzy
+#: unpaper.py:88
 msgid "Disable deskewing."
-msgstr "停用歪斜校正。"
+msgstr "停用歪斜校正"
 
-#: unpaper.py:91
-#, fuzzy
+#: unpaper.py:93
 msgid "No mask scan"
-msgstr "不偵測遮罩"
+msgstr "無遮罩掃描"
 
-#: unpaper.py:92
-#, fuzzy
+#: unpaper.py:94
 msgid "Disable mask detection."
 msgstr "停用遮罩偵測。"
 
-#: unpaper.py:97
-#, fuzzy
+#: unpaper.py:99
 msgid "No mask centering"
-msgstr "不置中遮罩"
+msgstr "無遮罩置中"
 
-#: unpaper.py:98
-#, fuzzy
+#: unpaper.py:100
 msgid "Disable mask centering."
 msgstr "停用遮罩置中。"
 
-#: unpaper.py:103
-#, fuzzy
+#: unpaper.py:105
 msgid "No black filter"
-msgstr "不使用黑色濾鏡"
+msgstr "無黑色濾鏡"
 
-#: unpaper.py:104
-#, fuzzy
+#: unpaper.py:106
 msgid "Disable black area scan."
 msgstr "停用黑色區域掃描。"
 
-#: unpaper.py:109
-#, fuzzy
+#: unpaper.py:111
 msgid "No gray filter"
-msgstr "不使用灰色濾鏡"
+msgstr "無灰階濾鏡"
 
-#: unpaper.py:110
-#, fuzzy
+#: unpaper.py:112
 msgid "Disable gray area scan."
 msgstr "停用灰色區域掃描。"
 
-#: unpaper.py:115
-#, fuzzy
+#: unpaper.py:117
 msgid "No noise filter"
-msgstr "不使用雜訊濾鏡"
+msgstr "無雜訊濾波器"
 
-#: unpaper.py:116
-#, fuzzy
+#: unpaper.py:118
 msgid "Disable noise filter."
-msgstr "停用雜訊濾鏡。"
+msgstr "停用雜訊濾波器。"
 
-#: unpaper.py:121
-#, fuzzy
+#: unpaper.py:123
 msgid "No blur filter"
-msgstr "不使用模糊濾鏡"
+msgstr "無模糊濾鏡"
 
-#: unpaper.py:122
-#, fuzzy
+#: unpaper.py:124
 msgid "Disable blur filter."
 msgstr "停用模糊濾鏡。"
 
-#: unpaper.py:127
-#, fuzzy
+#: unpaper.py:129
 msgid "No border scan"
-msgstr "不掃描邊界"
+msgstr "無邊框掃描"
 
-#: unpaper.py:128
-#, fuzzy
+#: unpaper.py:130
 msgid "Disable border scanning."
-msgstr "停用邊界掃描。"
-
-#: unpaper.py:133
-#, fuzzy
-msgid "No border align"
-msgstr "不對齊邊界"
+msgstr "停用邊框掃描。"
 
 #: unpaper.py:135
-#, fuzzy
-msgid "Disable aligning of the area detected by border scanning."
-msgstr "停用對邊界掃描所偵測到區域的對齊。"
+msgid "No border align"
+msgstr "無邊框對齊"
 
-#: unpaper.py:141
-#, fuzzy
+#: unpaper.py:137
+msgid "Disable aligning of the area detected by border scanning."
+msgstr "停用邊框掃描所偵測區域的對齊。"
+
+#: unpaper.py:143
 msgid "Deskew to edge"
 msgstr "校正歪斜至邊緣"
 
-#: unpaper.py:143
-#, fuzzy
+#: unpaper.py:145
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
 "value will be used, unless the statistical deviation exceeds --deskew-scan-"
 "deviation."
 msgstr ""
-"用於掃描旋轉的邊緣。遮罩的每一條邊都可用於偵測遮罩的旋轉。如果指定了多條邊，"
-"將使用平均值，除非統計偏差超過 --deskew-scan-deviation。"
+"用於掃描旋轉的邊緣。遮罩的每個邊緣都可用來偵測該遮罩的旋轉。若指定多個邊緣，將使用平均值，除非統計偏差超過 --deskew-scan-"
+"deviation。"
 
-#: unpaper.py:152
-#, fuzzy
+#: unpaper.py:154
 msgid "Use 'left' for scanning from the left edge."
-msgstr "若要從左邊緣掃描，請使用 'left'。"
+msgstr "使用 'left' 從左側邊緣進行掃描。"
 
-#: unpaper.py:157
-#, fuzzy
+#: unpaper.py:159
 msgid "Use 'top' for scanning from the top edge."
-msgstr "若要從上邊緣掃描，請使用 'top'。"
+msgstr "使用 'top' 從上邊緣掃描。"
 
-#: unpaper.py:161 unpaper.py:189
-#, fuzzy
+#: unpaper.py:163 unpaper.py:191
 msgid "Right"
 msgstr "右"
 
-#: unpaper.py:162
-#, fuzzy
+#: unpaper.py:164
 msgid "Use 'right' for scanning from the right edge."
-msgstr "若要從右邊緣掃描，請使用 'right'。"
+msgstr "使用 'right' 從右側邊緣進行掃描。"
 
-#: unpaper.py:166 unpaper.py:194
-#, fuzzy
+#: unpaper.py:168 unpaper.py:196
 msgid "Bottom"
-msgstr "下"
+msgstr "底部"
 
-#: unpaper.py:167
-#, fuzzy
+#: unpaper.py:169
 msgid "Use 'bottom' for scanning from the bottom."
-msgstr "若要從底部掃描，請使用 'bottom'。"
+msgstr "使用 'bottom' 從底部掃描。"
 
-#: unpaper.py:174
-#, fuzzy
+#: unpaper.py:176
 msgid "Align to edge"
-msgstr "對齊至邊緣"
+msgstr "對齊邊緣"
 
-#: unpaper.py:175
-#, fuzzy
+#: unpaper.py:177
 msgid "Edge to which to align the page."
-msgstr "頁面對齊到的邊緣。"
+msgstr "頁面要對齊的邊緣。"
 
-#: unpaper.py:180
-#, fuzzy
+#: unpaper.py:182
 msgid "Use 'left' to align to the left edge."
-msgstr "若要對齊到左邊緣，請使用 'left'。"
+msgstr "使用 'left' 對齊左邊緣。"
 
-#: unpaper.py:185
-#, fuzzy
+#: unpaper.py:187
 msgid "Use 'top' to align to the top edge."
-msgstr "若要對齊到上邊緣，請使用 'top'。"
+msgstr "使用 'top' 對齊上邊緣。"
 
-#: unpaper.py:190
-#, fuzzy
+#: unpaper.py:192
 msgid "Use 'right' to align to the right edge."
-msgstr "若要對齊到右邊緣，請使用 'right'。"
+msgstr "使用 'right' 來對齊右邊緣。"
 
-#: unpaper.py:195
-#, fuzzy
+#: unpaper.py:197
 msgid "Use 'bottom' to align to the bottom."
-msgstr "若要對齊到底部，請使用 'bottom'。"
+msgstr "使用 'bottom' 來對齊到底部。"
 
-#: unpaper.py:201
-#, fuzzy
+#: unpaper.py:203
 msgid "Border margin"
-msgstr "邊界邊距"
+msgstr "邊框邊距"
 
-#: unpaper.py:205
-#, fuzzy
+#: unpaper.py:207
 msgid "Vertical margin"
 msgstr "垂直邊距"
 
-#: unpaper.py:207
-#, fuzzy
+#: unpaper.py:209
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
-msgstr "對齊邊界區域時，與紙張邊緣保持的垂直距離。"
+msgstr "對齊邊框區域時，與工作表邊緣保持的垂直距離。"
 
-#: unpaper.py:217
-#, fuzzy
+#: unpaper.py:219
 msgid "Horizontal margin"
 msgstr "水平邊距"
 
-#: unpaper.py:219
-#, fuzzy
+#: unpaper.py:221
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
-msgstr "對齊邊界區域時，與紙張邊緣保持的水平距離。"
-
-#: unpaper.py:231
-#, fuzzy
-msgid "White threshold"
-msgstr "白色臨界值"
+msgstr "對齊邊框區域時，與工作表邊緣保持的水平距離。"
 
 #: unpaper.py:233
-#, fuzzy
-msgid "Brightness ratio above which a pixel is considered white."
-msgstr "像素被視為白色的亮度比率上限。"
+msgid "White threshold"
+msgstr "白色閾值"
 
-#: unpaper.py:243
-#, fuzzy
-msgid "Black threshold"
-msgstr "黑色臨界值"
+#: unpaper.py:235
+msgid "Brightness ratio above which a pixel is considered white."
+msgstr "亮度比例高於此值時，像素即視為白色。"
 
 #: unpaper.py:245
-#, fuzzy
-msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
-msgstr ""
-"像素被視為黑色 (非灰色) 的亮度比率下限。這由灰色濾鏡使用。此值也用於將灰階影"
-"像轉換為黑白模式時。"
+msgid "Black threshold"
+msgstr "黑色閾值"
 
-#: unpaper.py:355
-#, fuzzy
+#: unpaper.py:247
+msgid ""
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
+msgstr "亮度比例低於此值時，像素會被視為黑色（非灰色）。灰色濾鏡會使用此值。將灰階影像轉換為黑白模式時，也會使用此值。"
+
+#: unpaper.py:370
 msgid "Deskew"
 msgstr "校正歪斜"
 
-#: unpaper.py:359
-#, fuzzy
+#: unpaper.py:374
 msgid "Border"
-msgstr "邊界"
+msgstr "邊框"
 
-#: unpaper.py:364
-#, fuzzy
+#: unpaper.py:385
 msgid "Filters"
-msgstr "濾鏡"
+msgstr "篩選器"
 
-#: app.ui:5 menu.ui:6
-msgid "_File"
-msgstr "檔案"
+#: app.ui:11
+msgid "Pan"
+msgstr "平移"
 
-#: app.ui:9 menu.ui:9
-msgid "_New"
-msgstr "新增(_N)"
+#: app.ui:18
+msgid "Select"
+msgstr "選取"
 
-#: app.ui:14 menu.ui:14
-msgid "_Open"
-msgstr ""
+#: app.ui:25
+msgid "Select & pan"
+msgstr "選擇與平移"
 
-#: app.ui:19
-#, fuzzy
-msgid "Open c_rashed session"
-msgstr "開啟當機的會話"
+#: app.ui:35
+msgid "Zoom 100%"
+msgstr "縮放 100%"
 
-#: app.ui:23 menu.ui:19
-msgid "S_can"
-msgstr ""
-
-#: app.ui:33 menu.ui:29
-#, fuzzy
-msgid "_Email as PDF"
-msgstr "以 PDF 寄送電子郵件"
-
-#: app.ui:38 menu.ui:34
-msgid "_Print"
-msgstr ""
-
-#: app.ui:45 menu.ui:39
-msgid "_Quit"
-msgstr "離開(_Q)"
-
-#: app.ui:51 menu.ui:46
-msgid "_Edit"
-msgstr "編輯(_E)"
-
-#: app.ui:55 menu.ui:49
-msgid "_Undo"
-msgstr ""
-
-#: app.ui:60 menu.ui:53
-msgid "_Redo"
-msgstr ""
-
-#: app.ui:67 menu.ui:57
-msgid "Cu_t"
-msgstr ""
-
-#: app.ui:77 menu.ui:65
-msgid "_Paste"
-msgstr ""
-
-#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
-#, fuzzy
-msgid "_Select"
-msgstr "選取的"
-
-#: app.ui:89 menu.ui:76
-msgid "_All"
-msgstr ""
-
-#: app.ui:94 menu.ui:80
-msgid "_Odd"
-msgstr ""
-
-#: app.ui:99 menu.ui:84
-msgid "_Even"
-msgstr ""
-
-#: app.ui:104 menu.ui:88
-msgid "_Invert"
-msgstr ""
-
-#: app.ui:109 menu.ui:92
-msgid "_Blank"
-msgstr ""
-
-#: app.ui:114 menu.ui:96
-msgid "_Dark"
-msgstr ""
-
-#: app.ui:119 menu.ui:100
-msgid "_Modified"
-msgstr ""
-
-#: app.ui:124 menu.ui:104
-msgid "_No OCR"
-msgstr ""
-
-#: app.ui:130 menu.ui:108
-msgid "_Clear OCR"
-msgstr ""
-
-#: app.ui:136 menu.ui:114
-#, fuzzy
-msgid "Propert_ies"
-msgstr "內容"
-
-#: app.ui:142 menu.ui:118
-#, fuzzy
-msgid "Prefere_nces"
-msgstr "偏好設定"
-
-#: app.ui:147 menu.ui:124
-msgid "_View"
-msgstr "檢視(_V)"
-
-#: app.ui:150 app.ui:293
-msgid "_Pan"
-msgstr ""
-
-#: app.ui:160 app.ui:310
-#, fuzzy
-msgid "_Select & pan"
-msgstr "全選頁面"
-
-#: app.ui:167
-msgid "_Tabbed"
-msgstr ""
-
-#: app.ui:172
-#, fuzzy
-msgid "_Split horizontally"
-msgstr "水平"
-
-#: app.ui:177
-#, fuzzy
-msgid "_Split vertically"
-msgstr "垂直"
-
-#: app.ui:184
-#, fuzzy
-msgid "Edit text layer"
-msgstr "正在嵌入文字圖層"
-
-#: app.ui:189
-#, fuzzy
-msgid "Edit annotations"
-msgstr "新增註解"
-
-#: app.ui:197 app.ui:320 menu.ui:127
-msgid "Zoom _100%"
-msgstr "實際尺寸(_100%)"
-
-#: app.ui:201 app.ui:327 menu.ui:131
-msgid "Zoom to _fit"
-msgstr "符合頁面(_f)"
-
-#: app.ui:205 app.ui:334 menu.ui:135
-msgid "Zoom _in"
-msgstr "放大(_i)"
-
-#: app.ui:210 app.ui:341 menu.ui:139
-msgid "Zoom _out"
-msgstr "縮小(_o)"
-
-#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
-#, fuzzy
-msgid "Rotate 90° clockwise"
-msgstr "順時針旋轉影像 90 度。"
-
-#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
-#, fuzzy
-msgid "Rotate 180°"
-msgstr "旋轉"
-
-#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
-#, fuzzy
-msgid "Rotate 90° anticlockwise"
-msgstr "逆時針旋轉影像 90 度。"
-
-#: app.ui:233 menu.ui:157
-msgid "_Tools"
-msgstr ""
-
-#: app.ui:237 menu.ui:160
-#, fuzzy
-msgid "_Threshold"
-msgstr "臨界值"
-
-#: app.ui:241 menu.ui:164
-#, fuzzy
-msgid "_Brightness / Contrast"
-msgstr "亮度 / 對比"
-
-#: app.ui:245 menu.ui:168
-#, fuzzy
-msgid "_Negate"
-msgstr "反轉"
-
-#: app.ui:249 menu.ui:172
-#, fuzzy
-msgid "_Unsharp Mask"
-msgstr "不銳利遮罩"
-
-#: app.ui:253 menu.ui:176
-#, fuzzy
-msgid "_Crop"
-msgstr "裁切"
-
-#: app.ui:259 menu.ui:180
-#, fuzzy
-msgid "_Clean up"
-msgstr "清理影像"
-
-#: app.ui:263 menu.ui:184
-#, fuzzy
-msgid "_Split"
-msgstr "分割"
-
-#: app.ui:267 menu.ui:188
-msgid "_OCR"
-msgstr ""
-
-#: app.ui:273 menu.ui:192
-#, fuzzy
-msgid "U_ser-defined"
-msgstr "使用者自訂工具"
-
-#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
-msgid "_Help"
-msgstr "說明(_H)"
-
-#: app.ui:286 menu.ui:205
-msgid "_About"
-msgstr "關於(_A)"
-
-#: app.ui:375 app.ui:478
-msgid "Cut"
-msgstr ""
-
-#: app.ui:381 app.ui:484
-#, fuzzy
-msgid "Copy"
-msgstr "_複製"
-
-#: app.ui:387 app.ui:490
-msgid "Paste"
-msgstr ""
-
-#: app.ui:393 app.ui:496
-#, fuzzy
-msgid "Delete"
-msgstr "刪除(_D)"
-
-#: app.ui:420 app.ui:573
-msgid "Print"
-msgstr ""
-
-#: app.ui:427
-#, fuzzy
-msgid "Select All"
-msgstr "選取的工具"
-
-#: app.ui:433
-#, fuzzy
-msgid "Select Odd"
-msgstr "選取的"
-
-#: app.ui:439
-#, fuzzy
-msgid "Select Even"
-msgstr "選取的"
-
-#: app.ui:445
-msgid "Invert selection"
-msgstr ""
-
-#: app.ui:503
-msgid "Clear OCR"
-msgstr ""
-
-#: app.ui:523
-msgid "Clears all pages"
-msgstr "清除所有頁面"
-
-#: app.ui:533
-#, fuzzy
-msgid "Open images"
-msgstr "開啟影像"
-
-#: app.ui:543
-msgid "Scan document"
-msgstr "掃描文件"
-
-#: app.ui:563
-msgid "Attach as PDF to a new email"
-msgstr ""
-
-#: app.ui:584
-msgid "Undo"
-msgstr ""
-
-#: app.ui:594
-msgid "Redo"
-msgstr ""
-
-#: app.ui:605
-msgid "Cut selection"
-msgstr ""
-
-#: app.ui:615
-msgid "Copy selection"
-msgstr ""
-
-#: app.ui:625
-msgid "Paste selection"
-msgstr ""
-
-#: app.ui:635
-msgid "Delete selected pages"
-msgstr "刪除所選頁面"
-
-#: app.ui:646
-msgid "Select all pages"
-msgstr "全選頁面"
-
-#: app.ui:657
-msgid "Use the pan tool"
-msgstr ""
-
-#: app.ui:668
-msgid "Use the rectangular selection tool"
-msgstr ""
-
-#: app.ui:680
-msgid "Use the combined select and pan tool"
-msgstr ""
-
-#: app.ui:693
-msgid "Zoom to 100%"
-msgstr "實際大小"
-
-#: app.ui:703
+#: app.ui:40 app.ui:708
 msgid "Zoom to fit"
 msgstr "符合頁面"
 
-#: app.ui:713
+#: app.ui:45 app.ui:718
 msgid "Zoom in"
 msgstr "放大"
 
-#: app.ui:723
+#: app.ui:50 app.ui:728
 msgid "Zoom out"
 msgstr "縮小"
 
-#: app.ui:765
-#, fuzzy
-msgid "Crop selection"
-msgstr "方向"
+#: app.ui:58 app.ui:161 app.ui:427 app.ui:761 menu.ui:143
+msgid "Rotate 90° clockwise"
+msgstr "順時針旋轉 90°"
 
-#: app.ui:776
+#: app.ui:63 app.ui:166 app.ui:431 app.ui:751 menu.ui:147
+msgid "Rotate 180°"
+msgstr "旋轉 180°"
+
+#: app.ui:68 app.ui:171 app.ui:435 app.ui:741 menu.ui:151
+msgid "Rotate 90° anticlockwise"
+msgstr "逆時針旋轉 90°"
+
+#: app.ui:84 app.ui:187
+msgid "Cut"
+msgstr "剪下"
+
+#: app.ui:89 app.ui:192
+msgid "Copy"
+msgstr "複製"
+
+#: app.ui:94 app.ui:197
+msgid "Paste"
+msgstr "貼上"
+
+#: app.ui:130 app.ui:560
+msgid "Print"
+msgstr "列印"
+
+#: app.ui:138
+msgid "Select All"
+msgstr "全選"
+
+#: app.ui:143
+msgid "Select Odd"
+msgstr "選取奇數"
+
+#: app.ui:148
+msgid "Select Even"
+msgstr "選取偶數"
+
+#: app.ui:153
+msgid "Invert selection"
+msgstr "反轉選取"
+
+#: app.ui:210
+msgid "Clear OCR"
+msgstr "清除 OCR"
+
+#: app.ui:226 menu.ui:6
+msgid "_File"
+msgstr "檔案"
+
+#: app.ui:230 menu.ui:9
+msgid "_New"
+msgstr "新增(_N)"
+
+#: app.ui:234 menu.ui:14
+msgid "_Open"
+msgstr "_開啟"
+
+#: app.ui:238
+msgid "Open c_rashed session"
+msgstr "開啟_當機的工作階段"
+
+#: app.ui:242
+msgid "Import _hOCR…"
+msgstr "匯入 _hOCR…"
+
+#: app.ui:246 menu.ui:19
+msgid "S_can"
+msgstr "掃描(_C)"
+
+#: app.ui:254 menu.ui:29
+msgid "_Email as PDF"
+msgstr "_以電子郵件傳送為 PDF"
+
+#: app.ui:258 menu.ui:34
+msgid "_Print"
+msgstr "_列印"
+
+#: app.ui:264 menu.ui:39
+msgid "_Quit"
+msgstr "離開(_Q)"
+
+#: app.ui:269 menu.ui:46
+msgid "_Edit"
+msgstr "編輯(_E)"
+
+#: app.ui:273 menu.ui:49
+msgid "_Undo"
+msgstr "復原(_U)"
+
+#: app.ui:277 menu.ui:53
+msgid "_Redo"
+msgstr "_重做"
+
+#: app.ui:283 menu.ui:57
+msgid "Cu_t"
+msgstr "剪下(_t)"
+
+#: app.ui:291 menu.ui:65
+msgid "_Paste"
+msgstr "_貼上"
+
+#: app.ui:299 app.ui:361 menu.ui:73
+msgid "_Select"
+msgstr "_選取"
+
+#: app.ui:302 menu.ui:76
+msgid "_All"
+msgstr "_全部"
+
+#: app.ui:306 menu.ui:80
+msgid "_Odd"
+msgstr "_奇數"
+
+#: app.ui:310 menu.ui:84
+msgid "_Even"
+msgstr "_偶數"
+
+#: app.ui:314 menu.ui:88
+msgid "_Invert"
+msgstr "_反轉"
+
+#: app.ui:318 menu.ui:92
+msgid "_Blank"
+msgstr "_空白"
+
+#: app.ui:322 menu.ui:96
+msgid "_Dark"
+msgstr "_深色"
+
+#: app.ui:326 menu.ui:100
+msgid "_Modified"
+msgstr "_修改日期"
+
+#: app.ui:330 menu.ui:104
+msgid "_No OCR"
+msgstr "_無 OCR"
+
+#: app.ui:336 menu.ui:108
+msgid "_Clear OCR"
+msgstr "_清除 OCR"
+
+#: app.ui:342 menu.ui:114
+msgid "Propert_ies"
+msgstr "屬_性"
+
+#: app.ui:348 menu.ui:118
+msgid "Prefere_nces"
+msgstr "偏好設定(_N)"
+
+#: app.ui:353 menu.ui:124
+msgid "_View"
+msgstr "檢視(_V)"
+
+#: app.ui:356
+msgid "_Pan"
+msgstr "_平移"
+
+#: app.ui:366
+msgid "_Select & pan"
+msgstr "_選取 & 平移"
+
+#: app.ui:374
+msgid "_Clear image selection"
+msgstr "_清除圖片選取"
+
+#: app.ui:379
+msgid "_Tabbed"
+msgstr "_分頁式"
+
+#: app.ui:384
+msgid "_Split horizontally"
+msgstr "_水平分割"
+
+#: app.ui:389
+msgid "_Split vertically"
+msgstr "_垂直分割"
+
+#: app.ui:396
+msgid "Edit text layer"
+msgstr "編輯文字圖層"
+
+#: app.ui:401
+msgid "Edit annotations"
+msgstr "編輯註解"
+
+#: app.ui:409 menu.ui:127
+msgid "Zoom _100%"
+msgstr "實際尺寸(_100%)"
+
+#: app.ui:413 menu.ui:131
+msgid "Zoom to _fit"
+msgstr "符合頁面(_f)"
+
+#: app.ui:417 menu.ui:135
+msgid "Zoom _in"
+msgstr "放大(_i)"
+
+#: app.ui:421 menu.ui:139
+msgid "Zoom _out"
+msgstr "縮小(_o)"
+
+#: app.ui:440 menu.ui:157
+msgid "_Tools"
+msgstr "工具(_T)"
+
+#: app.ui:444 menu.ui:160
+msgid "_Threshold"
+msgstr "_閾值"
+
+#: app.ui:448 menu.ui:164
+msgid "_Brightness / Contrast"
+msgstr "_亮度 / 對比"
+
+#: app.ui:452 menu.ui:168
+msgid "_Negate"
+msgstr "_否定"
+
+#: app.ui:456 menu.ui:172
+msgid "_Unsharp Mask"
+msgstr "_非銳化遮罩"
+
+#: app.ui:460 menu.ui:176
+msgid "_Crop"
+msgstr "_裁剪"
+
+#: app.ui:466 menu.ui:180
+msgid "_Clean up"
+msgstr "_清理"
+
+#: app.ui:470 menu.ui:184
+msgid "_Split"
+msgstr "_分割"
+
+#: app.ui:474 menu.ui:188
+msgid "_OCR"
+msgstr "_OCR"
+
+#: app.ui:480 menu.ui:192
+msgid "U_ser-defined"
+msgstr "使_用者定義"
+
+#: app.ui:485 app.ui:488 menu.ui:198 menu.ui:201
+msgid "_Help"
+msgstr "說明(_H)"
+
+#: app.ui:492 menu.ui:205
+msgid "_About"
+msgstr "關於(_A)"
+
+#: app.ui:510
+msgid "Clears all pages"
+msgstr "清除所有頁面"
+
+#: app.ui:520
+msgid "Open images"
+msgstr "開啟圖片"
+
+#: app.ui:530
+msgid "Scan document"
+msgstr "掃描文件"
+
+#: app.ui:550
+msgid "Attach as PDF to a new email"
+msgstr "以 PDF 格式附加到新郵件"
+
+#: app.ui:573
+msgid "Undo"
+msgstr "復原"
+
+#: app.ui:583
+msgid "Redo"
+msgstr "重做"
+
+#: app.ui:596
+msgid "Cut selection"
+msgstr "剪下選取範圍"
+
+#: app.ui:606
+msgid "Copy selection"
+msgstr "複製選取範圍"
+
+#: app.ui:616
+msgid "Paste selection"
+msgstr "貼上選取內容"
+
+#: app.ui:626
+msgid "Delete selected pages"
+msgstr "刪除所選頁面"
+
+#: app.ui:639
+msgid "Select all pages"
+msgstr "全選頁面"
+
+#: app.ui:652
+msgid "Use the pan tool"
+msgstr "使用平移工具"
+
+#: app.ui:663
+msgid "Use the rectangular selection tool"
+msgstr "使用矩形選取工具"
+
+#: app.ui:674
+msgid "Use the combined select and pan tool"
+msgstr "使用合併的選取與平移工具"
+
+#: app.ui:685
+msgid "Clear image selection"
+msgstr "清除圖片選取"
+
+#: app.ui:698
+msgid "Zoom to 100%"
+msgstr "實際大小"
+
+#: app.ui:774
+msgid "Crop selection"
+msgstr "裁剪選取範圍"
+
+#: app.ui:787
 msgid "Quit"
 msgstr "退出"
 
-#: menu.ui:24
-#, fuzzy
-msgid "_Save"
-msgstr "儲存"
-
-#, fuzzy
-#: session_mixins.py:160
-#, fuzzy
-msgid "No crashed sessions found."
-msgstr ""
-
-#: session_mixins.py:166
-#, fuzzy
-msgid "Crashed sessions"
-msgstr ""
-
-#: session_mixins.py:171
-#, fuzzy
-msgid "_Discard"
-msgstr ""
-
-#: session_mixins.py:172
-#, fuzzy
-msgid "_Restore"
-msgstr ""
-
-#: session_mixins.py:175
-#, fuzzy
-msgid "Restore or discard a crashed session"
-msgstr ""
-
-#: session_mixins.py:204
-#, fuzzy
-msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
-msgstr ""
-
-#: session_mixins.py:239
-#, fuzzy
-msgid "Restore file"
-msgstr ""
-
-#: session_mixins.py:255
 #, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
+#~ msgid "%dMb free in %s."
+#~ msgid_plural "%dMb free in %s."
+#~ msgstr[0] "%dMB 可用空間，位於 %s。"
+#~ msgstr[1] "%dMB 可用空間，位於 %s。"
 
-#: session_mixins.py:279
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
-msgstr ""
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The setting %s is %r and cannot be used as %s, so it has been left "
+#~ "unchanged."
+#~ msgstr "設定 %s 為 %r，無法作為 %s 使用，因此保持不變。"
 
-#: scan_menu_item_mixins.py:122
-#, fuzzy
-msgid ""
-"Caching the device list with libusb devices is not recommended, as they can "
-"change between reboots. Cache them anyway?"
-msgstr ""
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The settings file %s could not be read in full. The following settings were "
+#~ "restored: %s. The rest were reset to their defaults. A backup of the "
+#~ "original file has been saved as %s."
+#~ msgstr "無法完整讀取設定檔 %s。下列設定已還原：%s。其餘設定已重設為預設值。原始檔案的備份已儲存為 %s。"
 
-#: scan_menu_item_mixins.py:127
+#, fuzzy, python-format
+#~ msgid ""
+#~ "The settings file %s could not be read, so all settings have been reset to "
+#~ "their defaults. A backup of the original file has been saved as %s."
+#~ msgstr "無法讀取設定檔 %s，因此所有設定已重設為預設值。原始檔案的備份已儲存為 %s。"
+
 #, fuzzy
-msgid "Don't ask again"
-msgstr ""
+#~ msgid ""
+#~ "Please see https://imagemagick.org/script/resources.php for more information"
+#~ msgstr "更多資訊請參閱 https://imagemagick.org/script/resources.php"
+
+#, fuzzy
+#~ msgid "Device blacklist (regular expression)"
+#~ msgstr "裝置黑名單 (正規表示式)"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Use %i and %o for the input and output filenames respectively,\n"
+#~ "or a single %i if the image is to be modified in-place.\n"
+#~ "\n"
+#~ "The other variable available is:\n"
+#~ "%r resolution"
+#~ msgstr ""
+#~ "輸入與輸出檔名請分別使用 %i 與 %o，\n"
+#~ "若影像需原地修改，則僅使用一個 %i。\n"
+#~ "\n"
+#~ "可用的另一個變數為：\n"
+#~ "%r 解析度"
+
+#, fuzzy, python-format
+#~ msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+#~ msgstr "忽略掃描選項 '%s'，最小值 (%s) > 最大值 (%s)"
+
+#~ msgid "JPEG Quality"
+#~ msgstr "JPEG 品質"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
+#~ " file a bug, attaching a log file reproducing the problem."
+#~ msgstr "超出重新載入遞迴限制 (%d)：%d 個掃描選項進行了 %d 次重新載入。請回報錯誤，並附上可重現問題的記錄檔。"
+
+#, fuzzy, python-format
+#~ msgid "Scanning page %d of %d"
+#~ msgstr "正在掃描第 %d 頁，共 %d 頁"
+
+#, fuzzy, python-format
+#~ msgid "Scanning page %d"
+#~ msgstr "正在掃描第 %d 頁"
+
+#, fuzzy, python-format
+#~ msgid "Analysing page %i of %i"
+#~ msgstr "正在分析第 %i 頁，共 %i 頁"
+
+#, fuzzy
+#~ msgid "Open crashed session"
+#~ msgstr "開啟當機的會話"
+
+#, fuzzy, python-format
+#~ msgid "Error getting file info for %s: %s"
+#~ msgstr "取得 %s 的檔案資訊時發生錯誤：%s"
+
+#, fuzzy, python-format
+#~ msgid "Importing page %i of %i"
+#~ msgstr "正在匯入第 %i 頁，共 %i 頁"
+
+#, fuzzy, python-format
+#~ msgid "Process %i of %i (%s)"
+#~ msgstr "處理中 %i/%i (%s)"
+
+#, fuzzy, python-format
+#~ msgid "Process %i of %i"
+#~ msgstr "處理中 %i/%i"
+
+#, fuzzy, python-format
+#~ msgid "Writing page %i of %i"
+#~ msgstr "正在寫入第 %i 頁，共 %i 頁"
+
+#, fuzzy
+#~ msgid ""
+#~ "Caching device list with libusb devices included is not recommended as they "
+#~ "can change between reboots."
+#~ msgstr "不建議快取包含 libusb 裝置的裝置清單，因為它們在重新開機之間可能會變更。"
+
+#, fuzzy
+#~ msgid "Are you sure you want to do this?"
+#~ msgstr "確定要執行此操作嗎？"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+#~ msgstr "警告：無法使用 %s 作為暫存空間。改為使用 %s。"
+
+#, fuzzy
+#~ msgid "Pick crashed session to restore"
+#~ msgstr "選取要還原的當機會話"
+
+#, fuzzy
+#~ msgid "Add annotation"
+#~ msgstr "新增註解"
+
+#, fuzzy
+#~ msgid "Delete annotation"
+#~ msgstr "刪除註解"
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
+#~ "for OCR for %s with tesseract."
+#~ msgstr ""
+#~ "請安裝 tesseract 套件 'tesseract-ocr-%s' 並重新啟動 scantpaper，以使用 tesseract 對 %s 執行 "
+#~ "OCR。"
 
 #~ msgid "PPI"
 #~ msgstr "PPI"

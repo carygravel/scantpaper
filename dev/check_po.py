@@ -192,7 +192,7 @@ OBSOLETE_CEILING: dict[str, int] = {
     "uk": 143,
     "vi": 3,
     "zh_CN": 120,
-    "zh_TW": 11,
+    "zh_TW": 37,
 }
 
 # A printf conversion letter preceded by whitespace directly after a `%`.
