@@ -18,12 +18,16 @@ msgstr ""
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
 msgstr ""
+"Interfaz gráfica para generar PDF o DjVu a partir de documentos escaneados"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
 "Only two clicks are required to scan several pages and then save all or a "
 "selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
+"Solo se necesitan dos clics para escanear varias páginas y luego guardar "
+"todo o una selección como archivo PDF o DjVu, incluidos los metadatos si es "
+"necesario."
 
 #: org.scantpaper.desktop.metainfo.xml:16
 msgid ""
@@ -31,28 +35,38 @@ msgid ""
 "libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
 "once."
 msgstr ""
+"scantpaper puede controlar escáneres normales o de alimentación por hojas "
+"(ADF) con SANE mediante libimage-sane-perl, scanimage o scanadf, y puede "
+"escanear varias páginas a la vez."
 
 #: org.scantpaper.desktop.metainfo.xml:21
 msgid ""
 "It presents a thumbnail view of scanned pages, and permits simple operations"
 " such as cropping, rotating and deleting pages."
 msgstr ""
+"Presenta una vista en miniatura de las páginas escaneadas y permite "
+"operaciones sencillas como recortar, girar y eliminar páginas."
 
 #: org.scantpaper.desktop.metainfo.xml:25
 msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
+"Se puede utilizar OCR para reconocer el texto de los escaneos, y la salida "
+"se puede incrustar en el PDF o DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
 "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
 "single page image file."
 msgstr ""
+"El documento resultante puede guardarse como un archivo PDF, DjVu, TIFF "
+"multipágina o archivo de imagen de una sola página."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Una GUI para ayudar en el proceso de escaneo a PDF"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

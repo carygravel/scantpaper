@@ -14329,6 +14329,228 @@
       "deployment": "opencode/minimax-m3",
       "approval_date": "2026-11-15",
       "msgstr": "unpaper відсутній"
+    },
+    {
+      "language": "uk",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null,
+      "translation_sha256": "c17d8c16cfd5c8aa6893cd7a2900adae7a677b7603206d20544effa3e4fa0df0",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "aea5c198db42ef330e55cd2cca29b61d79ca03df1862419b361aa99fcc628702",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "Графічний інтерфейс користувача для створення PDF-файлів або DjVu-файлів зі сканованих документів"
+    },
+    {
+      "language": "uk",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null,
+      "translation_sha256": "921719445cd3863c5e2343c755232e9ee05c9a17774f9f7ebef69a90ac73b418",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "f19f70c98b83d3d9618824833ed830d4b63a33b77dd866548eaf3632aae3089d",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "Він показує мініатюри сканованих сторінок і дозволяє виконувати прості операції, як-от обрізання, обертання та видалення сторінок."
+    },
+    {
+      "language": "uk",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null,
+      "translation_sha256": "63014f16b9ed8c1cec4d7901ac5aa7639ccac49aa7fa177279cd48e6ed962d07",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "B"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "0c31de8eb5c1f8003541ddb91d833a709e725634f1a543d0eb14a6ee3807e647",
+      "model_release": "minimax/minimax-m3@2026-06-01",
+      "deployment": "opencode/minimax-m3",
+      "approval_date": "2026-11-26",
+      "msgstr": "OCR можна використовувати для розпізнавання тексту у сканованих зображеннях, а результат вбудовувати у PDF або DjVu."
+    },
+    {
+      "language": "uk",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null,
+      "translation_sha256": "5507265480b2b82c63461b965168c40d1d943569cee3768ee43573fa24956598",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "361286a7d22b2418814c5c6c6604efcf54b3acd77a0f0959155aec225187faf6",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "Потрібно лише два клацання, щоб відсканувати кілька сторінок, а потім зберегти всі або вибране як файл PDF чи DjVu, включно з метаданими, якщо потрібно."
+    },
+    {
+      "language": "uk",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null,
+      "translation_sha256": "6f889dd426be203daf8836a86b4697eab6ac905074c76db220b3a5f91fdbfd92",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "f5f9e48d18b6efc2695d9b4d2f37a5bf0e007b1c2b6118902420f7993f3fb2db",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "Отриманий документ можна зберегти як PDF, DjVu, багатосторінковий файл TIFF або односторінковий файл зображення."
+    },
+    {
+      "language": "uk",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null,
+      "translation_sha256": "8f146aec6faf5271a0db058ad6291c36261ca3eb7755c0fc0b7b91e9d7696837",
+      "provenance_class": "machine-strong",
+      "evidence": {
+        "proposals": [
+          {
+            "deployment": "opencode/deepseek-v4.1-flash",
+            "family": "deepseek-flash"
+          },
+          {
+            "deployment": "opencode/minimax-m3",
+            "family": "minimax-m"
+          }
+        ],
+        "judge": {
+          "deployment": "opencode/glm-5.3",
+          "verdict": "A"
+        },
+        "checks": {
+          "opencode/deepseek-v4.1-flash": [],
+          "opencode/minimax-m3": []
+        },
+        "backtranslation": true,
+        "high_impact": false,
+        "prompt_version": "2026-11-01",
+        "prompt_hash": "sha256:fc72dc4e5cf7e6f0"
+      },
+      "evidence_sha256": "02a34decd24475b62cfba6db05bcb836e4ea681098f9b2a67924874224a0c275",
+      "model_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "approval_date": "2026-11-26",
+      "msgstr": "scantpaper може керувати звичайними сканерами або сканерами з подачею аркушів (ADF) за допомогою SANE через libimage-sane-perl, scanimage або scanadf, а також може сканувати кілька сторінок одночасно."
     }
   ],
   "qualifications": [
@@ -14379,6 +14601,22 @@
       "total_cost_usd": 0.227036,
       "latency_ms": 463962.345,
       "evidence_sha256": "7d1a1a5a01784a5ad2c3445246a19bcfe160d6d1ba40c4600326c776a140ca46"
+    },
+    {
+      "release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "language": "uk",
+      "metric": "exact-match",
+      "tolerance": 0.25,
+      "score": 0.29,
+      "baseline_size": 100,
+      "drift_baseline": 0.29,
+      "qualified": true,
+      "date": "2026-11-26",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "call_count": 100,
+      "total_cost_usd": 0.011221,
+      "latency_ms": 372428.241,
+      "evidence_sha256": "5ae0f94ec7f4f4842dd9d5edc93307105fd6fcf75dc26e73a419f3f170cee411"
     }
   ],
   "false_positives": [],
@@ -17954,6 +18192,142 @@
       "total_cost_usd": 0.008416,
       "latency_ms": 34786.876,
       "evidence_sha256": "201fcbc7fc0b3d48b8f240c0e368d74adda0dff95853927d8ff7c112aaec7885"
+    },
+    {
+      "action": "gate",
+      "language": "uk",
+      "outcome": "abstained",
+      "reason": "back-translation changed the meaning",
+      "timestamp": "2026-11-26T16:02:50+00:00",
+      "winning_deployment": null,
+      "winning_release": null,
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.002707,
+      "latency_ms": 24470.845,
+      "evidence_sha256": "0171deae6c341854e9d77f116a97b2742aa3e10ff02ae26d319038b124203e98"
+    },
+    {
+      "action": "gate",
+      "language": "uk",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T16:03:14+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.001791,
+      "latency_ms": 25334.376,
+      "evidence_sha256": "ef978a9620088d23e218302ceb05f27b80974295ffa543d60a1eb40cc74c10ab"
+    },
+    {
+      "action": "gate",
+      "language": "uk",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T16:03:37+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.002699,
+      "latency_ms": 26551.553,
+      "evidence_sha256": "e07d6654e306dd738e67b78568d2ec949187be3d4c72b748749c2cf4b911af23"
+    },
+    {
+      "action": "gate",
+      "language": "uk",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T16:04:07+00:00",
+      "winning_deployment": "opencode/minimax-m3",
+      "winning_release": "minimax/minimax-m3@2026-06-01",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.004526,
+      "latency_ms": 31791.924,
+      "evidence_sha256": "602ebc645acb099c5e815a8d5983f20c9b05eebd9978983ee9def23e315e28ac"
+    },
+    {
+      "action": "gate",
+      "language": "uk",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T16:04:32+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.003975,
+      "latency_ms": 29058.773,
+      "evidence_sha256": "3c38f0fe1258ddf803904c505b24d5fd02a8f22413a171288581b8754516c3fe"
+    },
+    {
+      "action": "gate",
+      "language": "uk",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T16:04:47+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.002113,
+      "latency_ms": 18037.38,
+      "evidence_sha256": "12fbaf3f356f66898d56481a26b8f22d2f512e7154a41ad75a82ae9e1d0f7c22"
+    },
+    {
+      "action": "gate",
+      "language": "uk",
+      "outcome": "approved",
+      "reason": "every check and the judge agree",
+      "timestamp": "2026-11-26T16:05:14+00:00",
+      "winning_deployment": "opencode/deepseek-v4.1-flash",
+      "winning_release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.004506,
+      "latency_ms": 29912.638,
+      "evidence_sha256": "6bdd7834f33d73e7343fa7a267f3eb71605204bc7c90a75b8110cc7ca9747420"
+    },
+    {
+      "action": "gate",
+      "language": "uk",
+      "outcome": "abstained",
+      "reason": "back-translation changed the meaning",
+      "timestamp": "2026-11-26T16:05:30+00:00",
+      "winning_deployment": null,
+      "winning_release": null,
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 4,
+      "total_cost_usd": 0.002134,
+      "latency_ms": 20333.138,
+      "evidence_sha256": "b314f607bd68875be6beb64bbea2e2f6000fb3892b43d183badbc9cf46650ba5"
     }
   ]
 }

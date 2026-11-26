@@ -21,7 +21,9 @@ msgstr ""
 
 #: org.scantpaper.desktop.metainfo.xml:10
 msgid "GUI to produce PDFs or DjVus from scanned documents"
-msgstr "Grafické rozhraní na výrobu PDF nebo DjVu dokumentů z naskenovaných dokumentů"
+msgstr ""
+"Grafické rozhraní na výrobu PDF nebo DjVu dokumentů z naskenovaných "
+"dokumentů"
 
 #: org.scantpaper.desktop.metainfo.xml:12
 msgid ""
@@ -55,8 +57,8 @@ msgid ""
 "OCR can be used to recognise text in the scans, and the output embedded in "
 "the PDF or DjVu."
 msgstr ""
-"V naskenovaných obrázcích lze najít text pomocí optického rozpoznávání znaků "
-"(OCR) a výstup lze začlenit do PDF nebo DjVu."
+"V naskenovaných obrázcích lze najít text pomocí optického rozpoznávání znaků"
+" (OCR) a výstup lze začlenit do PDF nebo DjVu."
 
 #: org.scantpaper.desktop.metainfo.xml:29
 msgid ""
@@ -67,8 +69,9 @@ msgstr ""
 "obrázek s jednou stránkou."
 
 #: org.scantpaper.desktop:4
+#, fuzzy
 msgid "A GUI to aid the scan-to-PDF process"
-msgstr ""
+msgstr "Grafické rozhraní pro pomoc s procesem skenování do PDF"
 
 #: app_window.py:751
 msgid "Warning: missing packages"

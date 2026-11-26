@@ -15957,6 +15957,22 @@
       "total_cost_usd": 0.193414,
       "latency_ms": 416993.207,
       "evidence_sha256": "d19495145cef2bb10f0668aaa927251732f426eab1aad4782c31f0440e1dd381"
+    },
+    {
+      "release": "deepseek-flash/deepseek-v4.1-flash@2026-10-17",
+      "language": "cs",
+      "metric": "exact-match",
+      "tolerance": 0.25,
+      "score": 0.44,
+      "baseline_size": 100,
+      "drift_baseline": 0.44,
+      "qualified": true,
+      "date": "2026-11-26",
+      "deployment": "opencode/deepseek-v4.1-flash",
+      "call_count": 100,
+      "total_cost_usd": 0.010532,
+      "latency_ms": 381076.162,
+      "evidence_sha256": "8d286596aa3b89698fb3b22b85da6d30fbe4f805e4118a836822621f168e949c"
     }
   ],
   "false_positives": [],
@@ -20620,6 +20636,23 @@
       "total_cost_usd": 0.000466,
       "latency_ms": 3376.107,
       "evidence_sha256": "649ca589abd0eef386951fe003e41f33bc2f61916efd177ecc78f062b87a095f"
+    },
+    {
+      "action": "gate",
+      "language": "cs",
+      "outcome": "abstained",
+      "reason": "back-translation changed the meaning",
+      "timestamp": "2026-11-26T15:52:48+00:00",
+      "winning_deployment": null,
+      "winning_release": null,
+      "proposers": [
+        "opencode/deepseek-v4.1-flash",
+        "opencode/minimax-m3"
+      ],
+      "call_count": 3,
+      "total_cost_usd": 0.000919,
+      "latency_ms": 8784.863,
+      "evidence_sha256": "4253f4f9c23e530b26a6b81defaa1b7a4f91d9c49bfc646c48cfe5ce8a143d43"
     }
   ]
 }
