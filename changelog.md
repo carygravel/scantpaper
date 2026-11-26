@@ -44,9 +44,9 @@
   counted forms.
 * Updated Basque, Brazilian Portuguese, Catalan, Croatian, Czech, Danish,
   Dutch, Finnish, French, Galician, Greek, Hebrew, Hungarian, Italian,
-  Japanese, Korean, Norwegian Bokmål, Occitan, Polish, Portuguese, Russian,
-  Simplified Chinese, Slovak, Slovenian, Swedish, Turkish & Ukrainian
-  translations
+  Japanese, Korean, Norwegian Bokmål, Occitan, Persian, Polish,
+  Portuguese, Russian, Simplified Chinese, Slovak, Slovenian, Swedish,
+  Turkish & Ukrainian translations
 
 
 ## 4.0.4 (2026-11-14)

@@ -19,483 +19,541 @@ msgstr ""
 "X-Generator: Launchpad (build 17908)\n"
 "X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
-#: app_window.py:516
-msgid "Save image and Save as PDF both require imagemagick"
-msgstr ""
-
-#: app_window.py:517
-msgid "Save image requires libtiff"
-msgstr ""
-
-#: app_window.py:518
-msgid "Save as DjVu requires djvulibre-bin"
-msgstr ""
-
-#: app_window.py:519
-msgid "Email as PDF requires xdg-email"
-msgstr ""
-
-#: app_window.py:520
-msgid "unpaper missing"
-msgstr ""
-
-#: app_window.py:528
-msgid "OCR requires tesseract"
-msgstr ""
-
-#: app_window.py:543
-msgid "PDF encryption requires qpdf"
-msgstr ""
-
-#: app_window.py:575
+#: app_window.py:751
 msgid "Warning: missing packages"
-msgstr ""
+msgstr "هشدار: بسته‌های ناموجود"
 
-#: app_window.py:593
+#: app_window.py:827
 msgid "Image"
-msgstr ""
+msgstr "تصویر"
 
-#: app_window.py:594 text_layer_control.py:57
+#: app_window.py:828 layer.py:197
 msgid "Text layer"
-msgstr ""
+msgstr "لایه متن"
 
-#: app_window.py:596 session_mixins.py:446
+#: app_window.py:830
 msgid "Annotations"
-msgstr ""
+msgstr "حاشیه‌نویسی‌ها"
 
-#: app_window.py:837
-#, python-format, fuzzy
-msgid "%dMb free in %s."
-msgid_plural "%dMb free in %s."
-msgstr[0] "%d مگابایت فضای آزاد در %s."
-msgstr[1] "%d مگابایت فضای آزاد در %s."
+#: app_window.py:1294
+#, python-format
+msgid "%(mb)dMb free in %(name)s."
+msgid_plural "%(mb)dMb free in %(name)s."
+msgstr[0] "%(mb)d مگابایت آزاد در %(name)s."
+msgstr[1] "%(mb)d مگابایت آزاد در %(name)s."
 
-#: app_window.py:864 helpers.py:372
-#, fuzzy
+#: app_window.py:1322 helpers.py:531
 msgid "Messages"
 msgstr "پیام‌ها"
 
-#: app_window.py:949
+#: app_window.py:1405
 msgid "Error opening the last device used."
-msgstr ""
+msgstr "خطا در باز کردن آخرین دستگاه استفاده‌شده."
 
-#: app_window.py:951
+#: app_window.py:1407
 msgid "There was an error opening the last device used."
-msgstr ""
+msgstr "خطایی در باز کردن آخرین دستگاه استفاده‌شده رخ داد."
 
-#: app_window.py:954
+#: app_window.py:1410
 msgid "Whoops! I forgot to turn it on. Try again now."
-msgstr ""
+msgstr "ای وای! یادم رفت روشنش کنم. حالا دوباره امتحان کن."
 
-#: app_window.py:959 dialog/scan.py:517
-#, fuzzy
+#: app_window.py:1416 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr "اسکن مجدد برای دستگاه‌ها"
 
-#: app_window.py:963
-#, fuzzy
+#: app_window.py:1419
 msgid "Restart scantpaper."
-msgstr "scantpaper را مجدداً راه‌اندازی کنید."
+msgstr "راه‌اندازی مجدد scantpaper."
 
-#: app_window.py:968
+#: app_window.py:1423
 msgid "Just ignore the error. I don't need the scanner yet."
-msgstr ""
+msgstr "فقط خطا را نادیده بگیر. هنوز به اسکنر نیاز ندارم."
 
-#: app_window.py:971 dialog/preferences.py:162
-#, fuzzy
+#: app_window.py:1427 dialog/preferences.py:189
 msgid "Cache device list"
-msgstr "ذخیره فهرست دستگاه‌ها در حافظه پنهان"
+msgstr "فهرست دستگاه‌های کش"
 
-#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
-msgstr ""
+msgstr "این پیام را دوباره نمایش نده"
 
-#: basedocument.py:48
-#, fuzzy
+#: basedocument.py:47
 msgid "Thumbnails"
-msgstr "تصاویر بندانگشتی"
+msgstr "بندانگشتی‌ها"
 
-#: basedocument.py:711
-#, fuzzy
+#: basedocument.py:876
 msgid "No pages to process"
 msgstr "صفحه‌ای برای پردازش وجود ندارد"
 
-#: basedocument.py:715
-#, fuzzy
+#: basedocument.py:880
 msgid "No pages selected"
-msgstr "صفحه‌ای انتخاب نشده است"
+msgstr "هیچ صفحه‌ای انتخاب نشده"
 
-#: config.py:107
-#, fuzzy
+#: config.py:113
 msgid "A3"
 msgstr "A3"
 
-#: config.py:113
+#: config.py:119
 msgid "A4"
 msgstr "A4"
 
-#: config.py:119
-msgid "US Letter"
-msgstr ""
-
 #: config.py:125
+msgid "US Letter"
+msgstr "نامه آمریکایی"
+
+#: config.py:131
 msgid "US Legal"
-msgstr ""
+msgstr "حقوقی ایالات متحده"
 
-#: config.py:263
+#: config.py:276
 #, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left "
-"unchanged."
+"The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
+"been left unchanged."
 msgstr ""
+"تنظیم %(key)s برابر %(value)r است و نمی‌توان از آن به‌عنوان %(type)s استفاده"
+" کرد، بنابراین بدون تغییر باقی مانده است."
 
-#: config.py:299
+#: config.py:312
 #, python-format
 msgid ""
-"The settings file %s could not be read in full. The following settings were "
-"restored: %s. The rest were reset to their defaults. A backup of the "
-"original file has been saved as %s."
+"The settings file %(filename)s could not be read in full. These settings "
+"were restored: %(settings)s. The rest were reset to their defaults. A backup"
+" has been saved as %(backup)s."
 msgstr ""
+"فایل تنظیمات %(filename)s به‌طور کامل خوانده نشد. این تنظیمات بازیابی شدند: "
+"%(settings)s. بقیه به پیش‌فرض‌های خود بازنشانی شدند. یک نسخه پشتیبان با نام "
+"%(backup)s ذخیره شده است."
 
-#: config.py:306
+#: config.py:323
 #, python-format
 msgid ""
-"The settings file %s could not be read, so all settings have been reset to "
-"their defaults. A backup of the original file has been saved as %s."
+"The settings file %(filename)s could not be read, so all settings have been "
+"reset to their defaults. A backup of the original file has been saved as "
+"%(backup)s."
 msgstr ""
+"فایل تنظیمات %(filename)s خوانده نشد، بنابراین همهٔ تنظیمات به مقادیر "
+"پیش‌فرض خود بازنشانی شدند. یک نسخهٔ پشتیبان از فایل اصلی با نام %(backup)s "
+"ذخیره شد."
 
-#: dialog/__init__.py:67
-#, fuzzy
+#: dependencies.py:166 tests/test_app_window.py:880
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr "ذخیره تصویر و ذخیره به‌صورت PDF هر دو به imagemagick نیاز دارند"
+
+#: dependencies.py:172
+msgid "Save image requires libtiff"
+msgstr "ذخیره تصویر به libtiff نیاز دارد"
+
+#: dependencies.py:178 tests/test_app_window.py:881
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr "ذخیره به‌صورت DjVu به djvulibre-bin نیاز دارد"
+
+#: dependencies.py:186
+msgid "Email as PDF requires xdg-email"
+msgstr "ایمیل به‌صورت PDF به xdg-email نیاز دارد"
+
+#: dependencies.py:189 tests/test_app_window.py:882
+msgid "unpaper missing"
+msgstr "unpaper موجود نیست"
+
+#: dependencies.py:191 tests/test_app_window.py:883
+msgid "OCR requires tesseract"
+msgstr "OCR به tesseract نیاز دارد"
+
+#: dependencies.py:196 tests/test_app_window.py:884
+msgid "PDF encryption requires qpdf"
+msgstr "رمزگذاری PDF به qpdf نیاز دارد"
+
+#: dependencies.py:202 tests/test_app_window.py:885
+msgid "JBIG2 PDF compression requires jbig2"
+msgstr "فشرده‌سازی PDF با JBIG2 به jbig2 نیاز دارد"
+
+#: dialog/__init__.py:134
 msgid "Page Range"
-msgstr "محدوده صفحه"
+msgstr "محدودهٔ صفحه"
 
-#: dialog/__init__.py:106
-#, fuzzy
+#: dialog/__init__.py:174
 msgid "Error"
 msgstr "خطا"
 
-#: dialog/__init__.py:107
-#, fuzzy
+#: dialog/__init__.py:175
 msgid "Warning"
 msgstr "هشدار"
 
-#: dialog/__init__.py:108
-#, fuzzy
+#: dialog/__init__.py:176
 msgid "Info"
 msgstr "اطلاعات"
 
-#: dialog/__init__.py:125
-#, fuzzy
+#: dialog/__init__.py:199
 msgid "Page"
 msgstr "صفحه"
 
-#: dialog/__init__.py:126
+#: dialog/__init__.py:200
 msgid "Process"
-msgstr ""
+msgstr "فرآیند"
 
-#: dialog/__init__.py:127
+#: dialog/__init__.py:201
 msgid "Message type"
-msgstr ""
+msgstr "نوع پیام"
 
-#: dialog/__init__.py:129
-#, fuzzy
+#: dialog/__init__.py:203
 msgid "Message"
 msgstr "پیام"
 
-#: dialog/__init__.py:132
-#, fuzzy
+#: dialog/__init__.py:206
 msgid "Hide"
-msgstr "پنهان‌کردن"
+msgstr "پنهان کردن"
 
-#: dialog/__init__.py:193
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
+msgid "_Close"
+msgstr "_بستن"
+
+#: dialog/__init__.py:295
 msgid "Don't show these messages again"
-msgstr ""
+msgstr "دیگر این پیام‌ها را نشان نده"
 
-#: dialog/__init__.py:313
+#: dialog/__init__.py:409
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
+"این خطا معمولاً به دلیل تجاوز ImageMagick از محدودیت‌های منابعش رخ می‌دهد."
 
-#: dialog/__init__.py:317
+#: dialog/__init__.py:413
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
 msgstr ""
+"این‌ها را می‌توان با ویرایش فایل خط‌مشی آن گسترش داد، که در سیستم من در "
+"/etc/ImageMagick-6/policy.xml قرار دارد"
 
-#: dialog/__init__.py:322
+#: dialog/__init__.py:418
+#, python-format
 msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
+"Please see the ImageMagick resource documentation for more information: "
+"%(url)s"
 msgstr ""
+"لطفاً برای اطلاعات بیشتر به مستندات منابع ImageMagick مراجعه کنید: %(url)s"
 
-#: dialog/crop.py:14
-#, fuzzy
+#: dialog/crop.py:15
 msgid "x"
 msgstr "x"
 
-#: dialog/crop.py:15
+#: dialog/crop.py:16
 msgid "The x-position of the left hand edge of the crop."
-msgstr ""
+msgstr "موقعیت x لبهٔ سمت چپ برش."
 
-#: dialog/crop.py:19
-#, fuzzy
+#: dialog/crop.py:20
 msgid "y"
 msgstr "y"
 
-#: dialog/crop.py:20
+#: dialog/crop.py:21
 msgid "The y-position of the top edge of the crop."
-msgstr ""
+msgstr "موقعیت y لبه بالایی برش."
 
-#: dialog/crop.py:24 dialog/paperlist.py:22
-#, fuzzy
+#: dialog/crop.py:25 dialog/paperlist.py:22
 msgid "Width"
 msgstr "عرض"
 
-#: dialog/crop.py:25
+#: dialog/crop.py:26
 msgid "The width of the crop."
-msgstr ""
+msgstr "عرض برش."
 
-#: dialog/crop.py:29 dialog/paperlist.py:23
-#, fuzzy
+#: dialog/crop.py:30 dialog/paperlist.py:23
 msgid "Height"
 msgstr "ارتفاع"
 
-#: dialog/crop.py:30
+#: dialog/crop.py:31
 msgid "The height of the crop."
-msgstr ""
+msgstr "ارتفاع برش."
 
-#: dialog/crop.py:116
-#, fuzzy
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr "برش"
 
-#: dialog/crop.py:154 tools_menu_mixins.py:277
-#, fuzzy
+#: dialog/crop.py:161 tools_menu_mixins.py:286
 msgid "pixels"
-msgstr "پیکسل"
+msgstr "پیکسل‌ها"
 
-#: dialog/pagecontrols.py:188
+#: dialog/importhocr.py:45
+msgid "hOCR file"
+msgstr "فایل hOCR"
+
+#: dialog/importhocr.py:50 dialog/preferences.py:272
+#: postprocess_controls.py:692
+msgid "Browse"
+msgstr "مرور"
+
+#: dialog/importhocr.py:56
+msgid "Pages are matched to the hOCR pages in order."
+msgstr "صفحات به ترتیب با صفحات hOCR مطابقت داده می‌شوند."
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_OK"
+msgstr "_تأیید"
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
+#: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
+#: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_Cancel"
+msgstr "_لغو"
+
+#: dialog/importhocr.py:69
+msgid "Open hOCR file"
+msgstr "باز کردن فایل hOCR"
+
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
+msgid "Cancel"
+msgstr "لغو"
+
+#: dialog/importhocr.py:76 file_menu_mixins.py:119
+msgid "Open"
+msgstr "باز کردن"
+
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
+msgid "hOCR files"
+msgstr "فایل‌های hOCR"
+
+#: dialog/pagecontrols.py:231
 msgid "Page Options"
-msgstr ""
+msgstr "گزینه‌های صفحه"
 
-#: dialog/pagecontrols.py:199
+#: dialog/pagecontrols.py:245
 msgid "# Pages"
-msgstr ""
+msgstr "# صفحات"
 
-#: dialog/pagecontrols.py:210 pagerange.py:47
-#, fuzzy
+#: dialog/pagecontrols.py:256 pagerange.py:48
 msgid "All"
 msgstr "همه"
 
-#: dialog/pagecontrols.py:211
-#, fuzzy
+#: dialog/pagecontrols.py:257
 msgid "Scan all pages"
 msgstr "اسکن همه صفحات"
 
-#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
-#, fuzzy
+#: dialog/pagecontrols.py:268 dialog/pagecontrols.py:273
 msgid "Set number of pages to scan"
-msgstr "تنظیم تعداد صفحات برای اسکن"
+msgstr "تعداد صفحات برای اسکن را تنظیم کنید"
 
-#: dialog/pagecontrols.py:247
-#, fuzzy
+#: dialog/pagecontrols.py:277
+msgid "No page limit: scanning continues until you cancel."
+msgstr "بدون محدودیت صفحه: اسکن تا زمانی که لغو کنید ادامه می‌یابد."
+
+#: dialog/pagecontrols.py:311
 msgid "Extended page numbering"
-msgstr "شماره‌گذاری توسعه‌یافته صفحه"
+msgstr "شماره‌گذاری گستردهٔ صفحه"
 
-#: dialog/pagecontrols.py:260
-#, fuzzy
+#: dialog/pagecontrols.py:324
 msgid "Page number"
 msgstr "شماره صفحه"
 
-#: dialog/pagecontrols.py:271
+#: dialog/pagecontrols.py:334
 msgid "Insert before page N"
-msgstr ""
+msgstr "درج قبل از صفحه N"
 
-#: dialog/pagecontrols.py:274
+#: dialog/pagecontrols.py:337
 msgid "Page number before which scans will be inserted"
-msgstr ""
+msgstr "شماره صفحه‌ای که اسکن‌ها قبل از آن درج خواهند شد"
 
-#: dialog/pagecontrols.py:285
+#: dialog/pagecontrols.py:348
 msgid "Position advance"
-msgstr ""
+msgstr "پیشروی موقعیت"
 
-#: dialog/pagecontrols.py:289
+#: dialog/pagecontrols.py:352
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
-msgstr ""
+msgstr "پیشروی موقعیت برای هر اسکن بعدی (0 = درج مداوم پیش از همان صفحه)"
 
-#: dialog/pagecontrols.py:305
-#, fuzzy
+#: dialog/pagecontrols.py:368
 msgid "Source document"
 msgstr "سند منبع"
 
-#: dialog/pagecontrols.py:313
-#, fuzzy
+#: dialog/pagecontrols.py:377
 msgid "Single sided"
-msgstr "یک‌رو"
+msgstr "یک طرفه"
 
-#: dialog/pagecontrols.py:315
+#: dialog/pagecontrols.py:378
 msgid "Source document is single-sided"
-msgstr ""
+msgstr "سند مبدأ یکرویه است"
 
-#: dialog/pagecontrols.py:321
-#, fuzzy
+#: dialog/pagecontrols.py:385
 msgid "Double sided"
-msgstr "دورو"
+msgstr "دوطرفه"
 
-#: dialog/pagecontrols.py:323
+#: dialog/pagecontrols.py:387
 msgid "Source document is double-sided"
-msgstr ""
+msgstr "سند مبدأ دورو است"
 
-#: dialog/pagecontrols.py:329
-#, fuzzy
+#: dialog/pagecontrols.py:393
 msgid "Side to scan"
-msgstr "طرف اسکن"
+msgstr "طرف مورد اسکن"
 
-#: dialog/pagecontrols.py:332
-#, fuzzy
+#: dialog/pagecontrols.py:396
 msgid "Facing"
-msgstr "رو"
+msgstr "جهت"
 
-#: dialog/pagecontrols.py:332
-#, fuzzy
+#: dialog/pagecontrols.py:396
 msgid "Reverse"
-msgstr "پشت"
+msgstr "معکوس"
 
-#: dialog/pagecontrols.py:337
+#: dialog/pagecontrols.py:401
 msgid "Sets which side of a double-sided document is scanned"
-msgstr ""
+msgstr "تعیین می‌کند که کدام سمت از یک سند دوطرفه اسکن شود."
 
-#: dialog/paperlist.py:21
-#, fuzzy
+#: dialog/paperlist.py:21 dialog/tesseractparams.py:69
 msgid "Name"
 msgstr "نام"
 
-#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
-#, fuzzy
+#: dialog/paperlist.py:24 unpaper.py:153 unpaper.py:181
 msgid "Left"
 msgstr "چپ"
 
-#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
-#, fuzzy
+#: dialog/paperlist.py:25 unpaper.py:158 unpaper.py:186
 msgid "Top"
 msgstr "بالا"
 
 #: dialog/paperlist.py:26
-#, fuzzy
 msgid "Units"
 msgstr "واحدها"
 
 #: dialog/paperlist.py:73 dialog/paperlist.py:115
 msgid "Cannot delete all paper sizes"
-msgstr ""
+msgstr "نمی‌توان همه اندازه‌های کاغذ را حذف کرد"
 
-#: dialog/preferences.py:42
-#, fuzzy
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr "تنظیمات"
 
-#: dialog/preferences.py:56
+#: dialog/preferences.py:72
 msgid "Scan options"
-msgstr ""
+msgstr "گزینه‌های اسکن"
 
-#: dialog/preferences.py:60
-#, fuzzy
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr "گزینه‌های عمومی"
 
-#: dialog/preferences.py:68
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
-msgstr ""
+msgstr "باز کردن اسکنر در شروع برنامه"
 
-#: dialog/preferences.py:71
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
 msgstr ""
+"گفتگوی اسکن به طور خودکار در پس‌زمینه هنگام شروع برنامه باز شود. این کار با "
+"جلوگیری از نیاز به کلیک روی دکمه اسکن و منتظر ماندن برای یافتن فهرست "
+"اسکنرها، در وقت صرفه‌جویی می‌کند"
 
-#: dialog/preferences.py:83
+#: dialog/preferences.py:104
 msgid "Device blacklist"
-msgstr ""
+msgstr "لیست سیاه دستگاه‌ها"
 
-#: dialog/preferences.py:87
-msgid "Device blacklist (regular expression)"
-msgstr ""
+#: dialog/preferences.py:107
+msgid "e.g. Camera or v4l:.*"
+msgstr "مثلاً Camera یا v4l:.*"
 
-#: dialog/preferences.py:95
+#: dialog/preferences.py:110
+msgid ""
+"Regular expression matched case-insensitively against the device label and "
+"backend name, e.g. Camera or v4l:.*"
+msgstr ""
+"عبارت باقاعده‌ای که به‌صورت غیرحساس به حروف بزرگ و کوچک با برچسب دستگاه و "
+"نام بک‌اند تطبیق داده می‌شود، مثلاً Camera یا v4l:.*"
+
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
-msgstr ""
+msgstr "هندل SANE را پس از اسکن چرخه بده"
 
-#: dialog/preferences.py:97
+#: dialog/preferences.py:124
 msgid "Some ADFs do not feed out the last page if this is not enabled"
-msgstr ""
+msgstr "برخی از ADFها اگر این فعال نباشد، صفحه آخر را خروجی نمیدهند."
 
-#: dialog/preferences.py:105
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
-msgstr ""
+msgstr "امکان اسکن دسته‌ای از اسکنر تخت"
 
-#: dialog/preferences.py:109
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 msgstr ""
+"اگر تنظیم نشده باشد، تغییر به اسکنر تخت، تعداد صفحات # را به ۱ و حالت تک‌رو "
+"اعمال می‌کند."
 
-#: dialog/preferences.py:118
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
-msgstr ""
+msgstr "نادیده گرفتن قابلیت‌های دورو اسکنر"
 
-#: dialog/preferences.py:122
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
 msgstr ""
+"اگر تنظیم شود، هرگونه قابلیت چاپ دورو نادیده گرفته می‌شود و ویجت‌های "
+"رویه/پشت نمایش داده می‌شوند تا امکان درهم‌بندی دستی صفحات فراهم شود."
 
-#: dialog/preferences.py:131
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
-msgstr ""
+msgstr "شروع اجباری کار اسکن جدید بین صفحات"
 
-#: dialog/preferences.py:135
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
 msgstr ""
+"در غیر این صورت، برخی از اسکنرهای Brother با وجود اسکن از صفحه تخت، گزارش "
+"می‌دهند که سندی وجود ندارد."
 
-#: dialog/preferences.py:151
+#: dialog/preferences.py:178
 msgid "Select # pages = all on selecting ADF"
-msgstr ""
+msgstr "انتخاب # صفحه = همه هنگام انتخاب ADF"
 
-#: dialog/preferences.py:155
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
 msgstr ""
+"اگر این گزینه فعال باشد، هنگام تغییر به source=ADF، # pages = all انتخاب "
+"می‌شود"
 
-#: dialog/preferences.py:165
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
 msgstr ""
+"اگر این گزینه فعال باشد، باز کردن اسکنر سریع‌تر است، چون scantpaper ابتدا "
+"دستگاه‌های موجود را جستجو نمی‌کند."
 
-#: dialog/preferences.py:169
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
-msgstr ""
+msgstr "این تنها در صورتی مؤثر است که نام دستگاه‌ها بین نشست‌ها تغییر نکنند."
 
-#: dialog/preferences.py:178
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
-msgstr ""
+msgstr "بازیابی تنظیمات پنجره در هنگام راه‌اندازی"
 
-#: dialog/preferences.py:183
-#, fuzzy
+#: dialog/preferences.py:210
 msgid "View files on saving"
-msgstr "نمایش فایل‌ها هنگام ذخیره"
+msgstr "مشاهده فایل‌ها هنگام ذخیره"
 
-#: dialog/preferences.py:190
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
-msgstr ""
+msgstr "نام فایل پیش‌فرض PDF و DjVu"
 
-#: dialog/preferences.py:194
+#: dialog/preferences.py:221
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -513,2127 +571,2508 @@ msgid ""
 "%Dd\tdocument day\n"
 msgstr ""
 
-#: dialog/preferences.py:215
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
-msgstr ""
+msgstr "فاصله‌های سفید در نام فایل‌ها را با زیرخط جایگزین کنید"
 
-#: dialog/preferences.py:221
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
-msgstr ""
+msgstr "از منطقه زمانی تنظیمات محلی استفاده کنید"
 
-#: dialog/preferences.py:226
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
-msgstr ""
+msgstr "زمان و تاریخ را نیز مشخص کنید"
 
-#: dialog/preferences.py:232
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
-msgstr ""
+msgstr "تنظیم زمان‌های دسترسی و تغییر به تاریخ فراداده"
 
-#: dialog/preferences.py:240
+#: dialog/preferences.py:267
 msgid "Temporary directory"
-msgstr ""
-
-#: dialog/preferences.py:245
-msgid "Browse"
-msgstr ""
-
-#: dialog/preferences.py:251
-msgid "Select temporary directory"
-msgstr ""
-
-#: dialog/preferences.py:273
-msgid "Warn if available space less than (Mb)"
-msgstr ""
+msgstr "پوشه موقت"
 
 #: dialog/preferences.py:279
-msgid ""
-"Warn if the available space in the temporary directory is less than this "
-"value"
-msgstr ""
-
-#: dialog/preferences.py:287
-msgid "Blank threshold"
-msgstr ""
-
-#: dialog/preferences.py:292
-msgid "Threshold used for selecting blank pages"
-msgstr ""
-
-#: dialog/preferences.py:300
-msgid "Dark threshold"
-msgstr ""
-
-#: dialog/preferences.py:304
-msgid "Threshold used for selecting dark pages"
-msgstr ""
-
-#: dialog/preferences.py:311
-msgid "OCR output"
-msgstr ""
-
-#: dialog/preferences.py:316
-msgid "Replace"
-msgstr ""
-
-#: dialog/preferences.py:318
-msgid "Replace the contents of the text buffer with that from the OCR output."
-msgstr ""
-
-#: dialog/preferences.py:321
-msgid "Prepend"
-msgstr ""
-
-#: dialog/preferences.py:321
-msgid "Prepend the OCR output to the text buffer."
-msgstr ""
-
-#: dialog/preferences.py:322
-msgid "Append"
-msgstr ""
-
-#: dialog/preferences.py:322
-msgid "Append the OCR output to the text buffer."
-msgstr ""
-
-#: dialog/preferences.py:329
-#, fuzzy
-msgid "Manage user-defined tools"
-msgstr "مدیریت ابزارهای تعریف‌شده توسط کاربر"
-
-#: dialog/preferences.py:352
-#, python-format
-msgid ""
-"Use %i and %o for the input and output filenames respectively,\n"
-"or a single %i if the image is to be modified in-place.\n"
-"\n"
-"The other variable available is:\n"
-"%r resolution"
-msgstr ""
-
-#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
-msgid "_Delete"
-msgstr "_حذف"
-
-#: dialog/preferences.py:397
-msgid "The following user-defined tools could not be found:\n"
-msgstr ""
-
-#: dialog/preferences.py:400
-msgid "Please check that the command is installed and in your PATH."
-msgstr ""
-
-#: dialog/preferences.py:402
-msgid "User-defined tool not found"
-msgstr ""
-
-#: dialog/sane.py:71
-#, fuzzy
-msgid "Fetching list of devices"
-msgstr "در حال دریافت فهرست دستگاه‌ها"
-
-#: dialog/sane.py:89
-#, fuzzy
-msgid "No devices found"
-msgstr "دستگاهی یافت نشد"
-
-#: dialog/sane.py:129
-#, fuzzy
-msgid "Opening device"
-msgstr "در حال باز کردن دستگاه"
-
-#: dialog/sane.py:142
-#, fuzzy
-msgid "Error opening device: "
-msgstr "خطا در باز کردن دستگاه: "
-
-#: dialog/sane.py:148 dialog/sane.py:494
-#, fuzzy
-msgid "Retrieving options"
-msgstr "در حال بازیابی گزینه‌ها"
-
-#: dialog/sane.py:165 dialog/sane.py:507
-msgid "Error retrieving scanner options: "
-msgstr ""
-
-#: dialog/sane.py:207
-#, fuzzy
-msgid "Scan Options"
-msgstr "گزینه‌های اسکن"
-
-#: dialog/sane.py:290
-#, python-format
-msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
-msgstr ""
-
-#: dialog/sane.py:450
-#, python-format
-msgid "Setting option %s"
-msgstr ""
-
-#: dialog/sane.py:469
-#, fuzzy
-msgid "Error setting option: "
-msgstr "خطا در تنظیم گزینه: "
-
-#: dialog/sane.py:531
-msgid "Must scan facing pages first"
-msgstr ""
-
-#: dialog/save.py:31
-#, fuzzy
-msgid "PDF"
-msgstr "PDF"
-
-#: dialog/save.py:31
-msgid "Portable Document Format"
-msgstr ""
-
-#: dialog/save.py:32
-#, fuzzy
-msgid "GIF"
-msgstr "GIF"
-
-#: dialog/save.py:32
-msgid "CompuServe graphics interchange format"
-msgstr ""
-
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
-msgid "JPEG"
-msgstr ""
-
-#: dialog/save.py:33
-msgid "Joint Photographic Experts Group JFIF format"
-msgstr ""
-
-#: dialog/save.py:34
-#, fuzzy
-msgid "PNG"
-msgstr "PNG"
-
-#: dialog/save.py:34
-msgid "Portable Network Graphics"
-msgstr ""
-
-#: dialog/save.py:35
-msgid "PNM"
-msgstr ""
-
-#: dialog/save.py:35
-msgid "Portable anymap"
-msgstr ""
-
-#: dialog/save.py:36
-#, fuzzy
-msgid "PS"
-msgstr "PS"
-
-#: dialog/save.py:36
-#, fuzzy
-msgid "Postscript"
-msgstr "Postscript"
-
-#: dialog/save.py:37
-#, fuzzy
-msgid "TIFF"
-msgstr "TIFF"
-
-#: dialog/save.py:37
-msgid "Tagged Image File Format"
-msgstr ""
-
-#: dialog/save.py:38
-#, fuzzy
-msgid "Text"
-msgstr "متن"
-
-#: dialog/save.py:38
-#, fuzzy
-msgid "Plain text"
-msgstr "متن ساده"
-
-#: dialog/save.py:39
-#, fuzzy
-msgid "hOCR"
-msgstr "hOCR"
-
-#: dialog/save.py:39
-msgid "hOCR markup language"
-msgstr ""
-
-#: dialog/save.py:40 session_mixins.py:126
-msgid "Session"
-msgstr ""
-
-#: dialog/save.py:40
-msgid "scantpaper session database"
-msgstr ""
-
-#: dialog/save.py:41
-msgid "Prepend to PDF"
-msgstr ""
-
-#: dialog/save.py:41
-msgid "Prepend to an existing PDF"
-msgstr ""
-
-#: dialog/save.py:42
-msgid "Append to PDF"
-msgstr ""
-
-#: dialog/save.py:42
-msgid "Append to an existing PDF"
-msgstr ""
-
-#: dialog/save.py:43
-#, fuzzy
-msgid "DjVu"
-msgstr "DjVu"
-
-#: dialog/save.py:43
-msgid "Deja Vu"
-msgstr ""
-
-#: dialog/save.py:48
-#, fuzzy
-msgid "Automatic"
-msgstr "خودکار"
-
-#: dialog/save.py:49
-msgid "Let scantpaper which type of compression to use."
-msgstr ""
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "LZW"
-msgstr ""
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr ""
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "G3"
-msgstr ""
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr ""
-
-#: dialog/save.py:53 dialog/save.py:85
-msgid "G4"
-msgstr ""
-
-#: dialog/save.py:53 dialog/save.py:85
-msgid "Compress output with CCITT Group 4 encoding."
-msgstr ""
-
-#: dialog/save.py:54
-#, fuzzy
-msgid "Flate"
-msgstr "Flate"
-
-#: dialog/save.py:54
-#, fuzzy
-msgid "Compress output with flate encoding."
-msgstr "فشرده‌سازی خروجی با رمزگذاری flate."
-
-#: dialog/save.py:55
-#, fuzzy
-msgid "Compress output with JPEG (DCT) encoding."
-msgstr "فشرده‌سازی خروجی با رمزگذاری JPEG (DCT)."
-
-#: dialog/save.py:56 dialog/save.py:86
-msgid "None"
-msgstr "هیچ‌کدام"
-
-#: dialog/save.py:56 dialog/save.py:86
-msgid "Use no compression algorithm on output."
-msgstr ""
-
-#: dialog/save.py:61
-#, fuzzy
-msgid "LibTIFF"
-msgstr "LibTIFF"
-
-#: dialog/save.py:62
-msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
-msgstr ""
-
-#: dialog/save.py:66
-#, fuzzy
-msgid "Ghostscript"
-msgstr "Ghostscript"
-
-#: dialog/save.py:67
-msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
-msgstr ""
-
-#: dialog/save.py:71
-#, fuzzy
-msgid "Poppler"
-msgstr "Poppler"
-
-#: dialog/save.py:72
-msgid "Use Poppler (pdftops) to create Postscript files from PDF."
-msgstr ""
-
-#: dialog/save.py:79
-msgid "Zip"
-msgstr ""
-
-#: dialog/save.py:80
-msgid "Compress output with deflate encoding."
-msgstr ""
-
-#: dialog/save.py:82
-msgid "Compress output with JPEG encoding."
-msgstr ""
-
-#: dialog/save.py:83
-msgid "Packbits"
-msgstr ""
-
-#: dialog/save.py:83
-msgid "Compress output with Packbits encoding."
-msgstr ""
-
-#: dialog/save.py:360
-#, fuzzy
-msgid "Document Metadata"
-msgstr "فراداده سند"
-
-#: dialog/save.py:374
-#, fuzzy
-msgid "Date/Time"
-msgstr "تاریخ/زمان"
-
-#: dialog/save.py:387 dialog/save.py:572
-#, fuzzy
-msgid "Now"
-msgstr "اکنون"
-
-#: dialog/save.py:388 dialog/save.py:573
-#, fuzzy
-msgid "Use current date and time"
-msgstr "استفاده از تاریخ و زمان فعلی"
-
-#: dialog/save.py:393
-#, fuzzy
-msgid "Specify"
-msgstr "مشخص‌کردن"
-
-#: dialog/save.py:395
-msgid "Specify date and time"
-msgstr ""
-
-#: dialog/save.py:403
-msgid "Year-Month-Day"
-msgstr ""
-
-#: dialog/save.py:413
-msgid "Select date with calendar"
-msgstr ""
-
-#: dialog/save.py:459
-msgid "Select Date"
-msgstr ""
-
-#: dialog/save.py:489 dialog/save.py:579
-#, fuzzy
-msgid "Today"
-msgstr "امروز"
-
-#: dialog/save.py:545
-#, fuzzy
-msgid "Title"
-msgstr "عنوان"
-
-#: dialog/save.py:546
-#, fuzzy
-msgid "Author"
-msgstr "نویسنده"
-
-#: dialog/save.py:547
-#, fuzzy
-msgid "Subject"
-msgstr "موضوع"
-
-#: dialog/save.py:548
-#, fuzzy
-msgid "Keywords"
-msgstr "کلیدواژه‌ها"
-
-#: dialog/save.py:580
-#, fuzzy
-msgid "Use today's date"
-msgstr "استفاده از تاریخ امروز"
-
-#: dialog/save.py:590
-#, fuzzy
-msgid "Document type"
-msgstr "نوع سند"
-
-#: dialog/save.py:598
-#, fuzzy
-msgid "Postscript backend"
-msgstr "پشتیبان Postscript"
-
-#: dialog/save.py:614 dialog/save.py:754
-msgid "Compression"
-msgstr "فشرده سازی‌"
-
-#: dialog/save.py:735
-msgid "JPEG Quality"
-msgstr ""
-
-#: dialog/save.py:769
-#, fuzzy
-msgid "Encrypt PDF"
-msgstr "رمزگذاری PDF"
-
-#: dialog/save.py:785
-#, fuzzy
-msgid "Downsample to"
-msgstr "کاهش وضوح به"
-
-#: dialog/save.py:789 dialog/scan.py:660
-#, fuzzy
-msgid "ppi"
-msgstr "ppi"
-
-#: dialog/save.py:819
-#, fuzzy
-msgid "Set password"
-msgstr "تنظیم رمز عبور"
-
-#: dialog/save.py:827
-#, fuzzy
-msgid "User password"
-msgstr "رمز عبور کاربر"
-
-#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
-#: dialog/scan.py:933
-#, fuzzy
-msgid "Manual"
-msgstr "دستی"
-
-#: dialog/scan.py:446
-#, fuzzy
-msgid "Scan profiles"
-msgstr "پروفایل‌های اسکن"
-
-#: dialog/scan.py:500
-#, fuzzy
-msgid "Scan"
-msgstr "اسکن"
-
-#: dialog/scan.py:514
-#, fuzzy
-msgid "Device"
-msgstr "دستگاه"
-
-#: dialog/scan.py:552
-msgid "Sets the device to be used for the scan"
-msgstr ""
-
-#: dialog/scan.py:599
-#, python-format
-msgid "Error: unknown device: %s"
-msgstr ""
-
-#: dialog/scan.py:657
-#, fuzzy
-msgid "pel"
-msgstr "pel"
-
-#: dialog/scan.py:658
-#, fuzzy
-msgid "bit"
-msgstr "bit"
-
-#: dialog/scan.py:659
-#, fuzzy
-msgid "mm"
-msgstr "mm"
-
-#: dialog/scan.py:662
-#, fuzzy
-msgid "μs"
-msgstr "μs"
-
-#: dialog/scan.py:686
-#, fuzzy
-msgid "Paper size"
-msgstr "اندازه کاغذ"
-
-#: dialog/scan.py:690 dialog/scan.py:707
-#, fuzzy
-msgid "Edit"
-msgstr "ویرایش"
-
-#: dialog/scan.py:691
-msgid "Selects or edits the paper size"
-msgstr ""
-
-#: dialog/scan.py:770
-#, python-format
-msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
-" file a bug, attaching a log file reproducing the problem."
-msgstr ""
-
-#: dialog/scan.py:1024
-msgid "Edit paper size"
-msgstr ""
-
-#: dialog/scan.py:1051
-#, fuzzy
-msgid "Apply"
-msgstr "اعمال"
-
-#: dialog/scan.py:1069
-msgid ""
-"The following paper sizes are too big to be scanned by the selected device:"
-msgstr ""
-
-#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-#, fuzzy
-msgid "Cancel"
-msgstr "لغو"
-
-#: dialog/scan.py:1563 dialog/scan.py:1571
-msgid "Name of scan profile"
-msgstr ""
-
-#: dialog/scan.py:1585
-#, python-format
-msgid "Profile '%s' exists. Overwrite?"
-msgstr ""
-
-#: dialog/scan.py:1592 dialog/scan.py:1634
-#, fuzzy
+msgid "Select temporary directory"
+msgstr "انتخاب پوشهٔ موقت"
+
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
+#: postprocess_controls.py:717
 msgid "OK"
 msgstr "تأیید"
 
-#: dialog/scan.py:1621
-msgid "Editing current scan options"
+#: dialog/preferences.py:304
+msgid "Warn if available space less than (Mb)"
+msgstr "هشدار اگر فضای موجود کمتر از (Mb) باشد"
+
+#: dialog/preferences.py:310
+msgid ""
+"Warn if the available space in the temporary directory is less than this "
+"value"
+msgstr "اگر فضای موجود در دایرکتوری موقت کمتر از این مقدار باشد، هشدار بده"
+
+#: dialog/preferences.py:318
+msgid "Blank threshold"
+msgstr "آستانه خالی"
+
+#: dialog/preferences.py:323
+msgid "Threshold used for selecting blank pages"
+msgstr "آستانه‌ی مورد استفاده برای انتخاب صفحه‌های خالی"
+
+#: dialog/preferences.py:331
+msgid "Dark threshold"
+msgstr "آستانه تاریک"
+
+#: dialog/preferences.py:335
+msgid "Threshold used for selecting dark pages"
+msgstr "آستانهٔ مورد استفاده برای انتخاب صفحات تیره"
+
+#: dialog/preferences.py:342
+msgid "OCR output"
+msgstr "خروجی OCR"
+
+#: dialog/preferences.py:347
+msgid "Replace"
+msgstr "جایگزین کردن"
+
+#: dialog/preferences.py:349
+msgid "Replace the contents of the text buffer with that from the OCR output."
+msgstr "محتوای بافر متن را با محتوای بهدستآمده از خروجی OCR جایگزین کنید."
+
+#: dialog/preferences.py:352
+#| msgid ""
+#| "Use %i and %o for the input and output filenames respectively,\n"
+#| "or a single %i if the image is to be modified in-place.\n"
+#| "\n"
+#| "The other variable available is:\n"
+#| "%r resolution"
+msgid "Prepend"
+msgstr "افزودن به ابتدا"
+
+#: dialog/preferences.py:352
+#| msgid ""
+#| "Use %i and %o for the input and output filenames respectively,\n"
+#| "or a single %i if the image is to be modified in-place.\n"
+#| "\n"
+#| "The other variable available is:\n"
+#| "%r resolution"
+msgid "Prepend the OCR output to the text buffer."
+msgstr "خروجی OCR را به ابتدای بافر متن اضافه کنید."
+
+#: dialog/preferences.py:353
+msgid "Append"
+msgstr "الحاق"
+
+#: dialog/preferences.py:353
+msgid "Append the OCR output to the text buffer."
+msgstr "خروجی OCR را به بافر متن اضافه کنید."
+
+#: dialog/preferences.py:362
+msgid "Manage user-defined tools"
+msgstr "مدیریت ابزارهای تعریف‌شده توسط کاربر"
+
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
+msgid "Add a user-defined tool"
+msgstr "افزودن ابزار تعریف‌شده توسط کاربر"
+
+#: dialog/preferences.py:378
+msgid "Bilevel compression"
+msgstr "فشرده‌سازی دوسطحی"
+
+#: dialog/preferences.py:383
+msgid "Group 4"
+msgstr "گروه ۴"
+
+#: dialog/preferences.py:384
+msgid "Compress bilevel images with CCITT Group 4 encoding."
+msgstr "تصاویر دوسطحی را با کدگذاری CCITT Group 4 فشرده کنید."
+
+#: dialog/preferences.py:391 dialog/save.py:71
+msgid "JBIG2"
+msgstr "JBIG2"
+
+#: dialog/preferences.py:392
+msgid "Compress bilevel images with JBIG2 encoding."
+msgstr "تصاویر دوسطحی را با کدگذاری JBIG2 فشرده کنید."
+
+#: dialog/preferences.py:414
+#, python-format
+msgid ""
+"Use %%i and %%o for the input and output filenames respectively,\n"
+"or a single %%i if the image is to be modified in-place.\n"
+"\n"
+"The other variable available is:\n"
+"%%r resolution"
+msgstr ""
+"از %%i و %%o به‌ترتیب برای نام فایل‌های ورودی و خروجی استفاده کنید،\n"
+"یا اگر قرار است تصویر درجا تغییر داده شود، فقط از یک %%i استفاده کنید.\n"
+"\n"
+"متغیر دیگری که در دسترس است:\n"
+"%%r وضوح"
+
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
+msgid "_Delete"
+msgstr "_حذف"
+
+#: dialog/preferences.py:462
+msgid "The following user-defined tools could not be found:\n"
 msgstr ""
 
-#: dialog/scan.py:1625
+#: dialog/preferences.py:465
+msgid "Please check that the command is installed and in your PATH."
+msgstr "لطفاً بررسی کنید که دستور نصب شده و در PATH شما قرار دارد."
+
+#: dialog/preferences.py:467
+msgid "User-defined tool not found"
+msgstr "ابزار تعریف‌شده توسط کاربر یافت نشد"
+
+#: dialog/sane.py:89
+msgid "Fetching list of devices"
+msgstr "در حال دریافت فهرست دستگاه‌ها"
+
+#: dialog/sane.py:108 scan_menu_item_mixins.py:93
+msgid "No devices found"
+msgstr "هیچ دستگاهی یافت نشد"
+
+#: dialog/sane.py:152
+msgid "Opening device"
+msgstr "در حال باز کردن دستگاه"
+
+#: dialog/sane.py:166
+msgid "Error opening device: "
+msgstr "خطا در باز کردن دستگاه:"
+
+#: dialog/sane.py:175 dialog/sane.py:539
+msgid "Retrieving options"
+msgstr "در حال بازیابی گزینه‌ها"
+
+#: dialog/sane.py:195 dialog/sane.py:553
+msgid "Error retrieving scanner options: "
+msgstr "خطا در بازیابی گزینه‌های اسکنر:"
+
+#: dialog/sane.py:245
+msgid "Scan Options"
+msgstr "گزینه‌های اسکن"
+
+#: dialog/sane.py:329
+#, python-format
+msgid ""
+"Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum "
+"(%(maximum)s)"
+msgstr ""
+"نادیده گرفتن گزینه اسکن '%(name)s'، حداقل محدوده (%(minimum)s) > حداکثر "
+"(%(maximum)s)"
+
+#: dialog/sane.py:493
+#, python-format
+msgid "Setting option %s"
+msgstr "تنظیم گزینه %s"
+
+#: dialog/sane.py:512
+msgid "Error setting option: "
+msgstr "خطا در تنظیم گزینه:"
+
+#: dialog/sane.py:591
+msgid "Must scan facing pages first"
+msgstr "ابتدا باید صفحات روبه‌رو را اسکن کنید"
+
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
+msgid ""
+"Scanner did not deliver the requested 1-bit output; the page has been "
+"converted to black-and-white"
+msgstr ""
+"اسکنر خروجی ۱-بیتی درخواستی را ارائه نکرد؛ صفحه به سیاه‌وسفید تبدیل شد."
+
+#: dialog/sane.py:752
+msgid ""
+"The scanner did not respond to cancel. Reconnect the scanner or choose "
+"another device."
+msgstr ""
+"اسکنر به دستور لغو پاسخ نداد. اسکنر را دوباره وصل کنید یا دستگاه دیگری "
+"انتخاب کنید."
+
+#: dialog/save.py:32
+msgid "PDF"
+msgstr "PDF"
+
+#: dialog/save.py:32
+msgid "Portable Document Format"
+msgstr "قالب سند قابل حمل"
+
+#: dialog/save.py:33
+msgid "GIF"
+msgstr "GIF"
+
+#: dialog/save.py:33
+msgid "CompuServe graphics interchange format"
+msgstr "قالب تبادل گرافیکی CompuServe"
+
+#: dialog/save.py:34 dialog/save.py:54 dialog/save.py:100
+msgid "JPEG"
+msgstr "JPEG"
+
+#: dialog/save.py:34
+msgid "Joint Photographic Experts Group JFIF format"
+msgstr "قالب JFIF گروه کارشناسان عکاسی مشترک"
+
+#: dialog/save.py:35
+msgid "PNG"
+msgstr "PNG"
+
+#: dialog/save.py:35
+msgid "Portable Network Graphics"
+msgstr "گرافیک شبکه‌ای قابل حمل"
+
+#: dialog/save.py:36
+msgid "PNM"
+msgstr "PNM"
+
+#: dialog/save.py:36
+msgid "Portable anymap"
+msgstr "هرنقشهٔ قابل حمل"
+
+#: dialog/save.py:37
+msgid "PS"
+msgstr "پینوشت"
+
+#: dialog/save.py:37
+msgid "Postscript"
+msgstr "پس‌نوشت"
+
+#: dialog/save.py:38
+msgid "TIFF"
+msgstr "TIFF"
+
+#: dialog/save.py:38
+msgid "Tagged Image File Format"
+msgstr "قالب فایل تصویری برچسب‌دار"
+
+#: dialog/save.py:39
+msgid "Text"
+msgstr "متن"
+
+#: dialog/save.py:39
+msgid "Plain text"
+msgstr "متن ساده"
+
+#: dialog/save.py:40
+msgid "hOCR"
+msgstr "hOCR"
+
+#: dialog/save.py:40
+msgid "hOCR markup language"
+msgstr "زبان نشانه‌گذاری hOCR"
+
+#: dialog/save.py:41 session_mixins.py:182
+msgid "Session"
+msgstr "نشست"
+
+#: dialog/save.py:41
+msgid "scantpaper session database"
+msgstr "پایگاه‌دادهٔ نشست scantpaper"
+
+#: dialog/save.py:42
+msgid "Prepend to PDF"
+msgstr "افزودن به ابتدای PDF"
+
+#: dialog/save.py:42
+msgid "Prepend to an existing PDF"
+msgstr "افزودن به ابتدای یک PDF موجود"
+
+#: dialog/save.py:43
+msgid "Append to PDF"
+msgstr "افزودن به PDF"
+
+#: dialog/save.py:43
+msgid "Append to an existing PDF"
+msgstr "افزودن به یک PDF موجود"
+
+#: dialog/save.py:44
+msgid "DjVu"
+msgstr "DjVu"
+
+#: dialog/save.py:44
+msgid "Deja Vu"
+msgstr "دژاوو"
+
+#: dialog/save.py:49 tesseract.py:197
+msgid "Automatic"
+msgstr "خودکار"
+
+#: dialog/save.py:50
+msgid "Let scantpaper which type of compression to use."
+msgstr "بگذارید scantpaper نوع فشرده‌سازی مورد استفاده را تعیین کند."
+
+#: dialog/save.py:52 dialog/save.py:103
+msgid "G4"
+msgstr "G4"
+
+#: dialog/save.py:52 dialog/save.py:103
+msgid "Compress output with CCITT Group 4 encoding."
+msgstr "خروجی را با کدگذاری CCITT Group 4 فشرده کنید."
+
+#: dialog/save.py:53
+msgid "Flate"
+msgstr "فلیت"
+
+#: dialog/save.py:53
+msgid "Compress output with flate encoding."
+msgstr "خروجی را با کدگذاری flate فشرده کنید."
+
+#: dialog/save.py:54
+msgid "Compress output with JPEG (DCT) encoding."
+msgstr "خروجی را با کدگذاری JPEG (DCT) فشرده کنید."
+
+#: dialog/save.py:55
+msgid "JPEG 2000"
+msgstr "JPEG 2000"
+
+#: dialog/save.py:55
+msgid "Compress output with JPEG 2000 encoding."
+msgstr "خروجی را با کدگذاری JPEG 2000 فشرده کنید."
+
+#: dialog/save.py:71
+msgid "Compress output with JBIG2 encoding."
+msgstr "فشرده‌سازی خروجی با کدگذاری JBIG2."
+
+#: dialog/save.py:79
+msgid "LibTIFF"
+msgstr "LibTIFF"
+
+#: dialog/save.py:80
+msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
+msgstr ""
+"از LibTIFF (tiff2ps) برای ایجاد فایل‌های Postscript از TIFF استفاده کنید."
+
+#: dialog/save.py:84
+msgid "Ghostscript"
+msgstr "Ghostscript"
+
+#: dialog/save.py:85
+msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
+msgstr ""
+"از Ghostscript (pdf2ps) برای ایجاد فایل‌های Postscript از PDF استفاده کنید."
+
+#: dialog/save.py:89
+msgid "Poppler"
+msgstr "پاپلر"
+
+#: dialog/save.py:90
+msgid "Use Poppler (pdftops) to create Postscript files from PDF."
+msgstr ""
+"از Poppler (pdftops) برای ایجاد فایل‌های Postscript از PDF استفاده کنید."
+
+#: dialog/save.py:94
+msgid "LZW"
+msgstr "LZW"
+
+#: dialog/save.py:94
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr "خروجی را با کدگذاری لمپل-زیو و ولچ فشرده کنید."
+
+#: dialog/save.py:97
+msgid "Zip"
+msgstr "زیپ"
+
+#: dialog/save.py:98
+msgid "Compress output with deflate encoding."
+msgstr "خروجی را با کدگذاری deflate فشرده کنید."
+
+#: dialog/save.py:100
+msgid "Compress output with JPEG encoding."
+msgstr "خروجی را با کدگذاری JPEG فشرده کنید."
+
+#: dialog/save.py:101
+msgid "Packbits"
+msgstr "پک‌بیتس"
+
+#: dialog/save.py:101
+msgid "Compress output with Packbits encoding."
+msgstr "خروجی را با کدگذاری Packbits فشرده کنید."
+
+#: dialog/save.py:102
+msgid "G3"
+msgstr "G3"
+
+#: dialog/save.py:102
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr "خروجی را با کدگذاری CCITT Group 3 فشرده کنید."
+
+#: dialog/save.py:104 postprocess_controls.py:644 postprocess_controls.py:906
+msgid "None"
+msgstr "هیچ‌کدام"
+
+#: dialog/save.py:104
+msgid "Use no compression algorithm on output."
+msgstr "از هیچ الگوریتم فشرده‌سازی روی خروجی استفاده نکنید."
+
+#: dialog/save.py:374
+msgid "Document Metadata"
+msgstr "فراداده سند"
+
+#: dialog/save.py:385
+msgid "Date/Time"
+msgstr "تاریخ/زمان"
+
+#: dialog/save.py:397 dialog/save.py:591
+msgid "Now"
+msgstr "اکنون"
+
+#: dialog/save.py:398 dialog/save.py:592
+msgid "Use current date and time"
+msgstr "استفاده از تاریخ و زمان فعلی"
+
+#: dialog/save.py:405
+msgid "Specify"
+msgstr "مشخص کنید"
+
+#: dialog/save.py:407
+msgid "Specify date and time"
+msgstr "تاریخ و زمان را مشخص کنید"
+
+#: dialog/save.py:415
+msgid "Year-Month-Day"
+msgstr "سال-ماه-روز"
+
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
+msgid "Select date with calendar"
+msgstr "انتخاب تاریخ با تقویم"
+
+#: dialog/save.py:467
+msgid "Select Date"
+msgstr "انتخاب تاریخ"
+
+#: dialog/save.py:509 dialog/save.py:598
+msgid "Today"
+msgstr "امروز"
+
+#: dialog/save.py:565
+msgid "Title"
+msgstr "عنوان"
+
+#: dialog/save.py:566
+msgid "Author"
+msgstr "نویسنده"
+
+#: dialog/save.py:567
+msgid "Subject"
+msgstr "موضوع"
+
+#: dialog/save.py:568
+msgid "Keywords"
+msgstr "کلیدواژه‌ها"
+
+#: dialog/save.py:599
+msgid "Use today's date"
+msgstr "از تاریخ امروز استفاده کنید"
+
+#: dialog/save.py:609
+msgid "Document type"
+msgstr "نوع سند"
+
+#: dialog/save.py:618
+msgid "Postscript backend"
+msgstr "بک‌اند PostScript"
+
+#: dialog/save.py:635 dialog/save.py:776
+msgid "Compression"
+msgstr "فشرده سازی‌"
+
+#: dialog/save.py:754
+msgid "Quality"
+msgstr "کیفیت"
+
+#: dialog/save.py:791
+msgid "Encrypt PDF"
+msgstr "رمزگذاری PDF"
+
+#: dialog/save.py:808
+msgid "Downsample to"
+msgstr "نمونه‌برداری کاهشی به"
+
+#: dialog/save.py:812 dialog/scan.py:770
+msgid "ppi"
+msgstr "ppi"
+
+#: dialog/save.py:841
+msgid "Set password"
+msgstr "تنظیم رمز عبور"
+
+#: dialog/save.py:850
+msgid "User password"
+msgstr "گذرواژه کاربر"
+
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
+msgid "Manual"
+msgstr "دستی"
+
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
+msgid "Scan profiles"
+msgstr "پروفایل‌های اسکن"
+
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
+msgid "Save"
+msgstr "ذخیره"
+
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:118
+msgid "Edit"
+msgstr "ویرایش"
+
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
+msgid "Delete"
+msgstr "حذف"
+
+#: dialog/scan.py:503
+msgid "Scan"
+msgstr "اسکن"
+
+#: dialog/scan.py:531
+msgid "Device"
+msgstr "دستگاه"
+
+#: dialog/scan.py:559
+msgid "Sets the device to be used for the scan"
+msgstr "دستگاه مورد استفاده برای اسکن را تنظیم می‌کند."
+
+#: dialog/scan.py:562
+msgid "Blacklist this device"
+msgstr "این دستگاه را در لیست سیاه قرار دهید"
+
+#: dialog/scan.py:564
+msgid "Hide the selected device from the device list"
+msgstr "پنهان کردن دستگاه انتخاب شده از فهرست دستگاه‌ها"
+
+#: dialog/scan.py:705
+#, python-format
+msgid "Error: unknown device: %s"
+msgstr "خطا: دستگاه ناشناخته: %s"
+
+#: dialog/scan.py:767
+msgid "pel"
+msgstr "پل"
+
+#: dialog/scan.py:768
+msgid "bit"
+msgstr "بیت"
+
+#: dialog/scan.py:769
+msgid "mm"
+msgstr "میلی‌متر"
+
+#: dialog/scan.py:772
+msgid "μs"
+msgstr "μs"
+
+#: dialog/scan.py:796
+msgid "Paper size"
+msgstr "اندازه کاغذ"
+
+#: dialog/scan.py:801
+msgid "Selects or edits the paper size"
+msgstr "اندازه کاغذ را انتخاب یا ویرایش می‌کند"
+
+#: dialog/scan.py:880
+#, python-format
+msgid ""
+"Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
+"%(options)d scan options. Please file a bug, attaching a log file "
+"reproducing the problem."
+msgstr ""
+"از محدودیت بازگشت بارگذاری مجدد (%(limit)d) فراتر رفت: %(reloads)d بارگذاری "
+"مجدد برای %(options)d گزینهٔ اسکن. لطفاً یک باگ ثبت کنید و فایل لاگی را که "
+"مشکل را بازتولید می‌کند پیوست کنید."
+
+#: dialog/scan.py:1138
+msgid "Edit paper size"
+msgstr "ویرایش اندازه کاغذ"
+
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
+msgid "Add a paper size"
+msgstr "افزودن اندازه کاغذ"
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
+msgid "Remove the selected paper size"
+msgstr "اندازه کاغذ انتخاب‌شده را حذف کنید"
+
+#: dialog/scan.py:1167
+msgid "Apply"
+msgstr "اعمال"
+
+#: dialog/scan.py:1185
+msgid ""
+"The following paper sizes are too big to be scanned by the selected device:"
+msgstr ""
+"اندازه‌های کاغذ زیر برای اسکن توسط دستگاه انتخاب‌شده بیش از حد بزرگ هستند:"
+
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
+msgid "Name of scan profile"
+msgstr "نام پروفایل اسکن"
+
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
+#, python-format
+msgid "Profile '%s' exists. Overwrite?"
+msgstr "پروفایل '%s' وجود دارد. بازنویسی شود؟"
+
+#: dialog/scan.py:1756
+msgid "Editing current scan options"
+msgstr "ویرایش گزینه‌های اسکن فعلی"
+
+#: dialog/scan.py:1760
 #, python-format
 msgid "Editing scan profile \"%s\""
-msgstr ""
+msgstr "در حال ویرایش پروفایل اسکن «%s»"
 
-#: dialog/scan.py:1686
+#: dialog/scan.py:1822
 msgid "Backend options"
-msgstr ""
+msgstr "گزینه‌های بک‌اند"
 
-#: dialog/scan.py:1687
+#: dialog/scan.py:1823
 msgid "Frontend options"
+msgstr "گزینه‌های فرانت‌اند"
+
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
+#, python-format
+msgid "Remove %(option)s from the profile"
+msgstr "حذف %(option)s از پروفایل"
+
+#: dialog/scan.py:1890
+#, python-format
+msgid "Scanning page %(current)d of %(total)d"
+msgstr "در حال اسکن صفحه %(current)d از %(total)d"
+
+#: dialog/scan.py:1894
+#, python-format
+msgid "Scanning page %(current)d"
+msgstr "در حال اسکن صفحه %(current)d"
+
+#: dialog/tesseractparams.py:45
+msgid "Tesseract parameters"
+msgstr "پارامترهای Tesseract"
+
+#: dialog/tesseractparams.py:56
+msgid "Filter parameters"
+msgstr "پارامترهای فیلتر"
+
+#: dialog/tesseractparams.py:70 postprocess_controls.py:697 tesseract.py:213
+msgid "Default"
+msgstr "پیش‌فرض"
+
+#: dialog/tesseractparams.py:71
+msgid "Description"
+msgstr "توضیحات"
+
+#: dialog/tesseractparams.py:96
+msgid "_Insert"
+msgstr "_درج"
+
+#: dialog/tesseractparams.py:110
+msgid ""
+"The Tesseract parameter list is unavailable. OCR can still run with the "
+"parameters already entered."
 msgstr ""
+"فهرست پارامترهای Tesseract در دسترس نیست. OCR همچنان می‌تواند با پارامترهای "
+"واردشده اجرا شود."
 
-#: dialog/scan.py:1752
-#, fuzzy, python-format
-msgid "Scanning page %d of %d"
-msgstr "در حال اسکن صفحه %d از %d"
+#: dialog/tesseractparams.py:127
+#, python-format
+msgid "Set by the %(control)s control"
+msgstr "تنظیم‌شده توسط کنترل %(control)s"
 
-#: dialog/scan.py:1753
-#, fuzzy, python-format
-msgid "Scanning page %d"
-msgstr "در حال اسکن صفحه %d"
+#: dialog/tesseractparams.py:147
+msgid "No parameters match"
+msgstr "هیچ پارامتری مطابقت ندارد"
 
-#: docthread.py:1167
-#, fuzzy, python-format
-msgid "Analysing page %i of %i"
-msgstr "در حال تحلیل صفحه %i از %i"
+#: docthread.py:1285
+#, python-format
+msgid "Error reading hOCR file %(path)s: %(error)s"
+msgstr "خطا در خواندن فایل hOCR %(path)s: %(error)s"
 
-#: docthread.py:1461
+#: docthread.py:1293
+#, python-format
+msgid "Error parsing hOCR file %(path)s: %(error)s"
+msgstr "خطا در تجزیه فایل hOCR %(path)s: %(error)s"
+
+#: docthread.py:1299
+msgid "The file contains no hOCR pages."
+msgstr "این فایل هیچ صفحهٔ hOCR ندارد."
+
+#: docthread.py:1312
+#, python-format
+msgid ""
+"The hOCR file contains %(found)i pages, but %(expected)i pages are selected."
+msgstr ""
+"فایل hOCR شامل %(found)i صفحه است، اما %(expected)i صفحه انتخاب شده است."
+
+#: docthread.py:1322
+#, python-format
+msgid "Checking hOCR page %(current)i of %(total)i"
+msgstr "در حال بررسی صفحه hOCR %(current)i از %(total)i"
+
+#: docthread.py:1330
+#, python-format
+msgid "The hOCR page for page %(page)i has no page box."
+msgstr "صفحهٔ hOCR برای صفحهٔ %(page)i هیچ کادر صفحهای ندارد."
+
+#: docthread.py:1342
+#, python-format
+msgid ""
+"The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the"
+" page is %(width)ix%(height)i."
+msgstr ""
+"صفحهٔ hOCR برای صفحهٔ %(page)i برابر %(found_width)ix%(found_height)i است، "
+"اما صفحه %(width)ix%(height)i است."
+
+#: docthread.py:1366
+msgid "No pages selected for hOCR import."
+msgstr "هیچ صفحه‌ای برای وارد کردن hOCR انتخاب نشده است."
+
+#: docthread.py:1385
+#, python-format
+msgid "Importing hOCR page %(current)i of %(total)i"
+msgstr "در حال وارد کردن صفحه hOCR %(current)i از %(total)i"
+
+#: docthread.py:1526
+#, python-format
+msgid "Analysing page %(current)i of %(total)i"
+msgstr "در حال تحلیل صفحه %(current)i از %(total)i"
+
+#: docthread.py:1800
 msgid "No tesseract language specified"
-msgstr ""
+msgstr "زبان tesseract مشخص نشده است"
 
-#: docthread.py:1470
-msgid "tessdata directory not found"
-msgstr ""
+#: docthread.py:1832
+#, python-format
+msgid "Failed to initialise OCR with the %(mode)s engine mode: %(error)s"
+msgstr "راه‌اندازی OCR با حالت موتور %(mode)s ناموفق بود: %(error)s"
+
+#: docthread.py:1844 postprocess_controls.py:605
+#, python-format
+msgid "Unknown Tesseract option: %(variable)s"
+msgstr "گزینه ناشناخته Tesseract: %(variable)s"
 
 #: document.py:111
 msgid "Error: cannot open a session file at the same time as another file."
-msgstr ""
+msgstr "خطا: نمی‌توان یک فایل نشست را هم‌زمان با فایل دیگری باز کرد."
 
 #: document.py:127
 msgid "Error: importing a multipage file at the same time as another file."
-msgstr ""
+msgstr "خطا: وارد کردن یک فایل چندصفحه‌ای همزمان با فایل دیگر."
 
-#: edit_menu_mixins.py:60
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
-msgstr ""
+msgstr "ویژگی‌ها"
 
-#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
-#, fuzzy
+#: edit_menu_mixins.py:72 edit_menu_mixins.py:82
 msgid "dpi"
 msgstr "dpi"
 
-#: edit_menu_mixins.py:362
+#: edit_menu_mixins.py:377
 msgid "Invalid regex. Try without special characters such as '*'"
-msgstr ""
+msgstr "عبارت منظم نامعتبر است. بدون کاراکترهای خاص مانند '*' امتحان کنید"
 
-#: edit_menu_mixins.py:394
-#, fuzzy
+#: edit_menu_mixins.py:409
 msgid "Changes will only take effect after restarting scantpaper."
-msgstr "تغییرات فقط پس از راه‌اندازی مجدد scantpaper اعمال می‌شوند."
+msgstr "تغییرات فقط پس از راه‌اندازی مجدد scantpaper اعمال خواهند شد."
 
-#: edit_menu_mixins.py:396
-#, fuzzy
+#: edit_menu_mixins.py:411
 msgid "Restart scantpaper now?"
-msgstr "اکنون scantpaper را مجدداً راه‌اندازی کنیم؟"
+msgstr "scantpaper اکنون دوباره راه‌اندازی شود؟"
 
-#: file_menu_mixins.py:104
+#: file_menu_mixins.py:87
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
 msgstr ""
+"برخی از صفحات ذخیره نشده‌اند.\n"
+"آیا واقعاً می‌خواهید همهٔ صفحات را پاک کنید؟"
 
-#: file_menu_mixins.py:129
-#, fuzzy
+#: file_menu_mixins.py:112
 msgid "Open image"
 msgstr "باز کردن تصویر"
 
-#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
-#, fuzzy
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
-msgstr "فایل‌های تصویر"
+msgstr "فایل‌های تصویری"
 
-#: file_menu_mixins.py:180
-#, fuzzy
+#: file_menu_mixins.py:164
 msgid "Pages to extract"
 msgstr "صفحات برای استخراج"
 
-#: file_menu_mixins.py:194
-#, fuzzy
+#: file_menu_mixins.py:181
 msgid "First page to extract"
 msgstr "اولین صفحه برای استخراج"
 
-#: file_menu_mixins.py:200
-#, fuzzy
+#: file_menu_mixins.py:188
 msgid "Last page to extract"
 msgstr "آخرین صفحه برای استخراج"
 
-#: file_menu_mixins.py:214
-#, fuzzy, python-format
+#: file_menu_mixins.py:201
+#, python-format
 msgid "Enter user password for PDF %s"
 msgstr "رمز عبور کاربر را برای PDF %s وارد کنید"
 
-#: file_menu_mixins.py:281
-#, fuzzy
-msgid "Open crashed session"
-msgstr "باز کردن جلسه از کار افتاده"
+#: file_menu_mixins.py:268
+msgid "Import hOCR"
+msgstr "درون‌ریزی hOCR"
 
-#: file_menu_mixins.py:336
-msgid "Save"
-msgstr "ذخیره"
-
-#: file_menu_mixins.py:367
-#, fuzzy
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
-msgstr "اقدام پس از ذخیره"
+msgstr "هوک پس از ذخیره"
 
-#: file_menu_mixins.py:370
+#: file_menu_mixins.py:377
 #, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
 msgstr ""
+"اجرای دستور روی فایل ذخیره‌شده. دستورهای در دسترس، آن ابزارهای تعریف‌شده "
+"توسط کاربر هستند که %o را مشخص نمی‌کنند"
 
-#: file_menu_mixins.py:392 file_menu_mixins.py:393
-#, fuzzy
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
-msgstr "بستن کادر محاوره‌ای هنگام ذخیره"
+msgstr "بستن کادر گفتگو هنگام ذخیره"
 
-#: file_menu_mixins.py:465
+#: file_menu_mixins.py:407 menu.ui:24
+msgid "_Save"
+msgstr "_ذخیره"
+
+#: file_menu_mixins.py:471
 msgid "PDF filename"
-msgstr ""
+msgstr "نام فایل PDF"
 
-#: file_menu_mixins.py:466
-#, fuzzy
+#: file_menu_mixins.py:472
 msgid "PDF files"
 msgstr "فایل‌های PDF"
 
-#: file_menu_mixins.py:469
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
-msgstr ""
+msgstr "نام فایل DjVu"
 
-#: file_menu_mixins.py:470
-#, fuzzy
+#: file_menu_mixins.py:476
 msgid "DjVu files"
 msgstr "فایل‌های DjVu"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
-msgstr ""
+msgstr "نام فایل TIFF"
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:483
 msgid "Text filename"
-msgstr ""
+msgstr "نام فایل متنی"
 
-#: file_menu_mixins.py:478
-#, fuzzy
+#: file_menu_mixins.py:484
 msgid "Text files"
 msgstr "فایل‌های متنی"
 
-#: file_menu_mixins.py:481
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
-msgstr ""
+msgstr "نام فایل hOCR"
 
-#: file_menu_mixins.py:482
-#, fuzzy
-msgid "hOCR files"
-msgstr "فایل‌های hOCR"
-
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:491
 msgid "PS filename"
-msgstr ""
+msgstr "نام فایل PS"
 
-#: file_menu_mixins.py:486
-#, fuzzy
+#: file_menu_mixins.py:492
 msgid "Postscript files"
-msgstr "فایل‌های Postscript"
+msgstr "فایل‌های پست‌اسکریپت"
 
-#: file_menu_mixins.py:489
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
-msgstr ""
+msgstr "نام فایل نشست scantpaper"
 
-#: file_menu_mixins.py:490
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
-msgstr ""
+msgstr "فایل‌های نشست scantpaper"
 
-#: file_menu_mixins.py:601
+#: file_menu_mixins.py:604
+#, python-format
+msgid "Error saving %(filename)s: %(error)s"
+msgstr "خطا در ذخیره %(filename)s: %(error)s"
+
+#: file_menu_mixins.py:619
 #, python-format
 msgid "Directory %s is read-only"
-msgstr ""
+msgstr "پوشه %s فقط‌خواندنی است"
 
-#: file_menu_mixins.py:611
+#: file_menu_mixins.py:629
 #, python-format
 msgid "File %s is read-only"
-msgstr ""
+msgstr "فایل %s فقط‌خواندنی است"
 
-#: file_menu_mixins.py:802
+#: file_menu_mixins.py:821
 msgid "Image filename"
-msgstr ""
+msgstr "نام فایل تصویر"
 
-#: file_menu_mixins.py:862
+#: file_menu_mixins.py:881
 #, python-format
 msgid "This operation would overwrite %s"
-msgstr ""
+msgstr "این عملیات %s را بازنویسی خواهد کرد"
 
-#: file_menu_mixins.py:945
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
 msgstr ""
+"برخی از صفحات ذخیره نشده‌اند.\n"
+"آیا واقعاً می‌خواهید خارج شوید؟"
 
-#: importthread.py:86
+#: importthread.py:100
 #, python-format
 msgid "File %s not found"
-msgstr ""
+msgstr "فایل %s یافت نشد"
 
-#: importthread.py:92
+#: importthread.py:106
 #, python-format
-msgid "Error getting file info for %s: %s"
-msgstr ""
+msgid "Error getting file info for %(path)s: %(error)s"
+msgstr "خطا در دریافت اطلاعات فایل برای %(path)s: %(error)s"
 
-#: importthread.py:97
+#: importthread.py:112
 #, python-format
 msgid "Error importing zero-length file %s."
-msgstr ""
+msgstr "خطا در وارد کردن پرونده‌ی با طول صفر %s."
 
-#: importthread.py:135 importthread.py:178
+#: importthread.py:150 importthread.py:193
 #, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
-msgstr ""
+msgstr "لطفاً برای باز کردن فایل‌های DjVu، djvulibre-bin را نصب کنید: %s"
 
-#: importthread.py:166
+#: importthread.py:181
 msgid "Unknown DjVu file structure. Please contact the author."
-msgstr ""
+msgstr "ساختار فایل DjVu ناشناخته است. لطفاً با نویسنده تماس بگیرید."
 
-#: importthread.py:266
+#: importthread.py:281
 #, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
-msgstr ""
+msgstr "لطفاً برای باز کردن فایل‌های TIFF، libtiff-tools را نصب کنید: %s"
 
-#: importthread.py:328 importthread.py:388
+#: importthread.py:343 importthread.py:403
 #, python-format
-msgid "Importing page %i of %i"
-msgstr ""
+msgid "Importing page %(current)i of %(total)i"
+msgstr "در حال وارد کردن صفحه %(current)i از %(total)i"
 
-#: importthread.py:509
+#: importthread.py:524
 msgid "Error extracting images from PDF"
-msgstr ""
+msgstr "خطا در استخراج تصاویر از PDF"
 
-#: importthread.py:521
+#: importthread.py:536
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
 "add scans to an existing PDF, use the prepend/append to PDF options in the "
 "Save dialogue."
 msgstr ""
+"هشدار: scantpaper انتظار یک تصویر در هر صفحه را دارد، اما این شرط برآورده "
+"نشد. احتمال دارد PDF به درستی وارد نشده باشد. اگر می‌خواهید اسکن‌ها را به یک"
+" PDF موجود اضافه کنید، از گزینه‌های افزودن به ابتدا/انتهای PDF در گفتگوی "
+"ذخیره استفاده کنید."
 
-#: importthread.py:560
+#: importthread.py:575
 msgid "Error importing PDF"
-msgstr ""
+msgstr "خطا در وارد کردن PDF"
 
-#: importthread.py:587
+#: importthread.py:602
 msgid "Error extracting text layer from PDF"
-msgstr ""
+msgstr "خطا در استخراج لایه متنی از PDF"
 
-#: pagerange.py:46
+#: layer.py:45
+msgid "Sort by confidence"
+msgstr "مرتب‌سازی بر اساس اطمینان"
+
+#: layer.py:46
+msgid "Sort OCR text boxes by confidence."
+msgstr "کادرهای متن OCR را بر اساس میزان اطمینان مرتب کنید."
+
+#: layer.py:48
+msgid "Sort by position"
+msgstr "مرتب‌سازی بر اساس موقعیت"
+
+#: layer.py:48
+msgid "Sort OCR text boxes by position."
+msgstr "مرتب‌سازی جعبه‌های متن OCR بر اساس موقعیت."
+
+#: layer.py:62
+msgid "my-new-word"
+msgstr "کلمه-جدید-من"
+
+#: layer.py:63
+msgid "my-new-annotation"
+msgstr "حاشیه‌نویسی جدید من"
+
+#: layer.py:207
+msgid "Go to least confident text"
+msgstr "برو به متن با کمترین اطمینان"
+
+#: layer.py:212
+msgid "Go to previous text"
+msgstr "رفتن به متن قبلی"
+
+#: layer.py:217
+msgid "Select sort method for OCR boxes"
+msgstr "روش مرتب‌سازی برای کادرهای OCR را انتخاب کنید"
+
+#: layer.py:228
+msgid "Go to next text"
+msgstr "رفتن به متن بعدی"
+
+#: layer.py:232
+msgid "Go to most confident text"
+msgstr "رفتن به مطمئن‌ترین متن"
+
+#: layer.py:238 layer.py:396
+msgid "Add text"
+msgstr "افزودن متن"
+
+#: layer.py:246
+msgid "Rotate text clockwise"
+msgstr "چرخاندن متن در جهت عقربه‌های ساعت"
+
+#: layer.py:251
+msgid "Rotate text anticlockwise"
+msgstr "چرخاندن متن پادساعتگرد"
+
+#: layer.py:256
+msgid "Accept corrections"
+msgstr "پذیرش اصلاحات"
+
+#: layer.py:259
+msgid "Cancel corrections"
+msgstr "لغو اصلاحات"
+
+#: layer.py:264 app.ui:287 menu.ui:61
+msgid "_Copy"
+msgstr "_کپی"
+
+#: layer.py:264
+msgid "Duplicate text"
+msgstr "تکرار متن"
+
+#: layer.py:267
+msgid "Delete text"
+msgstr "حذف متن"
+
+#: layer.py:317
+msgid "Focus zoom"
+msgstr "زوم فوکوس"
+
+#: layer.py:335
+msgid "Reset"
+msgstr "بازنشانی"
+
+#: layer.py:362
+#, python-format
+msgid "Focus zoom: %(percent)d%%"
+msgstr "بزرگ‌نمایی تمرکز: %(percent)d%%"
+
+#: layer.py:399
+msgid "Draw or select a rectangle before adding"
+msgstr "قبل از افزودن، یک مستطیل رسم کنید یا انتخاب کنید"
+
+#: pagerange.py:47
 msgid "Selected"
-msgstr ""
+msgstr "انتخاب‌شده"
 
-#: postprocess_controls.py:22
-#, fuzzy
+#: postprocess_controls.py:43
 msgid "Both sides"
 msgstr "هر دو طرف"
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides."
-msgstr ""
+msgstr "هر دو طرف."
 
-#: postprocess_controls.py:23
-#, fuzzy
+#: postprocess_controls.py:44
 msgid "Facing side"
-msgstr "طرف رو"
+msgstr "سمت رو به رو"
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side."
-msgstr ""
+msgstr "سمت مواجه."
 
-#: postprocess_controls.py:24
-#, fuzzy
+#: postprocess_controls.py:45
 msgid "Reverse side"
-msgstr "طرف پشت"
+msgstr "پشت"
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side."
-msgstr ""
+msgstr "پشت."
 
-#: postprocess_controls.py:27
-#, fuzzy
+#: postprocess_controls.py:48
 msgid "90°"
-msgstr "90°"
+msgstr "۹۰°"
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:48
 msgid "Rotate image 90 degrees clockwise."
-msgstr ""
+msgstr "تصویر را ۹۰ درجه در جهت عقربه‌های ساعت بچرخانید."
 
-#: postprocess_controls.py:28
-#, fuzzy
+#: postprocess_controls.py:49
 msgid "180°"
-msgstr "180°"
+msgstr "۱۸۰°"
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:49
 msgid "Rotate image 180 degrees clockwise."
-msgstr ""
+msgstr "تصویر را ۱۸۰ درجه در جهت عقربه‌های ساعت بچرخانید."
 
-#: postprocess_controls.py:29
-#, fuzzy
+#: postprocess_controls.py:50
 msgid "270°"
-msgstr "270°"
+msgstr "۲۷۰°"
 
-#: postprocess_controls.py:29
+#: postprocess_controls.py:50
 msgid "Rotate image 90 degrees anticlockwise."
-msgstr ""
+msgstr "تصویر را ۹۰ درجه پادساعتگرد بچرخانید."
 
-#: postprocess_controls.py:39
-#, fuzzy
+#: postprocess_controls.py:55 postprocess_controls.py:738
+msgid "Page segmentation mode"
+msgstr "حالت بخش‌بندی صفحه"
+
+#: postprocess_controls.py:56 postprocess_controls.py:747
+msgid "OCR engine mode"
+msgstr "حالت موتور OCR"
+
+#: postprocess_controls.py:67
 msgid "Rotate"
 msgstr "چرخش"
 
-#: postprocess_controls.py:40
-#, fuzzy
+#: postprocess_controls.py:68
 msgid "Rotate image after scanning"
-msgstr "چرخاندن تصویر پس از اسکن"
+msgstr "چرخش تصویر پس از اسکن"
 
-#: postprocess_controls.py:43
+#: postprocess_controls.py:72
 msgid "Select side to rotate"
-msgstr ""
+msgstr "ضلع را برای چرخش انتخاب کنید"
 
-#: postprocess_controls.py:46
-#, fuzzy
+#: postprocess_controls.py:76
 msgid "Select angle of rotation"
-msgstr "انتخاب زاویه چرخش"
+msgstr "زاویه چرخش را انتخاب کنید"
 
-#: postprocess_controls.py:49
-#, fuzzy
+#: postprocess_controls.py:79
 msgid "Anticlockwise"
-msgstr "خلاف جهت عقربه‌های ساعت"
+msgstr "پادساعتگرد"
 
-#: postprocess_controls.py:350 postprocess_controls.py:351
-#, fuzzy
+#: postprocess_controls.py:478 postprocess_controls.py:479
 msgid "OCR scanned pages"
-msgstr "OCR صفحات اسکن‌شده"
+msgstr "صفحات اسکن شده با OCR"
 
-#: postprocess_controls.py:378
-#, fuzzy
+#: postprocess_controls.py:507
 msgid "Threshold before OCR"
 msgstr "آستانه قبل از OCR"
 
-#: postprocess_controls.py:381
+#: postprocess_controls.py:510
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
 msgstr ""
+"پیش از اجرای OCR، تصویر را آستانه‌گذاری کنید. این تنها بر تصویر ارسال‌شده به"
+" موتور OCR تأثیر می‌گذارد و بر تصویر ذخیره‌شده تأثیری ندارد."
 
-#: postprocess_controls.py:392 tools_menu_mixins.py:114
+#: postprocess_controls.py:520 tools_menu_mixins.py:122
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
 msgstr ""
+"پیکسل‌هایی که بیش از این درصد با رنگ کاغذ تفاوت دارند، به رنگ سیاه نمایش "
+"داده می‌شوند. مقادیر بالاتر فقط نشانه‌های قوی‌تر را نگه می‌دارند."
 
-#: postprocess_controls.py:428
-#, fuzzy
+#: postprocess_controls.py:585
+msgid "No OCR language selected."
+msgstr "زبان OCR انتخاب نشده است."
+
+#: postprocess_controls.py:588
+#, python-format
+msgid "The following OCR languages are not installed: %(languages)s"
+msgstr "زبان‌های OCR زیر نصب نشده‌اند: %(languages)s"
+
+#: postprocess_controls.py:598
+#, python-format
+msgid ""
+"'%(variable)s' is set by the %(control)s control; remove it from this field."
+msgstr ""
+"'%(variable)s' توسط کنترل %(control)s تنظیم شده است؛ آن را از این فیلد حذف "
+"کنید."
+
+#: postprocess_controls.py:609
+#, python-format
+msgid "Unknown Tesseract options: %(variables)s"
+msgstr "گزینه‌های ناشناختهٔ Tesseract: %(variables)s"
+
+#: postprocess_controls.py:624
 msgid "Language to recognise"
 msgstr "زبان برای تشخیص"
 
-#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-msgid "_Cancel"
-msgstr ""
+#: postprocess_controls.py:632
+msgid "Additional languages"
+msgstr "زبان‌های اضافی"
 
-#: progress.py:76 progress.py:110
+#: postprocess_controls.py:674
+msgid "Tessdata directory"
+msgstr "پوشه Tessdata"
+
+#: postprocess_controls.py:677
+msgid "Default (system tessdata)"
+msgstr "پیش‌فرض (tessdata سیستم)"
+
+#: postprocess_controls.py:680
+msgid ""
+"Directory that directly contains the Tesseract .traineddata language files. "
+"Leave empty for the system default."
+msgstr ""
+"پوشه‌ای که مستقیماً شامل فایل‌های زبانی .traineddata تِسِراکت است. برای "
+"استفاده از مقدار پیش‌فرض سیستم، خالی بگذارید."
+
+#: postprocess_controls.py:693
+msgid "Choose the tessdata directory"
+msgstr "پوشهٔ tessdata را انتخاب کنید"
+
+#: postprocess_controls.py:698
+msgid "Use the system tessdata directory"
+msgstr "استفاده از پوشه‌ی tessdata سیستم"
+
+#: postprocess_controls.py:710
+msgid "Select tessdata directory"
+msgstr "انتخاب پوشهٔ tessdata"
+
+#: postprocess_controls.py:741
+msgid "How tesseract should segment the page. Automatic suits most pages."
+msgstr ""
+"چگونه tesseract صفحه را بخش‌بندی کند. حالت خودکار برای بیشتر صفحات مناسب "
+"است."
+
+#: postprocess_controls.py:750
+msgid "Which tesseract engine to use. Default uses the engine's own choice."
+msgstr ""
+"از کدام موتور Tesseract استفاده شود. حالت پیش‌فرض از انتخاب خود موتور "
+"استفاده می‌کند."
+
+#: postprocess_controls.py:758
+msgid "Advanced Tesseract engine parameters"
+msgstr "پارامترهای پیشرفتهٔ موتور Tesseract"
+
+#: postprocess_controls.py:761
+msgid ""
+"Tesseract engine parameters - the values of tesseract's -c option - not "
+"command-line flags. Use absolute paths."
+msgstr ""
+"پارامترهای موتور Tesseract - مقادیر گزینه‌ی -c در tesseract - نه پرچم‌های خط"
+" فرمان. از مسیرهای مطلق استفاده کنید."
+
+#: postprocess_controls.py:769
+msgid ""
+"One name=value engine parameter per line, e.g. "
+"user_words_file=/path/to/words.txt. Write engine parameters, not command-"
+"line options such as --user-words."
+msgstr ""
+"در هر خط یک پارامتر موتور به شکل name=value، مثلاً "
+"user_words_file=/path/to/words.txt. پارامترهای موتور را بنویسید، نه "
+"گزینه‌های خط فرمان مانند --user-words."
+
+#: postprocess_controls.py:791
+msgid "_Available parameters"
+msgstr "_پارامترهای موجود"
+
+#: postprocess_controls.py:794
+msgid "Browse the parameters the installed Tesseract reports"
+msgstr "مرور پارامترهایی که Tesseract نصب‌شده گزارش می‌کند"
+
+#: postprocess_controls.py:907
+msgid "No additional languages"
+msgstr "هیچ زبان اضافی وجود ندارد"
+
+#: postprocess_controls.py:922
 #, python-format
-msgid "Process %i of %i (%s)"
-msgstr ""
+msgid "%(language)s (not installed)"
+msgstr "%(language)s (نصب نشده)"
 
-#: progress.py:119
+#: progress.py:79 progress.py:118
 #, python-format
-msgid "Process %i of %i"
-msgstr ""
+msgid "Process %(current)i of %(total)i (%(process)s)"
+msgstr "پردازش %(current)i از %(total)i (%(process)s)"
 
-#: savethread.py:83
-#, fuzzy
+#: progress.py:127
+#, python-format
+msgid "Process %(current)i of %(total)i"
+msgstr "پردازش %(current)i از %(total)i"
+
+#: savethread.py:210
 msgid "Processing PDF"
 msgstr "در حال پردازش PDF"
 
-#: savethread.py:148
+#: savethread.py:283
 msgid "Embedding text layer"
-msgstr ""
+msgstr "جاسازی لایهٔ متن"
 
-#: savethread.py:195
+#: savethread.py:341
 msgid "Setting up PDF"
-msgstr ""
+msgstr "در حال راه‌اندازی PDF"
 
-#: savethread.py:264 savethread.py:405
+#: savethread.py:409 tests/test_savethread.py:1822
+msgid "Converting to JBIG2"
+msgstr "در حال تبدیل به JBIG2"
+
+#: savethread.py:447 savethread.py:615
 #, python-format
-msgid "Writing page %i of %i"
-msgstr ""
+msgid "Writing page %(current)i of %(total)i"
+msgstr "در حال نوشتن صفحه %(current)i از %(total)i"
 
-#: savethread.py:291
+#: savethread.py:498
 #, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
+"اندازهٔ تخمینی PDF (%.1f GiB) از 2 GiB بیشتر است.  لطفاً صفحات کمتری ذخیره "
+"کنید."
 
-#: savethread.py:314 tests/test_savethread.py:1240
-#, fuzzy
+#: savethread.py:521 tests/test_savethread.py:1599
 msgid "Writing PDF"
 msgstr "در حال نوشتن PDF"
 
-#: savethread.py:363
-#, fuzzy
+#: savethread.py:571
 msgid "Converting to PS"
 msgstr "در حال تبدیل به PS"
 
-#: savethread.py:374
+#: savethread.py:584
 #, python-format
 msgid "Error converting PDF to PS: %s"
-msgstr ""
+msgstr "خطا در تبدیل PDF به PS: %s"
 
-#: savethread.py:418
-#, fuzzy
+#: savethread.py:628
 msgid "Merging DjVu"
 msgstr "در حال ادغام DjVu"
 
-#: savethread.py:425
+#: savethread.py:635
 #, python-format
 msgid "Error merging DjVu: %s"
-msgstr ""
+msgstr "خطا در ادغام DjVu: %s"
 
-#: savethread.py:519
+#: savethread.py:729
 #, python-format
 msgid "Error converting TIFF to PS: %s"
-msgstr ""
+msgstr "خطا در تبدیل TIFF به PS: %s"
 
-#: savethread.py:664
+#: savethread.py:877
 msgid "Error copying page"
-msgstr ""
+msgstr "خطا در کپی کردن صفحه"
 
-#: savethread.py:814
+#: savethread.py:948 tools_menu_mixins.py:840
+#, python-format
+msgid ""
+"Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
+"it one page at a time instead."
+msgstr ""
+"حالت دسته‌ای با '%(tool)s' قابل استفاده نیست زیرا از %(variable)s استفاده "
+"می‌کند. در عوض، آن را صفحه به صفحه اجرا کنید."
+
+#: savethread.py:1009
+msgid ""
+"No pages were modified. If the tool was already running (for example GIMP), "
+"it may have opened the images in the existing instance."
+msgstr ""
+"هیچ صفحه‌ای تغییر داده نشد. اگر ابزار از قبل در حال اجرا بود (برای مثال "
+"GIMP)، ممکن است تصاویر را در نمونهٔ موجود باز کرده باشد."
+
+#: savethread.py:1018
+#, python-format
+msgid "'%(tool)s' failed with status %(status)s."
+msgstr "اجرای «%(tool)s» با وضعیت %(status)s با شکست مواجه شد."
+
+#: savethread.py:1024
+#, python-format
+msgid "Error running '%(tool)s': %(error)s."
+msgstr "خطا در اجرای '%(tool)s': %(error)s."
+
+#: savethread.py:1294
 #, python-format
 msgid "Error prepending PDF: %s"
-msgstr ""
+msgstr "خطا در افزودن PDF به ابتدا: %s"
 
-#: savethread.py:822
+#: savethread.py:1302
 #, python-format
 msgid "Error appending PDF: %s"
-msgstr ""
+msgstr "خطا در الحاق PDF: %s"
 
-#: savethread.py:831
+#: savethread.py:1311
 msgid "Error creating backup of PDF"
-msgstr ""
+msgstr "خطا در ایجاد نسخه پشتیبان از PDF"
 
-#: savethread.py:905
+#: savethread.py:1385
 #, python-format
 msgid "Error encrypting PDF: %s"
-msgstr ""
+msgstr "خطا در رمزگذاری PDF: %s"
 
-#: scan_menu_item_mixins.py:72
+#: scan_menu_item_mixins.py:118
 msgid "Really cache libusb device names?"
-msgstr ""
+msgstr "آیا واقعاً نام دستگاه‌های libusb را کش کنیم؟"
 
-#: scan_menu_item_mixins.py:76
+#: scan_menu_item_mixins.py:122
 msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
+"Caching the device list with libusb devices is not recommended, as they can "
+"change between reboots. Cache them anyway?"
 msgstr ""
+"ذخیره‌سازی فهرست دستگاه‌ها همراه با دستگاه‌های libusb در حافظه پنهان توصیه "
+"نمی‌شود، زیرا ممکن است بین راه‌اندازی‌های مجدد تغییر کنند. به هر حال آن‌ها "
+"را در حافظه پنهان ذخیره کنیم؟"
 
-#: scan_menu_item_mixins.py:78
-msgid "Are you sure you want to do this?"
-msgstr ""
+#: scan_menu_item_mixins.py:127
+msgid "Don't ask again"
+msgstr "دیگر نپرس"
 
-#: scan_menu_item_mixins.py:114
+#: scan_menu_item_mixins.py:176
 msgid "Scan Document"
-msgstr ""
+msgstr "اسکن سند"
 
-#: scan_menu_item_mixins.py:216
+#: scan_menu_item_mixins.py:291
 msgid "Postprocessing"
-msgstr ""
+msgstr "پس‌پردازش"
 
-#: scan_menu_item_mixins.py:230
+#: scan_menu_item_mixins.py:400
 msgid "Alternate rotation every 2nd page"
-msgstr ""
+msgstr "چرخش یک‌درمیان در هر صفحهٔ دوم"
 
-#: scan_menu_item_mixins.py:233
+#: scan_menu_item_mixins.py:403
 msgid ""
 "Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
 "degrees. Use when scanning a book where every sheet is aligned to the same "
 "edge, so the back of each sheet is rotated 180 degrees relative to its "
 "front."
 msgstr ""
+"صفحات فرد را با زاویهٔ انتخاب‌شده و صفحات زوج را با آن زاویه به‌علاوهٔ ۱۸۰ "
+"درجه بچرخانید. زمانی استفاده کنید که کتابی را اسکن می‌کنید که هر برگ آن با "
+"لبهٔ یکسانی تراز شده است، بنابراین پشت هر برگ نسبت به روی آن ۱۸۰ درجه چرخیده"
+" است."
 
-#: scan_menu_item_mixins.py:298
-#, fuzzy
+#: scan_menu_item_mixins.py:425
 msgid "Clean up images"
-msgstr "تمیزکردن تصاویر"
+msgstr "پاک‌سازی تصاویر"
 
-#: scan_menu_item_mixins.py:299
-#, fuzzy
+#: scan_menu_item_mixins.py:426
 msgid "Clean up scanned images with unpaper"
-msgstr "تمیزکردن تصاویر اسکن‌شده با unpaper"
+msgstr "پاک‌سازی تصاویر اسکن‌شده با unpaper"
 
-#: scan_menu_item_mixins.py:307
-#, fuzzy
+#: scan_menu_item_mixins.py:435
 msgid "Options"
 msgstr "گزینه‌ها"
 
-#: scan_menu_item_mixins.py:308
-#, fuzzy
+#: scan_menu_item_mixins.py:436
 msgid "Set unpaper options"
 msgstr "تنظیم گزینه‌های unpaper"
 
-#: scan_menu_item_mixins.py:316
-#, fuzzy
+#: scan_menu_item_mixins.py:445
 msgid "unpaper options"
 msgstr "گزینه‌های unpaper"
 
-#: scan_menu_item_mixins.py:339
-#, fuzzy
+#: scan_menu_item_mixins.py:468
 msgid "Process with user-defined tool"
 msgstr "پردازش با ابزار تعریف‌شده توسط کاربر"
 
-#: scan_menu_item_mixins.py:340
-#, fuzzy
+#: scan_menu_item_mixins.py:469
 msgid "Process scanned images with user-defined tool"
 msgstr "پردازش تصاویر اسکن‌شده با ابزار تعریف‌شده توسط کاربر"
 
-#: session_mixins.py:74
+#: session_mixins.py:84
 #, python-format
 msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
+"Warning: unable to use %(configured)s for temporary storage. Defaulting to "
+"%(default)s instead."
 msgstr ""
+"هشدار: نمی‌توان از %(configured)s برای ذخیره‌سازی موقت استفاده کرد. به‌جای "
+"آن از %(default)s استفاده می‌شود."
 
-#: session_mixins.py:118 session_mixins.py:123
-#, fuzzy
-msgid "Pick crashed session to restore"
-msgstr "انتخاب جلسه از کار افتاده برای بازیابی"
+#: session_mixins.py:163
+msgid "No crashed sessions found."
+msgstr "هیچ نشست کرش‌کرده‌ای یافت نشد."
 
-#: session_mixins.py:191
+#: session_mixins.py:169
+msgid "Crashed sessions"
+msgstr "نشست‌های کرش‌شده"
+
+#: session_mixins.py:174
+msgid "_Discard"
+msgstr "_دور انداختن"
+
+#: session_mixins.py:175
+msgid "_Restore"
+msgstr "_بازیابی"
+
+#: session_mixins.py:178
+msgid "Restore or discard a crashed session"
+msgstr "بازیابی یا دور انداختن یک نشست ازکارافتاده"
+
+#: session_mixins.py:207
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to restore a crashed session?"
+msgstr ""
+"برخی از صفحه‌ها ذخیره نشده‌اند.\n"
+"آیا واقعاً می‌خواهید یک نشست از کار افتاده را بازیابی کنید؟"
+
+#: session_mixins.py:242
+msgid "Restore file"
+msgstr "بازیابی فایل"
+
+#: session_mixins.py:258
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] "%(count)d نشست خراب‌شده دور انداخته شود؟"
+msgstr[1] "%(count)d نشست خراب‌شده دور انداخته شوند؟"
+
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] "حذف %(count)d نشست از کار افتاده ممکن نبود."
+msgstr[1] "حذف %(count)d نشست از کار افتاده ممکن نبود."
+
+#: session_mixins.py:301
 msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
-msgstr ""
+msgstr "GraphicsMagick در حالت سازگاری با ImageMagick استفاده می‌شود."
 
-#: session_mixins.py:193
+#: session_mixins.py:303
 msgid "Whilst this might work, it is not currently supported."
-msgstr ""
+msgstr "اگرچه ممکن است این کار کند، اما در حال حاضر پشتیبانی نمی‌شود."
 
-#: session_mixins.py:195
+#: session_mixins.py:305
 msgid "Please switch to ImageMagick in case of problems."
-msgstr ""
+msgstr "لطفاً در صورت بروز مشکل به ImageMagick تغییر دهید."
 
-#: session_mixins.py:212
-#, fuzzy
+#: session_mixins.py:318
 msgid "Tesseract"
-msgstr "Tesseract"
+msgstr "تسرکت"
 
-#: session_mixins.py:212
-#, fuzzy
+#: session_mixins.py:318
 msgid "Process image with Tesseract."
-msgstr "پردازش تصویر با Tesseract."
+msgstr "تصویر را با Tesseract پردازش کنید."
 
-#: session_mixins.py:229
+#: session_mixins.py:330
 msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr ""
+msgstr "اسکن صفحات روبه‌رو تمام شد. صفحات پشت اسکن شوند؟"
 
-#: session_mixins.py:232
+#: session_mixins.py:333
 msgid "Finished scanning reverse pages. Scan facing pages?"
+msgstr "اسکن صفحات پشت تمام شد. صفحات روبه‌رو اسکن شوند؟"
+
+#: tesseract.py:197
+msgid "Fully automatic page segmentation."
+msgstr "قطعه‌بندی کاملاً خودکار صفحه."
+
+#: tesseract.py:198
+msgid "Single column"
+msgstr "تک ستون"
+
+#: tesseract.py:198
+msgid "A single column of text of variable sizes."
+msgstr "یک ستون متن با اندازه‌های متغیر."
+
+#: tesseract.py:199
+msgid "Single block"
+msgstr "بلوک تکی"
+
+#: tesseract.py:199
+msgid "A single uniform block of text."
+msgstr "یک بلوک متن واحد و یکنواخت."
+
+#: tesseract.py:200
+msgid "Single line"
+msgstr "تک‌خط"
+
+#: tesseract.py:200
+msgid "The image is a single text line."
+msgstr "تصویر یک خط متن است."
+
+#: tesseract.py:201
+msgid "Single word"
+msgstr "تک کلمه"
+
+#: tesseract.py:201
+msgid "The image is a single word."
+msgstr "تصویر یک کلمه است."
+
+#: tesseract.py:202
+msgid "Single character"
+msgstr "تک کاراکتر"
+
+#: tesseract.py:202
+msgid "The image is a single character."
+msgstr "تصویر یک نویسهٔ واحد است."
+
+#: tesseract.py:203
+msgid "Sparse text"
+msgstr "متن پراکنده"
+
+#: tesseract.py:203
+msgid "Find as much text as possible, in no order."
+msgstr "تا حد امکان متن بیشتری را پیدا کنید، بدون ترتیب."
+
+#: tesseract.py:204
+msgid "Raw line"
+msgstr "خط خام"
+
+#: tesseract.py:204
+msgid "A single line, without tesseract-specific hacks."
+msgstr "یک خط، بدون هک‌های مخصوص tesseract."
+
+#: tesseract.py:214
+msgid "LSTM only"
+msgstr "فقط LSTM"
+
+#: tesseract.py:215
+msgid "Legacy"
+msgstr "میراث"
+
+#: tesseract.py:216
+msgid "Combined"
+msgstr "ترکیبی"
+
+#: tesseract.py:260
+#, python-format
+msgid "The tessdata directory does not exist: %(path)s"
+msgstr "پوشهٔ tessdata وجود ندارد: %(path)s"
+
+#: tesseract.py:262
+#, python-format
+msgid "The tessdata path is not a directory: %(path)s"
+msgstr "مسیر tessdata یک پوشه نیست: %(path)s"
+
+#: tesseract.py:264
+#, python-format
+msgid "The tessdata directory cannot be read: %(path)s"
+msgstr "پوشه tessdata قابل خواندن نیست: %(path)s"
+
+#: tesseract.py:268
+#, python-format
+msgid ""
+"No Tesseract language data was found in the tessdata directory: %(path)s"
+msgstr "هیچ داده زبانی Tesseract در پوشه tessdata یافت نشد: %(path)s"
+
+#: tesseract.py:272
+#, python-format
+msgid "Did you mean %(path)s?"
+msgstr "آیا منظور شما %(path)s بود؟"
+
+#: tesseract.py:322
+msgid "tessdata directory not found"
+msgstr "پوشه‌ی tessdata پیدا نشد"
+
+#: tesseract.py:388
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; this field accepts engine "
+"parameters in name=value form only."
 msgstr ""
+"'%(flag)s' یک گزینهٔ خط فرمان Tesseract است؛ این فیلد فقط پارامترهای موتور "
+"را به شکل name=value می‌پذیرد."
 
-#: session_mixins.py:448 text_layer_control.py:80
-msgid "_OK"
+#: tesseract.py:393
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' "
+"instead."
 msgstr ""
+"'%(flag)s' یک گزینهٔ خط فرمان Tesseract است؛ به جای آن از "
+"'%(variable)s=%(value)s' استفاده کنید."
 
-#: session_mixins.py:449 text_layer_control.py:80
-msgid "Accept corrections"
-msgstr ""
+#: tesseract.py:413 tesseract.py:420
+#, python-format
+msgid "Invalid Tesseract option on line %(line)s: %(text)s"
+msgstr "گزینه نامعتبر Tesseract در خط %(line)s: %(text)s"
 
-#: session_mixins.py:452 text_layer_control.py:83
-msgid "Cancel corrections"
-msgstr ""
+#: tesseract.py:435
+#, python-format
+msgid "%(variable)s names a file that does not exist: %(path)s"
+msgstr "%(variable)s نام فایلی است که وجود ندارد: %(path)s"
 
-#: session_mixins.py:458
-#, fuzzy
-msgid "Add annotation"
-msgstr "افزودن حاشیه‌نویسی"
+#: tesseract.py:440
+#, python-format
+msgid "%(variable)s names a file that cannot be read: %(path)s"
+msgstr "%(variable)s نام فایلی است که قابل خواندن نیست: %(path)s"
 
-#: session_mixins.py:461
-msgid "Delete annotation"
-msgstr ""
-
-#: session_mixins.py:505
-#, fuzzy
-msgid "my-new-word"
-msgstr "my-new-word"
-
-#: session_mixins.py:560
-#, fuzzy
-msgid "my-new-annotation"
-msgstr "my-new-annotation"
-
-#: tesseract.py:232 tesseract.py:246 tesseract.py:258
+#: tesseract.py:567 tesseract.py:581 tesseract.py:594
 #, python-format
 msgid "You are using locale '%s'."
-msgstr ""
+msgstr "شما از locale '%s' استفاده می‌کنید."
 
-#: tesseract.py:235
+#: tesseract.py:570
 msgid ""
 "scantpaper does not currently know which tesseract language package would be"
 " necessary for that locale."
 msgstr ""
+"scantpaper در حال حاضر نمی‌داند کدام بستهٔ زبان tesseract برای آن محیط زبانی"
+" لازم خواهد بود."
 
-#: tesseract.py:239
+#: tesseract.py:574
 msgid "Please contact the developers to add support for that locale."
-msgstr ""
+msgstr "لطفاً برای افزودن پشتیبانی از آن زبان، با توسعه‌دهندگان تماس بگیرید."
 
-#: tesseract.py:250
+#: tesseract.py:585
 #, python-format
 msgid ""
-"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
-"for OCR for %s with tesseract."
+"Please install tesseract package 'tesseract-ocr-%(package)s' and restart "
+"scantpaper for OCR for %(language)s with tesseract."
 msgstr ""
+"لطفاً بسته tesseract با نام 'tesseract-ocr-%(package)s' را نصب کنید و برای "
+"OCR زبان %(language)s با tesseract، scantpaper را دوباره راه‌اندازی کنید."
 
-#: tesseract.py:260
+#: tesseract.py:596
 #, python-format
 msgid "There is no tesseract package for %s"
-msgstr ""
+msgstr "هیچ بستهٔ tesseract برای %s وجود ندارد."
 
-#: tesseract.py:262
+#: tesseract.py:598
 msgid "If this is in error, please contact the scantpaper developers."
-msgstr ""
+msgstr "اگر این اشتباه است، لطفاً با توسعه‌دهندگان scantpaper تماس بگیرید."
 
-#: tests/test_savethread.py:1230
-#, fuzzy
+#: tests/test_savethread.py:1589
 msgid "Writing page"
-msgstr "در حال نوشتن صفحه"
+msgstr "صفحهٔ نوشتن"
 
-#: text_layer_control.py:27
-msgid "Sort by confidence"
-msgstr ""
-
-#: text_layer_control.py:28
-msgid "Sort OCR text boxes by confidence."
-msgstr ""
-
-#: text_layer_control.py:30
-msgid "Sort by position"
-msgstr ""
-
-#: text_layer_control.py:30
-msgid "Sort OCR text boxes by position."
-msgstr ""
-
-#: text_layer_control.py:61
-#, fuzzy
-msgid "Go to least confident text"
-msgstr "رفتن به کم‌اعتمادترین متن"
-
-#: text_layer_control.py:64
-#, fuzzy
-msgid "Go to previous text"
-msgstr "رفتن به متن قبلی"
-
-#: text_layer_control.py:67
-#, fuzzy
-msgid "Select sort method for OCR boxes"
-msgstr "انتخاب روش مرتب‌سازی جعبه‌های OCR"
-
-#: text_layer_control.py:73
-#, fuzzy
-msgid "Go to next text"
-msgstr "رفتن به متن بعدی"
-
-#: text_layer_control.py:75
-#, fuzzy
-msgid "Go to most confident text"
-msgstr "رفتن به مطمئن‌ترین متن"
-
-#: text_layer_control.py:77
-#, fuzzy
-msgid "Add text"
-msgstr "افزودن متن"
-
-#: text_layer_control.py:86
-msgid "_Copy"
-msgstr ""
-
-#: text_layer_control.py:86
-#, fuzzy
-msgid "Duplicate text"
-msgstr "تکرار متن"
-
-#: text_layer_control.py:89
-msgid "Delete text"
-msgstr ""
-
-#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
-#, fuzzy
+#: tools_menu_mixins.py:105 tools_menu_mixins.py:298
 msgid "Threshold"
 msgstr "آستانه"
 
-#: tools_menu_mixins.py:106
-#, fuzzy
+#: tools_menu_mixins.py:115
 msgid "Ink strength"
-msgstr "شدت جوهر"
+msgstr "قدرت جوهر"
 
-#: tools_menu_mixins.py:159
-#, fuzzy
+#: tools_menu_mixins.py:156 tools_menu_mixins.py:226 tools_menu_mixins.py:265
+#: tools_menu_mixins.py:368 tools_menu_mixins.py:410 tools_menu_mixins.py:533
+msgid "_Apply"
+msgstr "_اعمال"
+
+#: tools_menu_mixins.py:168
 msgid "Brightness / Contrast"
 msgstr "روشنایی / کنتراست"
 
-#: tools_menu_mixins.py:170
-#, fuzzy
+#: tools_menu_mixins.py:179
 msgid "Brightness"
 msgstr "روشنایی"
 
-#: tools_menu_mixins.py:181
-#, fuzzy
+#: tools_menu_mixins.py:190
 msgid "Contrast"
 msgstr "کنتراست"
 
-#: tools_menu_mixins.py:227
+#: tools_menu_mixins.py:236
 msgid "Negate"
-msgstr ""
+msgstr "نفی"
 
-#: tools_menu_mixins.py:264
+#: tools_menu_mixins.py:273
 msgid "Unsharp mask"
-msgstr ""
+msgstr "ماسک عدم وضوح"
 
-#: tools_menu_mixins.py:275
-#, fuzzy
+#: tools_menu_mixins.py:284
 msgid "Radius"
 msgstr "شعاع"
 
-#: tools_menu_mixins.py:279
-#, fuzzy
+#: tools_menu_mixins.py:288
 msgid "Blur Radius."
-msgstr "شعاع محو."
+msgstr "شعاع تاری."
 
-#: tools_menu_mixins.py:282
-#, fuzzy
+#: tools_menu_mixins.py:291
 msgid "Percentage"
 msgstr "درصد"
 
-#: tools_menu_mixins.py:286
-#, fuzzy
+#: tools_menu_mixins.py:295
 msgid "Unsharp strength, in percent."
-msgstr "قدرت وضوح، بر حسب درصد."
+msgstr "قدرت شارپ‌سازی، به درصد"
 
-#: tools_menu_mixins.py:294
+#: tools_menu_mixins.py:303
 msgid ""
 "Threshold controls the minimum brightness change that will be sharpened."
-msgstr ""
+msgstr "آستانه حداقل تغییر روشنایی را که تیز می‌شود کنترل می‌کند."
 
-#: tools_menu_mixins.py:444
-#, fuzzy
+#: tools_menu_mixins.py:459
 msgid "Split"
 msgstr "تقسیم"
 
-#: tools_menu_mixins.py:453
-#, fuzzy
+#: tools_menu_mixins.py:468
 msgid "Direction"
 msgstr "جهت"
 
-#: tools_menu_mixins.py:458
-#, fuzzy
+#: tools_menu_mixins.py:473
 msgid "Vertically"
 msgstr "عمودی"
 
-#: tools_menu_mixins.py:459
+#: tools_menu_mixins.py:474
 msgid "Split the page vertically into left and right pages."
-msgstr ""
+msgstr "صفحه را به‌صورت عمودی به صفحه‌های چپ و راست تقسیم کنید."
 
-#: tools_menu_mixins.py:463
-#, fuzzy
+#: tools_menu_mixins.py:478
 msgid "Horizontally"
 msgstr "افقی"
 
-#: tools_menu_mixins.py:464
+#: tools_menu_mixins.py:479
 msgid "Split the page horizontally into top and bottom pages."
-msgstr ""
+msgstr "صفحه را به صورت افقی به صفحات بالا و پایین تقسیم کنید."
 
-#: tools_menu_mixins.py:487
-#, fuzzy
+#: tools_menu_mixins.py:502
 msgid "Position"
 msgstr "موقعیت"
 
-#: tools_menu_mixins.py:590
-#, fuzzy
+#: tools_menu_mixins.py:605
 msgid "unpaper"
 msgstr "unpaper"
 
-#: tools_menu_mixins.py:649
-#, fuzzy
+#: tools_menu_mixins.py:664
 msgid "OCR"
-msgstr "OCR"
+msgstr "تشخیص نوری نویسه"
 
-#: tools_menu_mixins.py:730
-#, fuzzy
+#: tools_menu_mixins.py:777
 msgid "User-defined tools"
 msgstr "ابزارهای تعریف‌شده توسط کاربر"
 
-#: tools_menu_mixins.py:739
-#, fuzzy
+#: tools_menu_mixins.py:786
 msgid "Selected tool"
 msgstr "ابزار انتخاب‌شده"
 
-#: tools_menu_mixins.py:782
-#, fuzzy
-msgid "Email as PDF"
-msgstr "ارسال به‌صورت PDF از طریق ایمیل"
+#: tools_menu_mixins.py:790
+msgid "Process selected pages at once"
+msgstr "صفحات انتخاب‌شده را یکجا پردازش کنید"
 
-#: tools_menu_mixins.py:861
-#, fuzzy
+#: tools_menu_mixins.py:891 app.ui:125
+msgid "Email as PDF"
+msgstr "ایمیل به‌صورت PDF"
+
+#: tools_menu_mixins.py:970
 msgid "Error creating email"
 msgstr "خطا در ایجاد ایمیل"
 
-#: tools_menu_mixins.py:917
+#: tools_menu_mixins.py:1026
 msgid "To aid the scan-to-PDF process"
-msgstr ""
+msgstr "برای کمک به فرآیند اسکن به PDF"
 
-#: tools_menu_mixins.py:918
+#: tools_menu_mixins.py:1027
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
-msgstr ""
+msgstr "حق چاپ ۲۰۰۶--۲۰۲۶ Jeffrey Ratcliffe"
 
-#: unpaper.py:38
-#, fuzzy
+#: unpaper.py:40
 msgid "Layout"
 msgstr "چیدمان"
 
-#: unpaper.py:41
-#, fuzzy
-msgid "Single"
-msgstr "تکی"
-
 #: unpaper.py:43
-msgid "One page per sheet, oriented upwards without rotation."
-msgstr ""
+msgid "Single"
+msgstr "مجرد"
 
-#: unpaper.py:47
-#, fuzzy
-msgid "Double"
-msgstr "دوتایی"
+#: unpaper.py:45
+msgid "One page per sheet, oriented upwards without rotation."
+msgstr "یک صفحه در هر برگ، رو به بالا و بدون چرخش."
 
 #: unpaper.py:49
+msgid "Double"
+msgstr "دو برابر"
+
+#: unpaper.py:51
 msgid ""
 "Two pages per sheet, landscape orientation (one page on the left half, one "
 "page on the right half)."
 msgstr ""
+"دو صفحه در هر برگ، جهت افقی (یک صفحه در نیمهٔ چپ، یک صفحه در نیمهٔ راست)."
 
-#: unpaper.py:58
-#, fuzzy
+#: unpaper.py:60
 msgid "# Output pages"
 msgstr "# صفحات خروجی"
 
-#: unpaper.py:59
+#: unpaper.py:61
 msgid "Number of pages to output."
-msgstr ""
+msgstr "تعداد صفحات برای خروجی."
 
-#: unpaper.py:67
-#, fuzzy
+#: unpaper.py:69
 msgid "Writing system"
 msgstr "سیستم نوشتاری"
 
-#: unpaper.py:70
-#, fuzzy
+#: unpaper.py:72
 msgid "Left-to-right"
 msgstr "چپ به راست"
 
-#: unpaper.py:72
+#: unpaper.py:74
 msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
-msgstr ""
+msgstr "بیشتر سیستم‌های نوشتاری، مثلاً لاتین، یونانی، سیریلیک."
 
-#: unpaper.py:76
-#, fuzzy
+#: unpaper.py:78
 msgid "Right-to-left"
-msgstr "راست به چپ"
+msgstr "راست‌به‌چپ"
 
-#: unpaper.py:77
+#: unpaper.py:79
 msgid "Scripts like Arabic or Hebrew."
-msgstr ""
+msgstr "خط‌هایی مانند عربی یا عبری."
 
-#: unpaper.py:85
-#, fuzzy
+#: unpaper.py:87
 msgid "No deskew"
-msgstr "بدون اصلاح کجی"
+msgstr "بدون تصحیح کجی"
 
-#: unpaper.py:86
-#, fuzzy
+#: unpaper.py:88
 msgid "Disable deskewing."
-msgstr "غیرفعال‌کردن اصلاح کجی."
+msgstr "غیرفعال کردن کج‌زدایی."
 
-#: unpaper.py:91
-#, fuzzy
+#: unpaper.py:93
 msgid "No mask scan"
-msgstr "بدون تشخیص ماسک"
+msgstr "اسکن بدون ماسک"
 
-#: unpaper.py:92
-#, fuzzy
+#: unpaper.py:94
 msgid "Disable mask detection."
-msgstr "غیرفعال‌کردن تشخیص ماسک."
+msgstr "غیرفعال کردن تشخیص ماسک."
 
-#: unpaper.py:97
-#, fuzzy
+#: unpaper.py:99
 msgid "No mask centering"
-msgstr "بدون وسط‌چینی ماسک"
+msgstr "بدون مرکزگذاری ماسک"
 
-#: unpaper.py:98
-#, fuzzy
+#: unpaper.py:100
 msgid "Disable mask centering."
-msgstr "غیرفعال‌کردن وسط‌چینی ماسک."
+msgstr "غیرفعال کردن مرکزچینی ماسک."
 
-#: unpaper.py:103
-#, fuzzy
+#: unpaper.py:105
 msgid "No black filter"
 msgstr "بدون فیلتر سیاه"
 
-#: unpaper.py:104
+#: unpaper.py:106
 msgid "Disable black area scan."
-msgstr ""
+msgstr "غیرفعال کردن اسکن ناحیه سیاه."
 
-#: unpaper.py:109
-#, fuzzy
+#: unpaper.py:111
 msgid "No gray filter"
 msgstr "بدون فیلتر خاکستری"
 
-#: unpaper.py:110
+#: unpaper.py:112
 msgid "Disable gray area scan."
-msgstr ""
+msgstr "اسکن ناحیه خاکستری را غیرفعال کنید."
 
-#: unpaper.py:115
-#, fuzzy
+#: unpaper.py:117
 msgid "No noise filter"
 msgstr "بدون فیلتر نویز"
 
-#: unpaper.py:116
+#: unpaper.py:118
 msgid "Disable noise filter."
-msgstr ""
+msgstr "غیرفعال کردن فیلتر نویز."
 
-#: unpaper.py:121
-#, fuzzy
+#: unpaper.py:123
 msgid "No blur filter"
-msgstr "بدون فیلتر محو"
+msgstr "بدون فیلتر تاری"
 
-#: unpaper.py:122
+#: unpaper.py:124
 msgid "Disable blur filter."
-msgstr ""
+msgstr "فیلتر تاری را غیرفعال کنید."
 
-#: unpaper.py:127
-#, fuzzy
+#: unpaper.py:129
 msgid "No border scan"
-msgstr "بدون اسکن لبه"
+msgstr "اسکن بدون حاشیه"
 
-#: unpaper.py:128
+#: unpaper.py:130
 msgid "Disable border scanning."
-msgstr ""
-
-#: unpaper.py:133
-#, fuzzy
-msgid "No border align"
-msgstr "بدون تراز لبه"
+msgstr "اسکن حاشیه را غیرفعال کنید."
 
 #: unpaper.py:135
-msgid "Disable aligning of the area detected by border scanning."
-msgstr ""
+msgid "No border align"
+msgstr "بدون ترازبندی حاشیه"
 
-#: unpaper.py:141
-#, fuzzy
+#: unpaper.py:137
+msgid "Disable aligning of the area detected by border scanning."
+msgstr "غیرفعال کردن ترازبندی ناحیهٔ تشخیص‌داده‌شده توسط اسکن مرز."
+
+#: unpaper.py:143
 msgid "Deskew to edge"
 msgstr "اصلاح کجی تا لبه"
 
-#: unpaper.py:143
+#: unpaper.py:145
 msgid ""
 "Edges from which to scan for rotation. Each edge of a mask can be used to "
 "detect the mask's rotation. If multiple edges are specified, the average "
 "value will be used, unless the statistical deviation exceeds --deskew-scan-"
 "deviation."
 msgstr ""
+"لبه‌هایی که چرخش از روی آن‌ها اسکن می‌شود. هر لبهٔ یک ماسک می‌تواند برای "
+"تشخیص چرخش ماسک استفاده شود. اگر چندین لبه مشخص شده باشد، مقدار میانگین "
+"استفاده می‌شود، مگر اینکه انحراف آماری از --deskew-scan-deviation بیشتر شود."
 
-#: unpaper.py:152
+#: unpaper.py:154
 msgid "Use 'left' for scanning from the left edge."
-msgstr ""
+msgstr "از 'left' برای اسکن از لبهٔ چپ استفاده کنید."
 
-#: unpaper.py:157
+#: unpaper.py:159
 msgid "Use 'top' for scanning from the top edge."
-msgstr ""
+msgstr "برای اسکن از لبه بالایی، از 'top' استفاده کنید."
 
-#: unpaper.py:161 unpaper.py:189
-#, fuzzy
+#: unpaper.py:163 unpaper.py:191
 msgid "Right"
 msgstr "راست"
 
-#: unpaper.py:162
+#: unpaper.py:164
 msgid "Use 'right' for scanning from the right edge."
-msgstr ""
+msgstr "از 'right' برای اسکن از لبهٔ راست استفاده کنید."
 
-#: unpaper.py:166 unpaper.py:194
-#, fuzzy
+#: unpaper.py:168 unpaper.py:196
 msgid "Bottom"
 msgstr "پایین"
 
-#: unpaper.py:167
+#: unpaper.py:169
 msgid "Use 'bottom' for scanning from the bottom."
-msgstr ""
+msgstr "برای اسکن از پایین، از 'bottom' استفاده کنید."
 
-#: unpaper.py:174
-#, fuzzy
+#: unpaper.py:176
 msgid "Align to edge"
-msgstr "تراز با لبه"
+msgstr "هم‌تراز با لبه"
 
-#: unpaper.py:175
+#: unpaper.py:177
 msgid "Edge to which to align the page."
 msgstr ""
 
-#: unpaper.py:180
+#: unpaper.py:182
 msgid "Use 'left' to align to the left edge."
-msgstr ""
+msgstr "از 'left' برای تراز کردن با لبهٔ چپ استفاده کنید."
 
-#: unpaper.py:185
+#: unpaper.py:187
 msgid "Use 'top' to align to the top edge."
-msgstr ""
+msgstr "از 'top' برای تراز کردن با لبه بالایی استفاده کنید."
 
-#: unpaper.py:190
+#: unpaper.py:192
 msgid "Use 'right' to align to the right edge."
-msgstr ""
+msgstr "از 'right' برای تراز کردن با لبه راست استفاده کنید."
 
-#: unpaper.py:195
+#: unpaper.py:197
 msgid "Use 'bottom' to align to the bottom."
-msgstr ""
+msgstr "از 'bottom' برای تراز کردن به پایین استفاده کنید."
 
-#: unpaper.py:201
-#, fuzzy
+#: unpaper.py:203
 msgid "Border margin"
-msgstr "حاشیه لبه"
+msgstr "حاشیهٔ کادر"
 
-#: unpaper.py:205
-#, fuzzy
+#: unpaper.py:207
 msgid "Vertical margin"
 msgstr "حاشیه عمودی"
 
-#: unpaper.py:207
+#: unpaper.py:209
 msgid ""
 "Vertical distance to keep from the sheet edge when aligning a border area."
-msgstr ""
+msgstr "فاصله عمودی از لبه صفحه که هنگام تراز کردن ناحیه حاشیه رعایت شود."
 
-#: unpaper.py:217
-#, fuzzy
+#: unpaper.py:219
 msgid "Horizontal margin"
 msgstr "حاشیه افقی"
 
-#: unpaper.py:219
+#: unpaper.py:221
 msgid ""
 "Horizontal distance to keep from the sheet edge when aligning a border area."
 msgstr ""
+"فاصلهٔ افقی که هنگام تراز کردن ناحیهٔ حاشیه باید از لبهٔ برگه رعایت شود."
 
-#: unpaper.py:231
-#, fuzzy
+#: unpaper.py:233
 msgid "White threshold"
 msgstr "آستانه سفید"
 
-#: unpaper.py:233
+#: unpaper.py:235
 msgid "Brightness ratio above which a pixel is considered white."
-msgstr ""
+msgstr "نسبت روشنایی‌ای که بالاتر از آن، یک پیکسل سفید در نظر گرفته می‌شود."
 
-#: unpaper.py:243
-#, fuzzy
+#: unpaper.py:245
 msgid "Black threshold"
 msgstr "آستانه سیاه"
 
-#: unpaper.py:245
+#: unpaper.py:247
 msgid ""
 "Brightness ratio below which a pixel is considered black (non-gray). This is"
 " used by the gray-filter. This value is also used when converting a "
 "grayscale image to black-and-white mode."
 msgstr ""
+"نسبت روشنایی که زیر آن یک پیکسل سیاه (غیرخاکستری) در نظر گرفته می‌شود. این "
+"مقدار توسط فیلتر خاکستری استفاده می‌شود. این مقدار همچنین هنگام تبدیل یک "
+"تصویر خاکستری به حالت سیاه‌وسفید استفاده می‌شود."
 
-#: unpaper.py:355
-#, fuzzy
+#: unpaper.py:370
 msgid "Deskew"
-msgstr "اصلاح کجی"
+msgstr "اصلاح انحراف"
 
-#: unpaper.py:359
-#, fuzzy
+#: unpaper.py:374
 msgid "Border"
 msgstr "حاشیه"
 
-#: unpaper.py:364
-#, fuzzy
+#: unpaper.py:385
 msgid "Filters"
 msgstr "فیلترها"
 
-#: app.ui:5 menu.ui:6
-msgid "_File"
-msgstr "_پرونده"
+#: app.ui:11
+msgid "Pan"
+msgstr "تابه"
 
-#: app.ui:9 menu.ui:9
-msgid "_New"
-msgstr "_جدید"
+#: app.ui:18
+msgid "Select"
+msgstr "انتخاب"
 
-#: app.ui:14 menu.ui:14
-msgid "_Open"
-msgstr ""
+#: app.ui:25
+msgid "Select & pan"
+msgstr "انتخاب و جابه‌جایی"
 
-#: app.ui:19
-#, fuzzy
-msgid "Open c_rashed session"
-msgstr "باز کردن جلسه از کار افتاده"
+#: app.ui:35
+msgid "Zoom 100%"
+msgstr "بزرگنمایی ۱۰۰٪"
 
-#: app.ui:23 menu.ui:19
-msgid "S_can"
-msgstr ""
+#: app.ui:40 app.ui:708
+msgid "Zoom to fit"
+msgstr "بزرگ‌نمایی برای تطبیق"
 
-#: app.ui:33 menu.ui:29
-#, fuzzy
-msgid "_Email as PDF"
-msgstr "ارسال به‌صورت PDF از طریق ایمیل"
+#: app.ui:45 app.ui:718
+msgid "Zoom in"
+msgstr "بزرگ‌نمایی"
 
-#: app.ui:38 menu.ui:34
-msgid "_Print"
-msgstr ""
+#: app.ui:50 app.ui:728
+msgid "Zoom out"
+msgstr "کوچک‌نمایی"
 
-#: app.ui:45 menu.ui:39
-msgid "_Quit"
-msgstr "_خروج"
-
-#: app.ui:51 menu.ui:46
-msgid "_Edit"
-msgstr "_ویرایش"
-
-#: app.ui:55 menu.ui:49
-msgid "_Undo"
-msgstr "_برگردان"
-
-#: app.ui:60 menu.ui:53
-msgid "_Redo"
-msgstr "_دوباره"
-
-#: app.ui:67 menu.ui:57
-msgid "Cu_t"
-msgstr "برش"
-
-#: app.ui:77 menu.ui:65
-msgid "_Paste"
-msgstr ""
-
-#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
-#, fuzzy
-msgid "_Select"
-msgstr "ابزار انتخاب‌شده"
-
-#: app.ui:89 menu.ui:76
-msgid "_All"
-msgstr ""
-
-#: app.ui:94 menu.ui:80
-msgid "_Odd"
-msgstr ""
-
-#: app.ui:99 menu.ui:84
-msgid "_Even"
-msgstr ""
-
-#: app.ui:104 menu.ui:88
-msgid "_Invert"
-msgstr ""
-
-#: app.ui:109 menu.ui:92
-msgid "_Blank"
-msgstr ""
-
-#: app.ui:114 menu.ui:96
-msgid "_Dark"
-msgstr ""
-
-#: app.ui:119 menu.ui:100
-msgid "_Modified"
-msgstr ""
-
-#: app.ui:124 menu.ui:104
-msgid "_No OCR"
-msgstr ""
-
-#: app.ui:130 menu.ui:108
-msgid "_Clear OCR"
-msgstr ""
-
-#: app.ui:136 menu.ui:114
-msgid "Propert_ies"
-msgstr ""
-
-#: app.ui:142 menu.ui:118
-#, fuzzy
-msgid "Prefere_nces"
-msgstr "تنظیمات"
-
-#: app.ui:147 menu.ui:124
-msgid "_View"
-msgstr "_نما"
-
-#: app.ui:150 app.ui:293
-msgid "_Pan"
-msgstr ""
-
-#: app.ui:160 app.ui:310
-msgid "_Select & pan"
-msgstr ""
-
-#: app.ui:167
-msgid "_Tabbed"
-msgstr ""
-
-#: app.ui:172
-#, fuzzy
-msgid "_Split horizontally"
-msgstr "افقی"
-
-#: app.ui:177
-#, fuzzy
-msgid "_Split vertically"
-msgstr "عمودی"
-
-#: app.ui:184
-msgid "Edit text layer"
-msgstr ""
-
-#: app.ui:189
-#, fuzzy
-msgid "Edit annotations"
-msgstr "افزودن حاشیه‌نویسی"
-
-#: app.ui:197 app.ui:320 menu.ui:127
-#, fuzzy
-msgid "Zoom _100%"
-msgstr "بزرگ‌نمایی به ۱۰۰٪"
-
-#: app.ui:201 app.ui:327 menu.ui:131
-#, fuzzy
-msgid "Zoom to _fit"
-msgstr "بزرگ‌نمایی به ۱۰۰٪"
-
-#: app.ui:205 app.ui:334 menu.ui:135
-msgid "Zoom _in"
-msgstr ""
-
-#: app.ui:210 app.ui:341 menu.ui:139
-msgid "Zoom _out"
-msgstr ""
-
-#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
+#: app.ui:58 app.ui:161 app.ui:427 app.ui:761 menu.ui:143
 msgid "Rotate 90° clockwise"
-msgstr ""
+msgstr "چرخاندن ۹۰° در جهت عقربه‌های ساعت"
 
-#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
-#, fuzzy
+#: app.ui:63 app.ui:166 app.ui:431 app.ui:751 menu.ui:147
 msgid "Rotate 180°"
-msgstr "چرخش"
+msgstr "چرخش ۱۸۰ درجه"
 
-#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
-#, fuzzy
+#: app.ui:68 app.ui:171 app.ui:435 app.ui:741 menu.ui:151
 msgid "Rotate 90° anticlockwise"
-msgstr "خلاف جهت عقربه‌های ساعت"
+msgstr "چرخش ۹۰° پادساعتگرد"
 
-#: app.ui:233 menu.ui:157
-msgid "_Tools"
-msgstr "_ابزارها"
-
-#: app.ui:237 menu.ui:160
-#, fuzzy
-msgid "_Threshold"
-msgstr "آستانه"
-
-#: app.ui:241 menu.ui:164
-#, fuzzy
-msgid "_Brightness / Contrast"
-msgstr "روشنایی / کنتراست"
-
-#: app.ui:245 menu.ui:168
-msgid "_Negate"
-msgstr ""
-
-#: app.ui:249 menu.ui:172
-msgid "_Unsharp Mask"
-msgstr ""
-
-#: app.ui:253 menu.ui:176
-#, fuzzy
-msgid "_Crop"
-msgstr "برش"
-
-#: app.ui:259 menu.ui:180
-#, fuzzy
-msgid "_Clean up"
-msgstr "تمیزکردن تصاویر"
-
-#: app.ui:263 menu.ui:184
-#, fuzzy
-msgid "_Split"
-msgstr "تقسیم"
-
-#: app.ui:267 menu.ui:188
-msgid "_OCR"
-msgstr ""
-
-#: app.ui:273 menu.ui:192
-#, fuzzy
-msgid "U_ser-defined"
-msgstr "ابزارهای تعریف‌شده توسط کاربر"
-
-#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
-msgid "_Help"
-msgstr "_راهنما"
-
-#: app.ui:286 menu.ui:205
-msgid "_About"
-msgstr "_درباره"
-
-#: app.ui:375 app.ui:478
-#, fuzzy
+#: app.ui:84 app.ui:187
 msgid "Cut"
 msgstr "برش"
 
-#: app.ui:381 app.ui:484
+#: app.ui:89 app.ui:192
 msgid "Copy"
-msgstr ""
+msgstr "کپی"
 
-#: app.ui:387 app.ui:490
+#: app.ui:94 app.ui:197
 msgid "Paste"
-msgstr ""
+msgstr "چسباندن"
 
-#: app.ui:393 app.ui:496
-#, fuzzy
-msgid "Delete"
-msgstr "_حذف"
-
-#: app.ui:420 app.ui:573
+#: app.ui:130 app.ui:560
 msgid "Print"
-msgstr ""
+msgstr "چاپ"
 
-#: app.ui:427
-#, fuzzy
+#: app.ui:138
 msgid "Select All"
-msgstr "ابزار انتخاب‌شده"
+msgstr "انتخاب همه"
 
-#: app.ui:433
-#, fuzzy
+#: app.ui:143
 msgid "Select Odd"
-msgstr "ابزار انتخاب‌شده"
+msgstr "انتخاب فرد"
 
-#: app.ui:439
+#: app.ui:148
 msgid "Select Even"
-msgstr ""
+msgstr "انتخاب زوج"
 
-#: app.ui:445
+#: app.ui:153
 msgid "Invert selection"
-msgstr ""
+msgstr "معکوس کردن انتخاب"
 
-#: app.ui:503
+#: app.ui:210
 msgid "Clear OCR"
-msgstr ""
+msgstr "پاک کردن OCR"
 
-#: app.ui:523
-#, fuzzy
+#: app.ui:226 menu.ui:6
+msgid "_File"
+msgstr "_پرونده"
+
+#: app.ui:230 menu.ui:9
+msgid "_New"
+msgstr "_جدید"
+
+#: app.ui:234 menu.ui:14
+msgid "_Open"
+msgstr "_باز کردن"
+
+#: app.ui:238
+msgid "Open c_rashed session"
+msgstr "باز کردن نشست خ_راب‌شده"
+
+#: app.ui:242
+msgid "Import _hOCR…"
+msgstr "درون‌ریزی _hOCR…"
+
+#: app.ui:246 menu.ui:19
+msgid "S_can"
+msgstr "اس_کن"
+
+#: app.ui:254 menu.ui:29
+msgid "_Email as PDF"
+msgstr "_ایمیل به‌صورت PDF"
+
+#: app.ui:258 menu.ui:34
+msgid "_Print"
+msgstr "_چاپ"
+
+#: app.ui:264 menu.ui:39
+msgid "_Quit"
+msgstr "_خروج"
+
+#: app.ui:269 menu.ui:46
+msgid "_Edit"
+msgstr "_ویرایش"
+
+#: app.ui:273 menu.ui:49
+msgid "_Undo"
+msgstr "_برگردان"
+
+#: app.ui:277 menu.ui:53
+msgid "_Redo"
+msgstr "_دوباره"
+
+#: app.ui:283 menu.ui:57
+msgid "Cu_t"
+msgstr "برش"
+
+#: app.ui:291 menu.ui:65
+msgid "_Paste"
+msgstr "_چسباندن"
+
+#: app.ui:299 app.ui:361 menu.ui:73
+msgid "_Select"
+msgstr "_انتخاب"
+
+#: app.ui:302 menu.ui:76
+msgid "_All"
+msgstr "_همه"
+
+#: app.ui:306 menu.ui:80
+msgid "_Odd"
+msgstr "_فرد"
+
+#: app.ui:310 menu.ui:84
+msgid "_Even"
+msgstr "_زوج"
+
+#: app.ui:314 menu.ui:88
+msgid "_Invert"
+msgstr "_معکوس کردن"
+
+#: app.ui:318 menu.ui:92
+msgid "_Blank"
+msgstr "_خالی"
+
+#: app.ui:322 menu.ui:96
+msgid "_Dark"
+msgstr "_تاریک"
+
+#: app.ui:326 menu.ui:100
+msgid "_Modified"
+msgstr "_تغییر یافته"
+
+#: app.ui:330 menu.ui:104
+msgid "_No OCR"
+msgstr "_بدون OCR"
+
+#: app.ui:336 menu.ui:108
+msgid "_Clear OCR"
+msgstr "_پاک کردن OCR"
+
+#: app.ui:342 menu.ui:114
+msgid "Propert_ies"
+msgstr "_ویژگی‌ها"
+
+#: app.ui:348 menu.ui:118
+msgid "Prefere_nces"
+msgstr "ت_نظیمات"
+
+#: app.ui:353 menu.ui:124
+msgid "_View"
+msgstr "_نما"
+
+#: app.ui:356
+msgid "_Pan"
+msgstr "_پن"
+
+#: app.ui:366
+msgid "_Select & pan"
+msgstr "_انتخاب و حرکت"
+
+#: app.ui:374
+msgid "_Clear image selection"
+msgstr "_پاک کردن انتخاب تصویر"
+
+#: app.ui:379
+msgid "_Tabbed"
+msgstr "_زبانه‌ای"
+
+#: app.ui:384
+msgid "_Split horizontally"
+msgstr "_تقسیم افقی"
+
+#: app.ui:389
+msgid "_Split vertically"
+msgstr "_تقسیم عمودی"
+
+#: app.ui:396
+msgid "Edit text layer"
+msgstr "ویرایش لایهٔ متن"
+
+#: app.ui:401
+msgid "Edit annotations"
+msgstr "ویرایش حاشیه‌نویسی‌ها"
+
+#: app.ui:409 menu.ui:127
+msgid "Zoom _100%"
+msgstr "بزرگ‌نمایی _100%"
+
+#: app.ui:413 menu.ui:131
+msgid "Zoom to _fit"
+msgstr "بزرگ‌نمایی برای _جا شدن"
+
+#: app.ui:417 menu.ui:135
+msgid "Zoom _in"
+msgstr "بزرگ‌نمایی _کن"
+
+#: app.ui:421 menu.ui:139
+msgid "Zoom _out"
+msgstr "_کوچک‌نمایی"
+
+#: app.ui:440 menu.ui:157
+msgid "_Tools"
+msgstr "_ابزارها"
+
+#: app.ui:444 menu.ui:160
+msgid "_Threshold"
+msgstr "_آستانه"
+
+#: app.ui:448 menu.ui:164
+msgid "_Brightness / Contrast"
+msgstr "_روشنایی / کنتراست"
+
+#: app.ui:452 menu.ui:168
+msgid "_Negate"
+msgstr "_نفی"
+
+#: app.ui:456 menu.ui:172
+msgid "_Unsharp Mask"
+msgstr "_ماسک غیرشارپ"
+
+#: app.ui:460 menu.ui:176
+msgid "_Crop"
+msgstr "_برش"
+
+#: app.ui:466 menu.ui:180
+msgid "_Clean up"
+msgstr "_پاک‌سازی"
+
+#: app.ui:470 menu.ui:184
+msgid "_Split"
+msgstr "_تقسیم"
+
+#: app.ui:474 menu.ui:188
+msgid "_OCR"
+msgstr "_OCR"
+
+#: app.ui:480 menu.ui:192
+msgid "U_ser-defined"
+msgstr "تعریف‌شده توسط ک_اربر"
+
+#: app.ui:485 app.ui:488 menu.ui:198 menu.ui:201
+msgid "_Help"
+msgstr "_راهنما"
+
+#: app.ui:492 menu.ui:205
+msgid "_About"
+msgstr "_درباره"
+
+#: app.ui:510
 msgid "Clears all pages"
-msgstr "اسکن همه صفحات"
+msgstr "همهٔ صفحه‌ها را پاک می‌کند"
 
-#: app.ui:533
-#, fuzzy
+#: app.ui:520
 msgid "Open images"
-msgstr "باز کردن تصویر"
+msgstr "باز کردن تصاویر"
 
-#: app.ui:543
-#, fuzzy
+#: app.ui:530
 msgid "Scan document"
-msgstr "سند منبع"
+msgstr "اسکن سند"
 
-#: app.ui:563
+#: app.ui:550
 msgid "Attach as PDF to a new email"
-msgstr ""
+msgstr "پیوست کردن به‌صورت PDF به یک ایمیل جدید"
 
-#: app.ui:584
+#: app.ui:573
 msgid "Undo"
 msgstr "برگردان"
 
-#: app.ui:594
+#: app.ui:583
 msgid "Redo"
 msgstr "دوباره"
 
-#: app.ui:605
+#: app.ui:596
 msgid "Cut selection"
-msgstr ""
+msgstr "برش انتخاب"
 
-#: app.ui:615
+#: app.ui:606
 msgid "Copy selection"
-msgstr ""
+msgstr "کپی انتخاب"
 
-#: app.ui:625
+#: app.ui:616
 msgid "Paste selection"
-msgstr ""
+msgstr "چسباندن انتخاب"
 
-#: app.ui:635
+#: app.ui:626
 msgid "Delete selected pages"
-msgstr ""
+msgstr "حذف صفحات انتخاب‌شده"
 
-#: app.ui:646
-#, fuzzy
+#: app.ui:639
 msgid "Select all pages"
-msgstr "اسکن همه صفحات"
+msgstr "انتخاب همه صفحات"
 
-#: app.ui:657
+#: app.ui:652
 msgid "Use the pan tool"
-msgstr ""
+msgstr "از ابزار جابه‌جایی استفاده کنید"
 
-#: app.ui:668
+#: app.ui:663
 msgid "Use the rectangular selection tool"
-msgstr ""
+msgstr "از ابزار انتخاب مستطیلی استفاده کنید"
 
-#: app.ui:680
+#: app.ui:674
 msgid "Use the combined select and pan tool"
-msgstr ""
+msgstr "از ابزار ترکیبی انتخاب و جابه‌جایی استفاده کنید"
 
-#: app.ui:693
+#: app.ui:685
+msgid "Clear image selection"
+msgstr "پاک کردن انتخاب تصویر"
+
+#: app.ui:698
 msgid "Zoom to 100%"
 msgstr "بزرگ‌نمایی به ۱۰۰٪"
 
-#: app.ui:703
-#, fuzzy
-msgid "Zoom to fit"
-msgstr "بزرگ‌نمایی به ۱۰۰٪"
-
-#: app.ui:713
-msgid "Zoom in"
-msgstr ""
-
-#: app.ui:723
-#, fuzzy
-msgid "Zoom out"
-msgstr "بزرگ‌نمایی به ۱۰۰٪"
-
-#: app.ui:765
-#, fuzzy
+#: app.ui:774
 msgid "Crop selection"
-msgstr "جهت"
+msgstr "برش انتخاب"
 
-#: app.ui:776
+#: app.ui:787
 msgid "Quit"
 msgstr "خروج"
 
-#: menu.ui:24
-#, fuzzy
-msgid "_Save"
-msgstr "ذخیره"
-
-#, fuzzy
-#: session_mixins.py:160
-#, fuzzy
-msgid "No crashed sessions found."
-msgstr ""
-
-#: session_mixins.py:166
-#, fuzzy
-msgid "Crashed sessions"
-msgstr ""
-
-#: session_mixins.py:171
-#, fuzzy
-msgid "_Discard"
-msgstr ""
-
-#: session_mixins.py:172
-#, fuzzy
-msgid "_Restore"
-msgstr ""
-
-#: session_mixins.py:175
-#, fuzzy
-msgid "Restore or discard a crashed session"
-msgstr ""
-
-#: session_mixins.py:204
-#, fuzzy
-msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
-msgstr ""
-
-#: session_mixins.py:239
-#, fuzzy
-msgid "Restore file"
-msgstr ""
-
-#: session_mixins.py:255
 #, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
-msgstr[1] ""
+#~ msgid "%dMb free in %s."
+#~ msgid_plural "%dMb free in %s."
+#~ msgstr[0] "%d مگابایت فضای آزاد در %s."
+#~ msgstr[1] "%d مگابایت فضای آزاد در %s."
 
-#: session_mixins.py:279
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
-msgstr ""
+#, fuzzy, python-format
+#~ msgid "Scanning page %d of %d"
+#~ msgstr "در حال اسکن صفحه %d از %d"
 
-#: scan_menu_item_mixins.py:122
-#, fuzzy
-msgid ""
-"Caching the device list with libusb devices is not recommended, as they can "
-"change between reboots. Cache them anyway?"
-msgstr ""
+#, fuzzy, python-format
+#~ msgid "Scanning page %d"
+#~ msgstr "در حال اسکن صفحه %d"
 
-#: scan_menu_item_mixins.py:127
+#, fuzzy, python-format
+#~ msgid "Analysing page %i of %i"
+#~ msgstr "در حال تحلیل صفحه %i از %i"
+
 #, fuzzy
-msgid "Don't ask again"
-msgstr ""
+#~ msgid "Open crashed session"
+#~ msgstr "باز کردن جلسه از کار افتاده"
+
+#, fuzzy
+#~ msgid "Pick crashed session to restore"
+#~ msgstr "انتخاب جلسه از کار افتاده برای بازیابی"
+
+#, fuzzy
+#~ msgid "Add annotation"
+#~ msgstr "افزودن حاشیه‌نویسی"
 
 #~ msgid "PPI"
 #~ msgstr "PPI"
