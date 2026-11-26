@@ -480,6 +480,24 @@ _UI_ONLY_MSGIDS = (
 _UI_MSGID_FLOOR = 83
 
 _VENDORED_ITS = REPO_ROOT / "dev" / "gtkbuilder.its"
+_METAINFO_SOURCE = REPO_ROOT / "org.scantpaper.desktop.metainfo.xml"
+_DESKTOP_SOURCE = REPO_ROOT / "org.scantpaper.desktop"
+_VENDORED_METAINFO_ITS = REPO_ROOT / "dev" / "metainfo.its"
+
+_METAINFO_SUMMARY = "GUI to produce PDFs or DjVus from scanned documents"
+_METAINFO_PHRASES = (
+    "Only two clicks are required",
+    "scantpaper can control regular or sheet-fed (ADF) scanners",
+    "It presents a thumbnail view",
+    "OCR can be used to recognise text",
+    "The resulting document may be saved",
+)
+_DESKTOP_COMMENT = "A GUI to aid the scan-to-PDF process"
+_EXCLUDED_DESKTOP_MSGIDS = (
+    "scantpaper",
+    "sane;graphics;scanning;scan;OCR;PDF;DjVu;",
+)
+_EXCLUDED_DESKTOP_KEYS = frozenset({"Name", "Keywords"})
 
 
 def _run_generate_pot(
@@ -538,8 +556,66 @@ def test_generate_pot_needs_no_intltool(tmp_path: Path) -> None:
         assert msgid in msgids, f"{msgid!r} missing from the generated template"
 
 
+def _desktop_line_keys() -> dict[str, str]:
+    """Map gettext's desktop reference line numbers to entry keys.
+
+    gettext reports the line after each key/value pair, so the number is one
+    greater than the 1-based line in the file.
+    """
+    return {
+        str(number + 1): line.split("=", 1)[0]
+        for number, line in enumerate(
+            _DESKTOP_SOURCE.read_text(encoding="utf-8").splitlines(), 1
+        )
+    }
+
+
+def _metadata_msgids(tmp_path: Path) -> tuple[set[str], set[str]]:
+    """Return the metainfo and desktop msgids extracted from the sources."""
+    metainfo_pot = tmp_path / "metainfo-only.pot"
+    subprocess.run(
+        [
+            "xgettext",
+            f"--its={_VENDORED_METAINFO_ITS}",
+            "--from-code=UTF-8",
+            "-o",
+            str(metainfo_pot),
+            str(_METAINFO_SOURCE),
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    desktop_pot = tmp_path / "desktop-only.pot"
+    subprocess.run(
+        [
+            "xgettext",
+            "--language=Desktop",
+            "--from-code=UTF-8",
+            "-o",
+            str(desktop_pot),
+            str(_DESKTOP_SOURCE),
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+    keys = _desktop_line_keys()
+    desktop = {
+        entry.msgid
+        for entry in polib.pofile(str(desktop_pot))
+        if entry.msgid
+        and not all(
+            keys.get(line) in _EXCLUDED_DESKTOP_KEYS
+            for _name, line in entry.occurrences
+        )
+    }
+    metainfo = {entry.msgid for entry in polib.pofile(str(metainfo_pot)) if entry.msgid}
+    return metainfo, desktop
+
+
 def _source_msgids(tmp_path: Path) -> set[str]:
-    """Return the msgids xgettext extracts from Python and the .ui files.
+    """Return the msgids xgettext extracts from every template source.
 
     Extracted separately, the way ``dev/generate_pot.py`` does before it
     merges them, so the union is what the merge must preserve.
@@ -566,7 +642,8 @@ def _source_msgids(tmp_path: Path) -> set[str]:
             text=True,
         )
         msgids |= {e.msgid for e in polib.pofile(str(out)) if e.msgid}
-    return msgids
+    metainfo, desktop = _metadata_msgids(tmp_path)
+    return msgids | metainfo | desktop
 
 
 def test_a_shared_msgid_keeps_every_source_reference(tmp_path: Path) -> None:
@@ -624,11 +701,60 @@ def test_ui_msgid_count_has_not_collapsed(tmp_path: Path) -> None:
     assert count >= _UI_MSGID_FLOOR, f"only {count} msgids from the .ui files"
 
 
+def test_metadata_msgids_are_extracted(tmp_path: Path) -> None:
+    """The metainfo and desktop strings reach the generated template."""
+    result = _run_generate_pot(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    msgids = {
+        entry.msgid
+        for entry in polib.pofile(str(tmp_path / "scantpaper.pot"))
+        if entry.msgid
+    }
+    for phrase in (_METAINFO_SUMMARY, *_METAINFO_PHRASES, _DESKTOP_COMMENT):
+        assert any(phrase in msgid for msgid in msgids), phrase
+    for excluded in _EXCLUDED_DESKTOP_MSGIDS:
+        assert excluded not in msgids
+    assert "Jeffrey Ratcliffe" not in msgids
+
+
+def test_metadata_references_are_recorded(tmp_path: Path) -> None:
+    """Each metadata msgid names the file it came from."""
+    result = _run_generate_pot(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    pot = polib.pofile(str(tmp_path / "scantpaper.pot"))
+    by_msgid = {entry.msgid: entry for entry in pot if entry.msgid}
+    summary = by_msgid[_METAINFO_SUMMARY]
+    assert any(
+        Path(name).name == _METAINFO_SOURCE.name for name, _line in summary.occurrences
+    )
+    comment = by_msgid[_DESKTOP_COMMENT]
+    assert any(
+        Path(name).name == _DESKTOP_SOURCE.name for name, _line in comment.occurrences
+    )
+
+
+def test_only_the_desktop_comment_is_extracted(tmp_path: Path) -> None:
+    """The desktop Name and Keywords never reach the template."""
+    result = _run_generate_pot(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    pot = polib.pofile(str(tmp_path / "scantpaper.pot"))
+    desktop_msgids = {
+        entry.msgid
+        for entry in pot
+        if any(
+            Path(name).name == _DESKTOP_SOURCE.name for name, _line in entry.occurrences
+        )
+    }
+    assert desktop_msgids == {_DESKTOP_COMMENT}
+
+
 def test_vendored_its_rules_exist() -> None:
     """The ITS rules the generator needs are vendored, not looked up."""
-    assert _VENDORED_ITS.is_file(), f"{_VENDORED_ITS} is missing"
-    loc = _VENDORED_ITS.with_suffix(".loc")
-    assert loc.is_file(), f"{loc} is missing"
+    for stem in ("gtkbuilder", "metainfo"):
+        rules = REPO_ROOT / "dev" / f"{stem}.its"
+        assert rules.is_file(), f"{rules} is missing"
+        loc = rules.with_suffix(".loc")
+        assert loc.is_file(), f"{loc} is missing"
 
 
 def _run_its_drift(tmp_path: Path, its_dir: Path) -> subprocess.CompletedProcess[str]:
@@ -673,7 +799,12 @@ def test_its_rules_matching_the_system_are_reported_as_matching(
     """An installed copy identical to the vendored one is reported as such."""
     its_dir = tmp_path / "its"
     its_dir.mkdir()
-    for name in ("gtkbuilder.its", "gtkbuilder.loc"):
+    for name in (
+        "gtkbuilder.its",
+        "gtkbuilder.loc",
+        "metainfo.its",
+        "metainfo.loc",
+    ):
         (its_dir / name).write_bytes(
             (REPO_ROOT / "dev" / name).read_bytes(),
         )
@@ -694,6 +825,8 @@ def test_its_rules_differing_from_the_system_are_reported(tmp_path: Path) -> Non
     (its_dir / "gtkbuilder.loc").write_bytes(
         (REPO_ROOT / "dev" / "gtkbuilder.loc").read_bytes(),
     )
+    for name in ("metainfo.its", "metainfo.loc"):
+        (its_dir / name).write_bytes((REPO_ROOT / "dev" / name).read_bytes())
     result = _run_its_drift(tmp_path, its_dir)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "differs" in result.stdout
@@ -733,6 +866,7 @@ def test_generate_pot_leaves_the_ui_sources_in_place(tmp_path: Path) -> None:
     for path, content in before.items():
         assert path.read_bytes() == content, f"generation altered {path.name}"
     assert not list(src.glob("_*_tmp.pot")), "temporary pots were left behind"
+    assert not list(REPO_ROOT.glob("_*_tmp.pot")), "temporary pots were left behind"
     assert not list(src.glob("*.ui.h")), "intermediate headers were left behind"
 
 

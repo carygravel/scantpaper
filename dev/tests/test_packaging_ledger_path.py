@@ -27,3 +27,15 @@ def test_packaging_generates_template_before_compiling() -> None:
         text = path.read_text(encoding="utf-8")
         assert "dev/generate_pot.py" in text, path
         assert text.index("dev/generate_pot.py") < text.index("dev/compile_mo.py"), path
+
+
+def test_packaging_joins_metadata_after_compiling() -> None:
+    """Every package build generates the installed metadata from the catalogs."""
+    for path in PACKAGING_FILES:
+        text = path.read_text(encoding="utf-8")
+        assert "dev/join_metadata.py" in text, path
+        assert "--mo" in text, path
+        assert "--out-dir" in text, path
+        assert text.index("dev/join_metadata.py") > text.index("dev/compile_mo.py"), (
+            path
+        )

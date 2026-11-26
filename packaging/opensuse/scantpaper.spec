@@ -63,6 +63,7 @@ BuildRequires:  python313-typing_extensions
 %endif
 
 # Tools used to generate the additional files installed by the package.
+BuildRequires:  AppStream-devel
 BuildRequires:  gettext-tools
 BuildRequires:  help2man
 %if 0%{?suse_version} >= 1699
@@ -159,6 +160,11 @@ python3 dev/compile_mo.py \
     --pot po/scantpaper/scantpaper.pot \
     --report translation-report.json
 
+# Join the approved catalogs into the installed metadata.
+python3 dev/join_metadata.py \
+    --mo locale \
+    --out-dir generated
+
 %install
 python3 -m pip install \
     --root %{buildroot} \
@@ -174,12 +180,12 @@ cp -a locale/. %{buildroot}%{_datadir}/locale/
 
 # Desktop entry.
 install -Dpm 0644 \
-    org.scantpaper.desktop \
+    generated/org.scantpaper.desktop \
     %{buildroot}%{_datadir}/applications/org.scantpaper.desktop
 
 # AppStream metadata.
 install -Dpm 0644 \
-    org.scantpaper.desktop.metainfo.xml \
+    generated/org.scantpaper.desktop.metainfo.xml \
     %{buildroot}%{_datadir}/metainfo/org.scantpaper.desktop.metainfo.xml
 
 # Icons.

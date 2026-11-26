@@ -19,6 +19,45 @@ msgstr ""
 "X-Generator: Launchpad (build 7edb2d45353e030166106ae05838b77ab406edcd)\n"
 "X-Launchpad-Export-Date: 2021-08-25 16:28+0000\n"
 
+#: org.scantpaper.desktop.metainfo.xml:10
+msgid "GUI to produce PDFs or DjVus from scanned documents"
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:12
+msgid ""
+"Only two clicks are required to scan several pages and then save all or a "
+"selection as a PDF or DjVu file, including metadata if required."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:16
+msgid ""
+"scantpaper can control regular or sheet-fed (ADF) scanners with SANE via "
+"libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
+"once."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:21
+msgid ""
+"It presents a thumbnail view of scanned pages, and permits simple operations"
+" such as cropping, rotating and deleting pages."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:25
+msgid ""
+"OCR can be used to recognise text in the scans, and the output embedded in "
+"the PDF or DjVu."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:29
+msgid ""
+"The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
+"single page image file."
+msgstr ""
+
+#: org.scantpaper.desktop:4
+msgid "A GUI to aid the scan-to-PDF process"
+msgstr ""
+
 #: app_window.py:751
 msgid "Warning: missing packages"
 msgstr "Atencion: paquets mancants"
@@ -653,22 +692,10 @@ msgstr ""
 "Remplaçatz lo contengut del bufèr de tèxte amb aquel de la sortida de l'OCR."
 
 #: dialog/preferences.py:352
-#| msgid ""
-#| "Use %i and %o for the input and output filenames respectively,\n"
-#| "or a single %i if the image is to be modified in-place.\n"
-#| "\n"
-#| "The other variable available is:\n"
-#| "%r resolution"
 msgid "Prepend"
 msgstr "Apondre al començament"
 
 #: dialog/preferences.py:352
-#| msgid ""
-#| "Use %i and %o for the input and output filenames respectively,\n"
-#| "or a single %i if the image is to be modified in-place.\n"
-#| "\n"
-#| "The other variable available is:\n"
-#| "%r resolution"
 msgid "Prepend the OCR output to the text buffer."
 msgstr "Apondre la sortida OCR al començament del buffer de tèxt."
 

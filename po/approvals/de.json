@@ -12756,6 +12756,24 @@
       "deployment": null,
       "approval_date": "2026-11-15",
       "msgstr": "Ausgewählte Papiergröße entfernen"
+    },
+    {
+      "language": "de",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
+      "msgid_plural": null,
+      "translation_sha256": "d8d58c4ea548a7617f80e6de4e152cb0d50ba4e8a79f233476d25d81abde655a",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline desktop Comment",
+        "source": "org.scantpaper.desktop",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "5ca42c54f1c37d8abe97235c1b90964def11a536d415621650750b4096ca9442",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "Machen Sie PDF-Dateien direkt von Ihrem Scanner"
     }
   ],
   "qualifications": [

@@ -21,23 +21,62 @@ msgstr ""
 "X-Generator: Launchpad (build bbfa2351d9d6a9ddfe262109428f7bf5516e65d1)\n"
 "X-Launchpad-Export-Date: 2024-06-28 17:52+0000\n"
 
-#: app_window.py:747
+#: org.scantpaper.desktop.metainfo.xml:10
+msgid "GUI to produce PDFs or DjVus from scanned documents"
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:12
+msgid ""
+"Only two clicks are required to scan several pages and then save all or a "
+"selection as a PDF or DjVu file, including metadata if required."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:16
+msgid ""
+"scantpaper can control regular or sheet-fed (ADF) scanners with SANE via "
+"libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
+"once."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:21
+msgid ""
+"It presents a thumbnail view of scanned pages, and permits simple operations"
+" such as cropping, rotating and deleting pages."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:25
+msgid ""
+"OCR can be used to recognise text in the scans, and the output embedded in "
+"the PDF or DjVu."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:29
+msgid ""
+"The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
+"single page image file."
+msgstr ""
+
+#: org.scantpaper.desktop:4
+msgid "A GUI to aid the scan-to-PDF process"
+msgstr "Программа для сканирования документов"
+
+#: app_window.py:751
 msgid "Warning: missing packages"
 msgstr "Предупреждение: некоторые пакеты отсутствуют"
 
-#: app_window.py:823
+#: app_window.py:827
 msgid "Image"
 msgstr "Изображение"
 
-#: app_window.py:824 layer.py:197
+#: app_window.py:828 layer.py:197
 msgid "Text layer"
 msgstr "Текстовый слой"
 
-#: app_window.py:826
+#: app_window.py:830
 msgid "Annotations"
 msgstr "Примечание"
 
-#: app_window.py:1246
+#: app_window.py:1294
 #, python-format
 msgid "%(mb)dMb free in %(name)s."
 msgid_plural "%(mb)dMb free in %(name)s."
@@ -45,51 +84,51 @@ msgstr[0] "Свободно %(mb)d МБ в %(name)s."
 msgstr[1] "Свободно %(mb)d МБ в %(name)s."
 msgstr[2] "Свободно %(mb)d МБ в %(name)s."
 
-#: app_window.py:1274 helpers.py:533
+#: app_window.py:1322 helpers.py:531
 msgid "Messages"
 msgstr "Сообщения"
 
-#: app_window.py:1357
+#: app_window.py:1405
 msgid "Error opening the last device used."
 msgstr "Ошибка при открытии последнего использованного устройства."
 
-#: app_window.py:1359
+#: app_window.py:1407
 msgid "There was an error opening the last device used."
 msgstr "При открытии последнего использованного устройства произошла ошибка."
 
-#: app_window.py:1362
+#: app_window.py:1410
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Устройство забыли включить. Повторить попытку."
 
-#: app_window.py:1368 dialog/scan.py:534
+#: app_window.py:1416 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr "Повторить попытку поиска устройств"
 
-#: app_window.py:1371
+#: app_window.py:1419
 msgid "Restart scantpaper."
 msgstr "Перезапустить scantpaper."
 
-#: app_window.py:1375
+#: app_window.py:1423
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Проигнорировать ошибку. Наличие сканера не требуется."
 
-#: app_window.py:1379 dialog/preferences.py:189
+#: app_window.py:1427 dialog/preferences.py:189
 msgid "Cache device list"
 msgstr "Кэшировать список устройств"
 
-#: app_window.py:1382 dialog/__init__.py:214 session_mixins.py:524
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr "Больше не показывать это сообщение"
 
-#: basedocument.py:44
+#: basedocument.py:47
 msgid "Thumbnails"
 msgstr "Миниатюры"
 
-#: basedocument.py:854
+#: basedocument.py:876
 msgid "No pages to process"
 msgstr "Нет страниц для обработки"
 
-#: basedocument.py:858
+#: basedocument.py:880
 msgid "No pages selected"
 msgstr "Не выбрано ни одной страницы"
 
@@ -140,37 +179,37 @@ msgstr ""
 "сброшены к значениям по умолчанию. Резервная копия исходного файла сохранена"
 " как %(backup)s."
 
-#: dependencies.py:124 tests/test_app_window.py:861
+#: dependencies.py:166 tests/test_app_window.py:880
 msgid "Save image and Save as PDF both require imagemagick"
 msgstr "Сохранение изображения и сохранение в PDF требуют ImageMagick"
 
-#: dependencies.py:130
+#: dependencies.py:172
 #, fuzzy
 msgid "Save image requires libtiff"
 msgstr "Для сохранения изображения требуется libtiff"
 
-#: dependencies.py:136 tests/test_app_window.py:862
+#: dependencies.py:178 tests/test_app_window.py:881
 msgid "Save as DjVu requires djvulibre-bin"
 msgstr "Для сохранения в DjVu требуется djvulibre-bin"
 
-#: dependencies.py:144
+#: dependencies.py:186
 msgid "Email as PDF requires xdg-email"
 msgstr "Отправка PDF по электронной почте требует xdg-email"
 
-#: dependencies.py:147 tests/test_app_window.py:863
+#: dependencies.py:189 tests/test_app_window.py:882
 msgid "unpaper missing"
 msgstr "unpaper отсутствует"
 
-#: dependencies.py:149 tests/test_app_window.py:864
+#: dependencies.py:191 tests/test_app_window.py:883
 msgid "OCR requires tesseract"
 msgstr "Для OCR требуется tesseract"
 
-#: dependencies.py:154 tests/test_app_window.py:865
+#: dependencies.py:196 tests/test_app_window.py:884
 #, fuzzy
 msgid "PDF encryption requires qpdf"
 msgstr "Для шифрования PDF требуется qpdf"
 
-#: dependencies.py:160 tests/test_app_window.py:866
+#: dependencies.py:202 tests/test_app_window.py:885
 msgid "JBIG2 PDF compression requires jbig2"
 msgstr "Для сжатия PDF с помощью JBIG2 требуется jbig2"
 
@@ -295,20 +334,20 @@ msgstr "Обзор"
 msgid "Pages are matched to the hOCR pages in order."
 msgstr "Страницы сопоставляются со страницами hOCR по порядку."
 
-#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:875
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
 #: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
 #: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
-#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:991
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
 msgid "_OK"
 msgstr "_ОК"
 
-#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:876
-#: edit_menu_mixins.py:123 file_menu_mixins.py:411 layer.py:259 progress.py:43
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
 #: scan_menu_item_mixins.py:456 session_mixins.py:173
 #: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
 #: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
 #: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
-#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:991
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
 msgid "_Cancel"
 msgstr "_Отмена"
 
@@ -318,8 +357,8 @@ msgstr "Открыть файл hOCR"
 
 #: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
 #: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
-#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:505
-#: file_menu_mixins.py:827 postprocess_controls.py:715
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -327,7 +366,7 @@ msgstr "Отмена"
 msgid "Open"
 msgstr "Открыть"
 
-#: dialog/importhocr.py:79 file_menu_mixins.py:489
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
 msgid "hOCR files"
 msgstr "Файлы hOCR"
 
@@ -626,7 +665,7 @@ msgid "Select temporary directory"
 msgstr "Выбрать временный каталог"
 
 #: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
-#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:507
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
 #: postprocess_controls.py:717
 msgid "OK"
 msgstr "ОК"
@@ -1031,100 +1070,100 @@ msgstr "Нет"
 msgid "Use no compression algorithm on output."
 msgstr "Не использовать алгоритм сжатия при выводе."
 
-#: dialog/save.py:378
+#: dialog/save.py:374
 msgid "Document Metadata"
 msgstr "Метаданные документа"
 
-#: dialog/save.py:389
+#: dialog/save.py:385
 msgid "Date/Time"
 msgstr "Дата и время"
 
-#: dialog/save.py:401 dialog/save.py:597
+#: dialog/save.py:397 dialog/save.py:591
 msgid "Now"
 msgstr "Сейчас"
 
-#: dialog/save.py:402 dialog/save.py:598
+#: dialog/save.py:398 dialog/save.py:592
 msgid "Use current date and time"
 msgstr "Использовать текущие дату и время"
 
-#: dialog/save.py:409
+#: dialog/save.py:405
 msgid "Specify"
 msgstr "Указать"
 
-#: dialog/save.py:411
+#: dialog/save.py:407
 msgid "Specify date and time"
 msgstr "Укажите дату и время"
 
-#: dialog/save.py:419
+#: dialog/save.py:415
 msgid "Year-Month-Day"
 msgstr "Год-Месяц-День"
 
-#: dialog/save.py:426 tests/test_icon_buttons.py:209
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
 #: tests/test_icon_buttons.py:210
 msgid "Select date with calendar"
 msgstr "Выбрать дату в календаре"
 
-#: dialog/save.py:471
+#: dialog/save.py:467
 msgid "Select Date"
 msgstr "Выберите дату"
 
-#: dialog/save.py:513 dialog/save.py:604
+#: dialog/save.py:509 dialog/save.py:598
 msgid "Today"
 msgstr "Сегодня"
 
-#: dialog/save.py:571
+#: dialog/save.py:565
 msgid "Title"
 msgstr "Заголовок"
 
-#: dialog/save.py:572
+#: dialog/save.py:566
 msgid "Author"
 msgstr "Автор"
 
-#: dialog/save.py:573
+#: dialog/save.py:567
 msgid "Subject"
 msgstr "Тема"
 
-#: dialog/save.py:574
+#: dialog/save.py:568
 msgid "Keywords"
 msgstr "Ключевые слова"
 
-#: dialog/save.py:605
+#: dialog/save.py:599
 msgid "Use today's date"
 msgstr "Использовать сегодняшнюю дату"
 
-#: dialog/save.py:615
+#: dialog/save.py:609
 msgid "Document type"
 msgstr "Тип документа"
 
-#: dialog/save.py:624
+#: dialog/save.py:618
 msgid "Postscript backend"
 msgstr "Модуль Postscript"
 
-#: dialog/save.py:641 dialog/save.py:782
+#: dialog/save.py:635 dialog/save.py:776
 msgid "Compression"
 msgstr "Сжатие"
 
-#: dialog/save.py:760
+#: dialog/save.py:754
 msgid "Quality"
 msgstr "Качество"
 
-#: dialog/save.py:797
+#: dialog/save.py:791
 msgid "Encrypt PDF"
 msgstr "Шифрование PDF"
 
-#: dialog/save.py:814
+#: dialog/save.py:808
 msgid "Downsample to"
 msgstr "Снизить разрешение до"
 
-#: dialog/save.py:818 dialog/scan.py:770
+#: dialog/save.py:812 dialog/scan.py:770
 msgid "ppi"
 msgstr "пикс/дюйм"
 
-#: dialog/save.py:847
+#: dialog/save.py:841
 msgid "Set password"
 msgstr "Задать пароль"
 
-#: dialog/save.py:856
+#: dialog/save.py:850
 msgid "User password"
 msgstr "Пароль"
 
@@ -1137,7 +1176,7 @@ msgstr "Указать вручную"
 msgid "Scan profiles"
 msgstr "Профили сканирования"
 
-#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:829
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
 #: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
 msgid "Save"
 msgstr "Сохранить"
@@ -1426,7 +1465,7 @@ msgstr ""
 msgid "Open image"
 msgstr "Открыть изображение"
 
-#: file_menu_mixins.py:128 file_menu_mixins.py:481 file_menu_mixins.py:837
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
 msgstr "Файлы изображений"
 
@@ -1451,11 +1490,11 @@ msgstr "Введите пароль для PDF %s"
 msgid "Import hOCR"
 msgstr "Импортировать hOCR"
 
-#: file_menu_mixins.py:375
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
 msgstr "Обработка после сохранения"
 
-#: file_menu_mixins.py:378
+#: file_menu_mixins.py:377
 #, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
@@ -1465,87 +1504,87 @@ msgstr ""
 " указанных пользователем инструментов дополнительной обработки изображений "
 "без указания %o"
 
-#: file_menu_mixins.py:400 file_menu_mixins.py:401
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
 msgstr "Закрывать диалог при сохранении"
 
-#: file_menu_mixins.py:408 menu.ui:24
+#: file_menu_mixins.py:407 menu.ui:24
 msgid "_Save"
 msgstr "_Сохранить"
 
-#: file_menu_mixins.py:472
+#: file_menu_mixins.py:471
 msgid "PDF filename"
 msgstr "Имя файла PDF"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:472
 msgid "PDF files"
 msgstr "Файлы PDF"
 
-#: file_menu_mixins.py:476
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
 msgstr "Имя файла DjVu"
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:476
 msgid "DjVu files"
 msgstr "Файлы DjVu"
 
-#: file_menu_mixins.py:480
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
 msgstr "Имя файла TIFF"
 
-#: file_menu_mixins.py:484
+#: file_menu_mixins.py:483
 msgid "Text filename"
 msgstr "Имя текстового файла"
 
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:484
 msgid "Text files"
 msgstr "Текстовые файлы"
 
-#: file_menu_mixins.py:488
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
 msgstr "Имя файла hOCR"
 
-#: file_menu_mixins.py:492
+#: file_menu_mixins.py:491
 msgid "PS filename"
 msgstr "Имя файла PS"
 
-#: file_menu_mixins.py:493
+#: file_menu_mixins.py:492
 msgid "Postscript files"
 msgstr "Файлы Postscript"
 
-#: file_menu_mixins.py:496
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
 msgstr "Имя файла сеанса scantpaper"
 
-#: file_menu_mixins.py:497
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
 msgstr "Файлы сеанса scantpaper"
 
-#: file_menu_mixins.py:605
+#: file_menu_mixins.py:604
 #, python-format
 msgid "Error saving %(filename)s: %(error)s"
 msgstr "Ошибка при сохранении %(filename)s: %(error)s"
 
-#: file_menu_mixins.py:620
+#: file_menu_mixins.py:619
 #, python-format
 msgid "Directory %s is read-only"
 msgstr "Каталог %s доступен только для чтения"
 
-#: file_menu_mixins.py:630
+#: file_menu_mixins.py:629
 #, python-format
 msgid "File %s is read-only"
 msgstr "Файл %s доступен только для чтения"
 
-#: file_menu_mixins.py:822
+#: file_menu_mixins.py:821
 msgid "Image filename"
 msgstr "Имя файла изображения"
 
-#: file_menu_mixins.py:882
+#: file_menu_mixins.py:881
 #, python-format
 msgid "This operation would overwrite %s"
 msgstr "Это действие перезапишет %s"
 
-#: file_menu_mixins.py:965
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
@@ -2481,15 +2520,15 @@ msgstr "Обработать выбранные страницы сразу"
 msgid "Email as PDF"
 msgstr "Отправить по почте в виде PDF"
 
-#: tools_menu_mixins.py:971
+#: tools_menu_mixins.py:970
 msgid "Error creating email"
 msgstr "Ошибка при создании письма"
 
-#: tools_menu_mixins.py:1027
+#: tools_menu_mixins.py:1026
 msgid "To aid the scan-to-PDF process"
 msgstr "Упрощение процесса сканирования в PDF"
 
-#: tools_menu_mixins.py:1028
+#: tools_menu_mixins.py:1027
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
 msgstr "Авторские права 2006--2026 Джеффри Рэтклифф"
 

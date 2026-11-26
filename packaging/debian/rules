@@ -17,6 +17,10 @@ execute_after_dh_auto_build:
 		--pot po/scantpaper/scantpaper.pot \
 		--report debian/translation-report.json
 
+	python3 dev/join_metadata.py \
+		--mo debian/locale \
+		--out-dir debian/generated
+
 	pandoc README.md -o debian/documentation.html
 	python3 dev/strip_remote_images.py debian/documentation.html
 
@@ -24,6 +28,11 @@ execute_after_dh_install:
 	# install locale manually into package staging area
 	mkdir -p debian/scantpaper/usr/share/
 	mv debian/locale debian/scantpaper/usr/share/
+	# replace the English-only metadata with the joined translations
+	cp debian/generated/org.scantpaper.desktop \
+		debian/scantpaper/usr/share/applications/org.scantpaper.desktop
+	cp debian/generated/org.scantpaper.desktop.metainfo.xml \
+		debian/scantpaper/usr/share/metainfo/org.scantpaper.desktop.metainfo.xml
 
 execute_before_dh_installman:
 	help2man \

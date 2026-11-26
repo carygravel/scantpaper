@@ -15799,6 +15799,114 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-15",
       "msgstr": "unpaper chybí"
+    },
+    {
+      "language": "cs",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null,
+      "translation_sha256": "aa40957a0d6232fed8e36f4195b207b6f5c91d4fbb25ed7cdb861bc0be56fb44",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline cs_CZ metainfo translation",
+        "source_commit": "873f6586",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "16f46f8c90c52813986cdf61df76fadab188137bc03d04d622a2d7e96c81c0b5",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "Grafické rozhraní na výrobu PDF nebo DjVu dokumentů z naskenovaných dokumentů"
+    },
+    {
+      "language": "cs",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null,
+      "translation_sha256": "178c2193a4588f3fb1e9d0ce17381fb0659f100c640f87a9fd392fc111516129",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline cs_CZ metainfo translation",
+        "source_commit": "873f6586",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "16f46f8c90c52813986cdf61df76fadab188137bc03d04d622a2d7e96c81c0b5",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "Jen dva kliky stačí, abyste naskenovali několik stránek a poté je všechny nebo jen některé uložili jako PDF nebo DjVu soubor, a to včetně metadat, jsou-li třeba."
+    },
+    {
+      "language": "cs",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null,
+      "translation_sha256": "0ae01a6740c42ee59710c34ccccabb4ad86db2b5ce0032005d6ed181680230fc",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline cs_CZ metainfo translation",
+        "source_commit": "873f6586",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "16f46f8c90c52813986cdf61df76fadab188137bc03d04d622a2d7e96c81c0b5",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "scantpaper umí ovládat běžné skenery i skenery s podavačem (ADF) pomocí libimage-sane-perl, scanimage nebo scanadf a umí skenovat více stránek najednou."
+    },
+    {
+      "language": "cs",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null,
+      "translation_sha256": "311d657d1ff241edbe917d7d4bf8d6820392f5aba27e4486a238a620e8524154",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline cs_CZ metainfo translation",
+        "source_commit": "873f6586",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "16f46f8c90c52813986cdf61df76fadab188137bc03d04d622a2d7e96c81c0b5",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "Ukazuje náhledy naskenovaných stránek a dovoluje jednoduché operace jako ořez, rotaci a mazání stránek."
+    },
+    {
+      "language": "cs",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null,
+      "translation_sha256": "82e4915a78306785dabf88681ab3a1f6ba57e5c6472699b5f1dd4338694c693c",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline cs_CZ metainfo translation",
+        "source_commit": "873f6586",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "16f46f8c90c52813986cdf61df76fadab188137bc03d04d622a2d7e96c81c0b5",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "V naskenovaných obrázcích lze najít text pomocí optického rozpoznávání znaků (OCR) a výstup lze začlenit do PDF nebo DjVu."
+    },
+    {
+      "language": "cs",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
+      "msgid_plural": null,
+      "translation_sha256": "fcfcf56fd0e158cf526dda2686ff87707031d099f378d379fdc04025d5dba575",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline cs_CZ metainfo translation",
+        "source_commit": "873f6586",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "16f46f8c90c52813986cdf61df76fadab188137bc03d04d622a2d7e96c81c0b5",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "Výsledný dokument lze uložit jako PDF, DjVu, vícestránkový TIFF soubor nebo obrázek s jednou stránkou."
     }
   ],
   "qualifications": [

@@ -47,6 +47,11 @@
   Japanese, Korean, Norwegian Bokmål, Occitan, Persian, Polish,
   Portuguese, Russian, Simplified Chinese, Slovak, Slovenian, Swedish,
   Traditional Chinese, Turkish & Ukrainian translations
+* The AppStream metainfo and desktop entry are now translated from the
+  approved catalogs at build time. Their inline `xml:lang` and `Comment[xx]`
+  translations moved into the catalogs (the existing Czech metainfo and
+  German/French/Russian desktop text is kept), so the metadata follows the
+  same approval ledger as the application and can no longer go stale.
 
 
 ## 4.0.4 (2026-11-14)

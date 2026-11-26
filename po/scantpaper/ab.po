@@ -16,332 +16,436 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 "X-Generator: Launchpad (build 17908)\n"
+"X-Launchpad-Export-Date: 2016-02-02 12:44+0000\n"
 
-#: app_window.py:516
-msgid "Save image and Save as PDF both require imagemagick"
+#: org.scantpaper.desktop.metainfo.xml:10
+msgid "GUI to produce PDFs or DjVus from scanned documents"
 msgstr ""
 
-#: app_window.py:517
-msgid "Save image requires libtiff"
+#: org.scantpaper.desktop.metainfo.xml:12
+msgid ""
+"Only two clicks are required to scan several pages and then save all or a "
+"selection as a PDF or DjVu file, including metadata if required."
 msgstr ""
 
-#: app_window.py:518
-msgid "Save as DjVu requires djvulibre-bin"
+#: org.scantpaper.desktop.metainfo.xml:16
+msgid ""
+"scantpaper can control regular or sheet-fed (ADF) scanners with SANE via "
+"libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
+"once."
 msgstr ""
 
-#: app_window.py:519
-msgid "Email as PDF requires xdg-email"
+#: org.scantpaper.desktop.metainfo.xml:21
+msgid ""
+"It presents a thumbnail view of scanned pages, and permits simple operations"
+" such as cropping, rotating and deleting pages."
 msgstr ""
 
-#: app_window.py:520
-msgid "unpaper missing"
+#: org.scantpaper.desktop.metainfo.xml:25
+msgid ""
+"OCR can be used to recognise text in the scans, and the output embedded in "
+"the PDF or DjVu."
 msgstr ""
 
-#: app_window.py:528
-msgid "OCR requires tesseract"
+#: org.scantpaper.desktop.metainfo.xml:29
+msgid ""
+"The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
+"single page image file."
 msgstr ""
 
-#: app_window.py:543
-msgid "PDF encryption requires qpdf"
+#: org.scantpaper.desktop:4
+msgid "A GUI to aid the scan-to-PDF process"
 msgstr ""
 
-#: app_window.py:575
+#: app_window.py:751
 msgid "Warning: missing packages"
 msgstr ""
 
-#: app_window.py:593
+#: app_window.py:827
 msgid "Image"
 msgstr ""
 
-#: app_window.py:594 text_layer_control.py:57
+#: app_window.py:828 layer.py:197
 msgid "Text layer"
 msgstr ""
 
-#: app_window.py:596 session_mixins.py:446
+#: app_window.py:830
 msgid "Annotations"
 msgstr ""
 
-#: app_window.py:837
+#: app_window.py:1294
 #, python-format
-msgid "%dMb free in %s."
-msgid_plural "%dMb free in %s."
+msgid "%(mb)dMb free in %(name)s."
+msgid_plural "%(mb)dMb free in %(name)s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: app_window.py:864 helpers.py:372
+#: app_window.py:1322 helpers.py:531
 msgid "Messages"
 msgstr ""
 
-#: app_window.py:949
+#: app_window.py:1405
 msgid "Error opening the last device used."
 msgstr ""
 
-#: app_window.py:951
+#: app_window.py:1407
 msgid "There was an error opening the last device used."
 msgstr ""
 
-#: app_window.py:954
+#: app_window.py:1410
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr ""
 
-#: app_window.py:959 dialog/scan.py:517
+#: app_window.py:1416 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr ""
 
-#: app_window.py:963
+#: app_window.py:1419
 msgid "Restart scantpaper."
 msgstr ""
 
-#: app_window.py:968
+#: app_window.py:1423
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr ""
 
-#: app_window.py:971 dialog/preferences.py:162
+#: app_window.py:1427 dialog/preferences.py:189
 msgid "Cache device list"
 msgstr ""
 
-#: app_window.py:974 dialog/__init__.py:135 session_mixins.py:392
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr ""
 
-#: basedocument.py:48
+#: basedocument.py:47
 msgid "Thumbnails"
 msgstr ""
 
-#: basedocument.py:711
+#: basedocument.py:876
 msgid "No pages to process"
 msgstr ""
 
-#: basedocument.py:715
+#: basedocument.py:880
 msgid "No pages selected"
 msgstr ""
 
-#: config.py:107
+#: config.py:113
 msgid "A3"
 msgstr ""
 
-#: config.py:113
+#: config.py:119
 msgid "A4"
 msgstr ""
 
-#: config.py:119
+#: config.py:125
 msgid "US Letter"
 msgstr ""
 
-#: config.py:125
+#: config.py:131
 msgid "US Legal"
 msgstr ""
 
-#: config.py:263
+#: config.py:276
 #, python-format
 msgid ""
-"The setting %s is %r and cannot be used as %s, so it has been left unchanged."
+"The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
+"been left unchanged."
 msgstr ""
 
-#: config.py:299
+#: config.py:312
 #, python-format
 msgid ""
-"The settings file %s could not be read in full. The following settings were "
-"restored: %s. The rest were reset to their defaults. A backup of the "
-"original file has been saved as %s."
+"The settings file %(filename)s could not be read in full. These settings "
+"were restored: %(settings)s. The rest were reset to their defaults. A backup"
+" has been saved as %(backup)s."
 msgstr ""
 
-#: config.py:306
+#: config.py:323
 #, python-format
 msgid ""
-"The settings file %s could not be read, so all settings have been reset to "
-"their defaults. A backup of the original file has been saved as %s."
+"The settings file %(filename)s could not be read, so all settings have been "
+"reset to their defaults. A backup of the original file has been saved as "
+"%(backup)s."
 msgstr ""
 
-#: dialog/__init__.py:67
+#: dependencies.py:166 tests/test_app_window.py:880
+msgid "Save image and Save as PDF both require imagemagick"
+msgstr ""
+
+#: dependencies.py:172
+msgid "Save image requires libtiff"
+msgstr ""
+
+#: dependencies.py:178 tests/test_app_window.py:881
+msgid "Save as DjVu requires djvulibre-bin"
+msgstr ""
+
+#: dependencies.py:186
+msgid "Email as PDF requires xdg-email"
+msgstr ""
+
+#: dependencies.py:189 tests/test_app_window.py:882
+msgid "unpaper missing"
+msgstr ""
+
+#: dependencies.py:191 tests/test_app_window.py:883
+msgid "OCR requires tesseract"
+msgstr ""
+
+#: dependencies.py:196 tests/test_app_window.py:884
+msgid "PDF encryption requires qpdf"
+msgstr ""
+
+#: dependencies.py:202 tests/test_app_window.py:885
+msgid "JBIG2 PDF compression requires jbig2"
+msgstr ""
+
+#: dialog/__init__.py:134
 msgid "Page Range"
 msgstr ""
 
-#: dialog/__init__.py:106
+#: dialog/__init__.py:174
 msgid "Error"
 msgstr ""
 
-#: dialog/__init__.py:107
+#: dialog/__init__.py:175
 msgid "Warning"
 msgstr ""
 
-#: dialog/__init__.py:108
+#: dialog/__init__.py:176
 msgid "Info"
 msgstr ""
 
-#: dialog/__init__.py:125
+#: dialog/__init__.py:199
 msgid "Page"
 msgstr ""
 
-#: dialog/__init__.py:126
+#: dialog/__init__.py:200
 msgid "Process"
 msgstr ""
 
-#: dialog/__init__.py:127
+#: dialog/__init__.py:201
 msgid "Message type"
 msgstr ""
 
-#: dialog/__init__.py:129
+#: dialog/__init__.py:203
 msgid "Message"
 msgstr ""
 
-#: dialog/__init__.py:132
+#: dialog/__init__.py:206
 msgid "Hide"
 msgstr ""
 
-#: dialog/__init__.py:193
+#: dialog/__init__.py:223 dialog/scan.py:503 dialog/tesseractparams.py:96
+msgid "_Close"
+msgstr ""
+
+#: dialog/__init__.py:295
 msgid "Don't show these messages again"
 msgstr ""
 
-#: dialog/__init__.py:313
+#: dialog/__init__.py:409
 msgid ""
 "This error is normally due to ImageMagick exceeding its resource limits."
 msgstr ""
 
-#: dialog/__init__.py:317
+#: dialog/__init__.py:413
 msgid ""
 "These can be extended by editing its policy file, which on my system is "
 "found at /etc/ImageMagick-6/policy.xml"
 msgstr ""
 
-#: dialog/__init__.py:322
+#: dialog/__init__.py:418
+#, python-format
 msgid ""
-"Please see https://imagemagick.org/script/resources.php for more information"
-msgstr ""
-
-#: dialog/crop.py:14
-msgid "x"
+"Please see the ImageMagick resource documentation for more information: "
+"%(url)s"
 msgstr ""
 
 #: dialog/crop.py:15
+msgid "x"
+msgstr ""
+
+#: dialog/crop.py:16
 msgid "The x-position of the left hand edge of the crop."
 msgstr ""
 
-#: dialog/crop.py:19
+#: dialog/crop.py:20
 msgid "y"
 msgstr ""
 
-#: dialog/crop.py:20
+#: dialog/crop.py:21
 msgid "The y-position of the top edge of the crop."
 msgstr ""
 
-#: dialog/crop.py:24 dialog/paperlist.py:22
+#: dialog/crop.py:25 dialog/paperlist.py:22
 msgid "Width"
 msgstr ""
 
-#: dialog/crop.py:25
+#: dialog/crop.py:26
 msgid "The width of the crop."
 msgstr ""
 
-#: dialog/crop.py:29 dialog/paperlist.py:23
+#: dialog/crop.py:30 dialog/paperlist.py:23
 msgid "Height"
 msgstr ""
 
-#: dialog/crop.py:30
+#: dialog/crop.py:31
 msgid "The height of the crop."
 msgstr ""
 
-#: dialog/crop.py:116
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr ""
 
-#: dialog/crop.py:154 tools_menu_mixins.py:277
+#: dialog/crop.py:161 tools_menu_mixins.py:286
 msgid "pixels"
 msgstr ""
 
-#: dialog/pagecontrols.py:188
+#: dialog/importhocr.py:45
+msgid "hOCR file"
+msgstr ""
+
+#: dialog/importhocr.py:50 dialog/preferences.py:272
+#: postprocess_controls.py:692
+msgid "Browse"
+msgstr ""
+
+#: dialog/importhocr.py:56
+msgid "Pages are matched to the hOCR pages in order."
+msgstr ""
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
+#: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_OK"
+msgstr ""
+
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
+#: scan_menu_item_mixins.py:456 session_mixins.py:173
+#: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
+#: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
+#: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
+msgid "_Cancel"
+msgstr ""
+
+#: dialog/importhocr.py:69
+msgid "Open hOCR file"
+msgstr ""
+
+#: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
+#: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
+msgid "Cancel"
+msgstr ""
+
+#: dialog/importhocr.py:76 file_menu_mixins.py:119
+msgid "Open"
+msgstr ""
+
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
+msgid "hOCR files"
+msgstr ""
+
+#: dialog/pagecontrols.py:231
 msgid "Page Options"
 msgstr ""
 
-#: dialog/pagecontrols.py:199
+#: dialog/pagecontrols.py:245
 msgid "# Pages"
 msgstr ""
 
-#: dialog/pagecontrols.py:210 pagerange.py:47
+#: dialog/pagecontrols.py:256 pagerange.py:48
 msgid "All"
 msgstr ""
 
-#: dialog/pagecontrols.py:211
+#: dialog/pagecontrols.py:257
 msgid "Scan all pages"
 msgstr ""
 
-#: dialog/pagecontrols.py:219 dialog/pagecontrols.py:224
+#: dialog/pagecontrols.py:268 dialog/pagecontrols.py:273
 msgid "Set number of pages to scan"
 msgstr ""
 
-#: dialog/pagecontrols.py:247
+#: dialog/pagecontrols.py:277
+msgid "No page limit: scanning continues until you cancel."
+msgstr ""
+
+#: dialog/pagecontrols.py:311
 msgid "Extended page numbering"
 msgstr ""
 
-#: dialog/pagecontrols.py:260
+#: dialog/pagecontrols.py:324
 msgid "Page number"
 msgstr ""
 
-#: dialog/pagecontrols.py:271
+#: dialog/pagecontrols.py:334
 msgid "Insert before page N"
 msgstr ""
 
-#: dialog/pagecontrols.py:274
+#: dialog/pagecontrols.py:337
 msgid "Page number before which scans will be inserted"
 msgstr ""
 
-#: dialog/pagecontrols.py:285
+#: dialog/pagecontrols.py:348
 msgid "Position advance"
 msgstr ""
 
-#: dialog/pagecontrols.py:289
+#: dialog/pagecontrols.py:352
 msgid ""
 "Position advance for each subsequent scan (0 = keep inserting before the "
 "same page)"
 msgstr ""
 
-#: dialog/pagecontrols.py:305
+#: dialog/pagecontrols.py:368
 msgid "Source document"
 msgstr ""
 
-#: dialog/pagecontrols.py:313
+#: dialog/pagecontrols.py:377
 msgid "Single sided"
 msgstr ""
 
-#: dialog/pagecontrols.py:315
+#: dialog/pagecontrols.py:378
 msgid "Source document is single-sided"
 msgstr ""
 
-#: dialog/pagecontrols.py:321
+#: dialog/pagecontrols.py:385
 msgid "Double sided"
 msgstr ""
 
-#: dialog/pagecontrols.py:323
+#: dialog/pagecontrols.py:387
 msgid "Source document is double-sided"
 msgstr ""
 
-#: dialog/pagecontrols.py:329
+#: dialog/pagecontrols.py:393
 msgid "Side to scan"
 msgstr ""
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Facing"
 msgstr ""
 
-#: dialog/pagecontrols.py:332
+#: dialog/pagecontrols.py:396
 msgid "Reverse"
 msgstr ""
 
-#: dialog/pagecontrols.py:337
+#: dialog/pagecontrols.py:401
 msgid "Sets which side of a double-sided document is scanned"
 msgstr ""
 
-#: dialog/paperlist.py:21
+#: dialog/paperlist.py:21 dialog/tesseractparams.py:69
 msgid "Name"
 msgstr ""
 
-#: dialog/paperlist.py:24 unpaper.py:151 unpaper.py:179
+#: dialog/paperlist.py:24 unpaper.py:153 unpaper.py:181
 msgid "Left"
 msgstr ""
 
-#: dialog/paperlist.py:25 unpaper.py:156 unpaper.py:184
+#: dialog/paperlist.py:25 unpaper.py:158 unpaper.py:186
 msgid "Top"
 msgstr ""
 
@@ -353,109 +457,115 @@ msgstr ""
 msgid "Cannot delete all paper sizes"
 msgstr ""
 
-#: dialog/preferences.py:42
+#: dialog/preferences.py:53
 msgid "Preferences"
 msgstr ""
 
-#: dialog/preferences.py:56
+#: dialog/preferences.py:72
 msgid "Scan options"
 msgstr ""
 
-#: dialog/preferences.py:60
+#: dialog/preferences.py:80
 msgid "General options"
 msgstr ""
 
-#: dialog/preferences.py:68
+#: dialog/preferences.py:88
 msgid "Open scanner at program start"
 msgstr ""
 
-#: dialog/preferences.py:71
+#: dialog/preferences.py:91
 msgid ""
 "Automatically open the scan dialog in the background at program start. This "
 "saves time clicking the scan button and waiting for the program to find the "
 "list of scanners"
 msgstr ""
 
-#: dialog/preferences.py:83
+#: dialog/preferences.py:104
 msgid "Device blacklist"
 msgstr ""
 
-#: dialog/preferences.py:87
-msgid "Device blacklist (regular expression)"
+#: dialog/preferences.py:107
+msgid "e.g. Camera or v4l:.*"
 msgstr ""
 
-#: dialog/preferences.py:95
+#: dialog/preferences.py:110
+msgid ""
+"Regular expression matched case-insensitively against the device label and "
+"backend name, e.g. Camera or v4l:.*"
+msgstr ""
+
+#: dialog/preferences.py:122
 msgid "Cycle SANE handle after scan"
 msgstr ""
 
-#: dialog/preferences.py:97
+#: dialog/preferences.py:124
 msgid "Some ADFs do not feed out the last page if this is not enabled"
 msgstr ""
 
-#: dialog/preferences.py:105
+#: dialog/preferences.py:132
 msgid "Allow batch scanning from flatbed"
 msgstr ""
 
-#: dialog/preferences.py:109
+#: dialog/preferences.py:136
 msgid ""
 "If not set, switching to a flatbed scanner will force # pages to 1 and "
 "single-sided mode."
 msgstr ""
 
-#: dialog/preferences.py:118
+#: dialog/preferences.py:145
 msgid "Ignore duplex capabilities of scanner"
 msgstr ""
 
-#: dialog/preferences.py:122
+#: dialog/preferences.py:149
 msgid ""
 "If set, any duplex capabilities are ignored, and facing/reverse widgets are "
 "displayed to allow manual interleaving of pages."
 msgstr ""
 
-#: dialog/preferences.py:131
+#: dialog/preferences.py:158
 msgid "Force new scan job between pages"
 msgstr ""
 
-#: dialog/preferences.py:135
+#: dialog/preferences.py:162
 msgid ""
 "Otherwise, some Brother scanners report out of documents, despite scanning "
 "from flatbed."
 msgstr ""
 
-#: dialog/preferences.py:151
+#: dialog/preferences.py:178
 msgid "Select # pages = all on selecting ADF"
 msgstr ""
 
-#: dialog/preferences.py:155
+#: dialog/preferences.py:182
 msgid ""
 "If this option is enabled, when switching to source=ADF, # pages = all is "
 "selected"
 msgstr ""
 
-#: dialog/preferences.py:165
+#: dialog/preferences.py:192
 msgid ""
 "If this option is enabled, opening the scanner is quicker, as scantpaper "
 "does not first search for available devices."
 msgstr ""
 
-#: dialog/preferences.py:169
+#: dialog/preferences.py:196
 msgid ""
 "This is only effective if the device names do not change between sessions."
 msgstr ""
 
-#: dialog/preferences.py:178
+#: dialog/preferences.py:205
 msgid "Restore window settings on startup"
 msgstr ""
 
-#: dialog/preferences.py:183
+#: dialog/preferences.py:210
 msgid "View files on saving"
 msgstr ""
 
-#: dialog/preferences.py:190
+#: dialog/preferences.py:217
 msgid "Default PDF & DjVu filename"
 msgstr ""
 
-#: dialog/preferences.py:194
+#: dialog/preferences.py:221
 msgid ""
 "strftime codes, e.g.:\n"
 "%Y\tcurrent year\n"
@@ -473,589 +583,773 @@ msgid ""
 "%Dd\tdocument day\n"
 msgstr ""
 
-#: dialog/preferences.py:215
+#: dialog/preferences.py:242
 msgid "Replace whitespace in filenames with underscores"
 msgstr ""
 
-#: dialog/preferences.py:221
+#: dialog/preferences.py:248
 msgid "Use timezone from locale"
 msgstr ""
 
-#: dialog/preferences.py:226
+#: dialog/preferences.py:253
 msgid "Specify time as well as date"
 msgstr ""
 
-#: dialog/preferences.py:232
+#: dialog/preferences.py:259
 msgid "Set access and modification times to metadata date"
 msgstr ""
 
-#: dialog/preferences.py:240
+#: dialog/preferences.py:267
 msgid "Temporary directory"
 msgstr ""
 
-#: dialog/preferences.py:245
-msgid "Browse"
-msgstr ""
-
-#: dialog/preferences.py:251
+#: dialog/preferences.py:279
 msgid "Select temporary directory"
 msgstr ""
 
-#: dialog/preferences.py:273
+#: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
+#: postprocess_controls.py:717
+msgid "OK"
+msgstr ""
+
+#: dialog/preferences.py:304
 msgid "Warn if available space less than (Mb)"
 msgstr ""
 
-#: dialog/preferences.py:279
+#: dialog/preferences.py:310
 msgid ""
 "Warn if the available space in the temporary directory is less than this "
 "value"
 msgstr ""
 
-#: dialog/preferences.py:287
+#: dialog/preferences.py:318
 msgid "Blank threshold"
 msgstr ""
 
-#: dialog/preferences.py:292
+#: dialog/preferences.py:323
 msgid "Threshold used for selecting blank pages"
 msgstr ""
 
-#: dialog/preferences.py:300
+#: dialog/preferences.py:331
 msgid "Dark threshold"
 msgstr ""
 
-#: dialog/preferences.py:304
+#: dialog/preferences.py:335
 msgid "Threshold used for selecting dark pages"
 msgstr ""
 
-#: dialog/preferences.py:311
+#: dialog/preferences.py:342
 msgid "OCR output"
 msgstr ""
 
-#: dialog/preferences.py:316
+#: dialog/preferences.py:347
 msgid "Replace"
 msgstr ""
 
-#: dialog/preferences.py:318
+#: dialog/preferences.py:349
 msgid "Replace the contents of the text buffer with that from the OCR output."
 msgstr ""
 
-#: dialog/preferences.py:321
+#: dialog/preferences.py:352
+#| msgid ""
+#| "Use %i and %o for the input and output filenames respectively,\n"
+#| "or a single %i if the image is to be modified in-place.\n"
+#| "\n"
+#| "The other variable available is:\n"
+#| "%r resolution"
 msgid "Prepend"
 msgstr ""
 
-#: dialog/preferences.py:321
+#: dialog/preferences.py:352
+#| msgid ""
+#| "Use %i and %o for the input and output filenames respectively,\n"
+#| "or a single %i if the image is to be modified in-place.\n"
+#| "\n"
+#| "The other variable available is:\n"
+#| "%r resolution"
 msgid "Prepend the OCR output to the text buffer."
 msgstr ""
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append"
 msgstr ""
 
-#: dialog/preferences.py:322
+#: dialog/preferences.py:353
 msgid "Append the OCR output to the text buffer."
 msgstr ""
 
-#: dialog/preferences.py:329
+#: dialog/preferences.py:362
 msgid "Manage user-defined tools"
 msgstr ""
 
-#: dialog/preferences.py:352
-#, python-format
-msgid ""
-"Use %i and %o for the input and output filenames respectively,\n"
-"or a single %i if the image is to be modified in-place.\n"
-"\n"
-"The other variable available is:\n"
-"%r resolution"
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
+msgid "Add a user-defined tool"
 msgstr ""
 
-#: dialog/preferences.py:359 session_mixins.py:460 text_layer_control.py:89
+#: dialog/preferences.py:378
+msgid "Bilevel compression"
+msgstr ""
+
+#: dialog/preferences.py:383
+msgid "Group 4"
+msgstr ""
+
+#: dialog/preferences.py:384
+msgid "Compress bilevel images with CCITT Group 4 encoding."
+msgstr ""
+
+#: dialog/preferences.py:391 dialog/save.py:71
+msgid "JBIG2"
+msgstr ""
+
+#: dialog/preferences.py:392
+msgid "Compress bilevel images with JBIG2 encoding."
+msgstr ""
+
+#: dialog/preferences.py:414
+#, python-format
+msgid ""
+"Use %%i and %%o for the input and output filenames respectively,\n"
+"or a single %%i if the image is to be modified in-place.\n"
+"\n"
+"The other variable available is:\n"
+"%%r resolution"
+msgstr ""
+
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
 msgid "_Delete"
 msgstr ""
 
-#: dialog/preferences.py:397
+#: dialog/preferences.py:462
 msgid "The following user-defined tools could not be found:\n"
 msgstr ""
 
-#: dialog/preferences.py:400
+#: dialog/preferences.py:465
 msgid "Please check that the command is installed and in your PATH."
 msgstr ""
 
-#: dialog/preferences.py:402
+#: dialog/preferences.py:467
 msgid "User-defined tool not found"
 msgstr ""
 
-#: dialog/sane.py:71
+#: dialog/sane.py:89
 msgid "Fetching list of devices"
 msgstr ""
 
-#: dialog/sane.py:89
+#: dialog/sane.py:108 scan_menu_item_mixins.py:93
 msgid "No devices found"
 msgstr ""
 
-#: dialog/sane.py:129
+#: dialog/sane.py:152
 msgid "Opening device"
 msgstr ""
 
-#: dialog/sane.py:142
+#: dialog/sane.py:166
 msgid "Error opening device: "
 msgstr ""
 
-#: dialog/sane.py:148 dialog/sane.py:494
+#: dialog/sane.py:175 dialog/sane.py:539
 msgid "Retrieving options"
 msgstr ""
 
-#: dialog/sane.py:165 dialog/sane.py:507
+#: dialog/sane.py:195 dialog/sane.py:553
 msgid "Error retrieving scanner options: "
 msgstr ""
 
-#: dialog/sane.py:207
+#: dialog/sane.py:245
 msgid "Scan Options"
 msgstr ""
 
-#: dialog/sane.py:290
+#: dialog/sane.py:329
 #, python-format
-msgid "Ignoring scan option '%s', minimum range (%s) > maximum (%s)"
+msgid ""
+"Ignoring scan option '%(name)s', minimum range (%(minimum)s) > maximum "
+"(%(maximum)s)"
 msgstr ""
 
-#: dialog/sane.py:450
+#: dialog/sane.py:493
 #, python-format
 msgid "Setting option %s"
 msgstr ""
 
-#: dialog/sane.py:469
+#: dialog/sane.py:512
 msgid "Error setting option: "
 msgstr ""
 
-#: dialog/sane.py:531
+#: dialog/sane.py:591
 msgid "Must scan facing pages first"
 msgstr ""
 
-#: dialog/save.py:31
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
+#: tests/test_0610_dialog_scan_sane.py:1977
+msgid ""
+"Scanner did not deliver the requested 1-bit output; the page has been "
+"converted to black-and-white"
+msgstr ""
+
+#: dialog/sane.py:752
+msgid ""
+"The scanner did not respond to cancel. Reconnect the scanner or choose "
+"another device."
+msgstr ""
+
+#: dialog/save.py:32
 msgid "PDF"
 msgstr ""
 
-#: dialog/save.py:31
+#: dialog/save.py:32
 msgid "Portable Document Format"
 msgstr ""
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "GIF"
 msgstr ""
 
-#: dialog/save.py:32
+#: dialog/save.py:33
 msgid "CompuServe graphics interchange format"
 msgstr ""
 
-#: dialog/save.py:33 dialog/save.py:55 dialog/save.py:82
+#: dialog/save.py:34 dialog/save.py:54 dialog/save.py:100
 msgid "JPEG"
 msgstr ""
 
-#: dialog/save.py:33
+#: dialog/save.py:34
 msgid "Joint Photographic Experts Group JFIF format"
 msgstr ""
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "PNG"
 msgstr ""
 
-#: dialog/save.py:34
+#: dialog/save.py:35
 msgid "Portable Network Graphics"
 msgstr ""
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "PNM"
 msgstr ""
 
-#: dialog/save.py:35
+#: dialog/save.py:36
 msgid "Portable anymap"
 msgstr ""
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "PS"
 msgstr ""
 
-#: dialog/save.py:36
+#: dialog/save.py:37
 msgid "Postscript"
 msgstr ""
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "TIFF"
 msgstr ""
 
-#: dialog/save.py:37
+#: dialog/save.py:38
 msgid "Tagged Image File Format"
 msgstr ""
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Text"
 msgstr ""
 
-#: dialog/save.py:38
+#: dialog/save.py:39
 msgid "Plain text"
 msgstr ""
 
-#: dialog/save.py:39
+#: dialog/save.py:40
 msgid "hOCR"
 msgstr ""
 
-#: dialog/save.py:39
+#: dialog/save.py:40
 msgid "hOCR markup language"
 msgstr ""
 
-#: dialog/save.py:40 session_mixins.py:126
+#: dialog/save.py:41 session_mixins.py:182
 msgid "Session"
 msgstr ""
 
-#: dialog/save.py:40
+#: dialog/save.py:41
 msgid "scantpaper session database"
 msgstr ""
 
-#: dialog/save.py:41
+#: dialog/save.py:42
 msgid "Prepend to PDF"
 msgstr ""
 
-#: dialog/save.py:41
+#: dialog/save.py:42
 msgid "Prepend to an existing PDF"
 msgstr ""
 
-#: dialog/save.py:42
+#: dialog/save.py:43
 msgid "Append to PDF"
 msgstr ""
 
-#: dialog/save.py:42
+#: dialog/save.py:43
 msgid "Append to an existing PDF"
 msgstr ""
 
-#: dialog/save.py:43
+#: dialog/save.py:44
 msgid "DjVu"
 msgstr ""
 
-#: dialog/save.py:43
+#: dialog/save.py:44
 msgid "Deja Vu"
 msgstr ""
 
-#: dialog/save.py:48
+#: dialog/save.py:49 tesseract.py:197
 msgid "Automatic"
 msgstr ""
 
-#: dialog/save.py:49
+#: dialog/save.py:50
 msgid "Let scantpaper which type of compression to use."
 msgstr ""
 
-#: dialog/save.py:51 dialog/save.py:76
-msgid "LZW"
-msgstr ""
-
-#: dialog/save.py:51 dialog/save.py:76
-msgid "Compress output with Lempel-Ziv & Welch encoding."
-msgstr ""
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "G3"
-msgstr ""
-
-#: dialog/save.py:52 dialog/save.py:84
-msgid "Compress output with CCITT Group 3 encoding."
-msgstr ""
-
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "G4"
 msgstr ""
 
-#: dialog/save.py:53 dialog/save.py:85
+#: dialog/save.py:52 dialog/save.py:103
 msgid "Compress output with CCITT Group 4 encoding."
 msgstr ""
 
-#: dialog/save.py:54
+#: dialog/save.py:53
 msgid "Flate"
 msgstr ""
 
-#: dialog/save.py:54
+#: dialog/save.py:53
 msgid "Compress output with flate encoding."
 msgstr ""
 
-#: dialog/save.py:55
+#: dialog/save.py:54
 msgid "Compress output with JPEG (DCT) encoding."
 msgstr ""
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "None"
+#: dialog/save.py:55
+msgid "JPEG 2000"
 msgstr ""
 
-#: dialog/save.py:56 dialog/save.py:86
-msgid "Use no compression algorithm on output."
-msgstr ""
-
-#: dialog/save.py:61
-msgid "LibTIFF"
-msgstr ""
-
-#: dialog/save.py:62
-msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
-msgstr ""
-
-#: dialog/save.py:66
-msgid "Ghostscript"
-msgstr ""
-
-#: dialog/save.py:67
-msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
+#: dialog/save.py:55
+msgid "Compress output with JPEG 2000 encoding."
 msgstr ""
 
 #: dialog/save.py:71
-msgid "Poppler"
-msgstr ""
-
-#: dialog/save.py:72
-msgid "Use Poppler (pdftops) to create Postscript files from PDF."
+msgid "Compress output with JBIG2 encoding."
 msgstr ""
 
 #: dialog/save.py:79
-msgid "Zip"
+msgid "LibTIFF"
 msgstr ""
 
 #: dialog/save.py:80
+msgid "Use LibTIFF (tiff2ps) to create Postscript files from TIFF."
+msgstr ""
+
+#: dialog/save.py:84
+msgid "Ghostscript"
+msgstr ""
+
+#: dialog/save.py:85
+msgid "Use Ghostscript (pdf2ps) to create Postscript files from PDF."
+msgstr ""
+
+#: dialog/save.py:89
+msgid "Poppler"
+msgstr ""
+
+#: dialog/save.py:90
+msgid "Use Poppler (pdftops) to create Postscript files from PDF."
+msgstr ""
+
+#: dialog/save.py:94
+msgid "LZW"
+msgstr ""
+
+#: dialog/save.py:94
+msgid "Compress output with Lempel-Ziv & Welch encoding."
+msgstr ""
+
+#: dialog/save.py:97
+msgid "Zip"
+msgstr ""
+
+#: dialog/save.py:98
 msgid "Compress output with deflate encoding."
 msgstr ""
 
-#: dialog/save.py:82
+#: dialog/save.py:100
 msgid "Compress output with JPEG encoding."
 msgstr ""
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Packbits"
 msgstr ""
 
-#: dialog/save.py:83
+#: dialog/save.py:101
 msgid "Compress output with Packbits encoding."
 msgstr ""
 
-#: dialog/save.py:360
-msgid "Document Metadata"
+#: dialog/save.py:102
+msgid "G3"
+msgstr ""
+
+#: dialog/save.py:102
+msgid "Compress output with CCITT Group 3 encoding."
+msgstr ""
+
+#: dialog/save.py:104 postprocess_controls.py:644 postprocess_controls.py:906
+msgid "None"
+msgstr ""
+
+#: dialog/save.py:104
+msgid "Use no compression algorithm on output."
 msgstr ""
 
 #: dialog/save.py:374
+msgid "Document Metadata"
+msgstr ""
+
+#: dialog/save.py:385
 msgid "Date/Time"
 msgstr ""
 
-#: dialog/save.py:387 dialog/save.py:572
+#: dialog/save.py:397 dialog/save.py:591
 msgid "Now"
 msgstr ""
 
-#: dialog/save.py:388 dialog/save.py:573
+#: dialog/save.py:398 dialog/save.py:592
 msgid "Use current date and time"
 msgstr ""
 
-#: dialog/save.py:393
+#: dialog/save.py:405
 msgid "Specify"
 msgstr ""
 
-#: dialog/save.py:395
+#: dialog/save.py:407
 msgid "Specify date and time"
 msgstr ""
 
-#: dialog/save.py:403
+#: dialog/save.py:415
 msgid "Year-Month-Day"
 msgstr ""
 
-#: dialog/save.py:413
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
 msgid "Select date with calendar"
 msgstr ""
 
-#: dialog/save.py:459
+#: dialog/save.py:467
 msgid "Select Date"
 msgstr ""
 
-#: dialog/save.py:489 dialog/save.py:579
+#: dialog/save.py:509 dialog/save.py:598
 msgid "Today"
 msgstr ""
 
-#: dialog/save.py:545
+#: dialog/save.py:565
 msgid "Title"
 msgstr ""
 
-#: dialog/save.py:546
+#: dialog/save.py:566
 msgid "Author"
 msgstr ""
 
-#: dialog/save.py:547
+#: dialog/save.py:567
 msgid "Subject"
 msgstr ""
 
-#: dialog/save.py:548
+#: dialog/save.py:568
 msgid "Keywords"
 msgstr ""
 
-#: dialog/save.py:580
+#: dialog/save.py:599
 msgid "Use today's date"
 msgstr ""
 
-#: dialog/save.py:590
+#: dialog/save.py:609
 msgid "Document type"
 msgstr ""
 
-#: dialog/save.py:598
+#: dialog/save.py:618
 msgid "Postscript backend"
 msgstr ""
 
-#: dialog/save.py:614 dialog/save.py:754
+#: dialog/save.py:635 dialog/save.py:776
 msgid "Compression"
 msgstr ""
 
-#: dialog/save.py:735
-msgid "JPEG Quality"
+#: dialog/save.py:754
+msgid "Quality"
 msgstr ""
 
-#: dialog/save.py:769
+#: dialog/save.py:791
 msgid "Encrypt PDF"
 msgstr ""
 
-#: dialog/save.py:785
+#: dialog/save.py:808
 msgid "Downsample to"
 msgstr ""
 
-#: dialog/save.py:789 dialog/scan.py:660
+#: dialog/save.py:812 dialog/scan.py:770
+#| msgid ""
+#| "Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please"
+#| " file a bug, attaching a log file reproducing the problem."
 msgid "ppi"
 msgstr ""
 
-#: dialog/save.py:819
+#: dialog/save.py:841
 msgid "Set password"
 msgstr ""
 
-#: dialog/save.py:827
+#: dialog/save.py:850
 msgid "User password"
 msgstr ""
 
-#: dialog/scan.py:232 dialog/scan.py:573 dialog/scan.py:689 dialog/scan.py:709
-#: dialog/scan.py:933
+#: dialog/scan.py:246 dialog/scan.py:673 dialog/scan.py:799 dialog/scan.py:819
+#: dialog/scan.py:1047
 msgid "Manual"
 msgstr ""
 
-#: dialog/scan.py:446
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
 msgid "Scan profiles"
 msgstr ""
 
-#: dialog/scan.py:500
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
+msgid "Save"
+msgstr ""
+
+#: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
+#: tests/test_icon_buttons.py:118
+msgid "Edit"
+msgstr ""
+
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
+msgid "Delete"
+msgstr ""
+
+#: dialog/scan.py:503
 msgid "Scan"
 msgstr ""
 
-#: dialog/scan.py:514
+#: dialog/scan.py:531
 msgid "Device"
 msgstr ""
 
-#: dialog/scan.py:552
+#: dialog/scan.py:559
 msgid "Sets the device to be used for the scan"
 msgstr ""
 
-#: dialog/scan.py:599
+#: dialog/scan.py:562
+msgid "Blacklist this device"
+msgstr ""
+
+#: dialog/scan.py:564
+msgid "Hide the selected device from the device list"
+msgstr ""
+
+#: dialog/scan.py:705
 #, python-format
 msgid "Error: unknown device: %s"
 msgstr ""
 
-#: dialog/scan.py:657
+#: dialog/scan.py:767
 msgid "pel"
 msgstr ""
 
-#: dialog/scan.py:658
+#: dialog/scan.py:768
 msgid "bit"
 msgstr ""
 
-#: dialog/scan.py:659
+#: dialog/scan.py:769
 msgid "mm"
 msgstr ""
 
-#: dialog/scan.py:662
+#: dialog/scan.py:772
 msgid "μs"
 msgstr ""
 
-#: dialog/scan.py:686
+#: dialog/scan.py:796
 msgid "Paper size"
 msgstr ""
 
-#: dialog/scan.py:690 dialog/scan.py:707
-msgid "Edit"
-msgstr ""
-
-#: dialog/scan.py:691
+#: dialog/scan.py:801
 msgid "Selects or edits the paper size"
 msgstr ""
 
-#: dialog/scan.py:770
+#: dialog/scan.py:880
 #, python-format
 msgid ""
-"Reload recursion limit (%d) exceeded: %d reloads for %d scan options. Please "
-"file a bug, attaching a log file reproducing the problem."
+"Reload recursion limit (%(limit)d) exceeded: %(reloads)d reloads for "
+"%(options)d scan options. Please file a bug, attaching a log file "
+"reproducing the problem."
 msgstr ""
 
-#: dialog/scan.py:1024
+#: dialog/scan.py:1138
 msgid "Edit paper size"
 msgstr ""
 
-#: dialog/scan.py:1051
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
+msgid "Add a paper size"
+msgstr ""
+
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
+msgid "Remove the selected paper size"
+msgstr ""
+
+#: dialog/scan.py:1167
 msgid "Apply"
 msgstr ""
 
-#: dialog/scan.py:1069
+#: dialog/scan.py:1185
 msgid ""
 "The following paper sizes are too big to be scanned by the selected device:"
 msgstr ""
 
-#: dialog/scan.py:1080 dialog/scan.py:1594 dialog/scan.py:1634
-msgid "Cancel"
-msgstr ""
-
-#: dialog/scan.py:1563 dialog/scan.py:1571
+#: dialog/scan.py:1696 dialog/scan.py:1706 tests/test_06099_dialog_scan.py:677
+#: tests/test_06099_dialog_scan.py:708
+#: tests/test_0621_dialog_scan_edit_save.py:119
 msgid "Name of scan profile"
 msgstr ""
 
-#: dialog/scan.py:1585
+#: dialog/scan.py:1719 tests/test_0621_dialog_scan_edit_save.py:120
 #, python-format
 msgid "Profile '%s' exists. Overwrite?"
 msgstr ""
 
-#: dialog/scan.py:1592 dialog/scan.py:1634
-msgid "OK"
-msgstr ""
-
-#: dialog/scan.py:1621
+#: dialog/scan.py:1756
 msgid "Editing current scan options"
 msgstr ""
 
-#: dialog/scan.py:1625
+#: dialog/scan.py:1760
 #, python-format
 msgid "Editing scan profile \"%s\""
 msgstr ""
 
-#: dialog/scan.py:1686
+#: dialog/scan.py:1822
 msgid "Backend options"
 msgstr ""
 
-#: dialog/scan.py:1687
+#: dialog/scan.py:1823
 msgid "Frontend options"
 msgstr ""
 
-#: dialog/scan.py:1752
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
 #, python-format
-msgid "Scanning page %d of %d"
+msgid "Remove %(option)s from the profile"
 msgstr ""
 
-#: dialog/scan.py:1753
+#: dialog/scan.py:1890
 #, python-format
-msgid "Scanning page %d"
+msgid "Scanning page %(current)d of %(total)d"
 msgstr ""
 
-#: docthread.py:1167
+#: dialog/scan.py:1894
 #, python-format
-msgid "Analysing page %i of %i"
+msgid "Scanning page %(current)d"
 msgstr ""
 
-#: docthread.py:1461
+#: dialog/tesseractparams.py:45
+msgid "Tesseract parameters"
+msgstr ""
+
+#: dialog/tesseractparams.py:56
+msgid "Filter parameters"
+msgstr ""
+
+#: dialog/tesseractparams.py:70 postprocess_controls.py:697 tesseract.py:213
+msgid "Default"
+msgstr ""
+
+#: dialog/tesseractparams.py:71
+msgid "Description"
+msgstr ""
+
+#: dialog/tesseractparams.py:96
+msgid "_Insert"
+msgstr ""
+
+#: dialog/tesseractparams.py:110
+msgid ""
+"The Tesseract parameter list is unavailable. OCR can still run with the "
+"parameters already entered."
+msgstr ""
+
+#: dialog/tesseractparams.py:127
+#, python-format
+msgid "Set by the %(control)s control"
+msgstr ""
+
+#: dialog/tesseractparams.py:147
+msgid "No parameters match"
+msgstr ""
+
+#: docthread.py:1285
+#, python-format
+msgid "Error reading hOCR file %(path)s: %(error)s"
+msgstr ""
+
+#: docthread.py:1293
+#, python-format
+msgid "Error parsing hOCR file %(path)s: %(error)s"
+msgstr ""
+
+#: docthread.py:1299
+msgid "The file contains no hOCR pages."
+msgstr ""
+
+#: docthread.py:1312
+#, python-format
+msgid ""
+"The hOCR file contains %(found)i pages, but %(expected)i pages are selected."
+msgstr ""
+
+#: docthread.py:1322
+#, python-format
+msgid "Checking hOCR page %(current)i of %(total)i"
+msgstr ""
+
+#: docthread.py:1330
+#, python-format
+msgid "The hOCR page for page %(page)i has no page box."
+msgstr ""
+
+#: docthread.py:1342
+#, python-format
+msgid ""
+"The hOCR page for page %(page)i is %(found_width)ix%(found_height)i, but the"
+" page is %(width)ix%(height)i."
+msgstr ""
+
+#: docthread.py:1366
+msgid "No pages selected for hOCR import."
+msgstr ""
+
+#: docthread.py:1385
+#, python-format
+msgid "Importing hOCR page %(current)i of %(total)i"
+msgstr ""
+
+#: docthread.py:1526
+#, python-format
+msgid "Analysing page %(current)i of %(total)i"
+msgstr ""
+
+#: docthread.py:1800
 msgid "No tesseract language specified"
 msgstr ""
 
-#: docthread.py:1470
-msgid "tessdata directory not found"
+#: docthread.py:1832
+#, python-format
+msgid "Failed to initialise OCR with the %(mode)s engine mode: %(error)s"
+msgstr ""
+
+#: docthread.py:1844 postprocess_controls.py:605
+#, python-format
+msgid "Unknown Tesseract option: %(variable)s"
 msgstr ""
 
 #: document.py:111
@@ -1066,196 +1360,197 @@ msgstr ""
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr ""
 
-#: edit_menu_mixins.py:60
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
 msgstr ""
 
-#: edit_menu_mixins.py:70 edit_menu_mixins.py:78
+#: edit_menu_mixins.py:72 edit_menu_mixins.py:82
 msgid "dpi"
 msgstr ""
 
-#: edit_menu_mixins.py:362
+#: edit_menu_mixins.py:377
 msgid "Invalid regex. Try without special characters such as '*'"
 msgstr ""
 
-#: edit_menu_mixins.py:394
+#: edit_menu_mixins.py:409
 msgid "Changes will only take effect after restarting scantpaper."
 msgstr ""
 
-#: edit_menu_mixins.py:396
+#: edit_menu_mixins.py:411
 msgid "Restart scantpaper now?"
 msgstr ""
 
-#: file_menu_mixins.py:104
+#: file_menu_mixins.py:87
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to clear all pages?"
 msgstr ""
 
-#: file_menu_mixins.py:129
+#: file_menu_mixins.py:112
 msgid "Open image"
 msgstr ""
 
-#: file_menu_mixins.py:144 file_menu_mixins.py:474 file_menu_mixins.py:816
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
 msgstr ""
 
-#: file_menu_mixins.py:180
+#: file_menu_mixins.py:164
 msgid "Pages to extract"
 msgstr ""
 
-#: file_menu_mixins.py:194
+#: file_menu_mixins.py:181
 msgid "First page to extract"
 msgstr ""
 
-#: file_menu_mixins.py:200
+#: file_menu_mixins.py:188
 msgid "Last page to extract"
 msgstr ""
 
-#: file_menu_mixins.py:214
+#: file_menu_mixins.py:201
 #, python-format
 msgid "Enter user password for PDF %s"
 msgstr ""
 
-#: file_menu_mixins.py:281
-msgid "Open crashed session"
+#: file_menu_mixins.py:268
+msgid "Import hOCR"
 msgstr ""
 
-#: file_menu_mixins.py:336
-msgid "Save"
-msgstr ""
-
-#: file_menu_mixins.py:367
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
 msgstr ""
 
-#: file_menu_mixins.py:370
+#: file_menu_mixins.py:377
 #, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
 msgstr ""
 
-#: file_menu_mixins.py:392 file_menu_mixins.py:393
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
 msgstr ""
 
-#: file_menu_mixins.py:465
+#: file_menu_mixins.py:407 menu.ui:24
+msgid "_Save"
+msgstr ""
+
+#: file_menu_mixins.py:471
 msgid "PDF filename"
 msgstr ""
 
-#: file_menu_mixins.py:466
+#: file_menu_mixins.py:472
 msgid "PDF files"
 msgstr ""
 
-#: file_menu_mixins.py:469
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
 msgstr ""
 
-#: file_menu_mixins.py:470
+#: file_menu_mixins.py:476
 msgid "DjVu files"
 msgstr ""
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
 msgstr ""
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:483
 msgid "Text filename"
 msgstr ""
 
-#: file_menu_mixins.py:478
+#: file_menu_mixins.py:484
 msgid "Text files"
 msgstr ""
 
-#: file_menu_mixins.py:481
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
 msgstr ""
 
-#: file_menu_mixins.py:482
-msgid "hOCR files"
-msgstr ""
-
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:491
 msgid "PS filename"
 msgstr ""
 
-#: file_menu_mixins.py:486
+#: file_menu_mixins.py:492
 msgid "Postscript files"
 msgstr ""
 
-#: file_menu_mixins.py:489
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
 msgstr ""
 
-#: file_menu_mixins.py:490
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
 msgstr ""
 
-#: file_menu_mixins.py:601
+#: file_menu_mixins.py:604
+#, python-format
+msgid "Error saving %(filename)s: %(error)s"
+msgstr ""
+
+#: file_menu_mixins.py:619
 #, python-format
 msgid "Directory %s is read-only"
 msgstr ""
 
-#: file_menu_mixins.py:611
+#: file_menu_mixins.py:629
 #, python-format
 msgid "File %s is read-only"
 msgstr ""
 
-#: file_menu_mixins.py:802
+#: file_menu_mixins.py:821
 msgid "Image filename"
 msgstr ""
 
-#: file_menu_mixins.py:862
+#: file_menu_mixins.py:881
 #, python-format
 msgid "This operation would overwrite %s"
 msgstr ""
 
-#: file_menu_mixins.py:945
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
 msgstr ""
 
-#: importthread.py:86
+#: importthread.py:100
 #, python-format
 msgid "File %s not found"
 msgstr ""
 
-#: importthread.py:92
+#: importthread.py:106
 #, python-format
-msgid "Error getting file info for %s: %s"
+msgid "Error getting file info for %(path)s: %(error)s"
 msgstr ""
 
-#: importthread.py:97
+#: importthread.py:112
 #, python-format
 msgid "Error importing zero-length file %s."
 msgstr ""
 
-#: importthread.py:135 importthread.py:178
+#: importthread.py:150 importthread.py:193
 #, python-format
 msgid "Please install djvulibre-bin in order to open DjVu files: %s"
 msgstr ""
 
-#: importthread.py:166
+#: importthread.py:181
 msgid "Unknown DjVu file structure. Please contact the author."
 msgstr ""
 
-#: importthread.py:266
+#: importthread.py:281
 #, python-format
 msgid "Please install libtiff-tools in order to open TIFF files: %s"
 msgstr ""
 
-#: importthread.py:328 importthread.py:388
+#: importthread.py:343 importthread.py:403
 #, python-format
-msgid "Importing page %i of %i"
+msgid "Importing page %(current)i of %(total)i"
 msgstr ""
 
-#: importthread.py:509
+#: importthread.py:524
 msgid "Error extracting images from PDF"
 msgstr ""
 
-#: importthread.py:521
+#: importthread.py:536
 msgid ""
 "Warning: scantpaper expects one image per page, but this was not satisfied. "
 "It is probable that the PDF has not been correctly imported. If you wish to "
@@ -1263,1132 +1558,415 @@ msgid ""
 "Save dialogue."
 msgstr ""
 
-#: importthread.py:560
+#: importthread.py:575
 msgid "Error importing PDF"
 msgstr ""
 
-#: importthread.py:587
+#: importthread.py:602
 msgid "Error extracting text layer from PDF"
 msgstr ""
 
-#: pagerange.py:46
+#: layer.py:45
+msgid "Sort by confidence"
+msgstr ""
+
+#: layer.py:46
+msgid "Sort OCR text boxes by confidence."
+msgstr ""
+
+#: layer.py:48
+msgid "Sort by position"
+msgstr ""
+
+#: layer.py:48
+msgid "Sort OCR text boxes by position."
+msgstr ""
+
+#: layer.py:62
+msgid "my-new-word"
+msgstr ""
+
+#: layer.py:63
+msgid "my-new-annotation"
+msgstr ""
+
+#: layer.py:207
+msgid "Go to least confident text"
+msgstr ""
+
+#: layer.py:212
+msgid "Go to previous text"
+msgstr ""
+
+#: layer.py:217
+msgid "Select sort method for OCR boxes"
+msgstr ""
+
+#: layer.py:228
+msgid "Go to next text"
+msgstr ""
+
+#: layer.py:232
+msgid "Go to most confident text"
+msgstr ""
+
+#: layer.py:238 layer.py:396
+msgid "Add text"
+msgstr ""
+
+#: layer.py:246
+msgid "Rotate text clockwise"
+msgstr ""
+
+#: layer.py:251
+msgid "Rotate text anticlockwise"
+msgstr ""
+
+#: layer.py:256
+msgid "Accept corrections"
+msgstr ""
+
+#: layer.py:259
+msgid "Cancel corrections"
+msgstr ""
+
+#: layer.py:264 app.ui:287 menu.ui:61
+msgid "_Copy"
+msgstr ""
+
+#: layer.py:264
+msgid "Duplicate text"
+msgstr ""
+
+#: layer.py:267
+msgid "Delete text"
+msgstr ""
+
+#: layer.py:317
+msgid "Focus zoom"
+msgstr ""
+
+#: layer.py:335
+msgid "Reset"
+msgstr ""
+
+#: layer.py:362
+#, python-format
+msgid "Focus zoom: %(percent)d%%"
+msgstr ""
+
+#: layer.py:399
+msgid "Draw or select a rectangle before adding"
+msgstr ""
+
+#: pagerange.py:47
 msgid "Selected"
 msgstr ""
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides"
 msgstr ""
 
-#: postprocess_controls.py:22
+#: postprocess_controls.py:43
 msgid "Both sides."
 msgstr ""
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side"
 msgstr ""
 
-#: postprocess_controls.py:23
+#: postprocess_controls.py:44
 msgid "Facing side."
 msgstr ""
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side"
 msgstr ""
 
-#: postprocess_controls.py:24
+#: postprocess_controls.py:45
 msgid "Reverse side."
 msgstr ""
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:48
 msgid "90°"
 msgstr ""
 
-#: postprocess_controls.py:27
+#: postprocess_controls.py:48
 msgid "Rotate image 90 degrees clockwise."
 msgstr ""
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:49
 msgid "180°"
 msgstr ""
 
-#: postprocess_controls.py:28
+#: postprocess_controls.py:49
 msgid "Rotate image 180 degrees clockwise."
 msgstr ""
 
-#: postprocess_controls.py:29
+#: postprocess_controls.py:50
 msgid "270°"
 msgstr ""
 
-#: postprocess_controls.py:29
+#: postprocess_controls.py:50
 msgid "Rotate image 90 degrees anticlockwise."
 msgstr ""
 
-#: postprocess_controls.py:39
+#: postprocess_controls.py:55 postprocess_controls.py:738
+msgid "Page segmentation mode"
+msgstr ""
+
+#: postprocess_controls.py:56 postprocess_controls.py:747
+msgid "OCR engine mode"
+msgstr ""
+
+#: postprocess_controls.py:67
 msgid "Rotate"
 msgstr ""
 
-#: postprocess_controls.py:40
+#: postprocess_controls.py:68
 msgid "Rotate image after scanning"
 msgstr ""
 
-#: postprocess_controls.py:43
+#: postprocess_controls.py:72
 msgid "Select side to rotate"
 msgstr ""
 
-#: postprocess_controls.py:46
+#: postprocess_controls.py:76
 msgid "Select angle of rotation"
 msgstr ""
 
-#: postprocess_controls.py:49
+#: postprocess_controls.py:79
 msgid "Anticlockwise"
 msgstr ""
 
-#: postprocess_controls.py:350 postprocess_controls.py:351
+#: postprocess_controls.py:478 postprocess_controls.py:479
 msgid "OCR scanned pages"
 msgstr ""
 
-#: postprocess_controls.py:378
+#: postprocess_controls.py:507
 msgid "Threshold before OCR"
 msgstr ""
 
-#: postprocess_controls.py:381
+#: postprocess_controls.py:510
 msgid ""
 "Threshold the image before performing OCR. This only affects the image "
 "passed to the OCR engine, and not the image stored."
 msgstr ""
 
-#: postprocess_controls.py:392 tools_menu_mixins.py:114
+#: postprocess_controls.py:520 tools_menu_mixins.py:122
 msgid ""
 "Pixels that differ from the paper colour by more than this percentage are "
 "rendered black. Higher values only keep stronger marks."
 msgstr ""
 
-#: postprocess_controls.py:428
+#: postprocess_controls.py:585
+msgid "No OCR language selected."
+msgstr ""
+
+#: postprocess_controls.py:588
+#, python-format
+msgid "The following OCR languages are not installed: %(languages)s"
+msgstr ""
+
+#: postprocess_controls.py:598
+#, python-format
+msgid ""
+"'%(variable)s' is set by the %(control)s control; remove it from this field."
+msgstr ""
+
+#: postprocess_controls.py:609
+#, python-format
+msgid "Unknown Tesseract options: %(variables)s"
+msgstr ""
+
+#: postprocess_controls.py:624
 msgid "Language to recognise"
 msgstr ""
 
-#: progress.py:43 session_mixins.py:451 text_layer_control.py:83
-msgid "_Cancel"
+#: postprocess_controls.py:632
+msgid "Additional languages"
 msgstr ""
 
-#: progress.py:76 progress.py:110
+#: postprocess_controls.py:674
+msgid "Tessdata directory"
+msgstr ""
+
+#: postprocess_controls.py:677
+msgid "Default (system tessdata)"
+msgstr ""
+
+#: postprocess_controls.py:680
+msgid ""
+"Directory that directly contains the Tesseract .traineddata language files. "
+"Leave empty for the system default."
+msgstr ""
+
+#: postprocess_controls.py:693
+msgid "Choose the tessdata directory"
+msgstr ""
+
+#: postprocess_controls.py:698
+msgid "Use the system tessdata directory"
+msgstr ""
+
+#: postprocess_controls.py:710
+msgid "Select tessdata directory"
+msgstr ""
+
+#: postprocess_controls.py:741
+msgid "How tesseract should segment the page. Automatic suits most pages."
+msgstr ""
+
+#: postprocess_controls.py:750
+msgid "Which tesseract engine to use. Default uses the engine's own choice."
+msgstr ""
+
+#: postprocess_controls.py:758
+msgid "Advanced Tesseract engine parameters"
+msgstr ""
+
+#: postprocess_controls.py:761
+msgid ""
+"Tesseract engine parameters - the values of tesseract's -c option - not "
+"command-line flags. Use absolute paths."
+msgstr ""
+
+#: postprocess_controls.py:769
+msgid ""
+"One name=value engine parameter per line, e.g. "
+"user_words_file=/path/to/words.txt. Write engine parameters, not command-"
+"line options such as --user-words."
+msgstr ""
+
+#: postprocess_controls.py:791
+msgid "_Available parameters"
+msgstr ""
+
+#: postprocess_controls.py:794
+msgid "Browse the parameters the installed Tesseract reports"
+msgstr ""
+
+#: postprocess_controls.py:907
+msgid "No additional languages"
+msgstr ""
+
+#: postprocess_controls.py:922
 #, python-format
-msgid "Process %i of %i (%s)"
+msgid "%(language)s (not installed)"
 msgstr ""
 
-#: progress.py:119
+#: progress.py:79 progress.py:118
 #, python-format
-msgid "Process %i of %i"
+msgid "Process %(current)i of %(total)i (%(process)s)"
 msgstr ""
 
-#: savethread.py:83
+#: progress.py:127
+#, python-format
+msgid "Process %(current)i of %(total)i"
+msgstr ""
+
+#: savethread.py:210
 msgid "Processing PDF"
 msgstr ""
 
-#: savethread.py:148
+#: savethread.py:283
 msgid "Embedding text layer"
 msgstr ""
 
-#: savethread.py:195
+#: savethread.py:341
 msgid "Setting up PDF"
 msgstr ""
 
-#: savethread.py:264 savethread.py:405
-#, python-format
-msgid "Writing page %i of %i"
+#: savethread.py:409 tests/test_savethread.py:1822
+msgid "Converting to JBIG2"
 msgstr ""
 
-#: savethread.py:291
+#: savethread.py:447 savethread.py:615
+#, python-format
+msgid "Writing page %(current)i of %(total)i"
+msgstr ""
+
+#: savethread.py:498
 #, python-format
 msgid ""
 "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
 msgstr ""
 
-#: savethread.py:314 tests/test_savethread.py:1240
+#: savethread.py:521 tests/test_savethread.py:1599
 msgid "Writing PDF"
 msgstr ""
 
-#: savethread.py:363
+#: savethread.py:571
 msgid "Converting to PS"
 msgstr ""
 
-#: savethread.py:374
+#: savethread.py:584
 #, python-format
 msgid "Error converting PDF to PS: %s"
 msgstr ""
 
-#: savethread.py:418
+#: savethread.py:628
 msgid "Merging DjVu"
 msgstr ""
 
-#: savethread.py:425
+#: savethread.py:635
 #, python-format
 msgid "Error merging DjVu: %s"
 msgstr ""
 
-#: savethread.py:519
+#: savethread.py:729
 #, python-format
 msgid "Error converting TIFF to PS: %s"
 msgstr ""
 
-#: savethread.py:664
+#: savethread.py:877
 msgid "Error copying page"
 msgstr ""
 
-#: savethread.py:814
+#: savethread.py:948 tools_menu_mixins.py:840
+#, python-format
+msgid ""
+"Batch mode cannot be used with '%(tool)s' because it uses %(variable)s. Run "
+"it one page at a time instead."
+msgstr ""
+
+#: savethread.py:1009
+msgid ""
+"No pages were modified. If the tool was already running (for example GIMP), "
+"it may have opened the images in the existing instance."
+msgstr ""
+
+#: savethread.py:1018
+#, python-format
+msgid "'%(tool)s' failed with status %(status)s."
+msgstr ""
+
+#: savethread.py:1024
+#, python-format
+msgid "Error running '%(tool)s': %(error)s."
+msgstr ""
+
+#: savethread.py:1294
 #, python-format
 msgid "Error prepending PDF: %s"
 msgstr ""
 
-#: savethread.py:822
+#: savethread.py:1302
 #, python-format
 msgid "Error appending PDF: %s"
 msgstr ""
 
-#: savethread.py:831
+#: savethread.py:1311
 msgid "Error creating backup of PDF"
 msgstr ""
 
-#: savethread.py:905
+#: savethread.py:1385
 #, python-format
 msgid "Error encrypting PDF: %s"
 msgstr ""
 
-#: scan_menu_item_mixins.py:72
+#: scan_menu_item_mixins.py:118
 msgid "Really cache libusb device names?"
-msgstr ""
-
-#: scan_menu_item_mixins.py:76
-msgid ""
-"Caching device list with libusb devices included is not recommended as they "
-"can change between reboots."
-msgstr ""
-
-#: scan_menu_item_mixins.py:78
-msgid "Are you sure you want to do this?"
-msgstr ""
-
-#: scan_menu_item_mixins.py:114
-msgid "Scan Document"
-msgstr ""
-
-#: scan_menu_item_mixins.py:216
-msgid "Postprocessing"
-msgstr ""
-
-#: scan_menu_item_mixins.py:230
-msgid "Alternate rotation every 2nd page"
-msgstr ""
-
-#: scan_menu_item_mixins.py:233
-msgid ""
-"Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
-"degrees. Use when scanning a book where every sheet is aligned to the same "
-"edge, so the back of each sheet is rotated 180 degrees relative to its front."
-msgstr ""
-
-#: scan_menu_item_mixins.py:298
-msgid "Clean up images"
-msgstr ""
-
-#: scan_menu_item_mixins.py:299
-msgid "Clean up scanned images with unpaper"
-msgstr ""
-
-#: scan_menu_item_mixins.py:307
-msgid "Options"
-msgstr ""
-
-#: scan_menu_item_mixins.py:308
-msgid "Set unpaper options"
-msgstr ""
-
-#: scan_menu_item_mixins.py:316
-msgid "unpaper options"
-msgstr ""
-
-#: scan_menu_item_mixins.py:339
-msgid "Process with user-defined tool"
-msgstr ""
-
-#: scan_menu_item_mixins.py:340
-msgid "Process scanned images with user-defined tool"
-msgstr ""
-
-#: session_mixins.py:74
-#, python-format
-msgid ""
-"Warning: unable to use %s for temporary storage. Defaulting to %s instead."
-msgstr ""
-
-#: session_mixins.py:118 session_mixins.py:123
-msgid "Pick crashed session to restore"
-msgstr ""
-
-#: session_mixins.py:191
-msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
-msgstr ""
-
-#: session_mixins.py:193
-msgid "Whilst this might work, it is not currently supported."
-msgstr ""
-
-#: session_mixins.py:195
-msgid "Please switch to ImageMagick in case of problems."
-msgstr ""
-
-#: session_mixins.py:212
-msgid "Tesseract"
-msgstr ""
-
-#: session_mixins.py:212
-msgid "Process image with Tesseract."
-msgstr ""
-
-#: session_mixins.py:229
-msgid "Finished scanning facing pages. Scan reverse pages?"
-msgstr ""
-
-#: session_mixins.py:232
-msgid "Finished scanning reverse pages. Scan facing pages?"
-msgstr ""
-
-#: session_mixins.py:448 text_layer_control.py:80
-msgid "_OK"
-msgstr ""
-
-#: session_mixins.py:449 text_layer_control.py:80
-msgid "Accept corrections"
-msgstr ""
-
-#: session_mixins.py:452 text_layer_control.py:83
-msgid "Cancel corrections"
-msgstr ""
-
-#: session_mixins.py:458
-msgid "Add annotation"
-msgstr ""
-
-#: session_mixins.py:461
-msgid "Delete annotation"
-msgstr ""
-
-#: session_mixins.py:505
-msgid "my-new-word"
-msgstr ""
-
-#: session_mixins.py:560
-msgid "my-new-annotation"
-msgstr ""
-
-#: tesseract.py:232 tesseract.py:246 tesseract.py:258
-#, python-format
-msgid "You are using locale '%s'."
-msgstr ""
-
-#: tesseract.py:235
-msgid ""
-"scantpaper does not currently know which tesseract language package would be "
-"necessary for that locale."
-msgstr ""
-
-#: tesseract.py:239
-msgid "Please contact the developers to add support for that locale."
-msgstr ""
-
-#: tesseract.py:250
-#, python-format
-msgid ""
-"Please install tesseract package 'tesseract-ocr-%s' and restart scantpaper "
-"for OCR for %s with tesseract."
-msgstr ""
-
-#: tesseract.py:260
-#, python-format
-msgid "There is no tesseract package for %s"
-msgstr ""
-
-#: tesseract.py:262
-msgid "If this is in error, please contact the scantpaper developers."
-msgstr ""
-
-#: tests/test_savethread.py:1230
-msgid "Writing page"
-msgstr ""
-
-#: text_layer_control.py:27
-msgid "Sort by confidence"
-msgstr ""
-
-#: text_layer_control.py:28
-msgid "Sort OCR text boxes by confidence."
-msgstr ""
-
-#: text_layer_control.py:30
-msgid "Sort by position"
-msgstr ""
-
-#: text_layer_control.py:30
-msgid "Sort OCR text boxes by position."
-msgstr ""
-
-#: text_layer_control.py:61
-msgid "Go to least confident text"
-msgstr ""
-
-#: text_layer_control.py:64
-msgid "Go to previous text"
-msgstr ""
-
-#: text_layer_control.py:67
-msgid "Select sort method for OCR boxes"
-msgstr ""
-
-#: text_layer_control.py:73
-msgid "Go to next text"
-msgstr ""
-
-#: text_layer_control.py:75
-msgid "Go to most confident text"
-msgstr ""
-
-#: text_layer_control.py:77
-msgid "Add text"
-msgstr ""
-
-#: text_layer_control.py:86
-msgid "_Copy"
-msgstr ""
-
-#: text_layer_control.py:86
-msgid "Duplicate text"
-msgstr ""
-
-#: text_layer_control.py:89
-msgid "Delete text"
-msgstr ""
-
-#: tools_menu_mixins.py:96 tools_menu_mixins.py:289
-msgid "Threshold"
-msgstr ""
-
-#: tools_menu_mixins.py:106
-msgid "Ink strength"
-msgstr ""
-
-#: tools_menu_mixins.py:159
-msgid "Brightness / Contrast"
-msgstr ""
-
-#: tools_menu_mixins.py:170
-msgid "Brightness"
-msgstr ""
-
-#: tools_menu_mixins.py:181
-msgid "Contrast"
-msgstr ""
-
-#: tools_menu_mixins.py:227
-msgid "Negate"
-msgstr ""
-
-#: tools_menu_mixins.py:264
-msgid "Unsharp mask"
-msgstr ""
-
-#: tools_menu_mixins.py:275
-msgid "Radius"
-msgstr ""
-
-#: tools_menu_mixins.py:279
-msgid "Blur Radius."
-msgstr ""
-
-#: tools_menu_mixins.py:282
-msgid "Percentage"
-msgstr ""
-
-#: tools_menu_mixins.py:286
-msgid "Unsharp strength, in percent."
-msgstr ""
-
-#: tools_menu_mixins.py:294
-msgid ""
-"Threshold controls the minimum brightness change that will be sharpened."
-msgstr ""
-
-#: tools_menu_mixins.py:444
-msgid "Split"
-msgstr ""
-
-#: tools_menu_mixins.py:453
-msgid "Direction"
-msgstr ""
-
-#: tools_menu_mixins.py:458
-msgid "Vertically"
-msgstr ""
-
-#: tools_menu_mixins.py:459
-msgid "Split the page vertically into left and right pages."
-msgstr ""
-
-#: tools_menu_mixins.py:463
-msgid "Horizontally"
-msgstr ""
-
-#: tools_menu_mixins.py:464
-msgid "Split the page horizontally into top and bottom pages."
-msgstr ""
-
-#: tools_menu_mixins.py:487
-msgid "Position"
-msgstr ""
-
-#: tools_menu_mixins.py:590
-msgid "unpaper"
-msgstr ""
-
-#: tools_menu_mixins.py:649
-msgid "OCR"
-msgstr ""
-
-#: tools_menu_mixins.py:730
-msgid "User-defined tools"
-msgstr ""
-
-#: tools_menu_mixins.py:739
-msgid "Selected tool"
-msgstr ""
-
-#: tools_menu_mixins.py:782
-msgid "Email as PDF"
-msgstr ""
-
-#: tools_menu_mixins.py:861
-msgid "Error creating email"
-msgstr ""
-
-#: tools_menu_mixins.py:917
-msgid "To aid the scan-to-PDF process"
-msgstr ""
-
-#: tools_menu_mixins.py:918
-msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
-msgstr ""
-
-#: unpaper.py:38
-msgid "Layout"
-msgstr ""
-
-#: unpaper.py:41
-msgid "Single"
-msgstr ""
-
-#: unpaper.py:43
-msgid "One page per sheet, oriented upwards without rotation."
-msgstr ""
-
-#: unpaper.py:47
-msgid "Double"
-msgstr ""
-
-#: unpaper.py:49
-msgid ""
-"Two pages per sheet, landscape orientation (one page on the left half, one "
-"page on the right half)."
-msgstr ""
-
-#: unpaper.py:58
-msgid "# Output pages"
-msgstr ""
-
-#: unpaper.py:59
-msgid "Number of pages to output."
-msgstr ""
-
-#: unpaper.py:67
-msgid "Writing system"
-msgstr ""
-
-#: unpaper.py:70
-msgid "Left-to-right"
-msgstr ""
-
-#: unpaper.py:72
-msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
-msgstr ""
-
-#: unpaper.py:76
-msgid "Right-to-left"
-msgstr ""
-
-#: unpaper.py:77
-msgid "Scripts like Arabic or Hebrew."
-msgstr ""
-
-#: unpaper.py:85
-msgid "No deskew"
-msgstr ""
-
-#: unpaper.py:86
-msgid "Disable deskewing."
-msgstr ""
-
-#: unpaper.py:91
-msgid "No mask scan"
-msgstr ""
-
-#: unpaper.py:92
-msgid "Disable mask detection."
-msgstr ""
-
-#: unpaper.py:97
-msgid "No mask centering"
-msgstr ""
-
-#: unpaper.py:98
-msgid "Disable mask centering."
-msgstr ""
-
-#: unpaper.py:103
-msgid "No black filter"
-msgstr ""
-
-#: unpaper.py:104
-msgid "Disable black area scan."
-msgstr ""
-
-#: unpaper.py:109
-msgid "No gray filter"
-msgstr ""
-
-#: unpaper.py:110
-msgid "Disable gray area scan."
-msgstr ""
-
-#: unpaper.py:115
-msgid "No noise filter"
-msgstr ""
-
-#: unpaper.py:116
-msgid "Disable noise filter."
-msgstr ""
-
-#: unpaper.py:121
-msgid "No blur filter"
-msgstr ""
-
-#: unpaper.py:122
-msgid "Disable blur filter."
-msgstr ""
-
-#: unpaper.py:127
-msgid "No border scan"
-msgstr ""
-
-#: unpaper.py:128
-msgid "Disable border scanning."
-msgstr ""
-
-#: unpaper.py:133
-msgid "No border align"
-msgstr ""
-
-#: unpaper.py:135
-msgid "Disable aligning of the area detected by border scanning."
-msgstr ""
-
-#: unpaper.py:141
-msgid "Deskew to edge"
-msgstr ""
-
-#: unpaper.py:143
-msgid ""
-"Edges from which to scan for rotation. Each edge of a mask can be used to "
-"detect the mask's rotation. If multiple edges are specified, the average "
-"value will be used, unless the statistical deviation exceeds --deskew-scan-"
-"deviation."
-msgstr ""
-
-#: unpaper.py:152
-msgid "Use 'left' for scanning from the left edge."
-msgstr ""
-
-#: unpaper.py:157
-msgid "Use 'top' for scanning from the top edge."
-msgstr ""
-
-#: unpaper.py:161 unpaper.py:189
-msgid "Right"
-msgstr ""
-
-#: unpaper.py:162
-msgid "Use 'right' for scanning from the right edge."
-msgstr ""
-
-#: unpaper.py:166 unpaper.py:194
-msgid "Bottom"
-msgstr ""
-
-#: unpaper.py:167
-msgid "Use 'bottom' for scanning from the bottom."
-msgstr ""
-
-#: unpaper.py:174
-msgid "Align to edge"
-msgstr ""
-
-#: unpaper.py:175
-msgid "Edge to which to align the page."
-msgstr ""
-
-#: unpaper.py:180
-msgid "Use 'left' to align to the left edge."
-msgstr ""
-
-#: unpaper.py:185
-msgid "Use 'top' to align to the top edge."
-msgstr ""
-
-#: unpaper.py:190
-msgid "Use 'right' to align to the right edge."
-msgstr ""
-
-#: unpaper.py:195
-msgid "Use 'bottom' to align to the bottom."
-msgstr ""
-
-#: unpaper.py:201
-msgid "Border margin"
-msgstr ""
-
-#: unpaper.py:205
-msgid "Vertical margin"
-msgstr ""
-
-#: unpaper.py:207
-msgid ""
-"Vertical distance to keep from the sheet edge when aligning a border area."
-msgstr ""
-
-#: unpaper.py:217
-msgid "Horizontal margin"
-msgstr ""
-
-#: unpaper.py:219
-msgid ""
-"Horizontal distance to keep from the sheet edge when aligning a border area."
-msgstr ""
-
-#: unpaper.py:231
-msgid "White threshold"
-msgstr ""
-
-#: unpaper.py:233
-msgid "Brightness ratio above which a pixel is considered white."
-msgstr ""
-
-#: unpaper.py:243
-msgid "Black threshold"
-msgstr ""
-
-#: unpaper.py:245
-msgid ""
-"Brightness ratio below which a pixel is considered black (non-gray). This is "
-"used by the gray-filter. This value is also used when converting a grayscale "
-"image to black-and-white mode."
-msgstr ""
-
-#: unpaper.py:355
-msgid "Deskew"
-msgstr ""
-
-#: unpaper.py:359
-msgid "Border"
-msgstr ""
-
-#: unpaper.py:364
-msgid "Filters"
-msgstr ""
-
-#: app.ui:5 menu.ui:6
-msgid "_File"
-msgstr ""
-
-#: app.ui:9 menu.ui:9
-msgid "_New"
-msgstr ""
-
-#: app.ui:14 menu.ui:14
-msgid "_Open"
-msgstr ""
-
-#: app.ui:19
-msgid "Open c_rashed session"
-msgstr ""
-
-#: app.ui:23 menu.ui:19
-msgid "S_can"
-msgstr ""
-
-#: app.ui:33 menu.ui:29
-msgid "_Email as PDF"
-msgstr ""
-
-#: app.ui:38 menu.ui:34
-msgid "_Print"
-msgstr ""
-
-#: app.ui:45 menu.ui:39
-msgid "_Quit"
-msgstr ""
-
-#: app.ui:51 menu.ui:46
-msgid "_Edit"
-msgstr ""
-
-#: app.ui:55 menu.ui:49
-msgid "_Undo"
-msgstr ""
-
-#: app.ui:60 menu.ui:53
-msgid "_Redo"
-msgstr ""
-
-#: app.ui:67 menu.ui:57
-msgid "Cu_t"
-msgstr ""
-
-#: app.ui:77 menu.ui:65
-msgid "_Paste"
-msgstr ""
-
-#: app.ui:86 app.ui:155 app.ui:301 menu.ui:73
-msgid "_Select"
-msgstr ""
-
-#: app.ui:89 menu.ui:76
-msgid "_All"
-msgstr ""
-
-#: app.ui:94 menu.ui:80
-msgid "_Odd"
-msgstr ""
-
-#: app.ui:99 menu.ui:84
-msgid "_Even"
-msgstr ""
-
-#: app.ui:104 menu.ui:88
-msgid "_Invert"
-msgstr ""
-
-#: app.ui:109 menu.ui:92
-msgid "_Blank"
-msgstr ""
-
-#: app.ui:114 menu.ui:96
-msgid "_Dark"
-msgstr ""
-
-#: app.ui:119 menu.ui:100
-msgid "_Modified"
-msgstr ""
-
-#: app.ui:124 menu.ui:104
-msgid "_No OCR"
-msgstr ""
-
-#: app.ui:130 menu.ui:108
-msgid "_Clear OCR"
-msgstr ""
-
-#: app.ui:136 menu.ui:114
-msgid "Propert_ies"
-msgstr ""
-
-#: app.ui:142 menu.ui:118
-msgid "Prefere_nces"
-msgstr ""
-
-#: app.ui:147 menu.ui:124
-msgid "_View"
-msgstr ""
-
-#: app.ui:150 app.ui:293
-msgid "_Pan"
-msgstr ""
-
-#: app.ui:160 app.ui:310
-msgid "_Select & pan"
-msgstr ""
-
-#: app.ui:167
-msgid "_Tabbed"
-msgstr ""
-
-#: app.ui:172
-msgid "_Split horizontally"
-msgstr ""
-
-#: app.ui:177
-msgid "_Split vertically"
-msgstr ""
-
-#: app.ui:184
-msgid "Edit text layer"
-msgstr ""
-
-#: app.ui:189
-msgid "Edit annotations"
-msgstr ""
-
-#: app.ui:197 app.ui:320 menu.ui:127
-msgid "Zoom _100%"
-msgstr ""
-
-#: app.ui:201 app.ui:327 menu.ui:131
-msgid "Zoom to _fit"
-msgstr ""
-
-#: app.ui:205 app.ui:334 menu.ui:135
-msgid "Zoom _in"
-msgstr ""
-
-#: app.ui:210 app.ui:341 menu.ui:139
-msgid "Zoom _out"
-msgstr ""
-
-#: app.ui:217 app.ui:349 app.ui:452 app.ui:734 menu.ui:143
-msgid "Rotate 90° clockwise"
-msgstr ""
-
-#: app.ui:222 app.ui:355 app.ui:458 app.ui:744 menu.ui:147
-msgid "Rotate 180°"
-msgstr ""
-
-#: app.ui:227 app.ui:361 app.ui:464 app.ui:754 menu.ui:151
-msgid "Rotate 90° anticlockwise"
-msgstr ""
-
-#: app.ui:233 menu.ui:157
-msgid "_Tools"
-msgstr ""
-
-#: app.ui:237 menu.ui:160
-msgid "_Threshold"
-msgstr ""
-
-#: app.ui:241 menu.ui:164
-msgid "_Brightness / Contrast"
-msgstr ""
-
-#: app.ui:245 menu.ui:168
-msgid "_Negate"
-msgstr ""
-
-#: app.ui:249 menu.ui:172
-msgid "_Unsharp Mask"
-msgstr ""
-
-#: app.ui:253 menu.ui:176
-msgid "_Crop"
-msgstr ""
-
-#: app.ui:259 menu.ui:180
-msgid "_Clean up"
-msgstr ""
-
-#: app.ui:263 menu.ui:184
-msgid "_Split"
-msgstr ""
-
-#: app.ui:267 menu.ui:188
-msgid "_OCR"
-msgstr ""
-
-#: app.ui:273 menu.ui:192
-msgid "U_ser-defined"
-msgstr ""
-
-#: app.ui:278 app.ui:281 menu.ui:198 menu.ui:201
-msgid "_Help"
-msgstr ""
-
-#: app.ui:286 menu.ui:205
-msgid "_About"
-msgstr ""
-
-#: app.ui:375 app.ui:478
-msgid "Cut"
-msgstr ""
-
-#: app.ui:381 app.ui:484
-msgid "Copy"
-msgstr ""
-
-#: app.ui:387 app.ui:490
-msgid "Paste"
-msgstr ""
-
-#: app.ui:393 app.ui:496
-msgid "Delete"
-msgstr ""
-
-#: app.ui:420 app.ui:573
-msgid "Print"
-msgstr ""
-
-#: app.ui:427
-msgid "Select All"
-msgstr ""
-
-#: app.ui:433
-msgid "Select Odd"
-msgstr ""
-
-#: app.ui:439
-msgid "Select Even"
-msgstr ""
-
-#: app.ui:445
-msgid "Invert selection"
-msgstr ""
-
-#: app.ui:503
-msgid "Clear OCR"
-msgstr ""
-
-#: app.ui:523
-msgid "Clears all pages"
-msgstr ""
-
-#: app.ui:533
-msgid "Open images"
-msgstr ""
-
-#: app.ui:543
-msgid "Scan document"
-msgstr ""
-
-#: app.ui:563
-msgid "Attach as PDF to a new email"
-msgstr ""
-
-#: app.ui:584
-msgid "Undo"
-msgstr ""
-
-#: app.ui:594
-msgid "Redo"
-msgstr ""
-
-#: app.ui:605
-msgid "Cut selection"
-msgstr ""
-
-#: app.ui:615
-msgid "Copy selection"
-msgstr ""
-
-#: app.ui:625
-msgid "Paste selection"
-msgstr ""
-
-#: app.ui:635
-msgid "Delete selected pages"
-msgstr ""
-
-#: app.ui:646
-msgid "Select all pages"
-msgstr ""
-
-#: app.ui:657
-msgid "Use the pan tool"
-msgstr ""
-
-#: app.ui:668
-msgid "Use the rectangular selection tool"
-msgstr ""
-
-#: app.ui:680
-msgid "Use the combined select and pan tool"
-msgstr ""
-
-#: app.ui:693
-msgid "Zoom to 100%"
-msgstr ""
-
-#: app.ui:703
-msgid "Zoom to fit"
-msgstr ""
-
-#: app.ui:713
-msgid "Zoom in"
-msgstr ""
-
-#: app.ui:723
-msgid "Zoom out"
-msgstr ""
-
-#: app.ui:765
-msgid "Crop selection"
-msgstr ""
-
-#: app.ui:776
-msgid "Quit"
-msgstr ""
-
-#: menu.ui:24
-msgid "_Save"
-msgstr ""
-
-#: session_mixins.py:160
-#, fuzzy
-msgid "No crashed sessions found."
-msgstr ""
-
-#: session_mixins.py:166
-#, fuzzy
-msgid "Crashed sessions"
-msgstr ""
-
-#: session_mixins.py:171
-#, fuzzy
-msgid "_Discard"
-msgstr ""
-
-#: session_mixins.py:172
-#, fuzzy
-msgid "_Restore"
-msgstr ""
-
-#: session_mixins.py:175
-#, fuzzy
-msgid "Restore or discard a crashed session"
-msgstr ""
-
-#: session_mixins.py:204
-#, fuzzy
-msgid "Some pages have not been saved.\nDo you really want to restore a crashed session?"
-msgstr ""
-
-#: session_mixins.py:239
-#, fuzzy
-msgid "Restore file"
-msgstr ""
-
-#: session_mixins.py:255
-#, fuzzy, python-format
-msgid "Discard this %(count)d crashed session?"
-msgid_plural "Discard these %(count)d crashed sessions?"
-msgstr[0] ""
-msgstr[1] ""
-
-#: session_mixins.py:279
-#, fuzzy
-msgid "Unable to discard some crashed sessions."
 msgstr ""
 
 #: scan_menu_item_mixins.py:122
@@ -2401,4 +1979,1009 @@ msgstr ""
 #: scan_menu_item_mixins.py:127
 #, fuzzy
 msgid "Don't ask again"
+msgstr ""
+
+#: scan_menu_item_mixins.py:176
+msgid "Scan Document"
+msgstr ""
+
+#: scan_menu_item_mixins.py:291
+msgid "Postprocessing"
+msgstr ""
+
+#: scan_menu_item_mixins.py:400
+msgid "Alternate rotation every 2nd page"
+msgstr ""
+
+#: scan_menu_item_mixins.py:403
+msgid ""
+"Rotate odd pages by the chosen angle and even pages by that angle plus 180 "
+"degrees. Use when scanning a book where every sheet is aligned to the same "
+"edge, so the back of each sheet is rotated 180 degrees relative to its "
+"front."
+msgstr ""
+
+#: scan_menu_item_mixins.py:425
+msgid "Clean up images"
+msgstr ""
+
+#: scan_menu_item_mixins.py:426
+msgid "Clean up scanned images with unpaper"
+msgstr ""
+
+#: scan_menu_item_mixins.py:435
+msgid "Options"
+msgstr ""
+
+#: scan_menu_item_mixins.py:436
+msgid "Set unpaper options"
+msgstr ""
+
+#: scan_menu_item_mixins.py:445
+msgid "unpaper options"
+msgstr ""
+
+#: scan_menu_item_mixins.py:468
+msgid "Process with user-defined tool"
+msgstr ""
+
+#: scan_menu_item_mixins.py:469
+msgid "Process scanned images with user-defined tool"
+msgstr ""
+
+#: session_mixins.py:84
+#, python-format
+msgid ""
+"Warning: unable to use %(configured)s for temporary storage. Defaulting to "
+"%(default)s instead."
+msgstr ""
+
+#: session_mixins.py:163
+#, fuzzy
+msgid "No crashed sessions found."
+msgstr ""
+
+#: session_mixins.py:169
+#, fuzzy
+msgid "Crashed sessions"
+msgstr ""
+
+#: session_mixins.py:174
+#, fuzzy
+msgid "_Discard"
+msgstr ""
+
+#: session_mixins.py:175
+#, fuzzy
+msgid "_Restore"
+msgstr ""
+
+#: session_mixins.py:178
+#, fuzzy
+msgid "Restore or discard a crashed session"
+msgstr ""
+
+#: session_mixins.py:207
+#, fuzzy
+msgid ""
+"Some pages have not been saved.\n"
+"Do you really want to restore a crashed session?"
+msgstr ""
+
+#: session_mixins.py:242
+#, fuzzy
+msgid "Restore file"
+msgstr ""
+
+#: session_mixins.py:258
+#, python-format
+msgid "Discard %(count)d crashed session?"
+msgid_plural "Discard %(count)d crashed sessions?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: session_mixins.py:280
+#, python-format
+msgid "Could not remove %(count)d crashed session."
+msgid_plural "Could not remove %(count)d crashed sessions."
+msgstr[0] ""
+msgstr[1] ""
+
+#: session_mixins.py:301
+msgid "GraphicsMagick is being used in ImageMagick compatibility mode."
+msgstr ""
+
+#: session_mixins.py:303
+msgid "Whilst this might work, it is not currently supported."
+msgstr ""
+
+#: session_mixins.py:305
+msgid "Please switch to ImageMagick in case of problems."
+msgstr ""
+
+#: session_mixins.py:318
+msgid "Tesseract"
+msgstr ""
+
+#: session_mixins.py:318
+msgid "Process image with Tesseract."
+msgstr ""
+
+#: session_mixins.py:330
+msgid "Finished scanning facing pages. Scan reverse pages?"
+msgstr ""
+
+#: session_mixins.py:333
+msgid "Finished scanning reverse pages. Scan facing pages?"
+msgstr ""
+
+#: tesseract.py:197
+msgid "Fully automatic page segmentation."
+msgstr ""
+
+#: tesseract.py:198
+msgid "Single column"
+msgstr ""
+
+#: tesseract.py:198
+msgid "A single column of text of variable sizes."
+msgstr ""
+
+#: tesseract.py:199
+msgid "Single block"
+msgstr ""
+
+#: tesseract.py:199
+msgid "A single uniform block of text."
+msgstr ""
+
+#: tesseract.py:200
+msgid "Single line"
+msgstr ""
+
+#: tesseract.py:200
+msgid "The image is a single text line."
+msgstr ""
+
+#: tesseract.py:201
+msgid "Single word"
+msgstr ""
+
+#: tesseract.py:201
+msgid "The image is a single word."
+msgstr ""
+
+#: tesseract.py:202
+msgid "Single character"
+msgstr ""
+
+#: tesseract.py:202
+msgid "The image is a single character."
+msgstr ""
+
+#: tesseract.py:203
+msgid "Sparse text"
+msgstr ""
+
+#: tesseract.py:203
+msgid "Find as much text as possible, in no order."
+msgstr ""
+
+#: tesseract.py:204
+msgid "Raw line"
+msgstr ""
+
+#: tesseract.py:204
+msgid "A single line, without tesseract-specific hacks."
+msgstr ""
+
+#: tesseract.py:214
+msgid "LSTM only"
+msgstr ""
+
+#: tesseract.py:215
+msgid "Legacy"
+msgstr ""
+
+#: tesseract.py:216
+msgid "Combined"
+msgstr ""
+
+#: tesseract.py:260
+#, python-format
+msgid "The tessdata directory does not exist: %(path)s"
+msgstr ""
+
+#: tesseract.py:262
+#, python-format
+msgid "The tessdata path is not a directory: %(path)s"
+msgstr ""
+
+#: tesseract.py:264
+#, python-format
+msgid "The tessdata directory cannot be read: %(path)s"
+msgstr ""
+
+#: tesseract.py:268
+#, python-format
+msgid ""
+"No Tesseract language data was found in the tessdata directory: %(path)s"
+msgstr ""
+
+#: tesseract.py:272
+#, python-format
+msgid "Did you mean %(path)s?"
+msgstr ""
+
+#: tesseract.py:322
+msgid "tessdata directory not found"
+msgstr ""
+
+#: tesseract.py:388
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; this field accepts engine "
+"parameters in name=value form only."
+msgstr ""
+
+#: tesseract.py:393
+#, python-format
+msgid ""
+"'%(flag)s' is a Tesseract command-line option; use '%(variable)s=%(value)s' "
+"instead."
+msgstr ""
+
+#: tesseract.py:413 tesseract.py:420
+#, python-format
+msgid "Invalid Tesseract option on line %(line)s: %(text)s"
+msgstr ""
+
+#: tesseract.py:435
+#, python-format
+msgid "%(variable)s names a file that does not exist: %(path)s"
+msgstr ""
+
+#: tesseract.py:440
+#, python-format
+msgid "%(variable)s names a file that cannot be read: %(path)s"
+msgstr ""
+
+#: tesseract.py:567 tesseract.py:581 tesseract.py:594
+#, python-format
+msgid "You are using locale '%s'."
+msgstr ""
+
+#: tesseract.py:570
+msgid ""
+"scantpaper does not currently know which tesseract language package would be"
+" necessary for that locale."
+msgstr ""
+
+#: tesseract.py:574
+msgid "Please contact the developers to add support for that locale."
+msgstr ""
+
+#: tesseract.py:585
+#, python-format
+msgid ""
+"Please install tesseract package 'tesseract-ocr-%(package)s' and restart "
+"scantpaper for OCR for %(language)s with tesseract."
+msgstr ""
+
+#: tesseract.py:596
+#, python-format
+msgid "There is no tesseract package for %s"
+msgstr ""
+
+#: tesseract.py:598
+msgid "If this is in error, please contact the scantpaper developers."
+msgstr ""
+
+#: tests/test_savethread.py:1589
+msgid "Writing page"
+msgstr ""
+
+#: tools_menu_mixins.py:105 tools_menu_mixins.py:298
+msgid "Threshold"
+msgstr ""
+
+#: tools_menu_mixins.py:115
+msgid "Ink strength"
+msgstr ""
+
+#: tools_menu_mixins.py:156 tools_menu_mixins.py:226 tools_menu_mixins.py:265
+#: tools_menu_mixins.py:368 tools_menu_mixins.py:410 tools_menu_mixins.py:533
+msgid "_Apply"
+msgstr ""
+
+#: tools_menu_mixins.py:168
+msgid "Brightness / Contrast"
+msgstr ""
+
+#: tools_menu_mixins.py:179
+msgid "Brightness"
+msgstr ""
+
+#: tools_menu_mixins.py:190
+msgid "Contrast"
+msgstr ""
+
+#: tools_menu_mixins.py:236
+msgid "Negate"
+msgstr ""
+
+#: tools_menu_mixins.py:273
+msgid "Unsharp mask"
+msgstr ""
+
+#: tools_menu_mixins.py:284
+msgid "Radius"
+msgstr ""
+
+#: tools_menu_mixins.py:288
+msgid "Blur Radius."
+msgstr ""
+
+#: tools_menu_mixins.py:291
+msgid "Percentage"
+msgstr ""
+
+#: tools_menu_mixins.py:295
+msgid "Unsharp strength, in percent."
+msgstr ""
+
+#: tools_menu_mixins.py:303
+msgid ""
+"Threshold controls the minimum brightness change that will be sharpened."
+msgstr ""
+
+#: tools_menu_mixins.py:459
+msgid "Split"
+msgstr ""
+
+#: tools_menu_mixins.py:468
+msgid "Direction"
+msgstr ""
+
+#: tools_menu_mixins.py:473
+msgid "Vertically"
+msgstr ""
+
+#: tools_menu_mixins.py:474
+msgid "Split the page vertically into left and right pages."
+msgstr ""
+
+#: tools_menu_mixins.py:478
+msgid "Horizontally"
+msgstr ""
+
+#: tools_menu_mixins.py:479
+msgid "Split the page horizontally into top and bottom pages."
+msgstr ""
+
+#: tools_menu_mixins.py:502
+msgid "Position"
+msgstr ""
+
+#: tools_menu_mixins.py:605
+msgid "unpaper"
+msgstr ""
+
+#: tools_menu_mixins.py:664
+msgid "OCR"
+msgstr ""
+
+#: tools_menu_mixins.py:777
+msgid "User-defined tools"
+msgstr ""
+
+#: tools_menu_mixins.py:786
+msgid "Selected tool"
+msgstr ""
+
+#: tools_menu_mixins.py:790
+msgid "Process selected pages at once"
+msgstr ""
+
+#: tools_menu_mixins.py:891 app.ui:125
+msgid "Email as PDF"
+msgstr ""
+
+#: tools_menu_mixins.py:970
+msgid "Error creating email"
+msgstr ""
+
+#: tools_menu_mixins.py:1026
+msgid "To aid the scan-to-PDF process"
+msgstr ""
+
+#: tools_menu_mixins.py:1027
+msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
+msgstr ""
+
+#: unpaper.py:40
+msgid "Layout"
+msgstr ""
+
+#: unpaper.py:43
+msgid "Single"
+msgstr ""
+
+#: unpaper.py:45
+msgid "One page per sheet, oriented upwards without rotation."
+msgstr ""
+
+#: unpaper.py:49
+msgid "Double"
+msgstr ""
+
+#: unpaper.py:51
+msgid ""
+"Two pages per sheet, landscape orientation (one page on the left half, one "
+"page on the right half)."
+msgstr ""
+
+#: unpaper.py:60
+msgid "# Output pages"
+msgstr ""
+
+#: unpaper.py:61
+msgid "Number of pages to output."
+msgstr ""
+
+#: unpaper.py:69
+msgid "Writing system"
+msgstr ""
+
+#: unpaper.py:72
+msgid "Left-to-right"
+msgstr ""
+
+#: unpaper.py:74
+msgid "Most writings systems, e.g. Latin, Greek, Cyrillic."
+msgstr ""
+
+#: unpaper.py:78
+msgid "Right-to-left"
+msgstr ""
+
+#: unpaper.py:79
+msgid "Scripts like Arabic or Hebrew."
+msgstr ""
+
+#: unpaper.py:87
+msgid "No deskew"
+msgstr ""
+
+#: unpaper.py:88
+msgid "Disable deskewing."
+msgstr ""
+
+#: unpaper.py:93
+msgid "No mask scan"
+msgstr ""
+
+#: unpaper.py:94
+msgid "Disable mask detection."
+msgstr ""
+
+#: unpaper.py:99
+msgid "No mask centering"
+msgstr ""
+
+#: unpaper.py:100
+msgid "Disable mask centering."
+msgstr ""
+
+#: unpaper.py:105
+msgid "No black filter"
+msgstr ""
+
+#: unpaper.py:106
+msgid "Disable black area scan."
+msgstr ""
+
+#: unpaper.py:111
+msgid "No gray filter"
+msgstr ""
+
+#: unpaper.py:112
+msgid "Disable gray area scan."
+msgstr ""
+
+#: unpaper.py:117
+msgid "No noise filter"
+msgstr ""
+
+#: unpaper.py:118
+msgid "Disable noise filter."
+msgstr ""
+
+#: unpaper.py:123
+msgid "No blur filter"
+msgstr ""
+
+#: unpaper.py:124
+msgid "Disable blur filter."
+msgstr ""
+
+#: unpaper.py:129
+msgid "No border scan"
+msgstr ""
+
+#: unpaper.py:130
+msgid "Disable border scanning."
+msgstr ""
+
+#: unpaper.py:135
+msgid "No border align"
+msgstr ""
+
+#: unpaper.py:137
+msgid "Disable aligning of the area detected by border scanning."
+msgstr ""
+
+#: unpaper.py:143
+msgid "Deskew to edge"
+msgstr ""
+
+#: unpaper.py:145
+msgid ""
+"Edges from which to scan for rotation. Each edge of a mask can be used to "
+"detect the mask's rotation. If multiple edges are specified, the average "
+"value will be used, unless the statistical deviation exceeds --deskew-scan-"
+"deviation."
+msgstr ""
+
+#: unpaper.py:154
+msgid "Use 'left' for scanning from the left edge."
+msgstr ""
+
+#: unpaper.py:159
+msgid "Use 'top' for scanning from the top edge."
+msgstr ""
+
+#: unpaper.py:163 unpaper.py:191
+msgid "Right"
+msgstr ""
+
+#: unpaper.py:164
+msgid "Use 'right' for scanning from the right edge."
+msgstr ""
+
+#: unpaper.py:168 unpaper.py:196
+msgid "Bottom"
+msgstr ""
+
+#: unpaper.py:169
+msgid "Use 'bottom' for scanning from the bottom."
+msgstr ""
+
+#: unpaper.py:176
+msgid "Align to edge"
+msgstr ""
+
+#: unpaper.py:177
+msgid "Edge to which to align the page."
+msgstr ""
+
+#: unpaper.py:182
+msgid "Use 'left' to align to the left edge."
+msgstr ""
+
+#: unpaper.py:187
+msgid "Use 'top' to align to the top edge."
+msgstr ""
+
+#: unpaper.py:192
+msgid "Use 'right' to align to the right edge."
+msgstr ""
+
+#: unpaper.py:197
+msgid "Use 'bottom' to align to the bottom."
+msgstr ""
+
+#: unpaper.py:203
+msgid "Border margin"
+msgstr ""
+
+#: unpaper.py:207
+msgid "Vertical margin"
+msgstr ""
+
+#: unpaper.py:209
+msgid ""
+"Vertical distance to keep from the sheet edge when aligning a border area."
+msgstr ""
+
+#: unpaper.py:219
+msgid "Horizontal margin"
+msgstr ""
+
+#: unpaper.py:221
+msgid ""
+"Horizontal distance to keep from the sheet edge when aligning a border area."
+msgstr ""
+
+#: unpaper.py:233
+msgid "White threshold"
+msgstr ""
+
+#: unpaper.py:235
+msgid "Brightness ratio above which a pixel is considered white."
+msgstr ""
+
+#: unpaper.py:245
+msgid "Black threshold"
+msgstr ""
+
+#: unpaper.py:247
+msgid ""
+"Brightness ratio below which a pixel is considered black (non-gray). This is"
+" used by the gray-filter. This value is also used when converting a "
+"grayscale image to black-and-white mode."
+msgstr ""
+
+#: unpaper.py:370
+msgid "Deskew"
+msgstr ""
+
+#: unpaper.py:374
+msgid "Border"
+msgstr ""
+
+#: unpaper.py:385
+msgid "Filters"
+msgstr ""
+
+#: app.ui:11
+msgid "Pan"
+msgstr ""
+
+#: app.ui:18
+msgid "Select"
+msgstr ""
+
+#: app.ui:25
+msgid "Select & pan"
+msgstr ""
+
+#: app.ui:35
+msgid "Zoom 100%"
+msgstr ""
+
+#: app.ui:40 app.ui:708
+msgid "Zoom to fit"
+msgstr ""
+
+#: app.ui:45 app.ui:718
+msgid "Zoom in"
+msgstr ""
+
+#: app.ui:50 app.ui:728
+msgid "Zoom out"
+msgstr ""
+
+#: app.ui:58 app.ui:161 app.ui:427 app.ui:761 menu.ui:143
+msgid "Rotate 90° clockwise"
+msgstr ""
+
+#: app.ui:63 app.ui:166 app.ui:431 app.ui:751 menu.ui:147
+msgid "Rotate 180°"
+msgstr ""
+
+#: app.ui:68 app.ui:171 app.ui:435 app.ui:741 menu.ui:151
+msgid "Rotate 90° anticlockwise"
+msgstr ""
+
+#: app.ui:84 app.ui:187
+msgid "Cut"
+msgstr ""
+
+#: app.ui:89 app.ui:192
+msgid "Copy"
+msgstr ""
+
+#: app.ui:94 app.ui:197
+msgid "Paste"
+msgstr ""
+
+#: app.ui:130 app.ui:560
+msgid "Print"
+msgstr ""
+
+#: app.ui:138
+msgid "Select All"
+msgstr ""
+
+#: app.ui:143
+msgid "Select Odd"
+msgstr ""
+
+#: app.ui:148
+msgid "Select Even"
+msgstr ""
+
+#: app.ui:153
+msgid "Invert selection"
+msgstr ""
+
+#: app.ui:210
+msgid "Clear OCR"
+msgstr ""
+
+#: app.ui:226 menu.ui:6
+msgid "_File"
+msgstr ""
+
+#: app.ui:230 menu.ui:9
+msgid "_New"
+msgstr ""
+
+#: app.ui:234 menu.ui:14
+msgid "_Open"
+msgstr ""
+
+#: app.ui:238
+msgid "Open c_rashed session"
+msgstr ""
+
+#: app.ui:242
+msgid "Import _hOCR…"
+msgstr ""
+
+#: app.ui:246 menu.ui:19
+msgid "S_can"
+msgstr ""
+
+#: app.ui:254 menu.ui:29
+msgid "_Email as PDF"
+msgstr ""
+
+#: app.ui:258 menu.ui:34
+msgid "_Print"
+msgstr ""
+
+#: app.ui:264 menu.ui:39
+msgid "_Quit"
+msgstr ""
+
+#: app.ui:269 menu.ui:46
+msgid "_Edit"
+msgstr ""
+
+#: app.ui:273 menu.ui:49
+msgid "_Undo"
+msgstr ""
+
+#: app.ui:277 menu.ui:53
+msgid "_Redo"
+msgstr ""
+
+#: app.ui:283 menu.ui:57
+msgid "Cu_t"
+msgstr ""
+
+#: app.ui:291 menu.ui:65
+msgid "_Paste"
+msgstr ""
+
+#: app.ui:299 app.ui:361 menu.ui:73
+msgid "_Select"
+msgstr ""
+
+#: app.ui:302 menu.ui:76
+msgid "_All"
+msgstr ""
+
+#: app.ui:306 menu.ui:80
+msgid "_Odd"
+msgstr ""
+
+#: app.ui:310 menu.ui:84
+msgid "_Even"
+msgstr ""
+
+#: app.ui:314 menu.ui:88
+msgid "_Invert"
+msgstr ""
+
+#: app.ui:318 menu.ui:92
+msgid "_Blank"
+msgstr ""
+
+#: app.ui:322 menu.ui:96
+msgid "_Dark"
+msgstr ""
+
+#: app.ui:326 menu.ui:100
+msgid "_Modified"
+msgstr ""
+
+#: app.ui:330 menu.ui:104
+msgid "_No OCR"
+msgstr ""
+
+#: app.ui:336 menu.ui:108
+msgid "_Clear OCR"
+msgstr ""
+
+#: app.ui:342 menu.ui:114
+msgid "Propert_ies"
+msgstr ""
+
+#: app.ui:348 menu.ui:118
+msgid "Prefere_nces"
+msgstr ""
+
+#: app.ui:353 menu.ui:124
+msgid "_View"
+msgstr ""
+
+#: app.ui:356
+msgid "_Pan"
+msgstr ""
+
+#: app.ui:366
+msgid "_Select & pan"
+msgstr ""
+
+#: app.ui:374
+msgid "_Clear image selection"
+msgstr ""
+
+#: app.ui:379
+msgid "_Tabbed"
+msgstr ""
+
+#: app.ui:384
+msgid "_Split horizontally"
+msgstr ""
+
+#: app.ui:389
+msgid "_Split vertically"
+msgstr ""
+
+#: app.ui:396
+msgid "Edit text layer"
+msgstr ""
+
+#: app.ui:401
+msgid "Edit annotations"
+msgstr ""
+
+#: app.ui:409 menu.ui:127
+msgid "Zoom _100%"
+msgstr ""
+
+#: app.ui:413 menu.ui:131
+msgid "Zoom to _fit"
+msgstr ""
+
+#: app.ui:417 menu.ui:135
+msgid "Zoom _in"
+msgstr ""
+
+#: app.ui:421 menu.ui:139
+msgid "Zoom _out"
+msgstr ""
+
+#: app.ui:440 menu.ui:157
+msgid "_Tools"
+msgstr ""
+
+#: app.ui:444 menu.ui:160
+msgid "_Threshold"
+msgstr ""
+
+#: app.ui:448 menu.ui:164
+msgid "_Brightness / Contrast"
+msgstr ""
+
+#: app.ui:452 menu.ui:168
+msgid "_Negate"
+msgstr ""
+
+#: app.ui:456 menu.ui:172
+msgid "_Unsharp Mask"
+msgstr ""
+
+#: app.ui:460 menu.ui:176
+msgid "_Crop"
+msgstr ""
+
+#: app.ui:466 menu.ui:180
+msgid "_Clean up"
+msgstr ""
+
+#: app.ui:470 menu.ui:184
+msgid "_Split"
+msgstr ""
+
+#: app.ui:474 menu.ui:188
+msgid "_OCR"
+msgstr ""
+
+#: app.ui:480 menu.ui:192
+msgid "U_ser-defined"
+msgstr ""
+
+#: app.ui:485 app.ui:488 menu.ui:198 menu.ui:201
+msgid "_Help"
+msgstr ""
+
+#: app.ui:492 menu.ui:205
+msgid "_About"
+msgstr ""
+
+#: app.ui:510
+msgid "Clears all pages"
+msgstr ""
+
+#: app.ui:520
+msgid "Open images"
+msgstr ""
+
+#: app.ui:530
+msgid "Scan document"
+msgstr ""
+
+#: app.ui:550
+msgid "Attach as PDF to a new email"
+msgstr ""
+
+#: app.ui:573
+msgid "Undo"
+msgstr ""
+
+#: app.ui:583
+msgid "Redo"
+msgstr ""
+
+#: app.ui:596
+msgid "Cut selection"
+msgstr ""
+
+#: app.ui:606
+msgid "Copy selection"
+msgstr ""
+
+#: app.ui:616
+msgid "Paste selection"
+msgstr ""
+
+#: app.ui:626
+msgid "Delete selected pages"
+msgstr ""
+
+#: app.ui:639
+msgid "Select all pages"
+msgstr ""
+
+#: app.ui:652
+msgid "Use the pan tool"
+msgstr ""
+
+#: app.ui:663
+msgid "Use the rectangular selection tool"
+msgstr ""
+
+#: app.ui:674
+msgid "Use the combined select and pan tool"
+msgstr ""
+
+#: app.ui:685
+msgid "Clear image selection"
+msgstr ""
+
+#: app.ui:698
+msgid "Zoom to 100%"
+msgstr ""
+
+#: app.ui:774
+msgid "Crop selection"
+msgstr ""
+
+#: app.ui:787
+msgid "Quit"
 msgstr ""

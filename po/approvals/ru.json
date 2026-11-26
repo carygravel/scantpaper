@@ -14323,6 +14323,24 @@
       "deployment": "opencode/deepseek-v4.1-flash",
       "approval_date": "2026-11-15",
       "msgstr": "unpaper отсутствует"
+    },
+    {
+      "language": "ru",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
+      "msgid_plural": null,
+      "translation_sha256": "b8cb6891f2a649144960de109e642f3ed5c6aa7e117e6268d0f60de64e6296e7",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline desktop Comment",
+        "source": "org.scantpaper.desktop",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "5ca42c54f1c37d8abe97235c1b90964def11a536d415621650750b4096ca9442",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "Программа для сканирования документов"
     }
   ],
   "qualifications": [

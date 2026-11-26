@@ -80,10 +80,15 @@ class BaselineError(Exception):
     """A defect baseline that cannot be read or trusted."""
 
 
-# The GtkBuilder ITS rules dev/generate_pot.py extracts .ui strings with. They
-# are vendored under dev/ so the msgid set is the same on every machine; the
-# advisory below compares them against whatever gettext installed locally.
-ITS_RULE_NAMES = ("gtkbuilder.its", "gtkbuilder.loc")
+# The ITS rules dev/generate_pot.py extracts .ui and metainfo strings with.
+# They are vendored under dev/ so the msgid set is the same on every machine;
+# the advisory below compares them against whatever gettext installed locally.
+ITS_RULE_NAMES = (
+    "gtkbuilder.its",
+    "gtkbuilder.loc",
+    "metainfo.its",
+    "metainfo.loc",
+)
 _ITS_SEARCH_PATHS = [
     Path("/usr/share/gettext/its"),
     Path("/usr/local/share/gettext/its"),
@@ -148,12 +153,16 @@ CLDR_NPLURALS: dict[str, int] = {
 # adds obsolete entries, and record the reason in the commit. A language
 # absent from the map defaults to its current count (so it can only fail on
 # future growth).
+#
+# The values for af, ar, be, bg, gu, hi, id, ro, sr and vi were raised by the
+# translate-appstream-metadata template refresh: the first full merge in a
+# while obsoleted strings that had already left the Python and .ui sources.
 OBSOLETE_CEILING: dict[str, int] = {
     "ab": 0,
-    "af": 3,
-    "ar": 3,
-    "be": 7,
-    "bg": 40,
+    "af": 10,
+    "ar": 10,
+    "be": 15,
+    "bg": 66,
     "ca": 81,
     "cs": 122,
     "da": 193,
@@ -167,12 +176,12 @@ OBSOLETE_CEILING: dict[str, int] = {
     "fi": 168,
     "fr": 131,
     "gl": 127,
-    "gu": 49,
+    "gu": 60,
     "he": 35,
-    "hi": 3,
+    "hi": 9,
     "hr": 56,
     "hu": 143,
-    "id": 3,
+    "id": 10,
     "it": 141,
     "ja": 122,
     "ko": 67,
@@ -182,15 +191,15 @@ OBSOLETE_CEILING: dict[str, int] = {
     "pl": 165,
     "pt": 61,
     "pt_BR": 99,
-    "ro": 3,
+    "ro": 10,
     "ru": 143,
     "sk": 155,
     "sl": 89,
-    "sr": 3,
+    "sr": 10,
     "sv": 101,
     "tr": 153,
     "uk": 143,
-    "vi": 3,
+    "vi": 10,
     "zh_CN": 120,
     "zh_TW": 37,
 }

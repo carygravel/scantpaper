@@ -1149,6 +1149,11 @@ underscore; write `__` for a literal underscore. The catalogs live in the
 language next to the generated `po/scantpaper/scantpaper.pot` — the layout
 Rosetta expects, so the directory can be tarballed and uploaded as-is.
 
+At build time the same approved catalogs also generate the installed
+AppStream metainfo and desktop entry, so the application menu and software
+centre show the translated summary, description and comment. The English
+source files carry no inline translations.
+
 The maintainer workflow — catalog refresh, coverage, validation, the approval
 ledger, translation memory, Rosetta import and the machine gate — is
 documented in [po/README.md](po/README.md).

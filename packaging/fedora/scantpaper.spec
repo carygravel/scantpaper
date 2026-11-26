@@ -24,6 +24,7 @@ BuildRequires:  tesseract-devel
 BuildRequires:  leptonica-devel
 
 # Tools used to generate the additional files installed by the Debian package.
+BuildRequires:  appstream
 BuildRequires:  gettext
 BuildRequires:  pandoc
 BuildRequires:  help2man
@@ -80,6 +81,11 @@ python3 dev/compile_mo.py \
     --pot po/scantpaper/scantpaper.pot \
     --report translation-report.json
 
+# Join the approved catalogs into the installed metadata.
+python3 dev/join_metadata.py \
+    --mo locale \
+    --out-dir generated
+
 # Generate HTML documentation.
 pandoc README.md -o documentation.html
 
@@ -92,12 +98,12 @@ cp -a locale/. %{buildroot}%{_datadir}/locale/
 
 # Desktop entry.
 install -Dpm 0644 \
-    org.scantpaper.desktop \
+    generated/org.scantpaper.desktop \
     %{buildroot}%{_datadir}/applications/org.scantpaper.desktop
 
 # AppStream metadata.
 install -Dpm 0644 \
-    org.scantpaper.desktop.metainfo.xml \
+    generated/org.scantpaper.desktop.metainfo.xml \
     %{buildroot}%{_metainfodir}/org.scantpaper.desktop.metainfo.xml
 
 # Icons.

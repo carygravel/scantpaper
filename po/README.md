@@ -99,6 +99,12 @@ A new or changed msgid is added untranslated: `msgmerge` writes an empty
 `msgstr` and does not set a fuzzy flag. Until a human or the machine gate
 supplies an approved translation, the message falls back to English.
 
+The template is the union of the Python sources, the Glade `.ui` files, the
+AppStream metainfo (`org.scantpaper.desktop.metainfo.xml`) and the desktop
+entry (`org.scantpaper.desktop`). The desktop `Name` and `Keywords` are
+excluded because they are not translated, and the metainfo marks the brand and
+developer name `translate="no"`.
+
 ## Measure coverage
 
 Coverage is measured against the current template, not the catalog's own entry
@@ -261,6 +267,23 @@ A new human-reviewed string needs a `human-review` record. The current
 `dev/translation_gate.py approve` command applies a machine-gate decision;
 human-review records are created with the ledger helpers until a dedicated
 command exists.
+
+### Metadata strings moved into the catalogs
+
+The AppStream metainfo (`org.scantpaper.desktop.metainfo.xml`) and the desktop
+entry (`org.scantpaper.desktop`) used to carry their translations inline. They
+are now ordinary catalog strings:
+
+- the Czech metainfo summary and paragraphs were migrated from the inline
+  `cs_CZ` elements, with `libsane-perl` corrected to `libimage-sane-perl`;
+- the German, French and Russian desktop `Comment` values were migrated from
+  the inline `Comment[xx]` keys.
+
+Each migrated entry is approved as `human-review`, because the text came from
+a human-authored inline value rather than the pre-2026 Launchpad snapshot. The
+English source files now contain no inline translation, and the installed
+metainfo and desktop entry are generated from the approved catalogs at build
+time.
 
 ### The human-core audit
 
@@ -816,6 +839,19 @@ python3 dev/compile_mo.py \
 The report gives, per language, approved entries, English fallbacks, and
 missing/stale counts. Without `--approvals`, every non-fuzzy entry compiles,
 which is useful for a local preview only.
+
+The same approved `.mo` tree also produces the installed metadata:
+
+```sh
+python3 dev/join_metadata.py --mo src/scantpaper/locale \
+    --out-dir build/generated
+```
+
+It writes `build/generated/org.scantpaper.desktop.metainfo.xml` and
+`build/generated/org.scantpaper.desktop` from the compiled catalogs, so an
+unapproved or fuzzy translation is absent and the English text is shown. The
+join reads the `.mo` tree, not the `.po` files, and needs only `msgunfmt` and
+`msgfmt`. The AppStream metainfo ITS rules must be installed on the system.
 
 To preview locally:
 

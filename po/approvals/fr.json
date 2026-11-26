@@ -17801,6 +17801,24 @@
       "deployment": null,
       "approval_date": "2026-02-28",
       "msgstr": "μs"
+    },
+    {
+      "language": "fr",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
+      "msgid_plural": null,
+      "translation_sha256": "6700c23f1036ed3031e2bf9c85450d61a2aaaeae5e6082313deac8c787569402",
+      "provenance_class": "human-review",
+      "evidence": {
+        "reason": "migrated from the inline desktop Comment",
+        "source": "org.scantpaper.desktop",
+        "confirmed_by": "maintainer"
+      },
+      "evidence_sha256": "5ca42c54f1c37d8abe97235c1b90964def11a536d415621650750b4096ca9442",
+      "model_release": null,
+      "deployment": null,
+      "approval_date": "2026-11-26",
+      "msgstr": "Une interface graphique permettant de réaliser des fichiers PDF de plusieurs pages à partir d'un scanner"
     }
   ],
   "qualifications": [

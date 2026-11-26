@@ -1,7 +1,6 @@
 """scantpaper --- to aid the scan to PDF or DjVu process."""
 
 # Roadmap and wishlist:
-# improve translations, including those in org.scantpaper.desktop.metainfo.xml
 # look again at translating docs
 # + mutmut
 # remaining FIXMEs and TODOs

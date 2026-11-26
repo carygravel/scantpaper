@@ -30,6 +30,9 @@
    [po/approvals/](po/approvals/) falls back to
    English. The packaging build passes that ledger to `dev/compile_mo.py` and
    writes `translation-report.json` with per-language coverage and fallbacks.
+   The same build joins the approved catalogs into the installed AppStream
+   metainfo and desktop entry with `dev/join_metadata.py`, so the metadata
+   follows the same ledger as the application.
    See [po/README.md](po/README.md) for the full translation workflow.
 1. Advance the translation baseline, so the next check compares against the
    state the catalogs were just synced from

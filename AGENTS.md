@@ -98,7 +98,12 @@ This document provides essential context for anyone working on this project. Adh
     The workflow for handling translations is:
     1. Regenerate the translation template with
        `PYTHONPATH=src python3 dev/generate_pot.py`, which creates the `.pot`
-       file.
+       file. The template also covers the AppStream metainfo and the desktop
+       entry.
+       The installed copies of both are generated from the compiled catalogs
+       by `dev/join_metadata.py`, which takes the `.mo` tree with `--mo` and
+       writes the pair into the `--out-dir`. The join reads the approval-gated
+       `.mo` tree, so unapproved and fuzzy translations stay absent.
     2. Missing strings in `po/scantpaper/*.po` may be translated locally, but
        every such
        addition MUST be marked `#, fuzzy` (needs review). Never add a

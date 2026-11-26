@@ -18,94 +18,133 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Launchpad-Export-Date: 2020-02-05 07:52+0000\n"
 
-#: app_window.py:735
+#: org.scantpaper.desktop.metainfo.xml:10
+msgid "GUI to produce PDFs or DjVus from scanned documents"
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:12
+msgid ""
+"Only two clicks are required to scan several pages and then save all or a "
+"selection as a PDF or DjVu file, including metadata if required."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:16
+msgid ""
+"scantpaper can control regular or sheet-fed (ADF) scanners with SANE via "
+"libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at "
+"once."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:21
+msgid ""
+"It presents a thumbnail view of scanned pages, and permits simple operations"
+" such as cropping, rotating and deleting pages."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:25
+msgid ""
+"OCR can be used to recognise text in the scans, and the output embedded in "
+"the PDF or DjVu."
+msgstr ""
+
+#: org.scantpaper.desktop.metainfo.xml:29
+msgid ""
+"The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or "
+"single page image file."
+msgstr ""
+
+#: org.scantpaper.desktop:4
+msgid "A GUI to aid the scan-to-PDF process"
+msgstr ""
+
+#: app_window.py:751
 msgid "Warning: missing packages"
 msgstr "Warning: missing packages"
 
-#: app_window.py:811
+#: app_window.py:827
 msgid "Image"
 msgstr "Image"
 
-#: app_window.py:812 layer.py:197
+#: app_window.py:828 layer.py:197
 msgid "Text layer"
 msgstr "Text layer"
 
-#: app_window.py:814
+#: app_window.py:830
 msgid "Annotations"
 msgstr "Annotations"
 
-#: app_window.py:1234
+#: app_window.py:1294
 #, python-format
 msgid "%(mb)dMb free in %(name)s."
 msgid_plural "%(mb)dMb free in %(name)s."
 msgstr[0] "%(mb)dMb free in %(name)s."
 msgstr[1] "%(mb)dMb free in %(name)s."
 
-#: app_window.py:1262 helpers.py:497
+#: app_window.py:1322 helpers.py:531
 msgid "Messages"
 msgstr "Messages"
 
-#: app_window.py:1345
+#: app_window.py:1405
 msgid "Error opening the last device used."
 msgstr "Error opening the last device used."
 
-#: app_window.py:1347
+#: app_window.py:1407
 msgid "There was an error opening the last device used."
 msgstr "There was an error opening the last device used."
 
-#: app_window.py:1350
+#: app_window.py:1410
 msgid "Whoops! I forgot to turn it on. Try again now."
 msgstr "Whoops! I forgot to turn it on. Try again now."
 
-#: app_window.py:1356 dialog/scan.py:534
+#: app_window.py:1416 dialog/scan.py:534
 msgid "Rescan for devices"
 msgstr "Rescan for devices"
 
-#: app_window.py:1359
+#: app_window.py:1419
 msgid "Restart scantpaper."
 msgstr "Restart scantpaper."
 
-#: app_window.py:1363
+#: app_window.py:1423
 msgid "Just ignore the error. I don't need the scanner yet."
 msgstr "Just ignore the error. I don't need the scanner yet."
 
-#: app_window.py:1367 dialog/preferences.py:189
+#: app_window.py:1427 dialog/preferences.py:189
 msgid "Cache device list"
 msgstr "Cache device list"
 
-#: app_window.py:1370 dialog/__init__.py:214 session_mixins.py:524
+#: app_window.py:1430 dialog/__init__.py:214 session_mixins.py:524
 msgid "Don't show this message again"
 msgstr "Don't show this message again"
 
-#: basedocument.py:44
+#: basedocument.py:47
 msgid "Thumbnails"
 msgstr "Thumbnails"
 
-#: basedocument.py:854
+#: basedocument.py:876
 msgid "No pages to process"
 msgstr "No pages to process"
 
-#: basedocument.py:858
+#: basedocument.py:880
 msgid "No pages selected"
 msgstr "No pages selected"
 
-#: config.py:112
+#: config.py:113
 msgid "A3"
 msgstr "A3"
 
-#: config.py:118
+#: config.py:119
 msgid "A4"
 msgstr "A4"
 
-#: config.py:124
+#: config.py:125
 msgid "US Letter"
 msgstr "US Letter"
 
-#: config.py:130
+#: config.py:131
 msgid "US Legal"
 msgstr "US Legal"
 
-#: config.py:268
+#: config.py:276
 #, python-format
 msgid ""
 "The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
@@ -114,7 +153,7 @@ msgstr ""
 "The setting %(key)s is %(value)r and cannot be used as %(type)s, so it has "
 "been left unchanged."
 
-#: config.py:304
+#: config.py:312
 #, python-format
 msgid ""
 "The settings file %(filename)s could not be read in full. These settings "
@@ -125,7 +164,7 @@ msgstr ""
 "were restored: %(settings)s. The rest were reset to their defaults. A backup"
 " has been saved as %(backup)s."
 
-#: config.py:315
+#: config.py:323
 #, python-format
 msgid ""
 "The settings file %(filename)s could not be read, so all settings have been "
@@ -136,35 +175,35 @@ msgstr ""
 "reset to their defaults. A backup of the original file has been saved as "
 "%(backup)s."
 
-#: dependencies.py:124 tests/test_app_window.py:861
+#: dependencies.py:166 tests/test_app_window.py:880
 msgid "Save image and Save as PDF both require imagemagick"
 msgstr "Save image and Save as PDF both require imagemagick"
 
-#: dependencies.py:130
+#: dependencies.py:172
 msgid "Save image requires libtiff"
 msgstr "Save image requires libtiff"
 
-#: dependencies.py:136 tests/test_app_window.py:862
+#: dependencies.py:178 tests/test_app_window.py:881
 msgid "Save as DjVu requires djvulibre-bin"
 msgstr "Save as DjVu requires djvulibre-bin"
 
-#: dependencies.py:144
+#: dependencies.py:186
 msgid "Email as PDF requires xdg-email"
 msgstr "Email as PDF requires xdg-email"
 
-#: dependencies.py:147 tests/test_app_window.py:863
+#: dependencies.py:189 tests/test_app_window.py:882
 msgid "unpaper missing"
 msgstr "unpaper missing"
 
-#: dependencies.py:149 tests/test_app_window.py:864
+#: dependencies.py:191 tests/test_app_window.py:883
 msgid "OCR requires tesseract"
 msgstr "OCR requires tesseract"
 
-#: dependencies.py:154 tests/test_app_window.py:865
+#: dependencies.py:196 tests/test_app_window.py:884
 msgid "PDF encryption requires qpdf"
 msgstr "PDF encryption requires qpdf"
 
-#: dependencies.py:160 tests/test_app_window.py:866
+#: dependencies.py:202 tests/test_app_window.py:885
 msgid "JBIG2 PDF compression requires jbig2"
 msgstr "JBIG2 PDF compression requires jbig2"
 
@@ -267,7 +306,7 @@ msgstr "Height"
 msgid "The height of the crop."
 msgstr "The height of the crop."
 
-#: dialog/crop.py:121
+#: dialog/crop.py:121 app.ui:76 app.ui:179
 msgid "Crop"
 msgstr "Crop"
 
@@ -288,20 +327,20 @@ msgstr "Browse"
 msgid "Pages are matched to the hOCR pages in order."
 msgstr "Pages are matched to the hOCR pages in order."
 
-#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:875
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:869
 #: edit_menu_mixins.py:123 layer.py:256 scan_menu_item_mixins.py:455
 #: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:650
-#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:991
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
 msgid "_OK"
 msgstr "_OK"
 
-#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:876
-#: edit_menu_mixins.py:123 file_menu_mixins.py:411 layer.py:259 progress.py:43
+#: dialog/importhocr.py:62 dialog/preferences.py:84 dialog/save.py:870
+#: edit_menu_mixins.py:123 file_menu_mixins.py:410 layer.py:259 progress.py:43
 #: scan_menu_item_mixins.py:456 session_mixins.py:173
 #: tests/test_dialog_buttons.py:53 tools_menu_mixins.py:157
 #: tools_menu_mixins.py:227 tools_menu_mixins.py:265 tools_menu_mixins.py:368
 #: tools_menu_mixins.py:410 tools_menu_mixins.py:543 tools_menu_mixins.py:650
-#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:991
+#: tools_menu_mixins.py:721 tools_menu_mixins.py:824 tools_menu_mixins.py:990
 msgid "_Cancel"
 msgstr "_Cancel"
 
@@ -311,8 +350,8 @@ msgstr "Open hOCR file"
 
 #: dialog/importhocr.py:74 dialog/preferences.py:284 dialog/scan.py:1197
 #: dialog/scan.py:1701 dialog/scan.py:1728 dialog/scan.py:1769
-#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:505
-#: file_menu_mixins.py:827 postprocess_controls.py:715
+#: file_menu_mixins.py:117 file_menu_mixins.py:172 file_menu_mixins.py:504
+#: file_menu_mixins.py:826 postprocess_controls.py:715
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -320,7 +359,7 @@ msgstr "Cancel"
 msgid "Open"
 msgstr "Open"
 
-#: dialog/importhocr.py:79 file_menu_mixins.py:489
+#: dialog/importhocr.py:79 file_menu_mixins.py:488
 msgid "hOCR files"
 msgstr "hOCR files"
 
@@ -613,7 +652,7 @@ msgid "Select temporary directory"
 msgstr "Select temporary directory"
 
 #: dialog/preferences.py:286 dialog/scan.py:1701 dialog/scan.py:1726
-#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:507
+#: dialog/scan.py:1769 file_menu_mixins.py:170 file_menu_mixins.py:506
 #: postprocess_controls.py:717
 msgid "OK"
 msgstr "OK"
@@ -679,8 +718,8 @@ msgstr "Append the OCR output to the text buffer."
 msgid "Manage user-defined tools"
 msgstr "Manage user-defined tools"
 
-#: dialog/preferences.py:370 tests/test_icon_buttons.py:179
-#: tests/test_icon_buttons.py:180
+#: dialog/preferences.py:370 tests/test_icon_buttons.py:193
+#: tests/test_icon_buttons.py:194
 msgid "Add a user-defined tool"
 msgstr "Add a user-defined tool"
 
@@ -719,7 +758,7 @@ msgstr ""
 "The other variable available is:\n"
 "%%r resolution"
 
-#: dialog/preferences.py:424 layer.py:267
+#: dialog/preferences.py:424 layer.py:267 app.ui:295 menu.ui:69
 msgid "_Delete"
 msgstr "_Delete"
 
@@ -1014,100 +1053,100 @@ msgstr "None"
 msgid "Use no compression algorithm on output."
 msgstr "Use no compression algorithm on output."
 
-#: dialog/save.py:378
+#: dialog/save.py:374
 msgid "Document Metadata"
 msgstr "Document Metadata"
 
-#: dialog/save.py:389
+#: dialog/save.py:385
 msgid "Date/Time"
 msgstr "Date/Time"
 
-#: dialog/save.py:401 dialog/save.py:597
+#: dialog/save.py:397 dialog/save.py:591
 msgid "Now"
 msgstr "Now"
 
-#: dialog/save.py:402 dialog/save.py:598
+#: dialog/save.py:398 dialog/save.py:592
 msgid "Use current date and time"
 msgstr "Use current date and time"
 
-#: dialog/save.py:409
+#: dialog/save.py:405
 msgid "Specify"
 msgstr "Specify"
 
-#: dialog/save.py:411
+#: dialog/save.py:407
 msgid "Specify date and time"
 msgstr "Specify date and time"
 
-#: dialog/save.py:419
+#: dialog/save.py:415
 msgid "Year-Month-Day"
 msgstr "Year-Month-Day"
 
-#: dialog/save.py:426 tests/test_icon_buttons.py:195
-#: tests/test_icon_buttons.py:196
+#: dialog/save.py:422 tests/test_icon_buttons.py:209
+#: tests/test_icon_buttons.py:210
 msgid "Select date with calendar"
 msgstr "Select date with calendar"
 
-#: dialog/save.py:471
+#: dialog/save.py:467
 msgid "Select Date"
 msgstr "Select Date"
 
-#: dialog/save.py:513 dialog/save.py:604
+#: dialog/save.py:509 dialog/save.py:598
 msgid "Today"
 msgstr "Today"
 
-#: dialog/save.py:571
+#: dialog/save.py:565
 msgid "Title"
 msgstr "Title"
 
-#: dialog/save.py:572
+#: dialog/save.py:566
 msgid "Author"
 msgstr "Author"
 
-#: dialog/save.py:573
+#: dialog/save.py:567
 msgid "Subject"
 msgstr "Subject"
 
-#: dialog/save.py:574
+#: dialog/save.py:568
 msgid "Keywords"
 msgstr "Keywords"
 
-#: dialog/save.py:605
+#: dialog/save.py:599
 msgid "Use today's date"
 msgstr "Use today's date"
 
-#: dialog/save.py:615
+#: dialog/save.py:609
 msgid "Document type"
 msgstr "Document type"
 
-#: dialog/save.py:624
+#: dialog/save.py:618
 msgid "Postscript backend"
 msgstr "Postscript backend"
 
-#: dialog/save.py:641 dialog/save.py:782
+#: dialog/save.py:635 dialog/save.py:776
 msgid "Compression"
 msgstr "Compression"
 
-#: dialog/save.py:760
+#: dialog/save.py:754
 msgid "Quality"
 msgstr "Quality"
 
-#: dialog/save.py:797
+#: dialog/save.py:791
 msgid "Encrypt PDF"
 msgstr "Encrypt PDF"
 
-#: dialog/save.py:814
+#: dialog/save.py:808
 msgid "Downsample to"
 msgstr "Downsample to"
 
-#: dialog/save.py:818 dialog/scan.py:770
+#: dialog/save.py:812 dialog/scan.py:770
 msgid "ppi"
 msgstr "ppi"
 
-#: dialog/save.py:847
+#: dialog/save.py:841
 msgid "Set password"
 msgstr "Set password"
 
-#: dialog/save.py:856
+#: dialog/save.py:850
 msgid "User password"
 msgstr "User password"
 
@@ -1116,21 +1155,21 @@ msgstr "User password"
 msgid "Manual"
 msgstr "Manual"
 
-#: dialog/scan.py:457 tests/test_icon_buttons.py:98
+#: dialog/scan.py:457 tests/test_icon_buttons.py:112
 msgid "Scan profiles"
 msgstr "Scan profiles"
 
-#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:829
-#: tests/test_icon_buttons.py:103
+#: dialog/scan.py:481 file_menu_mixins.py:344 file_menu_mixins.py:828
+#: tests/test_icon_buttons.py:117 app.ui:120 app.ui:250 app.ui:540
 msgid "Save"
 msgstr "Save"
 
 #: dialog/scan.py:488 dialog/scan.py:800 dialog/scan.py:817
-#: tests/test_icon_buttons.py:104
+#: tests/test_icon_buttons.py:118
 msgid "Edit"
 msgstr "Edit"
 
-#: dialog/scan.py:495 tests/test_icon_buttons.py:105
+#: dialog/scan.py:495 tests/test_icon_buttons.py:119 app.ui:99 app.ui:202
 msgid "Delete"
 msgstr "Delete"
 
@@ -1198,11 +1237,11 @@ msgstr ""
 msgid "Edit paper size"
 msgstr "Edit paper size"
 
-#: dialog/scan.py:1148 tests/test_icon_buttons.py:127
+#: dialog/scan.py:1148 tests/test_icon_buttons.py:141
 msgid "Add a paper size"
 msgstr "Add a paper size"
 
-#: dialog/scan.py:1152 tests/test_icon_buttons.py:127
+#: dialog/scan.py:1152 tests/test_icon_buttons.py:141
 msgid "Remove the selected paper size"
 msgstr "Remove the selected paper size"
 
@@ -1244,8 +1283,8 @@ msgstr "Backend options"
 msgid "Frontend options"
 msgstr "Frontend options"
 
-#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:155
-#: tests/test_icon_buttons.py:156
+#: dialog/scan.py:1840 dialog/scan.py:1863 tests/test_icon_buttons.py:169
+#: tests/test_icon_buttons.py:170
 #, python-format
 msgid "Remove %(option)s from the profile"
 msgstr "Remove %(option)s from the profile"
@@ -1373,7 +1412,7 @@ msgstr "Error: cannot open a session file at the same time as another file."
 msgid "Error: importing a multipage file at the same time as another file."
 msgstr "Error: importing a multipage file at the same time as another file."
 
-#: edit_menu_mixins.py:60
+#: edit_menu_mixins.py:60 app.ui:107 app.ui:218
 msgid "Properties"
 msgstr "Properties"
 
@@ -1405,7 +1444,7 @@ msgstr ""
 msgid "Open image"
 msgstr "Open image"
 
-#: file_menu_mixins.py:128 file_menu_mixins.py:481 file_menu_mixins.py:837
+#: file_menu_mixins.py:128 file_menu_mixins.py:480 file_menu_mixins.py:836
 msgid "Image files"
 msgstr "Image files"
 
@@ -1430,11 +1469,11 @@ msgstr "Enter user password for PDF %s"
 msgid "Import hOCR"
 msgstr "Import hOCR"
 
-#: file_menu_mixins.py:375
+#: file_menu_mixins.py:374
 msgid "Post-save hook"
 msgstr "Post-save hook"
 
-#: file_menu_mixins.py:378
+#: file_menu_mixins.py:377
 #, python-format
 msgid ""
 "Run command on saved file. The available commands are those user-defined "
@@ -1443,87 +1482,87 @@ msgstr ""
 "Run command on saved file. The available commands are those user-defined "
 "tools that do not specify %o"
 
-#: file_menu_mixins.py:400 file_menu_mixins.py:401
+#: file_menu_mixins.py:399 file_menu_mixins.py:400
 msgid "Close dialog on save"
 msgstr "Close dialog on save"
 
-#: file_menu_mixins.py:408
+#: file_menu_mixins.py:407 menu.ui:24
 msgid "_Save"
 msgstr "_Save"
 
-#: file_menu_mixins.py:472
+#: file_menu_mixins.py:471
 msgid "PDF filename"
 msgstr "PDF filename"
 
-#: file_menu_mixins.py:473
+#: file_menu_mixins.py:472
 msgid "PDF files"
 msgstr "PDF files"
 
-#: file_menu_mixins.py:476
+#: file_menu_mixins.py:475
 msgid "DjVu filename"
 msgstr "DjVu filename"
 
-#: file_menu_mixins.py:477
+#: file_menu_mixins.py:476
 msgid "DjVu files"
 msgstr "DjVu files"
 
-#: file_menu_mixins.py:480
+#: file_menu_mixins.py:479
 msgid "TIFF filename"
 msgstr "TIFF filename"
 
-#: file_menu_mixins.py:484
+#: file_menu_mixins.py:483
 msgid "Text filename"
 msgstr "Text filename"
 
-#: file_menu_mixins.py:485
+#: file_menu_mixins.py:484
 msgid "Text files"
 msgstr "Text files"
 
-#: file_menu_mixins.py:488
+#: file_menu_mixins.py:487
 msgid "hOCR filename"
 msgstr "hOCR filename"
 
-#: file_menu_mixins.py:492
+#: file_menu_mixins.py:491
 msgid "PS filename"
 msgstr "PS filename"
 
-#: file_menu_mixins.py:493
+#: file_menu_mixins.py:492
 msgid "Postscript files"
 msgstr "Postscript files"
 
-#: file_menu_mixins.py:496
+#: file_menu_mixins.py:495
 msgid "scantpaper session filename"
 msgstr "scantpaper session filename"
 
-#: file_menu_mixins.py:497
+#: file_menu_mixins.py:496
 msgid "scantpaper session files"
 msgstr "scantpaper session files"
 
-#: file_menu_mixins.py:605
+#: file_menu_mixins.py:604
 #, python-format
 msgid "Error saving %(filename)s: %(error)s"
 msgstr "Error saving %(filename)s: %(error)s"
 
-#: file_menu_mixins.py:620
+#: file_menu_mixins.py:619
 #, python-format
 msgid "Directory %s is read-only"
 msgstr "Directory %s is read-only"
 
-#: file_menu_mixins.py:630
+#: file_menu_mixins.py:629
 #, python-format
 msgid "File %s is read-only"
 msgstr "File %s is read-only"
 
-#: file_menu_mixins.py:822
+#: file_menu_mixins.py:821
 msgid "Image filename"
 msgstr "Image filename"
 
-#: file_menu_mixins.py:882
+#: file_menu_mixins.py:881
 #, python-format
 msgid "This operation would overwrite %s"
 msgstr "This operation would overwrite %s"
 
-#: file_menu_mixins.py:965
+#: file_menu_mixins.py:964
 msgid ""
 "Some pages have not been saved.\n"
 "Do you really want to quit?"
@@ -1653,7 +1692,7 @@ msgstr "Accept corrections"
 msgid "Cancel corrections"
 msgstr "Cancel corrections"
 
-#: layer.py:264
+#: layer.py:264 app.ui:287 menu.ui:61
 msgid "_Copy"
 msgstr "_Copy"
 
@@ -2010,7 +2049,6 @@ msgid "Really cache libusb device names?"
 msgstr "Really cache libusb device names?"
 
 #: scan_menu_item_mixins.py:122
-#| msgid "Are you sure you want to do this?"
 msgid ""
 "Caching the device list with libusb devices is not recommended, as they can "
 "change between reboots. Cache them anyway?"
@@ -2435,19 +2473,19 @@ msgstr "Selected tool"
 msgid "Process selected pages at once"
 msgstr "Process selected pages at once"
 
-#: tools_menu_mixins.py:891
+#: tools_menu_mixins.py:891 app.ui:125
 msgid "Email as PDF"
 msgstr "Email as PDF"
 
-#: tools_menu_mixins.py:971
+#: tools_menu_mixins.py:970
 msgid "Error creating email"
 msgstr "Error creating email"
 
-#: tools_menu_mixins.py:1027
+#: tools_menu_mixins.py:1026
 msgid "To aid the scan-to-PDF process"
 msgstr "To aid the scan-to-PDF process"
 
-#: tools_menu_mixins.py:1028
+#: tools_menu_mixins.py:1027
 msgid "Copyright 2006--2026 Jeffrey Ratcliffe"
 msgstr "Copyright 2006--2026 Jeffrey Ratcliffe"
 

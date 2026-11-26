@@ -1,18 +1,22 @@
-# Vendored GtkBuilder ITS rules
+# Vendored ITS rules
 
-`gtkbuilder.its` and `gtkbuilder.loc` are copies of the files gettext installs
-as part of its ITS (internationalization tag set) rules. `dev/generate_pot.py`
-passes `gtkbuilder.its` to `xgettext --its=` so it can extract translatable
-strings from the project's Glade/GtkBuilder `.ui` files without needing
-`intltool`.
+`gtkbuilder.its`/`gtkbuilder.loc` and `metainfo.its`/`metainfo.loc` are copies
+of the ITS (internationalization tag set) rules installed on the system.
+`dev/generate_pot.py` passes `gtkbuilder.its` to `xgettext --its=` for the
+project's Glade/GtkBuilder `.ui` files and `metainfo.its` for the AppStream
+metainfo, so it can extract their strings without `intltool` or `itstool`.
 
 ## Provenance
 
-| | |
-|---|---|
-| Upstream path | `/usr/share/gettext/its/` |
-| Taken from | GNU gettext-tools 1.0 (Debian package version `1.0-5`) |
-| Retrieved on | 2026-09-27 |
+- `gtkbuilder.its`/`gtkbuilder.loc`: `/usr/share/gettext/its/`, GNU
+  gettext-tools 1.0 (Debian package version `1.0-5`), retrieved 2026-09-27.
+- `metainfo.its`/`metainfo.loc`: `/usr/share/gettext/its/`, AppStream 1.0.2,
+  retrieved 2026-11-26.
+
+`metainfo.its` and `metainfo.loc` are shipped by AppStream, not by gettext,
+even though they install into the same directory. On Debian and Fedora they
+come from the `appstream` package; on openSUSE they come from
+`AppStream-devel`.
 
 ## Do not edit these files
 
@@ -29,13 +33,15 @@ If the rules need changing, change them upstream and re-vendor as below.
 ```sh
 cp /usr/share/gettext/its/gtkbuilder.its dev/gtkbuilder.its
 cp /usr/share/gettext/its/gtkbuilder.loc dev/gtkbuilder.loc
+cp /usr/share/gettext/its/metainfo.its dev/metainfo.its
+cp /usr/share/gettext/its/metainfo.loc dev/metainfo.loc
 ```
 
 Then update the provenance table above, and check what the new rules extract
 before trusting them:
 
 ```sh
-python3 dev/generate_pot.py
+PYTHONPATH=src python3 dev/generate_pot.py
 ```
 
 A re-vendor that changes the msgid set changes the strings translators see, so

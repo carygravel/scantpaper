@@ -3,31 +3,31 @@
   "snapshot": "1a3037183eadc10004f7f4d6228bd7f9192aa2ec",
   "snapshot_date": "2026-02-28",
   "totals": {
-    "shipped": 22269,
-    "unchanged": 9649,
-    "model-changed": 3277,
-    "model-added": 9343,
-    "approved": 9671,
-    "pending": 12598,
-    "restored": 11
+    "shipped": 22271,
+    "unchanged": 9643,
+    "model-changed": 3276,
+    "model-added": 9352,
+    "approved": 9664,
+    "pending": 12607,
+    "restored": 10
   },
   "languages": {
     "be": {
-      "shipped": 57,
-      "unchanged": 57,
+      "shipped": 56,
+      "unchanged": 56,
       "model-changed": 0,
       "model-added": 0,
-      "approved": 57,
+      "approved": 56,
       "pending": 0,
       "restored": 0,
       "has_snapshot": 1
     },
     "bg": {
-      "shipped": 147,
-      "unchanged": 147,
+      "shipped": 146,
+      "unchanged": 146,
       "model-changed": 0,
       "model-added": 0,
-      "approved": 147,
+      "approved": 146,
       "pending": 0,
       "restored": 0,
       "has_snapshot": 1
@@ -43,12 +43,12 @@
       "has_snapshot": 1
     },
     "cs": {
-      "shipped": 666,
+      "shipped": 672,
       "unchanged": 404,
       "model-changed": 60,
-      "model-added": 202,
+      "model-added": 208,
       "approved": 405,
-      "pending": 261,
+      "pending": 267,
       "restored": 1,
       "has_snapshot": 1
     },
@@ -63,12 +63,12 @@
       "has_snapshot": 1
     },
     "de": {
-      "shipped": 669,
+      "shipped": 670,
       "unchanged": 462,
       "model-changed": 0,
-      "model-added": 207,
+      "model-added": 208,
       "approved": 462,
-      "pending": 207,
+      "pending": 208,
       "restored": 0,
       "has_snapshot": 1
     },
@@ -143,13 +143,13 @@
       "has_snapshot": 1
     },
     "fr": {
-      "shipped": 666,
-      "unchanged": 355,
-      "model-changed": 106,
-      "model-added": 205,
+      "shipped": 667,
+      "unchanged": 356,
+      "model-changed": 105,
+      "model-added": 206,
       "approved": 356,
-      "pending": 310,
-      "restored": 1,
+      "pending": 311,
+      "restored": 0,
       "has_snapshot": 1
     },
     "gl": {
@@ -163,11 +163,11 @@
       "has_snapshot": 1
     },
     "gu": {
-      "shipped": 143,
-      "unchanged": 143,
+      "shipped": 138,
+      "unchanged": 138,
       "model-changed": 0,
       "model-added": 0,
-      "approved": 143,
+      "approved": 138,
       "pending": 0,
       "restored": 0,
       "has_snapshot": 1
@@ -293,12 +293,12 @@
       "has_snapshot": 1
     },
     "ru": {
-      "shipped": 665,
+      "shipped": 666,
       "unchanged": 464,
       "model-changed": 1,
-      "model-added": 200,
+      "model-added": 201,
       "approved": 465,
-      "pending": 200,
+      "pending": 201,
       "restored": 1,
       "has_snapshot": 1
     },
@@ -3996,6 +3996,54 @@
       "reason": "model-changed with no human text",
       "msgctxt": null,
       "msgid": "Crop selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "cs",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "GUI to produce PDFs or DjVus from scanned documents",
+      "msgid_plural": null
+    },
+    {
+      "language": "cs",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "Only two clicks are required to scan several pages and then save all or a selection as a PDF or DjVu file, including metadata if required.",
+      "msgid_plural": null
+    },
+    {
+      "language": "cs",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "scantpaper can control regular or sheet-fed (ADF) scanners with SANE via libimage-sane-perl, scanimage or scanadf, and can scan multiple pages at once.",
+      "msgid_plural": null
+    },
+    {
+      "language": "cs",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "It presents a thumbnail view of scanned pages, and permits simple operations such as cropping, rotating and deleting pages.",
+      "msgid_plural": null
+    },
+    {
+      "language": "cs",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "OCR can be used to recognise text in the scans, and the output embedded in the PDF or DjVu.",
+      "msgid_plural": null
+    },
+    {
+      "language": "cs",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "The resulting document may be saved as a PDF, DjVu, multipage TIFF file, or single page image file.",
       "msgid_plural": null
     },
     {
@@ -8899,6 +8947,14 @@
       "category": "model-added",
       "reason": "model-added",
       "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
+      "msgid_plural": null
+    },
+    {
+      "language": "de",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
       "msgid": "%(mb)dMb free in %(name)s.",
       "msgid_plural": "%(mb)dMb free in %(name)s."
     },
@@ -12388,6 +12444,14 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "fr",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
       "msgid_plural": null
     },
     {
@@ -37852,6 +37916,14 @@
       "reason": "model-added",
       "msgctxt": null,
       "msgid": "Clear image selection",
+      "msgid_plural": null
+    },
+    {
+      "language": "ru",
+      "category": "model-added",
+      "reason": "model-added",
+      "msgctxt": null,
+      "msgid": "A GUI to aid the scan-to-PDF process",
       "msgid_plural": null
     },
     {
@@ -101231,16 +101303,6 @@
       }
     },
     {
-      "language": "fr",
-      "msgctxt": null,
-      "msgid": "Crashed sessions",
-      "msgid_plural": null,
-      "model_variant": {
-        "msgstr": "Sessions plantées",
-        "msgstr_plural": {}
-      }
-    },
-    {
       "language": "da",
       "msgctxt": null,
       "msgid": "Crashed sessions",
@@ -101272,6 +101334,6 @@
     }
   ],
   "notes": [
-    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 21600 with 9343 model-added and 3277 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 22269."
+    "The planning estimate of 13,615 shipped, 2,240 model-added and 1,467 model-changed covered the catalogs with a pre-2026 snapshot. The measured snapshot-covered total is 21602 with 9352 model-added and 3276 model-changed; the remaining difference is a boundary in the estimate, not an unaccounted entry. The report also measures 669 entries in en_US, which has no snapshot, so the grand total is 22271."
   ]
 }
