@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import contextlib
 import errno
-import locale
 import logging
 import os
 import pathlib
@@ -35,6 +34,7 @@ from scantpaper.frontend import enums
 from scantpaper.frontend.image_sane import decode_info
 from scantpaper.helpers import decimal_separator, grouping_separator
 from scantpaper.loop_helpers import _MainLoopWrapper, safe_mainloop
+from scantpaper.tests.environment import DE_LOCALE, has_locale
 from scantpaper.tests.scan_mocks import build_scan_options
 
 if TYPE_CHECKING:
@@ -105,21 +105,10 @@ def _selection_css() -> Generator[None, None, None]:
         Gtk.StyleContext.remove_provider_for_display(display, provider)
 
 
-def has_numeric_locale(name: str) -> bool:
-    """Check if the given locale is available on the system."""
-    try:
-        saved = locale.setlocale(locale.LC_NUMERIC)
-        locale.setlocale(locale.LC_NUMERIC, name)
-        locale.setlocale(locale.LC_NUMERIC, saved)
-    except locale.Error:
-        return False
-    return True
-
-
 def _require_de_locale() -> None:
     """Skip the current test when the de_DE.utf8 locale is not installed."""
-    if not has_numeric_locale("de_DE.utf8"):
-        pytest.skip("de_DE.utf8 locale not available")
+    if not has_locale(DE_LOCALE):
+        pytest.skip(f"{DE_LOCALE} locale not available")
 
 
 @pytest.fixture
@@ -130,8 +119,8 @@ def comma_locale(monkeypatch: pytest.MonkeyPatch) -> Generator[str, None, None]:
     """
     _require_de_locale()
 
-    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
-    monkeypatch.setenv("LANG", "de_DE.utf8")
+    monkeypatch.setenv("LC_ALL", DE_LOCALE)
+    monkeypatch.setenv("LANG", DE_LOCALE)
     decimal_separator.cache_clear()
     grouping_separator.cache_clear()
     yield decimal_separator()

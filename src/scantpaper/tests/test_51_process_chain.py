@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import re
-import shutil
 import subprocess
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
-import pytest
-
 from scantpaper import config
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
+from scantpaper.tests.environment import requires_tool
 from scantpaper.unpaper import Unpaper
 
 if TYPE_CHECKING:
@@ -21,10 +19,8 @@ if TYPE_CHECKING:
     from scantpaper.basethread import Response
 
 
-@pytest.mark.skipif(
-    shutil.which("unpaper") is None or shutil.which("tesseract") is None,
-    reason="requires unpaper and tesseract",
-)
+@requires_tool("unpaper")
+@requires_tool("tesseract")
 def test_process_chain(
     temp_db: object,
     temp_pnm: object,
@@ -93,10 +89,8 @@ def test_process_chain(
     assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
 
 
-@pytest.mark.skipif(
-    shutil.which("unpaper") is None or shutil.which("tesseract") is None,
-    reason="requires unpaper and tesseract",
-)
+@requires_tool("unpaper")
+@requires_tool("tesseract")
 def test_process_chain2(
     temp_db: object,
     temp_pnm: object,
@@ -137,7 +131,7 @@ def test_process_chain2(
     assert page.mean == [0.0], "User-defined with %i and %o"
 
 
-@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+@requires_tool("tesseract")
 def test_tesseract_in_process_chain(
     temp_db: object,
     rotated_qbfox_pnm_im: object,
@@ -178,7 +172,7 @@ def test_tesseract_in_process_chain(
     assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
 
 
-@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+@requires_tool("tesseract")
 def test_error_in_process_chain1(temp_db: object, rotated_qbfox_pnm: str) -> None:
     """Test error handling in process chain."""
     slist = Document(db=temp_db.name)
@@ -213,7 +207,7 @@ def test_error_in_process_chain1(temp_db: object, rotated_qbfox_pnm: str) -> Non
     assert asserts == 1, "Caught error trying to process deleted page"
 
 
-@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+@requires_tool("tesseract")
 def test_error_in_process_chain2(temp_db: object, rotated_qbfox_pnm: str) -> None:
     """Test error handling in process chain."""
     slist = Document(db=temp_db.name)
@@ -235,7 +229,7 @@ def test_error_in_process_chain2(temp_db: object, rotated_qbfox_pnm: str) -> Non
     error_callback.assert_not_called()
 
 
-@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+@requires_tool("tesseract")
 def test_error_in_process_chain3(temp_db: object, rotated_qbfox_pnm: str) -> None:
     """Test error handling in process chain."""
     slist = Document(db=temp_db.name)

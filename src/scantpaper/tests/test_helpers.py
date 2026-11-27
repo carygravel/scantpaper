@@ -41,6 +41,7 @@ from scantpaper.helpers import (
     slurp,
     spin_step,
 )
+from scantpaper.tests.environment import DE_LOCALE, requires_locale
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gio, GLib, Gtk  # noqa: E402
@@ -49,25 +50,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 _LOCAL_TZ = dt.datetime.now().astimezone().tzinfo
-
-
-def has_numeric_locale(name: str) -> bool:
-    """Check if the given locale is available on the system."""
-    try:
-        saved = locale.setlocale(locale.LC_NUMERIC)
-        locale.setlocale(locale.LC_NUMERIC, name)
-        locale.setlocale(locale.LC_NUMERIC, saved)
-    except locale.Error:
-        return False
-    return True
-
-
-_HAS_DE_DE = has_numeric_locale("de_DE.utf8")
-
-
-def test_has_numeric_locale_missing() -> None:
-    """An unavailable locale is reported as False."""
-    assert has_numeric_locale("no.such.locale.zzz") is False
 
 
 def test_decimal_separator_default() -> None:
@@ -79,23 +61,23 @@ def test_decimal_separator_default() -> None:
     decimal_separator.cache_clear()
 
 
-@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+@requires_locale(DE_LOCALE)
 def test_decimal_separator_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """decimal_separator returns ',' when the configured locale uses a comma."""
-    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
-    monkeypatch.setenv("LANG", "de_DE.utf8")
+    monkeypatch.setenv("LC_ALL", DE_LOCALE)
+    monkeypatch.setenv("LANG", DE_LOCALE)
     decimal_separator.cache_clear()
     assert decimal_separator() == ","
     decimal_separator.cache_clear()
 
 
-@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+@requires_locale(DE_LOCALE)
 def test_decimal_separator_robust_to_lc_numeric_flip(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The separator survives other code flipping LC_NUMERIC to 'C'."""
-    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
-    monkeypatch.setenv("LANG", "de_DE.utf8")
+    monkeypatch.setenv("LC_ALL", DE_LOCALE)
+    monkeypatch.setenv("LANG", DE_LOCALE)
     decimal_separator.cache_clear()
     saved = locale.setlocale(locale.LC_NUMERIC, "C")
     assert decimal_separator() == ","
@@ -113,11 +95,11 @@ def test_grouping_separator_default() -> None:
     grouping_separator.cache_clear()
 
 
-@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+@requires_locale(DE_LOCALE)
 def test_grouping_separator_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """grouping_separator returns '.' in a de_DE locale."""
-    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
-    monkeypatch.setenv("LANG", "de_DE.utf8")
+    monkeypatch.setenv("LC_ALL", DE_LOCALE)
+    monkeypatch.setenv("LANG", DE_LOCALE)
     grouping_separator.cache_clear()
     assert grouping_separator() == "."
     grouping_separator.cache_clear()
@@ -152,11 +134,11 @@ def test_format_number_default_locale() -> None:
     decimal_separator.cache_clear()
 
 
-@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+@requires_locale(DE_LOCALE)
 def test_format_number_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """format_number uses the comma in a comma locale."""
-    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
-    monkeypatch.setenv("LANG", "de_DE.utf8")
+    monkeypatch.setenv("LC_ALL", DE_LOCALE)
+    monkeypatch.setenv("LANG", DE_LOCALE)
     decimal_separator.cache_clear()
     assert format_number(115.2) == "115,2"
     assert format_number(210.0) == "210"
@@ -192,11 +174,11 @@ def test_parse_number_strict_no_grouping_locale(
     grouping_separator.cache_clear()
 
 
-@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+@requires_locale(DE_LOCALE)
 def test_parse_number_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """parse_number accepts the comma in a comma locale, rejecting the dot."""
-    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
-    monkeypatch.setenv("LANG", "de_DE.utf8")
+    monkeypatch.setenv("LC_ALL", DE_LOCALE)
+    monkeypatch.setenv("LANG", DE_LOCALE)
     decimal_separator.cache_clear()
     grouping_separator.cache_clear()
     assert parse_number("115,2") == 115.2
@@ -219,11 +201,11 @@ def test_format_number_precise_default_locale() -> None:
     decimal_separator.cache_clear()
 
 
-@pytest.mark.skipif(not _HAS_DE_DE, reason="de_DE.utf8 locale not available")
+@requires_locale(DE_LOCALE)
 def test_format_number_precise_comma_locale(monkeypatch: pytest.MonkeyPatch) -> None:
     """format_number_precise localizes the separator without trimming."""
-    monkeypatch.setenv("LC_ALL", "de_DE.utf8")
-    monkeypatch.setenv("LANG", "de_DE.utf8")
+    monkeypatch.setenv("LC_ALL", DE_LOCALE)
+    monkeypatch.setenv("LANG", DE_LOCALE)
     decimal_separator.cache_clear()
     assert format_number_precise(1.07818603515625) == "1,07818603515625"
     assert format_number_precise(115.2) == "115,2"

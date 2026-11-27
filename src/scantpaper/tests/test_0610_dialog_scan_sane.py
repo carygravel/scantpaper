@@ -19,6 +19,7 @@ from scantpaper.helpers import configure_fractional_spinbutton
 from scantpaper.i18n import _
 from scantpaper.scanner.options import Option, Options
 from scantpaper.scanner.profile import Profile
+from scantpaper.tests.environment import DE_LOCALE
 from scantpaper.tests.scan_mocks import build_scan_options
 from scantpaper.tests.widget_helpers import emit_spinbutton_enter
 
@@ -1337,7 +1338,7 @@ def de_locale_process(comma_locale: str) -> Generator[str, None, None]:
     locale for the display to switch from a period to a comma.
     """
     saved = locale.setlocale(locale.LC_ALL)
-    locale.setlocale(locale.LC_ALL, "de_DE.utf8")
+    locale.setlocale(locale.LC_ALL, DE_LOCALE)
     yield comma_locale
     locale.setlocale(locale.LC_ALL, saved)
 

@@ -8,7 +8,6 @@ import os
 import pathlib
 import queue
 import re
-import shutil
 import subprocess
 import tempfile
 import threading
@@ -19,7 +18,7 @@ from unittest.mock import MagicMock
 import img2pdf
 import pikepdf
 import pytest
-from PIL import Image, ImageDraw, ImageFont, features
+from PIL import Image, ImageDraw, ImageFont
 
 from scantpaper import config
 from scantpaper.basethread import Request, Response
@@ -33,22 +32,17 @@ from scantpaper.docthread import DocThread
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
+from scantpaper.tests.environment import (
+    DE_LOCALE,
+    requires_jbig2,
+    requires_locale,
+    requires_pillow_feature,
+    requires_tool,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from types import SimpleNamespace
-
-
-def has_locale(name: str) -> bool:
-    """Check if the given locale is available on the system."""
-    try:
-        old_locale = locale.setlocale(locale.LC_CTYPE)
-        locale.setlocale(locale.LC_CTYPE, name)
-        locale.setlocale(locale.LC_CTYPE, old_locale)
-    except locale.Error:
-        return False
-    else:
-        return True
 
 
 def get_page_size(path: str) -> tuple[float, float]:
@@ -383,12 +377,6 @@ def _strip_trailing_eoi(data: bytes) -> bytes:
     return data
 
 
-def test_has_locale() -> None:
-    """Test has_locale function."""
-    assert has_locale("C") is True
-    assert has_locale("non-existent-locale") is False
-
-
 def test_ccitt_group_from_decodeparms() -> None:
     """Group 4 is detected from a bare or array-wrapped DecodeParms /K."""
     assert _ccitt_group(None) == "Group3"
@@ -619,9 +607,7 @@ def test_save_pdf(
     clean_up_files(["test-1.ppm"])
 
 
-@pytest.mark.skipif(
-    not has_locale("de_DE.utf8"), reason="Locale de_DE.utf8 not available"
-)
+@requires_locale(DE_LOCALE, locale.LC_CTYPE)
 def test_save_pdf_with_locale(
     rose_pnm: str,
     temp_db: object,
@@ -629,7 +615,7 @@ def test_save_pdf_with_locale(
     import_in_mainloop: Callable[[object, list[str]], None],
 ) -> None:
     """Test with non-English locale."""
-    locale.setlocale(locale.LC_CTYPE, "de_DE.utf8")
+    locale.setlocale(locale.LC_CTYPE, DE_LOCALE)
 
     slist = Document(db=temp_db.name)
 
@@ -723,7 +709,7 @@ def test_save_pdf_different_resolutions(
     assert (width, height) == pytest.approx((50.4, 16.56), 0.1), "valid PDF created"
 
 
-@pytest.mark.skipif(shutil.which("qpdf") is None, reason="qpdf not found")
+@requires_tool("qpdf")
 def test_save_encrypted_pdf(
     rose_jpg: str,
     temp_db: object,
@@ -1246,10 +1232,7 @@ def test_save_pdf_quality_shrinks_jpeg_stream(
     assert sizes[20] < sizes[95], "lower quality stream is smaller"
 
 
-@pytest.mark.skipif(
-    not bool(features.check("jpg_2000")),
-    reason="Pillow built without JPEG 2000 support",
-)
+@requires_pillow_feature("jpg_2000", "JPEG 2000")
 def test_save_pdf_jp2(
     rose_png: str,
     temp_db: object,
@@ -1279,10 +1262,7 @@ def test_save_pdf_jp2(
     clean_up_files(["x-000.jp2"])
 
 
-@pytest.mark.skipif(
-    not bool(features.check("jpg_2000")),
-    reason="Pillow built without JPEG 2000 support",
-)
+@requires_pillow_feature("jpg_2000", "JPEG 2000")
 def test_save_pdf_jp2_quality_shrinks_stream(
     rose_png: str,
     temp_db: object,
@@ -1441,7 +1421,7 @@ def test_bilevel_page_keeps_a_bilevel_codec(
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
+@requires_jbig2()
 def test_bilevel_page_saved_as_jbig2_is_smaller_than_g4(
     large_bilevel_pbm: str,
     temp_db: object,
@@ -1491,7 +1471,7 @@ def test_bilevel_page_jb2_without_encoder_falls_back_to_g4(
     assert "/JBIG2Decode" not in codecs, "no JBIG2 without the encoder"
 
 
-@pytest.mark.skipif(not jbig2_available(), reason="jbig2 encoder not installed")
+@requires_jbig2()
 def test_save_pdf_auto_jbig2_preference_keeps_jpeg(
     rose_png: str,
     temp_db: object,

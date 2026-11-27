@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import shutil
 import subprocess
 from typing import TYPE_CHECKING, cast
 
 import gi
-import pytest
 from PIL import Image, ImageDraw
 
 from scantpaper import config
@@ -20,11 +18,14 @@ from scantpaper.const import (
 from scantpaper.dialog import Dialog
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
+from scantpaper.tests.environment import requires_tool
 from scantpaper.tests.widget_helpers import emit_spinbutton_enter
 from scantpaper.unpaper import Unpaper, count_active_children
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    import pytest
 
     from scantpaper.basethread import Response
 
@@ -43,7 +44,7 @@ def test_unpaper_program_version(mocker: pytest.MockerFixture) -> None:
     assert unpaper.program_version() == "6.2"
 
 
-@pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
+@requires_tool("unpaper")
 def test_version() -> None:
     """Test unpaper version."""
     unpaper = Unpaper()
@@ -183,7 +184,7 @@ def test_1() -> None:
     ], "output-pages = 2"
 
 
-@pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
+@requires_tool("unpaper")
 def test_unpaper(
     temp_pbm: object,
     import_in_mainloop: Callable[[object, list[str]], None],
@@ -249,7 +250,7 @@ def test_unpaper(
     assert page.resolution[0] == 25.74208754208754, "Resolution of processed image"
 
 
-@pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
+@requires_tool("unpaper")
 def test_unpaper2(
     temp_pnm: object,
     temp_db: object,
@@ -324,7 +325,7 @@ def test_unpaper2(
     assert page.resolution[0] == 300, "Resolution of processed image"
 
 
-@pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
+@requires_tool("unpaper")
 def test_unpaper3(
     temp_pnm: object,
     temp_db: object,
@@ -424,7 +425,7 @@ def test_unpaper3(
     clean_up_files(["1.pnm", "black.pnm", "2.pnm"])
 
 
-@pytest.mark.skipif(shutil.which("unpaper") is None, reason="requires unpaper")
+@requires_tool("unpaper")
 def test_unpaper_rtl(
     temp_pnm: object,
     temp_db: object,

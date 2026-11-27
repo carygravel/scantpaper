@@ -5,27 +5,25 @@ from __future__ import annotations
 import datetime as dt
 import pathlib
 import re
-import shutil
 import subprocess
 import tempfile
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
 
-import pytest
-
 from scantpaper.bboxtree import VERSION
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
+from scantpaper.tests.environment import requires_tool
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from types import SimpleNamespace
 
+    import pytest
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+
+@requires_tool("cjb2")
 def test_import_djvu(
     rose_jpg: str,
     temp_djvu: object,
@@ -149,9 +147,7 @@ CreationDate	"2018-12-31 13:00:00+01:00"
     )
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_import_djvu_with_error(
     rose_jpg: str, temp_djvu: object, read_only_session: SimpleNamespace
 ) -> None:
@@ -195,9 +191,7 @@ def mock_import_djvu_txt(_self: Page, _text: str) -> None:
     raise ValueError(msg)
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_import_djvu_with_error2(
     monkeypatch: pytest.MonkeyPatch,
     rose_jpg: str,
@@ -234,9 +228,7 @@ def test_import_djvu_with_error2(
     assert page.image_object.mode == "RGB", "DjVu imported otherwise correctly"
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_import_multipage_djvu(
     rose_jpg: str, temp_djvu: object, temp_db: object
 ) -> None:

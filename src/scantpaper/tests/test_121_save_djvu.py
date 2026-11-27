@@ -6,18 +6,17 @@ import codecs
 import datetime as dt
 import pathlib
 import re
-import shutil
 import subprocess
 import tempfile
 from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
 
-import pytest
 from PIL import Image
 
 from scantpaper import config
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
+from scantpaper.tests.environment import requires_tool
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -26,9 +25,7 @@ if TYPE_CHECKING:
     from scantpaper.basethread import Response
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_save_djvu1(
     import_in_mainloop: Callable[[object, list[str]], None],
     rose_pnm: str,
@@ -54,9 +51,7 @@ def test_save_djvu1(
     assert slist.thread.pages_saved(), "pages tagged as saved"
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_save_djvu_text_layer(
     import_in_mainloop: Callable[[object, list[str]], None],
     set_text_in_mainloop: Callable[[object, str, str], None],
@@ -95,9 +90,7 @@ def test_save_djvu_text_layer(
     assert re.search(r"The quick brown fox", capture), "DjVu with expected text"
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_save_djvu_with_hocr(
     import_in_mainloop: Callable[[object, list[str]], None],
     set_text_in_mainloop: Callable[[object, str, str], None],
@@ -156,9 +149,7 @@ def test_save_djvu_with_hocr(
     ), "DjVu with expected annotation"
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_cancel_save_djvu(
     rose_pnm: str,
     temp_db: object,
@@ -215,9 +206,7 @@ def test_cancel_save_djvu(
     )
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_save_djvu_with_error(
     rose_pnm: str,
     temp_djvu: object,
@@ -265,9 +254,7 @@ def test_save_djvu_with_error(
         assert asserts == 2, "ran all callbacks"
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_save_djvu_with_float_resolution(
     rose_png: str,
     temp_db: object,
@@ -293,9 +280,7 @@ def test_save_djvu_with_float_resolution(
     )
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_save_djvu_different_resolutions(
     temp_png: object,
     temp_db: object,
@@ -326,9 +311,7 @@ def test_save_djvu_different_resolutions(
     )
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_save_djvu_with_metadata(
     rose_pnm: str,
     temp_db: object,
@@ -366,9 +349,7 @@ def test_save_djvu_with_metadata(
     ), "timestamp"
 
 
-@pytest.mark.skipif(
-    shutil.which("cjb2") is None, reason="Please install cjb2 to enable test"
-)
+@requires_tool("cjb2")
 def test_save_djvu_with_old_metadata(
     rose_pnm: str,
     temp_db: object,

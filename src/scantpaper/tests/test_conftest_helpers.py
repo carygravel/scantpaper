@@ -14,7 +14,6 @@ from PIL import Image, ImageFont
 from scantpaper.conftest import (
     _create_qbfox_image,
     _require_de_locale,
-    has_numeric_locale,
 )
 
 if TYPE_CHECKING:
@@ -150,12 +149,6 @@ def test_clean_up_files_non_existent(
 ) -> None:
     """Test clean_up_files handles non-existent files without error."""
     clean_up_files(["/nonexistent/file.txt"])
-
-
-def test_has_numeric_locale() -> None:
-    """has_numeric_locale detects available and missing locales."""
-    assert has_numeric_locale("C") is True
-    assert has_numeric_locale("no.such.locale.zzz") is False
 
 
 def test_require_de_locale_skips_when_missing(monkeypatch: pytest.MonkeyPatch) -> None:

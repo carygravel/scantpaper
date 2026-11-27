@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import datetime as dt
 import pathlib
-import shutil
 import sqlite3
 import subprocess
 import sys
@@ -38,6 +37,7 @@ from scantpaper.helpers import (
 from scantpaper.loop_helpers import safe_mainloop
 from scantpaper.page import Page
 from scantpaper.savethread import _bbox2markup, _set_timestamp, prepare_output_metadata
+from scantpaper.tests.environment import requires_tool
 
 gi.require_version("Gtk", "4.0")
 
@@ -593,7 +593,7 @@ def test_docthread_basic(
         assert isinstance(page, Page), "do_import_file + png"
 
 
-@pytest.mark.skipif(shutil.which("cjb2") is None, reason="requires cjb2")
+@requires_tool("cjb2")
 def test_docthread_djvu(
     temp_db: object, temp_cjb2: object, temp_djvu: object, temp_pbm: object
 ) -> None:

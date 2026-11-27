@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pathlib
 import re
-import shutil
 import subprocess
 from typing import TYPE_CHECKING
 
@@ -33,6 +32,7 @@ from scantpaper.tesseract import (
     validate_tessdata_dir,
     validate_variable_names,
 )
+from scantpaper.tests.environment import requires_tool
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -99,7 +99,7 @@ def test_tesseract_code_conversions() -> None:
     assert locale_installed("C", ["eng"]) == "", "C locale should map to eng"
 
 
-@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+@requires_tool("tesseract")
 def test_get_tesseract_codes() -> None:
     """Test get_tesseract_codes()."""
     assert isinstance(get_tesseract_codes(), list), "get_tesseract_codes() returns list"
@@ -384,7 +384,7 @@ def test_tesseract_in_thread(
     assert re.search(r"f(o|0)x", hocr), 'Tesseract returned "fox"'
 
 
-@pytest.mark.skipif(shutil.which("tesseract") is None, reason="requires tesseract")
+@requires_tool("tesseract")
 def test_tesseract_with_multiple_languages(
     temp_png: object,
     temp_db: object,

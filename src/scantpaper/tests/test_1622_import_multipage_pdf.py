@@ -4,17 +4,16 @@ from __future__ import annotations
 
 import datetime as dt
 import re
-import shutil
 import subprocess
 import tempfile
 from typing import TYPE_CHECKING, Any, cast
 
 import img2pdf
-import pytest
 
 from scantpaper import config
 from scantpaper.document import Document
 from scantpaper.loop_helpers import safe_mainloop
+from scantpaper.tests.environment import requires_tool
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -39,10 +38,7 @@ def test_import_multipage_pdf(rose_png: str, temp_pdf: object, temp_db: object) 
     assert len(slist.data) == 2, "imported 2 pages"
 
 
-@pytest.mark.skipif(
-    shutil.which("pdfunite") is None,
-    reason="Please install pdfunite (poppler utils) to enable test",
-)
+@requires_tool("pdfunite")
 def test_import_multipage_pdf_with_not_enough_images(
     rose_png: str, temp_db: object, temp_pdf: object
 ) -> None:
@@ -233,9 +229,7 @@ def test_import_pdf_with_error(
         assert asserts == 2, "all callbacks run"
 
 
-@pytest.mark.skipif(
-    shutil.which("qpdf") is None, reason="Please install qpdf to enable test"
-)
+@requires_tool("qpdf")
 def test_import_encrypted_pdf(
     rose_png: str,
     temp_db: object,
