@@ -2,7 +2,6 @@
 
 # Roadmap and wishlist:
 # look again at translating docs
-# + mutmut
 # remaining FIXMEs and TODOs
 
 import argparse
