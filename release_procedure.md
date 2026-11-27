@@ -52,13 +52,18 @@
    python3 dev/release.py --dry-run  # preview the changes
    python3 dev/release.py            # write them
    ```
-1. Upload .pot
+1. Upload the template and the catalogs
    ```sh
    python3 dev/generate_pot.py
+   python3 dev/rosetta_tarball.py --out dist/scantpaper-po.tar.gz
    ```
-   After the new template has been uploaded to Launchpad, record its message
-   set as the baseline for the local staleness check, so the next run no longer
-   reports the pot as stale
+   Upload `dist/scantpaper-po.tar.gz` to the
+   [scantpaper template](https://translations.launchpad.net/scantpaper).
+   It carries the new pot and every catalog, not just the pot, so the
+   translations merged or corrected locally reach Rosetta along with the new
+   strings. `dist/` is ignored by git.
+   After the upload, record the template's message set as the baseline for the
+   local staleness check, so the next run no longer reports the pot as stale
    ```sh
    python3 dev/check_launchpad.py --record-pot
    ```
