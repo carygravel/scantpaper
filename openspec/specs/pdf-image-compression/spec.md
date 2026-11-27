@@ -316,8 +316,9 @@ When a page image is written to the PDF with a lossless codec, the final
 saved PDF SHALL still contain that lossless image stream; the OCRmyPDF
 PDF/A conversion SHALL NOT transcode it to a lossy codec. scantpaper
 SHALL request lossless PDF/A image handling explicitly rather than rely
-on the OCRmyPDF default, whose meaning changed across versions. A save
-whose page images are all JPEG SHALL keep them as JPEG, so the request
+on the OCRmyPDF default, whose meaning changed across versions.
+
+A save whose page images are all JPEG SHALL keep them as JPEG, so the request
 does not inflate an already-lossy document.
 
 #### Scenario: Lossless Flate page preserved through save
@@ -345,3 +346,33 @@ does not inflate an already-lossy document.
 - **WHEN** a PDF is saved with a lossless compression option on any
   supported OCRmyPDF version
 - **THEN** the final PDF's page image SHALL be lossless in every case
+
+### Requirement: Bilevel encoding is restored after PDF/A conversion
+
+When the PDF/A converter rewrites a bilevel page image with a different
+lossless codec, scantpaper SHALL restore CCITT Group 4 encoding before the
+save completes. This SHALL cover page image XObjects and images the converter
+inlined into the page content, SHALL decode to the same bitmap, and SHALL
+leave an image that is already CCITT Group 4 or JBIG2 unchanged.
+
+#### Scenario: Bilevel Group 4 page rewritten by the PDF/A converter
+
+- **WHEN** a PDF is saved for a bilevel page selected for Group 4
+- **AND** the installed PDF/A converter rewrites that image with another
+  lossless codec
+- **THEN** the final PDF's extracted page image SHALL be 1-bit and CCITT
+  Group 4 encoded
+- **AND** it SHALL decode to the bitmap written before the conversion
+
+#### Scenario: Converted inline bilevel image restored
+
+- **WHEN** the PDF/A converter inlines a bilevel page image into the page
+  content stream and encodes it with another lossless codec
+- **THEN** the final PDF's extracted page image SHALL be 1-bit and CCITT
+  Group 4 encoded
+
+#### Scenario: Already bilevel-compressed image left unchanged
+
+- **WHEN** the PDF/A conversion leaves a page image in CCITT Group 4 or
+  JBIG2
+- **THEN** scantpaper SHALL NOT re-encode that image

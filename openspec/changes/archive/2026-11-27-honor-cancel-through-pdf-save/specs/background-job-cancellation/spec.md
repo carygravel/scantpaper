@@ -1,5 +1,22 @@
 # Spec Delta
 
+## ADDED Requirements
+
+### Requirement: Cancel stops a PDF save in any phase
+
+A running PDF save SHALL be stopped at whichever phase the cancel lands,
+including after its pages have been assembled while the text layer is being
+embedded or the PDF finalized, and the save SHALL NOT report a completed
+export afterwards.
+
+#### Scenario: Cancel lands after page assembly
+
+- **WHEN** the user activates Cancel while a PDF save has finished assembling
+  its pages and is embedding the text layer
+- **THEN** the save SHALL be stopped
+- **AND** the save SHALL NOT report the export as completed
+- **AND** the progress bar SHALL be hidden
+
 ## MODIFIED Requirements
 
 ### Requirement: Cancel stops running and queued jobs
@@ -10,11 +27,6 @@ not started SHALL be dropped, and the currently running job SHALL be stopped
 as soon as practical. The progress bar SHALL be hidden. This includes
 follow-up work that a completed job would otherwise register after the
 cancel, such as the next page of a scan batch.
-
-A running PDF save SHALL be stopped at whichever phase the cancel lands,
-including after its pages have been assembled while the text layer is being
-embedded or the PDF finalized, and the save SHALL NOT report a completed
-export afterwards.
 
 #### Scenario: Cancel during a bulk import
 
@@ -31,14 +43,6 @@ export afterwards.
 - **THEN** the save is stopped
 - **AND** no partially-written output is presented as a completed export
 - **AND** the progress bar is hidden
-
-#### Scenario: Cancel lands after page assembly
-
-- **WHEN** the user activates Cancel while a PDF save has finished assembling
-  its pages and is embedding the text layer
-- **THEN** the save SHALL be stopped
-- **AND** the save SHALL NOT report the export as completed
-- **AND** the progress bar SHALL be hidden
 
 #### Scenario: Cancel between scan pages
 

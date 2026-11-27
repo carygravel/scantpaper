@@ -132,6 +132,8 @@ def test_default_validation_commands_are_the_commands_ci_runs() -> None:
     assert check.DEFAULT_VALIDATE_COMMANDS == (
         "openspec validate --specs --strict --no-interactive",
         "openspec validate --archived --no-interactive",
+        "openspec validate --changes --strict --no-interactive",
+        "python3 dev/check_change_archive.py",
     )
     for command in check.DEFAULT_VALIDATE_COMMANDS:
         assert f"run: {command}" in workflow

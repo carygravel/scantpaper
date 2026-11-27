@@ -13,10 +13,9 @@ When a page being saved has a text layer, the output PDF SHALL contain a
 searchable text layer that reproduces its words and their positions.
 
 The emitted hOCR SHALL include the container levels (`ocr_par`/`ocr_line`) a
-PDF text-layer renderer walks, so every word is nested under a paragraph and
-stays extractable. This SHALL hold for text layers with no explicit paragraph
-or line structure, and for pages mixing OCR paragraphs with individually
-added words outside them.
+PDF text-layer renderer walks, so every word is nested under a paragraph and a
+line and stays extractable, including for text layers with no explicit
+paragraph or line structure and for words added outside the OCR paragraphs.
 
 #### Scenario: Saving an imported page preserves its searchable text
 - **WHEN** the user imports a PDF page, edits its text layer, and saves the
@@ -44,10 +43,10 @@ Words with a non-horizontal effective text angle SHALL be saved at that
 angle. The effective angle combines the word's own text angle with all
 ancestor angles, each taken once.
 
-A word SHALL be rendered at its own angle whether under a page, a synthetic
-export line, or an existing line at a different angle. Within one line, words
-with different effective angles SHALL be separated so each angle is saved
-correctly.
+A word SHALL be rendered at its own angle whether under a page, a paragraph, a
+synthetic export line, or an existing line at a different angle. Within one
+line, words with different effective angles SHALL be separated so each angle
+is saved correctly.
 
 The set and order of extracted words SHALL be unaffected by rotation.
 
@@ -79,6 +78,13 @@ The set and order of extracted words SHALL be unaffected by rotation.
   searchable PDF
 - **THEN** every word SHALL be rendered horizontally as before
 - **AND** the extracted word set and order SHALL be unchanged
+
+#### Scenario: A rotated word added inside an OCR paragraph is saved vertically
+- **WHEN** the user adds a word inside an existing OCR paragraph's bounding box
+  but outside its lines, rotates it 90 degrees, and saves the page as a
+  searchable PDF
+- **THEN** the word in the output PDF SHALL be rendered vertically
+- **AND** its text SHALL remain extractable
 
 ### Requirement: Text layer survives a save round trip
 When a page's text layer is exported for saving and then read back from the
@@ -130,3 +136,43 @@ size from its bounding box.
   their reading direction
 - **THEN** each rotated word SHALL form its own synthetic line
 - **AND** each such line SHALL carry the word's text angle
+
+### Requirement: Per-character Unicode mappings survive PDF/A conversion
+
+The saved searchable text layer SHALL keep a Unicode mapping for every
+character, even when text shaping would otherwise substitute a typographic
+ligature for several characters.
+
+#### Scenario: A word containing a ligature stays searchable
+
+- **WHEN** a page's text layer contains a word whose letters could be shaped
+  into a ligature, such as `ff`
+- **AND** the page is saved as a searchable PDF on a system whose PDF/A
+  converter drops multi-character `ToUnicode` mappings
+- **THEN** the output PDF SHALL contain a searchable text layer
+- **AND** extracting the text SHALL return the full word
+
+#### Scenario: Caller-selected shaping features are preserved
+
+- **WHEN** the text-layer renderer is asked to shape text with an explicit
+  feature set
+- **THEN** scantpaper SHALL leave that feature set unchanged
+
+#### Scenario: Rendering is visually unchanged
+
+- **WHEN** scantpaper renders the text layer without ligature substitutions
+- **THEN** the visible page SHALL look the same, because the text layer is
+  invisible
+
+### Requirement: A word inside a paragraph's box stays extractable
+A word added inside an existing OCR paragraph's bounding box, but outside any
+of that paragraph's lines, SHALL still appear in the saved text layer rather
+than being dropped when the paragraph's lines are emitted.
+
+#### Scenario: Saving a page with a manually added word inside an OCR paragraph
+- **WHEN** the user has a page whose text layer contains an OCR paragraph with
+  lines and adds a new word inside that paragraph's bounding box but outside
+  any of its lines
+- **AND** saves the document as a PDF
+- **THEN** the output PDF SHALL contain a searchable text layer
+- **AND** the extracted text SHALL contain the manually added word

@@ -61,6 +61,16 @@ jobs:
         # step. Every task in openspec/changes/archive must be ticked; a
         # deferred task is de-tracked as prose naming its tracking issue.
         run: openspec validate --archived --no-interactive
+      - name: Validate active changes
+        # --changes likewise cannot be combined with --specs. Validating only
+        # the archive would let a malformed delta pass until the day it is
+        # archived, which is when the main specs inherit the defect.
+        run: openspec validate --changes --strict --no-interactive
+      - name: Fail on unarchived completed changes
+        # A change whose tasks are all ticked belongs in
+        # openspec/changes/archive. Leaving it active lets shipped work drift
+        # out of openspec/specs/, so the gate names every offender.
+        run: python3 dev/check_change_archive.py
 
       - name: Display Python version
         run: python3 -c "import sys; print(sys.version)"
@@ -134,6 +144,16 @@ jobs:
         # step. Every task in openspec/changes/archive must be ticked; a
         # deferred task is de-tracked as prose naming its tracking issue.
         run: openspec validate --archived --no-interactive
+      - name: Validate active changes
+        # --changes likewise cannot be combined with --specs. Validating only
+        # the archive would let a malformed delta pass until the day it is
+        # archived, which is when the main specs inherit the defect.
+        run: openspec validate --changes --strict --no-interactive
+      - name: Fail on unarchived completed changes
+        # A change whose tasks are all ticked belongs in
+        # openspec/changes/archive. Leaving it active lets shipped work drift
+        # out of openspec/specs/, so the gate names every offender.
+        run: python3 dev/check_change_archive.py
 
       - name: Display Python version
         run: python3 -c "import sys; print(sys.version)"
@@ -196,6 +216,16 @@ jobs:
         # step. Every task in openspec/changes/archive must be ticked; a
         # deferred task is de-tracked as prose naming its tracking issue.
         run: openspec validate --archived --no-interactive
+      - name: Validate active changes
+        # --changes likewise cannot be combined with --specs. Validating only
+        # the archive would let a malformed delta pass until the day it is
+        # archived, which is when the main specs inherit the defect.
+        run: openspec validate --changes --strict --no-interactive
+      - name: Fail on unarchived completed changes
+        # A change whose tasks are all ticked belongs in
+        # openspec/changes/archive. Leaving it active lets shipped work drift
+        # out of openspec/specs/, so the gate names every offender.
+        run: python3 dev/check_change_archive.py
 
       - name: Display Python version
         run: python3 -c "import sys; print(sys.version)"

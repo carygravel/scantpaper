@@ -224,7 +224,7 @@ This document provides essential context for anyone working on this project. Adh
     upgrade" or "blocked"; it closes itself once the pin matches. Run the same
     check locally with `python3 dev/check_openspec.py` (`--json` for the
     machine report). Adopt a reported release by editing
-    `dev/openspec-version`, reinstalling as above, and running both commands
+    `dev/openspec-version`, reinstalling as above, and running every command
     below.
     Validate with the exact CI command:
     `openspec validate --specs --strict --no-interactive`. `--strict`
@@ -235,7 +235,16 @@ This document provides essential context for anyone working on this project. Adh
     does not combine with `--specs`. It requires every task in every
     archive to be ticked, so a task that is deliberately deferred is
     rewritten as a plain prose bullet naming the issue that tracks it, not
-    left as an open checkbox. Run both before pushing.
+    left as an open checkbox.
+    Active changes are validated by a third command,
+    `openspec validate --changes --strict --no-interactive`, which applies the
+    same strict rules before a delta is archived instead of after. A change
+    whose tasks are all ticked must then be archived by the same push: the
+    `python3 dev/check_change_archive.py` gate fails while a completed change
+    is still under `openspec/changes/`. Archive the change in the commit that
+    ticks its last task. A change held for review keeps its last task unticked
+    until it is ready; do not add an exemption to the gate. Run all four
+    before pushing.
 -   **Lint tools:** The ruff and ty versions CI installs are recorded once, in
     `dev/lint-versions` (one `tool=version` line each); install exactly those
     releases locally (the same `$()` substitution `test.yml` uses), never
@@ -269,7 +278,8 @@ implementation begins.
     and a test.
 -   **Workflow:** create a change proposal first (`openspec new change`, or the
     `/opsx-propose` skill), get it approved, then implement against its tasks
-    (`/opsx-apply-change`). Do not start coding with only a verbal description.
+    (`/opsx-apply-change`) and archive the change in the commit that ticks its
+    last task. Do not start coding with only a verbal description.
 -   Exploration and thinking are encouraged at any time (e.g. `/opsx-explore`),
     but insights must be captured into proposal/spec/design artifacts before
     they turn into code.

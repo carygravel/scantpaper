@@ -1,5 +1,20 @@
 # Spec Delta
 
+## ADDED Requirements
+
+### Requirement: A word inside a paragraph's box stays extractable
+A word added inside an existing OCR paragraph's bounding box, but outside any
+of that paragraph's lines, SHALL still appear in the saved text layer rather
+than being dropped when the paragraph's lines are emitted.
+
+#### Scenario: Saving a page with a manually added word inside an OCR paragraph
+- **WHEN** the user has a page whose text layer contains an OCR paragraph with
+  lines and adds a new word inside that paragraph's bounding box but outside
+  any of its lines
+- **AND** saves the document as a PDF
+- **THEN** the output PDF SHALL contain a searchable text layer
+- **AND** the extracted text SHALL contain the manually added word
+
 ## MODIFIED Requirements
 
 ### Requirement: Saved PDF retains a searchable text layer
@@ -8,10 +23,8 @@ searchable text layer that reproduces its words and their positions.
 
 The emitted hOCR SHALL include the container levels (`ocr_par`/`ocr_line`) a
 PDF text-layer renderer walks, so every word is nested under a paragraph and a
-line and stays extractable. This SHALL hold for text layers with no explicit
-paragraph or line structure, for pages mixing OCR paragraphs with individually
-added words outside them, and for words added inside an existing paragraph's
-bounding box but outside any of its lines.
+line and stays extractable, including for text layers with no explicit
+paragraph or line structure and for words added outside the OCR paragraphs.
 
 #### Scenario: Saving an imported page preserves its searchable text
 - **WHEN** the user imports a PDF page, edits its text layer, and saves the
@@ -33,14 +46,6 @@ bounding box but outside any of its lines.
 - **THEN** the output PDF SHALL contain a searchable text layer
 - **AND** the extracted text SHALL contain the manually added word alongside
   the OCR-recognised words
-
-#### Scenario: Saving a page with a manually added word inside an OCR paragraph
-- **WHEN** the user has a page whose text layer contains an OCR paragraph with
-  lines and adds a new word inside that paragraph's bounding box but outside
-  any of its lines
-- **AND** saves the document as a PDF
-- **THEN** the output PDF SHALL contain a searchable text layer
-- **AND** the extracted text SHALL contain the manually added word
 
 ### Requirement: Rotated text is rendered at its text angle
 Words with a non-horizontal effective text angle SHALL be saved at that

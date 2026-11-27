@@ -31,11 +31,14 @@ REQUEST_TIMEOUT = 30
 
 USER_AGENT = "scantpaper-openspec-check/0.1 (+https://github.com/carygravel/scantpaper)"
 
-# The two commands CI runs, in order. ``--archived`` cannot be combined with
-# ``--specs``, so they stay separate.
+# The validation commands CI runs, in order. None of ``--specs``,
+# ``--archived`` and ``--changes`` can be combined with another, so they stay
+# separate; the archive gate runs last because it reads the resulting tree.
 DEFAULT_VALIDATE_COMMANDS = (
     "openspec validate --specs --strict --no-interactive",
     "openspec validate --archived --no-interactive",
+    "openspec validate --changes --strict --no-interactive",
+    "python3 dev/check_change_archive.py",
 )
 
 CURRENT = "current"
@@ -257,8 +260,7 @@ def _markdown(
         "```sh",
         f"printf '%s\\n' {latest} > dev/openspec-version",
         f"npm install -g @fission-ai/openspec@{latest}",
-        "openspec validate --specs --strict --no-interactive",
-        "openspec validate --archived --no-interactive",
+        *DEFAULT_VALIDATE_COMMANDS,
         "```",
         "",
         "This issue closes itself once the pin matches npm's latest release.",
