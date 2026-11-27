@@ -86,11 +86,17 @@ This document provides essential context for anyone working on this project. Adh
     user-defined tools and post-save hooks, still run external programs
     because that is what they verify. The coverage gate measures only the
     shipped `scantpaper` package and fails below 99%, so its result does not
-    depend on which optional test tooling is installed. Developer-tooling
-    tests live under `dev/tests/` next to the scripts they exercise. After a
-    complete run, audit test code for unexecuted statements with
-    `python3 dev/check_test_coverage.py`; it runs in GitHub's `latest` job
-    and ratchets partial branches at the recorded baseline.
+    depend on which optional test tooling is installed. A
+    canonical-environment run can turn every skip into a failure with
+    `pytest --fail-on-skip` or `SCANTPAPER_FAIL_ON_SKIP=1`. The mode is
+    opt-in, and it is enabled in the complete GitHub jobs and the Debian
+    autopkgtest. Do not enable it where a supported-floor toolkit or a
+    third-party tool is intentionally absent; exclude such a test with
+    `--ignore` instead. Developer-tooling tests live under `dev/tests/` next
+    to the scripts they exercise. After a complete run, audit test code for
+    unexecuted statements with `python3 dev/check_test_coverage.py`; it runs
+    in GitHub's `latest` job and ratchets partial branches at the recorded
+    baseline.
 -   **Translations:** Translation strings are marked with `_()` in the source.
     The full maintainer workflow, including setup, catalog refresh, coverage,
     the approval ledger, translation memory and the machine gate, is in

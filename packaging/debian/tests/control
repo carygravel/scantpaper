@@ -3,6 +3,7 @@ Restrictions: rw-build-tree, allow-stderr
 # ^ pytest-runner writes stuff to the source tree
 Depends: @,
  appstream,
+ desktop-file-utils,
  djvulibre-bin,
  fonts-dejavu-core,
  gettext,

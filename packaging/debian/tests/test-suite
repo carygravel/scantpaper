@@ -6,7 +6,8 @@ set -e
 # ensure we test installed version
 #mv scantpaper disabled
 
-pytest
+pytest --fail-on-skip \
+    --ignore=src/scantpaper/tests/test_openspec_specs.py
 
 # comply with rw-build-tree
 #mv disabled scantpaper

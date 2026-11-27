@@ -74,6 +74,8 @@ jobs:
         # search path so ty can resolve the pip-installed runtime/test deps.
         run: ty check --extra-search-path "$(python3 -m site --user-site)" .
       - name: Test
+        env:
+          SCANTPAPER_FAIL_ON_SKIP: "1"
         run: pytest
       - name: Audit test-code coverage
         run: python3 dev/check_test_coverage.py
@@ -142,6 +144,8 @@ jobs:
       - name: ty check
         run: ty check .
       - name: Test
+        env:
+          SCANTPAPER_FAIL_ON_SKIP: "1"
         run: pytest
       - name: Audit test-code coverage
         run: python3 dev/check_test_coverage.py
@@ -205,6 +209,8 @@ jobs:
         # search path so ty can resolve the pip-installed test dependencies.
         run: ty check --extra-search-path "$(python3 -m site --user-site)" .
       - name: Test
+        env:
+          SCANTPAPER_FAIL_ON_SKIP: "1"
         run: pytest
       - name: Audit test-code coverage
         run: python3 dev/check_test_coverage.py
@@ -263,6 +269,8 @@ jobs:
       # where system python3-pil (10.2.0) has no type hints. Type checking runs
       # in the pip job and the resolute job, which use newer Pillow.
       - name: Test
+        # No fail-on-skip: this job deliberately lacks the third-party
+        # openspec CLI.
         run: pytest
 
   jammy:
@@ -330,4 +338,7 @@ jobs:
           body_path: .github/release-notes.md
 
       - name: Test
+        # No fail-on-skip: this job deliberately lacks the third-party
+        # openspec CLI, the jbig2 encoder, and the newer supported-floor
+        # toolkit and Python.
         run: pytest

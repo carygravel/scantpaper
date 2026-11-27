@@ -880,6 +880,32 @@ Ghostscript bilevel behaviour. Other end-to-end tests, such as user-defined
 tools and post-save hooks, still run external programs because that is what
 they verify.
 
+### Complete test environment
+
+The suite skips tests whose optional dependencies are absent. To run every
+test, install the full set: the `de_DE.utf8` locale, `tesseract` with the
+English and German data, `unpaper`, `cjb2` (djvulibre), `qpdf`, `pdfunite`
+and `pdftoppm` (poppler-utils), `jbig2`, ImageMagick (`convert`), the DejaVu
+fonts, `git`, `appstream` (`appstreamcli`), `desktop-file-utils`
+(`desktop-file-validate`), `gettext` (`msgfmt`), a display (for example via
+Xvfb), and the `openspec` CLI. The ligature-shaping tests also require
+`fpdf2` and `uharfbuzz`, and the JPEG 2000 tests require a Pillow built with
+JPEG 2000 support.
+
+A run that treats a skip as a failure is opt-in:
+
+```sh
+PYTHONPATH=src pytest --fail-on-skip
+# or
+SCANTPAPER_FAIL_ON_SKIP=1 PYTHONPATH=src pytest
+```
+
+The flag and the variable select the same behaviour. A test excluded with
+`-m`, `-k`, `--deselect` or `--ignore` is not a skip. Use this mode only in
+a complete environment; on a system with the supported-floor toolkit or
+without the third-party `openspec` CLI, exclude the tests that need them
+explicitly.
+
 ---
 
 ## Download, Installation & Removal
