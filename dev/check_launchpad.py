@@ -133,7 +133,7 @@ class CheckResult:
 
     @property
     def determined(self) -> bool:
-        """Return True when every part of the upstream state was read."""
+        """Return True when the upstream and local states were both read."""
         return not self.problems
 
     @property

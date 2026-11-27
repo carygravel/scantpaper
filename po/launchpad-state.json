@@ -1,7 +1,7 @@
 {
   "series": "trunk",
   "pot": "scantpaper",
-  "captured": "2026-10-11T17:41:35.736134+00:00",
+  "captured": "2026-11-27T18:28:42.472960+00:00",
   "template": {
     "date_last_updated": "2026-10-11T09:45:21.437164+00:00",
     "etag": "\"6f35b84e103d568aa0d348c596207feb5eaaeeca-b3450e699ee1748c459556f2cd999e097bac3789\""
@@ -48,8 +48,8 @@
       "suggestions": 0
     },
     "de": {
-      "last_changed": "2026-09-27 14:13:16",
-      "untranslated": 21,
+      "last_changed": "2026-11-08 15:29:35",
+      "untranslated": 0,
       "suggestions": 0
     },
     "el": {

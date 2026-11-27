@@ -17,8 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      # The tool only needs typing_extensions (for the @override decorator);
-      # the committed baseline at po/launchpad-state.json comes with the
+      # The tool needs typing_extensions (for the @override decorator) and
+      # polib (the template generator rewrites the desktop references with
+      # it); the committed baseline at po/launchpad-state.json comes with the
       # checkout. gettext (xgettext/msgcat) is installed below and is used to
       # regenerate the local template on demand; the generator imports
       # scantpaper.const, so src must be on PYTHONPATH.
@@ -26,12 +27,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gettext
-          pip install typing_extensions
+          pip install typing_extensions polib
       - name: Check for upstream and local translation changes
         id: check
         env:
           PYTHONPATH: src
+        # `pipefail` keeps the tool's exit status through `tee`: a run that
+        # cannot determine the state must fail the job, not file an issue.
         run: |
+          set -o pipefail
           python3 dev/check_launchpad.py --json | tee report.json
           changed=$(python3 -c "import json; print(json.load(open('report.json'))['changed'])")
           local_pot_changed=$(python3 -c "import json; print(json.load(open('report.json'))['local_pot_changed'])")

@@ -16,8 +16,9 @@
    scheduled [translations-check workflow](.github/workflows/translations-check.yml)
    runs the same check daily and files one issue when it detects upstream
    changes and a separate one when new strings are ready to upload. A
-   "could not determine" result (non-zero exit) means the check could not read
-   Launchpad, not that nothing changed, so the download below is still needed.
+   "could not determine" result (non-zero exit) means the check could not
+   read Launchpad or regenerate the local template, not that nothing changed,
+   so the download below is still needed.
 1. Download new translations (https://translations.launchpad.net/scantpaper)
 1. Import the downloaded `.po` files and refresh the catalogs
    ```sh

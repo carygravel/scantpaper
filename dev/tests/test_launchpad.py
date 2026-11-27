@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import ast
 import copy
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -58,6 +60,8 @@ class PayloadJson(TypedDict):
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 CHECK = REPO_ROOT / "dev" / "check_launchpad.py"
+GENERATOR = REPO_ROOT / "dev" / "generate_pot.py"
+WORKFLOW = REPO_ROOT / ".github" / "workflows" / "translations-check.yml"
 
 _ETAG = '"fixture-etag"'
 _DATE = "2026-09-27T14:19:54.066364+00:00"
@@ -540,3 +544,37 @@ def test_saved_page_snippet_parses_italian(tmp_path: Path) -> None:
     assert de["last_changed"] == "2026-09-27 14:13:16"
     assert de["untranslated"] == 0
     assert de["suggestions"] == 0
+
+
+def _third_party_imports(path: Path) -> set[str]:
+    """Return the non-stdlib, non-first-party modules a script imports."""
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    modules: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            modules.update(alias.name.split(".")[0] for alias in node.names)
+        elif (
+            isinstance(node, ast.ImportFrom)
+            and node.level == 0
+            and node.module is not None
+        ):
+            modules.add(node.module.split(".")[0])
+    return modules - set(sys.stdlib_module_names) - {"scantpaper"}
+
+
+def test_workflow_installs_the_check_dependencies() -> None:
+    """The daily check installs every module its two scripts import."""
+    required = _third_party_imports(CHECK) | _third_party_imports(GENERATOR)
+    assert {"polib", "typing_extensions"} <= required
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    for module in sorted(required):
+        pattern = rf"pip install[^\n]*\b{re.escape(module)}\b"
+        assert re.search(pattern, workflow), (
+            f"the translations-check workflow does not install {module}"
+        )
+
+
+def test_workflow_does_not_mask_a_failed_check() -> None:
+    """The `tee` that shows the report keeps the tool's exit status."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    assert "set -o pipefail" in workflow
