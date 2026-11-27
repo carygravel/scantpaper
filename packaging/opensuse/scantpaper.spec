@@ -94,6 +94,7 @@ Requires:  python3-python-iso639
 Requires:  python3-sane
 Requires:  python3-tesserocr
 Requires:  python3-pikepdf
+Requires:  python3-Pillow
 Requires:  python3-pycairo
 Requires:  python3-gobject
 Requires:  python3-typing_extensions
@@ -104,6 +105,7 @@ Requires:  python313-python-iso639
 Requires:  python313-sane
 Requires:  python313-tesserocr
 Requires:  python313-pikepdf
+Requires:  python313-Pillow
 Requires:  python313-pycairo
 Requires:  python313-gobject
 Requires:  python313-typing_extensions

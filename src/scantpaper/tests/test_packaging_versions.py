@@ -81,6 +81,15 @@ def test_opensuse_spec_has_tumbleweed_and_leap_dependency_branches() -> None:
     assert not re.search(r"(?m)^[ \t]*(?:Requires|BuildRequires):.*python3dist\(", text)
 
 
+def test_opensuse_spec_requires_pillow() -> None:
+    """Declare Pillow as a runtime dependency, matching pyproject.toml."""
+    text = (REPO_ROOT / "packaging" / "opensuse" / "scantpaper.spec").read_text(
+        encoding="utf-8"
+    )
+    for name in ("python3-Pillow", "python313-Pillow"):
+        assert f"Requires:  {name}" in text
+
+
 def test_debian_changelog_is_rendered_from_a_template() -> None:
     """Require placeholders instead of a version fixed in the changelog."""
     text = (DEBIAN / "changelog").read_text(encoding="utf-8")
