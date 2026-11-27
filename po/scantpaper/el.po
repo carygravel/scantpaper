@@ -856,8 +856,8 @@ msgstr "Σφάλμα κατά τη ρύθμιση της επιλογής:"
 msgid "Must scan facing pages first"
 msgstr "Πρέπει να σαρωθούν πρώτα οι μπροστινές πλευρές"
 
-#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
-#: tests/test_0610_dialog_scan_sane.py:1977
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1913
+#: tests/test_0610_dialog_scan_sane.py:1978
 msgid ""
 "Scanner did not deliver the requested 1-bit output; the page has been "
 "converted to black-and-white"
@@ -2019,7 +2019,7 @@ msgstr "Εγγραφή σελίδας %(current)i από %(total)i"
 #: savethread.py:498
 #, python-format
 msgid ""
-"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages."
 msgstr ""
 "Το εκτιμώμενο μέγεθος PDF (%.1f GiB) υπερβαίνει τα 2 GiB.  Παρακαλώ "
 "αποθηκεύστε λιγότερες σελίδες."

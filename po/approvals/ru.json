@@ -13901,7 +13901,7 @@
     {
       "language": "ru",
       "msgctxt": null,
-      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages.",
+      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages.",
       "msgid_plural": null,
       "translation_sha256": "a11b06a098b237f4757f2f13aad6850bd961ea3e7059ca33b7010b0d149952b0",
       "provenance_class": "machine-strong",

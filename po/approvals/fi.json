@@ -11619,7 +11619,7 @@
     {
       "language": "fi",
       "msgctxt": null,
-      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages.",
+      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages.",
       "msgid_plural": null,
       "translation_sha256": "f9915387ec5b19d24365999bf24d3c6ea109ff29e87b142f31a9b616373ebbba",
       "provenance_class": "machine-strong",

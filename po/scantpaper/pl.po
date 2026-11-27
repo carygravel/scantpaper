@@ -853,8 +853,8 @@ msgstr "Błąd podczas ustawiania opcji:"
 msgid "Must scan facing pages first"
 msgstr "Musi skanować strony czołowe jako pierwsze"
 
-#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
-#: tests/test_0610_dialog_scan_sane.py:1977
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1913
+#: tests/test_0610_dialog_scan_sane.py:1978
 msgid ""
 "Scanner did not deliver the requested 1-bit output; the page has been "
 "converted to black-and-white"
@@ -2002,7 +2002,7 @@ msgstr "Zapisywanie strony %(current)i z %(total)i"
 #: savethread.py:498
 #, python-format
 msgid ""
-"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages."
 msgstr ""
 "Szacowany rozmiar pliku PDF (%.1f GiB) przekracza 2 GiB.  Proszę zapisać "
 "mniej stron."

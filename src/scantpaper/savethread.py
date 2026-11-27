@@ -496,7 +496,7 @@ class SaveThread(Importhread):
                 raise RuntimeError(
                     _(
                         "The estimated PDF size (%.1f GiB) exceeds 2 GiB."
-                        "  Please save fewer pages."
+                        " Please save fewer pages."
                     )
                     % (estimated_size / (1024 * 1024 * 1024),)
                 )

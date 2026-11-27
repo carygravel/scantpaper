@@ -846,8 +846,8 @@ msgstr "Pogreška pri postavljanju opcije:"
 msgid "Must scan facing pages first"
 msgstr "Prvo morate skenirati prednje stranice"
 
-#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
-#: tests/test_0610_dialog_scan_sane.py:1977
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1913
+#: tests/test_0610_dialog_scan_sane.py:1978
 msgid ""
 "Scanner did not deliver the requested 1-bit output; the page has been "
 "converted to black-and-white"
@@ -2000,7 +2000,7 @@ msgstr "Pisanje stranice %(current)i od %(total)i"
 #: savethread.py:498
 #, python-format
 msgid ""
-"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages."
 msgstr ""
 "Procijenjena veličina PDF-a (%.1f GiB) premašuje 2 GiB.  Molimo spremite "
 "manje stranica."

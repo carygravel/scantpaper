@@ -795,8 +795,8 @@ msgstr "设置选项时出错："
 msgid "Must scan facing pages first"
 msgstr "必须先扫描正面"
 
-#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
-#: tests/test_0610_dialog_scan_sane.py:1977
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1913
+#: tests/test_0610_dialog_scan_sane.py:1978
 msgid ""
 "Scanner did not deliver the requested 1-bit output; the page has been "
 "converted to black-and-white"
@@ -1912,7 +1912,7 @@ msgstr "正在写入第 %(current)i 页，共 %(total)i 页"
 #: savethread.py:498
 #, python-format
 msgid ""
-"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages."
 msgstr "估计的 PDF 大小 (%.1f GiB) 超过 2 GiB。  请保存更少的页面。"
 
 #: savethread.py:521 tests/test_savethread.py:1599

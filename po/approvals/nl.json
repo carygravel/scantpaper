@@ -14443,7 +14443,7 @@
     {
       "language": "nl",
       "msgctxt": null,
-      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages.",
+      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages.",
       "msgid_plural": null,
       "translation_sha256": "18dc251e54f7c65e24d4deb5277fdcba299e9bedd4385bf2166f544d9452e21a",
       "provenance_class": "machine-strong",

@@ -934,8 +934,8 @@ msgstr "Грешка при задаване на опцията: "
 msgid "Must scan facing pages first"
 msgstr "Първо трябва да сканирате лицевите страници"
 
-#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1912
-#: tests/test_0610_dialog_scan_sane.py:1977
+#: dialog/sane.py:639 tests/test_0610_dialog_scan_sane.py:1913
+#: tests/test_0610_dialog_scan_sane.py:1978
 msgid ""
 "Scanner did not deliver the requested 1-bit output; the page has been "
 "converted to black-and-white"
@@ -2200,7 +2200,7 @@ msgstr ""
 #: savethread.py:498
 #, python-format, fuzzy
 msgid ""
-"The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+"The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages."
 msgstr ""
 "Очакваният размер на PDF (%.1f GiB) надвишава 2 GiB. Моля, запазете по-малко"
 " страници."

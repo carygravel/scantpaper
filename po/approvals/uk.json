@@ -13911,7 +13911,7 @@
     {
       "language": "uk",
       "msgctxt": null,
-      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages.",
+      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages.",
       "msgid_plural": null,
       "translation_sha256": "e36a798bda697521209fc9eb2f36cbbf837cc55df04e5997ff3c782992bc21dd",
       "provenance_class": "machine-strong",

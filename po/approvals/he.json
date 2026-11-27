@@ -17033,7 +17033,7 @@
     {
       "language": "he",
       "msgctxt": null,
-      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages.",
+      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages.",
       "msgid_plural": null,
       "translation_sha256": "3ff719caeb978a09e4de8632725052533e175363ad5fcb1be2a424c8c04a4f87",
       "provenance_class": "machine-strong",

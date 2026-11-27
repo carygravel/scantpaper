@@ -12154,9 +12154,9 @@
     {
       "language": "en_GB",
       "msgctxt": null,
-      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages.",
+      "msgid": "The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages.",
       "msgid_plural": null,
-      "translation_sha256": "7858e5ac1767a00441af6a766eb4e8940a0ccb855b58609955e2e060c096aa37",
+      "translation_sha256": "d9b2fb386df80574632c5a5c9e9b9c4da97a9374cbff24a371067146be2d79d0",
       "provenance_class": "human-review",
       "evidence": {
         "maintainer_approved": true,
@@ -12165,8 +12165,8 @@
       "evidence_sha256": "337dfd80ab4c246c44c478ed881685444c1cdcc81d22ba032b4a4c5adbaf7b88",
       "model_release": null,
       "deployment": null,
-      "approval_date": "2026-11-07",
-      "msgstr": "The estimated PDF size (%.1f GiB) exceeds 2 GiB.  Please save fewer pages."
+      "approval_date": "2026-11-27",
+      "msgstr": "The estimated PDF size (%.1f GiB) exceeds 2 GiB. Please save fewer pages."
     },
     {
       "language": "en_GB",
