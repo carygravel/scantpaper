@@ -4,7 +4,8 @@
 
 Keeps the OpenSpec CLI that CI installs current and trustworthy: records the
 pinned release in one place, detects newer releases, proves a candidate passes
-this repository's validation before recommending it, and reports that state
+this repository's validation before recommending it, keeps the instruction
+files that release generates in step with the pin, and reports that state
 where the maintainer will see it.
 
 ## Requirements
