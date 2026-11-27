@@ -72,6 +72,15 @@
   the PDF/A conversion, so extracting the text lost the whole word. The
   invisible text layer is now rendered without ligature substitutions, so
   every character keeps its own mapping.
+* Scanning with a bilevel backend default no longer stores the page as
+  grayscale. Some backends default to a bilevel mode such as Lineart (on the
+  fujitsu backend, for instance), but the 1-bit check only considered the
+  modes chosen in the scan dialog, so leaving the default untouched kept the
+  delivered 8-bit frame as grayscale and saved it with **Automatic** as a
+  larger Flate image. The check now uses the mode and depth the scanner
+  actually reports, so such a page is converted to black-and-white and saved
+  as Group 4, exactly like an explicit 1-bit request. A scan option that is
+  missing or inactive still leaves a deeper frame untouched.
 * Bilevel pages saved as Group 4 now keep that encoding on every supported
   distribution. Ghostscript 10.06, shipped by Ubuntu 26.04, rewrote 1-bit
   images as Flate during the PDF/A conversion even though scantpaper asked
