@@ -1,0 +1,9 @@
+# The pinned OpenSpec CLI writes the files under .agents/skills verbatim,
+# with prose lines well over 512 characters. Hand-wrapping them would make
+# dev/check_generated_instructions.py fail, so the source cannot be fixed
+# without diverging from the generated output. Every other shipped markdown
+# file is held to the limit by test_markdown_line_length.py.
+#
+# The leading wildcard matches the character count lintian puts in front of
+# the pointed file path, so the override survives an openspec update.
+scantpaper source: very-long-line-length-in-source-file *[.agents/skills/*]

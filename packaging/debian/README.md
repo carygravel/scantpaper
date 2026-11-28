@@ -104,8 +104,12 @@ system.
 
 `debuild` runs with `--no-lintian` so that only the Debian unstable version
 decides. Debian's lintian is newer than the one on most Ubuntu releases, and a
-tag it reports has to be fixed or overridden in
-`debian/<package>.lintian-overrides`, not suppressed with a workflow flag.
+tag it reports has to be fixed or overridden, not suppressed with a workflow
+flag. Binary tags go in `debian/<package>.lintian-overrides`; source tags go
+in `debian/source/lintian-overrides`. The latter currently scopes the
+`very-long-line-length-in-source-file` override to the generated OpenSpec
+skill files under `.agents/skills`, which cannot be hand-wrapped without
+failing the generated-instructions drift gate.
 
 ## Version scheme
 
