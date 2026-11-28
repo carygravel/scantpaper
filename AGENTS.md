@@ -225,10 +225,15 @@ This document provides essential context for anyone working on this project. Adh
     check locally with `python3 dev/check_openspec.py` (`--json` for the
     machine report). Adopt a reported release by editing
     `dev/openspec-version`, reinstalling as above, running `openspec update`
-    to regenerate the instruction files, and then running every command below.
-    The files `openspec update` writes live in `.agents/skills/` and are
-    tracked, so a bump and the files it changes land in one reviewable commit;
-    `python3 dev/check_generated_instructions.py` fails a push that leaves them
+    to regenerate the instruction files, and then running
+    `python3 dev/check_generated_instructions.py` and every command below.
+    The gate compares the CLI it runs with the pin and exits 2 without a
+    verdict when they differ, so install the pin first. The scheduled check
+    does not replay it against a candidate: a candidate cannot match a tree
+    that is still pinned to the old release, so the drift check is an adoption
+    step, verified after the refresh. The files `openspec update` writes live
+    in `.agents/skills/` and are tracked, so a bump and the files it changes
+    land in one reviewable commit; the gate fails a push that leaves them
     behind. Never edit those files by hand - changing them makes the gate fail
     until `openspec update` restores them.
     Validate with the exact CI command:

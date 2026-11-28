@@ -31,22 +31,28 @@ REQUEST_TIMEOUT = 30
 
 USER_AGENT = "scantpaper-openspec-check/0.1 (+https://github.com/carygravel/scantpaper)"
 
-# The validation commands CI runs, in order. None of ``--specs``,
-# ``--archived`` and ``--changes`` can be combined with another, so they stay
-# separate; the gates read the resulting tree and run last.
+# The commands a candidate release is validated with, in order. None of
+# ``--specs``, ``--archived`` and ``--changes`` can be combined with another,
+# so they stay separate; the archive gate reads the resulting tree and runs
+# last. The drift gate is not here: it compares the tree with the pin, a
+# property a candidate cannot satisfy before adoption, so it runs after
+# ``openspec update`` in ``ADOPT_COMMANDS``.
 DEFAULT_VALIDATE_COMMANDS = (
     "openspec validate --specs --strict --no-interactive",
     "openspec validate --archived --no-interactive",
     "openspec validate --changes --strict --no-interactive",
     "python3 dev/check_change_archive.py",
-    "python3 dev/check_generated_instructions.py",
 )
 
 # Steps that are part of adopting a release but not part of validating one.
 # ``openspec update`` rewrites the generated instruction files, and a
 # candidate validation must leave the repository untouched, so it cannot live
-# in ``DEFAULT_VALIDATE_COMMANDS``.
-ADOPT_COMMANDS = ("openspec update",)
+# in ``DEFAULT_VALIDATE_COMMANDS``. The drift check follows the refresh,
+# because it judges the tree against the pin the refresh just moved.
+ADOPT_COMMANDS = (
+    "openspec update",
+    "python3 dev/check_generated_instructions.py",
+)
 
 CURRENT = "current"
 UPDATE_SAFE = "update-safe"

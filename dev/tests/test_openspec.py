@@ -134,7 +134,6 @@ def test_default_validation_commands_are_the_commands_ci_runs() -> None:
         "openspec validate --archived --no-interactive",
         "openspec validate --changes --strict --no-interactive",
         "python3 dev/check_change_archive.py",
-        "python3 dev/check_generated_instructions.py",
     )
     for command in check.DEFAULT_VALIDATE_COMMANDS:
         assert f"run: {command}" in workflow
@@ -176,21 +175,39 @@ def test_validating_candidate_is_safe_to_upgrade(tmp_path: Path) -> None:
 
 
 def test_adoption_instructions_refresh_the_instruction_files() -> None:
-    """The refresh step is named, before the commands that validate."""
+    """The refresh and the drift check are named before validation."""
     check = _load_check()
-    assert check.ADOPT_COMMANDS == ("openspec update",)
+    assert check.ADOPT_COMMANDS == (
+        "openspec update",
+        "python3 dev/check_generated_instructions.py",
+    )
     assert "openspec update" not in check.DEFAULT_VALIDATE_COMMANDS
+    assert (
+        "python3 dev/check_generated_instructions.py"
+        not in check.DEFAULT_VALIDATE_COMMANDS
+    )
 
 
 def test_issue_body_orders_the_refresh_before_validation(tmp_path: Path) -> None:
-    """A reader regenerates the files before validating them."""
+    """A reader regenerates and verifies the files before validating them."""
     result = _run(tmp_path, "--json")
     assert result.returncode == 0, result.stdout + result.stderr
     body = _payload(result)["markdown"]
     install = body.index("npm install -g @fission-ai/openspec@1.16.0")
     refresh = body.index("openspec update")
+    drift = body.index("python3 dev/check_generated_instructions.py")
     validate = body.index("openspec validate --specs")
-    assert install < refresh < validate
+    assert install < refresh < drift < validate
+
+
+def test_generated_file_drift_is_not_a_candidate_validation() -> None:
+    """A candidate cannot be blocked by a pin-relative file comparison."""
+    check = _load_check()
+    assert (
+        "python3 dev/check_generated_instructions.py"
+        not in check.DEFAULT_VALIDATE_COMMANDS
+    )
+    assert "python3 dev/check_generated_instructions.py" in check.ADOPT_COMMANDS
 
 
 def test_failing_validation_blocks_the_update(tmp_path: Path) -> None:

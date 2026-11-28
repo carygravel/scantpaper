@@ -21,12 +21,17 @@ class ChangeJson(TypedDict):
     action: str
 
 
+PIN = "2.2.0"
+
+
 class ReportJson(TypedDict):
     """The JSON report the gate emits with --json."""
 
     state: str
     changes: list[ChangeJson]
     summary: str
+    installed: str
+    pinned: str
 
 
 def _plan(
@@ -41,11 +46,18 @@ def _plan(
     return payload
 
 
-def _stub(tmp_path: Path, payload: object) -> Path:
-    """Write an executable that prints ``payload`` as JSON."""
+def _stub(tmp_path: Path, payload: object, *, version: str = PIN) -> Path:
+    """Write an executable that answers ``--version`` and the dry-run plan."""
     path = tmp_path / "openspec-stub"
     path.write_text(
-        f"#!/usr/bin/env python3\nimport json\nprint(json.dumps({payload!r}))\n",
+        "#!/usr/bin/env python3\n"
+        "import json, sys\n"
+        f"VERSION = {version!r}\n"
+        f"PAYLOAD = {payload!r}\n"
+        "if sys.argv[1:] == ['--version']:\n"
+        "    print(VERSION)\n"
+        "else:\n"
+        "    print(json.dumps(PAYLOAD))\n",
         encoding="utf-8",
     )
     path.chmod(0o755)
@@ -64,13 +76,50 @@ def _failing_stub(tmp_path: Path) -> Path:
     return path
 
 
+def _bad_plan_stub(tmp_path: Path) -> Path:
+    """Write an executable with a version but a non-JSON plan."""
+    path = tmp_path / "openspec-bad-plan"
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "import sys\n"
+        "if sys.argv[1:] == ['--version']:\n"
+        f"    print({PIN!r})\n"
+        "else:\n"
+        "    print('not json')\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+    return path
+
+
+def _versionless_stub(tmp_path: Path) -> Path:
+    """Write an executable that reports no version."""
+    path = tmp_path / "openspec-no-version"
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "import json, sys\n"
+        "if sys.argv[1:] == ['--version']:\n"
+        "    print('')\n"
+        "else:\n"
+        "    print(json.dumps({'changes': []}))\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+    return path
+
+
 def _run(
     root: Path,
     *flags: str,
     openspec: Path | None = None,
     home: Path | None = None,
+    pin: str | None = PIN + "\n",
 ) -> subprocess.CompletedProcess[str]:
     """Run the gate against a stub CLI with ``root`` as the repository."""
+    if pin is not None:
+        pin_file = root / "dev" / "openspec-version"
+        pin_file.parent.mkdir(parents=True, exist_ok=True)
+        pin_file.write_text(pin, encoding="utf-8")
     args = [
         sys.executable,
         str(CHECK),
@@ -185,11 +234,8 @@ def test_missing_cli_fails_loudly(tmp_path: Path) -> None:
 
 
 def test_invalid_json_fails_loudly(tmp_path: Path) -> None:
-    """Output that is not JSON is not reported as current."""
-    stub = tmp_path / "openspec-bad-json"
-    stub.write_text("#!/usr/bin/env python3\nprint('not json')\n", encoding="utf-8")
-    stub.chmod(0o755)
-    result = _run(tmp_path, openspec=stub)
+    """A plan that is not JSON is not reported as current."""
+    result = _run(tmp_path, openspec=_bad_plan_stub(tmp_path))
     assert result.returncode == 2
     assert "[FAIL]" in result.stderr
 
@@ -221,6 +267,75 @@ def test_json_report_is_current_when_nothing_is_stale(tmp_path: Path) -> None:
     report = _report(result)
     assert report["state"] == "current"
     assert report["changes"] == []
+
+
+def test_matching_cli_version_is_judged(tmp_path: Path) -> None:
+    """A CLI matching the pin produces a current or stale verdict."""
+    result = _run(tmp_path, "--json")
+    assert result.returncode == 0
+    report = _report(result)
+    assert report["state"] == "current"
+    assert report["installed"] == PIN
+    assert report["pinned"] == PIN
+
+
+def test_version_mismatch_is_unchecked(tmp_path: Path) -> None:
+    """A CLI that is not the pin is not judged."""
+    stub = _stub(tmp_path, _plan(), version="2.0.0")
+    result = _run(tmp_path, "--json", openspec=stub)
+    assert result.returncode == 2, result.stdout + result.stderr
+    report = _report(result)
+    assert report["state"] == "unchecked"
+    assert report["changes"] == []
+    assert report["installed"] == "2.0.0"
+    assert report["pinned"] == PIN
+    assert "2.0.0" in report["summary"]
+    assert PIN in report["summary"]
+    assert "npm install -g" in report["summary"]
+
+
+def test_version_mismatch_human_output_does_not_claim_a_verdict(
+    tmp_path: Path,
+) -> None:
+    """The human output names both versions instead of current or stale."""
+    stub = _stub(tmp_path, _plan(), version="2.0.0")
+    result = _run(tmp_path, openspec=stub)
+    assert result.returncode == 2
+    assert "cannot judge" in result.stdout
+    assert "2.0.0" in result.stdout
+    assert PIN in result.stdout
+    assert "current" not in result.stdout
+    assert "stale" not in result.stdout
+
+
+def test_missing_pin_file_fails_loudly(tmp_path: Path) -> None:
+    """Without a pin there is no release to judge."""
+    result = _run(tmp_path, pin=None)
+    assert result.returncode == 2
+    assert "[FAIL]" in result.stderr
+    assert "pin file" in result.stderr
+
+
+def test_empty_pin_file_fails_loudly(tmp_path: Path) -> None:
+    """An empty pin names no release."""
+    result = _run(tmp_path, pin="\n")
+    assert result.returncode == 2
+    assert "[FAIL]" in result.stderr
+    assert "is empty" in result.stderr
+
+
+def test_versionless_cli_fails_loudly(tmp_path: Path) -> None:
+    """A CLI that reports no version cannot be compared with the pin."""
+    result = _run(tmp_path, openspec=_versionless_stub(tmp_path))
+    assert result.returncode == 2
+    assert "[FAIL]" in result.stderr
+    assert "reported no version" in result.stderr
+
+
+def test_default_pin_file_is_under_the_root() -> None:
+    """The default pin is the file the rest of the tooling reads."""
+    module = _load_check()
+    assert str(module.DEFAULT_PIN_FILE) == "dev/openspec-version"
 
 
 def test_default_command_is_the_openspec_cli() -> None:
