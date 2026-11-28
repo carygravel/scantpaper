@@ -21,8 +21,17 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 MAX_LINE_LENGTH = 512
 
-# Directories that are not part of the shipped source package.
-_EXCLUDED_DIRS = {".git", ".opencode", "node_modules", ".pytest_cache"}
+# Directories that are not part of the shipped source package. The agent
+# instruction files under ``.agents`` are written verbatim by the pinned
+# OpenSpec CLI; hand-wrapping a line would make the drift gate fail, so they
+# are out of scope here just as ``.opencode`` is.
+_EXCLUDED_DIRS = {
+    ".git",
+    ".opencode",
+    ".agents",
+    "node_modules",
+    ".pytest_cache",
+}
 
 
 def test_markdown_line_length() -> None:

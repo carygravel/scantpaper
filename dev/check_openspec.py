@@ -33,13 +33,20 @@ USER_AGENT = "scantpaper-openspec-check/0.1 (+https://github.com/carygravel/scan
 
 # The validation commands CI runs, in order. None of ``--specs``,
 # ``--archived`` and ``--changes`` can be combined with another, so they stay
-# separate; the archive gate runs last because it reads the resulting tree.
+# separate; the gates read the resulting tree and run last.
 DEFAULT_VALIDATE_COMMANDS = (
     "openspec validate --specs --strict --no-interactive",
     "openspec validate --archived --no-interactive",
     "openspec validate --changes --strict --no-interactive",
     "python3 dev/check_change_archive.py",
+    "python3 dev/check_generated_instructions.py",
 )
+
+# Steps that are part of adopting a release but not part of validating one.
+# ``openspec update`` rewrites the generated instruction files, and a
+# candidate validation must leave the repository untouched, so it cannot live
+# in ``DEFAULT_VALIDATE_COMMANDS``.
+ADOPT_COMMANDS = ("openspec update",)
 
 CURRENT = "current"
 UPDATE_SAFE = "update-safe"
@@ -260,6 +267,7 @@ def _markdown(
         "```sh",
         f"printf '%s\\n' {latest} > dev/openspec-version",
         f"npm install -g @fission-ai/openspec@{latest}",
+        *ADOPT_COMMANDS,
         *DEFAULT_VALIDATE_COMMANDS,
         "```",
         "",

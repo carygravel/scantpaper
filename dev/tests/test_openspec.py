@@ -134,6 +134,7 @@ def test_default_validation_commands_are_the_commands_ci_runs() -> None:
         "openspec validate --archived --no-interactive",
         "openspec validate --changes --strict --no-interactive",
         "python3 dev/check_change_archive.py",
+        "python3 dev/check_generated_instructions.py",
     )
     for command in check.DEFAULT_VALIDATE_COMMANDS:
         assert f"run: {command}" in workflow
@@ -172,6 +173,24 @@ def test_validating_candidate_is_safe_to_upgrade(tmp_path: Path) -> None:
     assert "Safe to upgrade" in payload["markdown"]
     assert "dev/openspec-version" in payload["markdown"]
     assert "npm install -g @fission-ai/openspec@1.16.0" in payload["markdown"]
+
+
+def test_adoption_instructions_refresh_the_instruction_files() -> None:
+    """The refresh step is named, before the commands that validate."""
+    check = _load_check()
+    assert check.ADOPT_COMMANDS == ("openspec update",)
+    assert "openspec update" not in check.DEFAULT_VALIDATE_COMMANDS
+
+
+def test_issue_body_orders_the_refresh_before_validation(tmp_path: Path) -> None:
+    """A reader regenerates the files before validating them."""
+    result = _run(tmp_path, "--json")
+    assert result.returncode == 0, result.stdout + result.stderr
+    body = _payload(result)["markdown"]
+    install = body.index("npm install -g @fission-ai/openspec@1.16.0")
+    refresh = body.index("openspec update")
+    validate = body.index("openspec validate --specs")
+    assert install < refresh < validate
 
 
 def test_failing_validation_blocks_the_update(tmp_path: Path) -> None:

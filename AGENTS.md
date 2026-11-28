@@ -224,8 +224,13 @@ This document provides essential context for anyone working on this project. Adh
     upgrade" or "blocked"; it closes itself once the pin matches. Run the same
     check locally with `python3 dev/check_openspec.py` (`--json` for the
     machine report). Adopt a reported release by editing
-    `dev/openspec-version`, reinstalling as above, and running every command
-    below.
+    `dev/openspec-version`, reinstalling as above, running `openspec update`
+    to regenerate the instruction files, and then running every command below.
+    The files `openspec update` writes live in `.agents/skills/` and are
+    tracked, so a bump and the files it changes land in one reviewable commit;
+    `python3 dev/check_generated_instructions.py` fails a push that leaves them
+    behind. Never edit those files by hand - changing them makes the gate fail
+    until `openspec update` restores them.
     Validate with the exact CI command:
     `openspec validate --specs --strict --no-interactive`. `--strict`
     turns warnings (such as an over-long requirement) into failures, so
@@ -243,7 +248,7 @@ This document provides essential context for anyone working on this project. Adh
     `python3 dev/check_change_archive.py` gate fails while a completed change
     is still under `openspec/changes/`. Archive the change in the commit that
     ticks its last task. A change held for review keeps its last task unticked
-    until it is ready; do not add an exemption to the gate. Run all four
+    until it is ready; do not add an exemption to the gate. Run all five
     before pushing.
 -   **Lint tools:** The ruff and ty versions CI installs are recorded once, in
     `dev/lint-versions` (one `tool=version` line each); install exactly those
@@ -277,9 +282,10 @@ implementation begins.
     updates, formatting, and small self-contained fixes with an obvious cause
     and a test.
 -   **Workflow:** create a change proposal first (`openspec new change`, or the
-    `/opsx-propose` skill), get it approved, then implement against its tasks
-    (`/opsx-apply-change`) and archive the change in the commit that ticks its
-    last task. Do not start coding with only a verbal description.
--   Exploration and thinking are encouraged at any time (e.g. `/opsx-explore`),
-    but insights must be captured into proposal/spec/design artifacts before
-    they turn into code.
+    `openspec-propose` skill), get it approved, then implement against its
+    tasks (`openspec-apply-change`) and archive the change
+    (`openspec-archive-change`) in the commit that ticks its last task. Do not
+    start coding with only a verbal description.
+-   Exploration and thinking are encouraged at any time (e.g.
+    `openspec-explore`), but insights must be captured into
+    proposal/spec/design artifacts before they turn into code.

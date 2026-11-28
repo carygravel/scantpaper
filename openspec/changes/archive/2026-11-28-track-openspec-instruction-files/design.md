@@ -52,6 +52,13 @@ Consequence: `openspec update` deletes `opsx-apply.md` and its siblings, so
 the slash commands become skills. `AGENTS.md` already refers to them as
 skills, and the migration is verified before it is committed.
 
+Consequence: `test_markdown_line_length` excludes `.agents` alongside
+`.opencode`. That test guards lintian's 512-character limit on files the
+source package ships, and these files are neither shipped nor hand-editable -
+the CLI writes their lines verbatim, so wrapping one would make the drift gate
+fail on every run. Excluding them keeps the two gates from contradicting each
+other; the markdown the repository does author stays covered.
+
 ### D2 - The drift gate is a tested `dev/` script
 
 `dev/check_generated_instructions.py` runs
