@@ -1,4 +1,4 @@
-## 4.0.5 (unreleased)
+## 4.0.5 (2026-11-28)
 
 * Dragging a page in the thumbnail panel to reorder it no longer crashes the
   application. The crash was a native segfault in GTK's drop-highlight
