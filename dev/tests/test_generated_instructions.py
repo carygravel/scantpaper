@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -64,7 +65,10 @@ def _failing_stub(tmp_path: Path) -> Path:
 
 
 def _run(
-    root: Path, *flags: str, openspec: Path | None = None
+    root: Path,
+    *flags: str,
+    openspec: Path | None = None,
+    home: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run the gate against a stub CLI with ``root`` as the repository."""
     args = [
@@ -76,7 +80,10 @@ def _run(
         str(root),
     ]
     args += list(flags)
-    return subprocess.run(args, capture_output=True, text=True, check=False)
+    env = None
+    if home is not None:
+        env = {**os.environ, "HOME": str(home)}
+    return subprocess.run(args, capture_output=True, text=True, check=False, env=env)
 
 
 def _report(result: subprocess.CompletedProcess[str]) -> ReportJson:
@@ -101,6 +108,29 @@ def test_outside_repository_path_is_ignored(tmp_path: Path) -> None:
     result = _run(tmp_path, openspec=stub)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "current" in result.stdout
+
+
+def test_home_relative_path_is_ignored(tmp_path: Path) -> None:
+    """A clean HOME reports the CLI config with a leading tilde."""
+    root = tmp_path / "repo"
+    home = tmp_path / "home"
+    root.mkdir()
+    home.mkdir()
+    stub = _stub(root, _plan(("~/.config/openspec/config.json", "add")))
+    result = _run(root, openspec=stub, home=home)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "current" in result.stdout
+
+
+def test_home_inside_the_repository_is_still_checked(tmp_path: Path) -> None:
+    """Expanding a tilde must not become a blanket skip of home paths."""
+    root = tmp_path / "repo"
+    home = root / "home"
+    home.mkdir(parents=True)
+    stub = _stub(root, _plan(("~/page.md", "add")))
+    result = _run(root, openspec=stub, home=home)
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "~/page.md" in result.stdout
 
 
 def test_several_changes_are_all_named(tmp_path: Path) -> None:

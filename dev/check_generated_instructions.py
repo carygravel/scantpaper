@@ -95,14 +95,17 @@ def read_plan(command: str, root: Path) -> list[PlannedChange]:
 def in_repository(root: Path, changes: list[PlannedChange]) -> list[PlannedChange]:
     """Return the changes that land inside ``root``.
 
-    A relative path is resolved against ``root`` rather than the process
-    working directory, because the CLI runs with ``root`` as its cwd. Absolute
-    paths are compared as they are.
+    The CLI reports a path in three forms: absolute, relative to ``root``, or
+    relative to the home directory with a leading ``~``. A relative path is
+    resolved against ``root`` rather than the process working directory,
+    because the CLI runs with ``root`` as its cwd. A ``~`` path is expanded
+    against the home directory before comparison, so the CLI's own
+    configuration is not mistaken for a repository file.
     """
     resolved_root = root.resolve()
     inside = []
     for change in changes:
-        path = Path(change.path)
+        path = Path(change.path).expanduser()
         if not path.is_absolute():
             path = resolved_root / path
         if path.resolve().is_relative_to(resolved_root):
