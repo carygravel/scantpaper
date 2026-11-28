@@ -52,9 +52,10 @@ versions together.
 
 ### Requirement: A candidate release is validated before it is recommended
 
-Before recommending an update, the check SHALL run the same validation
-commands that CI runs against the candidate release, and SHALL classify the
-outcome as safe or blocked.
+The check SHALL run a candidate release's spec, archive and change validation
+rules against the repository, and SHALL classify the outcome as safe or
+blocked. It SHALL NOT require the repository's generated instruction files to
+match a candidate that is not the pin; that check runs after adoption.
 
 #### Scenario: Candidate passes validation
 
@@ -74,12 +75,19 @@ outcome as safe or blocked.
 - **THEN** it reads the repository only, and no change, spec, or pin file is
   written
 
+#### Scenario: Generated files are not judged against the candidate
+
+- **WHEN** the pin names an older release and the candidate would generate
+  different instruction files
+- **THEN** the check SHALL NOT classify the update as blocked for that reason
+
 ### Requirement: Update state is reported as one living issue
 
 The scheduled check SHALL keep at most one open issue for OpenSpec updates,
 labelled `openspec-update`, whose title states whether the candidate is safe
 to upgrade or blocked. Its adoption instructions SHALL name every step of a
-bump, including regenerating the instruction files the CLI generates.
+bump, including regenerating the instruction files and then verifying them
+with the drift check.
 
 #### Scenario: An update is available
 
@@ -92,6 +100,7 @@ bump, including regenerating the instruction files the CLI generates.
 
 - **WHEN** the issue states how to adopt the reported release
 - **THEN** the instructions SHALL include regenerating the instruction files
+- **AND** they SHALL include running the drift check after the refresh
 - **AND** they SHALL include running the validation commands CI runs
 
 #### Scenario: The state changes between runs
@@ -153,7 +162,9 @@ an issue, while a detected update SHALL exit successfully.
 The repository SHALL keep the instruction files the pinned CLI generates, and
 a push SHALL fail when regenerating them with that CLI would change a file
 inside the repository. A change to the CLI's own global configuration SHALL
-NOT fail the push.
+NOT fail the push. The check SHALL judge only the release named by the pin:
+when the CLI it runs is a different release, it SHALL report that it cannot
+judge, naming both versions.
 
 #### Scenario: A pin bump without refreshed files fails
 
@@ -173,3 +184,17 @@ NOT fail the push.
 - **WHEN** regeneration would only add or update the CLI's own configuration
   outside the repository
 - **THEN** the push SHALL NOT fail
+
+#### Scenario: A home-relative global configuration is ignored
+
+- **WHEN** regeneration would only add or update a path the CLI reports
+  relative to the home directory
+- **THEN** the check SHALL resolve it against the home directory
+- **AND** the push SHALL NOT fail
+
+#### Scenario: The installed CLI is not the pin
+
+- **WHEN** the check runs a CLI whose version differs from the pin
+- **THEN** it SHALL exit non-zero
+- **AND** it SHALL NOT report the files as current or stale
+- **AND** it SHALL name the installed and pinned versions

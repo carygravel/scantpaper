@@ -76,13 +76,11 @@
       a clean home.
 - [x] 5.3 Run the gate with a different CLI on `PATH`; confirm exit 2, a
       message naming both versions, and no `current` or `stale` claim.
-- [ ] 5.4 Commit the bug fix on its own and confirm `test.yml` is green on
-      `latest`, `resolute` and `stonking`; commit the rest and confirm the
-      same jobs stay green.
 
 ## Workflow follow-up
 
-- Archive this change in the commit that ticks its last task.
+- Push the commits and confirm `test.yml` is green on `latest`, `resolute` and
+  `stonking`.
 - After the next OpenSpec release ships, confirm the scheduled check files an
   `openspec-update` issue whose adoption block lists the refresh and the drift
   check in that order.
